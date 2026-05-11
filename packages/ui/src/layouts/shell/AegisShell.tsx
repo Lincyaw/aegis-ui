@@ -15,13 +15,14 @@ import {
   useRoutes,
 } from 'react-router-dom';
 
+import { useAuth } from '../../auth';
 import { PageWrapper } from '../PageWrapper';
 import './AegisShell.css';
 import { BreadcrumbBar } from './BreadcrumbBar';
 import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
 import { ActiveAppContext } from './activeAppContext';
-import type { AegisApp, AegisShellProps } from './types';
+import type { AegisApp, AegisShellProps, AegisUser } from './types';
 
 /**
  * Top-level layout: top header, two-section sidebar, breadcrumb bar, and
@@ -42,8 +43,32 @@ export function AegisShell({
   onAppSwitch,
 }: AegisShellProps): ReactElement {
   const { pathname } = useLocation();
+  const auth = useAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [inlineSlot, setInlineSlot] = useState<HTMLDivElement | null>(null);
+
+  const resolvedUser = useMemo<AegisUser | undefined>(() => {
+    if (user) {
+      return user;
+    }
+    if (auth.status !== 'authenticated' || !auth.user) {
+      return undefined;
+    }
+    return {
+      name: auth.user.name,
+      menu: auth.signOut
+        ? [
+            {
+              key: 'sign-out',
+              label: 'Sign out',
+              onClick: () => {
+                void auth.signOut?.();
+              },
+            },
+          ]
+        : [],
+    };
+  }, [user, auth]);
 
   const activeApp = useMemo(
     () => findActiveApp(apps, pathname),
@@ -137,7 +162,7 @@ export function AegisShell({
         apps={apps}
         activeAppId={activeApp?.id}
         onAppSwitch={onAppSwitch}
-        user={user}
+        user={resolvedUser}
         headerCenter={headerCenter}
         headerActions={headerActions}
         onMobileMenuToggle={toggleMobileNav}

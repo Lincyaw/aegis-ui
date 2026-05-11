@@ -18,7 +18,9 @@ import {
   DropdownMenu,
   EmptyState,
   ErrorState,
+  ForgotPasswordForm,
   FormRow,
+  LoginForm,
   type KeyValueItem,
   KeyValueList,
   MetricCard,
@@ -29,6 +31,7 @@ import {
   PanelTitle,
   PasswordField,
   ProjectSelector,
+  RegisterForm,
   Tabs as RosettaTabs,
   SectionDivider,
   SettingsSection,
@@ -1961,6 +1964,69 @@ function App() {
                   Sign in
                 </Button>
               </AuthLayout>
+            </div>
+          </Specimen>
+        </div>
+
+        <SectionDivider>LoginForm</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='default · with remember + forgot' span={3}>
+            <div className='gallery__form-frame'>
+              <LoginForm
+                onSubmit={(values) => {
+                  console.warn('LoginForm submit', values);
+                }}
+                onForgotPassword={() => {
+                  console.warn('LoginForm forgot password');
+                }}
+              />
+            </div>
+          </Specimen>
+          <Specimen caption='submitting' span={3}>
+            <div className='gallery__form-frame'>
+              <LoginForm onSubmit={() => undefined} submitting />
+            </div>
+          </Specimen>
+          <Specimen caption='with error' span={3}>
+            <div className='gallery__form-frame'>
+              <LoginForm
+                onSubmit={() => undefined}
+                error='Invalid email or password.'
+              />
+            </div>
+          </Specimen>
+        </div>
+
+        <SectionDivider>RegisterForm</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='default' span={3}>
+            <div className='gallery__form-frame'>
+              <RegisterForm
+                onSubmit={(values) => {
+                  console.warn('RegisterForm submit', values);
+                }}
+              />
+            </div>
+          </Specimen>
+        </div>
+
+        <SectionDivider>ForgotPasswordForm</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='default' span={3}>
+            <div className='gallery__form-frame'>
+              <ForgotPasswordForm
+                onSubmit={(values) => {
+                  console.warn('ForgotPasswordForm submit', values);
+                }}
+              />
+            </div>
+          </Specimen>
+          <Specimen caption='success state' span={3}>
+            <div className='gallery__form-frame'>
+              <ForgotPasswordForm
+                onSubmit={() => undefined}
+                success="Check your inbox — we've sent a reset link."
+              />
             </div>
           </Specimen>
         </div>

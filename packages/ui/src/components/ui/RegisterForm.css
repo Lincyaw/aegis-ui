@@ -1,0 +1,42 @@
+.aegis-registerform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-family: var(--font-ui);
+}
+
+.aegis-registerform__error {
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-warning-soft);
+  border: var(--size-hairline) solid var(--accent-warning);
+  border-radius: var(--radius-md);
+  color: var(--accent-warning);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+}
+
+.aegis-registerform__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--size-control-base);
+  padding: 0 var(--space-4);
+  border: var(--size-hairline) solid var(--bg-inverted);
+  border-radius: var(--radius-md);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: opacity var(--motion-fast);
+}
+
+.aegis-registerform__submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.aegis-registerform__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

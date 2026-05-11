@@ -1107,3 +1107,12 @@ select.gallery__demo-input:focus {
   min-height: 0;
   padding: var(--space-6) var(--space-4);
 }
+
+.gallery__form-frame {
+  width: 100%;
+  max-width: 24rem;
+  padding: var(--space-5);
+  border: var(--size-hairline) dashed var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}

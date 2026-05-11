@@ -1,0 +1,81 @@
+.aegis-loginform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-family: var(--font-ui);
+}
+
+.aegis-loginform__error {
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-warning-soft);
+  border: var(--size-hairline) solid var(--accent-warning);
+  border-radius: var(--radius-md);
+  color: var(--accent-warning);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+}
+
+.aegis-loginform__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.aegis-loginform__remember {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.aegis-loginform__remember input[type='checkbox'] {
+  accent-color: var(--text-main);
+}
+
+.aegis-loginform__forgot {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.aegis-loginform__forgot:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.aegis-loginform__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--size-control-base);
+  padding: 0 var(--space-4);
+  border: var(--size-hairline) solid var(--bg-inverted);
+  border-radius: var(--radius-md);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition:
+    opacity var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.aegis-loginform__submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.aegis-loginform__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
