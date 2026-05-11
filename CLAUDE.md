@@ -211,59 +211,27 @@ unless explicitly asked by a human.
 
 ## First principle — fix the library before the page
 
-**This is the most important rule in this repo. Read it before every task.**
+When a page-level UI defect surfaces, **the default response is to fix
+the primitive in `packages/ui`, not to patch the page.** Pages compose
+primitives; if the primitive is wrong, every page that uses it is
+wrong, and page-level workarounds accumulate as silent tech debt.
 
-When a page-level problem surfaces (overflow, broken dark mode, raw antd
-component with no theme, ad-hoc CSS to "make it look right"), the
-**default response is to fix the primitive in `packages/ui`, not to
-patch the page.** Pages compose primitives — if the primitive is wrong,
-every page that uses it is wrong, and the patches accumulate as silent
-tech debt.
-
-**Lessons learned (do not repeat):**
-
-1. **DataTable shipped without proper width / truncate / resize controls.**
-   Action columns overflowed the panel because the only knob was
-   `width: string` on a `table-layout: auto` table, and every cell was
-   forced into a single `overflow: hidden; max-width: 0` mould that
-   clipped buttons and chips. Fix was in the primitive (per-column
-   `width` / `minWidth` / `truncate` / `resizable`, `<colgroup>` +
-   `table-layout: fixed`, inner cell wrapper), not in the page. Any
-   page-level CSS workaround would have masked the bug for every future
-   table.
-
-2. **`aegisTheme` was a single hardcoded light palette.** The dark-mode
-   toggle existed (`ThemeProvider` + `data-theme='dark'` on root), but
-   `aegisTheme` baked `colorText:#000`, `colorBgContainer:#fff`,
-   `Drawer.colorBgElevated:#fff` etc. Applying `darkAlgorithm` couldn't
-   undo our explicit overrides → black "Edit" button on dark surface,
-   white Modal on dark page. The fix was `getAegisTheme(scheme)` that
-   returns scheme-aware tokens; the page didn't need to change. Any
-   "just hardcode dark colours on this Modal" patch would have been
-   another scar.
-
-**The rule (read before writing code):**
+Apply this concretely:
 
 1. When you see a UI defect, ask first: _is this a primitive bug?_
-   Search for the primitive's source in `packages/ui/src/components/ui/`
-   or `packages/ui/src/layouts/` before you touch the page.
-2. If the primitive is missing a knob, **add the knob to the
-   primitive**, update its specimen in `Gallery.tsx`, and verify it in
-   both themes. Then use it from the page.
+   Look in `packages/ui/src/components/ui/` or `packages/ui/src/layouts/`
+   before editing the page.
+2. If the primitive is missing a knob, add the knob to the primitive,
+   update its specimen in `Gallery.tsx`, and verify in both themes. Then
+   use it from the page.
 3. Never use raw antd components without going through `getAegisTheme`.
-   If a token is missing for an antd component in dark mode, add it to
+   If a token is missing for an antd component in dark mode, add it in
    `antdTheme.ts` so every page benefits.
-4. Never use raw hex / px / ms in component CSS — reference a token
-   from `theme.css`. If a token is missing, add it there first. See
-   "Design conventions — enforced" below.
-5. Test every UI change in **both light and dark**, at **desktop and
-   ≤768 px**. A primitive is "done" only after the gallery renders
-   cleanly in all four combinations.
-6. User says "fix this page" → fix the primitive first, then the page
-   automatically gets the fix. Resist the temptation to ship the
-   page-level patch and "come back to the primitive later." You won't.
+4. Test every UI change in **light + dark** at **desktop + ≤768 px**.
+   A primitive is "done" only after the gallery renders cleanly in all
+   four combinations.
 
-When in doubt: **invest in the foundation, not the symptom.**
+When in doubt: invest in the foundation, not the symptom.
 
 ## Doing tasks
 
@@ -291,3 +259,85 @@ When in doubt: **invest in the foundation, not the symptom.**
   skills directory.
 - Published to GitHub Packages under `@OperationsPAI` scope. `.npmrc`
   reads `${NPM_TOKEN}` for both install and publish.
+
+<!-- auto-harness:begin -->
+
+## Core principles
+
+Three axioms govern all work. Fall back to these when a skill's instructions don't cover a situation:
+
+1. **Quality over quantity** — a few things done well beats many done poorly. Applies to tests, observations, skills, code, docs, experiments, ideas. If you can't say why each item exists, there are too many.
+2. **Surface problems early** — fail fast, validate before investing, outline before drafting. Never hide complexity to make something look simpler.
+3. **Deliberate execution** — every decision traceable to a reason. Understand before acting; validate manually before automating; measure before optimizing; consider removing before adding.
+
+Full text: `/home/ddq/.claude/plugins/cache/autoharness/autoharness/1.1.3/references/principles.md`.
+
+## North-star targets
+
+1. **Design language coherence across sub-apps** (Primary) — every page in `apps/console/src/apps/*` is composed only of `@OperationsPAI/aegis-ui` primitives + `PageWrapper`; no page-local re-implementation of primitives, no raw antd component without going through `getAegisTheme`.
+   Measure: agent review on every page-touching change. Compare new pages against the gallery's primitive inventory and the "First principle" section.
+   Mechanism: **agent**. Baseline: unmeasured.
+
+2. **Gallery specimen coverage = 100%** — every export from `packages/ui/src/components/ui/index.ts` has a live specimen in `apps/console/src/Gallery.tsx`.
+   Measure: `diff <(grep -oE "^export.*from './[A-Z][A-Za-z]+'" packages/ui/src/components/ui/index.ts | sed -E "s/.*'\.\/([A-Z][A-Za-z]+)'.*/\1/" | sort -u) <(grep -oE "<SectionDivider>[^<]+" apps/console/src/Gallery.tsx | sed -E 's/<SectionDivider>//' | awk '{print $1}' | sort -u)`
+   Mechanism: **script** (diff above) + **agent** confirmation. Baseline: TBD on first run.
+
+3. **All CI gates green** — `pnpm check` exits 0 (type-check + lint + lint:css + format:check + build).
+   Measure: `pnpm check`
+   Mechanism: **script**. Baseline: green at commit `a75324a`.
+
+4. **Token discipline** — zero raw hex / raw px / raw ms inside `packages/ui/src/components/**/*.css` and `packages/ui/src/layouts/**/*.css` (`packages/ui/src/styles/**` is the token home and is excluded).
+   Measure: `grep -REn --include='*.css' '#[0-9a-fA-F]{3,8}\b|\b[0-9]+px\b|\b[0-9]+ms\b' packages/ui/src/components packages/ui/src/layouts`
+   Mechanism: **script**. Baseline: TBD.
+
+5. **Justified `eslint-disable` only** — every `eslint-disable` line is followed by a justification comment on the next line, per CLAUDE.md strict-lint policy.
+   Measure: `grep -REn 'eslint-disable' packages/ui/src apps/console/src` and audit each hit has a justification above/below.
+   Mechanism: **script** (locate) + **agent** (judge justification). Baseline: TBD.
+
+6. **Dual-theme + responsive parity** — every primitive specimen and sub-app page renders cleanly in **light + dark** at **desktop + ≤768 px**.
+   Measure: open `pnpm dev` → toggle `ThemeToggle` → resize.
+   Mechanism: **agent** (browser check on UI work). Baseline: parity restored at commit `a75324a` (`getAegisTheme(scheme)` landed).
+
+Secondary tiebreaker: **fix the primitive before the page** — see "First principle — fix the library before the page" section above. When a target conflicts with this principle, the principle wins.
+
+## Dev-loop stages
+
+| Stage        | Command                                                                                               | Notes                                                               |
+| ------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Type check   | `pnpm type-check`                                                                                     | Run after every TS change                                           |
+| Lint         | `pnpm lint`                                                                                           | ESLint `--max-warnings 0` enforced                                  |
+| Lint CSS     | `pnpm lint:css`                                                                                       | Stylelint over `packages/ui/src/**/*.css`                           |
+| Format       | `pnpm format:check`                                                                                   | Prettier — fix with `pnpm format`                                   |
+| Build        | `pnpm build`                                                                                          | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css       |
+| Full gate    | `pnpm check`                                                                                          | type-check + lint + lint:css + format:check; run before commit + PR |
+| Dev server   | `pnpm dev`                                                                                            | apps/console at `:3100` — use for dual-theme + responsive checks    |
+| Measure NS#2 | see north-star target 2                                                                               | Gallery specimen coverage                                           |
+| Measure NS#4 | see north-star target 4                                                                               | Token discipline grep                                               |
+| Bundle size  | `pnpm -F @OperationsPAI/aegis-ui build && du -b packages/ui/dist/index.js packages/ui/dist/style.css` | Compare to baseline before/after primitive changes                  |
+
+No unit-test runner is configured. Visual verification in `pnpm dev` is the testing substrate for primitives; type-check + lint + build catch correctness regressions.
+
+## Iteration tracking
+
+- Progress log: not used — short in-session loops, work is tracked via git commits + the AskUserQuestion / plan-mode flow.
+- Decision log: not used — `long-horizon` not activated. Significant decisions land in commit messages or in this file.
+
+## Project conventions
+
+(See the hand-written sections above for full detail. Conventions enforced by this configuration:)
+
+- **Primitive-before-page**: see "First principle — fix the library before the page".
+- **Token-first CSS**: no raw hex / px / ms in component or layout CSS — reference `--*` tokens from `packages/ui/src/styles/theme.css`. Add a token there before using a new value.
+- **Every primitive ships a Gallery specimen**: PR is incomplete without one.
+- **Antd via `getAegisTheme(scheme)`**: never use raw antd directly without the scheme-aware ConfigProvider; if a token is missing for an antd component in dark mode, fix `antdTheme.ts`, not the page.
+- **Conventional commits**: enforced by commitlint via husky pre-commit. `--no-verify` only with explicit user approval.
+- **Strict lint never relaxed**: fix code, don't disable rules. Per-line `eslint-disable` requires a justification comment.
+- **Cross-repo coupling**: changing a primitive's API requires coordinating the bump in `AegisLab-frontend` (the portal consumer).
+
+## Active skills
+
+- `/autoharness:guide` — read-only methodology briefing at session start
+- `/autoharness:dev-loop` — full implement → test → measure → keep/discard cycle, aligned with `pnpm check`
+- `/autoharness:north-star` — define and track the targets above
+
+<!-- auto-harness:end -->
