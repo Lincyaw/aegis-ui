@@ -36,6 +36,7 @@
   --bg-warn-soft: #fffbeb;
 
   /* ── Radius ──────────────────────────────────────────────────────── */
+  --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 16px;
@@ -91,10 +92,31 @@
   --motion-fast: 200ms ease;
   --motion-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 
+  /* ── Component sizing (icons, controls, avatars) ─────────────────── */
+  --size-icon-sm: 12px;
+  --size-icon-base: 16px;
+  --size-icon-lg: 20px;
+  --size-control-sm: 24px;
+  --size-control-base: 32px;
+  --size-control-lg: 40px;
+  --size-avatar-sm: 24px;
+  --size-avatar-base: 32px;
+  --size-avatar-lg: 40px;
+  --size-hairline: 1px;
+
+  /* ── Breakpoints (Tailwind-aligned, for documentation + JS) ──────── */
+  /* CSS @media rules can't reference custom properties, so these are  */
+  /* the canonical values to use in media queries throughout the lib. */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+
   /* ── Layout ──────────────────────────────────────────────────────── */
   --header-height: 56px;
   --sidebar-width-expanded: 240px;
   --sidebar-width-collapsed: 64px;
+  --page-max-width: 1200px;
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;
