@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 import { UserOutlined } from '@ant-design/icons';
 import { BrowserRouter } from 'react-router-dom';
 
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { AegisShell } from '../layouts/shell';
 import { containersApp } from './apps/containers';
 import { datasetsApp } from './apps/datasets';
@@ -15,6 +16,7 @@ export function PlaygroundApp(): ReactElement {
         brand={{ name: 'aegis-ui', href: '/gallery' }}
         apps={[galleryApp, containersApp, datasetsApp]}
         fallbackPath="/gallery"
+        headerActions={<ThemeToggle />}
         user={{
           name: 'demo',
           avatar: <UserOutlined />,

@@ -35,6 +35,10 @@
   --ink-warn: #d97706; /* amber-600 — logs & cautions, NOT anomaly red */
   --bg-warn-soft: #fffbeb;
 
+  /* ── Scrollbar ───────────────────────────────────────────────────── */
+  --scrollbar-thumb: rgba(0, 0, 0, 0.18);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.32);
+
   /* ── Radius ──────────────────────────────────────────────────────── */
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -125,6 +129,42 @@
   --z-modal: 1050;
   --z-popover: 1060;
   --z-tooltip: 1070;
+}
+
+/* ── Dark theme — overrides only the colour + shadow tokens ────────── *
+ * Activated by `[data-theme='dark']` on the root element. The                  *
+ * ThemeProvider sets this from localStorage / prefers-color-scheme.            *
+ * Everything else (spacing, radius, fonts, sizes, motion, z-index) is shared. */
+[data-theme='dark'] {
+  /* Surface */
+  --bg-page: #0d0d10;
+  --bg-panel: #18181b;
+  --bg-inverted: #f5f5f7;
+  --bg-muted: #26262a;
+  --bg-warning-soft: #2a1218;
+
+  /* Ink */
+  --text-main: #f5f5f7;
+  --text-muted: #a1a1aa;
+  --text-on-inverted: #0d0d10;
+  --text-on-inverted-muted: #52525b;
+
+  /* Borders */
+  --border-hairline: rgba(255, 255, 255, 0.1);
+  --border-strong: var(--text-main);
+
+  /* Semantic accents */
+  --accent-warning: #fb7185; /* lighter pink-red — readable on dark ink */
+  --accent-warning-soft: var(--bg-warning-soft);
+
+  /* Secondary semantic */
+  --ink-warn: #fbbf24; /* amber-400 — brighter for dark surfaces */
+  --bg-warn-soft: #2a200a;
+
+  /* Shadow + scrollbar */
+  --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.18);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.32);
 }
 
 /* ── Page entrance (subtle — never steals attention) ───────────────── */

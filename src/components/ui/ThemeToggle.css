@@ -1,0 +1,36 @@
+.aegis-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-base);
+  height: var(--size-control-base);
+  padding: 0;
+  background: transparent;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.aegis-theme-toggle:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-theme-toggle:active {
+  transform: scale(0.96);
+}
+
+.aegis-theme-toggle__glyph {
+  display: inline-flex;
+  width: var(--size-icon-base);
+  height: var(--size-icon-base);
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}

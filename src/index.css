@@ -61,11 +61,11 @@ samp {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--scrollbar-thumb);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.32);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Focus — keyboard-only ring, ink-coloured. */

@@ -25,3 +25,9 @@ export type {
 
 // AntD ConfigProvider theme mapped to aegis-ui tokens.
 export { aegisTheme } from './theme/antdTheme';
+
+// Theme system (light + dark + system, persisted to localStorage).
+export { ThemeProvider } from './theme/ThemeProvider';
+export type { ThemeProviderProps } from './theme/ThemeProvider';
+export { useTheme } from './theme/useTheme';
+export type { ThemeMode, ThemePreference } from './theme/themeContext';

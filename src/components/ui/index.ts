@@ -47,3 +47,4 @@ export { PageHeader } from './PageHeader';
 export { SettingsSection } from './SettingsSection';
 export { FormRow } from './FormRow';
 export { DangerZone } from './DangerZone';
+export { ThemeToggle } from './ThemeToggle';
