@@ -4,6 +4,8 @@ import { AegisShell, ThemeToggle } from '@OperationsPAI/aegis-ui';
 import { UserOutlined } from '@ant-design/icons';
 import { BrowserRouter } from 'react-router-dom';
 
+import { containersApp } from './apps/containers';
+import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';
 import { portalApp } from './apps/portal';
 
@@ -12,7 +14,7 @@ export function ConsoleApp(): ReactElement {
     <BrowserRouter>
       <AegisShell
         brand={{ name: 'AegisLab', href: '/' }}
-        apps={[portalApp, galleryApp]}
+        apps={[portalApp, containersApp, datasetsApp, galleryApp]}
         fallbackPath="/"
         headerActions={<ThemeToggle />}
         user={{

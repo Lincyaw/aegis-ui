@@ -137,7 +137,7 @@ module.exports = {
       },
     },
     {
-      files: ['src/main.tsx'],
+      files: ['src/main.tsx', 'src/apps/**/index.tsx', 'src/apps/**/store.tsx'],
       rules: {
         'react-refresh/only-export-components': 'off',
       },
