@@ -102,20 +102,32 @@ export function AegisShell({
     return <div>{element}</div>;
   }
 
-  const shellClass = mobileNavOpen
-    ? 'aegis-shell aegis-shell--mobile-nav-open'
-    : 'aegis-shell';
+  const hasSidebar = Boolean(
+    activeApp?.sidebar && activeApp.sidebar.length > 0,
+  );
+
+  const shellClass = [
+    'aegis-shell',
+    hasSidebar ? 'aegis-shell--with-sidebar' : 'aegis-shell--no-sidebar',
+    mobileNavOpen ? 'aegis-shell--mobile-nav-open' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={shellClass}>
       <TopHeader
         brand={brand}
+        apps={apps}
+        activeAppId={activeApp?.id}
+        onAppSwitch={onAppSwitch}
         user={user}
         headerCenter={headerCenter}
         headerActions={headerActions}
         onMobileMenuToggle={toggleMobileNav}
+        showMobileMenu={hasSidebar}
       />
-      <Sidebar apps={apps} activeApp={activeApp} onAppSwitch={onAppSwitch} />
+      {hasSidebar && <Sidebar activeApp={activeApp} />}
       <button
         type="button"
         className="aegis-shell__backdrop"

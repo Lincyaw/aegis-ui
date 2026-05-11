@@ -1,13 +1,23 @@
 .aegis-shell {
   display: grid;
-  grid-template-columns: var(--sidebar-width-expanded) 1fr;
   grid-template-rows: var(--header-height) 1fr;
-  grid-template-areas:
-    'header header'
-    'sidebar main';
   min-height: 100vh;
   background: var(--bg-page);
   color: var(--text-main);
+}
+
+.aegis-shell--with-sidebar {
+  grid-template-columns: var(--sidebar-width-expanded) 1fr;
+  grid-template-areas:
+    'header header'
+    'sidebar main';
+}
+
+.aegis-shell--no-sidebar {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'header'
+    'main';
 }
 
 .aegis-shell__header {
@@ -15,25 +25,145 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  display: grid;
-  grid-template-columns: var(--sidebar-width-expanded) 1fr auto;
+  display: flex;
   align-items: center;
   background: var(--bg-panel);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-shell__header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  height: 100%;
+}
+
+.aegis-shell--with-sidebar .aegis-shell__header-left {
+  width: var(--sidebar-width-expanded);
+  border-right: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-shell__brand {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 0 var(--space-4);
   font-family: var(--font-brand);
   font-weight: var(--fw-semibold);
   font-size: var(--fs-16);
   color: var(--text-main);
   text-decoration: none;
   height: 100%;
-  border-right: var(--size-hairline) solid var(--border-hairline);
+}
+
+/* 9-dot launcher button — the global app switcher trigger. */
+.aegis-shell__app-launcher {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-base);
+  height: var(--size-control-base);
+  padding: 0;
+  background: transparent;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.aegis-shell__app-launcher:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-emphasis);
+}
+
+.aegis-shell__app-launcher:active {
+  transform: scale(0.96);
+}
+
+.aegis-shell__app-launcher-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+/* App grid inside the launcher modal. */
+.aegis-shell__app-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.aegis-shell__app-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    transform var(--motion-fast);
+  font-family: var(--font-ui);
+  color: var(--text-main);
+}
+
+.aegis-shell__app-card:hover {
+  border-color: var(--border-emphasis);
+  background: var(--bg-muted);
+}
+
+.aegis-shell__app-card:active {
+  transform: scale(0.99);
+}
+
+.aegis-shell__app-card--active {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  border-color: var(--bg-inverted);
+}
+
+.aegis-shell__app-card--active:hover {
+  background: var(--bg-inverted);
+}
+
+.aegis-shell__app-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-base);
+  height: var(--size-control-base);
+  font-size: var(--fs-18);
+  flex-shrink: 0;
+}
+
+.aegis-shell__app-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.aegis-shell__app-card-label {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}
+
+.aegis-shell__app-card-desc {
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.aegis-shell__app-card--active .aegis-shell__app-card-desc {
+  color: var(--text-on-inverted-muted);
 }
 
 .aegis-shell__brand-logo {
@@ -43,9 +173,11 @@
 }
 
 .aegis-shell__header-center {
+  flex: 1;
   display: flex;
   align-items: center;
   padding: 0 var(--space-4);
+  min-width: 0;
 }
 
 .aegis-shell__header-right {
@@ -53,6 +185,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: 0 var(--space-4);
+  margin-left: auto;
 }
 
 .aegis-shell__sidebar {
@@ -202,24 +335,20 @@
 }
 
 @media (max-width: 768px) {
-  .aegis-shell {
+  .aegis-shell--with-sidebar {
     grid-template-columns: 1fr;
     grid-template-areas:
       'header'
       'main';
   }
 
-  .aegis-shell__header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: 0 var(--space-3);
+  .aegis-shell--with-sidebar .aegis-shell__header-left {
+    width: auto;
+    border-right: none;
   }
 
   .aegis-shell__brand {
     flex: 1;
-    border-right: none;
-    padding: 0;
   }
 
   .aegis-shell__menu-toggle {

@@ -6,23 +6,33 @@ import {
   type DropdownItem,
   DropdownMenu,
 } from '../../components/ui/DropdownMenu';
-import type { AegisBrand, AegisUser } from './types';
+import { AppSwitcher } from './AppSwitcher';
+import type { AegisApp, AegisBrand, AegisUser } from './types';
 
 interface TopHeaderProps {
   brand: AegisBrand;
+  apps: AegisApp[];
+  activeAppId?: string;
+  onAppSwitch?: (appId: string) => void;
   user?: AegisUser;
   headerCenter?: ReactNode;
   headerActions?: ReactNode;
   /** Fired by the mobile hamburger; the shell owns the open state. */
   onMobileMenuToggle?: () => void;
+  /** Whether to render the mobile hamburger at all (only when sidebar exists). */
+  showMobileMenu?: boolean;
 }
 
 export function TopHeader({
   brand,
+  apps,
+  activeAppId,
+  onAppSwitch,
   user,
   headerCenter,
   headerActions,
   onMobileMenuToggle,
+  showMobileMenu,
 }: TopHeaderProps): ReactElement {
   const brandInner = (
     <>
@@ -35,25 +45,32 @@ export function TopHeader({
 
   return (
     <header className="aegis-shell__header">
-      {onMobileMenuToggle && (
-        <button
-          type="button"
-          className="aegis-shell__menu-toggle"
-          onClick={onMobileMenuToggle}
-          aria-label="Open navigation"
-        >
-          <span className="aegis-shell__menu-toggle-glyph" aria-hidden="true">
-            ☰
-          </span>
-        </button>
-      )}
-      {brand.href ? (
-        <Link to={brand.href} className="aegis-shell__brand">
-          {brandInner}
-        </Link>
-      ) : (
-        <span className="aegis-shell__brand">{brandInner}</span>
-      )}
+      <div className="aegis-shell__header-left">
+        {showMobileMenu && onMobileMenuToggle && (
+          <button
+            type="button"
+            className="aegis-shell__menu-toggle"
+            onClick={onMobileMenuToggle}
+            aria-label="Open navigation"
+          >
+            <span className="aegis-shell__menu-toggle-glyph" aria-hidden="true">
+              ☰
+            </span>
+          </button>
+        )}
+        <AppSwitcher
+          apps={apps}
+          activeAppId={activeAppId}
+          onAppSwitch={onAppSwitch}
+        />
+        {brand.href ? (
+          <Link to={brand.href} className="aegis-shell__brand">
+            {brandInner}
+          </Link>
+        ) : (
+          <span className="aegis-shell__brand">{brandInner}</span>
+        )}
+      </div>
       <div className="aegis-shell__header-center">{headerCenter}</div>
       <div className="aegis-shell__header-right">
         {headerActions}
