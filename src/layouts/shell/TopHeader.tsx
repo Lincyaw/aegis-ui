@@ -13,6 +13,8 @@ interface TopHeaderProps {
   user?: AegisUser;
   headerCenter?: ReactNode;
   headerActions?: ReactNode;
+  /** Fired by the mobile hamburger; the shell owns the open state. */
+  onMobileMenuToggle?: () => void;
 }
 
 export function TopHeader({
@@ -20,6 +22,7 @@ export function TopHeader({
   user,
   headerCenter,
   headerActions,
+  onMobileMenuToggle,
 }: TopHeaderProps): ReactElement {
   const brandInner = (
     <>
@@ -32,6 +35,18 @@ export function TopHeader({
 
   return (
     <header className="aegis-shell__header">
+      {onMobileMenuToggle && (
+        <button
+          type="button"
+          className="aegis-shell__menu-toggle"
+          onClick={onMobileMenuToggle}
+          aria-label="Open navigation"
+        >
+          <span className="aegis-shell__menu-toggle-glyph" aria-hidden="true">
+            ☰
+          </span>
+        </button>
+      )}
       {brand.href ? (
         <Link to={brand.href} className="aegis-shell__brand">
           {brandInner}

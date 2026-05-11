@@ -1,4 +1,10 @@
-import { type ReactElement, useMemo } from 'react';
+import {
+  type ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import {
   Navigate,
@@ -33,10 +39,22 @@ export function AegisShell({
   onAppSwitch,
 }: AegisShellProps): ReactElement {
   const { pathname } = useLocation();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const activeApp = useMemo(
     () => findActiveApp(apps, pathname),
     [apps, pathname],
+  );
+
+  // Auto-close the drawer on navigation.
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
+  const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
+  const toggleMobileNav = useCallback(
+    () => setMobileNavOpen((open) => !open),
+    [],
   );
 
   const routeTree = useMemo<RouteObject[]>(() => {
@@ -84,15 +102,26 @@ export function AegisShell({
     return <div>{element}</div>;
   }
 
+  const shellClass = mobileNavOpen
+    ? 'aegis-shell aegis-shell--mobile-nav-open'
+    : 'aegis-shell';
+
   return (
-    <div className="aegis-shell">
+    <div className={shellClass}>
       <TopHeader
         brand={brand}
         user={user}
         headerCenter={headerCenter}
         headerActions={headerActions}
+        onMobileMenuToggle={toggleMobileNav}
       />
       <Sidebar apps={apps} activeApp={activeApp} onAppSwitch={onAppSwitch} />
+      <button
+        type="button"
+        className="aegis-shell__backdrop"
+        aria-label="Close navigation"
+        onClick={closeMobileNav}
+      />
       <main className="aegis-shell__main">
         <BreadcrumbBar apps={apps} activeApp={activeApp} />
         <div className="aegis-shell__content">{element}</div>

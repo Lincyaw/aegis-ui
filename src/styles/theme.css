@@ -43,6 +43,9 @@
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.32);
 
+  /* ── Overlays ────────────────────────────────────────────────────── */
+  --bg-backdrop: rgba(0, 0, 0, 0.4);
+
   /* ── Radius ──────────────────────────────────────────────────────── */
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -184,6 +187,7 @@
   --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.5);
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.32);
+  --bg-backdrop: rgba(0, 0, 0, 0.6);
 }
 
 /* ── Page entrance (subtle — never steals attention) ───────────────── */

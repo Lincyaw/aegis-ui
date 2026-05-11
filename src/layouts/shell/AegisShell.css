@@ -137,6 +137,61 @@
   flex-direction: column;
 }
 
+/* Mobile menu trigger — only renders on small screens. */
+.aegis-shell__menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-base);
+  height: var(--size-control-base);
+  padding: 0;
+  background: transparent;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background var(--motion-fast);
+}
+
+.aegis-shell__menu-toggle:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-shell__menu-toggle:active {
+  transform: scale(0.96);
+}
+
+.aegis-shell__menu-toggle-glyph {
+  display: inline-flex;
+  width: var(--size-icon-base);
+  height: var(--size-icon-base);
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-16);
+  line-height: 1;
+}
+
+/* Backdrop only visible when the mobile nav is open. */
+.aegis-shell__backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sticky);
+  background: var(--bg-backdrop);
+  animation: aegis-shell-backdrop-in var(--motion-fast) forwards;
+  border: none;
+  cursor: pointer;
+}
+
+@keyframes aegis-shell-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .aegis-shell__breadcrumb {
   padding: var(--space-3) var(--space-6) 0;
 }
@@ -155,15 +210,52 @@
   }
 
   .aegis-shell__header {
-    grid-template-columns: 1fr auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
   }
 
   .aegis-shell__brand {
+    flex: 1;
     border-right: none;
+    padding: 0;
+  }
+
+  .aegis-shell__menu-toggle {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .aegis-shell__header-center {
+    /* Hide the center slot on mobile — it usually holds a global search */
+    /* that needs room and is more useful as a separate page. */
+    display: none;
+  }
+
+  .aegis-shell__header-right {
+    flex-shrink: 0;
+    padding: 0;
   }
 
   .aegis-shell__sidebar {
-    display: none;
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    width: min(80vw, 18rem);
+    z-index: var(--z-modal);
+    transform: translateX(-100%);
+    transition: transform var(--motion-base);
+    box-shadow: var(--shadow-popover);
+  }
+
+  .aegis-shell--mobile-nav-open .aegis-shell__sidebar {
+    transform: translateX(0);
+  }
+
+  .aegis-shell--mobile-nav-open .aegis-shell__backdrop {
+    display: block;
   }
 
   .aegis-shell__breadcrumb {
