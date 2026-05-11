@@ -132,6 +132,9 @@ importers:
 
   apps/portal:
     dependencies:
+      '@OperationsPAI/aegis-ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@OperationsPAI/portal':
         specifier: ^1.3.0
         version: 1.3.0

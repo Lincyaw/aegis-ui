@@ -54,7 +54,7 @@ import {
   type TerminalLine,
   type ToolCallData,
   type TrajectoryStepData,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 import './Gallery.css';
 
 /* ── Static specimen data ──────────────────────────────────────────── */

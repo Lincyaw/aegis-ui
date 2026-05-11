@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { EmptyState, PageHeader, Panel } from '@/components/ui';
+import { EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
 
 export default function ExecutionDetail() {
   const { projectId, executionId } = useParams<{

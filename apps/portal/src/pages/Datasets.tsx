@@ -6,7 +6,7 @@ import {
   MonoValue,
   PageHeader,
   Panel,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const DEMO_DATASETS = [
   { id: 'ds-001', name: 'catalog-faults', versions: 3 },

@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { EmptyState, PageHeader, Panel } from '@/components/ui';
+import { EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
 
 export default function ExecutionCreate() {
   const { projectId } = useParams<{ projectId: string }>();

@@ -1,9 +1,8 @@
-/* AegisLab — Rosetta design system entry. */
+/* AegisLab — Rosetta design system entry.
+ * Tokens + reset + scrollbar + focus ring come from @OperationsPAI/aegis-ui
+ * (loaded via main.tsx). Portal-local overrides live below.
+ */
 
-/* 1. Tokens (CSS custom properties + keyframes). */
-@import './styles/theme.css';
-
-/* 2. Reset + base. */
 *,
 *::before,
 *::after {

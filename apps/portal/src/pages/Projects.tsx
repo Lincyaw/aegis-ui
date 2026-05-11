@@ -7,7 +7,7 @@ import {
   PageHeader,
   Panel,
   StatusDot,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const DEMO_PROJECTS = [
   { id: 'proj-catalog', name: 'catalog-service', status: 'active', injections: 12 },

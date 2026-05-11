@@ -25,6 +25,7 @@
     "@fontsource-variable/geist": "^5.2.8",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@OperationsPAI/aegis-ui": "workspace:*",
     "@OperationsPAI/portal": "^1.3.0",
     "@rcabench/client": "npm:@OperationsPAI/client@^1.2.0",
     "@tanstack/react-query": "^5.28.0",

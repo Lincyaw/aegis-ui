@@ -6,7 +6,7 @@ import {
   MonoValue,
   PageHeader,
   Panel,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const DEMO_LABELS = [
   { id: 'lbl-001', name: 'critical', color: '#E11D48' },

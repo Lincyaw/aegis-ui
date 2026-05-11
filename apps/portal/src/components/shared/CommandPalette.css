@@ -3,8 +3,8 @@
 }
 
 .command-palette-search {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
 .command-palette-list {
@@ -13,18 +13,18 @@
 }
 
 .command-palette-item {
-  padding: 10px 16px !important;
+  padding: var(--space-2) var(--space-4) !important;
   cursor: pointer;
-  transition: background-color 150ms ease;
+  transition: background-color var(--motion-fast);
 }
 
 .command-palette-item:hover {
-  background-color: var(--color-bg-hover);
+  background-color: var(--bg-muted);
 }
 
 .command-palette-footer {
-  padding: 8px 16px;
-  border-top: 1px solid var(--color-border);
-  font-size: 12px;
-  color: var(--color-text-secondary);
+  padding: var(--space-2) var(--space-4);
+  border-top: var(--size-hairline) solid var(--border-hairline);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
 }

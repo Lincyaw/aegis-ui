@@ -5,7 +5,7 @@ import {
   MonoValue,
   PageHeader,
   Panel,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const DEMO_TRACES = [
   { id: 'trace-001', name: 'GET /products', duration: '2.84s' },

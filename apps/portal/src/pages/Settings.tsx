@@ -8,7 +8,7 @@ import {
   FormRow,
   DangerZone,
   MonoValue,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 import './Settings.css';
 
 interface SettingsNavItem {

@@ -7,7 +7,7 @@ import {
   PageHeader,
   Panel,
   StatusDot,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const DEMO_EXECUTIONS = [
   { id: 'exec-001', name: 'rca-algo-v1', status: 'completed' },

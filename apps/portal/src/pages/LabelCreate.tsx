@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-import { EmptyState, PageHeader, Panel } from '@/components/ui';
+import { EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
 
 export default function LabelCreate() {
   const navigate = useNavigate();

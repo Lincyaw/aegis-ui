@@ -16,7 +16,7 @@ import {
   TrajectoryTimeline,
   type TerminalLine,
   type TrajectoryStepData,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 import {
   projectsApi,
   tasksApi,

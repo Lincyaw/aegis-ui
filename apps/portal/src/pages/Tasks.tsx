@@ -7,7 +7,7 @@ import {
   PageHeader,
   Panel,
   StatusDot,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const DEMO_TASKS = [
   { id: 'task-001', name: 'build-datapack', state: 'Completed' },

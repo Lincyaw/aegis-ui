@@ -34,7 +34,7 @@ import {
   type DropdownItem,
   ProjectSelector,
   type ProjectOption,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 import { projectsApi, type ProjectProjectResp } from '@/api/portal-client';
 import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';

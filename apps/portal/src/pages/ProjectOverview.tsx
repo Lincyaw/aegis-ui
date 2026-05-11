@@ -7,7 +7,7 @@ import {
   PageHeader,
   Panel,
   PanelTitle,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const QUICK_LINKS = [
   { label: 'Injections', to: 'injections', count: 12 },

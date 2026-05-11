@@ -5,7 +5,7 @@ import {
   EmptyState,
   PageHeader,
   Panel,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 export default function Observations() {
   const { projectId } = useParams<{ projectId: string }>();

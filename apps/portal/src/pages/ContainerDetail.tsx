@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { Chip, EmptyState, PageHeader, Panel } from '@/components/ui';
+import { Chip, EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
 
 export default function ContainerDetail() {
   const { containerId } = useParams<{ containerId: string }>();

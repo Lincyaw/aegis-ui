@@ -7,7 +7,7 @@ import {
   PageHeader,
   Panel,
   StatusDot,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const DEMO_INJECTIONS = [
   { id: 'inj-001', name: 'clock-drift-01', status: 'completed' },

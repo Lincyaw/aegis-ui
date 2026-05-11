@@ -7,7 +7,7 @@ import {
   PageHeader,
   Panel,
   StatusDot,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
 
 const DEMO_CONTAINERS = [
   { id: 'ctn-catalog', name: 'catalog-service', status: 'active', type: 'benchmark' },
