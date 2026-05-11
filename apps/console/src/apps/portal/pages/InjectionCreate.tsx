@@ -1,21 +1,26 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
-import { EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
+import {
+  EmptyState,
+  PageHeader,
+  Panel,
+  useAppNavigate,
+} from '@OperationsPAI/aegis-ui';
 
 export default function InjectionCreate() {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="New Injection"
+        title='New Injection'
         description={`Submit a fault injection for project ${projectId}.`}
         action={
           <button
-            type="button"
-            className="settings-demo-danger-btn"
-            onClick={() => navigate(`/projects/${projectId}/injections`)}
+            type='button'
+            className='settings-demo-danger-btn'
+            onClick={() => navigate(`projects/${projectId}/injections`)}
           >
             Cancel
           </button>
@@ -23,8 +28,8 @@ export default function InjectionCreate() {
       />
       <Panel>
         <EmptyState
-          title="Injection form"
-          description="Fault injection submission form will appear here."
+          title='Injection form'
+          description='Fault injection submission form will appear here.'
         />
       </Panel>
     </div>

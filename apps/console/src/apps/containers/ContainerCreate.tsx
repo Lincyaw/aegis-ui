@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { FormRow, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
 import { Button, Form, Input, InputNumber, Select } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
 
 import type { ContainerStatus } from './data';
 import { useContainers } from './store';
@@ -34,21 +34,21 @@ export function ContainerCreate(): ReactElement {
   return (
     <>
       <PageHeader
-        title="New container"
-        description="Register a demo workload. Validation and submit are local only."
-        action={<Link to="..">← Cancel</Link>}
+        title='New container'
+        description='Register a demo workload. Validation and submit are local only.'
+        action={<Link to='..'>← Cancel</Link>}
       />
       <Panel>
         <Form<FormShape>
           form={form}
-          layout="vertical"
+          layout='vertical'
           onFinish={onFinish}
           initialValues={{ status: 'running', cpu: 0.2, memMb: 256 }}
           style={{ padding: 'var(--space-4)' }}
         >
-          <FormRow label="Name" description="Unique workload identifier.">
+          <FormRow label='Name' description='Unique workload identifier.'>
             <Form.Item
-              name="name"
+              name='name'
               rules={[
                 { required: true, message: 'Required' },
                 {
@@ -58,22 +58,22 @@ export function ContainerCreate(): ReactElement {
               ]}
               noStyle
             >
-              <Input placeholder="my-workload" />
+              <Input placeholder='my-workload' />
             </Form.Item>
           </FormRow>
 
-          <FormRow label="Image" description="OCI image reference.">
+          <FormRow label='Image' description='OCI image reference.'>
             <Form.Item
-              name="image"
+              name='image'
               rules={[{ required: true, message: 'Required' }]}
               noStyle
             >
-              <Input placeholder="opspai/example:1.0.0" />
+              <Input placeholder='opspai/example:1.0.0' />
             </Form.Item>
           </FormRow>
 
-          <FormRow label="Initial status">
-            <Form.Item name="status" noStyle>
+          <FormRow label='Initial status'>
+            <Form.Item name='status' noStyle>
               <Select
                 options={[
                   { value: 'running', label: 'Running' },
@@ -85,20 +85,20 @@ export function ContainerCreate(): ReactElement {
             </Form.Item>
           </FormRow>
 
-          <FormRow label="CPU request" description="Cores (0–4).">
-            <Form.Item name="cpu" noStyle>
+          <FormRow label='CPU request' description='Cores (0–4).'>
+            <Form.Item name='cpu' noStyle>
               <InputNumber min={0} max={4} step={0.1} />
             </Form.Item>
           </FormRow>
 
-          <FormRow label="Memory request" description="Megabytes (0–4096).">
-            <Form.Item name="memMb" noStyle>
+          <FormRow label='Memory request' description='Megabytes (0–4096).'>
+            <Form.Item name='memMb' noStyle>
               <InputNumber min={0} max={4096} step={64} />
             </Form.Item>
           </FormRow>
 
           <div style={{ paddingTop: 'var(--space-4)' }}>
-            <Button type="primary" htmlType="submit">
+            <Button type='primary' htmlType='submit'>
               Create
             </Button>
           </div>

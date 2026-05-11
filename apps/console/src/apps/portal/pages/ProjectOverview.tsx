@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
   Chip,
@@ -7,6 +7,7 @@ import {
   PageHeader,
   Panel,
   PanelTitle,
+  useAppNavigate,
 } from '@OperationsPAI/aegis-ui';
 
 const QUICK_LINKS = [
@@ -18,33 +19,31 @@ const QUICK_LINKS = [
 
 export default function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="Overview"
+        title='Overview'
         description={`Project summary for ${projectId}.`}
-        action={<Chip tone="ink">Edit project</Chip>}
+        action={<Chip tone='ink'>Edit project</Chip>}
       />
 
-      <div className="page-overview-grid">
+      <div className='page-overview-grid'>
         {QUICK_LINKS.map((link) => (
           <MetricCard
             key={link.to}
             label={link.label}
             value={link.count}
-            onClick={() => navigate(`/projects/${projectId}/${link.to}`)}
+            onClick={() => navigate(`projects/${projectId}/${link.to}`)}
           />
         ))}
       </div>
 
-      <Panel
-        title={<PanelTitle size="base">Recent Activity</PanelTitle>}
-      >
+      <Panel title={<PanelTitle size='base'>Recent Activity</PanelTitle>}>
         <EmptyState
-          title="Project overview"
-          description="Project metrics and activity feed will appear here."
+          title='Project overview'
+          description='Project metrics and activity feed will appear here.'
         />
       </Panel>
     </div>

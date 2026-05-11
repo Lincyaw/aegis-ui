@@ -1,10 +1,11 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
   EmptyState,
   MonoValue,
   PageHeader,
   Panel,
+  useAppNavigate,
 } from '@OperationsPAI/aegis-ui';
 
 const DEMO_TRACES = [
@@ -15,41 +16,41 @@ const DEMO_TRACES = [
 
 export default function Traces() {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="Traces"
+        title='Traces'
         description={`Distributed traces for project ${projectId}.`}
       />
       <Panel>
         {DEMO_TRACES.length === 0 ? (
           <EmptyState
-            title="No traces"
-            description="Traces will appear here once data is collected."
+            title='No traces'
+            description='Traces will appear here once data is collected.'
           />
         ) : (
-          <div className="page-table">
-            <div className="page-table__head">
-              <span className="page-table__cell">Operation</span>
-              <span className="page-table__cell">ID</span>
-              <span className="page-table__cell">Duration</span>
+          <div className='page-table'>
+            <div className='page-table__head'>
+              <span className='page-table__cell'>Operation</span>
+              <span className='page-table__cell'>ID</span>
+              <span className='page-table__cell'>Duration</span>
             </div>
             {DEMO_TRACES.map((t) => (
               <div
                 key={t.id}
-                className="page-table__row"
-                onClick={() => navigate(`/projects/${projectId}/traces/${t.id}`)}
+                className='page-table__row'
+                onClick={() => navigate(`projects/${projectId}/traces/${t.id}`)}
               >
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{t.name}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{t.name}</MonoValue>
                 </span>
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{t.id}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{t.id}</MonoValue>
                 </span>
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{t.duration}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{t.duration}</MonoValue>
                 </span>
               </div>
             ))}

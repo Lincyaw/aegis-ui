@@ -9,15 +9,15 @@ export default function InjectionDetail() {
   }>();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
         title={`Injection ${injectionId}`}
         description={`Fault injection detail for project ${projectId}.`}
       />
       <Panel>
         <EmptyState
-          title="Injection detail"
-          description="Injection metadata, datapack files, and results will appear here."
+          title='Injection detail'
+          description='Injection metadata, datapack files, and results will appear here.'
         />
       </Panel>
     </div>

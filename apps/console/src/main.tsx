@@ -1,13 +1,12 @@
 import { StrictMode } from 'react';
-
 import { createRoot } from 'react-dom/client';
 
-import { ThemeProvider, aegisTheme, useTheme } from '@OperationsPAI/aegis-ui';
-import '@OperationsPAI/aegis-ui/style.css';
 import '@fontsource-variable/geist';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
-import { ConfigProvider, theme as antdTheme } from 'antd';
+import { aegisTheme, ThemeProvider, useTheme } from '@OperationsPAI/aegis-ui';
+import '@OperationsPAI/aegis-ui/style.css';
+import { theme as antdTheme, ConfigProvider } from 'antd';
 
 import { ConsoleApp } from './App';
 
@@ -32,5 +31,5 @@ createRoot(container).render(
     <ThemeProvider>
       <ThemedRoot />
     </ThemeProvider>
-  </StrictMode>,
+  </StrictMode>
 );

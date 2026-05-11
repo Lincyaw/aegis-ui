@@ -1,5 +1,3 @@
-import { useNavigate } from 'react-router-dom';
-
 import {
   Chip,
   EmptyState,
@@ -7,6 +5,7 @@ import {
   PageHeader,
   Panel,
   StatusDot,
+  useAppNavigate,
 } from '@OperationsPAI/aegis-ui';
 
 const DEMO_TASKS = [
@@ -16,43 +15,41 @@ const DEMO_TASKS = [
 ];
 
 export default function Tasks() {
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="Tasks"
-        description="Background jobs and task queue across all projects."
-        action={
-          <Chip tone="ink">View queue</Chip>
-        }
+        title='Tasks'
+        description='Background jobs and task queue across all projects.'
+        action={<Chip tone='ink'>View queue</Chip>}
       />
       <Panel>
         {DEMO_TASKS.length === 0 ? (
           <EmptyState
-            title="No tasks"
-            description="Tasks will appear here when background jobs are triggered."
+            title='No tasks'
+            description='Tasks will appear here when background jobs are triggered.'
           />
         ) : (
-          <div className="page-table">
-            <div className="page-table__head">
-              <span className="page-table__cell">Name</span>
-              <span className="page-table__cell">ID</span>
-              <span className="page-table__cell">State</span>
+          <div className='page-table'>
+            <div className='page-table__head'>
+              <span className='page-table__cell'>Name</span>
+              <span className='page-table__cell'>ID</span>
+              <span className='page-table__cell'>State</span>
             </div>
             {DEMO_TASKS.map((t) => (
               <div
                 key={t.id}
-                className="page-table__row"
-                onClick={() => navigate(`/tasks/${t.id}`)}
+                className='page-table__row'
+                onClick={() => navigate(`tasks/${t.id}`)}
               >
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{t.name}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{t.name}</MonoValue>
                 </span>
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{t.id}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{t.id}</MonoValue>
                 </span>
-                <span className="page-table__cell">
+                <span className='page-table__cell'>
                   <StatusDot
                     size={6}
                     pulse={t.state === 'Running'}

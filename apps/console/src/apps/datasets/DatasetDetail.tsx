@@ -1,4 +1,5 @@
 import { type ReactElement, useMemo } from 'react';
+import { Link, Navigate, useParams } from 'react-router-dom';
 
 import {
   Chip,
@@ -9,7 +10,6 @@ import {
   PageHeader,
   Panel,
 } from '@OperationsPAI/aegis-ui';
-import { Link, Navigate, useParams } from 'react-router-dom';
 
 import { useDatasets } from './store';
 
@@ -40,7 +40,7 @@ export function DatasetDetail(): ReactElement {
   }, [ds]);
 
   if (!ds) {
-    return <Navigate to=".." replace />;
+    return <Navigate to='..' replace />;
   }
 
   return (
@@ -48,7 +48,7 @@ export function DatasetDetail(): ReactElement {
       <PageHeader
         title={ds.name}
         description={ds.description}
-        action={<Link to="..">← Back</Link>}
+        action={<Link to='..'>← Back</Link>}
       />
 
       <div
@@ -58,16 +58,16 @@ export function DatasetDetail(): ReactElement {
           gap: 'var(--space-3)',
         }}
       >
-        <MetricCard label="Rows" value={ds.rows.toLocaleString()} />
-        <MetricCard label="Size" value={`${ds.sizeMb} MB`} />
-        <MetricCard label="Format" value={ds.format.toUpperCase()} />
+        <MetricCard label='Rows' value={ds.rows.toLocaleString()} />
+        <MetricCard label='Size' value={`${ds.sizeMb} MB`} />
+        <MetricCard label='Format' value={ds.format.toUpperCase()} />
       </div>
 
-      <Panel title="Metadata">
+      <Panel title='Metadata'>
         <KeyValueList
           items={[
-            { k: 'id', v: <MonoValue size="sm">{ds.id}</MonoValue> },
-            { k: 'format', v: <MonoValue size="sm">{ds.format}</MonoValue> },
+            { k: 'id', v: <MonoValue size='sm'>{ds.id}</MonoValue> },
+            { k: 'format', v: <MonoValue size='sm'>{ds.format}</MonoValue> },
             { k: 'rows', v: ds.rows.toLocaleString() },
             { k: 'sizeMb', v: `${ds.sizeMb} MB` },
             { k: 'updatedAt', v: new Date(ds.updatedAt).toLocaleString() },
@@ -78,7 +78,7 @@ export function DatasetDetail(): ReactElement {
                   style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}
                 >
                   {ds.tags.map((t) => (
-                    <Chip key={t} tone="default">
+                    <Chip key={t} tone='default'>
                       {t}
                     </Chip>
                   ))}
@@ -89,8 +89,8 @@ export function DatasetDetail(): ReactElement {
         />
       </Panel>
 
-      <Panel title="Preview">
-        <CodeBlock code={previewSnippet} language="text" />
+      <Panel title='Preview'>
+        <CodeBlock code={previewSnippet} language='text' />
       </Panel>
     </>
   );

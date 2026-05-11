@@ -1,4 +1,5 @@
 import { type ReactElement, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
   Chip,
@@ -7,7 +8,6 @@ import {
   Panel,
   StatusDot,
 } from '@OperationsPAI/aegis-ui';
-import { Link } from 'react-router-dom';
 
 import type { ContainerStatus, DemoContainer } from './data';
 import { useContainers } from './store';
@@ -22,7 +22,7 @@ const STATUS_TABS: Array<{ value: ContainerStatus | 'all'; label: string }> = [
 export function ContainerList(): ReactElement {
   const { containers, query } = useContainers();
   const [statusFilter, setStatusFilter] = useState<ContainerStatus | 'all'>(
-    'all',
+    'all'
   );
 
   const filtered = useMemo(() => {
@@ -86,7 +86,7 @@ export function ContainerList(): ReactElement {
           {
             key: 'image',
             header: 'Image',
-            render: (row) => <MonoValue size="sm">{row.image}</MonoValue>,
+            render: (row) => <MonoValue size='sm'>{row.image}</MonoValue>,
           },
           {
             key: 'cpu',
@@ -100,16 +100,16 @@ export function ContainerList(): ReactElement {
             align: 'right',
             render: (row) =>
               row.memMb === 0 ? (
-                <MonoValue size="sm">—</MonoValue>
+                <MonoValue size='sm'>—</MonoValue>
               ) : (
-                <MonoValue size="sm">{`${row.memMb} MB`}</MonoValue>
+                <MonoValue size='sm'>{`${row.memMb} MB`}</MonoValue>
               ),
           },
         ]}
         data={filtered}
         rowKey={(row) => row.id}
-        emptyTitle="No containers"
-        emptyDescription="Nothing matches the current filter."
+        emptyTitle='No containers'
+        emptyDescription='Nothing matches the current filter.'
       />
     </Panel>
   );

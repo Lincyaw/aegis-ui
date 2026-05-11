@@ -6,16 +6,16 @@ export default function DatasetDetail() {
   const { datasetId } = useParams<{ datasetId: string }>();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
         title={`Dataset ${datasetId}`}
-        description="Dataset versions and associated injections."
-        action={<Chip tone="ink">+ New version</Chip>}
+        description='Dataset versions and associated injections.'
+        action={<Chip tone='ink'>+ New version</Chip>}
       />
       <Panel>
         <EmptyState
-          title="Dataset detail"
-          description="Dataset metadata, version history, and injection mappings will appear here."
+          title='Dataset detail'
+          description='Dataset metadata, version history, and injection mappings will appear here.'
         />
       </Panel>
     </div>

@@ -1,6 +1,11 @@
 import { type ReactNode, useState } from 'react';
 
 import {
+  LogoutOutlined,
+  SettingOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import {
   Avatar,
   BlastRadiusBar,
   Breadcrumb,
@@ -30,18 +35,13 @@ import {
   Terminal,
   type TerminalLine,
   TimeDisplay,
+  Toolbar,
   ToolCallCard,
   type ToolCallData,
-  Toolbar,
   TrajectoryStep,
   type TrajectoryStepData,
   TrajectoryTimeline,
 } from '@OperationsPAI/aegis-ui';
-import {
-  LogoutOutlined,
-  SettingOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
 import {
   Button,
   Form,
@@ -272,7 +272,7 @@ const TABLE_COLUMNS = [
     dataIndex: 'id',
     key: 'id',
     render: (v: string) => (
-      <MonoValue size="sm" weight="regular">
+      <MonoValue size='sm' weight='regular'>
         {v}
       </MonoValue>
     ),
@@ -284,7 +284,7 @@ const TABLE_COLUMNS = [
     dataIndex: 'duration',
     key: 'duration',
     render: (v: string) => (
-      <MonoValue size="sm" weight="regular">
+      <MonoValue size='sm' weight='regular'>
         {v}
       </MonoValue>
     ),
@@ -312,8 +312,8 @@ interface SpecimenProps {
 function Specimen({ caption, children, span = 1 }: SpecimenProps) {
   return (
     <div className={`gallery__specimen gallery__specimen--span-${span}`}>
-      <div className="gallery__specimen-stage">{children}</div>
-      <MetricLabel as="div" size="xs" className="gallery__specimen-caption">
+      <div className='gallery__specimen-stage'>{children}</div>
+      <MetricLabel as='div' size='xs' className='gallery__specimen-caption'>
         {caption}
       </MetricLabel>
     </div>
@@ -363,11 +363,11 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'Sticky anchor: id, fault chips, time window, status, run-by — drives every panel below.',
         status: 'Composition',
         preview: (
-          <div className="mock-exp-header">
+          <div className='mock-exp-header'>
             <StatusDot pulse />
-            <Chip tone="ink">INJ-29F1</Chip>
-            <span className="mock-exp-header__title">kafka loadgen drift</span>
-            <MonoValue size="sm" weight="regular">
+            <Chip tone='ink'>INJ-29F1</Chip>
+            <span className='mock-exp-header__title'>kafka loadgen drift</span>
+            <MonoValue size='sm' weight='regular'>
               14:22 → 14:36
             </MonoValue>
             <Chip>EU-WEST-01</Chip>
@@ -379,12 +379,12 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'Compact tile for list pages: id, fault chips, blast bar, status — the row in a multi-experiment list.',
         status: 'Composition',
         preview: (
-          <div className="mock-summary">
-            <div className="mock-summary__head">
-              <PanelTitle size="sm">INJ-29F1</PanelTitle>
-              <Chip tone="ink">running</Chip>
+          <div className='mock-summary'>
+            <div className='mock-summary__head'>
+              <PanelTitle size='sm'>INJ-29F1</PanelTitle>
+              <Chip tone='ink'>running</Chip>
             </div>
-            <div className="mock-summary__chips">
+            <div className='mock-summary__chips'>
               <Chip>NetworkLatency</Chip>
               <Chip>order-svc</Chip>
             </div>
@@ -398,13 +398,13 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps AntD',
         reference: REF_ANTD,
         preview: (
-          <div className="mock-tabs">
-            <span className="mock-tabs__tab">Spec</span>
-            <span className="mock-tabs__tab mock-tabs__tab--active">Logs</span>
-            <span className="mock-tabs__tab">Traces</span>
-            <span className="mock-tabs__tab">Metrics</span>
-            <span className="mock-tabs__tab">Code</span>
-            <span className="mock-tabs__tab">RCA</span>
+          <div className='mock-tabs'>
+            <span className='mock-tabs__tab'>Spec</span>
+            <span className='mock-tabs__tab mock-tabs__tab--active'>Logs</span>
+            <span className='mock-tabs__tab'>Traces</span>
+            <span className='mock-tabs__tab'>Metrics</span>
+            <span className='mock-tabs__tab'>Code</span>
+            <span className='mock-tabs__tab'>RCA</span>
           </div>
         ),
       },
@@ -414,11 +414,11 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps AntD',
         reference: REF_ANTD,
         preview: (
-          <div className="mock-drawer">
-            <div className="mock-drawer__page">main view</div>
-            <div className="mock-drawer__sheet">
-              <MetricLabel size="xs">→ inspect</MetricLabel>
-              <MonoValue size="sm" weight="regular">
+          <div className='mock-drawer'>
+            <div className='mock-drawer__page'>main view</div>
+            <div className='mock-drawer__sheet'>
+              <MetricLabel size='xs'>→ inspect</MetricLabel>
+              <MonoValue size='sm' weight='regular'>
                 span-a3f29
               </MonoValue>
             </div>
@@ -434,12 +434,12 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
           url: 'https://github.com/bvaughn/react-resizable-panels',
         },
         preview: (
-          <div className="mock-split">
-            <div className="mock-split__pane">chart</div>
-            <div className="mock-split__handle" aria-hidden>
+          <div className='mock-split'>
+            <div className='mock-split__pane'>chart</div>
+            <div className='mock-split__handle' aria-hidden>
               ⋮
             </div>
-            <div className="mock-split__pane">logs</div>
+            <div className='mock-split__pane'>logs</div>
           </div>
         ),
       },
@@ -457,34 +457,34 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
           url: 'https://github.com/d3/d3-brush',
         },
         preview: (
-          <div className="mock-fault-window">
-            <div className="mock-fault-window__bar">
+          <div className='mock-fault-window'>
+            <div className='mock-fault-window__bar'>
               <span
-                className="mock-fault-window__seg mock-fault-window__seg--pre"
+                className='mock-fault-window__seg mock-fault-window__seg--pre'
                 style={{ flex: '1 1 25%' }}
               >
                 pre
               </span>
               <span
-                className="mock-fault-window__seg mock-fault-window__seg--fault"
+                className='mock-fault-window__seg mock-fault-window__seg--fault'
                 style={{ flex: '1 1 35%' }}
               >
                 fault
               </span>
               <span
-                className="mock-fault-window__seg mock-fault-window__seg--recover"
+                className='mock-fault-window__seg mock-fault-window__seg--recover'
                 style={{ flex: '1 1 25%' }}
               >
                 recover
               </span>
               <span
-                className="mock-fault-window__seg mock-fault-window__seg--post"
+                className='mock-fault-window__seg mock-fault-window__seg--post'
                 style={{ flex: '1 1 15%' }}
               >
                 post
               </span>
             </div>
-            <div className="mock-fault-window__ticks">
+            <div className='mock-fault-window__ticks'>
               <span>14:00</span>
               <span>14:08</span>
               <span>14:24</span>
@@ -502,44 +502,44 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
           url: 'https://github.com/airbnb/visx',
         },
         preview: (
-          <div className="mock-corr">
+          <div className='mock-corr'>
             <svg
-              className="mock-corr__line"
-              viewBox="0 0 200 26"
-              preserveAspectRatio="none"
+              className='mock-corr__line'
+              viewBox='0 0 200 26'
+              preserveAspectRatio='none'
             >
               <path
-                d="M0,18 L20,16 L40,14 L60,12 L80,8 L100,5 L120,8 L140,14 L160,18 L180,22 L200,20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
+                d='M0,18 L20,16 L40,14 L60,12 L80,8 L100,5 L120,8 L140,14 L160,18 L180,22 L200,20'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='1.2'
               />
             </svg>
             <svg
-              className="mock-corr__line"
-              viewBox="0 0 200 26"
-              preserveAspectRatio="none"
+              className='mock-corr__line'
+              viewBox='0 0 200 26'
+              preserveAspectRatio='none'
             >
               <path
-                d="M0,14 L20,15 L40,13 L60,11 L80,16 L100,20 L120,18 L140,12 L160,10 L180,12 L200,14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
+                d='M0,14 L20,15 L40,13 L60,11 L80,16 L100,20 L120,18 L140,12 L160,10 L180,12 L200,14'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='1.2'
               />
             </svg>
             <svg
-              className="mock-corr__line"
-              viewBox="0 0 200 26"
-              preserveAspectRatio="none"
+              className='mock-corr__line'
+              viewBox='0 0 200 26'
+              preserveAspectRatio='none'
             >
               <path
-                d="M0,18 L20,16 L40,18 L60,12 L80,6 L100,4 L120,8 L140,14 L160,20 L180,22 L200,24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
+                d='M0,18 L20,16 L40,18 L60,12 L80,6 L100,4 L120,8 L140,14 L160,20 L180,22 L200,24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='1.2'
               />
             </svg>
-            <div className="mock-corr__cursor" />
+            <div className='mock-corr__cursor' />
           </div>
         ),
       },
@@ -550,41 +550,41 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         reference: REF_ECHARTS,
         preview: (
           <svg
-            className="mock-chart"
-            viewBox="0 0 200 50"
-            preserveAspectRatio="none"
+            className='mock-chart'
+            viewBox='0 0 200 50'
+            preserveAspectRatio='none'
           >
             <rect
-              x="60"
-              y="0"
-              width="60"
-              height="50"
-              fill="#e11d48"
-              opacity="0.10"
+              x='60'
+              y='0'
+              width='60'
+              height='50'
+              fill='#e11d48'
+              opacity='0.10'
             />
             <line
-              x1="60"
-              y1="0"
-              x2="60"
-              y2="50"
-              stroke="#e11d48"
-              strokeWidth="1"
-              strokeDasharray="2 2"
+              x1='60'
+              y1='0'
+              x2='60'
+              y2='50'
+              stroke='#e11d48'
+              strokeWidth='1'
+              strokeDasharray='2 2'
             />
             <line
-              x1="120"
-              y1="0"
-              x2="120"
-              y2="50"
-              stroke="#e11d48"
-              strokeWidth="1"
-              strokeDasharray="2 2"
+              x1='120'
+              y1='0'
+              x2='120'
+              y2='50'
+              stroke='#e11d48'
+              strokeWidth='1'
+              strokeDasharray='2 2'
             />
             <path
-              d="M0,30 L20,28 L40,32 L60,30 L80,18 L100,10 L120,16 L140,30 L160,36 L180,32 L200,30"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
+              d='M0,30 L20,28 L40,32 L60,30 L80,18 L100,10 L120,16 L140,30 L160,36 L180,32 L200,30'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1.5'
             />
           </svg>
         ),
@@ -595,15 +595,15 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Extends Chip',
         reference: REF_ANTD,
         preview: (
-          <div className="mock-pivot">
-            <span className="mock-pivot__chip">
-              service: catalog<span className="mock-pivot__close">×</span>
+          <div className='mock-pivot'>
+            <span className='mock-pivot__chip'>
+              service: catalog<span className='mock-pivot__close'>×</span>
             </span>
-            <span className="mock-pivot__chip">
-              pod: cart-7d<span className="mock-pivot__close">×</span>
+            <span className='mock-pivot__chip'>
+              pod: cart-7d<span className='mock-pivot__close'>×</span>
             </span>
-            <span className="mock-pivot__chip">
-              severity: error<span className="mock-pivot__close">×</span>
+            <span className='mock-pivot__chip'>
+              severity: error<span className='mock-pivot__close'>×</span>
             </span>
           </div>
         ),
@@ -613,9 +613,9 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: '"Open this moment in [Logs / Traces / Metrics]" pill — used inside hover tooltips and evidence rows.',
         status: 'Composition',
         preview: (
-          <div className="mock-jump">
-            <Chip tone="ghost">→ Open in Logs</Chip>
-            <Chip tone="ghost">→ Open in Traces</Chip>
+          <div className='mock-jump'>
+            <Chip tone='ghost'>→ Open in Logs</Chip>
+            <Chip tone='ghost'>→ Open in Traces</Chip>
           </div>
         ),
       },
@@ -633,24 +633,24 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
           url: 'https://github.com/bvaughn/react-window',
         },
         preview: (
-          <div className="mock-log-table">
-            <div className="mock-log-row">
-              <span className="mock-log-ts">14:22:01</span>
-              <StatusDot tone="ink" />
-              <span className="mock-log-svc">catalog</span>
-              <span className="mock-log-msg">request received</span>
+          <div className='mock-log-table'>
+            <div className='mock-log-row'>
+              <span className='mock-log-ts'>14:22:01</span>
+              <StatusDot tone='ink' />
+              <span className='mock-log-svc'>catalog</span>
+              <span className='mock-log-msg'>request received</span>
             </div>
-            <div className="mock-log-row">
-              <span className="mock-log-ts">14:22:02</span>
-              <StatusDot tone="warning" />
-              <span className="mock-log-svc">cart</span>
-              <span className="mock-log-msg">DB timeout (2/5)</span>
+            <div className='mock-log-row'>
+              <span className='mock-log-ts'>14:22:02</span>
+              <StatusDot tone='warning' />
+              <span className='mock-log-svc'>cart</span>
+              <span className='mock-log-msg'>DB timeout (2/5)</span>
             </div>
-            <div className="mock-log-row">
-              <span className="mock-log-ts">14:22:02</span>
-              <StatusDot tone="warning" pulse />
-              <span className="mock-log-svc">payment</span>
-              <span className="mock-log-msg">500 internal</span>
+            <div className='mock-log-row'>
+              <span className='mock-log-ts'>14:22:02</span>
+              <StatusDot tone='warning' pulse />
+              <span className='mock-log-svc'>payment</span>
+              <span className='mock-log-msg'>500 internal</span>
             </div>
           </div>
         ),
@@ -661,14 +661,14 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps ECharts',
         reference: REF_ECHARTS,
         preview: (
-          <div className="mock-histo">
+          <div className='mock-histo'>
             {[
               0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1, 0.85, 0.6, 0.45, 0.3, 0.5, 0.4,
               0.3, 0.2,
             ].map((h, i) => (
               <span
                 key={i}
-                className="mock-histo__bar"
+                className='mock-histo__bar'
                 style={{ height: `${h * 100}%` }}
               />
             ))}
@@ -680,11 +680,11 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'Query input + severity facets (info / warn / error / fatal) + regex toggle.',
         status: 'Composition',
         preview: (
-          <div className="mock-search">
-            <div className="mock-search__input">message:* timeout</div>
-            <Chip tone="ghost">info</Chip>
-            <Chip tone="ink">warn</Chip>
-            <Chip tone="warning">error</Chip>
+          <div className='mock-search'>
+            <div className='mock-search__input'>message:* timeout</div>
+            <Chip tone='ghost'>info</Chip>
+            <Chip tone='ink'>warn</Chip>
+            <Chip tone='warning'>error</Chip>
           </div>
         ),
       },
@@ -702,34 +702,34 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
           url: 'https://github.com/jaegertracing/jaeger-ui',
         },
         preview: (
-          <div className="mock-trace">
-            <div className="mock-trace__row">
+          <div className='mock-trace'>
+            <div className='mock-trace__row'>
               <span
-                className="mock-trace__bar"
+                className='mock-trace__bar'
                 style={{ marginLeft: '0%', width: '90%' }}
               />
-              <span className="mock-trace__label">gateway</span>
+              <span className='mock-trace__label'>gateway</span>
             </div>
-            <div className="mock-trace__row">
+            <div className='mock-trace__row'>
               <span
-                className="mock-trace__bar"
+                className='mock-trace__bar'
                 style={{ marginLeft: '8%', width: '45%' }}
               />
-              <span className="mock-trace__label">catalog</span>
+              <span className='mock-trace__label'>catalog</span>
             </div>
-            <div className="mock-trace__row">
+            <div className='mock-trace__row'>
               <span
-                className="mock-trace__bar mock-trace__bar--warn"
+                className='mock-trace__bar mock-trace__bar--warn'
                 style={{ marginLeft: '20%', width: '20%' }}
               />
-              <span className="mock-trace__label">redis</span>
+              <span className='mock-trace__label'>redis</span>
             </div>
-            <div className="mock-trace__row">
+            <div className='mock-trace__row'>
               <span
-                className="mock-trace__bar"
+                className='mock-trace__bar'
                 style={{ marginLeft: '55%', width: '30%' }}
               />
-              <span className="mock-trace__label">cart</span>
+              <span className='mock-trace__label'>cart</span>
             </div>
           </div>
         ),
@@ -739,42 +739,42 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'Recent traces with latency / error markers — picks one to feed into TraceWaterfall.',
         status: 'Composition',
         preview: (
-          <div className="mock-trace-list">
-            <div className="mock-trace-list__row">
-              <MonoValue size="sm" weight="regular">
+          <div className='mock-trace-list'>
+            <div className='mock-trace-list__row'>
+              <MonoValue size='sm' weight='regular'>
                 a3f291b
               </MonoValue>
-              <div className="mock-trace-list__track">
+              <div className='mock-trace-list__track'>
                 <span
-                  className="mock-trace-list__bar"
+                  className='mock-trace-list__bar'
                   style={{ width: '70%' }}
                 />
               </div>
-              <span className="mock-trace-list__num">642ms</span>
+              <span className='mock-trace-list__num'>642ms</span>
             </div>
-            <div className="mock-trace-list__row">
-              <MonoValue size="sm" weight="regular">
+            <div className='mock-trace-list__row'>
+              <MonoValue size='sm' weight='regular'>
                 b8c2419
               </MonoValue>
-              <div className="mock-trace-list__track">
+              <div className='mock-trace-list__track'>
                 <span
-                  className="mock-trace-list__bar"
+                  className='mock-trace-list__bar'
                   style={{ width: '45%' }}
                 />
               </div>
-              <span className="mock-trace-list__num">412ms</span>
+              <span className='mock-trace-list__num'>412ms</span>
             </div>
-            <div className="mock-trace-list__row">
-              <MonoValue size="sm" weight="regular">
+            <div className='mock-trace-list__row'>
+              <MonoValue size='sm' weight='regular'>
                 c91d234
               </MonoValue>
-              <div className="mock-trace-list__track">
+              <div className='mock-trace-list__track'>
                 <span
-                  className="mock-trace-list__bar mock-trace-list__bar--warn"
+                  className='mock-trace-list__bar mock-trace-list__bar--warn'
                   style={{ width: '95%' }}
                 />
               </div>
-              <span className="mock-trace-list__num mock-trace-list__num--warn">
+              <span className='mock-trace-list__num mock-trace-list__num--warn'>
                 1.2s
               </span>
             </div>
@@ -790,80 +790,80 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
           url: 'https://github.com/cytoscape/cytoscape.js',
         },
         preview: (
-          <svg viewBox="0 0 200 80" className="mock-map">
+          <svg viewBox='0 0 200 80' className='mock-map'>
             <line
-              x1="40"
-              y1="40"
-              x2="100"
-              y2="20"
-              stroke="currentColor"
-              opacity="0.3"
+              x1='40'
+              y1='40'
+              x2='100'
+              y2='20'
+              stroke='currentColor'
+              opacity='0.3'
             />
             <line
-              x1="40"
-              y1="40"
-              x2="100"
-              y2="60"
-              stroke="currentColor"
-              opacity="0.3"
+              x1='40'
+              y1='40'
+              x2='100'
+              y2='60'
+              stroke='currentColor'
+              opacity='0.3'
             />
             <line
-              x1="100"
-              y1="20"
-              x2="160"
-              y2="40"
-              stroke="currentColor"
-              opacity="0.3"
+              x1='100'
+              y1='20'
+              x2='160'
+              y2='40'
+              stroke='currentColor'
+              opacity='0.3'
             />
             <line
-              x1="100"
-              y1="60"
-              x2="160"
-              y2="40"
-              stroke="#e11d48"
-              strokeDasharray="3 2"
+              x1='100'
+              y1='60'
+              x2='160'
+              y2='40'
+              stroke='#e11d48'
+              strokeDasharray='3 2'
             />
-            <circle cx="40" cy="40" r="6" fill="currentColor" />
-            <circle cx="100" cy="20" r="6" fill="currentColor" />
-            <circle cx="100" cy="60" r="6" fill="#e11d48" />
-            <circle cx="160" cy="40" r="6" fill="currentColor" />
+            <circle cx='40' cy='40' r='6' fill='currentColor' />
+            <circle cx='100' cy='20' r='6' fill='currentColor' />
+            <circle cx='100' cy='60' r='6' fill='#e11d48' />
+            <circle cx='160' cy='40' r='6' fill='currentColor' />
             <text
-              x="40"
-              y="58"
-              fontSize="9"
-              textAnchor="middle"
-              fill="currentColor"
-              opacity="0.5"
+              x='40'
+              y='58'
+              fontSize='9'
+              textAnchor='middle'
+              fill='currentColor'
+              opacity='0.5'
             >
               gw
             </text>
             <text
-              x="100"
-              y="14"
-              fontSize="9"
-              textAnchor="middle"
-              fill="currentColor"
-              opacity="0.5"
+              x='100'
+              y='14'
+              fontSize='9'
+              textAnchor='middle'
+              fill='currentColor'
+              opacity='0.5'
             >
               catalog
             </text>
             <text
-              x="100"
-              y="76"
-              fontSize="9"
-              textAnchor="middle"
-              fill="currentColor"
-              opacity="0.5"
+              x='100'
+              y='76'
+              fontSize='9'
+              textAnchor='middle'
+              fill='currentColor'
+              opacity='0.5'
             >
               cart
             </text>
             <text
-              x="160"
-              y="58"
-              fontSize="9"
-              textAnchor="middle"
-              fill="currentColor"
-              opacity="0.5"
+              x='160'
+              y='58'
+              fontSize='9'
+              textAnchor='middle'
+              fill='currentColor'
+              opacity='0.5'
             >
               payment
             </text>
@@ -882,40 +882,40 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         reference: REF_ECHARTS,
         preview: (
           <svg
-            className="mock-chart"
-            viewBox="0 0 200 60"
-            preserveAspectRatio="none"
+            className='mock-chart'
+            viewBox='0 0 200 60'
+            preserveAspectRatio='none'
           >
             <rect
-              x="80"
-              y="0"
-              width="40"
-              height="60"
-              fill="#e11d48"
-              opacity="0.08"
+              x='80'
+              y='0'
+              width='40'
+              height='60'
+              fill='#e11d48'
+              opacity='0.08'
             />
             <line
-              x1="0"
-              y1="20"
-              x2="200"
-              y2="20"
-              stroke="#e11d48"
-              strokeWidth="0.8"
-              strokeDasharray="3 3"
+              x1='0'
+              y1='20'
+              x2='200'
+              y2='20'
+              stroke='#e11d48'
+              strokeWidth='0.8'
+              strokeDasharray='3 3'
             />
             <path
-              d="M0,40 L20,38 L40,42 L60,40 L80,36 L100,30 L120,32 L140,38 L160,42 L180,40 L200,38"
-              fill="none"
-              stroke="currentColor"
-              strokeOpacity="0.4"
-              strokeWidth="1"
-              strokeDasharray="2 2"
+              d='M0,40 L20,38 L40,42 L60,40 L80,36 L100,30 L120,32 L140,38 L160,42 L180,40 L200,38'
+              fill='none'
+              stroke='currentColor'
+              strokeOpacity='0.4'
+              strokeWidth='1'
+              strokeDasharray='2 2'
             />
             <path
-              d="M0,38 L20,36 L40,30 L60,32 L80,18 L100,10 L120,15 L140,28 L160,40 L180,45 L200,42"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
+              d='M0,38 L20,36 L40,30 L60,32 L80,18 L100,10 L120,15 L140,28 L160,40 L180,45 L200,42'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1.5'
             />
           </svg>
         ),
@@ -927,23 +927,23 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         reference: REF_ECHARTS,
         preview: (
           <svg
-            className="mock-chart"
-            viewBox="0 0 200 50"
-            preserveAspectRatio="none"
+            className='mock-chart'
+            viewBox='0 0 200 50'
+            preserveAspectRatio='none'
           >
             <path
-              d="M0,30 L20,28 L40,30 L60,28 L80,32 L100,30 L120,28 L140,30 L160,32 L180,30 L200,28"
-              fill="none"
-              stroke="currentColor"
-              strokeOpacity="0.4"
-              strokeWidth="1"
-              strokeDasharray="3 2"
+              d='M0,30 L20,28 L40,30 L60,28 L80,32 L100,30 L120,28 L140,30 L160,32 L180,30 L200,28'
+              fill='none'
+              stroke='currentColor'
+              strokeOpacity='0.4'
+              strokeWidth='1'
+              strokeDasharray='3 2'
             />
             <path
-              d="M0,32 L20,30 L40,28 L60,26 L80,12 L100,8 L120,14 L140,26 L160,36 L180,40 L200,38"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
+              d='M0,32 L20,30 L40,28 L60,26 L80,12 L100,8 L120,14 L140,26 L160,36 L180,40 L200,38'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1.5'
             />
           </svg>
         ),
@@ -955,27 +955,27 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         reference: REF_ECHARTS,
         preview: (
           <svg
-            className="mock-chart"
-            viewBox="0 0 200 50"
-            preserveAspectRatio="none"
+            className='mock-chart'
+            viewBox='0 0 200 50'
+            preserveAspectRatio='none'
           >
             <line
-              x1="0"
-              y1="14"
-              x2="200"
-              y2="14"
-              stroke="#e11d48"
-              strokeWidth="1"
-              strokeDasharray="3 3"
+              x1='0'
+              y1='14'
+              x2='200'
+              y2='14'
+              stroke='#e11d48'
+              strokeWidth='1'
+              strokeDasharray='3 3'
             />
-            <text x="195" y="11" fontSize="8" textAnchor="end" fill="#e11d48">
+            <text x='195' y='11' fontSize='8' textAnchor='end' fill='#e11d48'>
               SLO 200ms
             </text>
             <path
-              d="M0,40 L20,38 L40,30 L60,26 L80,16 L100,10 L120,14 L140,28 L160,38 L180,40 L200,38"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
+              d='M0,40 L20,38 L40,30 L60,26 L80,16 L100,10 L120,14 L140,28 L160,38 L180,40 L200,38'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1.5'
             />
           </svg>
         ),
@@ -985,17 +985,17 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'Responsive grid of MetricChart / MetricCard, sharing the same time axis. Layout-only.',
         status: 'Composition',
         preview: (
-          <div className="mock-grid">
-            <div className="mock-grid__cell">
+          <div className='mock-grid'>
+            <div className='mock-grid__cell'>
               latency p99<strong>142</strong>
             </div>
-            <div className="mock-grid__cell">
+            <div className='mock-grid__cell'>
               error rate<strong>0.42%</strong>
             </div>
-            <div className="mock-grid__cell">
+            <div className='mock-grid__cell'>
               throughput<strong>9 384</strong>
             </div>
-            <div className="mock-grid__cell">
+            <div className='mock-grid__cell'>
               cpu sat<strong>71%</strong>
             </div>
           </div>
@@ -1012,17 +1012,17 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps Monaco',
         reference: REF_MONACO,
         preview: (
-          <pre className="mock-code">
-            <span className="mock-code__line">
+          <pre className='mock-code'>
+            <span className='mock-code__line'>
               <em>1</em>def main():
             </span>
-            <span className="mock-code__line">
+            <span className='mock-code__line'>
               <em>2</em> try:
             </span>
-            <span className="mock-code__line">
+            <span className='mock-code__line'>
               <em>3</em> run()
             </span>
-            <span className="mock-code__line">
+            <span className='mock-code__line'>
               <em>4</em> except Exception:
             </span>
           </pre>
@@ -1034,24 +1034,24 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps Monaco',
         reference: REF_MONACO,
         preview: (
-          <div className="mock-diff">
-            <pre className="mock-diff__col">
-              <span className="mock-diff__line mock-diff__line--rm">
+          <div className='mock-diff'>
+            <pre className='mock-diff__col'>
+              <span className='mock-diff__line mock-diff__line--rm'>
                 - timeout: 30s
               </span>
-              <span className="mock-diff__line mock-diff__line--rm">
+              <span className='mock-diff__line mock-diff__line--rm'>
                 - retries: 3
               </span>
-              <span className="mock-diff__line"> qos: best</span>
+              <span className='mock-diff__line'> qos: best</span>
             </pre>
-            <pre className="mock-diff__col">
-              <span className="mock-diff__line mock-diff__line--add">
+            <pre className='mock-diff__col'>
+              <span className='mock-diff__line mock-diff__line--add'>
                 + timeout: 60s
               </span>
-              <span className="mock-diff__line mock-diff__line--add">
+              <span className='mock-diff__line mock-diff__line--add'>
                 + retries: 5
               </span>
-              <span className="mock-diff__line"> qos: best</span>
+              <span className='mock-diff__line'> qos: best</span>
             </pre>
           </div>
         ),
@@ -1062,18 +1062,18 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps Monaco',
         reference: REF_MONACO,
         preview: (
-          <pre className="mock-tree">
-            <span className="mock-tree__line">▾ kafka:</span>
-            <span className="mock-tree__line" style={{ paddingLeft: '14px' }}>
+          <pre className='mock-tree'>
+            <span className='mock-tree__line'>▾ kafka:</span>
+            <span className='mock-tree__line' style={{ paddingLeft: '14px' }}>
               ▸ topics: …
             </span>
-            <span className="mock-tree__line" style={{ paddingLeft: '14px' }}>
+            <span className='mock-tree__line' style={{ paddingLeft: '14px' }}>
               ▾ network:
             </span>
-            <span className="mock-tree__line" style={{ paddingLeft: '28px' }}>
+            <span className='mock-tree__line' style={{ paddingLeft: '28px' }}>
               jitter: 40ms
             </span>
-            <span className="mock-tree__line" style={{ paddingLeft: '28px' }}>
+            <span className='mock-tree__line' style={{ paddingLeft: '28px' }}>
               loss: 0.02%
             </span>
           </pre>
@@ -1084,14 +1084,14 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'Short SHA + author + relative time, opens repo on click.',
         status: 'Composition',
         preview: (
-          <div className="mock-commit">
-            <MonoValue size="sm" weight="regular">
+          <div className='mock-commit'>
+            <MonoValue size='sm' weight='regular'>
               a3f291b
             </MonoValue>
-            <span className="mock-commit__sep">·</span>
-            <span className="mock-commit__author">alice</span>
-            <span className="mock-commit__sep">·</span>
-            <MetricLabel size="xs">2h ago</MetricLabel>
+            <span className='mock-commit__sep'>·</span>
+            <span className='mock-commit__author'>alice</span>
+            <span className='mock-commit__sep'>·</span>
+            <MetricLabel size='xs'>2h ago</MetricLabel>
           </div>
         ),
       },
@@ -1101,20 +1101,20 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps Monaco',
         reference: REF_MONACO,
         preview: (
-          <pre className="mock-manifest">
-            <span className="mock-manifest__line">
+          <pre className='mock-manifest'>
+            <span className='mock-manifest__line'>
               apiVersion: chaos-mesh.org/v1alpha1
             </span>
-            <span className="mock-manifest__line">kind: NetworkChaos</span>
-            <span className="mock-manifest__line">metadata:</span>
+            <span className='mock-manifest__line'>kind: NetworkChaos</span>
+            <span className='mock-manifest__line'>metadata:</span>
             <span
-              className="mock-manifest__line"
+              className='mock-manifest__line'
               style={{ paddingLeft: '14px' }}
             >
               name: kafka-drift
             </span>
-            <span className="mock-manifest__line">
-              spec: <span className="mock-manifest__fold">{'{…}'}</span>
+            <span className='mock-manifest__line'>
+              spec: <span className='mock-manifest__fold'>{'{…}'}</span>
             </span>
           </pre>
         ),
@@ -1129,25 +1129,25 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'Ranked "what we noticed" — each row has modality icon, brief, and an Open-in button.',
         status: 'Composition',
         preview: (
-          <div className="mock-evidence">
-            <div className="mock-evidence__row">
-              <StatusDot tone="warning" />
-              <span className="mock-evidence__msg">
+          <div className='mock-evidence'>
+            <div className='mock-evidence__row'>
+              <StatusDot tone='warning' />
+              <span className='mock-evidence__msg'>
                 catalog→cart latency +480 ms
               </span>
-              <Chip tone="ghost">metric</Chip>
+              <Chip tone='ghost'>metric</Chip>
             </div>
-            <div className="mock-evidence__row">
-              <StatusDot tone="warning" pulse />
-              <span className="mock-evidence__msg">payment 500 rate +30%</span>
-              <Chip tone="ghost">log</Chip>
+            <div className='mock-evidence__row'>
+              <StatusDot tone='warning' pulse />
+              <span className='mock-evidence__msg'>payment 500 rate +30%</span>
+              <Chip tone='ghost'>log</Chip>
             </div>
-            <div className="mock-evidence__row">
-              <StatusDot tone="ink" />
-              <span className="mock-evidence__msg">
+            <div className='mock-evidence__row'>
+              <StatusDot tone='ink' />
+              <span className='mock-evidence__msg'>
                 cart DB timeout cluster
               </span>
-              <Chip tone="ghost">trace</Chip>
+              <Chip tone='ghost'>trace</Chip>
             </div>
           </div>
         ),
@@ -1157,10 +1157,10 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'Templated alarm + matched conditions — pairs with the backend alarm-evidence concept.',
         status: 'Composition',
         preview: (
-          <div className="mock-alarm">
-            <div className="mock-alarm__head">
-              <PanelTitle size="sm">high_latency</PanelTitle>
-              <Chip tone="warning">matched</Chip>
+          <div className='mock-alarm'>
+            <div className='mock-alarm__head'>
+              <PanelTitle size='sm'>high_latency</PanelTitle>
+              <Chip tone='warning'>matched</Chip>
             </div>
             <KeyValueList
               ruled={false}
@@ -1178,18 +1178,18 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         desc: 'RCA root-cause candidate with confidence — used inside ranked suspect lists.',
         status: 'Extends Chip',
         preview: (
-          <div className="mock-suspects">
-            <span className="mock-suspect">
+          <div className='mock-suspects'>
+            <span className='mock-suspect'>
               <span>catalog</span>
-              <span className="mock-suspect__pct">92%</span>
+              <span className='mock-suspect__pct'>92%</span>
             </span>
-            <span className="mock-suspect">
+            <span className='mock-suspect'>
               <span>payments</span>
-              <span className="mock-suspect__pct">68%</span>
+              <span className='mock-suspect__pct'>68%</span>
             </span>
-            <span className="mock-suspect mock-suspect--low">
+            <span className='mock-suspect mock-suspect--low'>
               <span>cart</span>
-              <span className="mock-suspect__pct">41%</span>
+              <span className='mock-suspect__pct'>41%</span>
             </span>
           </div>
         ),
@@ -1200,19 +1200,19 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
 
 function RoadmapCard({ name, desc, status, reference, preview }: RoadmapSpec) {
   return (
-    <article className="gallery__roadmap-card">
-      <div className="gallery__roadmap-stage">{preview}</div>
-      <div className="gallery__roadmap-meta">
-        <PanelTitle size="sm">{name}</PanelTitle>
-        <p className="gallery__roadmap-desc">{desc}</p>
-        <div className="gallery__roadmap-foot">
-          <Chip tone="ghost">{status}</Chip>
+    <article className='gallery__roadmap-card'>
+      <div className='gallery__roadmap-stage'>{preview}</div>
+      <div className='gallery__roadmap-meta'>
+        <PanelTitle size='sm'>{name}</PanelTitle>
+        <p className='gallery__roadmap-desc'>{desc}</p>
+        <div className='gallery__roadmap-foot'>
+          <Chip tone='ghost'>{status}</Chip>
           {reference && (
             <a
-              className="gallery__roadmap-link"
+              className='gallery__roadmap-link'
               href={reference.url}
-              target="_blank"
-              rel="noreferrer"
+              target='_blank'
+              rel='noreferrer'
             >
               ↗ {reference.label}
             </a>
@@ -1231,17 +1231,17 @@ function App() {
   const [switchOn, setSwitchOn] = useState(true);
 
   return (
-    <div className="gallery">
-      <header className="gallery__header">
+    <div className='gallery'>
+      <header className='gallery__header'>
         <div>
-          <PanelTitle size="hero" as="h1">
+          <PanelTitle size='hero' as='h1'>
             Aegis Rosetta
           </PanelTitle>
-          <MetricLabel as="div" className="gallery__header-tag">
+          <MetricLabel as='div' className='gallery__header-tag'>
             UI System Specimen · v0
           </MetricLabel>
         </div>
-        <p className="gallery__intro">
+        <p className='gallery__intro'>
           Editorial serif paired with measured mono — pure ink against an
           off‑white surface. Activation is expressed by surface inversion, not
           accent color. Anomaly red is reserved for actual anomalies.
@@ -1250,13 +1250,13 @@ function App() {
 
       {/* ── Color tokens ───────────────────────────────────────────── */}
       <Panel
-        title={<PanelTitle size="lg">Color &amp; surface tokens</PanelTitle>}
+        title={<PanelTitle size='lg'>Color &amp; surface tokens</PanelTitle>}
       >
-        <div className="gallery__swatches">
+        <div className='gallery__swatches'>
           {COLOR_TOKENS.map((t) => (
-            <div className="gallery__swatch" key={t.name}>
+            <div className='gallery__swatch' key={t.name}>
               <div
-                className="gallery__swatch-chip"
+                className='gallery__swatch-chip'
                 style={{
                   background: `var(${t.name})`,
                   outline:
@@ -1265,12 +1265,12 @@ function App() {
                       : undefined,
                 }}
               />
-              <div className="gallery__swatch-meta">
-                <MonoValue size="sm" weight="regular">
+              <div className='gallery__swatch-meta'>
+                <MonoValue size='sm' weight='regular'>
                   {t.name}
                 </MonoValue>
-                <MetricLabel size="xs">{t.value}</MetricLabel>
-                <span className="gallery__swatch-desc">{t.desc}</span>
+                <MetricLabel size='xs'>{t.value}</MetricLabel>
+                <span className='gallery__swatch-desc'>{t.desc}</span>
               </div>
             </div>
           ))}
@@ -1278,11 +1278,11 @@ function App() {
       </Panel>
 
       {/* ── Typography ─────────────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Typography</PanelTitle>}>
-        <div className="gallery__type-list">
+      <Panel title={<PanelTitle size='lg'>Typography</PanelTitle>}>
+        <div className='gallery__type-list'>
           {TYPE_SAMPLES.map((s) => (
-            <div className="gallery__type-row" key={s.family}>
-              <MetricLabel as="div" className="gallery__type-label">
+            <div className='gallery__type-row' key={s.family}>
+              <MetricLabel as='div' className='gallery__type-label'>
                 {s.label}
               </MetricLabel>
               <div
@@ -1290,47 +1290,47 @@ function App() {
               >
                 {s.sample}
               </div>
-              <span className="gallery__type-hint">{s.hint}</span>
+              <span className='gallery__type-hint'>{s.hint}</span>
             </div>
           ))}
         </div>
 
         <SectionDivider>PanelTitle scale</SectionDivider>
-        <div className="gallery__stack">
-          <PanelTitle size="hero" as="h2">
+        <div className='gallery__stack'>
+          <PanelTitle size='hero' as='h2'>
             Hero · 42
           </PanelTitle>
-          <PanelTitle size="lg" as="h3">
+          <PanelTitle size='lg' as='h3'>
             Large · 24
           </PanelTitle>
-          <PanelTitle size="base">Base · 16</PanelTitle>
-          <PanelTitle size="sm">Small · 14</PanelTitle>
+          <PanelTitle size='base'>Base · 16</PanelTitle>
+          <PanelTitle size='sm'>Small · 14</PanelTitle>
         </div>
 
         <SectionDivider>MonoValue scale</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="sm · regular">
-            <MonoValue size="sm" weight="regular">
+        <div className='gallery__row'>
+          <Specimen caption='sm · regular'>
+            <MonoValue size='sm' weight='regular'>
               0.142
             </MonoValue>
           </Specimen>
-          <Specimen caption="sm · medium">
-            <MonoValue size="sm">0.142</MonoValue>
+          <Specimen caption='sm · medium'>
+            <MonoValue size='sm'>0.142</MonoValue>
           </Specimen>
-          <Specimen caption="base · medium">
-            <MonoValue size="base">0.142</MonoValue>
+          <Specimen caption='base · medium'>
+            <MonoValue size='base'>0.142</MonoValue>
           </Specimen>
-          <Specimen caption="lg · medium">
-            <MonoValue size="lg">0.142</MonoValue>
+          <Specimen caption='lg · medium'>
+            <MonoValue size='lg'>0.142</MonoValue>
           </Specimen>
         </div>
       </Panel>
 
       {/* ── Surface (Panel) ────────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Surface — Panel</PanelTitle>}>
-        <div className="gallery__row gallery__row--panels">
-          <Panel title="Default panel" extra={<MetricLabel>label</MetricLabel>}>
-            <p className="gallery__panel-body">
+      <Panel title={<PanelTitle size='lg'>Surface — Panel</PanelTitle>}>
+        <div className='gallery__row gallery__row--panels'>
+          <Panel title='Default panel' extra={<MetricLabel>label</MetricLabel>}>
+            <p className='gallery__panel-body'>
               Hairline border, 16 px radius, ultra-subtle shadow. Title slot
               accepts string or rich node.
             </p>
@@ -1338,17 +1338,17 @@ function App() {
 
           <Panel
             inverted
-            title={<PanelTitle size="base">Inverted panel</PanelTitle>}
+            title={<PanelTitle size='base'>Inverted panel</PanelTitle>}
             extra={<MetricLabel inverted>active</MetricLabel>}
           >
-            <p className="gallery__panel-body gallery__panel-body--inverted">
+            <p className='gallery__panel-body gallery__panel-body--inverted'>
               Surface flips to ink. Reserved for the currently-active card, not
               for accent decoration.
             </p>
           </Panel>
 
-          <Panel padded={false} title="Unpadded">
-            <div className="gallery__panel-no-pad">
+          <Panel padded={false} title='Unpadded'>
+            <div className='gallery__panel-no-pad'>
               Body without inner padding — host owns the layout.
             </div>
           </Panel>
@@ -1356,132 +1356,132 @@ function App() {
       </Panel>
 
       {/* ── Indicators ─────────────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Indicators</PanelTitle>}>
+      <Panel title={<PanelTitle size='lg'>Indicators</PanelTitle>}>
         <SectionDivider>StatusDot</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="ink">
+        <div className='gallery__row'>
+          <Specimen caption='ink'>
             <StatusDot />
           </Specimen>
-          <Specimen caption="ink · pulse">
+          <Specimen caption='ink · pulse'>
             <StatusDot pulse />
           </Specimen>
-          <Specimen caption="warning">
-            <StatusDot tone="warning" />
+          <Specimen caption='warning'>
+            <StatusDot tone='warning' />
           </Specimen>
-          <Specimen caption="warning · pulse">
-            <StatusDot tone="warning" pulse />
+          <Specimen caption='warning · pulse'>
+            <StatusDot tone='warning' pulse />
           </Specimen>
-          <Specimen caption="size 10">
+          <Specimen caption='size 10'>
             <StatusDot size={10} />
           </Specimen>
         </div>
 
         <SectionDivider>Chip</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="default">
+        <div className='gallery__row'>
+          <Specimen caption='default'>
             <Chip>queued</Chip>
           </Specimen>
-          <Specimen caption="ink">
-            <Chip tone="ink">running</Chip>
+          <Specimen caption='ink'>
+            <Chip tone='ink'>running</Chip>
           </Specimen>
-          <Specimen caption="warning">
-            <Chip tone="warning">failed</Chip>
+          <Specimen caption='warning'>
+            <Chip tone='warning'>failed</Chip>
           </Specimen>
-          <Specimen caption="ghost">
-            <Chip tone="ghost">draft</Chip>
+          <Specimen caption='ghost'>
+            <Chip tone='ghost'>draft</Chip>
           </Specimen>
-          <Specimen caption="with leading dot">
+          <Specimen caption='with leading dot'>
             <Chip leading={<StatusDot pulse size={6} />}>active</Chip>
           </Specimen>
         </div>
 
         <SectionDivider>BlastRadiusBar</SectionDivider>
-        <div className="gallery__stack">
-          <BlastRadiusBar value={20} centerLabel="Node Group A · 20 %" />
-          <BlastRadiusBar value={65} centerLabel="Node Group A · 65 %" />
-          <BlastRadiusBar value={92} centerLabel="Node Group A · 92 %" />
+        <div className='gallery__stack'>
+          <BlastRadiusBar value={20} centerLabel='Node Group A · 20 %' />
+          <BlastRadiusBar value={65} centerLabel='Node Group A · 65 %' />
+          <BlastRadiusBar value={92} centerLabel='Node Group A · 92 %' />
           <BlastRadiusBar value={50} hideTicks />
         </div>
       </Panel>
 
       {/* ── Data display ───────────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Data display</PanelTitle>}>
+      <Panel title={<PanelTitle size='lg'>Data display</PanelTitle>}>
         <SectionDivider>StatBlock</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="horizontal">
-            <StatBlock label="latency_p99" value="142" unit="ms" />
+        <div className='gallery__row'>
+          <Specimen caption='horizontal'>
+            <StatBlock label='latency_p99' value='142' unit='ms' />
           </Specimen>
-          <Specimen caption="vertical · emphasized">
+          <Specimen caption='vertical · emphasized'>
             <StatBlock
-              label="error_rate"
-              value="0.42"
-              unit="%"
-              direction="vertical"
+              label='error_rate'
+              value='0.42'
+              unit='%'
+              direction='vertical'
               emphasized
             />
           </Specimen>
-          <Specimen caption="inverted">
-            <div className="gallery__inverted-host">
-              <StatBlock label="throughput" value="9 384" unit="rps" inverted />
+          <Specimen caption='inverted'>
+            <div className='gallery__inverted-host'>
+              <StatBlock label='throughput' value='9 384' unit='rps' inverted />
             </div>
           </Specimen>
         </div>
 
         <SectionDivider>KeyValueList</SectionDivider>
-        <div className="gallery__row gallery__row--wide">
-          <Specimen caption="mono keys (parameters)" span={2}>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='mono keys (parameters)' span={2}>
             <KeyValueList items={KV_PARAMS} />
           </Specimen>
-          <Specimen caption="uppercase keys (metadata)" span={2}>
+          <Specimen caption='uppercase keys (metadata)' span={2}>
             <KeyValueList items={KV_META} uppercaseKeys />
           </Specimen>
         </div>
 
         <SectionDivider>SparkLine</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="rising">
-            <div className="gallery__spark-host">
+        <div className='gallery__row'>
+          <Specimen caption='rising'>
+            <div className='gallery__spark-host'>
               <SparkLine points={SPARK_RISING} />
             </div>
           </Specimen>
-          <Specimen caption="dip / recover">
-            <div className="gallery__spark-host">
+          <Specimen caption='dip / recover'>
+            <div className='gallery__spark-host'>
               <SparkLine points={SPARK_DIP} />
             </div>
           </Specimen>
-          <Specimen caption="flat (low signal)">
-            <div className="gallery__spark-host">
+          <Specimen caption='flat (low signal)'>
+            <div className='gallery__spark-host'>
               <SparkLine points={SPARK_FLAT} />
             </div>
           </Specimen>
-          <Specimen caption="inverted">
-            <div className="gallery__spark-host gallery__spark-host--inverted">
+          <Specimen caption='inverted'>
+            <div className='gallery__spark-host gallery__spark-host--inverted'>
               <SparkLine points={SPARK_RISING} inverted />
             </div>
           </Specimen>
         </div>
 
         <SectionDivider>MetricCard</SectionDivider>
-        <div className="gallery__row gallery__row--wide">
-          <Specimen caption="value only">
-            <MetricCard label="active injections" value="3" />
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='value only'>
+            <MetricCard label='active injections' value='3' />
           </Specimen>
-          <Specimen caption="value + unit">
-            <MetricCard label="latency p99" value="142" unit="ms" />
+          <Specimen caption='value + unit'>
+            <MetricCard label='latency p99' value='142' unit='ms' />
           </Specimen>
-          <Specimen caption="value + sparkline">
+          <Specimen caption='value + sparkline'>
             <MetricCard
-              label="throughput"
-              value="9 384"
-              unit="rps"
+              label='throughput'
+              value='9 384'
+              unit='rps'
               sparkline={SPARK_RISING}
             />
           </Specimen>
-          <Specimen caption="inverted + sparkline">
+          <Specimen caption='inverted + sparkline'>
             <MetricCard
-              label="error budget"
-              value="0.42"
-              unit="%"
+              label='error budget'
+              value='0.42'
+              unit='%'
               sparkline={SPARK_DIP}
               inverted
             />
@@ -1489,42 +1489,42 @@ function App() {
         </div>
 
         <SectionDivider>EmptyState</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="default">
+        <div className='gallery__row'>
+          <Specimen caption='default'>
             <EmptyState
-              title="No injections"
-              description="Create your first fault injection to begin."
+              title='No injections'
+              description='Create your first fault injection to begin.'
             />
           </Specimen>
-          <Specimen caption="with action">
+          <Specimen caption='with action'>
             <EmptyState
-              title="No projects"
-              description="Projects group experiments and their results."
-              action={<Chip tone="ink">+ New project</Chip>}
+              title='No projects'
+              description='Projects group experiments and their results.'
+              action={<Chip tone='ink'>+ New project</Chip>}
             />
           </Specimen>
         </div>
 
         <SectionDivider>TimeDisplay</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="absolute">
-            <TimeDisplay value="2026-05-10T14:22:01Z" mode="absolute" />
+        <div className='gallery__row'>
+          <Specimen caption='absolute'>
+            <TimeDisplay value='2026-05-10T14:22:01Z' mode='absolute' />
           </Specimen>
-          <Specimen caption="relative">
-            <TimeDisplay value={Date.now() - 120000} mode="relative" />
+          <Specimen caption='relative'>
+            <TimeDisplay value={Date.now() - 120000} mode='relative' />
           </Specimen>
-          <Specimen caption="duration">
-            <TimeDisplay value={2840} mode="duration" />
+          <Specimen caption='duration'>
+            <TimeDisplay value={2840} mode='duration' />
           </Specimen>
         </div>
       </Panel>
 
       {/* ── Lists / rows ───────────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Lists &amp; rows</PanelTitle>}>
+      <Panel title={<PanelTitle size='lg'>Lists &amp; rows</PanelTitle>}>
         <SectionDivider extra={<MetricLabel>click any row</MetricLabel>}>
           ControlListItem
         </SectionDivider>
-        <div className="gallery__list">
+        <div className='gallery__list'>
           {[
             {
               id: 'item-1',
@@ -1551,8 +1551,8 @@ function App() {
                 onClick={() => setActive(isActive ? '' : it.id)}
                 left={
                   <div>
-                    <div className="gallery__list-name">{it.name}</div>
-                    <MetricLabel size="xs" inverted={isActive}>
+                    <div className='gallery__list-name'>{it.name}</div>
+                    <MetricLabel size='xs' inverted={isActive}>
                       {it.desc}
                     </MetricLabel>
                   </div>
@@ -1568,7 +1568,7 @@ function App() {
         </div>
 
         <SectionDivider>Static rows (no onClick)</SectionDivider>
-        <div className="gallery__list">
+        <div className='gallery__list'>
           <ControlListItem
             left={
               <>
@@ -1590,7 +1590,7 @@ function App() {
           <ControlListItem
             left={
               <>
-                <StatusDot tone="warning" pulse />
+                <StatusDot tone='warning' pulse />
                 <span>worker-gamma</span>
               </>
             }
@@ -1600,28 +1600,28 @@ function App() {
       </Panel>
 
       {/* ── Tables & Toolbar ───────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Tables & Toolbar</PanelTitle>}>
+      <Panel title={<PanelTitle size='lg'>Tables & Toolbar</PanelTitle>}>
         <SectionDivider>Toolbar</SectionDivider>
-        <Specimen caption="search + filters + action" span={3}>
+        <Specimen caption='search + filters + action' span={3}>
           <Toolbar
-            searchPlaceholder="Search injections…"
-            searchValue="latency"
+            searchPlaceholder='Search injections…'
+            searchValue='latency'
             filters={[
               { key: 'type', label: 'type: NetworkLatency' },
               { key: 'target', label: 'target: order-svc' },
             ]}
-            action={<Chip tone="ink">+ New injection</Chip>}
+            action={<Chip tone='ink'>+ New injection</Chip>}
           />
         </Specimen>
 
         <SectionDivider>DataTable · with data</SectionDivider>
-        <Specimen caption="sortable columns, hover, alignment" span={3}>
+        <Specimen caption='sortable columns, hover, alignment' span={3}>
           <DataTable
             columns={[
               {
                 key: 'id',
                 header: 'ID',
-                render: (row) => <MonoValue size="sm">{row.id}</MonoValue>,
+                render: (row) => <MonoValue size='sm'>{row.id}</MonoValue>,
               },
               {
                 key: 'type',
@@ -1638,7 +1638,7 @@ function App() {
                 header: 'Duration',
                 align: 'right',
                 render: (row) => (
-                  <MonoValue size="sm">{row.duration}</MonoValue>
+                  <MonoValue size='sm'>{row.duration}</MonoValue>
                 ),
               },
               {
@@ -1684,7 +1684,7 @@ function App() {
         </Specimen>
 
         <SectionDivider>DataTable · loading</SectionDivider>
-        <Specimen caption="skeleton shimmer" span={3}>
+        <Specimen caption='skeleton shimmer' span={3}>
           <DataTable
             columns={[
               { key: 'id', header: 'ID', render: () => '' },
@@ -1698,7 +1698,7 @@ function App() {
         </Specimen>
 
         <SectionDivider>DataTable · empty</SectionDivider>
-        <Specimen caption="EmptyState inline" span={3}>
+        <Specimen caption='EmptyState inline' span={3}>
           <DataTable
             columns={[
               { key: 'id', header: 'ID', render: () => '' },
@@ -1706,23 +1706,23 @@ function App() {
             ]}
             data={[]}
             rowKey={(_, i) => i}
-            emptyTitle="No executions"
-            emptyDescription="Run an experiment to see results here."
+            emptyTitle='No executions'
+            emptyDescription='Run an experiment to see results here.'
           />
         </Specimen>
       </Panel>
 
       {/* ── Agent trajectory ───────────────────────────────────────── */}
       <Panel
-        title={<PanelTitle size="lg">Agent trajectory</PanelTitle>}
+        title={<PanelTitle size='lg'>Agent trajectory</PanelTitle>}
         extra={<MetricLabel>observation · reasoning · action</MetricLabel>}
       >
         <SectionDivider>ToolCallCard</SectionDivider>
-        <div className="gallery__row gallery__row--wide">
-          <Specimen caption="with result" span={2}>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='with result' span={2}>
             <ToolCallCard data={TOOL_QUERY_METRICS} />
           </Specimen>
-          <Specimen caption="no result yet" span={2}>
+          <Specimen caption='no result yet' span={2}>
             <ToolCallCard
               data={{
                 name: 'fetch_logs',
@@ -1734,8 +1734,8 @@ function App() {
         </div>
 
         <SectionDivider>TrajectoryStep</SectionDivider>
-        <div className="gallery__row gallery__row--wide">
-          <Specimen caption="collapsed" span={2}>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='collapsed' span={2}>
             <TrajectoryStep
               data={{
                 step: 1,
@@ -1747,16 +1747,16 @@ function App() {
               }}
             />
           </Specimen>
-          <Specimen caption="expanded · full step" span={2}>
+          <Specimen caption='expanded · full step' span={2}>
             <TrajectoryStep data={TRAJECTORY_STEPS[0]} defaultExpanded />
           </Specimen>
         </div>
 
         <SectionDivider>TrajectoryTimeline</SectionDivider>
-        <div className="gallery__trajectory-host">
+        <div className='gallery__trajectory-host'>
           <TrajectoryTimeline
-            agentName="rca-agent"
-            status="completed"
+            agentName='rca-agent'
+            status='completed'
             totalDurationMs={4790}
             steps={TRAJECTORY_STEPS}
           />
@@ -1764,7 +1764,7 @@ function App() {
       </Panel>
 
       {/* ── Logs / Terminal ────────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Logs — Terminal</PanelTitle>}>
+      <Panel title={<PanelTitle size='lg'>Logs — Terminal</PanelTitle>}>
         <SectionDivider>Terminal · plain</SectionDivider>
         <Terminal lines={TERMINAL_LINES} />
 
@@ -1799,16 +1799,16 @@ function App() {
         />
 
         <SectionDivider>CodeBlock</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="json" span={2}>
+        <div className='gallery__row'>
+          <Specimen caption='json' span={2}>
             <CodeBlock
-              language="json"
+              language='json'
               code='{\n  "service": "catalog",\n  "metric": "latency_p99",\n  "value": 482,\n  "unit": "ms"\n}'
             />
           </Specimen>
-          <Specimen caption="bash" span={2}>
+          <Specimen caption='bash' span={2}>
             <CodeBlock
-              language="bash"
+              language='bash'
               code="kubectl apply -f injection.yaml\nwatch -n 1 'kubectl get pods'"
             />
           </Specimen>
@@ -1816,7 +1816,7 @@ function App() {
       </Panel>
 
       {/* ── Navigation & identity primitives ───────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Navigation · Rosetta</PanelTitle>}>
+      <Panel title={<PanelTitle size='lg'>Navigation · Rosetta</PanelTitle>}>
         <SectionDivider>Tabs</SectionDivider>
         <RosettaTabs
           items={[
@@ -1824,17 +1824,17 @@ function App() {
             { key: 'params', label: 'Parameters' },
             { key: 'logs', label: 'Logs' },
           ]}
-          defaultActiveKey="overview"
+          defaultActiveKey='overview'
         >
-          <p className="gallery__panel-body">Tab panel content goes here.</p>
+          <p className='gallery__panel-body'>Tab panel content goes here.</p>
         </RosettaTabs>
 
         <SectionDivider>Breadcrumb</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="simple">
+        <div className='gallery__row'>
+          <Specimen caption='simple'>
             <Breadcrumb items={[{ label: 'Dashboard' }]} />
           </Specimen>
-          <Specimen caption="with links" span={2}>
+          <Specimen caption='with links' span={2}>
             <Breadcrumb
               items={[
                 { label: 'Projects', to: '/projects' },
@@ -1846,26 +1846,26 @@ function App() {
         </div>
 
         <SectionDivider>Avatar</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="initials · sm">
-            <Avatar size="sm" name="Ada Lovelace" />
+        <div className='gallery__row'>
+          <Specimen caption='initials · sm'>
+            <Avatar size='sm' name='Ada Lovelace' />
           </Specimen>
-          <Specimen caption="initials · base">
-            <Avatar size="base" name="Grace Hopper" />
+          <Specimen caption='initials · base'>
+            <Avatar size='base' name='Grace Hopper' />
           </Specimen>
-          <Specimen caption="initials · lg">
-            <Avatar size="lg" name="Alan Turing" />
+          <Specimen caption='initials · lg'>
+            <Avatar size='lg' name='Alan Turing' />
           </Specimen>
-          <Specimen caption="icon fallback">
-            <Avatar size="base" icon={<UserOutlined />} />
+          <Specimen caption='icon fallback'>
+            <Avatar size='base' icon={<UserOutlined />} />
           </Specimen>
         </div>
 
         <SectionDivider>DropdownMenu</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="basic">
+        <div className='gallery__row'>
+          <Specimen caption='basic'>
             <DropdownMenu
-              trigger={<Chip tone="ink">Open menu</Chip>}
+              trigger={<Chip tone='ink'>Open menu</Chip>}
               items={[
                 { key: 'view', label: 'View details' },
                 { key: 'edit', label: 'Edit' },
@@ -1873,9 +1873,9 @@ function App() {
               ]}
             />
           </Specimen>
-          <Specimen caption="with icons" span={2}>
+          <Specimen caption='with icons' span={2}>
             <DropdownMenu
-              trigger={<Chip tone="default">User menu</Chip>}
+              trigger={<Chip tone='default'>User menu</Chip>}
               items={[
                 { key: 'profile', label: 'Profile', icon: <UserOutlined /> },
                 {
@@ -1895,84 +1895,84 @@ function App() {
         </div>
 
         <SectionDivider>ProjectSelector</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="with projects" span={2}>
+        <div className='gallery__row'>
+          <Specimen caption='with projects' span={2}>
             <ProjectSelector
               projects={[
                 { id: '1', name: 'catalog-service' },
                 { id: '2', name: 'order-platform' },
                 { id: '3', name: 'inventory-v2' },
               ]}
-              selectedId="1"
+              selectedId='1'
               onSelect={() => {
                 /* gallery specimen — no-op */
               }}
             />
           </Specimen>
-          <Specimen caption="empty state">
+          <Specimen caption='empty state'>
             <ProjectSelector
               projects={[]}
               onSelect={() => {
                 /* gallery specimen — no-op */
               }}
-              placeholder="No projects"
+              placeholder='No projects'
             />
           </Specimen>
         </div>
       </Panel>
 
       {/* ── Layouts ────────────────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Layouts</PanelTitle>}>
+      <Panel title={<PanelTitle size='lg'>Layouts</PanelTitle>}>
         <SectionDivider>PageHeader</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="title only" span={2}>
-            <PageHeader title="Users" />
+        <div className='gallery__row'>
+          <Specimen caption='title only' span={2}>
+            <PageHeader title='Users' />
           </Specimen>
-          <Specimen caption="with description" span={2}>
+          <Specimen caption='with description' span={2}>
             <PageHeader
-              title="API Keys"
-              description="Manage SDK and service API keys for programmatic access."
+              title='API Keys'
+              description='Manage SDK and service API keys for programmatic access.'
             />
           </Specimen>
-          <Specimen caption="with action" span={2}>
+          <Specimen caption='with action' span={2}>
             <PageHeader
-              title="Teams"
-              description="Organize members into teams."
-              action={<Chip tone="ink">+ Create team</Chip>}
+              title='Teams'
+              description='Organize members into teams.'
+              action={<Chip tone='ink'>+ Create team</Chip>}
             />
           </Specimen>
         </div>
 
         <SectionDivider>SettingsSection + FormRow</SectionDivider>
         <SettingsSection
-          title="Profile"
-          description="Update your personal information and preferences."
+          title='Profile'
+          description='Update your personal information and preferences.'
         >
           <FormRow
-            label="Display name"
-            description="Shown across the platform."
+            label='Display name'
+            description='Shown across the platform.'
           >
             <input
-              type="text"
-              defaultValue="Ada Lovelace"
-              className="gallery__demo-input"
+              type='text'
+              defaultValue='Ada Lovelace'
+              className='gallery__demo-input'
             />
           </FormRow>
           <FormRow
-            label="Email"
-            description="Used for notifications and login."
+            label='Email'
+            description='Used for notifications and login.'
           >
             <input
-              type="text"
-              defaultValue="ada@aegislab.io"
-              className="gallery__demo-input"
+              type='text'
+              defaultValue='ada@aegislab.io'
+              className='gallery__demo-input'
             />
           </FormRow>
           <FormRow
-            label="Timezone"
-            description="All times are displayed in this zone."
+            label='Timezone'
+            description='All times are displayed in this zone.'
           >
-            <select className="gallery__demo-input">
+            <select className='gallery__demo-input'>
               <option>UTC</option>
               <option>Asia/Shanghai</option>
               <option>America/New_York</option>
@@ -1980,36 +1980,36 @@ function App() {
           </FormRow>
         </SettingsSection>
         <SettingsSection
-          title="Notifications"
-          description="Choose what you want to be notified about."
+          title='Notifications'
+          description='Choose what you want to be notified about.'
         >
           <FormRow
-            label="Email alerts"
-            description="Receive email for critical events."
+            label='Email alerts'
+            description='Receive email for critical events.'
           >
-            <label className="gallery__demo-toggle">
-              <input type="checkbox" defaultChecked />
-              <span className="gallery__demo-toggle-track" />
+            <label className='gallery__demo-toggle'>
+              <input type='checkbox' defaultChecked />
+              <span className='gallery__demo-toggle-track' />
             </label>
           </FormRow>
           <FormRow
-            label="Slack integration"
-            description="Push notifications to your Slack channel."
+            label='Slack integration'
+            description='Push notifications to your Slack channel.'
           >
-            <label className="gallery__demo-toggle">
-              <input type="checkbox" />
-              <span className="gallery__demo-toggle-track" />
+            <label className='gallery__demo-toggle'>
+              <input type='checkbox' />
+              <span className='gallery__demo-toggle-track' />
             </label>
           </FormRow>
         </SettingsSection>
 
         <SectionDivider>DangerZone</SectionDivider>
-        <DangerZone description="Once you delete a project, all associated data will be permanently removed. This action cannot be undone.">
-          <div className="gallery__danger-row">
+        <DangerZone description='Once you delete a project, all associated data will be permanently removed. This action cannot be undone.'>
+          <div className='gallery__danger-row'>
             <span>
-              Delete project <MonoValue size="sm">catalog-service</MonoValue>
+              Delete project <MonoValue size='sm'>catalog-service</MonoValue>
             </span>
-            <button type="button" className="gallery__danger-btn">
+            <button type='button' className='gallery__danger-btn'>
               Delete project
             </button>
           </div>
@@ -2018,46 +2018,46 @@ function App() {
 
       {/* ── AntD widgets under our theme ───────────────────────────── */}
       <Panel
-        title={<PanelTitle size="lg">AntD widgets · themed</PanelTitle>}
+        title={<PanelTitle size='lg'>AntD widgets · themed</PanelTitle>}
         extra={<MetricLabel>ConfigProvider</MetricLabel>}
       >
         <SectionDivider>Buttons</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="primary">
-            <Button type="primary">Initialize Lab</Button>
+        <div className='gallery__row'>
+          <Specimen caption='primary'>
+            <Button type='primary'>Initialize Lab</Button>
           </Specimen>
-          <Specimen caption="default">
+          <Specimen caption='default'>
             <Button>Cancel</Button>
           </Specimen>
-          <Specimen caption="dashed">
-            <Button type="dashed">+ Add target</Button>
+          <Specimen caption='dashed'>
+            <Button type='dashed'>+ Add target</Button>
           </Specimen>
-          <Specimen caption="text">
-            <Button type="text">Skip</Button>
+          <Specimen caption='text'>
+            <Button type='text'>Skip</Button>
           </Specimen>
-          <Specimen caption="primary · loading">
-            <Button type="primary" loading>
+          <Specimen caption='primary · loading'>
+            <Button type='primary' loading>
               Running
             </Button>
           </Specimen>
-          <Specimen caption="primary · disabled">
-            <Button type="primary" disabled>
+          <Specimen caption='primary · disabled'>
+            <Button type='primary' disabled>
               Locked
             </Button>
           </Specimen>
         </div>
 
         <SectionDivider>Inputs</SectionDivider>
-        <div className="gallery__row gallery__row--wide">
-          <Specimen caption="Input" span={2}>
-            <Input placeholder="experiment-name" />
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='Input' span={2}>
+            <Input placeholder='experiment-name' />
           </Specimen>
-          <Specimen caption="Input.Search" span={2}>
-            <Input.Search placeholder="search injections…" allowClear />
+          <Specimen caption='Input.Search' span={2}>
+            <Input.Search placeholder='search injections…' allowClear />
           </Specimen>
-          <Specimen caption="Select" span={2}>
+          <Specimen caption='Select' span={2}>
             <Select
-              placeholder="select target"
+              placeholder='select target'
               style={{ width: '100%' }}
               options={[
                 { value: 'order', label: 'order-svc' },
@@ -2066,26 +2066,26 @@ function App() {
               ]}
             />
           </Specimen>
-          <Specimen caption="Switch">
+          <Specimen caption='Switch'>
             <Switch checked={switchOn} onChange={setSwitchOn} />
           </Specimen>
         </div>
 
         <SectionDivider>Tags &amp; Progress</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="Tag — neutral">
+        <div className='gallery__row'>
+          <Specimen caption='Tag — neutral'>
             <Tag>queued</Tag>
           </Specimen>
-          <Specimen caption="Tag — primary">
-            <Tag color="black">running</Tag>
+          <Specimen caption='Tag — primary'>
+            <Tag color='black'>running</Tag>
           </Specimen>
-          <Specimen caption="Tag — error">
-            <Tag color="error">failed</Tag>
+          <Specimen caption='Tag — error'>
+            <Tag color='error'>failed</Tag>
           </Specimen>
-          <Specimen caption="Progress 30%" span={2}>
+          <Specimen caption='Progress 30%' span={2}>
             <Progress percent={30} />
           </Specimen>
-          <Specimen caption="Progress 78%" span={2}>
+          <Specimen caption='Progress 78%' span={2}>
             <Progress percent={78} />
           </Specimen>
         </div>
@@ -2097,7 +2097,7 @@ function App() {
               key: 'overview',
               label: 'Overview',
               children: (
-                <p className="gallery__panel-body">
+                <p className='gallery__panel-body'>
                   Tab content uses the same base typography as panels.
                 </p>
               ),
@@ -2120,29 +2120,29 @@ function App() {
           dataSource={TABLE_DATA}
           columns={TABLE_COLUMNS}
           pagination={false}
-          size="middle"
+          size='middle'
           scroll={{ x: 'max-content' }}
         />
 
         <SectionDivider>Tooltip &amp; Modal</SectionDivider>
-        <div className="gallery__row">
-          <Specimen caption="Tooltip on hover">
-            <Tooltip title="Inverted spotlight tooltip" placement="top">
+        <div className='gallery__row'>
+          <Specimen caption='Tooltip on hover'>
+            <Tooltip title='Inverted spotlight tooltip' placement='top'>
               <Button>Hover me</Button>
             </Tooltip>
           </Specimen>
-          <Specimen caption="Modal">
+          <Specimen caption='Modal'>
             <Button onClick={() => setModalOpen(true)}>Open modal</Button>
             <Modal
-              title="Confirm injection"
+              title='Confirm injection'
               open={modalOpen}
               onOk={() => setModalOpen(false)}
               onCancel={() => setModalOpen(false)}
-              okText="Inject"
+              okText='Inject'
             >
               <p>
-                This will execute <MonoValue size="sm">Clock Drift</MonoValue>{' '}
-                against <MonoValue size="sm">EU‑WEST‑01</MonoValue>.
+                This will execute <MonoValue size='sm'>Clock Drift</MonoValue>{' '}
+                against <MonoValue size='sm'>EU‑WEST‑01</MonoValue>.
               </p>
             </Modal>
           </Specimen>
@@ -2152,34 +2152,34 @@ function App() {
           Form
         </SectionDivider>
         <Form
-          layout="vertical"
+          layout='vertical'
           initialValues={{
             name: 'playing-the-world',
             cluster: 'EU-WEST-01',
             autoRestart: true,
           }}
           requiredMark
-          className="gallery__form"
+          className='gallery__form'
         >
           <Form.Item
-            label="Experiment name"
-            name="name"
+            label='Experiment name'
+            name='name'
             required
-            tooltip="Lower-case slug, used as the run identifier."
+            tooltip='Lower-case slug, used as the run identifier.'
             rules={[{ required: true, message: 'name is required' }]}
           >
-            <Input placeholder="experiment-name" />
+            <Input placeholder='experiment-name' />
           </Form.Item>
 
           <Form.Item
-            label="Target service"
-            name="target"
+            label='Target service'
+            name='target'
             required
-            validateStatus="error"
-            help="Target service is required."
+            validateStatus='error'
+            help='Target service is required.'
           >
             <Select
-              placeholder="select target"
+              placeholder='select target'
               options={[
                 { value: 'order', label: 'order-svc' },
                 { value: 'cart', label: 'cart-svc' },
@@ -2188,32 +2188,32 @@ function App() {
             />
           </Form.Item>
 
-          <Form.Item label="Run on cluster" name="cluster">
+          <Form.Item label='Run on cluster' name='cluster'>
             <Input />
           </Form.Item>
 
           <Form.Item
-            label="Auto-restart on failure"
-            name="autoRestart"
-            valuePropName="checked"
-            extra="If a worker fails mid-run, restart it once and continue."
+            label='Auto-restart on failure'
+            name='autoRestart'
+            valuePropName='checked'
+            extra='If a worker fails mid-run, restart it once and continue.'
           >
             <Switch />
           </Form.Item>
 
-          <Form.Item className="gallery__form-actions">
+          <Form.Item className='gallery__form-actions'>
             <Button>Cancel</Button>
-            <Button type="primary">Save &amp; queue</Button>
+            <Button type='primary'>Save &amp; queue</Button>
           </Form.Item>
         </Form>
       </Panel>
 
       {/* ── Roadmap · planned components ───────────────────────────── */}
       <Panel
-        title={<PanelTitle size="lg">Roadmap · planned components</PanelTitle>}
+        title={<PanelTitle size='lg'>Roadmap · planned components</PanelTitle>}
         extra={<MetricLabel>experiment-observation page</MetricLabel>}
       >
-        <p className="gallery__panel-body">
+        <p className='gallery__panel-body'>
           Composition + wrapper layer for the multimodal experiment view — logs,
           traces, metrics, code and config bound on a shared time axis. Each
           card is a placeholder; the link points at the implementation pattern
@@ -2222,7 +2222,7 @@ function App() {
         {ROADMAP_GROUPS.map((group) => (
           <div key={group.label}>
             <SectionDivider>{group.label}</SectionDivider>
-            <div className="gallery__roadmap-grid">
+            <div className='gallery__roadmap-grid'>
               {group.cards.map((card) => (
                 <RoadmapCard key={card.name} {...card} />
               ))}
@@ -2231,8 +2231,8 @@ function App() {
         ))}
       </Panel>
 
-      <footer className="gallery__footer">
-        <MetricLabel as="div">
+      <footer className='gallery__footer'>
+        <MetricLabel as='div'>
           aegis · rosetta · ui specimen · review only
         </MetricLabel>
       </footer>

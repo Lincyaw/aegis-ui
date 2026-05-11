@@ -9,15 +9,15 @@ export default function ExecutionDetail() {
   }>();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
         title={`Execution ${executionId}`}
         description={`Algorithm execution detail for project ${projectId}.`}
       />
       <Panel>
         <EmptyState
-          title="Execution detail"
-          description="Execution results, detector output, and evaluation scores will appear here."
+          title='Execution detail'
+          description='Execution results, detector output, and evaluation scores will appear here.'
         />
       </Panel>
     </div>

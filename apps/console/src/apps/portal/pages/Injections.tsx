@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
   Chip,
@@ -7,6 +7,7 @@ import {
   PageHeader,
   Panel,
   StatusDot,
+  useAppNavigate,
 } from '@OperationsPAI/aegis-ui';
 
 const DEMO_INJECTIONS = [
@@ -17,43 +18,50 @@ const DEMO_INJECTIONS = [
 
 export default function Injections() {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="Injections"
+        title='Injections'
         description={`Fault injections for project ${projectId}.`}
         action={
-          <Chip tone="ink" onClick={() => navigate(`/projects/${projectId}/injections/new`)}>+ New injection</Chip>
+          <Chip
+            tone='ink'
+            onClick={() => navigate(`projects/${projectId}/injections/new`)}
+          >
+            + New injection
+          </Chip>
         }
       />
       <Panel>
         {DEMO_INJECTIONS.length === 0 ? (
           <EmptyState
-            title="No injections"
-            description="Injections will appear here once created."
+            title='No injections'
+            description='Injections will appear here once created.'
           />
         ) : (
-          <div className="page-table">
-            <div className="page-table__head">
-              <span className="page-table__cell">Name</span>
-              <span className="page-table__cell">ID</span>
-              <span className="page-table__cell">Status</span>
+          <div className='page-table'>
+            <div className='page-table__head'>
+              <span className='page-table__cell'>Name</span>
+              <span className='page-table__cell'>ID</span>
+              <span className='page-table__cell'>Status</span>
             </div>
             {DEMO_INJECTIONS.map((i) => (
               <div
                 key={i.id}
-                className="page-table__row"
-                onClick={() => navigate(`/projects/${projectId}/injections/${i.id}`)}
+                className='page-table__row'
+                onClick={() =>
+                  navigate(`projects/${projectId}/injections/${i.id}`)
+                }
               >
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{i.name}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{i.name}</MonoValue>
                 </span>
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{i.id}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{i.id}</MonoValue>
                 </span>
-                <span className="page-table__cell">
+                <span className='page-table__cell'>
                   <StatusDot
                     size={6}
                     pulse={i.status === 'running'}

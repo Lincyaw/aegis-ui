@@ -1,4 +1,5 @@
 import { type ReactElement, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
   Chip,
@@ -9,7 +10,6 @@ import {
   Tabs,
   TimeDisplay,
 } from '@OperationsPAI/aegis-ui';
-import { Link } from 'react-router-dom';
 
 import type { DemoDataset } from './data';
 import { useDatasets } from './store';
@@ -22,15 +22,15 @@ export function DatasetBrowse(): ReactElement {
 
   const filtered = useMemo(
     () => (tab === 'all' ? datasets : datasets.filter((d) => d.format === tab)),
-    [datasets, tab],
+    [datasets, tab]
   );
 
   return (
     <>
       <PageHeader
-        title="Datasets"
-        description="Browse what the demo control plane has registered for analysis."
-        action={<Link to="upload">+ Upload</Link>}
+        title='Datasets'
+        description='Browse what the demo control plane has registered for analysis.'
+        action={<Link to='upload'>+ Upload</Link>}
       />
 
       <Panel>
@@ -55,7 +55,7 @@ export function DatasetBrowse(): ReactElement {
         />
 
         {filtered.length === 0 ? (
-          <EmptyState title="No datasets in this tab" />
+          <EmptyState title='No datasets in this tab' />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {filtered.map((d) => (
@@ -84,7 +84,7 @@ export function DatasetBrowse(): ReactElement {
                       color: 'var(--text-muted)',
                     }}
                   >
-                    <TimeDisplay value={d.updatedAt} mode="relative" />
+                    <TimeDisplay value={d.updatedAt} mode='relative' />
                   </span>
                 </div>
                 <div
@@ -97,13 +97,13 @@ export function DatasetBrowse(): ReactElement {
                   {d.description}
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <Chip tone="ghost">
-                    <MonoValue size="sm">{d.format}</MonoValue>
+                  <Chip tone='ghost'>
+                    <MonoValue size='sm'>{d.format}</MonoValue>
                   </Chip>
-                  <Chip tone="ghost">{d.rows.toLocaleString()} rows</Chip>
-                  <Chip tone="ghost">{d.sizeMb} MB</Chip>
+                  <Chip tone='ghost'>{d.rows.toLocaleString()} rows</Chip>
+                  <Chip tone='ghost'>{d.sizeMb} MB</Chip>
                   {d.tags.map((t) => (
-                    <Chip key={t} tone="default">
+                    <Chip key={t} tone='default'>
                       {t}
                     </Chip>
                   ))}

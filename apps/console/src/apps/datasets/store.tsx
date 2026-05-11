@@ -1,7 +1,7 @@
 import {
+  createContext,
   type ReactElement,
   type ReactNode,
-  createContext,
   useCallback,
   useContext,
   useMemo,
@@ -70,12 +70,12 @@ export function DatasetsProvider({
       }, 220);
       return id;
     },
-    [],
+    []
   );
 
   const value = useMemo(
     () => ({ datasets, uploads, startUpload }),
-    [datasets, uploads, startUpload],
+    [datasets, uploads, startUpload]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

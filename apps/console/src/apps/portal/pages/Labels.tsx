@@ -1,11 +1,10 @@
-import { useNavigate } from 'react-router-dom';
-
 import {
   Chip,
   EmptyState,
   MonoValue,
   PageHeader,
   Panel,
+  useAppNavigate,
 } from '@OperationsPAI/aegis-ui';
 
 const DEMO_LABELS = [
@@ -15,43 +14,45 @@ const DEMO_LABELS = [
 ];
 
 export default function Labels() {
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="Labels"
-        description="Organize and filter resources with custom labels."
+        title='Labels'
+        description='Organize and filter resources with custom labels.'
         action={
-          <Chip tone="ink" onClick={() => navigate('/labels/new')}>+ New label</Chip>
+          <Chip tone='ink' onClick={() => navigate('labels/new')}>
+            + New label
+          </Chip>
         }
       />
       <Panel>
         {DEMO_LABELS.length === 0 ? (
           <EmptyState
-            title="No labels"
-            description="Labels will appear here once created."
+            title='No labels'
+            description='Labels will appear here once created.'
           />
         ) : (
-          <div className="page-table">
-            <div className="page-table__head">
-              <span className="page-table__cell">Name</span>
-              <span className="page-table__cell">ID</span>
-              <span className="page-table__cell">Color</span>
+          <div className='page-table'>
+            <div className='page-table__head'>
+              <span className='page-table__cell'>Name</span>
+              <span className='page-table__cell'>ID</span>
+              <span className='page-table__cell'>Color</span>
             </div>
             {DEMO_LABELS.map((l) => (
               <div
                 key={l.id}
-                className="page-table__row"
-                onClick={() => navigate(`/labels/${l.id}`)}
+                className='page-table__row'
+                onClick={() => navigate(`labels/${l.id}`)}
               >
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{l.name}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{l.name}</MonoValue>
                 </span>
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{l.id}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{l.id}</MonoValue>
                 </span>
-                <span className="page-table__cell">
+                <span className='page-table__cell'>
                   <span
                     style={{
                       display: 'inline-block',

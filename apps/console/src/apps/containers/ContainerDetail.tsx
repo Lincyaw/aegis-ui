@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import {
   Chip,
@@ -10,7 +11,6 @@ import {
   StatusDot,
 } from '@OperationsPAI/aegis-ui';
 import { Button } from 'antd';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import type { ContainerStatus } from './data';
 import { useContainers } from './store';
@@ -22,7 +22,7 @@ export function ContainerDetail(): ReactElement {
   const container = containers.find((c) => c.id === id);
 
   if (!container) {
-    return <Navigate to=".." replace />;
+    return <Navigate to='..' replace />;
   }
 
   return (
@@ -30,10 +30,10 @@ export function ContainerDetail(): ReactElement {
       <PageHeader
         title={container.name}
         description={`Container ${container.id}`}
-        action={<Link to="..">← Back to list</Link>}
+        action={<Link to='..'>← Back to list</Link>}
       />
 
-      <Panel title="Runtime">
+      <Panel title='Runtime'>
         <KeyValueList
           items={[
             {
@@ -47,13 +47,13 @@ export function ContainerDetail(): ReactElement {
                   }}
                 >
                   <StatusDot tone={statusTone(container.status)} />
-                  <Chip tone="ghost">{container.status}</Chip>
+                  <Chip tone='ghost'>{container.status}</Chip>
                 </span>
               ),
             },
             {
               k: 'image',
-              v: <MonoValue size="sm">{container.image}</MonoValue>,
+              v: <MonoValue size='sm'>{container.image}</MonoValue>,
             },
             {
               k: 'cpu',
@@ -72,8 +72,8 @@ export function ContainerDetail(): ReactElement {
       </Panel>
 
       <DangerZone
-        title="Destroy container"
-        description="Removes the workload from the demo control plane. Demo-local only — no real Kubernetes call is made."
+        title='Destroy container'
+        description='Removes the workload from the demo control plane. Demo-local only — no real Kubernetes call is made.'
       >
         <Button
           danger

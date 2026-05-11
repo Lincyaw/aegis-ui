@@ -1,7 +1,7 @@
 import {
+  createContext,
   type ReactElement,
   type ReactNode,
-  createContext,
   useCallback,
   useContext,
   useMemo,
@@ -43,12 +43,12 @@ export function ContainersProvider({
     (id) => {
       setContainers((prev) => prev.filter((c) => c.id !== id));
     },
-    [],
+    []
   );
 
   const value = useMemo(
     () => ({ containers, query, setQuery, addContainer, removeContainer }),
-    [containers, query, addContainer, removeContainer],
+    [containers, query, addContainer, removeContainer]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

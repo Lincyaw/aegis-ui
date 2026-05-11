@@ -41,7 +41,9 @@
   color: var(--text-muted);
   text-decoration: none;
   border-radius: var(--radius-md);
-  transition: color var(--motion-fast), background var(--motion-fast);
+  transition:
+    color var(--motion-fast),
+    background var(--motion-fast);
   white-space: nowrap;
   position: relative;
 }
@@ -57,7 +59,9 @@
   background: var(--text-main);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   opacity: 0;
-  transition: opacity var(--motion-fast), transform var(--motion-fast);
+  transition:
+    opacity var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .settings-page__nav-link:hover {
@@ -190,7 +194,9 @@ select.settings-demo-input:focus {
   border: 1px solid var(--accent-warning);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--motion-fast), color var(--motion-fast);
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
 }
 
 .settings-demo-danger-btn:hover {

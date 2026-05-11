@@ -1,9 +1,9 @@
 import type { ReactElement, ReactNode } from 'react';
-
-import { type AegisApp, useActiveApp } from '@OperationsPAI/aegis-ui';
-import { HddOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Input } from 'antd';
 import { useNavigate } from 'react-router-dom';
+
+import { HddOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { type AegisApp, useActiveApp } from '@OperationsPAI/aegis-ui';
+import { Button, Input } from 'antd';
 
 import { ContainerCreate } from './ContainerCreate';
 import { ContainerDetail } from './ContainerDetail';
@@ -28,8 +28,8 @@ function ContainersHeader(): ReactElement {
       }}
     >
       <Input
-        size="small"
-        placeholder="Search containers…"
+        size='small'
+        placeholder='Search containers…'
         prefix={<SearchOutlined />}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -37,8 +37,8 @@ function ContainersHeader(): ReactElement {
         allowClear
       />
       <Button
-        type="primary"
-        size="small"
+        type='primary'
+        size='small'
         icon={<PlusOutlined />}
         onClick={() => navigate(`${basePath}/new`)}
         style={{ marginLeft: 'auto' }}

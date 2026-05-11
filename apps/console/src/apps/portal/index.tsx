@@ -8,7 +8,6 @@ import {
   SettingOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
-
 import type { AegisApp } from '@OperationsPAI/aegis-ui';
 
 import ContainerCreate from './pages/ContainerCreate';
@@ -37,6 +36,7 @@ import TaskDetail from './pages/TaskDetail';
 import Tasks from './pages/Tasks';
 import TraceDetail from './pages/TraceDetail';
 import Traces from './pages/Traces';
+
 import './pages/pages.css';
 
 export const portalApp: AegisApp = {
@@ -45,7 +45,7 @@ export const portalApp: AegisApp = {
   description:
     'Root scenarios — projects, containers, datasets, experiments, observability.',
   icon: <AppstoreOutlined />,
-  basePath: '/',
+  basePath: '/portal',
   sidebar: [
     {
       items: [
@@ -59,9 +59,7 @@ export const portalApp: AegisApp = {
     },
     {
       label: 'Admin',
-      items: [
-        { to: 'settings', label: 'Settings', icon: <SettingOutlined /> },
-      ],
+      items: [{ to: 'settings', label: 'Settings', icon: <SettingOutlined /> }],
     },
   ],
   routes: [
@@ -99,4 +97,3 @@ export const portalApp: AegisApp = {
     { path: 'settings/*', element: <Settings /> },
   ],
 };
-

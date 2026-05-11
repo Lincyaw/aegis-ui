@@ -6,15 +6,15 @@ export default function LabelDetail() {
   const { labelId } = useParams<{ labelId: string }>();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
         title={`Label ${labelId}`}
-        description="Label details and associated resources."
+        description='Label details and associated resources.'
       />
       <Panel>
         <EmptyState
-          title="Label detail"
-          description="Label metadata and tagged resources will appear here."
+          title='Label detail'
+          description='Label metadata and tagged resources will appear here.'
         />
       </Panel>
     </div>

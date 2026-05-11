@@ -1,21 +1,26 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
-import { EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
+import {
+  EmptyState,
+  PageHeader,
+  Panel,
+  useAppNavigate,
+} from '@OperationsPAI/aegis-ui';
 
 export default function ExecutionCreate() {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="Run Algorithm"
+        title='Run Algorithm'
         description={`Submit an algorithm execution for project ${projectId}.`}
         action={
           <button
-            type="button"
-            className="settings-demo-danger-btn"
-            onClick={() => navigate(`/projects/${projectId}/executions`)}
+            type='button'
+            className='settings-demo-danger-btn'
+            onClick={() => navigate(`projects/${projectId}/executions`)}
           >
             Cancel
           </button>
@@ -23,8 +28,8 @@ export default function ExecutionCreate() {
       />
       <Panel>
         <EmptyState
-          title="Execution form"
-          description="Algorithm execution submission form will appear here."
+          title='Execution form'
+          description='Algorithm execution submission form will appear here.'
         />
       </Panel>
     </div>

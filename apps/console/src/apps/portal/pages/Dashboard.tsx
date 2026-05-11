@@ -12,19 +12,21 @@ import {
   SectionDivider,
   StatusDot,
   Terminal,
-  TimeDisplay,
-  TrajectoryTimeline,
   type TerminalLine,
+  TimeDisplay,
   type TrajectoryStepData,
+  TrajectoryTimeline,
 } from '@OperationsPAI/aegis-ui';
+
 import {
+  type ProjectProjectResp,
   projectsApi,
   tasksApi,
-  tracesApi,
-  type ProjectProjectResp,
   type TaskTaskResp,
+  tracesApi,
   type TraceTraceResp,
 } from '@/api/portal-client';
+
 import './Dashboard.css';
 
 /* ── Mock trajectory data (demo until API surfaces real steps) ───── */
@@ -42,8 +44,7 @@ const DEMO_TRAJECTORY: TrajectoryStepData[] = [
       name: 'query_metrics',
       arguments:
         '{\n  "service": "catalog",\n  "metric": "latency_p99",\n  "range": "1h"\n}',
-      result:
-        '{\n  "value": 2840,\n  "unit": "ms",\n  "baseline": 120\n}',
+      result: '{\n  "value": 2840,\n  "unit": "ms",\n  "baseline": 120\n}',
     },
     observation:
       '> **Observation**: p99 latency spiked to **2.84 s** (baseline 120 ms) at 14:18.',
@@ -89,13 +90,48 @@ const DEMO_TRAJECTORY: TrajectoryStepData[] = [
 ];
 
 const DEMO_TERMINAL_LINES: TerminalLine[] = [
-  { ts: '14:22:01', prefix: 'agent', level: 'info', body: 'query_metrics → catalog.latency_p99' },
-  { ts: '14:22:02', prefix: 'metric', level: 'info', body: 'p99=2840ms baseline=120ms delta=+2367%' },
-  { ts: '14:22:03', prefix: 'agent', level: 'info', body: 'hypothesis → downstream bottleneck' },
-  { ts: '14:22:05', prefix: 'agent', level: 'info', body: 'get_traces → catalog (min=1000ms)' },
-  { ts: '14:22:06', prefix: 'trace', level: 'debug', body: 'root=GET /products duration=2840ms' },
-  { ts: '14:22:07', prefix: 'trace', level: 'debug', body: 'child=SELECT inventory duration=2612ms' },
-  { ts: '14:22:08', prefix: 'agent', level: 'warn', body: 'RCA conclusion → missing index on inventory.sku' },
+  {
+    ts: '14:22:01',
+    prefix: 'agent',
+    level: 'info',
+    body: 'query_metrics → catalog.latency_p99',
+  },
+  {
+    ts: '14:22:02',
+    prefix: 'metric',
+    level: 'info',
+    body: 'p99=2840ms baseline=120ms delta=+2367%',
+  },
+  {
+    ts: '14:22:03',
+    prefix: 'agent',
+    level: 'info',
+    body: 'hypothesis → downstream bottleneck',
+  },
+  {
+    ts: '14:22:05',
+    prefix: 'agent',
+    level: 'info',
+    body: 'get_traces → catalog (min=1000ms)',
+  },
+  {
+    ts: '14:22:06',
+    prefix: 'trace',
+    level: 'debug',
+    body: 'root=GET /products duration=2840ms',
+  },
+  {
+    ts: '14:22:07',
+    prefix: 'trace',
+    level: 'debug',
+    body: 'child=SELECT inventory duration=2612ms',
+  },
+  {
+    ts: '14:22:08',
+    prefix: 'agent',
+    level: 'warn',
+    body: 'RCA conclusion → missing index on inventory.sku',
+  },
 ];
 
 /* ── Dashboard page ──────────────────────────────────────────────── */
@@ -128,7 +164,9 @@ export default function Dashboard() {
         setTraces(traceRes.data.data?.items ?? []);
       } catch (e) {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : 'Failed to load dashboard data');
+        setError(
+          e instanceof Error ? e.message : 'Failed to load dashboard data'
+        );
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -142,69 +180,95 @@ export default function Dashboard() {
 
   const totalExecutions = projects.reduce(
     (sum, p) => sum + (p.execution_count ?? 0),
-    0,
+    0
   );
   const runningTasks = tasks.filter((t) => t.state === 'Running').length;
 
   return (
-    <div className="page-wrapper dashboard">
+    <div className='page-wrapper dashboard'>
       {/* ── Header ─────────────────────────────────────────────── */}
-      <header className="dashboard__header">
-        <div className="dashboard__header-left">
-          <h1 className="dashboard__title">
-            <PanelTitle size="hero" as="span">
+      <header className='dashboard__header'>
+        <div className='dashboard__header-left'>
+          <h1 className='dashboard__title'>
+            <PanelTitle size='hero' as='span'>
               Dashboard
             </PanelTitle>
           </h1>
           <MetricLabel>RCABench · landing page template</MetricLabel>
         </div>
-        <div className="dashboard__header-right">
+        <div className='dashboard__header-right'>
           {loading && <StatusDot size={8} pulse />}
-          {error && <Chip tone="warning">API unavailable</Chip>}
-          {!loading && !error && <Chip tone="ink">live</Chip>}
+          {error && <Chip tone='warning'>API unavailable</Chip>}
+          {!loading && !error && <Chip tone='ink'>live</Chip>}
         </div>
       </header>
 
       {/* ── KPI Row ────────────────────────────────────────────── */}
-      <section className="dashboard__kpi-row">
+      <section className='dashboard__kpi-row'>
         <MetricCard
-          label="Projects"
+          label='Projects'
           value={projects.length}
           sparkline={[2, 4, 3, 5, 4, 6, 5, 7, 6, 8, 7, projects.length || 0]}
         />
         <MetricCard
-          label="Executions"
+          label='Executions'
           value={totalExecutions}
-          sparkline={[10, 15, 12, 20, 18, 25, 22, 30, 28, 35, 32, totalExecutions || 0]}
+          sparkline={[
+            10,
+            15,
+            12,
+            20,
+            18,
+            25,
+            22,
+            30,
+            28,
+            35,
+            32,
+            totalExecutions || 0,
+          ]}
         />
         <MetricCard
-          label="Running Tasks"
+          label='Running Tasks'
           value={runningTasks}
           unit={
-            <span className="dashboard__kpi-live">
+            <span className='dashboard__kpi-live'>
               {runningTasks > 0 && <StatusDot size={6} pulse />}
               {runningTasks > 0 ? 'active' : 'idle'}
             </span>
           }
         />
         <MetricCard
-          label="Traces"
+          label='Traces'
           value={traces.length}
-          sparkline={[5, 8, 6, 12, 10, 15, 13, 18, 16, 22, 20, traces.length || 0]}
+          sparkline={[
+            5,
+            8,
+            6,
+            12,
+            10,
+            15,
+            13,
+            18,
+            16,
+            22,
+            20,
+            traces.length || 0,
+          ]}
         />
       </section>
 
       {/* ── Two-column: Executions + Tasks ─────────────────────── */}
-      <section className="dashboard__two-col">
+      <section className='dashboard__two-col'>
         <Panel
-          title={<PanelTitle size="base">Recent Executions</PanelTitle>}
+          title={<PanelTitle size='base'>Recent Executions</PanelTitle>}
           extra={<MetricLabel>{totalExecutions} total</MetricLabel>}
-          className="dashboard__panel"
+          className='dashboard__panel'
         >
           {error ? (
             <EmptyState
-              title="API error"
-              description="Check backend status and retry."
+              title='API error'
+              description='Check backend status and retry.'
             />
           ) : (
             <DataTable
@@ -212,14 +276,14 @@ export default function Dashboard() {
                 {
                   key: 'name',
                   header: 'Project',
-                  render: (p) => <MonoValue size="sm">{p.name}</MonoValue>,
+                  render: (p) => <MonoValue size='sm'>{p.name}</MonoValue>,
                 },
                 {
                   key: 'executions',
                   header: 'Executions',
                   align: 'right',
                   render: (p) => (
-                    <MonoValue size="sm">{p.execution_count ?? 0}</MonoValue>
+                    <MonoValue size='sm'>{p.execution_count ?? 0}</MonoValue>
                   ),
                 },
                 {
@@ -254,32 +318,32 @@ export default function Dashboard() {
               ]}
               data={projects.slice(0, 6)}
               rowKey={(p) => p.id ?? p.name ?? 'unknown'}
-              emptyTitle="No projects"
-              emptyDescription="Create a project to start running experiments."
+              emptyTitle='No projects'
+              emptyDescription='Create a project to start running experiments.'
             />
           )}
         </Panel>
 
         <Panel
-          title={<PanelTitle size="base">Recent Tasks</PanelTitle>}
+          title={<PanelTitle size='base'>Recent Tasks</PanelTitle>}
           extra={<MetricLabel>{tasks.length} total</MetricLabel>}
-          className="dashboard__panel"
+          className='dashboard__panel'
         >
           {error ? (
             <EmptyState
-              title="API error"
-              description="Check backend status and retry."
+              title='API error'
+              description='Check backend status and retry.'
             />
           ) : tasks.length === 0 ? (
             <EmptyState
-              title="No tasks"
-              description="Tasks appear when experiments are running."
+              title='No tasks'
+              description='Tasks appear when experiments are running.'
             />
           ) : (
-            <div className="dashboard__task-list">
+            <div className='dashboard__task-list'>
               {tasks.slice(0, 8).map((t) => (
-                <div key={t.id} className="dashboard__task-item">
-                  <div className="dashboard__task-left">
+                <div key={t.id} className='dashboard__task-item'>
+                  <div className='dashboard__task-left'>
                     <StatusDot
                       size={6}
                       pulse={t.state === 'Running'}
@@ -291,9 +355,9 @@ export default function Dashboard() {
                             : 'muted'
                       }
                     />
-                    <MonoValue size="sm">{t.id}</MonoValue>
+                    <MonoValue size='sm'>{t.id}</MonoValue>
                   </div>
-                  <MetricLabel size="xs">{t.state}</MetricLabel>
+                  <MetricLabel size='xs'>{t.state}</MetricLabel>
                 </div>
               ))}
             </div>
@@ -304,10 +368,10 @@ export default function Dashboard() {
       {/* ── Agent Trajectory ───────────────────────────────────── */}
       <section>
         <SectionDivider>Agent Trajectory · demo</SectionDivider>
-        <div className="dashboard__trajectory-host">
+        <div className='dashboard__trajectory-host'>
           <TrajectoryTimeline
-            agentName="rca-agent"
-            status="completed"
+            agentName='rca-agent'
+            status='completed'
             totalDurationMs={4790}
             steps={DEMO_TRAJECTORY}
           />
@@ -322,27 +386,27 @@ export default function Dashboard() {
 
       {/* ── API Debug ──────────────────────────────────────────── */}
       <Panel
-        title={<PanelTitle size="base">API Debug</PanelTitle>}
+        title={<PanelTitle size='base'>API Debug</PanelTitle>}
         extra={<MetricLabel>@lincyaw/portal v1.3.0</MetricLabel>}
-        className="dashboard__panel"
+        className='dashboard__panel'
       >
         {error ? (
-          <div className="dashboard__debug-error">
+          <div className='dashboard__debug-error'>
             <pre>{error}</pre>
           </div>
         ) : (
-          <div className="dashboard__debug-grid">
-            <div className="dashboard__debug-col">
-              <MetricLabel size="xs">projects</MetricLabel>
-              <MonoValue size="sm">{projects.length} items</MonoValue>
+          <div className='dashboard__debug-grid'>
+            <div className='dashboard__debug-col'>
+              <MetricLabel size='xs'>projects</MetricLabel>
+              <MonoValue size='sm'>{projects.length} items</MonoValue>
             </div>
-            <div className="dashboard__debug-col">
-              <MetricLabel size="xs">tasks</MetricLabel>
-              <MonoValue size="sm">{tasks.length} items</MonoValue>
+            <div className='dashboard__debug-col'>
+              <MetricLabel size='xs'>tasks</MetricLabel>
+              <MonoValue size='sm'>{tasks.length} items</MonoValue>
             </div>
-            <div className="dashboard__debug-col">
-              <MetricLabel size="xs">traces</MetricLabel>
-              <MonoValue size="sm">{traces.length} items</MonoValue>
+            <div className='dashboard__debug-col'>
+              <MetricLabel size='xs'>traces</MetricLabel>
+              <MonoValue size='sm'>{traces.length} items</MonoValue>
             </div>
           </div>
         )}

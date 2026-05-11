@@ -1,20 +1,23 @@
-import { useNavigate } from 'react-router-dom';
-
-import { EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
+import {
+  EmptyState,
+  PageHeader,
+  Panel,
+  useAppNavigate,
+} from '@OperationsPAI/aegis-ui';
 
 export default function DatasetCreate() {
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="New Dataset"
-        description="Create a new evaluation dataset."
+        title='New Dataset'
+        description='Create a new evaluation dataset.'
         action={
           <button
-            type="button"
-            className="settings-demo-danger-btn"
-            onClick={() => navigate('/datasets')}
+            type='button'
+            className='settings-demo-danger-btn'
+            onClick={() => navigate('datasets')}
           >
             Cancel
           </button>
@@ -22,8 +25,8 @@ export default function DatasetCreate() {
       />
       <Panel>
         <EmptyState
-          title="Dataset form"
-          description="Dataset creation form will appear here."
+          title='Dataset form'
+          description='Dataset creation form will appear here.'
         />
       </Panel>
     </div>

@@ -1,11 +1,10 @@
-import { useNavigate } from 'react-router-dom';
-
 import {
   Chip,
   EmptyState,
   MonoValue,
   PageHeader,
   Panel,
+  useAppNavigate,
 } from '@OperationsPAI/aegis-ui';
 
 const DEMO_DATASETS = [
@@ -15,44 +14,46 @@ const DEMO_DATASETS = [
 ];
 
 export default function Datasets() {
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <PageHeader
-        title="Datasets"
-        description="Manage evaluation datasets and their versions."
+        title='Datasets'
+        description='Manage evaluation datasets and their versions.'
         action={
-          <Chip tone="ink" onClick={() => navigate('/datasets/new')}>+ New dataset</Chip>
+          <Chip tone='ink' onClick={() => navigate('datasets/new')}>
+            + New dataset
+          </Chip>
         }
       />
       <Panel>
         {DEMO_DATASETS.length === 0 ? (
           <EmptyState
-            title="No datasets"
-            description="Datasets will appear here once created."
+            title='No datasets'
+            description='Datasets will appear here once created.'
           />
         ) : (
-          <div className="page-table">
-            <div className="page-table__head">
-              <span className="page-table__cell">Name</span>
-              <span className="page-table__cell">ID</span>
-              <span className="page-table__cell">Versions</span>
+          <div className='page-table'>
+            <div className='page-table__head'>
+              <span className='page-table__cell'>Name</span>
+              <span className='page-table__cell'>ID</span>
+              <span className='page-table__cell'>Versions</span>
             </div>
             {DEMO_DATASETS.map((d) => (
               <div
                 key={d.id}
-                className="page-table__row"
-                onClick={() => navigate(`/datasets/${d.id}`)}
+                className='page-table__row'
+                onClick={() => navigate(`datasets/${d.id}`)}
               >
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{d.name}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{d.name}</MonoValue>
                 </span>
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{d.id}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{d.id}</MonoValue>
                 </span>
-                <span className="page-table__cell">
-                  <MonoValue size="sm">{d.versions}</MonoValue>
+                <span className='page-table__cell'>
+                  <MonoValue size='sm'>{d.versions}</MonoValue>
                 </span>
               </div>
             ))}

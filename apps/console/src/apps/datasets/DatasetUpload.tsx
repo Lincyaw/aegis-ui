@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
   Chip,
@@ -10,7 +11,6 @@ import {
   StatusDot,
 } from '@OperationsPAI/aegis-ui';
 import { Button, Form, Input, Select } from 'antd';
-import { Link } from 'react-router-dom';
 
 import type { DemoDataset } from './data';
 import { useDatasets } from './store';
@@ -32,30 +32,30 @@ export function DatasetUpload(): ReactElement {
   return (
     <>
       <PageHeader
-        title="Upload dataset"
-        description="Simulated upload — progresses to 100% over ~2 seconds, then registers."
-        action={<Link to="..">← Browse</Link>}
+        title='Upload dataset'
+        description='Simulated upload — progresses to 100% over ~2 seconds, then registers.'
+        action={<Link to='..'>← Browse</Link>}
       />
 
-      <Panel title="New upload">
+      <Panel title='New upload'>
         <Form<UploadFormShape>
           form={form}
-          layout="vertical"
+          layout='vertical'
           initialValues={{ format: 'parquet' }}
           onFinish={onFinish}
           style={{ padding: 'var(--space-4)' }}
         >
-          <FormRow label="Filename">
+          <FormRow label='Filename'>
             <Form.Item
-              name="filename"
+              name='filename'
               rules={[{ required: true, message: 'Required' }]}
               noStyle
             >
-              <Input placeholder="my-dataset.parquet" />
+              <Input placeholder='my-dataset.parquet' />
             </Form.Item>
           </FormRow>
-          <FormRow label="Format">
-            <Form.Item name="format" noStyle>
+          <FormRow label='Format'>
+            <Form.Item name='format' noStyle>
               <Select
                 style={{ minWidth: 180 }}
                 options={[
@@ -67,16 +67,16 @@ export function DatasetUpload(): ReactElement {
             </Form.Item>
           </FormRow>
           <div style={{ paddingTop: 'var(--space-4)' }}>
-            <Button type="primary" htmlType="submit">
+            <Button type='primary' htmlType='submit'>
               Start upload
             </Button>
           </div>
         </Form>
       </Panel>
 
-      <Panel title="Upload queue">
+      <Panel title='Upload queue'>
         {uploads.length === 0 ? (
-          <EmptyState title="No uploads yet" />
+          <EmptyState title='No uploads yet' />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {uploads.map((u) => (
@@ -104,8 +104,8 @@ export function DatasetUpload(): ReactElement {
                       tone={u.done ? 'ink' : 'muted'}
                       pulse={!u.done}
                     />
-                    <MonoValue size="sm">{u.filename}</MonoValue>
-                    <Chip tone="ghost">{u.format}</Chip>
+                    <MonoValue size='sm'>{u.filename}</MonoValue>
+                    <Chip tone='ghost'>{u.format}</Chip>
                   </div>
                   <div
                     style={{
