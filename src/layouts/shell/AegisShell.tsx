@@ -135,11 +135,16 @@ export function AegisShell({
         onClick={closeMobileNav}
       />
       <main className="aegis-shell__main">
-        {activeApp?.header && (
-          <div className="aegis-shell__app-header">{activeApp.header}</div>
+        {renderAppRegion(
+          activeApp,
+          <>
+            {activeApp?.header && (
+              <div className="aegis-shell__app-header">{activeApp.header}</div>
+            )}
+            <BreadcrumbBar apps={apps} activeApp={activeApp} />
+            <div className="aegis-shell__content">{element}</div>
+          </>,
         )}
-        <BreadcrumbBar apps={apps} activeApp={activeApp} />
-        <div className="aegis-shell__content">{element}</div>
       </main>
     </div>
   );
@@ -147,6 +152,16 @@ export function AegisShell({
 
 function AppRoutes({ app }: { app: AegisApp }): ReactElement | null {
   return useRoutes(app.routes);
+}
+
+function renderAppRegion(
+  app: AegisApp | undefined,
+  children: ReactElement,
+): ReactElement {
+  if (!app?.wrap) {
+    return children;
+  }
+  return <>{app.wrap(children)}</>;
 }
 
 function findActiveApp(

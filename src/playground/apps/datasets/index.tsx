@@ -1,21 +1,13 @@
 import type { ReactElement } from 'react';
 
 import { ProfileOutlined } from '@ant-design/icons';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 import type { AegisApp } from '../../../layouts/shell/types';
 import { DatasetBrowse } from './DatasetBrowse';
 import { DatasetDetail } from './DatasetDetail';
 import { DatasetUpload } from './DatasetUpload';
 import { DatasetsProvider } from './store';
-
-function AppRoot(): ReactElement {
-  return (
-    <DatasetsProvider>
-      <Outlet />
-    </DatasetsProvider>
-  );
-}
 
 /**
  * Demo pattern: tabs-in-header. No left sidebar — primary nav lives in
@@ -69,14 +61,10 @@ export const datasetsApp: AegisApp = {
   basePath: '/datasets',
   description: 'Tabs-in-header pattern (no left sidebar).',
   header: <DatasetsHeader />,
+  wrap: (children) => <DatasetsProvider>{children}</DatasetsProvider>,
   routes: [
-    {
-      element: <AppRoot />,
-      children: [
-        { path: '', element: <DatasetBrowse /> },
-        { path: 'upload', element: <DatasetUpload /> },
-        { path: ':id', element: <DatasetDetail /> },
-      ],
-    },
+    { path: '', element: <DatasetBrowse /> },
+    { path: 'upload', element: <DatasetUpload /> },
+    { path: ':id', element: <DatasetDetail /> },
   ],
 };

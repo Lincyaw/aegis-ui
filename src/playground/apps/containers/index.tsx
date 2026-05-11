@@ -2,21 +2,13 @@ import type { ReactElement } from 'react';
 
 import { HddOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Input } from 'antd';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import type { AegisApp } from '../../../layouts/shell/types';
 import { ContainerCreate } from './ContainerCreate';
 import { ContainerDetail } from './ContainerDetail';
 import { ContainerList } from './ContainerList';
 import { ContainersProvider, useContainers } from './store';
-
-function AppRoot(): ReactElement {
-  return (
-    <ContainersProvider>
-      <Outlet />
-    </ContainersProvider>
-  );
-}
 
 /**
  * Demo pattern: toolbar-style app header. Sits below the shell header,
@@ -65,6 +57,7 @@ export const containersApp: AegisApp = {
   basePath: '/containers',
   description: 'Toolbar header + sidebar nav pattern.',
   header: <ContainersHeader />,
+  wrap: (children) => <ContainersProvider>{children}</ContainersProvider>,
   sidebar: [
     {
       items: [
@@ -74,13 +67,8 @@ export const containersApp: AegisApp = {
     },
   ],
   routes: [
-    {
-      element: <AppRoot />,
-      children: [
-        { path: '', element: <ContainerList /> },
-        { path: 'new', element: <ContainerCreate /> },
-        { path: ':id', element: <ContainerDetail /> },
-      ],
-    },
+    { path: '', element: <ContainerList /> },
+    { path: 'new', element: <ContainerCreate /> },
+    { path: ':id', element: <ContainerDetail /> },
   ],
 };

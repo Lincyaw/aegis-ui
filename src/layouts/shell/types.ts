@@ -45,8 +45,16 @@ export interface AegisApp {
    * Optional sub-header rendered between the shell's `TopHeader` and the
    * page content. Use for app-scoped toolbars, tab nav, filters, etc.
    * Sticky by default so it stays in view while the page scrolls.
+   *
+   * Rendered inside `wrap`, so it can read from the app's Context.
    */
   header?: ReactNode;
+  /**
+   * Optional wrapper applied to the active app's region (header + page
+   * content). Use to mount Context providers shared between `header` and
+   * the routes — anything declared here is in scope for both.
+   */
+  wrap?: (children: ReactNode) => ReactNode;
   /** Optional one-line description shown in app pickers. */
   description?: string;
 }
