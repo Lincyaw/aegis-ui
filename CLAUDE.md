@@ -5,6 +5,10 @@ library — the shared design system + multi-app shell consumed by every
 AegisLab sub-application (portal, container service, dataset manager,
 RCA workbench, …).
 
+This is a **pnpm monorepo**: `packages/ui` is the published library
+(`@OperationsPAI/aegis-ui`); `apps/playground` is the private dev surface
+that hosts the gallery + demo apps. Only `packages/ui` ships to consumers.
+
 It is a **library**, not an application. There is no API client, no Zustand
 store, no business state, no router instance owned by this repo. The
 playground (`src/playground/`) exists only to host the gallery and demo
@@ -53,7 +57,7 @@ internal paths.
   add it there first.
 - **Activation = surface inversion** (`--bg-inverted` background +
   `--text-on-inverted` text). Never accent colour.
-- **Anomaly red** (`--accent-warning`, `#E11D48`) is reserved for *actual*
+- **Anomaly red** (`--accent-warning`, `#E11D48`) is reserved for _actual_
   anomalies — failures, breaches, alarms. Never decorative.
 - **Type stack**: brand (Geist) for titles, UI (Inter) for body, data
   (JetBrains Mono) for numbers / IDs / parameters. Use `--font-*` tokens.
@@ -108,33 +112,48 @@ themselves render content only, never the layout chrome.
 
 ## Where things live
 
-| Path | Purpose |
-|------|---------|
-| `src/styles/theme.css` | Design tokens (CSS custom properties + keyframes) |
-| `src/styles/{responsive,utility}.css` | Responsive helpers + utility classes |
-| `src/styles/shared/{card,form,table}.css` | Shared structural patterns |
-| `src/styles/fonts.ts` | Geist / Inter / JetBrains Mono asset imports |
-| `src/components/ui/` | Primitives + their CSS, one component per file |
-| `src/components/ui/index.ts` | Primitive barrel — public API of the UI kit |
-| `src/layouts/PageWrapper.{tsx,css}` | Page root container |
-| `src/layouts/shell/` | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar) |
-| `src/theme/antdTheme.ts` | Ant Design `ConfigProvider` mapped to our tokens |
-| `src/index.ts` | Library public API barrel |
-| `src/index.css` | Global reset + scrollbar + focus ring |
-| `src/playground/Gallery.{tsx,css}` | Live spec — every primitive's specimen |
-| `src/playground/apps/*` | Demo apps proving the shell contract |
-| `src/main.tsx` | Playground entry; NOT shipped in `dist` |
+| Path                                                  | Purpose                                                            |
+| ----------------------------------------------------- | ------------------------------------------------------------------ |
+| `packages/ui/src/styles/theme.css`                    | Design tokens (CSS custom properties + keyframes)                  |
+| `packages/ui/src/styles/{responsive,utility}.css`     | Responsive helpers + utility classes                               |
+| `packages/ui/src/styles/shared/{card,form,table}.css` | Shared structural patterns                                         |
+| `packages/ui/src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono asset imports                       |
+| `packages/ui/src/components/ui/`                      | Primitives + their CSS, one component per file                     |
+| `packages/ui/src/components/ui/index.ts`              | Primitive barrel — public API of the UI kit                        |
+| `packages/ui/src/layouts/PageWrapper.{tsx,css}`       | Page root container                                                |
+| `packages/ui/src/layouts/shell/`                      | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar) |
+| `packages/ui/src/theme/antdTheme.ts`                  | Ant Design `ConfigProvider` mapped to our tokens                   |
+| `packages/ui/src/index.ts`                            | Library public API barrel                                          |
+| `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                              |
+| `packages/ui/package.json`                            | Library publish config — name, version, exports                    |
+| `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                       |
+| `apps/playground/src/playground/Gallery.{tsx,css}`    | Live spec — every primitive's specimen                             |
+| `apps/playground/src/playground/apps/*`               | Demo apps proving the shell contract                               |
+| `apps/playground/src/main.tsx`                        | Playground entry; NOT shipped                                      |
+| `apps/playground/index.html`                          | Vite HTML entry for the dev server                                 |
+| `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package               |
+| `pnpm-workspace.yaml`                                 | Workspace package globs                                            |
+| `turbo.json`                                          | Pipeline graph (build, type-check, lint, lint:css)                 |
+| `.changeset/`                                         | Versioning + publish tracking                                      |
 
 ## Validation gates
 
 ```bash
 NPM_TOKEN=<token> pnpm install
-pnpm type-check      # tsc --noEmit (strict + noUnusedLocals/Parameters)
-pnpm lint            # eslint --max-warnings 0 (see strict policy below)
-pnpm format:check    # prettier
-pnpm build           # tsc -p tsconfig.build.json && vite build (lib mode)
-pnpm dev             # local playground; eyeball the gallery + demo apps
-pnpm check           # type-check + lint + format:check in one shot
+pnpm type-check      # turbo run type-check (strict + noUnused* across packages)
+pnpm lint            # turbo run lint --max-warnings 0
+pnpm lint:css        # stylelint via turbo on packages/ui
+pnpm format:check    # prettier across packages + apps
+pnpm build           # turbo run build (packages/ui emits dist/, playground builds)
+pnpm dev             # apps/playground vite dev server (gallery + demo apps)
+pnpm check           # type-check + lint + lint:css + format:check in one shot
+```
+
+Single-package shortcuts:
+
+```bash
+pnpm -F @OperationsPAI/aegis-ui build     # library only
+pnpm -F @OperationsPAI/playground dev     # playground only
 ```
 
 A primitive is "done" only after the gallery renders cleanly in the
@@ -161,7 +180,7 @@ The ESLint config is intentionally maximal:
 - `no-console` allows only `warn` / `error`.
 - `curly: ['error', 'all']` — every `if` gets braces.
 
-Playground (`src/playground/**`) and `src/main.tsx` get a few rules
+Playground (`apps/playground/src/**`) gets a few rules
 relaxed (`react-refresh/only-export-components`, `no-console`,
 `jsx-a11y/label-has-associated-control` for specimen markup). Library
 code does not.
@@ -185,9 +204,9 @@ unless explicitly asked by a human.
 - **Don't add abstractions beyond what the task requires.** Three similar
   lines beats a premature helper. No backwards-compatibility shims unless
   asked — just change the code.
-- **Default to no comments.** Only add one when the *why* is non-obvious
+- **Default to no comments.** Only add one when the _why_ is non-obvious
   (a hidden constraint, a workaround for a specific bug). Never explain
-  *what* the code does — well-named identifiers do that. Never reference
+  _what_ the code does — well-named identifiers do that. Never reference
   the current task / PR / caller ("added for the X flow") — that belongs
   in the commit message.
 - **Trust internal code; validate only at boundaries.** No defensive

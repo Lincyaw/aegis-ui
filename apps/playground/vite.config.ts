@@ -1,66 +1,15 @@
 import react from '@vitejs/plugin-react';
-import path from 'path';
 import zlib from 'node:zlib';
-import { defineConfig, type ViteDevServer } from 'vite';
-import dts from 'vite-plugin-dts';
+import { type ViteDevServer, defineConfig } from 'vite';
 
-// Dual-mode config: `vite` for playground dev, `vite build` for library output.
-export default defineConfig(({ command }) => {
-  const isBuild = command === 'build';
-
-  return {
-    plugins: [
-      react(),
-      // Vite dev serves uncompressed by default — brutal on slow / remote
-      // links. AntD + react + icons together push 10+ MB raw, ~1.5 MB gzipped.
-      !isBuild && devGzipPlugin(),
-      isBuild &&
-        dts({
-          entryRoot: 'src',
-          include: ['src/**/*.ts', 'src/**/*.tsx'],
-          exclude: ['src/playground/**', 'src/main.tsx'],
-          tsconfigPath: 'tsconfig.build.json',
-        }),
-    ].filter(Boolean),
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, './src'),
-      },
-    },
-    server: {
-      port: 3100,
-    },
-    build: isBuild
-      ? {
-          target: 'esnext',
-          lib: {
-            entry: path.resolve(__dirname, 'src/index.ts'),
-            formats: ['es', 'cjs'],
-            fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
-            cssFileName: 'style',
-          },
-          rollupOptions: {
-            external: [
-              'react',
-              'react/jsx-runtime',
-              'react-dom',
-              'antd',
-              /^@ant-design\/icons/,
-            ],
-            output: {
-              assetFileNames: (assetInfo) =>
-                assetInfo.name === 'style.css'
-                  ? 'style.css'
-                  : 'assets/[name][extname]',
-            },
-          },
-          sourcemap: true,
-          emptyOutDir: true,
-        }
-      : {
-          target: 'esnext',
-        },
-  };
+export default defineConfig({
+  plugins: [react(), devGzipPlugin()],
+  server: {
+    port: 3100,
+  },
+  build: {
+    target: 'esnext',
+  },
 });
 
 function devGzipPlugin() {
@@ -70,7 +19,9 @@ function devGzipPlugin() {
     configureServer(server: ViteDevServer) {
       server.middlewares.use((req, res, next) => {
         const accept = String(req.headers['accept-encoding'] ?? '');
-        if (!accept.includes('gzip')) return next();
+        if (!accept.includes('gzip')) {
+          return next();
+        }
 
         const origWrite = res.write.bind(res);
         const origEnd = res.end.bind(res);

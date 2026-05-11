@@ -1,10 +1,9 @@
 import type { ReactElement } from 'react';
 
+import { AegisShell, ThemeToggle } from '@OperationsPAI/aegis-ui';
 import { UserOutlined } from '@ant-design/icons';
 import { BrowserRouter } from 'react-router-dom';
 
-import { ThemeToggle } from '../components/ui/ThemeToggle';
-import { AegisShell } from '../layouts/shell';
 import { containersApp } from './apps/containers';
 import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';

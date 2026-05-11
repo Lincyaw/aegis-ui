@@ -1,14 +1,16 @@
 import { type ReactElement, useMemo } from 'react';
 
+import {
+  Chip,
+  CodeBlock,
+  KeyValueList,
+  MetricCard,
+  MonoValue,
+  PageHeader,
+  Panel,
+} from '@OperationsPAI/aegis-ui';
 import { Link, Navigate, useParams } from 'react-router-dom';
 
-import { Chip } from '../../../components/ui/Chip';
-import { CodeBlock } from '../../../components/ui/CodeBlock';
-import { KeyValueList } from '../../../components/ui/KeyValueList';
-import { MetricCard } from '../../../components/ui/MetricCard';
-import { MonoValue } from '../../../components/ui/MonoValue';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { Panel } from '../../../components/ui/Panel';
 import { useDatasets } from './store';
 
 export function DatasetDetail(): ReactElement {

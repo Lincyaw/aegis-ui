@@ -1,25 +1,6 @@
 import { type ReactNode, useState } from 'react';
 
 import {
-  LogoutOutlined,
-  SettingOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
-import {
-  Button,
-  Form,
-  Input,
-  Modal,
-  Progress,
-  Select,
-  Switch,
-  Table,
-  Tabs,
-  Tag,
-  Tooltip,
-} from 'antd';
-
-import {
   Avatar,
   BlastRadiusBar,
   Breadcrumb,
@@ -55,7 +36,25 @@ import {
   TrajectoryStep,
   type TrajectoryStepData,
   TrajectoryTimeline,
-} from '@/components/ui';
+} from '@OperationsPAI/aegis-ui';
+import {
+  LogoutOutlined,
+  SettingOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Progress,
+  Select,
+  Switch,
+  Table,
+  Tabs,
+  Tag,
+  Tooltip,
+} from 'antd';
 
 import './Gallery.css';
 

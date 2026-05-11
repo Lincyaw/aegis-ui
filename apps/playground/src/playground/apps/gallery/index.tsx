@@ -1,6 +1,6 @@
+import type { AegisApp } from '@OperationsPAI/aegis-ui';
 import { AppstoreOutlined } from '@ant-design/icons';
 
-import type { AegisApp } from '../../../layouts/shell/types';
 import Gallery from '../../Gallery';
 
 export const galleryApp: AegisApp = {

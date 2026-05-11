@@ -1,10 +1,9 @@
 import type { ReactElement, ReactNode } from 'react';
 
+import { type AegisApp, useActiveApp } from '@OperationsPAI/aegis-ui';
 import { ProfileOutlined } from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
 
-import { useActiveApp } from '../../../layouts/shell/activeAppContext';
-import type { AegisApp } from '../../../layouts/shell/types';
 import { DatasetBrowse } from './DatasetBrowse';
 import { DatasetDetail } from './DatasetDetail';
 import { DatasetUpload } from './DatasetUpload';

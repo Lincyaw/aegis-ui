@@ -1,15 +1,17 @@
 import type { ReactElement } from 'react';
 
+import {
+  Chip,
+  DangerZone,
+  KeyValueList,
+  MonoValue,
+  PageHeader,
+  Panel,
+  StatusDot,
+} from '@OperationsPAI/aegis-ui';
 import { Button } from 'antd';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 
-import { Chip } from '../../../components/ui/Chip';
-import { DangerZone } from '../../../components/ui/DangerZone';
-import { KeyValueList } from '../../../components/ui/KeyValueList';
-import { MonoValue } from '../../../components/ui/MonoValue';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { Panel } from '../../../components/ui/Panel';
-import { StatusDot } from '../../../components/ui/StatusDot';
 import type { ContainerStatus } from './data';
 import { useContainers } from './store';
 

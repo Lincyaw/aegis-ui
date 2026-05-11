@@ -80,12 +80,12 @@ export default function ContainersPage() {
 ### Wiring the AntD theme
 
 ```tsx
-import { ConfigProvider } from 'antd';
 import { aegisTheme } from '@OperationsPAI/aegis-ui';
+import { ConfigProvider } from 'antd';
 
 <ConfigProvider theme={aegisTheme}>
   <App />
-</ConfigProvider>
+</ConfigProvider>;
 ```
 
 ### Building a multi-app portal
@@ -220,21 +220,21 @@ The `NPM_TOKEN` needs `read:packages` for install, plus
 
 ## Repo map
 
-| Path | Purpose |
-|------|---------|
-| `src/styles/theme.css` | Design tokens — the only source of visual truth |
-| `src/styles/{responsive,utility}.css` | Responsive + utility helpers |
-| `src/styles/shared/{card,form,table}.css` | Shared structural CSS |
-| `src/styles/fonts.ts` | Geist / Inter / JetBrains Mono imports |
-| `src/components/ui/` | Primitives, one `.tsx`+`.css` per component |
-| `src/components/ui/index.ts` | Primitive barrel |
-| `src/layouts/PageWrapper.{tsx,css}` | Page root container |
-| `src/layouts/shell/` | AegisShell, TopHeader, Sidebar, BreadcrumbBar |
-| `src/theme/antdTheme.ts` | AntD `ConfigProvider` theme |
-| `src/index.ts` | Library public API (the only entry point) |
-| `src/index.css` | Global reset + scrollbar + focus ring |
-| `src/playground/` | Gallery + demo apps; NOT shipped in `dist/` |
-| `CLAUDE.md` | Working guidelines for Claude Code agents in this repo |
+| Path                                      | Purpose                                                |
+| ----------------------------------------- | ------------------------------------------------------ |
+| `src/styles/theme.css`                    | Design tokens — the only source of visual truth        |
+| `src/styles/{responsive,utility}.css`     | Responsive + utility helpers                           |
+| `src/styles/shared/{card,form,table}.css` | Shared structural CSS                                  |
+| `src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono imports                 |
+| `src/components/ui/`                      | Primitives, one `.tsx`+`.css` per component            |
+| `src/components/ui/index.ts`              | Primitive barrel                                       |
+| `src/layouts/PageWrapper.{tsx,css}`       | Page root container                                    |
+| `src/layouts/shell/`                      | AegisShell, TopHeader, Sidebar, BreadcrumbBar          |
+| `src/theme/antdTheme.ts`                  | AntD `ConfigProvider` theme                            |
+| `src/index.ts`                            | Library public API (the only entry point)              |
+| `src/index.css`                           | Global reset + scrollbar + focus ring                  |
+| `src/playground/`                         | Gallery + demo apps; NOT shipped in `dist/`            |
+| `CLAUDE.md`                               | Working guidelines for Claude Code agents in this repo |
 
 ## Related
 

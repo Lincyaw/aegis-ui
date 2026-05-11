@@ -1,3 +1,6 @@
-dist
-node_modules
+**/dist
+**/node_modules
+.turbo
+**/.turbo
 *.snap
+pnpm-lock.yaml

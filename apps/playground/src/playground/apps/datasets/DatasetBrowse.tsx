@@ -1,14 +1,16 @@
 import { type ReactElement, useMemo, useState } from 'react';
 
+import {
+  Chip,
+  EmptyState,
+  MonoValue,
+  PageHeader,
+  Panel,
+  Tabs,
+  TimeDisplay,
+} from '@OperationsPAI/aegis-ui';
 import { Link } from 'react-router-dom';
 
-import { Chip } from '../../../components/ui/Chip';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import { MonoValue } from '../../../components/ui/MonoValue';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { Panel } from '../../../components/ui/Panel';
-import { Tabs } from '../../../components/ui/Tabs';
-import { TimeDisplay } from '../../../components/ui/TimeDisplay';
 import type { DemoDataset } from './data';
 import { useDatasets } from './store';
 

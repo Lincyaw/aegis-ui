@@ -1,15 +1,17 @@
 import type { ReactElement } from 'react';
 
+import {
+  Chip,
+  EmptyState,
+  FormRow,
+  MonoValue,
+  PageHeader,
+  Panel,
+  StatusDot,
+} from '@OperationsPAI/aegis-ui';
 import { Button, Form, Input, Select } from 'antd';
 import { Link } from 'react-router-dom';
 
-import { Chip } from '../../../components/ui/Chip';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import { FormRow } from '../../../components/ui/FormRow';
-import { MonoValue } from '../../../components/ui/MonoValue';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { Panel } from '../../../components/ui/Panel';
-import { StatusDot } from '../../../components/ui/StatusDot';
 import type { DemoDataset } from './data';
 import { useDatasets } from './store';
 

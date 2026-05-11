@@ -1,11 +1,9 @@
 import type { ReactElement } from 'react';
 
+import { FormRow, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
 import { Button, Form, Input, InputNumber, Select } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { FormRow } from '../../../components/ui/FormRow';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { Panel } from '../../../components/ui/Panel';
 import type { ContainerStatus } from './data';
 import { useContainers } from './store';
 

@@ -6,14 +6,15 @@
 module.exports = {
   extends: ['stylelint-config-standard'],
   ignoreFiles: [
-    'dist/**',
-    'node_modules/**',
-    'src/styles/theme.css',
-    'src/styles/responsive.css',
-    'src/styles/utility.css',
-    'src/styles/shared/**',
-    'src/index.css',
-    'src/playground/**',
+    '**/dist/**',
+    '**/node_modules/**',
+    '.turbo/**',
+    'packages/ui/src/styles/theme.css',
+    'packages/ui/src/styles/responsive.css',
+    'packages/ui/src/styles/utility.css',
+    'packages/ui/src/styles/shared/**',
+    'packages/ui/src/index.css',
+    'apps/playground/**',
   ],
   rules: {
     /* Tokens are the only source of visual truth. */

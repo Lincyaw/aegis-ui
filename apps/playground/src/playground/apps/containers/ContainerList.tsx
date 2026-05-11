@@ -1,12 +1,14 @@
 import { type ReactElement, useMemo, useState } from 'react';
 
+import {
+  Chip,
+  DataTable,
+  MonoValue,
+  Panel,
+  StatusDot,
+} from '@OperationsPAI/aegis-ui';
 import { Link } from 'react-router-dom';
 
-import { Chip } from '../../../components/ui/Chip';
-import { DataTable } from '../../../components/ui/DataTable';
-import { MonoValue } from '../../../components/ui/MonoValue';
-import { Panel } from '../../../components/ui/Panel';
-import { StatusDot } from '../../../components/ui/StatusDot';
 import type { ContainerStatus, DemoContainer } from './data';
 import { useContainers } from './store';
 

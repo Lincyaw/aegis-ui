@@ -2,15 +2,14 @@ import { StrictMode } from 'react';
 
 import { createRoot } from 'react-dom/client';
 
+import { ThemeProvider, aegisTheme, useTheme } from '@OperationsPAI/aegis-ui';
+import '@OperationsPAI/aegis-ui/style.css';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
 import { ConfigProvider, theme as antdTheme } from 'antd';
 
-import './index.css';
-import './layouts/PageWrapper.css';
 import { PlaygroundApp } from './playground/App';
-import './styles/fonts';
-import { ThemeProvider } from './theme/ThemeProvider';
-import { aegisTheme } from './theme/antdTheme';
-import { useTheme } from './theme/useTheme';
 
 function ThemedRoot(): React.ReactElement {
   const { resolved } = useTheme();

@@ -1,11 +1,10 @@
 import type { ReactElement, ReactNode } from 'react';
 
+import { type AegisApp, useActiveApp } from '@OperationsPAI/aegis-ui';
 import { HddOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Input } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
-import { useActiveApp } from '../../../layouts/shell/activeAppContext';
-import type { AegisApp } from '../../../layouts/shell/types';
 import { ContainerCreate } from './ContainerCreate';
 import { ContainerDetail } from './ContainerDetail';
 import { ContainerList } from './ContainerList';

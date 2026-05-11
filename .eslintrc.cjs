@@ -25,15 +25,19 @@ module.exports = {
   ignorePatterns: [
     'dist',
     'node_modules',
+    '.turbo',
     '.eslintrc.cjs',
     'commitlint.config.cjs',
-    'vite.config.ts',
+    '**/vite.config.ts',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
+    project: [
+      './packages/ui/tsconfig.json',
+      './apps/playground/tsconfig.json',
+    ],
     tsconfigRootDir: __dirname,
     ecmaFeatures: { jsx: true },
   },
@@ -49,7 +53,12 @@ module.exports = {
   settings: {
     react: { version: 'detect' },
     'import/resolver': {
-      typescript: { project: './tsconfig.json' },
+      typescript: {
+        project: [
+          './packages/ui/tsconfig.json',
+          './apps/playground/tsconfig.json',
+        ],
+      },
       node: true,
     },
   },
@@ -152,7 +161,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['src/playground/**', 'src/main.tsx'],
+      files: ['apps/playground/src/**'],
       rules: {
         'react-refresh/only-export-components': 'off',
         'no-console': 'off',
