@@ -104,7 +104,7 @@
 }
 
 .gallery__specimen-stage > * {
-  width: 100%;
+  max-width: 100%;
 }
 
 .gallery__specimen-caption {
