@@ -16,7 +16,12 @@
   font-size: var(--fs-13);
 }
 
+.aegis-data-table__table--fixed {
+  table-layout: fixed;
+}
+
 .aegis-data-table__th {
+  position: relative;
   padding: var(--space-2) var(--space-3);
   font-weight: var(--fw-medium);
   font-size: var(--fs-11);
@@ -27,9 +32,42 @@
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   white-space: nowrap;
   background: var(--bg-panel);
-  position: sticky;
-  top: 0;
   z-index: 1;
+}
+
+.aegis-data-table__th-label {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.aegis-data-table__resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  z-index: 2;
+}
+
+.aegis-data-table__resizer::after {
+  content: '';
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  left: 50%;
+  width: var(--size-hairline);
+  background: var(--border-hairline);
+  transition: background var(--motion-fast);
+}
+
+.aegis-data-table__resizer:hover::after,
+.aegis-data-table__resizer:active::after {
+  background: var(--text-muted);
+  top: 0;
+  bottom: 0;
 }
 
 .aegis-data-table__row {
@@ -45,10 +83,39 @@
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   color: var(--text-main);
   vertical-align: middle;
+}
+
+/* Inner cell wrapper: lets us truncate text without clipping interactive
+   content (buttons, chips) in cells that opt out of truncation. */
+.aegis-data-table__cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.aegis-data-table__cell--truncate {
+  display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 0;
+}
+
+.aegis-data-table__cell--right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.aegis-data-table__cell--center {
+  justify-content: center;
+  text-align: center;
+}
+
+.aegis-data-table__cell--truncate.aegis-data-table__cell--right {
+  text-align: right;
+}
+
+.aegis-data-table__cell--truncate.aegis-data-table__cell--center {
+  text-align: center;
 }
 
 .aegis-data-table__empty-cell {

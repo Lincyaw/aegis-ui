@@ -4,19 +4,17 @@ import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/geist';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
-import { aegisTheme, ThemeProvider, useTheme } from '@OperationsPAI/aegis-ui';
+import { getAegisTheme, ThemeProvider, useTheme } from '@OperationsPAI/aegis-ui';
 import '@OperationsPAI/aegis-ui/style.css';
-import { theme as antdTheme, ConfigProvider } from 'antd';
+import { ConfigProvider } from 'antd';
 
 import { ConsoleApp } from './App';
 import './main.css';
 
 function ThemedRoot(): React.ReactElement {
   const { resolved } = useTheme();
-  const algorithm =
-    resolved === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
   return (
-    <ConfigProvider theme={{ ...aegisTheme, algorithm }}>
+    <ConfigProvider theme={getAegisTheme(resolved)}>
       <ConsoleApp />
     </ConfigProvider>
   );

@@ -209,6 +209,62 @@ line.
 If a hook blocks you, fix the underlying issue. Don't pass `--no-verify`
 unless explicitly asked by a human.
 
+## First principle — fix the library before the page
+
+**This is the most important rule in this repo. Read it before every task.**
+
+When a page-level problem surfaces (overflow, broken dark mode, raw antd
+component with no theme, ad-hoc CSS to "make it look right"), the
+**default response is to fix the primitive in `packages/ui`, not to
+patch the page.** Pages compose primitives — if the primitive is wrong,
+every page that uses it is wrong, and the patches accumulate as silent
+tech debt.
+
+**Lessons learned (do not repeat):**
+
+1. **DataTable shipped without proper width / truncate / resize controls.**
+   Action columns overflowed the panel because the only knob was
+   `width: string` on a `table-layout: auto` table, and every cell was
+   forced into a single `overflow: hidden; max-width: 0` mould that
+   clipped buttons and chips. Fix was in the primitive (per-column
+   `width` / `minWidth` / `truncate` / `resizable`, `<colgroup>` +
+   `table-layout: fixed`, inner cell wrapper), not in the page. Any
+   page-level CSS workaround would have masked the bug for every future
+   table.
+
+2. **`aegisTheme` was a single hardcoded light palette.** The dark-mode
+   toggle existed (`ThemeProvider` + `data-theme='dark'` on root), but
+   `aegisTheme` baked `colorText:#000`, `colorBgContainer:#fff`,
+   `Drawer.colorBgElevated:#fff` etc. Applying `darkAlgorithm` couldn't
+   undo our explicit overrides → black "Edit" button on dark surface,
+   white Modal on dark page. The fix was `getAegisTheme(scheme)` that
+   returns scheme-aware tokens; the page didn't need to change. Any
+   "just hardcode dark colours on this Modal" patch would have been
+   another scar.
+
+**The rule (read before writing code):**
+
+1. When you see a UI defect, ask first: _is this a primitive bug?_
+   Search for the primitive's source in `packages/ui/src/components/ui/`
+   or `packages/ui/src/layouts/` before you touch the page.
+2. If the primitive is missing a knob, **add the knob to the
+   primitive**, update its specimen in `Gallery.tsx`, and verify it in
+   both themes. Then use it from the page.
+3. Never use raw antd components without going through `getAegisTheme`.
+   If a token is missing for an antd component in dark mode, add it to
+   `antdTheme.ts` so every page benefits.
+4. Never use raw hex / px / ms in component CSS — reference a token
+   from `theme.css`. If a token is missing, add it there first. See
+   "Design conventions — enforced" below.
+5. Test every UI change in **both light and dark**, at **desktop and
+   ≤768 px**. A primitive is "done" only after the gallery renders
+   cleanly in all four combinations.
+6. User says "fix this page" → fix the primitive first, then the page
+   automatically gets the fix. Resist the temptation to ship the
+   page-level patch and "come back to the primitive later." You won't.
+
+When in doubt: **invest in the foundation, not the symptom.**
+
 ## Doing tasks
 
 - **Prefer editing existing files**; don't create new ones unless asked.

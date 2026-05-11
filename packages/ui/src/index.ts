@@ -32,7 +32,7 @@ export type {
 } from './layouts/shell';
 
 // AntD ConfigProvider theme mapped to aegis-ui tokens.
-export { aegisTheme } from './theme/antdTheme';
+export { aegisTheme, getAegisTheme } from './theme/antdTheme';
 
 // Theme system (light + dark + system, persisted to localStorage).
 export { ThemeProvider } from './theme/ThemeProvider';
@@ -50,3 +50,21 @@ export type {
   AegisNotification,
   NotificationContextValue,
 } from './notifications';
+
+// Command registry (library-owned state — host registers commands).
+export {
+  CommandProvider,
+  formatShortcut,
+  useCommands,
+  useRegisterCommands,
+} from './commands';
+export type { Command, CommandContextValue } from './commands';
+
+// Agent context contract (presentational — host wires the LLM round-trip).
+export { AgentProvider, useAgent } from './agent';
+export type {
+  AgentContextValue,
+  AgentMessage,
+  AgentMessageRole,
+  AgentCommandInvocation,
+} from './agent';

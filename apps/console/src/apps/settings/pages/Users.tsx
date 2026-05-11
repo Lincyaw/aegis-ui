@@ -184,6 +184,8 @@ export default function Users() {
     {
       key: 'user',
       header: 'User',
+      minWidth: 220,
+      resizable: true,
       render: (u) => (
         <div className='users-page__user'>
           <Avatar
@@ -201,11 +203,17 @@ export default function Users() {
     {
       key: 'role',
       header: 'Role',
+      width: 110,
+      truncate: false,
+      resizable: true,
       render: (u) => <Chip tone={ROLE_TONE[u.role]}>{ROLE_LABEL[u.role]}</Chip>,
     },
     {
       key: 'status',
       header: 'Status',
+      width: 130,
+      truncate: false,
+      resizable: true,
       render: (u) => (
         <span className='users-page__status'>
           <StatusDot size={6} tone={statusTone(u.status)} />
@@ -216,6 +224,8 @@ export default function Users() {
     {
       key: 'lastActive',
       header: 'Last active',
+      minWidth: 140,
+      resizable: true,
       render: (u) => (
         <span className='users-page__last-active'>{u.lastActive}</span>
       ),
@@ -224,6 +234,8 @@ export default function Users() {
       key: 'actions',
       header: '',
       align: 'right',
+      width: 160,
+      truncate: false,
       render: (u) => (
         <div className='users-page__actions'>
           <Button type='text' size='small' onClick={() => setEditTarget(u)}>
@@ -289,6 +301,7 @@ export default function Users() {
           columns={columns}
           data={filtered}
           rowKey={(u) => u.id}
+          persistKey='settings.users'
           emptyTitle='No matching users'
           emptyDescription='Adjust the filters or invite someone new.'
         />
