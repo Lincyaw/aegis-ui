@@ -30,6 +30,7 @@ export default defineConfig({
         'react',
         'react/jsx-runtime',
         'react-dom',
+        'react-router-dom',
         'antd',
         /^@ant-design\/icons/,
       ],

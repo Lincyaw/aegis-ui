@@ -44,7 +44,7 @@ right call because:
    the portal monorepo would force every consumer to track unrelated
    churn.
 2. **Forces a real public API** — anything that's not exported through
-   `src/index.ts` is invisible. No "I'll just reach into
+   `packages/ui/src/index.ts` is invisible. No "I'll just reach into
    `internal/Foo.tsx`" shortcuts.
 3. **Versioning + changelog hygiene** — breaking changes get a major
    bump and a written note, not a silent rename in someone else's PR.
@@ -123,7 +123,7 @@ const containersApp: AegisApp = {
 The shell wraps every routed page in `<PageWrapper>` automatically — the
 app's pages render content only, never the layout chrome.
 
-The playground (`src/playground/`) contains a working example with three
+The playground (`apps/playground/`) contains a working example with three
 apps (gallery + containers + datasets); run `pnpm dev` to see it.
 
 ## Develop
@@ -163,7 +163,8 @@ Out (belongs in a consumer repo):
 ### Design conventions — enforced
 
 - **No hardcoded values** in component CSS. No raw hex / px / ms — all
-  visual values reference a CSS custom property from `src/styles/theme.css`.
+  visual values reference a CSS custom property from
+  `packages/ui/src/styles/theme.css`.
 - **Activation = surface inversion** (`--bg-inverted`), never accent
   colour.
 - **Anomaly red** (`--accent-warning`, `#E11D48`) is reserved for real
@@ -176,10 +177,11 @@ Out (belongs in a consumer repo):
 
 ### Adding or changing a primitive
 
-1. Add `src/components/ui/MyThing.tsx` + `MyThing.css`.
-2. Export from `src/components/ui/index.ts`.
-3. Add a specimen to `src/playground/Gallery.tsx` covering states + edge
-   cases. **A primitive without a gallery entry is incomplete.**
+1. Add `packages/ui/src/components/ui/MyThing.tsx` + `MyThing.css`.
+2. Export from `packages/ui/src/components/ui/index.ts`.
+3. Add a specimen to `apps/playground/src/playground/Gallery.tsx`
+   covering states + edge cases. **A primitive without a gallery entry
+   is incomplete.**
 4. `pnpm check` must pass (strict TS + ESLint `--max-warnings 0`).
 5. `pnpm build` must emit a working `dist/`.
 6. Eyeball the playground at desktop + ≤768 px width.
@@ -220,21 +222,33 @@ The `NPM_TOKEN` needs `read:packages` for install, plus
 
 ## Repo map
 
-| Path                                      | Purpose                                                |
-| ----------------------------------------- | ------------------------------------------------------ |
-| `src/styles/theme.css`                    | Design tokens — the only source of visual truth        |
-| `src/styles/{responsive,utility}.css`     | Responsive + utility helpers                           |
-| `src/styles/shared/{card,form,table}.css` | Shared structural CSS                                  |
-| `src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono imports                 |
-| `src/components/ui/`                      | Primitives, one `.tsx`+`.css` per component            |
-| `src/components/ui/index.ts`              | Primitive barrel                                       |
-| `src/layouts/PageWrapper.{tsx,css}`       | Page root container                                    |
-| `src/layouts/shell/`                      | AegisShell, TopHeader, Sidebar, BreadcrumbBar          |
-| `src/theme/antdTheme.ts`                  | AntD `ConfigProvider` theme                            |
-| `src/index.ts`                            | Library public API (the only entry point)              |
-| `src/index.css`                           | Global reset + scrollbar + focus ring                  |
-| `src/playground/`                         | Gallery + demo apps; NOT shipped in `dist/`            |
-| `CLAUDE.md`                               | Working guidelines for Claude Code agents in this repo |
+This is a **pnpm monorepo**: `packages/ui` is the published library;
+`apps/playground` is a private dev surface that depends on it via
+`workspace:*`. Only `packages/ui` ships to consumers.
+
+| Path                                                  | Purpose                                                |
+| ----------------------------------------------------- | ------------------------------------------------------ |
+| `packages/ui/src/styles/theme.css`                    | Design tokens — the only source of visual truth        |
+| `packages/ui/src/styles/{responsive,utility}.css`     | Responsive + utility helpers                           |
+| `packages/ui/src/styles/shared/{card,form,table}.css` | Shared structural CSS                                  |
+| `packages/ui/src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono imports                 |
+| `packages/ui/src/components/ui/`                      | Primitives, one `.tsx`+`.css` per component            |
+| `packages/ui/src/components/ui/index.ts`              | Primitive barrel                                       |
+| `packages/ui/src/layouts/PageWrapper.{tsx,css}`       | Page root container                                    |
+| `packages/ui/src/layouts/shell/`                      | AegisShell, TopHeader, Sidebar, BreadcrumbBar          |
+| `packages/ui/src/theme/antdTheme.ts`                  | AntD `ConfigProvider` theme                            |
+| `packages/ui/src/index.ts`                            | Library public API (the only entry point)              |
+| `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                  |
+| `packages/ui/package.json`                            | Library publish config (`@OperationsPAI/aegis-ui`)     |
+| `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)           |
+| `apps/playground/src/playground/`                     | Gallery + demo apps; NOT shipped                       |
+| `apps/playground/src/main.tsx`                        | Playground entry                                       |
+| `apps/playground/index.html`                          | Vite dev-server HTML entry                             |
+| `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package   |
+| `pnpm-workspace.yaml`                                 | Workspace package globs                                |
+| `turbo.json`                                          | Pipeline graph (build, type-check, lint, lint:css)     |
+| `.changeset/`                                         | Versioning + publish tracking                          |
+| `CLAUDE.md`                                           | Working guidelines for Claude Code agents in this repo |
 
 ## Related
 
