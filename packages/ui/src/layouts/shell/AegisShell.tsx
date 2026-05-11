@@ -37,6 +37,7 @@ export function AegisShell({
   apps,
   rootRoutes = [],
   fallbackPath,
+  notFoundElement,
   user,
   userMenu,
   headerCenter,
@@ -119,9 +120,11 @@ export function AegisShell({
       .filter((r) => r.bare)
       .map(({ bare: _bare, ...rest }): RouteObject => rest);
 
-    const fallback: RouteObject | null = fallbackPath
-      ? { path: '*', element: <Navigate to={fallbackPath} replace /> }
-      : null;
+    const fallback: RouteObject | null = notFoundElement
+      ? { path: '*', element: <PageWrapper>{notFoundElement}</PageWrapper> }
+      : fallbackPath
+        ? { path: '*', element: <Navigate to={fallbackPath} replace /> }
+        : null;
 
     return [
       ...bareRootRoutes,
@@ -129,7 +132,7 @@ export function AegisShell({
       ...appRoutes,
       ...(fallback ? [fallback] : []),
     ];
-  }, [apps, rootRoutes, fallbackPath]);
+  }, [apps, rootRoutes, fallbackPath, notFoundElement]);
 
   const element = useRoutes(routeTree);
 

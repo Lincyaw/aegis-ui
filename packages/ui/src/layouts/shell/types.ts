@@ -101,6 +101,12 @@ export interface AegisShellProps {
   rootRoutes?: Array<RouteObject & { bare?: boolean }>;
   /** Where to redirect when the URL doesn't match any app. */
   fallbackPath?: string;
+  /**
+   * Rendered (inside the shell chrome) when the URL matches no app and
+   * no `rootRoutes`. Takes precedence over `fallbackPath` — pass one or
+   * the other depending on whether you want a 404 page or a redirect.
+   */
+  notFoundElement?: ReactNode;
   user?: AegisUser;
   /**
    * User dropdown entries used when `user` is not passed explicitly and

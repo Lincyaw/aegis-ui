@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { AegisShell, RequireAuth, ThemeToggle } from '@OperationsPAI/aegis-ui';
 
@@ -12,6 +12,9 @@ import { settingsApp } from './apps/settings';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
+import { Forbidden } from './pages/errors/Forbidden';
+import { NotFound } from './pages/errors/NotFound';
+import { ServerError } from './pages/errors/ServerError';
 
 export function ConsoleApp(): ReactElement {
   return (
@@ -39,7 +42,12 @@ export function ConsoleApp(): ReactElement {
                     settingsApp,
                     galleryApp,
                   ]}
-                  fallbackPath='/portal'
+                  notFoundElement={<NotFound />}
+                  rootRoutes={[
+                    { path: '/', element: <Navigate to='/portal' replace /> },
+                    { path: '/error/forbidden', element: <Forbidden /> },
+                    { path: '/error/server', element: <ServerError /> },
+                  ]}
                   headerActions={<ThemeToggle />}
                   userMenu={[
                     {
