@@ -90,11 +90,26 @@
   line-height: 0;
 }
 
-/* App grid inside the launcher modal. */
+/* Popover wrapper — fix a comfortable width so cards don't collapse. */
+.aegis-shell__app-popover .ant-popover-inner {
+  padding: var(--space-3);
+}
+
+.aegis-shell__app-popover .ant-popover-inner-content {
+  width: min(36rem, calc(100vw - var(--space-6)));
+}
+
+/* App grid inside the launcher popover. */
 .aegis-shell__app-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-2);
+}
+
+@media (max-width: 480px) {
+  .aegis-shell__app-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .aegis-shell__app-card {

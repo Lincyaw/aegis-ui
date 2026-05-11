@@ -1,6 +1,6 @@
 import { type ReactElement, useState } from 'react';
 
-import { Modal } from 'antd';
+import { Popover } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import type { AegisApp } from './types';
@@ -12,9 +12,9 @@ interface AppSwitcherProps {
 }
 
 /**
- * Alibaba-Cloud-style app launcher. A 9-dot icon on the top-left opens a
- * modal grid that lists every registered app — clicking one navigates to
- * its `basePath` and closes the modal.
+ * Alibaba-Cloud-style app launcher. A 9-dot icon on the top-left anchors
+ * a popover grid of every registered app — clicking one navigates to its
+ * `basePath` and closes the popover.
  */
 export function AppSwitcher({
   apps,
@@ -30,12 +30,49 @@ export function AppSwitcher({
     navigate(app.basePath);
   };
 
+  const content = (
+    <div className="aegis-shell__app-grid">
+      {apps.map((app) => {
+        const active = app.id === activeAppId;
+        const cls = active
+          ? 'aegis-shell__app-card aegis-shell__app-card--active'
+          : 'aegis-shell__app-card';
+        return (
+          <button
+            key={app.id}
+            type="button"
+            className={cls}
+            onClick={() => handlePick(app)}
+          >
+            <span className="aegis-shell__app-card-icon">{app.icon}</span>
+            <span className="aegis-shell__app-card-body">
+              <span className="aegis-shell__app-card-label">{app.label}</span>
+              {app.description && (
+                <span className="aegis-shell__app-card-desc">
+                  {app.description}
+                </span>
+              )}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <>
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+      trigger="click"
+      placement="bottomLeft"
+      arrow={false}
+      content={content}
+      overlayClassName="aegis-shell__app-popover"
+      destroyOnHidden
+    >
       <button
         type="button"
         className="aegis-shell__app-launcher"
-        onClick={() => setOpen(true)}
         aria-label="Switch app"
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -60,44 +97,6 @@ export function AppSwitcher({
           </svg>
         </span>
       </button>
-
-      <Modal
-        open={open}
-        onCancel={() => setOpen(false)}
-        footer={null}
-        title="Switch app"
-        width={640}
-        destroyOnHidden
-      >
-        <div className="aegis-shell__app-grid">
-          {apps.map((app) => {
-            const active = app.id === activeAppId;
-            const cls = active
-              ? 'aegis-shell__app-card aegis-shell__app-card--active'
-              : 'aegis-shell__app-card';
-            return (
-              <button
-                key={app.id}
-                type="button"
-                className={cls}
-                onClick={() => handlePick(app)}
-              >
-                <span className="aegis-shell__app-card-icon">{app.icon}</span>
-                <span className="aegis-shell__app-card-body">
-                  <span className="aegis-shell__app-card-label">
-                    {app.label}
-                  </span>
-                  {app.description && (
-                    <span className="aegis-shell__app-card-desc">
-                      {app.description}
-                    </span>
-                  )}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </Modal>
-    </>
+    </Popover>
   );
 }
