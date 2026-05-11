@@ -279,8 +279,8 @@ Full text: `/home/ddq/.claude/plugins/cache/autoharness/autoharness/1.1.3/refere
    Mechanism: **agent**. Baseline: unmeasured.
 
 2. **Gallery specimen coverage = 100%** — every export from `packages/ui/src/components/ui/index.ts` has a live specimen in `apps/console/src/Gallery.tsx`.
-   Measure: `diff <(grep -oE "^export.*from './[A-Z][A-Za-z]+'" packages/ui/src/components/ui/index.ts | sed -E "s/.*'\.\/([A-Z][A-Za-z]+)'.*/\1/" | sort -u) <(grep -oE "<SectionDivider>[^<]+" apps/console/src/Gallery.tsx | sed -E 's/<SectionDivider>//' | awk '{print $1}' | sort -u)`
-   Mechanism: **script** (diff above) + **agent** confirmation. Baseline: TBD on first run.
+   Measure: `pnpm check:gallery` (runs `scripts/check-gallery-coverage.mjs` — parses the barrel exports, walks every `<SectionDivider>…</SectionDivider>` block including multi-line dividers and ones carrying an `extra={…}` prop, exits non-zero with the missing-primitive list when coverage < 100%). Also runs as part of `pnpm check`.
+   Mechanism: **script** + **agent** confirmation (visual review in `pnpm dev` that the specimen actually renders the variants worth shipping, not just an empty placeholder). Baseline: 47 / 47 (100%) at this commit.
 
 3. **All CI gates green** — `pnpm check` exits 0 (type-check + lint + lint:css + format:check + build).
    Measure: `pnpm check`
@@ -311,7 +311,7 @@ Secondary tiebreaker: **fix the primitive before the page** — see "First princ
 | Build        | `pnpm build`                                                                                          | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css       |
 | Full gate    | `pnpm check`                                                                                          | type-check + lint + lint:css + format:check; run before commit + PR |
 | Dev server   | `pnpm dev`                                                                                            | apps/console at `:3100` — use for dual-theme + responsive checks    |
-| Measure NS#2 | see north-star target 2                                                                               | Gallery specimen coverage                                           |
+| Measure NS#2 | `pnpm check:gallery`                                                                                  | Gallery specimen coverage (also folded into `pnpm check`)           |
 | Measure NS#4 | see north-star target 4                                                                               | Token discipline grep                                               |
 | Bundle size  | `pnpm -F @OperationsPAI/aegis-ui build && du -b packages/ui/dist/index.js packages/ui/dist/style.css` | Compare to baseline before/after primitive changes                  |
 

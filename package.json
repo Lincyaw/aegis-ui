@@ -12,7 +12,8 @@
     "lint:css": "turbo run lint:css",
     "format": "prettier --write \"packages/**/*.{ts,tsx,css,json,md}\" \"*.{json,md}\"",
     "format:check": "prettier --check \"packages/**/*.{ts,tsx,css,json,md}\" \"*.{json,md}\"",
-    "check": "pnpm type-check && pnpm lint && pnpm lint:css && pnpm format:check",
+    "check": "pnpm type-check && pnpm lint && pnpm lint:css && pnpm format:check && pnpm check:gallery",
+    "check:gallery": "node scripts/check-gallery-coverage.mjs",
     "changeset": "changeset",
     "release": "changeset publish",
     "prepare": "husky"

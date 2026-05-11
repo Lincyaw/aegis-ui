@@ -60,6 +60,7 @@ import {
   StatBlock,
   StatusDot,
   Terminal,
+  ThemeToggle,
   type TerminalLine,
   TextField,
   TimeDisplay,
@@ -1454,10 +1455,45 @@ function App() {
             <MonoValue size='lg'>0.142</MonoValue>
           </Specimen>
         </div>
+
+        <SectionDivider>MetricLabel</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='sm (default)'>
+            <MetricLabel>last updated</MetricLabel>
+          </Specimen>
+          <Specimen caption='xs'>
+            <MetricLabel size='xs'>2h ago</MetricLabel>
+          </Specimen>
+          <Specimen caption='inverted'>
+            <Panel inverted padded={false}>
+              <div style={{ padding: 'var(--space-3)' }}>
+                <MetricLabel inverted>active</MetricLabel>
+              </div>
+            </Panel>
+          </Specimen>
+          <Specimen caption="as='div'"><MetricLabel as='div'>block label</MetricLabel></Specimen>
+        </div>
+
+        <SectionDivider>SectionDivider</SectionDivider>
+        <div className='gallery__stack'>
+          <SectionDivider>Plain label</SectionDivider>
+          <SectionDivider extra={<MetricLabel>extra slot</MetricLabel>}>
+            With extra
+          </SectionDivider>
+          <SectionDivider rule={false}>No rule (rule=false)</SectionDivider>
+        </div>
+
+        <SectionDivider>ThemeToggle</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='one-click cycler · light → dark → system'>
+            <ThemeToggle />
+          </Specimen>
+        </div>
       </Panel>
 
       {/* ── Surface (Panel) ────────────────────────────────────────── */}
       <Panel title={<PanelTitle size='lg'>Surface — Panel</PanelTitle>}>
+        <SectionDivider>Panel</SectionDivider>
         <div className='gallery__row gallery__row--panels'>
           <Panel title='Default panel' extra={<MetricLabel>label</MetricLabel>}>
             <p className='gallery__panel-body'>
@@ -2248,7 +2284,25 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider>SettingsSection + FormRow</SectionDivider>
+        <SectionDivider>FormRow</SectionDivider>
+        <div className='gallery__stack'>
+          <FormRow label='Display name' description='Shown across the platform.'>
+            <input
+              type='text'
+              defaultValue='Ada Lovelace'
+              className='gallery__demo-input'
+            />
+          </FormRow>
+          <FormRow label='API key' description='Treat as a secret.'>
+            <input
+              type='password'
+              defaultValue='secret-token-xxx'
+              className='gallery__demo-input'
+            />
+          </FormRow>
+        </div>
+
+        <SectionDivider>SettingsSection</SectionDivider>
         <SettingsSection
           title='Profile'
           description='Update your personal information and preferences.'
@@ -2406,6 +2460,51 @@ function App() {
               status={MOCK_INVOCATION_ERROR.status}
               error={MOCK_INVOCATION_ERROR.error}
             />
+          </Specimen>
+        </div>
+
+        <SectionDivider>ChatComposer</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='idle' span={2}>
+            <ChatComposer onSend={() => undefined} />
+          </Specimen>
+          <Specimen caption='sending' span={2}>
+            <ChatComposer onSend={() => undefined} sending />
+          </Specimen>
+          <Specimen caption='disabled · with reason' span={2}>
+            <ChatComposer
+              onSend={() => undefined}
+              disabledReason='Assistant is offline'
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>ChatMessageList</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='multi-role · with footer typing indicator' span={3}>
+            <div className='gallery__agent-frame'>
+              <ChatMessageList
+                autoScroll={false}
+                footer={
+                  <MetricLabel size='xs'>Aegis Assistant is typing…</MetricLabel>
+                }
+              >
+                <ChatMessage
+                  role='user'
+                  senderName='You'
+                  avatar={<Avatar name='You' size='sm' />}
+                  content='What changed in the last deploy?'
+                  timestamp='12:00'
+                />
+                <ChatMessage
+                  role='assistant'
+                  senderName='Aegis Assistant'
+                  avatar={<Avatar name='Aegis Assistant' size='sm' />}
+                  content='Three services rolled forward; one rollback queued.'
+                  timestamp='12:01'
+                />
+              </ChatMessageList>
+            </div>
           </Specimen>
         </div>
 
@@ -2654,6 +2753,7 @@ function App() {
           <code>⌘K</code> / <code>Ctrl+K</code> to toggle, or click the button
           below.
         </p>
+        <SectionDivider>CommandPalette</SectionDivider>
         <CommandProvider>
           <CommandGallerySpecimen />
           <CommandPalette />

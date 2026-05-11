@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Button, Input, Modal, Select } from 'antd';
+import { App, Button, Input, Modal, Select } from 'antd';
 
 import {
   Avatar,
@@ -145,6 +145,7 @@ function statusTone(status: Status): 'ink' | 'muted' | 'warning' {
 }
 
 export default function Users() {
+  const { modal } = App.useApp();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
@@ -169,7 +170,7 @@ export default function Users() {
   });
 
   const handleDisable = (user: UserRow): void => {
-    Modal.confirm({
+    modal.confirm({
       title: `Disable ${user.name}?`,
       content: 'They will lose access to this workspace immediately.',
       okText: 'Disable',

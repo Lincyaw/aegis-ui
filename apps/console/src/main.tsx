@@ -6,7 +6,7 @@ import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 import { getAegisTheme, ThemeProvider, useTheme } from '@OperationsPAI/aegis-ui';
 import '@OperationsPAI/aegis-ui/style.css';
-import { ConfigProvider } from 'antd';
+import { App as AntdApp, ConfigProvider } from 'antd';
 
 import { ConsoleApp } from './App';
 import './main.css';
@@ -15,7 +15,9 @@ function ThemedRoot(): React.ReactElement {
   const { resolved } = useTheme();
   return (
     <ConfigProvider theme={getAegisTheme(resolved)}>
-      <ConsoleApp />
+      <AntdApp component={false}>
+        <ConsoleApp />
+      </AntdApp>
     </ConfigProvider>
   );
 }

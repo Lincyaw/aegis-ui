@@ -149,6 +149,31 @@ module.exports = {
     eqeqeq: ['error', 'always', { null: 'ignore' }],
     curly: ['error', 'all'],
 
+    // Ban antd static feedback APIs — they render outside ConfigProvider
+    // and bypass the scheme-aware theme. Use App.useApp() and call
+    // modal.* / message.* / notification.* on the returned instance.
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector:
+          "CallExpression[callee.type='MemberExpression'][callee.object.name='Modal'][callee.property.name=/^(confirm|info|success|error|warning|warn)$/]",
+        message:
+          'antd Modal.confirm/info/success/error/warning is a static method and ignores ConfigProvider (no dark mode). Use const { modal } = App.useApp(); modal.confirm(...) instead.',
+      },
+      {
+        selector:
+          "CallExpression[callee.type='MemberExpression'][callee.object.name='message'][callee.property.name=/^(open|success|error|info|warning|warn|loading|destroy)$/]",
+        message:
+          'antd message.* is a static API and ignores ConfigProvider. Use const { message } = App.useApp(); message.success(...) instead.',
+      },
+      {
+        selector:
+          "CallExpression[callee.type='MemberExpression'][callee.object.name='notification'][callee.property.name=/^(open|success|error|info|warning|warn|destroy)$/]",
+        message:
+          'antd notification.* is a static API and ignores ConfigProvider. Use const { notification } = App.useApp(); notification.open(...) instead.',
+      },
+    ],
+
     // A11y baseline
     'jsx-a11y/anchor-is-valid': 'error',
     'jsx-a11y/no-static-element-interactions': 'warn',
