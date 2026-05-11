@@ -21,6 +21,14 @@ interface TopHeaderProps {
   onMobileMenuToggle?: () => void;
   /** Whether to render the mobile hamburger at all (only when sidebar exists). */
   showMobileMenu?: boolean;
+  /**
+   * Ref callback for the inline app-header slot. The active app's
+   * `header` is portalled into this node so it appears inside the shell
+   * header instead of below it.
+   */
+  inlineSlotRef?: (node: HTMLDivElement | null) => void;
+  /** When true, hide the global `headerCenter` (an app header took it over). */
+  inlineSlotActive?: boolean;
 }
 
 export function TopHeader({
@@ -33,6 +41,8 @@ export function TopHeader({
   headerActions,
   onMobileMenuToggle,
   showMobileMenu,
+  inlineSlotRef,
+  inlineSlotActive,
 }: TopHeaderProps): ReactElement {
   const brandInner = (
     <>
@@ -71,7 +81,13 @@ export function TopHeader({
           <span className="aegis-shell__brand">{brandInner}</span>
         )}
       </div>
-      <div className="aegis-shell__header-center">{headerCenter}</div>
+      <div
+        className="aegis-shell__header-center"
+        ref={inlineSlotRef}
+        data-aegis-inline-slot=""
+      >
+        {!inlineSlotActive && headerCenter}
+      </div>
       <div className="aegis-shell__header-right">
         {headerActions}
         {user && <UserMenu user={user} />}

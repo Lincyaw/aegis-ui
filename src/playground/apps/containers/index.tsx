@@ -22,30 +22,28 @@ function ContainersHeader(): ReactElement {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
-        padding: '12px 24px',
+        gap: 'var(--space-2)',
+        width: '100%',
       }}
     >
-      <strong style={{ fontFamily: 'var(--font-brand)' }}>Containers</strong>
       <Input
         size="small"
-        placeholder="Search by name…"
+        placeholder="Search containers…"
         prefix={<SearchOutlined />}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        style={{ maxWidth: 280, marginLeft: 8 }}
+        style={{ maxWidth: 280 }}
         allowClear
       />
-      <div style={{ marginLeft: 'auto' }}>
-        <Button
-          type="primary"
-          size="small"
-          icon={<PlusOutlined />}
-          onClick={() => navigate('/containers/new')}
-        >
-          New container
-        </Button>
-      </div>
+      <Button
+        type="primary"
+        size="small"
+        icon={<PlusOutlined />}
+        onClick={() => navigate('/containers/new')}
+        style={{ marginLeft: 'auto' }}
+      >
+        New
+      </Button>
     </div>
   );
 }

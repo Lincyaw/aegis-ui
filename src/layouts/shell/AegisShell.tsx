@@ -6,6 +6,8 @@ import {
   useState,
 } from 'react';
 
+import { createPortal } from 'react-dom';
+
 import {
   Navigate,
   type RouteObject,
@@ -40,6 +42,7 @@ export function AegisShell({
 }: AegisShellProps): ReactElement {
   const { pathname } = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [inlineSlot, setInlineSlot] = useState<HTMLDivElement | null>(null);
 
   const activeApp = useMemo(
     () => findActiveApp(apps, pathname),
@@ -126,6 +129,8 @@ export function AegisShell({
         headerActions={headerActions}
         onMobileMenuToggle={toggleMobileNav}
         showMobileMenu={hasSidebar}
+        inlineSlotRef={setInlineSlot}
+        inlineSlotActive={Boolean(activeApp?.header)}
       />
       {hasSidebar && <Sidebar activeApp={activeApp} />}
       <button
@@ -138,9 +143,9 @@ export function AegisShell({
         {renderAppRegion(
           activeApp,
           <>
-            {activeApp?.header && (
-              <div className="aegis-shell__app-header">{activeApp.header}</div>
-            )}
+            {activeApp?.header &&
+              inlineSlot &&
+              createPortal(activeApp.header, inlineSlot)}
             <BreadcrumbBar apps={apps} activeApp={activeApp} />
             <div className="aegis-shell__content">{element}</div>
           </>,

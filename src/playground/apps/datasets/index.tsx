@@ -22,20 +22,10 @@ function DatasetsHeader(): ReactElement {
     <div
       style={{
         display: 'flex',
-        alignItems: 'center',
-        gap: 4,
-        padding: '0 var(--space-6)',
+        alignItems: 'stretch',
+        height: '100%',
       }}
     >
-      <strong
-        style={{
-          fontFamily: 'var(--font-brand)',
-          marginRight: 'var(--space-6)',
-          padding: 'var(--space-3) 0',
-        }}
-      >
-        Datasets
-      </strong>
       {tabs.map((t) => (
         <NavLink
           key={t.to}

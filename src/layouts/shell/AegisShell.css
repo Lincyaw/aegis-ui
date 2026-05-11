@@ -278,20 +278,12 @@
   flex-direction: column;
 }
 
-/* App-scoped sub-header. Sticks below the shell header. */
-.aegis-shell__app-header {
-  position: sticky;
-  top: var(--header-height);
-  z-index: 15;
-  background: var(--bg-panel);
-  border-bottom: var(--size-hairline) solid var(--border-hairline);
-}
-
-/* Tab pattern usable inside an app header. */
+/* Tab pattern usable inside the inline app header slot. */
 .aegis-shell__app-tab {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-3) var(--space-4);
+  height: 100%;
+  padding: 0 var(--space-3);
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   color: var(--text-muted);
