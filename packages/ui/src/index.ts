@@ -28,6 +28,7 @@ export type {
   AegisBrand,
   AegisShellProps,
   AegisUser,
+  AegisUserMenuItem,
 } from './layouts/shell';
 
 // AntD ConfigProvider theme mapped to aegis-ui tokens.

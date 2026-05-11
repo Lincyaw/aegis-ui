@@ -38,6 +38,7 @@ export function AegisShell({
   rootRoutes = [],
   fallbackPath,
   user,
+  userMenu,
   headerCenter,
   headerActions,
   onAppSwitch,
@@ -54,21 +55,18 @@ export function AegisShell({
     if (auth.status !== 'authenticated' || !auth.user) {
       return undefined;
     }
-    return {
-      name: auth.user.name,
-      menu: auth.signOut
-        ? [
-            {
-              key: 'sign-out',
-              label: 'Sign out',
-              onClick: () => {
-                void auth.signOut?.();
-              },
-            },
-          ]
-        : [],
-    };
-  }, [user, auth]);
+    const menu = [...(userMenu ?? [])];
+    if (auth.signOut) {
+      menu.push({
+        key: 'sign-out',
+        label: 'Sign out',
+        onClick: () => {
+          void auth.signOut?.();
+        },
+      });
+    }
+    return { name: auth.user.name, menu };
+  }, [user, userMenu, auth]);
 
   const activeApp = useMemo(
     () => findActiveApp(apps, pathname),

@@ -61,6 +61,20 @@ export interface AegisApp {
   wrap?: (children: ReactNode) => ReactNode;
   /** Optional one-line description shown in app pickers. */
   description?: string;
+  /**
+   * If true, the app's routes still mount but it is omitted from the
+   * AppSwitcher. Use for configuration surfaces that are reachable from
+   * the user menu rather than the app launcher (e.g. /settings).
+   */
+  hidden?: boolean;
+}
+
+export interface AegisUserMenuItem {
+  key: string;
+  label: ReactNode;
+  /** Router path to navigate to on click. Mutually exclusive with onClick. */
+  to?: string;
+  onClick?: () => void;
 }
 
 export interface AegisBrand {
@@ -74,7 +88,7 @@ export interface AegisUser {
   name: ReactNode;
   avatar?: ReactNode;
   /** Right-aligned dropdown entries in the top header. */
-  menu?: Array<{ key: string; label: ReactNode; onClick?: () => void }>;
+  menu?: AegisUserMenuItem[];
 }
 
 export interface AegisShellProps {
@@ -88,6 +102,13 @@ export interface AegisShellProps {
   /** Where to redirect when the URL doesn't match any app. */
   fallbackPath?: string;
   user?: AegisUser;
+  /**
+   * User dropdown entries used when `user` is not passed explicitly and
+   * the shell is auto-building the menu from `useAuth()`. A Sign out
+   * entry (calling `signOut` from the auth context) is appended
+   * automatically when available.
+   */
+  userMenu?: AegisUserMenuItem[];
   /** Slot rendered in the top header center (e.g. global search). */
   headerCenter?: ReactNode;
   /** Slot rendered in the top header right side, before the user menu. */

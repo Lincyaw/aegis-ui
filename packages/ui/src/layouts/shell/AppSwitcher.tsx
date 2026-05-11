@@ -30,9 +30,11 @@ export function AppSwitcher({
     navigate(app.basePath);
   };
 
+  const visibleApps = apps.filter((app) => !app.hidden);
+
   const content = (
     <ul className="aegis-shell__app-list" role="menu">
-      {apps.map((app) => {
+      {visibleApps.map((app) => {
         const active = app.id === activeAppId;
         const cls = active
           ? 'aegis-shell__app-row aegis-shell__app-row--active'

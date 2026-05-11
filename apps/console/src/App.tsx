@@ -41,6 +41,14 @@ export function ConsoleApp(): ReactElement {
                   ]}
                   fallbackPath='/portal'
                   headerActions={<ThemeToggle />}
+                  userMenu={[
+                    {
+                      key: 'profile',
+                      label: 'Profile',
+                      to: '/settings/profile',
+                    },
+                    { key: 'settings', label: 'Settings', to: '/settings' },
+                  ]}
                 />
               </RequireAuth>
             }

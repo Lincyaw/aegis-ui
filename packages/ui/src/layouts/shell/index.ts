@@ -9,4 +9,5 @@ export type {
   AegisBrand,
   AegisShellProps,
   AegisUser,
+  AegisUserMenuItem,
 } from './types';

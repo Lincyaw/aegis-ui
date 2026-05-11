@@ -26,6 +26,7 @@ export const settingsApp: AegisApp = {
   description: 'Account preferences and workspace administration.',
   icon: <SettingOutlined />,
   basePath: '/settings',
+  hidden: true,
   sidebar: [
     {
       label: 'Account',

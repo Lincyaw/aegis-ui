@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import {
   type DropdownItem,
@@ -97,11 +97,19 @@ export function TopHeader({
 }
 
 function UserMenu({ user }: { user: AegisUser }): ReactElement {
-  const items: DropdownItem[] = (user.menu ?? []).map((entry) => ({
-    key: entry.key,
-    label: entry.label,
-    onClick: entry.onClick,
-  }));
+  const navigate = useNavigate();
+  const items: DropdownItem[] = (user.menu ?? []).map((entry) => {
+    const to = entry.to;
+    return {
+      key: entry.key,
+      label: entry.label,
+      onClick: to
+        ? () => {
+            navigate(to);
+          }
+        : entry.onClick,
+    };
+  });
   const trigger = (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
       {user.avatar}
