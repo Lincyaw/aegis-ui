@@ -9,6 +9,7 @@ import '@OperationsPAI/aegis-ui/style.css';
 import { theme as antdTheme, ConfigProvider } from 'antd';
 
 import { ConsoleApp } from './App';
+import './main.css';
 
 function ThemedRoot(): React.ReactElement {
   const { resolved } = useTheme();
