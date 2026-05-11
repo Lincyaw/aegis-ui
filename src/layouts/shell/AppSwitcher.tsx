@@ -31,32 +31,34 @@ export function AppSwitcher({
   };
 
   const content = (
-    <div className="aegis-shell__app-grid">
+    <ul className="aegis-shell__app-list" role="menu">
       {apps.map((app) => {
         const active = app.id === activeAppId;
         const cls = active
-          ? 'aegis-shell__app-card aegis-shell__app-card--active'
-          : 'aegis-shell__app-card';
+          ? 'aegis-shell__app-row aegis-shell__app-row--active'
+          : 'aegis-shell__app-row';
         return (
-          <button
-            key={app.id}
-            type="button"
-            className={cls}
-            onClick={() => handlePick(app)}
-          >
-            <span className="aegis-shell__app-card-icon">{app.icon}</span>
-            <span className="aegis-shell__app-card-body">
-              <span className="aegis-shell__app-card-label">{app.label}</span>
-              {app.description && (
-                <span className="aegis-shell__app-card-desc">
-                  {app.description}
-                </span>
-              )}
-            </span>
-          </button>
+          <li key={app.id} role="none">
+            <button
+              type="button"
+              role="menuitem"
+              className={cls}
+              onClick={() => handlePick(app)}
+            >
+              <span className="aegis-shell__app-row-icon">{app.icon}</span>
+              <span className="aegis-shell__app-row-body">
+                <span className="aegis-shell__app-row-label">{app.label}</span>
+                {app.description && (
+                  <span className="aegis-shell__app-row-desc">
+                    {app.description}
+                  </span>
+                )}
+              </span>
+            </button>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 
   return (
@@ -64,7 +66,7 @@ export function AppSwitcher({
       open={open}
       onOpenChange={setOpen}
       trigger="click"
-      placement="bottomLeft"
+      placement="rightTop"
       arrow={false}
       content={content}
       overlayClassName="aegis-shell__app-popover"

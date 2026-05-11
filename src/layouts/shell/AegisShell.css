@@ -90,94 +90,87 @@
   line-height: 0;
 }
 
-/* Popover wrapper — fix a comfortable width so cards don't collapse. */
+/* Popover wrapper — vertical list, scrollable when many apps. */
 .aegis-shell__app-popover .ant-popover-inner {
-  padding: var(--space-3);
+  padding: var(--space-2);
 }
 
 .aegis-shell__app-popover .ant-popover-inner-content {
-  width: min(36rem, calc(100vw - var(--space-6)));
+  width: min(20rem, calc(100vw - var(--space-6)));
+  max-height: calc(100vh - var(--header-height) - var(--space-6));
+  overflow-y: auto;
 }
 
-/* App grid inside the launcher popover. */
-.aegis-shell__app-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-
-@media (max-width: 480px) {
-  .aegis-shell__app-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.aegis-shell__app-card {
+.aegis-shell__app-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--space-px);
+}
+
+.aegis-shell__app-row {
+  display: flex;
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--bg-panel);
-  border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-md);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
   text-align: left;
   cursor: pointer;
-  transition:
-    background var(--motion-fast),
-    border-color var(--motion-fast),
-    transform var(--motion-fast);
   font-family: var(--font-ui);
   color: var(--text-main);
+  transition: background var(--motion-fast);
 }
 
-.aegis-shell__app-card:hover {
-  border-color: var(--border-emphasis);
+.aegis-shell__app-row:hover {
   background: var(--bg-muted);
 }
 
-.aegis-shell__app-card:active {
-  transform: scale(0.99);
-}
-
-.aegis-shell__app-card--active {
+.aegis-shell__app-row--active {
   background: var(--bg-inverted);
   color: var(--text-on-inverted);
-  border-color: var(--bg-inverted);
 }
 
-.aegis-shell__app-card--active:hover {
+.aegis-shell__app-row--active:hover {
   background: var(--bg-inverted);
 }
 
-.aegis-shell__app-card-icon {
+.aegis-shell__app-row-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--size-control-base);
-  height: var(--size-control-base);
-  font-size: var(--fs-18);
+  width: var(--size-icon-lg);
+  height: var(--size-icon-lg);
+  font-size: var(--fs-16);
   flex-shrink: 0;
 }
 
-.aegis-shell__app-card-body {
+.aegis-shell__app-row-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
   min-width: 0;
 }
 
-.aegis-shell__app-card-label {
+.aegis-shell__app-row-label {
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
+  line-height: 1.3;
 }
 
-.aegis-shell__app-card-desc {
-  font-size: var(--fs-13);
+.aegis-shell__app-row-desc {
+  font-size: var(--fs-11);
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.aegis-shell__app-card--active .aegis-shell__app-card-desc {
+.aegis-shell__app-row--active .aegis-shell__app-row-desc {
   color: var(--text-on-inverted-muted);
 }
 
