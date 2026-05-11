@@ -1,5 +1,5 @@
 {
-  "name": "@OperationsPAI/playground",
+  "name": "@OperationsPAI/console",
   "version": "0.1.2",
   "private": true,
   "type": "module",

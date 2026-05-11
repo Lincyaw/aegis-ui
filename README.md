@@ -48,8 +48,9 @@ right call because:
    `internal/Foo.tsx`" shortcuts.
 3. **Versioning + changelog hygiene** — breaking changes get a major
    bump and a written note, not a silent rename in someone else's PR.
-4. **Gallery as spec** — the playground (`pnpm dev`) is the single
-   place to evaluate visual changes without spinning up any backend.
+4. **Gallery as spec** — the gallery sub-app (mounted at `/gallery` in
+   the console) is the single place to evaluate visual changes without
+   spinning up any backend.
 
 ## Use
 
@@ -123,14 +124,15 @@ const containersApp: AegisApp = {
 The shell wraps every routed page in `<PageWrapper>` automatically — the
 app's pages render content only, never the layout chrome.
 
-The playground (`apps/playground/`) contains a working example with three
-apps (gallery + containers + datasets); run `pnpm dev` to see it.
+The console (`apps/console/`) is a working example: it registers the
+AegisLab portal + the library spec gallery as two `AegisApp` entries on
+a single `<AegisShell>`. Run `pnpm dev` to see it.
 
 ## Develop
 
 ```bash
 NPM_TOKEN=<token> pnpm install
-pnpm dev              # local playground on http://localhost:3100
+pnpm dev              # local console on http://localhost:3100
 pnpm type-check       # tsc --noEmit, strict mode
 pnpm lint             # eslint --max-warnings 0
 pnpm format:check     # prettier
@@ -179,12 +181,12 @@ Out (belongs in a consumer repo):
 
 1. Add `packages/ui/src/components/ui/MyThing.tsx` + `MyThing.css`.
 2. Export from `packages/ui/src/components/ui/index.ts`.
-3. Add a specimen to `apps/playground/src/playground/Gallery.tsx`
+3. Add a specimen to `apps/console/src/Gallery.tsx`
    covering states + edge cases. **A primitive without a gallery entry
    is incomplete.**
 4. `pnpm check` must pass (strict TS + ESLint `--max-warnings 0`).
 5. `pnpm build` must emit a working `dist/`.
-6. Eyeball the playground at desktop + ≤768 px width.
+6. Eyeball the console (especially the gallery) at desktop + ≤768 px width.
 
 Breaking the public API (renames, removed exports, props signature
 changes) requires a **major** version bump and a note in the PR
@@ -223,7 +225,7 @@ The `NPM_TOKEN` needs `read:packages` for install, plus
 ## Repo map
 
 This is a **pnpm monorepo**: `packages/ui` is the published library;
-`apps/playground` is a private dev surface that depends on it via
+`apps/console` is a private dev surface that depends on it via
 `workspace:*`. Only `packages/ui` ships to consumers.
 
 | Path                                                  | Purpose                                                                             |
@@ -241,9 +243,9 @@ This is a **pnpm monorepo**: `packages/ui` is the published library;
 | `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                                               |
 | `packages/ui/package.json`                            | Library publish config (`@OperationsPAI/aegis-ui`)                                  |
 | `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                                        |
-| `apps/playground/src/playground/`                     | Gallery + demo apps; NOT shipped                                                    |
-| `apps/playground/src/main.tsx`                        | Playground entry                                                                    |
-| `apps/playground/index.html`                          | Vite dev-server HTML entry                                                          |
+| `apps/console/src/`                                   | Gallery + demo apps; NOT shipped                                                    |
+| `apps/console/src/main.tsx`                           | Console entry                                                                       |
+| `apps/console/index.html`                             | Vite dev-server HTML entry                                                          |
 | `apps/portal/`                                        | AegisLab portal (`rcabench-frontend`); shallow integration, owns its own UI for now |
 | `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package                                |
 | `pnpm-workspace.yaml`                                 | Workspace package globs                                                             |

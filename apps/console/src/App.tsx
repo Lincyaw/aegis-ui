@@ -7,7 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { galleryApp } from './apps/gallery';
 import { portalApp } from './apps/portal';
 
-export function PlaygroundApp(): ReactElement {
+export function ConsoleApp(): ReactElement {
   return (
     <BrowserRouter>
       <AegisShell

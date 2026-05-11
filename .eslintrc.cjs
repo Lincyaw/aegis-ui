@@ -29,7 +29,7 @@ module.exports = {
     '.eslintrc.cjs',
     'commitlint.config.cjs',
     '**/vite.config.ts',
-    'apps/playground/**',
+    'apps/console/**',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {

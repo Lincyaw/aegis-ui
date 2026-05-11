@@ -14,7 +14,7 @@ module.exports = {
     'packages/ui/src/styles/utility.css',
     'packages/ui/src/styles/shared/**',
     'packages/ui/src/index.css',
-    'apps/playground/**',
+    'apps/console/**',
     'apps/portal/**',
   ],
   rules: {

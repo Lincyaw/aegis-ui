@@ -4,4 +4,4 @@
 **/.turbo
 *.snap
 pnpm-lock.yaml
-apps/playground/
+apps/console/

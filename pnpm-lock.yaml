@@ -84,7 +84,7 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
-  apps/playground:
+  apps/console:
     dependencies:
       '@OperationsPAI/aegis-ui':
         specifier: workspace:*

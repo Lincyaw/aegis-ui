@@ -2,15 +2,15 @@
 // doesn't fail with "File ignored because of a matching ignore pattern"
 // under `--max-warnings 0`.
 const ESLINT_IGNORED = /(?:^|\/)(vite\.config\.ts|commitlint\.config\.cjs|\.eslintrc\.cjs)$/;
-// apps/playground/ owns its own eslint / prettier / stylelint configs and
+// apps/console/ owns its own eslint / prettier / stylelint configs and
 // runs them via its own scripts. Root lint-staged must not touch those
 // files.
-const PLAYGROUND = /(?:^|\/)apps\/playground\//;
-const notPlayground = (f) => !PLAYGROUND.test(f);
+const CONSOLE = /(?:^|\/)apps\/console\//;
+const notConsole = (f) => !CONSOLE.test(f);
 
 module.exports = {
   '*.{ts,tsx}': (files) => {
-    const safe = files.filter(notPlayground);
+    const safe = files.filter(notConsole);
     const lintable = safe.filter((f) => !ESLINT_IGNORED.test(f));
     const cmds = [];
     if (lintable.length > 0) {
@@ -22,7 +22,7 @@ module.exports = {
     return cmds;
   },
   '*.css': (files) => {
-    const safe = files.filter(notPlayground);
+    const safe = files.filter(notConsole);
     if (safe.length === 0) {
       return [];
     }
@@ -30,7 +30,7 @@ module.exports = {
     return [`stylelint --fix ${quoted}`, `prettier --write ${quoted}`];
   },
   '*.{json,md}': (files) => {
-    const safe = files.filter(notPlayground);
+    const safe = files.filter(notConsole);
     if (safe.length === 0) {
       return [];
     }

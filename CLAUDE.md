@@ -5,23 +5,24 @@ library — the shared design system + multi-app shell consumed by every
 AegisLab sub-application (portal, container service, dataset manager,
 RCA workbench, …).
 
-This is a **pnpm monorepo**: `packages/ui` is the published library
-(`@OperationsPAI/aegis-ui`); `apps/playground` is the private dev surface
-that hosts the gallery + demo apps. Only `packages/ui` ships to consumers.
+This is a **pnpm monorepo**:
 
-`apps/portal/` is the AegisLab portal (package `rcabench-frontend`),
-brought in under **shallow integration**: it shares root tooling
-(eslint / prettier / husky / commitlint / turbo) but still owns its own
-`src/components/ui/`, `src/styles/`, `src/theme/`, plus its own
-`.eslintrc.cjs` / `.prettierrc.cjs` / `tsconfig.json`. Portal is **not yet
-aligned** with `packages/ui`. Refactoring portal to consume
-`@OperationsPAI/aegis-ui` is a deliberate follow-up; do not touch portal's
-`src/` as part of unrelated work.
+- `packages/ui` — the published library (`@OperationsPAI/aegis-ui`). The
+  only thing that ships to consumers.
+- `apps/console` — the unified Vite app (`@OperationsPAI/console`,
+  private). It mounts `<AegisShell>` and registers every sub-app via the
+  `AegisApp[]` config. Sub-apps live under `apps/console/src/apps/`
+  (portal, gallery, …). Currently:
+  - `apps/console/src/apps/portal/` — the real AegisLab product (pages,
+    api, components, hooks). Mounted at `basePath: '/'`.
+  - `apps/console/src/apps/gallery/` — the live spec for `packages/ui`.
+    Mounted at `basePath: '/gallery'`.
 
-It is a **library**, not an application. There is no API client, no Zustand
-store, no business state, no router instance owned by this repo. The
-playground (`src/playground/`) exists only to host the gallery and demo
-apps so primitives can be developed against a real surface.
+The library (`packages/ui`) is presentational only — no API client, no
+business state, no router instance. Anything router-aware that's
+reusable lives in `packages/ui/src/layouts/shell/` (AegisShell + the
+`AegisApp` contract). Anything business lives inside a sub-app in
+`apps/console/src/apps/`.
 
 ## What this repo ships
 
@@ -32,7 +33,7 @@ apps so primitives can be developed against a real surface.
 ├── layouts              src/layouts/PageWrapper.tsx
 ├── shell (router-aware) src/layouts/shell/AegisShell.tsx
 ├── AntD theme           src/theme/antdTheme.ts
-└── playground (private) src/playground/        (gallery + demo apps)
+└── (consumed by apps/console/src/apps/* — see top of this file)
 ```
 
 `dist/` is the published artifact (ESM + CJS + d.ts + style.css). Consumers
@@ -53,7 +54,7 @@ internal paths.
 4. **Shell** (`src/layouts/shell/`) — TopHeader + Sidebar + BreadcrumbBar +
    route composition over `AegisApp[]`. Router-aware (peer-deps
    `react-router-dom`); presentation still comes from primitives + tokens.
-5. **Gallery** (`src/playground/Gallery.tsx`) — the live spec. If a
+5. **Gallery** (`src/Gallery.tsx`) — the live spec. If a
    primitive isn't in the gallery, the team doesn't know it exists.
 6. **Consumer apps** compose pages from primitives + `PageWrapper` and plug
    into `AegisShell` via the `AegisApp` contract — never reach into the
@@ -136,10 +137,10 @@ themselves render content only, never the layout chrome.
 | `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                                               |
 | `packages/ui/package.json`                            | Library publish config — name, version, exports                                     |
 | `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                                        |
-| `apps/playground/src/playground/Gallery.{tsx,css}`    | Live spec — every primitive's specimen                                              |
-| `apps/playground/src/playground/apps/*`               | Demo apps proving the shell contract                                                |
-| `apps/playground/src/main.tsx`                        | Playground entry; NOT shipped                                                       |
-| `apps/playground/index.html`                          | Vite HTML entry for the dev server                                                  |
+| `apps/console/src/Gallery.{tsx,css}`                  | Live spec — every primitive's specimen                                              |
+| `apps/console/src/apps/*`                             | Sub-apps registered with AegisShell (portal, gallery)                               |
+| `apps/console/src/main.tsx`                           | Console entry; NOT shipped                                                          |
+| `apps/console/index.html`                             | Vite HTML entry for the dev server                                                  |
 | `apps/portal/`                                        | AegisLab portal (`rcabench-frontend`) — shallow-integrated, owns its own UI for now |
 | `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package                                |
 | `pnpm-workspace.yaml`                                 | Workspace package globs                                                             |
@@ -154,8 +155,8 @@ pnpm type-check      # turbo run type-check (strict + noUnused* across packages)
 pnpm lint            # turbo run lint --max-warnings 0
 pnpm lint:css        # stylelint via turbo on packages/ui
 pnpm format:check    # prettier across packages + apps
-pnpm build           # turbo run build (packages/ui emits dist/, playground builds)
-pnpm dev             # apps/playground vite dev server (gallery + demo apps)
+pnpm build           # turbo run build (packages/ui emits dist/, console builds)
+pnpm dev             # apps/console vite dev server (gallery + demo apps)
 pnpm check           # type-check + lint + lint:css + format:check in one shot
 ```
 
@@ -163,7 +164,7 @@ Single-package shortcuts:
 
 ```bash
 pnpm -F @OperationsPAI/aegis-ui build     # library only
-pnpm -F @OperationsPAI/playground dev     # playground only
+pnpm -F @OperationsPAI/console dev     # console only
 ```
 
 A primitive is "done" only after the gallery renders cleanly in the
@@ -190,7 +191,7 @@ The ESLint config is intentionally maximal:
 - `no-console` allows only `warn` / `error`.
 - `curly: ['error', 'all']` — every `if` gets braces.
 
-Playground (`apps/playground/src/**`) gets a few rules
+Console (`apps/console/src/**`) gets a few rules
 relaxed (`react-refresh/only-export-components`, `no-console`,
 `jsx-a11y/label-has-associated-control` for specimen markup). Library
 code does not.

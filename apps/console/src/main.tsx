@@ -9,7 +9,7 @@ import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 import { ConfigProvider, theme as antdTheme } from 'antd';
 
-import { PlaygroundApp } from './playground/App';
+import { ConsoleApp } from './App';
 
 function ThemedRoot(): React.ReactElement {
   const { resolved } = useTheme();
@@ -17,14 +17,14 @@ function ThemedRoot(): React.ReactElement {
     resolved === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
   return (
     <ConfigProvider theme={{ ...aegisTheme, algorithm }}>
-      <PlaygroundApp />
+      <ConsoleApp />
     </ConfigProvider>
   );
 }
 
 const container = document.getElementById('root');
 if (!container) {
-  throw new Error('aegis-ui playground: #root element not found');
+  throw new Error('aegis-ui console: #root element not found');
 }
 
 createRoot(container).render(
