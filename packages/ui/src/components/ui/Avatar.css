@@ -12,20 +12,86 @@
   object-fit: cover;
 }
 
-.aegis-avatar--sm {
+.aegis-avatar--sm,
+.aegis-avatar-wrap--sm {
   width: var(--size-avatar-sm);
   height: var(--size-avatar-sm);
   font-size: var(--fs-11);
 }
 
-.aegis-avatar--base {
+.aegis-avatar--md,
+.aegis-avatar--base,
+.aegis-avatar-wrap--md,
+.aegis-avatar-wrap--base {
   width: var(--size-avatar-base);
   height: var(--size-avatar-base);
   font-size: var(--fs-13);
 }
 
-.aegis-avatar--lg {
+.aegis-avatar--lg,
+.aegis-avatar-wrap--lg {
   width: var(--size-avatar-lg);
   height: var(--size-avatar-lg);
   font-size: var(--fs-16);
+}
+
+.aegis-avatar--hue-1 {
+  background: var(--avatar-hue-1);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--hue-2 {
+  background: var(--avatar-hue-2);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--hue-3 {
+  background: var(--avatar-hue-3);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--hue-4 {
+  background: var(--avatar-hue-4);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--hue-5 {
+  background: var(--avatar-hue-5);
+  color: var(--text-on-inverted);
+}
+
+.aegis-avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.aegis-avatar-wrap > .aegis-avatar {
+  width: 100%;
+  height: 100%;
+}
+
+.aegis-avatar__status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-circle);
+  border: var(--size-hairline) solid var(--bg-panel);
+  box-sizing: content-box;
+}
+
+.aegis-avatar-wrap--lg .aegis-avatar__status {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+.aegis-avatar__status--online {
+  background: var(--presence-online);
+}
+.aegis-avatar__status--offline {
+  background: var(--presence-offline);
+}
+.aegis-avatar__status--busy {
+  background: var(--presence-busy);
+}
+.aegis-avatar__status--away {
+  background: var(--presence-away);
 }

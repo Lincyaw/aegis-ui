@@ -6,6 +6,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import {
+  AuthLayout,
   Avatar,
   BlastRadiusBar,
   Breadcrumb,
@@ -16,6 +17,7 @@ import {
   DataTable,
   DropdownMenu,
   EmptyState,
+  ErrorState,
   FormRow,
   type KeyValueItem,
   KeyValueList,
@@ -25,6 +27,7 @@ import {
   PageHeader,
   Panel,
   PanelTitle,
+  PasswordField,
   ProjectSelector,
   Tabs as RosettaTabs,
   SectionDivider,
@@ -34,6 +37,7 @@ import {
   StatusDot,
   Terminal,
   type TerminalLine,
+  TextField,
   TimeDisplay,
   Toolbar,
   ToolCallCard,
@@ -1850,14 +1854,126 @@ function App() {
           <Specimen caption='initials · sm'>
             <Avatar size='sm' name='Ada Lovelace' />
           </Specimen>
-          <Specimen caption='initials · base'>
-            <Avatar size='base' name='Grace Hopper' />
+          <Specimen caption='initials · md'>
+            <Avatar size='md' name='Grace Hopper' />
           </Specimen>
           <Specimen caption='initials · lg'>
             <Avatar size='lg' name='Alan Turing' />
           </Specimen>
           <Specimen caption='icon fallback'>
-            <Avatar size='base' icon={<UserOutlined />} />
+            <Avatar size='md' name='User' icon={<UserOutlined />} />
+          </Specimen>
+          <Specimen caption='from image'>
+            <Avatar
+              size='lg'
+              name='Linus Torvalds'
+              src='https://i.pravatar.cc/80?img=12'
+            />
+          </Specimen>
+          <Specimen caption='status · online'>
+            <Avatar size='lg' name='Margaret Hamilton' status='online' />
+          </Specimen>
+          <Specimen caption='status · busy'>
+            <Avatar size='lg' name='Donald Knuth' status='busy' />
+          </Specimen>
+          <Specimen caption='status · away'>
+            <Avatar size='lg' name='Edsger Dijkstra' status='away' />
+          </Specimen>
+          <Specimen caption='status · offline'>
+            <Avatar size='lg' name='Barbara Liskov' status='offline' />
+          </Specimen>
+        </div>
+
+        <SectionDivider>TextField</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='default'>
+            <TextField
+              label='Email'
+              placeholder='you@example.com'
+              helperText='We never share your email.'
+            />
+          </Specimen>
+          <Specimen caption='with leading icon'>
+            <TextField
+              label='Username'
+              placeholder='ada'
+              leadingIcon={<UserOutlined />}
+            />
+          </Specimen>
+          <Specimen caption='error'>
+            <TextField
+              label='Email'
+              defaultValue='not-an-email'
+              error='Enter a valid email address.'
+            />
+          </Specimen>
+          <Specimen caption='disabled'>
+            <TextField label='Read-only' defaultValue='aegis-001' disabled />
+          </Specimen>
+        </div>
+
+        <SectionDivider>PasswordField</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='default'>
+            <PasswordField
+              label='Password'
+              placeholder='••••••••'
+              helperText='At least 8 characters.'
+            />
+          </Specimen>
+          <Specimen caption='error'>
+            <PasswordField
+              label='Password'
+              defaultValue='abc'
+              error='Too short — minimum 8 characters.'
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>AuthLayout</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='login (preview)' span={3}>
+            <div className='gallery__auth-preview'>
+              <AuthLayout
+                brand={
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-brand)',
+                      fontWeight: 600,
+                      letterSpacing: 'var(--tracking-brand)',
+                    }}
+                  >
+                    AegisLab
+                  </span>
+                }
+                title='Sign in'
+                description='Use your AegisLab credentials to continue.'
+                footer={
+                  <>
+                    Don&apos;t have an account?{' '}
+                    <a href='#signup'>Create one</a>
+                  </>
+                }
+              >
+                <TextField label='Email' placeholder='you@example.com' />
+                <PasswordField label='Password' placeholder='••••••••' />
+                <Button type='primary' block>
+                  Sign in
+                </Button>
+              </AuthLayout>
+            </div>
+          </Specimen>
+        </div>
+
+        <SectionDivider>ErrorState</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='404 not found' span={3}>
+            <ErrorState
+              code={404}
+              title='Page not found'
+              description="The page you're looking for doesn't exist or has been moved."
+              action={<Button type='primary'>Back to dashboard</Button>}
+            />
           </Specimen>
         </div>
 

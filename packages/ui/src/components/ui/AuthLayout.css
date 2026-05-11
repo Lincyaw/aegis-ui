@@ -1,0 +1,80 @@
+.aegis-auth-layout {
+  min-height: 100vh;
+  background: var(--bg-page);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+  font-family: var(--font-ui);
+}
+
+.aegis-auth-layout__inner {
+  width: 100%;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-6);
+}
+
+.aegis-auth-layout__brand {
+  display: flex;
+  justify-content: center;
+  color: var(--text-main);
+}
+
+.aegis-auth-layout__card {
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  animation: page-fade-in var(--motion-base) both;
+}
+
+.aegis-auth-layout__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-auth-layout__title {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: var(--fs-24);
+  font-weight: var(--fw-semibold);
+  color: var(--text-main);
+  letter-spacing: var(--tracking-brand);
+}
+
+.aegis-auth-layout__desc {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.aegis-auth-layout__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.aegis-auth-layout__footer {
+  text-align: center;
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .aegis-auth-layout {
+    padding: var(--space-4);
+  }
+
+  .aegis-auth-layout__card {
+    padding: var(--space-6);
+  }
+}

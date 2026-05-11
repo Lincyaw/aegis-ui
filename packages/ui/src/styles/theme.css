@@ -88,6 +88,20 @@
   --fs-24: 24px;
   --fs-28: 28px;
   --fs-42: 42px;
+  --fs-display: 96px;
+
+  /* ── Avatar fallback palette (deterministic, name-hashed) ────────── */
+  --avatar-hue-1: #1f2937; /* slate */
+  --avatar-hue-2: #4338ca; /* indigo */
+  --avatar-hue-3: #047857; /* emerald */
+  --avatar-hue-4: #b45309; /* amber-700 */
+  --avatar-hue-5: #be123c; /* rose-700 — distinct from anomaly red */
+
+  /* ── Presence (online / offline / busy / away) ───────────────────── */
+  --presence-online: #16a34a;
+  --presence-offline: #6b7280;
+  --presence-busy: #dc2626;
+  --presence-away: #d97706;
 
   /* ── Weights ─────────────────────────────────────────────────────── */
   --fw-light: 300;
@@ -181,6 +195,19 @@
   /* Secondary semantic */
   --ink-warn: #fbbf24; /* amber-400 — brighter for dark surfaces */
   --bg-warn-soft: #2a200a;
+
+  /* Avatar palette — lighter for dark surfaces */
+  --avatar-hue-1: #64748b;
+  --avatar-hue-2: #818cf8;
+  --avatar-hue-3: #34d399;
+  --avatar-hue-4: #fbbf24;
+  --avatar-hue-5: #fb7185;
+
+  /* Presence — lighter for dark surfaces */
+  --presence-online: #4ade80;
+  --presence-offline: #9ca3af;
+  --presence-busy: #f87171;
+  --presence-away: #fbbf24;
 
   /* Shadow + scrollbar */
   --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.35);

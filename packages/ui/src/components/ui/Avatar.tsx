@@ -2,39 +2,79 @@ import { type ReactNode } from 'react';
 
 import './Avatar.css';
 
+type AvatarSize = 'sm' | 'md' | 'lg';
+type AvatarStatus = 'online' | 'offline' | 'busy' | 'away';
+
 interface AvatarProps {
+  name: string;
   src?: string;
-  name?: string;
+  size?: AvatarSize;
+  status?: AvatarStatus;
   icon?: ReactNode;
-  size?: 'sm' | 'base' | 'lg';
   className?: string;
 }
 
+function initialsFromName(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w.charAt(0))
+    .join('')
+    .toUpperCase();
+}
+
+const HUE_COUNT = 5;
+
+function hueFromName(name: string): number {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  }
+  return (hash % HUE_COUNT) + 1;
+}
+
 export function Avatar({
-  src,
   name,
+  src,
+  size = 'md',
+  status,
   icon,
-  size = 'base',
   className,
 }: AvatarProps) {
-  const cls = ['aegis-avatar', `aegis-avatar--${size}`, className ?? '']
+  const cls = ['aegis-avatar', `aegis-avatar--${size}`, className]
     .filter(Boolean)
     .join(' ');
 
-  if (src) {
-    return <img src={src} alt={name ?? 'Avatar'} className={cls} />;
+  const wrapperCls = ['aegis-avatar-wrap', `aegis-avatar-wrap--${size}`].join(
+    ' ',
+  );
+
+  const content = src ? (
+    <img src={src} alt={name} className={cls} />
+  ) : (
+    <span
+      className={`${cls} aegis-avatar--hue-${hueFromName(name)}`}
+      aria-label={name}
+      role="img"
+    >
+      {icon ?? initialsFromName(name)}
+    </span>
+  );
+
+  if (!status) {
+    return content;
   }
 
-  const fallback = name
-    ? name
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase()
-    : icon;
-
-  return <span className={cls}>{fallback}</span>;
+  return (
+    <span className={wrapperCls}>
+      {content}
+      <span
+        className={`aegis-avatar__status aegis-avatar__status--${status}`}
+        aria-label={status}
+      />
+    </span>
+  );
 }
 
 export default Avatar;

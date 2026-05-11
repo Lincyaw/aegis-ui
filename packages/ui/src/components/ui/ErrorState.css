@@ -1,0 +1,55 @@
+.aegis-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-4);
+  font-family: var(--font-ui);
+  min-height: 60vh;
+}
+
+.aegis-error-state__illustration {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.aegis-error-state__code {
+  font-family: var(--font-brand);
+  font-size: var(--fs-display);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  letter-spacing: var(--tracking-brand);
+  color: var(--text-main);
+}
+
+.aegis-error-state__title {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: var(--fs-24);
+  font-weight: var(--fw-semibold);
+  color: var(--text-main);
+}
+
+.aegis-error-state__desc {
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  max-width: 28rem;
+  line-height: 1.5;
+}
+
+.aegis-error-state__action {
+  margin-top: var(--space-4);
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .aegis-error-state__code {
+    font-size: var(--fs-42);
+  }
+}

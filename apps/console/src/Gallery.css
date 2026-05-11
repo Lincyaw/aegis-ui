@@ -1094,3 +1094,16 @@ select.gallery__demo-input:focus {
     align-items: flex-start;
   }
 }
+
+.gallery__auth-preview {
+  width: 100%;
+  border: var(--size-hairline) dashed var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-page);
+}
+
+.gallery__auth-preview .aegis-auth-layout {
+  min-height: 0;
+  padding: var(--space-6) var(--space-4);
+}
