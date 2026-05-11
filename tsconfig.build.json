@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationDir": "dist",
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false
+  },
+  "include": ["src"],
+  "exclude": [
+    "src/playground/**",
+    "src/main.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}
