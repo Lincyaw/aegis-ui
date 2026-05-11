@@ -29,16 +29,13 @@ module.exports = {
     '.eslintrc.cjs',
     'commitlint.config.cjs',
     '**/vite.config.ts',
-    'apps/portal/**',
+    'apps/playground/**',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: [
-      './packages/ui/tsconfig.json',
-      './apps/playground/tsconfig.json',
-    ],
+    project: ['./packages/ui/tsconfig.json'],
     tsconfigRootDir: __dirname,
     ecmaFeatures: { jsx: true },
   },
@@ -55,10 +52,7 @@ module.exports = {
     react: { version: 'detect' },
     'import/resolver': {
       typescript: {
-        project: [
-          './packages/ui/tsconfig.json',
-          './apps/playground/tsconfig.json',
-        ],
+        project: ['./packages/ui/tsconfig.json'],
       },
       node: true,
     },
@@ -160,17 +154,4 @@ module.exports = {
     'jsx-a11y/no-static-element-interactions': 'warn',
     'jsx-a11y/click-events-have-key-events': 'warn',
   },
-  overrides: [
-    {
-      files: ['apps/playground/src/**'],
-      rules: {
-        'react-refresh/only-export-components': 'off',
-        'no-console': 'off',
-        // Playground specimens may use illustrative markup that wraps a
-        // form control in a <label> without `htmlFor` — that's still valid
-        // HTML; the rule over-fires here.
-        'jsx-a11y/label-has-associated-control': 'off',
-      },
-    },
-  ],
 };

@@ -25,6 +25,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
     project: ['./tsconfig.json', './tsconfig.node.json'],
+    tsconfigRootDir: __dirname,
     ecmaFeatures: {
       jsx: true,
     },
@@ -133,6 +134,12 @@ module.exports = {
       files: ['*.ts', '*.tsx'],
       rules: {
         'no-undef': 'off', // TypeScript会检查未定义变量
+      },
+    },
+    {
+      files: ['src/main.tsx'],
+      rules: {
+        'react-refresh/only-export-components': 'off',
       },
     },
     {

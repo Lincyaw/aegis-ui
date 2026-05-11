@@ -4,20 +4,19 @@ import { AegisShell, ThemeToggle } from '@OperationsPAI/aegis-ui';
 import { UserOutlined } from '@ant-design/icons';
 import { BrowserRouter } from 'react-router-dom';
 
-import { containersApp } from './apps/containers';
-import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';
+import { portalApp } from './apps/portal';
 
 export function PlaygroundApp(): ReactElement {
   return (
     <BrowserRouter>
       <AegisShell
-        brand={{ name: 'aegis-ui', href: '/gallery' }}
-        apps={[galleryApp, containersApp, datasetsApp]}
-        fallbackPath="/gallery"
+        brand={{ name: 'AegisLab', href: '/' }}
+        apps={[portalApp, galleryApp]}
+        fallbackPath="/"
         headerActions={<ThemeToggle />}
         user={{
-          name: 'demo',
+          name: 'User',
           avatar: <UserOutlined />,
           menu: [
             { key: 'profile', label: 'Profile' },
