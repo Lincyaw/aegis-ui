@@ -42,6 +42,7 @@ export function AegisShell({
   userMenu,
   headerCenter,
   headerActions,
+  inboxPath,
   onAppSwitch,
 }: AegisShellProps): ReactElement {
   const { pathname } = useLocation();
@@ -166,6 +167,7 @@ export function AegisShell({
         user={resolvedUser}
         headerCenter={headerCenter}
         headerActions={headerActions}
+        inboxPath={inboxPath}
         onMobileMenuToggle={toggleMobileNav}
         showMobileMenu={hasSidebar}
         inlineSlotRef={setInlineSlot}

@@ -6,6 +6,7 @@ import {
   type DropdownItem,
   DropdownMenu,
 } from '../../components/ui/DropdownMenu';
+import { NotificationBell } from '../../components/ui/NotificationBell';
 import { AppSwitcher } from './AppSwitcher';
 import type { AegisApp, AegisBrand, AegisUser } from './types';
 
@@ -17,6 +18,8 @@ interface TopHeaderProps {
   user?: AegisUser;
   headerCenter?: ReactNode;
   headerActions?: ReactNode;
+  /** When set, render a notification bell linking to this path. */
+  inboxPath?: string;
   /** Fired by the mobile hamburger; the shell owns the open state. */
   onMobileMenuToggle?: () => void;
   /** Whether to render the mobile hamburger at all (only when sidebar exists). */
@@ -39,6 +42,7 @@ export function TopHeader({
   user,
   headerCenter,
   headerActions,
+  inboxPath,
   onMobileMenuToggle,
   showMobileMenu,
   inlineSlotRef,
@@ -90,6 +94,7 @@ export function TopHeader({
       </div>
       <div className="aegis-shell__header-right">
         {headerActions}
+        {inboxPath && <NotificationBell inboxPath={inboxPath} />}
         {user && <UserMenu user={user} />}
       </div>
     </header>

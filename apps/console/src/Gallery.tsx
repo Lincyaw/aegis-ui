@@ -20,7 +20,12 @@ import {
   ErrorState,
   ForgotPasswordForm,
   FormRow,
+  InboxPage,
   LoginForm,
+  type AegisNotification,
+  type NotificationContextValue,
+  NotificationBell,
+  NotificationProvider,
   type KeyValueItem,
   KeyValueList,
   MetricCard,
@@ -307,6 +312,54 @@ const TABLE_COLUMNS = [
     },
   },
 ];
+
+/* ── Notification specimen data ────────────────────────────────────── */
+
+const NOW = Date.now();
+const MOCK_NOTIFS: AegisNotification[] = [
+  {
+    id: 'g-1',
+    title: 'Injection INJ-29F1 completed',
+    body: 'kafka loadgen drift finished on EU-WEST-01 with blast radius 42%.',
+    timestamp: new Date(NOW - 4 * 60_000).toISOString(),
+    read: false,
+    category: 'injection.completed',
+    severity: 'success',
+  },
+  {
+    id: 'g-2',
+    title: 'Dataset build failed',
+    body: "Build of 'orders-shadow-v3' failed: 2 of 14 partitions missing schemas.",
+    timestamp: new Date(NOW - 35 * 60_000).toISOString(),
+    read: false,
+    category: 'dataset.build.failed',
+    severity: 'error',
+  },
+  {
+    id: 'g-3',
+    title: 'Alice invited you to "Payments SRE"',
+    body: 'You can now view experiments in the Payments workspace.',
+    timestamp: new Date(NOW - 3 * 60 * 60_000).toISOString(),
+    read: false,
+    category: 'user.invited',
+    severity: 'info',
+    actor: 'Alice Chen',
+  },
+  {
+    id: 'g-4',
+    title: 'API key "ci-runner" expires in 7 days',
+    timestamp: new Date(NOW - 8 * 60 * 60_000).toISOString(),
+    read: true,
+    category: 'api_key.expiring',
+    severity: 'warning',
+  },
+];
+
+const MOCK_NOTIF_VALUE: NotificationContextValue = {
+  items: MOCK_NOTIFS,
+  unreadCount: MOCK_NOTIFS.filter((n) => !n.read).length,
+  loading: false,
+};
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
 
@@ -2196,6 +2249,27 @@ function App() {
             </button>
           </div>
         </DangerZone>
+      </Panel>
+
+      {/* ── Notifications ──────────────────────────────────────────── */}
+      <Panel title={<PanelTitle size='lg'>Notifications</PanelTitle>}>
+        <SectionDivider>NotificationBell</SectionDivider>
+        <NotificationProvider value={MOCK_NOTIF_VALUE}>
+          <div className='gallery__row'>
+            <Specimen caption='trigger · click to open'>
+              <div className='gallery__notif-bell-host'>
+                <NotificationBell inboxPath='/inbox' />
+              </div>
+            </Specimen>
+          </div>
+        </NotificationProvider>
+
+        <SectionDivider>InboxPage</SectionDivider>
+        <NotificationProvider value={MOCK_NOTIF_VALUE}>
+          <div className='gallery__inbox-frame'>
+            <InboxPage />
+          </div>
+        </NotificationProvider>
       </Panel>
 
       {/* ── AntD widgets under our theme ───────────────────────────── */}

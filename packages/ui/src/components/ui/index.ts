@@ -55,3 +55,5 @@ export { LoginForm } from './LoginForm';
 export { RegisterForm } from './RegisterForm';
 export { ForgotPasswordForm } from './ForgotPasswordForm';
 export { ErrorState } from './ErrorState';
+export { NotificationBell } from './NotificationBell';
+export { InboxPage } from './InboxPage';

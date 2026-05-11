@@ -1,9 +1,15 @@
 import type { ReactElement } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import { AegisShell, RequireAuth, ThemeToggle } from '@OperationsPAI/aegis-ui';
+import {
+  AegisShell,
+  InboxPage,
+  RequireAuth,
+  ThemeToggle,
+} from '@OperationsPAI/aegis-ui';
 
 import { DemoAuthProvider } from './auth/DemoAuthProvider';
+import { DemoNotificationProvider } from './notifications/DemoNotificationProvider';
 import { containersApp } from './apps/containers';
 import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';
@@ -33,31 +39,35 @@ export function ConsoleApp(): ReactElement {
                   <div className='aegis-app-loading'>Loading…</div>
                 }
               >
-                <AegisShell
-                  brand={{ name: 'AegisLab', href: '/' }}
-                  apps={[
-                    portalApp,
-                    containersApp,
-                    datasetsApp,
-                    settingsApp,
-                    galleryApp,
-                  ]}
-                  notFoundElement={<NotFound />}
-                  rootRoutes={[
-                    { path: '/', element: <Navigate to='/portal' replace /> },
-                    { path: '/error/forbidden', element: <Forbidden /> },
-                    { path: '/error/server', element: <ServerError /> },
-                  ]}
-                  headerActions={<ThemeToggle />}
-                  userMenu={[
-                    {
-                      key: 'profile',
-                      label: 'Profile',
-                      to: '/settings/profile',
-                    },
-                    { key: 'settings', label: 'Settings', to: '/settings' },
-                  ]}
-                />
+                <DemoNotificationProvider>
+                  <AegisShell
+                    brand={{ name: 'AegisLab', href: '/' }}
+                    apps={[
+                      portalApp,
+                      containersApp,
+                      datasetsApp,
+                      settingsApp,
+                      galleryApp,
+                    ]}
+                    notFoundElement={<NotFound />}
+                    rootRoutes={[
+                      { path: '/', element: <Navigate to='/portal' replace /> },
+                      { path: '/inbox', element: <InboxPage /> },
+                      { path: '/error/forbidden', element: <Forbidden /> },
+                      { path: '/error/server', element: <ServerError /> },
+                    ]}
+                    headerActions={<ThemeToggle />}
+                    inboxPath='/inbox'
+                    userMenu={[
+                      {
+                        key: 'profile',
+                        label: 'Profile',
+                        to: '/settings/profile',
+                      },
+                      { key: 'settings', label: 'Settings', to: '/settings' },
+                    ]}
+                  />
+                </DemoNotificationProvider>
               </RequireAuth>
             }
           />

@@ -1116,3 +1116,18 @@ select.gallery__demo-input:focus {
   border-radius: var(--radius-md);
   background: var(--bg-panel);
 }
+
+.gallery__notif-bell-host {
+  display: inline-flex;
+  padding: var(--space-2);
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+}
+
+.gallery__inbox-frame {
+  padding: var(--space-5);
+  border: var(--size-hairline) dashed var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+}

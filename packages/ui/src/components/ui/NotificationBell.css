@@ -1,0 +1,202 @@
+.aegis-notif-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-base);
+  height: var(--size-control-base);
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.aegis-notif-bell:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-hairline);
+}
+
+.aegis-notif-bell:focus-visible {
+  outline: none;
+  border-color: var(--border-strong);
+}
+
+.aegis-notif-bell__icon {
+  font-size: var(--size-icon-lg);
+}
+
+.aegis-notif-bell__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-warning);
+  color: var(--text-on-inverted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-9);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--bg-panel);
+}
+
+/* ── Popover content ─────────────────────────────────────────────── */
+.aegis-notif-pop {
+  display: flex;
+  flex-direction: column;
+}
+
+.aegis-notif-pop__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.aegis-notif-pop__title {
+  font-family: var(--font-brand);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  color: var(--text-main);
+}
+
+.aegis-notif-pop__count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.aegis-notif-pop__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.aegis-notif-pop__item-wrap + .aegis-notif-pop__item-wrap {
+  border-top: 1px solid var(--border-hairline);
+}
+
+.aegis-notif-pop__item {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background var(--motion-fast);
+}
+
+.aegis-notif-pop__item:hover,
+.aegis-notif-pop__item:focus-visible {
+  background: var(--bg-muted);
+  outline: none;
+}
+
+.aegis-notif-pop__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-top: 7px;
+  border-radius: var(--radius-circle);
+  background: transparent;
+}
+
+.aegis-notif-pop__dot[data-unread='true'] {
+  background: var(--text-main);
+}
+
+.aegis-notif-pop__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+
+.aegis-notif-pop__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.aegis-notif-pop__item-title {
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aegis-notif-pop__item--unread .aegis-notif-pop__item-title {
+  font-weight: var(--fw-semibold);
+}
+
+.aegis-notif-pop__time {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+}
+
+.aegis-notif-pop__item-body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.aegis-notif-pop__empty {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+}
+
+.aegis-notif-pop__foot {
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border-hairline);
+  text-align: center;
+}
+
+.aegis-notif-pop__view-all {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  color: var(--text-main);
+  text-decoration: none;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.aegis-notif-pop__view-all:hover {
+  background: var(--bg-muted);
+}

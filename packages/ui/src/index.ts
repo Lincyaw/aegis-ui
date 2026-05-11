@@ -43,3 +43,10 @@ export type { ThemeMode, ThemePreference } from './theme/themeContext';
 // Auth context contract (presentational — host wires the implementation).
 export { AuthProvider, RequireAuth, useAuth } from './auth';
 export type { AegisAuthUser, AuthContextValue, AuthStatus } from './auth';
+
+// Notification context contract (presentational — host wires the implementation).
+export { NotificationProvider, useNotifications } from './notifications';
+export type {
+  AegisNotification,
+  NotificationContextValue,
+} from './notifications';

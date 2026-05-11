@@ -119,6 +119,13 @@ export interface AegisShellProps {
   headerCenter?: ReactNode;
   /** Slot rendered in the top header right side, before the user menu. */
   headerActions?: ReactNode;
+  /**
+   * When set, a notification bell is rendered in the top header (between
+   * `headerActions` and the user menu) and clicking "View all" routes to
+   * this path. When omitted, the bell is not rendered — apps without a
+   * notification provider don't show an empty bell.
+   */
+  inboxPath?: string;
   /** Fired when the user navigates between apps. */
   onAppSwitch?: (appId: string) => void;
 }
