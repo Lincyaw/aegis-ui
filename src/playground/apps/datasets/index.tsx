@@ -1,8 +1,9 @@
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 
 import { ProfileOutlined } from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
 
+import { useActiveApp } from '../../../layouts/shell/activeAppContext';
 import type { AegisApp } from '../../../layouts/shell/types';
 import { DatasetBrowse } from './DatasetBrowse';
 import { DatasetDetail } from './DatasetDetail';
@@ -14,9 +15,10 @@ import { DatasetsProvider } from './store';
  * the app's sub-header as horizontal tabs.
  */
 function DatasetsHeader(): ReactElement {
+  const { basePath } = useActiveApp();
   const tabs = [
-    { to: '/datasets', label: 'Browse', end: true },
-    { to: '/datasets/upload', label: 'Upload' },
+    { to: basePath, label: 'Browse', end: true },
+    { to: `${basePath}/upload`, label: 'Upload' },
   ];
   return (
     <div
@@ -44,6 +46,10 @@ function DatasetsHeader(): ReactElement {
   );
 }
 
+function wrapWithDatasetsProvider(children: ReactNode): ReactNode {
+  return <DatasetsProvider>{children}</DatasetsProvider>;
+}
+
 export const datasetsApp: AegisApp = {
   id: 'datasets',
   label: 'Datasets',
@@ -51,7 +57,7 @@ export const datasetsApp: AegisApp = {
   basePath: '/datasets',
   description: 'Tabs-in-header pattern (no left sidebar).',
   header: <DatasetsHeader />,
-  wrap: (children) => <DatasetsProvider>{children}</DatasetsProvider>,
+  wrap: wrapWithDatasetsProvider,
   routes: [
     { path: '', element: <DatasetBrowse /> },
     { path: 'upload', element: <DatasetUpload /> },

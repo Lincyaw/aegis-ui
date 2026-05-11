@@ -13,8 +13,9 @@ export { PageWrapper } from './layouts/PageWrapper';
 export type { PageWrapperProps } from './layouts/PageWrapper';
 
 // Shell (router-aware)
-export { AegisShell } from './layouts/shell';
+export { AegisShell, useActiveApp } from './layouts/shell';
 export type {
+  ActiveAppContextValue,
   AegisApp,
   AegisAppNavGroup,
   AegisAppNavItem,

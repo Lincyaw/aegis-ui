@@ -53,6 +53,10 @@ export interface AegisApp {
    * Optional wrapper applied to the active app's region (header + page
    * content). Use to mount Context providers shared between `header` and
    * the routes — anything declared here is in scope for both.
+   *
+   * Must be a stable reference (module-level function or `useCallback`).
+   * Inlining `wrap={(c) => <P>{c}</P>}` re-mounts the provider on every
+   * shell render, blowing away its state.
    */
   wrap?: (children: ReactNode) => ReactNode;
   /** Optional one-line description shown in app pickers. */

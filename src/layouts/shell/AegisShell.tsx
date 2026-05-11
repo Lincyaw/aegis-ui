@@ -20,6 +20,7 @@ import './AegisShell.css';
 import { BreadcrumbBar } from './BreadcrumbBar';
 import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
+import { ActiveAppContext } from './activeAppContext';
 import type { AegisApp, AegisShellProps } from './types';
 
 /**
@@ -48,6 +49,18 @@ export function AegisShell({
     () => findActiveApp(apps, pathname),
     [apps, pathname],
   );
+
+  const activeAppValue = useMemo(
+    () =>
+      activeApp
+        ? { id: activeApp.id, basePath: stripTrailingSlash(activeApp.basePath) }
+        : null,
+    [activeApp],
+  );
+
+  useEffect(() => {
+    assertUniqueBasePaths(apps);
+  }, [apps]);
 
   // Auto-close the drawer on navigation.
   useEffect(() => {
@@ -142,6 +155,7 @@ export function AegisShell({
       <main className="aegis-shell__main">
         {renderAppRegion(
           activeApp,
+          activeAppValue,
           <>
             {activeApp?.header &&
               inlineSlot &&
@@ -161,12 +175,34 @@ function AppRoutes({ app }: { app: AegisApp }): ReactElement | null {
 
 function renderAppRegion(
   app: AegisApp | undefined,
+  appValue: { id: string; basePath: string } | null,
   children: ReactElement,
 ): ReactElement {
-  if (!app?.wrap) {
+  if (!app || !appValue) {
     return children;
   }
-  return <>{app.wrap(children)}</>;
+  const inner = (
+    <ActiveAppContext.Provider value={appValue}>
+      {children}
+    </ActiveAppContext.Provider>
+  );
+  return app.wrap ? <>{app.wrap(inner)}</> : inner;
+}
+
+function assertUniqueBasePaths(apps: AegisApp[]): void {
+  const seen = new Map<string, string>();
+  for (const app of apps) {
+    const key = stripTrailingSlash(app.basePath);
+    const prev = seen.get(key);
+    if (prev) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `AegisShell: duplicate basePath "${key}" on apps "${prev}" and "${app.id}". ` +
+          `Routing will collide — give each app a unique basePath.`,
+      );
+    }
+    seen.set(key, app.id);
+  }
 }
 
 function findActiveApp(

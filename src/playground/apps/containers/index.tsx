@@ -1,9 +1,10 @@
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 
 import { HddOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Input } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
+import { useActiveApp } from '../../../layouts/shell/activeAppContext';
 import type { AegisApp } from '../../../layouts/shell/types';
 import { ContainerCreate } from './ContainerCreate';
 import { ContainerDetail } from './ContainerDetail';
@@ -17,6 +18,7 @@ import { ContainersProvider, useContainers } from './store';
 function ContainersHeader(): ReactElement {
   const { query, setQuery } = useContainers();
   const navigate = useNavigate();
+  const { basePath } = useActiveApp();
   return (
     <div
       style={{
@@ -39,13 +41,17 @@ function ContainersHeader(): ReactElement {
         type="primary"
         size="small"
         icon={<PlusOutlined />}
-        onClick={() => navigate('/containers/new')}
+        onClick={() => navigate(`${basePath}/new`)}
         style={{ marginLeft: 'auto' }}
       >
         New
       </Button>
     </div>
   );
+}
+
+function wrapWithContainersProvider(children: ReactNode): ReactNode {
+  return <ContainersProvider>{children}</ContainersProvider>;
 }
 
 export const containersApp: AegisApp = {
@@ -55,7 +61,7 @@ export const containersApp: AegisApp = {
   basePath: '/containers',
   description: 'Toolbar header + sidebar nav pattern.',
   header: <ContainersHeader />,
-  wrap: (children) => <ContainersProvider>{children}</ContainersProvider>,
+  wrap: wrapWithContainersProvider,
   sidebar: [
     {
       items: [
