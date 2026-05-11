@@ -10,7 +10,6 @@
  * Values are duplicated here (not `var(...)`) because AntD theme tokens are
  * computed in JS — they cannot resolve CSS custom properties.
  */
-
 import type { ThemeConfig } from 'antd';
 
 const FONT_UI =

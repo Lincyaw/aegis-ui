@@ -53,21 +53,18 @@ export function Breadcrumb({
           return (
             <li key={idx} className="aegis-breadcrumb__item">
               {item.to && !isLast ? (
-                <LinkImpl
-                  to={item.to}
-                  className="aegis-breadcrumb__link"
-                >
+                <LinkImpl to={item.to} className="aegis-breadcrumb__link">
                   {item.label}
                 </LinkImpl>
               ) : (
                 <span
-                    className={
-                      isLast
-                        ? 'aegis-breadcrumb__text aegis-breadcrumb__text--current'
-                        : 'aegis-breadcrumb__text'
-                    }
-                    aria-current={isLast ? 'page' : undefined}
-                  >
+                  className={
+                    isLast
+                      ? 'aegis-breadcrumb__text aegis-breadcrumb__text--current'
+                      : 'aegis-breadcrumb__text'
+                  }
+                  aria-current={isLast ? 'page' : undefined}
+                >
                   {item.label}
                 </span>
               )}

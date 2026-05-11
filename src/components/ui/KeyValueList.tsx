@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
+import './KeyValueList.css';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
-import './KeyValueList.css';
 
 export interface KeyValueItem {
   /** Left key (mono — IDs, fields). */
@@ -26,11 +26,7 @@ export function KeyValueList({
   ruled = true,
   className,
 }: KeyValueListProps) {
-  const cls = [
-    'aegis-kv',
-    ruled ? 'aegis-kv--ruled' : '',
-    className ?? '',
-  ]
+  const cls = ['aegis-kv', ruled ? 'aegis-kv--ruled' : '', className ?? '']
     .filter(Boolean)
     .join(' ');
   return (

@@ -1,9 +1,9 @@
 import type { KeyboardEvent, ReactNode } from 'react';
 
+import './MetricCard.css';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
 import { SparkLine } from './SparkLine';
-import './MetricCard.css';
 
 interface MetricCardProps {
   label: ReactNode;

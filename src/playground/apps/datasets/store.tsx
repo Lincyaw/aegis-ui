@@ -50,9 +50,7 @@ export function DatasetsProvider({
             const progress = Math.min(100, u.progress + step);
             return { ...u, progress, done: progress >= 100 };
           });
-          const justFinished = next.some(
-            (u) => u.id === id && u.done,
-          );
+          const justFinished = next.some((u) => u.id === id && u.done);
           if (justFinished) {
             window.clearInterval(interval);
             const newDataset: DemoDataset = {

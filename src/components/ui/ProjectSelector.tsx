@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
+
 import { FolderOutlined, SearchOutlined } from '@ant-design/icons';
 
-import { DropdownMenu, type DropdownItem } from './DropdownMenu';
+import { type DropdownItem, DropdownMenu } from './DropdownMenu';
 import './ProjectSelector.css';
 
 export interface ProjectOption {
@@ -35,7 +36,9 @@ export function ProjectSelector({
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) {return projects;}
+    if (!q) {
+      return projects;
+    }
     return projects.filter((p) => p.name.toLowerCase().includes(q));
   }, [projects, search]);
 
@@ -56,7 +59,9 @@ export function ProjectSelector({
             />
           </div>
         ),
-        onClick: () => { /* search input handles its own events */ },
+        onClick: () => {
+          /* search input handles its own events */
+        },
         disabled: true,
       },
     ];
@@ -110,7 +115,9 @@ export function ProjectSelector({
     'aegis-project-selector',
     selected ? '' : 'aegis-project-selector--empty',
     className ?? '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={cls}>

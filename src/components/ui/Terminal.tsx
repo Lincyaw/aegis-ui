@@ -27,11 +27,11 @@ export function Terminal({
     <div className={cls} role="log" aria-label={ariaLabel} aria-live="polite">
       {lines.map((line, i) => (
         <div className="aegis-terminal__line" key={i}>
-          {line.ts && (
-            <span className="aegis-terminal__ts">[{line.ts}]</span>
-          )}
+          {line.ts && <span className="aegis-terminal__ts">[{line.ts}]</span>}
           {line.prefix && (
-            <span className={`aegis-terminal__prefix${line.level ? ` aegis-terminal__prefix--${line.level}` : ''}`}>
+            <span
+              className={`aegis-terminal__prefix${line.level ? ` aegis-terminal__prefix--${line.level}` : ''}`}
+            >
               {line.prefix}
             </span>
           )}

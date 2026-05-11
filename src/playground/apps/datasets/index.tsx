@@ -1,9 +1,9 @@
-import { ProfileOutlined } from '@ant-design/icons';
 import type { ReactElement } from 'react';
+
+import { ProfileOutlined } from '@ant-design/icons';
 import { Outlet } from 'react-router-dom';
 
 import type { AegisApp } from '../../../layouts/shell/types';
-
 import { DatasetBrowse } from './DatasetBrowse';
 import { DatasetDetail } from './DatasetDetail';
 import { DatasetUpload } from './DatasetUpload';

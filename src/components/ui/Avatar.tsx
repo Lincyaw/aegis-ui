@@ -17,20 +17,12 @@ export function Avatar({
   size = 'base',
   className,
 }: AvatarProps) {
-  const cls = [
-    'aegis-avatar',
-    `aegis-avatar--${size}`,
-    className ?? '',
-  ].filter(Boolean).join(' ');
+  const cls = ['aegis-avatar', `aegis-avatar--${size}`, className ?? '']
+    .filter(Boolean)
+    .join(' ');
 
   if (src) {
-    return (
-      <img
-        src={src}
-        alt={name ?? 'Avatar'}
-        className={cls}
-      />
-    );
+    return <img src={src} alt={name ?? 'Avatar'} className={cls} />;
   }
 
   const fallback = name

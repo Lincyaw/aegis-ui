@@ -1,5 +1,6 @@
-import { Button, Form, Input, Select } from 'antd';
 import type { ReactElement } from 'react';
+
+import { Button, Form, Input, Select } from 'antd';
 import { Link } from 'react-router-dom';
 
 import { Chip } from '../../../components/ui/Chip';
@@ -9,7 +10,6 @@ import { MonoValue } from '../../../components/ui/MonoValue';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Panel } from '../../../components/ui/Panel';
 import { StatusDot } from '../../../components/ui/StatusDot';
-
 import type { DemoDataset } from './data';
 import { useDatasets } from './store';
 

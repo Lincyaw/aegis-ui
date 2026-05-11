@@ -1,4 +1,5 @@
-import { useMemo, type ReactElement } from 'react';
+import { type ReactElement, useMemo } from 'react';
+
 import { Link, Navigate, useParams } from 'react-router-dom';
 
 import { Chip } from '../../../components/ui/Chip';
@@ -8,7 +9,6 @@ import { MetricCard } from '../../../components/ui/MetricCard';
 import { MonoValue } from '../../../components/ui/MonoValue';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Panel } from '../../../components/ui/Panel';
-
 import { useDatasets } from './store';
 
 export function DatasetDetail(): ReactElement {
@@ -72,7 +72,9 @@ export function DatasetDetail(): ReactElement {
             {
               k: 'tags',
               v: (
-                <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}>
+                <span
+                  style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}
+                >
                   {ds.tags.map((t) => (
                     <Chip key={t} tone="default">
                       {t}

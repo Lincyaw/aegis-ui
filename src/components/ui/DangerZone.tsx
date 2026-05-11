@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
-import { PanelTitle } from './PanelTitle';
-import { MetricLabel } from './MetricLabel';
 import './DangerZone.css';
+import { MetricLabel } from './MetricLabel';
+import { PanelTitle } from './PanelTitle';
 
 interface DangerZoneProps {
   title?: string;
@@ -22,14 +22,12 @@ export function DangerZone({
   return (
     <section className={cls}>
       <div className="aegis-danger-zone__header">
-        <PanelTitle size="base" as="h3">{title}</PanelTitle>
-        {description && (
-          <MetricLabel>{description}</MetricLabel>
-        )}
+        <PanelTitle size="base" as="h3">
+          {title}
+        </PanelTitle>
+        {description && <MetricLabel>{description}</MetricLabel>}
       </div>
-      <div className="aegis-danger-zone__body">
-        {children}
-      </div>
+      <div className="aegis-danger-zone__body">{children}</div>
     </section>
   );
 }

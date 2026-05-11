@@ -6,7 +6,6 @@
  *
  * Imported once at app boot via main.tsx.
  */
-
 import '@fontsource-variable/geist';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';

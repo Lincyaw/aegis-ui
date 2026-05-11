@@ -240,7 +240,7 @@
   }
 
   /* Show fewer charts on tablet */
-  .charts-row .ant-col:nth-child(n+3) {
+  .charts-row .ant-col:nth-child(n + 3) {
     display: none;
   }
 

@@ -1,8 +1,11 @@
 import type { ReactElement, ReactNode } from 'react';
+
 import { Link } from 'react-router-dom';
 
-import { DropdownMenu, type DropdownItem } from '../../components/ui/DropdownMenu';
-
+import {
+  type DropdownItem,
+  DropdownMenu,
+} from '../../components/ui/DropdownMenu';
 import type { AegisBrand, AegisUser } from './types';
 
 interface TopHeaderProps {

@@ -17,7 +17,9 @@ interface SparkLineProps {
 }
 
 function buildPath(points: number[], w: number, h: number): string {
-  if (points.length === 0) {return '';}
+  if (points.length === 0) {
+    return '';
+  }
   const min = Math.min(...points);
   const max = Math.max(...points);
   const range = max - min || 1;
@@ -59,7 +61,11 @@ export function SparkLine({
         preserveAspectRatio="none"
         className="aegis-sparkline__svg"
       >
-        <path d={path} className="aegis-sparkline__line" strokeWidth={strokeWidth} />
+        <path
+          d={path}
+          className="aegis-sparkline__line"
+          strokeWidth={strokeWidth}
+        />
       </svg>
     </span>
   );

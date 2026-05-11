@@ -1,4 +1,5 @@
 import { type ReactElement, useMemo, useState } from 'react';
+
 import { Link } from 'react-router-dom';
 
 import { Chip } from '../../../components/ui/Chip';
@@ -8,7 +9,6 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Panel } from '../../../components/ui/Panel';
 import { Tabs } from '../../../components/ui/Tabs';
 import { TimeDisplay } from '../../../components/ui/TimeDisplay';
-
 import type { DemoDataset } from './data';
 import { useDatasets } from './store';
 
@@ -98,9 +98,7 @@ export function DatasetBrowse(): ReactElement {
                   <Chip tone="ghost">
                     <MonoValue size="sm">{d.format}</MonoValue>
                   </Chip>
-                  <Chip tone="ghost">
-                    {d.rows.toLocaleString()} rows
-                  </Chip>
+                  <Chip tone="ghost">{d.rows.toLocaleString()} rows</Chip>
                   <Chip tone="ghost">{d.sizeMb} MB</Chip>
                   {d.tags.map((t) => (
                     <Chip key={t} tone="default">

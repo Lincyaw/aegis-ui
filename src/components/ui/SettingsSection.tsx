@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { PanelTitle } from './PanelTitle';
 import { MetricLabel } from './MetricLabel';
+import { PanelTitle } from './PanelTitle';
 import './SettingsSection.css';
 
 interface SettingsSectionProps {
@@ -11,20 +11,25 @@ interface SettingsSectionProps {
   className?: string;
 }
 
-export function SettingsSection({ title, description, children, className }: SettingsSectionProps) {
-  const cls = ['aegis-settings-section', className ?? ''].filter(Boolean).join(' ');
+export function SettingsSection({
+  title,
+  description,
+  children,
+  className,
+}: SettingsSectionProps) {
+  const cls = ['aegis-settings-section', className ?? '']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <section className={cls}>
       <div className="aegis-settings-section__header">
-        <PanelTitle size="base" as="h3">{title}</PanelTitle>
-        {description && (
-          <MetricLabel>{description}</MetricLabel>
-        )}
+        <PanelTitle size="base" as="h3">
+          {title}
+        </PanelTitle>
+        {description && <MetricLabel>{description}</MetricLabel>}
       </div>
-      <div className="aegis-settings-section__body">
-        {children}
-      </div>
+      <div className="aegis-settings-section__body">{children}</div>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+
 import { NavLink } from 'react-router-dom';
 
 import type { AegisApp } from './types';
@@ -43,7 +44,9 @@ export function Sidebar({
           {activeApp.sidebar.map((group, idx) => (
             <div key={idx}>
               {group.label && (
-                <div className="aegis-shell__sidebar-heading">{group.label}</div>
+                <div className="aegis-shell__sidebar-heading">
+                  {group.label}
+                </div>
               )}
               {group.items.map((item) => {
                 const path = joinPath(activeApp.basePath, item.to);

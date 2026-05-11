@@ -36,7 +36,9 @@
   cursor: pointer;
   padding: 2px var(--space-2);
   border-radius: var(--radius-sm);
-  transition: color var(--motion-fast), background var(--motion-fast);
+  transition:
+    color var(--motion-fast),
+    background var(--motion-fast);
 }
 
 .aegis-code-block__copy:hover {

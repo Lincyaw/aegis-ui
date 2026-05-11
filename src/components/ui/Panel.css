@@ -6,7 +6,9 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
   overflow: hidden;
-  transition: box-shadow var(--motion-fast), transform var(--motion-fast);
+  transition:
+    box-shadow var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .aegis-panel:hover {

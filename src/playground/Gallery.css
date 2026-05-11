@@ -1070,7 +1070,9 @@ select.gallery__demo-input:focus {
   border: 1px solid var(--accent-warning);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--motion-fast), color var(--motion-fast);
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
 }
 
 .gallery__danger-btn:hover {

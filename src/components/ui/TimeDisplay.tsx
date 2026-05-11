@@ -22,7 +22,9 @@ function formatAbsolute(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
-  if (sameDay) {return time;}
+  if (sameDay) {
+    return time;
+  }
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${time}`;
 }
 
@@ -30,24 +32,40 @@ function formatRelative(d: Date): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffSec = Math.floor(diffMs / 1000);
-  if (diffSec < 10) {return 'just now';}
-  if (diffSec < 60) {return `${diffSec} s ago`;}
+  if (diffSec < 10) {
+    return 'just now';
+  }
+  if (diffSec < 60) {
+    return `${diffSec} s ago`;
+  }
   const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) {return `${diffMin} m ago`;}
+  if (diffMin < 60) {
+    return `${diffMin} m ago`;
+  }
   const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) {return `${diffHour} h ago`;}
+  if (diffHour < 24) {
+    return `${diffHour} h ago`;
+  }
   const diffDay = Math.floor(diffHour / 24);
-  if (diffDay < 30) {return `${diffDay} d ago`;}
+  if (diffDay < 30) {
+    return `${diffDay} d ago`;
+  }
   return formatAbsolute(d);
 }
 
 function formatDuration(ms: number): string {
-  if (ms < 1000) {return `${Math.round(ms)} ms`;}
+  if (ms < 1000) {
+    return `${Math.round(ms)} ms`;
+  }
   const sec = ms / 1000;
-  if (sec < 60) {return `${sec.toFixed(2)} s`.replace(/\.00$/, ' s');}
+  if (sec < 60) {
+    return `${sec.toFixed(2)} s`.replace(/\.00$/, ' s');
+  }
   const min = Math.floor(sec / 60);
   const remSec = Math.round(sec % 60);
-  if (min < 60) {return `${min} m ${remSec} s`;}
+  if (min < 60) {
+    return `${min} m ${remSec} s`;
+  }
   const hour = Math.floor(min / 60);
   const remMin = min % 60;
   return `${hour} h ${remMin} m`;
@@ -59,7 +77,9 @@ export function TimeDisplay({
   className,
 }: TimeDisplayProps) {
   const d = useMemo(() => {
-    if (typeof value === 'string') {return new Date(value);}
+    if (typeof value === 'string') {
+      return new Date(value);
+    }
     if (typeof value === 'number') {
       // Heuristic: if number is small, treat as ms duration; else as epoch ms
       return value < 1e10 ? new Date(value) : new Date(value);
@@ -72,12 +92,16 @@ export function TimeDisplay({
       const ms = typeof value === 'number' ? value : d.getTime();
       return formatDuration(ms);
     }
-    if (mode === 'relative') {return formatRelative(d);}
+    if (mode === 'relative') {
+      return formatRelative(d);
+    }
     return formatAbsolute(d);
   }, [d, mode, value]);
 
   const tooltip = useMemo(() => {
-    if (mode === 'absolute') {return undefined;}
+    if (mode === 'absolute') {
+      return undefined;
+    }
     return formatAbsolute(d);
   }, [d, mode]);
 

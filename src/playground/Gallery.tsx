@@ -1,3 +1,5 @@
+import { type ReactNode, useState } from 'react';
+
 import {
   LogoutOutlined,
   SettingOutlined,
@@ -16,7 +18,6 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
-import { useState, type ReactNode } from 'react';
 
 import {
   Avatar,
@@ -30,6 +31,7 @@ import {
   DropdownMenu,
   EmptyState,
   FormRow,
+  type KeyValueItem,
   KeyValueList,
   MetricCard,
   MetricLabel,
@@ -38,23 +40,23 @@ import {
   Panel,
   PanelTitle,
   ProjectSelector,
+  Tabs as RosettaTabs,
   SectionDivider,
   SettingsSection,
   SparkLine,
   StatBlock,
   StatusDot,
-  Tabs as RosettaTabs,
   Terminal,
-  TimeDisplay,
-  Toolbar,
-  ToolCallCard,
-  TrajectoryStep,
-  TrajectoryTimeline,
-  type KeyValueItem,
   type TerminalLine,
+  TimeDisplay,
+  ToolCallCard,
   type ToolCallData,
+  Toolbar,
+  TrajectoryStep,
   type TrajectoryStepData,
+  TrajectoryTimeline,
 } from '@/components/ui';
+
 import './Gallery.css';
 
 /* ── Static specimen data ──────────────────────────────────────────── */
@@ -104,9 +106,15 @@ const TYPE_SAMPLES: Array<{
   },
 ];
 
-const SPARK_RISING = [42, 41, 44, 43, 47, 50, 49, 52, 55, 58, 62, 60, 64, 68, 71, 73];
-const SPARK_DIP = [80, 78, 79, 81, 77, 70, 62, 51, 43, 38, 35, 41, 50, 58, 64, 67];
-const SPARK_FLAT = [50, 51, 49, 52, 50, 51, 49, 50, 51, 50, 49, 51, 50, 50, 51, 49];
+const SPARK_RISING = [
+  42, 41, 44, 43, 47, 50, 49, 52, 55, 58, 62, 60, 64, 68, 71, 73,
+];
+const SPARK_DIP = [
+  80, 78, 79, 81, 77, 70, 62, 51, 43, 38, 35, 41, 50, 58, 64, 67,
+];
+const SPARK_FLAT = [
+  50, 51, 49, 52, 50, 51, 49, 50, 51, 50, 49, 51, 50, 50, 51, 49,
+];
 
 const KV_PARAMS: KeyValueItem[] = [
   { k: 'jitter', v: '40 ms' },
@@ -154,19 +162,24 @@ const TERMINAL_LINES: TerminalLine[] = [
 
 const TOOL_QUERY_METRICS: ToolCallData = {
   name: 'query_metrics',
-  arguments: '{\n  "service": "catalog",\n  "metric": "latency_p99",\n  "window": "5m"\n}',
-  result: '{\n  "value": 482,\n  "unit": "ms",\n  "baseline": 120,\n  "severity": "critical"\n}',
+  arguments:
+    '{\n  "service": "catalog",\n  "metric": "latency_p99",\n  "window": "5m"\n}',
+  result:
+    '{\n  "value": 482,\n  "unit": "ms",\n  "baseline": 120,\n  "severity": "critical"\n}',
 };
 
 const TOOL_GET_TRACES: ToolCallData = {
   name: 'get_traces',
-  arguments: '{\n  "service": "catalog",\n  "span_kind": "server",\n  "limit": 10\n}',
-  result: '{\n  "traces": 10,\n  "avg_duration_ms": 412,\n  "slowest_span": "catalog→redis"\n}',
+  arguments:
+    '{\n  "service": "catalog",\n  "span_kind": "server",\n  "limit": 10\n}',
+  result:
+    '{\n  "traces": 10,\n  "avg_duration_ms": 412,\n  "slowest_span": "catalog→redis"\n}',
 };
 
 const TOOL_REPORT_RCA: ToolCallData = {
   name: 'report_rca',
-  arguments: '{\n  "cause": "redis_pool_saturation",\n  "confidence": 0.92,\n  "evidence": [\n    "catalog p99 latency 482ms (4x baseline)",\n    "catalog→redis span latency 380ms (31x baseline)"\n  ]\n}',
+  arguments:
+    '{\n  "cause": "redis_pool_saturation",\n  "confidence": 0.92,\n  "evidence": [\n    "catalog p99 latency 482ms (4x baseline)",\n    "catalog→redis span latency 380ms (31x baseline)"\n  ]\n}',
   result: '{\n  "status": "reported",\n  "rca_id": "RCA-2024-0510-001"\n}',
 };
 
@@ -177,7 +190,8 @@ const TRAJECTORY_STEPS: TrajectoryStepData[] = [
     durationMs: 1240,
     thought:
       'The user is reporting **high latency** in the `catalog` service. I need to first check the current metrics to understand the scope of the issue.\n\n> **Hypothesis**: The latency spike is caused by either:\n> 1. Database connection pool exhaustion\n> 2. Downstream dependency degradation\n> 3. Network partition between services',
-    action: '`query_metrics(service="catalog", metric="latency_p99", window="5m")`',
+    action:
+      '`query_metrics(service="catalog", metric="latency_p99", window="5m")`',
     actionType: 'tool_call',
     toolCall: TOOL_QUERY_METRICS,
     observation:
@@ -189,11 +203,13 @@ const TRAJECTORY_STEPS: TrajectoryStepData[] = [
     durationMs: 890,
     thought:
       'Latency spike confirmed. Let me check **error rates** and downstream service health to narrow the root cause.',
-    action: '`query_metrics(service="catalog", metric="error_rate", window="5m")`',
+    action:
+      '`query_metrics(service="catalog", metric="error_rate", window="5m")`',
     actionType: 'tool_call',
     toolCall: {
       name: 'query_metrics',
-      arguments: '{\n  "service": "catalog",\n  "metric": "error_rate",\n  "window": "5m"\n}',
+      arguments:
+        '{\n  "service": "catalog",\n  "metric": "error_rate",\n  "window": "5m"\n}',
       result: '{\n  "value": 0.02,\n  "unit": "%",\n  "baseline": 0.01\n}',
     },
     observation:
@@ -217,7 +233,8 @@ const TRAJECTORY_STEPS: TrajectoryStepData[] = [
     durationMs: 560,
     thought:
       'I have enough evidence. The root cause is **redis connection pool saturation** causing the catalog service latency spike.\n\n**Confidence: 92%**',
-    action: '`report_rca(cause="redis_pool_saturation", confidence=0.92, evidence=[...])`',
+    action:
+      '`report_rca(cause="redis_pool_saturation", confidence=0.92, evidence=[...])`',
     actionType: 'tool_call',
     toolCall: TOOL_REPORT_RCA,
   },
@@ -278,7 +295,8 @@ const TABLE_COLUMNS = [
     dataIndex: 'state',
     key: 'state',
     render: (v: string) => {
-      const tone = v === 'running' ? 'ink' : v === 'failed' ? 'warning' : 'default';
+      const tone =
+        v === 'running' ? 'ink' : v === 'failed' ? 'warning' : 'default';
       return <Chip tone={tone}>{v}</Chip>;
     },
   },
@@ -294,9 +312,7 @@ interface SpecimenProps {
 
 function Specimen({ caption, children, span = 1 }: SpecimenProps) {
   return (
-    <div
-      className={`gallery__specimen gallery__specimen--span-${span}`}
-    >
+    <div className={`gallery__specimen gallery__specimen--span-${span}`}>
       <div className="gallery__specimen-stage">{children}</div>
       <MetricLabel as="div" size="xs" className="gallery__specimen-caption">
         {caption}
@@ -326,9 +342,18 @@ interface RoadmapGroup {
   cards: RoadmapSpec[];
 }
 
-const REF_ANTD = { label: 'ant-design/ant-design', url: 'https://github.com/ant-design/ant-design' };
-const REF_ECHARTS = { label: 'apache/echarts', url: 'https://github.com/apache/echarts' };
-const REF_MONACO = { label: 'microsoft/monaco-editor', url: 'https://github.com/microsoft/monaco-editor' };
+const REF_ANTD = {
+  label: 'ant-design/ant-design',
+  url: 'https://github.com/ant-design/ant-design',
+};
+const REF_ECHARTS = {
+  label: 'apache/echarts',
+  url: 'https://github.com/apache/echarts',
+};
+const REF_MONACO = {
+  label: 'microsoft/monaco-editor',
+  url: 'https://github.com/microsoft/monaco-editor',
+};
 
 const ROADMAP_GROUPS: RoadmapGroup[] = [
   {
@@ -343,7 +368,9 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
             <StatusDot pulse />
             <Chip tone="ink">INJ-29F1</Chip>
             <span className="mock-exp-header__title">kafka loadgen drift</span>
-            <MonoValue size="sm" weight="regular">14:22 → 14:36</MonoValue>
+            <MonoValue size="sm" weight="regular">
+              14:22 → 14:36
+            </MonoValue>
             <Chip>EU-WEST-01</Chip>
           </div>
         ),
@@ -392,7 +419,9 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
             <div className="mock-drawer__page">main view</div>
             <div className="mock-drawer__sheet">
               <MetricLabel size="xs">→ inspect</MetricLabel>
-              <MonoValue size="sm" weight="regular">span-a3f29</MonoValue>
+              <MonoValue size="sm" weight="regular">
+                span-a3f29
+              </MonoValue>
             </div>
           </div>
         ),
@@ -401,11 +430,16 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         name: 'SplitPane',
         desc: 'Two-pane resizable layout (chart on top, log on bottom — both share the time brush).',
         status: 'Planned',
-        reference: { label: 'bvaughn/react-resizable-panels', url: 'https://github.com/bvaughn/react-resizable-panels' },
+        reference: {
+          label: 'bvaughn/react-resizable-panels',
+          url: 'https://github.com/bvaughn/react-resizable-panels',
+        },
         preview: (
           <div className="mock-split">
             <div className="mock-split__pane">chart</div>
-            <div className="mock-split__handle" aria-hidden>⋮</div>
+            <div className="mock-split__handle" aria-hidden>
+              ⋮
+            </div>
             <div className="mock-split__pane">logs</div>
           </div>
         ),
@@ -419,17 +453,43 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         name: 'FaultWindow',
         desc: 'Pre / fault / recovery / post horizontal bar; brushable; the experiment-wide time source.',
         status: 'Planned',
-        reference: { label: 'd3/d3-brush', url: 'https://github.com/d3/d3-brush' },
+        reference: {
+          label: 'd3/d3-brush',
+          url: 'https://github.com/d3/d3-brush',
+        },
         preview: (
           <div className="mock-fault-window">
             <div className="mock-fault-window__bar">
-              <span className="mock-fault-window__seg mock-fault-window__seg--pre" style={{ flex: '1 1 25%' }}>pre</span>
-              <span className="mock-fault-window__seg mock-fault-window__seg--fault" style={{ flex: '1 1 35%' }}>fault</span>
-              <span className="mock-fault-window__seg mock-fault-window__seg--recover" style={{ flex: '1 1 25%' }}>recover</span>
-              <span className="mock-fault-window__seg mock-fault-window__seg--post" style={{ flex: '1 1 15%' }}>post</span>
+              <span
+                className="mock-fault-window__seg mock-fault-window__seg--pre"
+                style={{ flex: '1 1 25%' }}
+              >
+                pre
+              </span>
+              <span
+                className="mock-fault-window__seg mock-fault-window__seg--fault"
+                style={{ flex: '1 1 35%' }}
+              >
+                fault
+              </span>
+              <span
+                className="mock-fault-window__seg mock-fault-window__seg--recover"
+                style={{ flex: '1 1 25%' }}
+              >
+                recover
+              </span>
+              <span
+                className="mock-fault-window__seg mock-fault-window__seg--post"
+                style={{ flex: '1 1 15%' }}
+              >
+                post
+              </span>
             </div>
             <div className="mock-fault-window__ticks">
-              <span>14:00</span><span>14:08</span><span>14:24</span><span>14:30</span>
+              <span>14:00</span>
+              <span>14:08</span>
+              <span>14:24</span>
+              <span>14:30</span>
             </div>
           </div>
         ),
@@ -438,17 +498,47 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         name: 'CorrelationCursor',
         desc: 'Cross-pane vertical cursor — hover any chart, the rest sync. Killer feature, needs a TimeContext.',
         status: 'Planned',
-        reference: { label: 'airbnb/visx', url: 'https://github.com/airbnb/visx' },
+        reference: {
+          label: 'airbnb/visx',
+          url: 'https://github.com/airbnb/visx',
+        },
         preview: (
           <div className="mock-corr">
-            <svg className="mock-corr__line" viewBox="0 0 200 26" preserveAspectRatio="none">
-              <path d="M0,18 L20,16 L40,14 L60,12 L80,8 L100,5 L120,8 L140,14 L160,18 L180,22 L200,20" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            <svg
+              className="mock-corr__line"
+              viewBox="0 0 200 26"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0,18 L20,16 L40,14 L60,12 L80,8 L100,5 L120,8 L140,14 L160,18 L180,22 L200,20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+              />
             </svg>
-            <svg className="mock-corr__line" viewBox="0 0 200 26" preserveAspectRatio="none">
-              <path d="M0,14 L20,15 L40,13 L60,11 L80,16 L100,20 L120,18 L140,12 L160,10 L180,12 L200,14" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            <svg
+              className="mock-corr__line"
+              viewBox="0 0 200 26"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0,14 L20,15 L40,13 L60,11 L80,16 L100,20 L120,18 L140,12 L160,10 L180,12 L200,14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+              />
             </svg>
-            <svg className="mock-corr__line" viewBox="0 0 200 26" preserveAspectRatio="none">
-              <path d="M0,18 L20,16 L40,18 L60,12 L80,6 L100,4 L120,8 L140,14 L160,20 L180,22 L200,24" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            <svg
+              className="mock-corr__line"
+              viewBox="0 0 200 26"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0,18 L20,16 L40,18 L60,12 L80,6 L100,4 L120,8 L140,14 L160,20 L180,22 L200,24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+              />
             </svg>
             <div className="mock-corr__cursor" />
           </div>
@@ -460,11 +550,43 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps ECharts',
         reference: REF_ECHARTS,
         preview: (
-          <svg className="mock-chart" viewBox="0 0 200 50" preserveAspectRatio="none">
-            <rect x="60" y="0" width="60" height="50" fill="#e11d48" opacity="0.10" />
-            <line x1="60" y1="0" x2="60" y2="50" stroke="#e11d48" strokeWidth="1" strokeDasharray="2 2" />
-            <line x1="120" y1="0" x2="120" y2="50" stroke="#e11d48" strokeWidth="1" strokeDasharray="2 2" />
-            <path d="M0,30 L20,28 L40,32 L60,30 L80,18 L100,10 L120,16 L140,30 L160,36 L180,32 L200,30" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <svg
+            className="mock-chart"
+            viewBox="0 0 200 50"
+            preserveAspectRatio="none"
+          >
+            <rect
+              x="60"
+              y="0"
+              width="60"
+              height="50"
+              fill="#e11d48"
+              opacity="0.10"
+            />
+            <line
+              x1="60"
+              y1="0"
+              x2="60"
+              y2="50"
+              stroke="#e11d48"
+              strokeWidth="1"
+              strokeDasharray="2 2"
+            />
+            <line
+              x1="120"
+              y1="0"
+              x2="120"
+              y2="50"
+              stroke="#e11d48"
+              strokeWidth="1"
+              strokeDasharray="2 2"
+            />
+            <path
+              d="M0,30 L20,28 L40,32 L60,30 L80,18 L100,10 L120,16 L140,30 L160,36 L180,32 L200,30"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
           </svg>
         ),
       },
@@ -475,9 +597,15 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         reference: REF_ANTD,
         preview: (
           <div className="mock-pivot">
-            <span className="mock-pivot__chip">service: catalog<span className="mock-pivot__close">×</span></span>
-            <span className="mock-pivot__chip">pod: cart-7d<span className="mock-pivot__close">×</span></span>
-            <span className="mock-pivot__chip">severity: error<span className="mock-pivot__close">×</span></span>
+            <span className="mock-pivot__chip">
+              service: catalog<span className="mock-pivot__close">×</span>
+            </span>
+            <span className="mock-pivot__chip">
+              pod: cart-7d<span className="mock-pivot__close">×</span>
+            </span>
+            <span className="mock-pivot__chip">
+              severity: error<span className="mock-pivot__close">×</span>
+            </span>
           </div>
         ),
       },
@@ -501,7 +629,10 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         name: 'LogTable',
         desc: 'Virtualized structured-log table with severity colors, service tags, expandable JSON payload.',
         status: 'Planned',
-        reference: { label: 'bvaughn/react-window', url: 'https://github.com/bvaughn/react-window' },
+        reference: {
+          label: 'bvaughn/react-window',
+          url: 'https://github.com/bvaughn/react-window',
+        },
         preview: (
           <div className="mock-log-table">
             <div className="mock-log-row">
@@ -532,8 +663,15 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         reference: REF_ECHARTS,
         preview: (
           <div className="mock-histo">
-            {[0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1, 0.85, 0.6, 0.45, 0.3, 0.5, 0.4, 0.3, 0.2].map((h, i) => (
-              <span key={i} className="mock-histo__bar" style={{ height: `${h * 100}%` }} />
+            {[
+              0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1, 0.85, 0.6, 0.45, 0.3, 0.5, 0.4,
+              0.3, 0.2,
+            ].map((h, i) => (
+              <span
+                key={i}
+                className="mock-histo__bar"
+                style={{ height: `${h * 100}%` }}
+              />
             ))}
           </div>
         ),
@@ -560,23 +698,38 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         name: 'TraceWaterfall',
         desc: 'Span stack with timing bars (service · op · duration · status) — canonical distributed trace viz.',
         status: 'Planned',
-        reference: { label: 'jaegertracing/jaeger-ui', url: 'https://github.com/jaegertracing/jaeger-ui' },
+        reference: {
+          label: 'jaegertracing/jaeger-ui',
+          url: 'https://github.com/jaegertracing/jaeger-ui',
+        },
         preview: (
           <div className="mock-trace">
             <div className="mock-trace__row">
-              <span className="mock-trace__bar" style={{ marginLeft: '0%', width: '90%' }} />
+              <span
+                className="mock-trace__bar"
+                style={{ marginLeft: '0%', width: '90%' }}
+              />
               <span className="mock-trace__label">gateway</span>
             </div>
             <div className="mock-trace__row">
-              <span className="mock-trace__bar" style={{ marginLeft: '8%', width: '45%' }} />
+              <span
+                className="mock-trace__bar"
+                style={{ marginLeft: '8%', width: '45%' }}
+              />
               <span className="mock-trace__label">catalog</span>
             </div>
             <div className="mock-trace__row">
-              <span className="mock-trace__bar mock-trace__bar--warn" style={{ marginLeft: '20%', width: '20%' }} />
+              <span
+                className="mock-trace__bar mock-trace__bar--warn"
+                style={{ marginLeft: '20%', width: '20%' }}
+              />
               <span className="mock-trace__label">redis</span>
             </div>
             <div className="mock-trace__row">
-              <span className="mock-trace__bar" style={{ marginLeft: '55%', width: '30%' }} />
+              <span
+                className="mock-trace__bar"
+                style={{ marginLeft: '55%', width: '30%' }}
+              />
               <span className="mock-trace__label">cart</span>
             </div>
           </div>
@@ -589,25 +742,42 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         preview: (
           <div className="mock-trace-list">
             <div className="mock-trace-list__row">
-              <MonoValue size="sm" weight="regular">a3f291b</MonoValue>
+              <MonoValue size="sm" weight="regular">
+                a3f291b
+              </MonoValue>
               <div className="mock-trace-list__track">
-                <span className="mock-trace-list__bar" style={{ width: '70%' }} />
+                <span
+                  className="mock-trace-list__bar"
+                  style={{ width: '70%' }}
+                />
               </div>
               <span className="mock-trace-list__num">642ms</span>
             </div>
             <div className="mock-trace-list__row">
-              <MonoValue size="sm" weight="regular">b8c2419</MonoValue>
+              <MonoValue size="sm" weight="regular">
+                b8c2419
+              </MonoValue>
               <div className="mock-trace-list__track">
-                <span className="mock-trace-list__bar" style={{ width: '45%' }} />
+                <span
+                  className="mock-trace-list__bar"
+                  style={{ width: '45%' }}
+                />
               </div>
               <span className="mock-trace-list__num">412ms</span>
             </div>
             <div className="mock-trace-list__row">
-              <MonoValue size="sm" weight="regular">c91d234</MonoValue>
+              <MonoValue size="sm" weight="regular">
+                c91d234
+              </MonoValue>
               <div className="mock-trace-list__track">
-                <span className="mock-trace-list__bar mock-trace-list__bar--warn" style={{ width: '95%' }} />
+                <span
+                  className="mock-trace-list__bar mock-trace-list__bar--warn"
+                  style={{ width: '95%' }}
+                />
               </div>
-              <span className="mock-trace-list__num mock-trace-list__num--warn">1.2s</span>
+              <span className="mock-trace-list__num mock-trace-list__num--warn">
+                1.2s
+              </span>
             </div>
           </div>
         ),
@@ -616,21 +786,88 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         name: 'ServiceMap',
         desc: 'Mini topology of services touched by selected traces — nodes + call edges, error edges in red.',
         status: 'Wraps Cytoscape',
-        reference: { label: 'cytoscape/cytoscape.js', url: 'https://github.com/cytoscape/cytoscape.js' },
+        reference: {
+          label: 'cytoscape/cytoscape.js',
+          url: 'https://github.com/cytoscape/cytoscape.js',
+        },
         preview: (
           <svg viewBox="0 0 200 80" className="mock-map">
-            <line x1="40" y1="40" x2="100" y2="20" stroke="currentColor" opacity="0.3" />
-            <line x1="40" y1="40" x2="100" y2="60" stroke="currentColor" opacity="0.3" />
-            <line x1="100" y1="20" x2="160" y2="40" stroke="currentColor" opacity="0.3" />
-            <line x1="100" y1="60" x2="160" y2="40" stroke="#e11d48" strokeDasharray="3 2" />
+            <line
+              x1="40"
+              y1="40"
+              x2="100"
+              y2="20"
+              stroke="currentColor"
+              opacity="0.3"
+            />
+            <line
+              x1="40"
+              y1="40"
+              x2="100"
+              y2="60"
+              stroke="currentColor"
+              opacity="0.3"
+            />
+            <line
+              x1="100"
+              y1="20"
+              x2="160"
+              y2="40"
+              stroke="currentColor"
+              opacity="0.3"
+            />
+            <line
+              x1="100"
+              y1="60"
+              x2="160"
+              y2="40"
+              stroke="#e11d48"
+              strokeDasharray="3 2"
+            />
             <circle cx="40" cy="40" r="6" fill="currentColor" />
             <circle cx="100" cy="20" r="6" fill="currentColor" />
             <circle cx="100" cy="60" r="6" fill="#e11d48" />
             <circle cx="160" cy="40" r="6" fill="currentColor" />
-            <text x="40" y="58" fontSize="9" textAnchor="middle" fill="currentColor" opacity="0.5">gw</text>
-            <text x="100" y="14" fontSize="9" textAnchor="middle" fill="currentColor" opacity="0.5">catalog</text>
-            <text x="100" y="76" fontSize="9" textAnchor="middle" fill="currentColor" opacity="0.5">cart</text>
-            <text x="160" y="58" fontSize="9" textAnchor="middle" fill="currentColor" opacity="0.5">payment</text>
+            <text
+              x="40"
+              y="58"
+              fontSize="9"
+              textAnchor="middle"
+              fill="currentColor"
+              opacity="0.5"
+            >
+              gw
+            </text>
+            <text
+              x="100"
+              y="14"
+              fontSize="9"
+              textAnchor="middle"
+              fill="currentColor"
+              opacity="0.5"
+            >
+              catalog
+            </text>
+            <text
+              x="100"
+              y="76"
+              fontSize="9"
+              textAnchor="middle"
+              fill="currentColor"
+              opacity="0.5"
+            >
+              cart
+            </text>
+            <text
+              x="160"
+              y="58"
+              fontSize="9"
+              textAnchor="middle"
+              fill="currentColor"
+              opacity="0.5"
+            >
+              payment
+            </text>
           </svg>
         ),
       },
@@ -645,11 +882,42 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps ECharts',
         reference: REF_ECHARTS,
         preview: (
-          <svg className="mock-chart" viewBox="0 0 200 60" preserveAspectRatio="none">
-            <rect x="80" y="0" width="40" height="60" fill="#e11d48" opacity="0.08" />
-            <line x1="0" y1="20" x2="200" y2="20" stroke="#e11d48" strokeWidth="0.8" strokeDasharray="3 3" />
-            <path d="M0,40 L20,38 L40,42 L60,40 L80,36 L100,30 L120,32 L140,38 L160,42 L180,40 L200,38" fill="none" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="2 2" />
-            <path d="M0,38 L20,36 L40,30 L60,32 L80,18 L100,10 L120,15 L140,28 L160,40 L180,45 L200,42" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <svg
+            className="mock-chart"
+            viewBox="0 0 200 60"
+            preserveAspectRatio="none"
+          >
+            <rect
+              x="80"
+              y="0"
+              width="40"
+              height="60"
+              fill="#e11d48"
+              opacity="0.08"
+            />
+            <line
+              x1="0"
+              y1="20"
+              x2="200"
+              y2="20"
+              stroke="#e11d48"
+              strokeWidth="0.8"
+              strokeDasharray="3 3"
+            />
+            <path
+              d="M0,40 L20,38 L40,42 L60,40 L80,36 L100,30 L120,32 L140,38 L160,42 L180,40 L200,38"
+              fill="none"
+              stroke="currentColor"
+              strokeOpacity="0.4"
+              strokeWidth="1"
+              strokeDasharray="2 2"
+            />
+            <path
+              d="M0,38 L20,36 L40,30 L60,32 L80,18 L100,10 L120,15 L140,28 L160,40 L180,45 L200,42"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
           </svg>
         ),
       },
@@ -659,9 +927,25 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps ECharts',
         reference: REF_ECHARTS,
         preview: (
-          <svg className="mock-chart" viewBox="0 0 200 50" preserveAspectRatio="none">
-            <path d="M0,30 L20,28 L40,30 L60,28 L80,32 L100,30 L120,28 L140,30 L160,32 L180,30 L200,28" fill="none" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="3 2" />
-            <path d="M0,32 L20,30 L40,28 L60,26 L80,12 L100,8 L120,14 L140,26 L160,36 L180,40 L200,38" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <svg
+            className="mock-chart"
+            viewBox="0 0 200 50"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,30 L20,28 L40,30 L60,28 L80,32 L100,30 L120,28 L140,30 L160,32 L180,30 L200,28"
+              fill="none"
+              stroke="currentColor"
+              strokeOpacity="0.4"
+              strokeWidth="1"
+              strokeDasharray="3 2"
+            />
+            <path
+              d="M0,32 L20,30 L40,28 L60,26 L80,12 L100,8 L120,14 L140,26 L160,36 L180,40 L200,38"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
           </svg>
         ),
       },
@@ -671,10 +955,29 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Wraps ECharts',
         reference: REF_ECHARTS,
         preview: (
-          <svg className="mock-chart" viewBox="0 0 200 50" preserveAspectRatio="none">
-            <line x1="0" y1="14" x2="200" y2="14" stroke="#e11d48" strokeWidth="1" strokeDasharray="3 3" />
-            <text x="195" y="11" fontSize="8" textAnchor="end" fill="#e11d48">SLO 200ms</text>
-            <path d="M0,40 L20,38 L40,30 L60,26 L80,16 L100,10 L120,14 L140,28 L160,38 L180,40 L200,38" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <svg
+            className="mock-chart"
+            viewBox="0 0 200 50"
+            preserveAspectRatio="none"
+          >
+            <line
+              x1="0"
+              y1="14"
+              x2="200"
+              y2="14"
+              stroke="#e11d48"
+              strokeWidth="1"
+              strokeDasharray="3 3"
+            />
+            <text x="195" y="11" fontSize="8" textAnchor="end" fill="#e11d48">
+              SLO 200ms
+            </text>
+            <path
+              d="M0,40 L20,38 L40,30 L60,26 L80,16 L100,10 L120,14 L140,28 L160,38 L180,40 L200,38"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
           </svg>
         ),
       },
@@ -684,10 +987,18 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Composition',
         preview: (
           <div className="mock-grid">
-            <div className="mock-grid__cell">latency p99<strong>142</strong></div>
-            <div className="mock-grid__cell">error rate<strong>0.42%</strong></div>
-            <div className="mock-grid__cell">throughput<strong>9 384</strong></div>
-            <div className="mock-grid__cell">cpu sat<strong>71%</strong></div>
+            <div className="mock-grid__cell">
+              latency p99<strong>142</strong>
+            </div>
+            <div className="mock-grid__cell">
+              error rate<strong>0.42%</strong>
+            </div>
+            <div className="mock-grid__cell">
+              throughput<strong>9 384</strong>
+            </div>
+            <div className="mock-grid__cell">
+              cpu sat<strong>71%</strong>
+            </div>
           </div>
         ),
       },
@@ -703,10 +1014,18 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         reference: REF_MONACO,
         preview: (
           <pre className="mock-code">
-            <span className="mock-code__line"><em>1</em>def main():</span>
-            <span className="mock-code__line"><em>2</em>  try:</span>
-            <span className="mock-code__line"><em>3</em>    run()</span>
-            <span className="mock-code__line"><em>4</em>  except Exception:</span>
+            <span className="mock-code__line">
+              <em>1</em>def main():
+            </span>
+            <span className="mock-code__line">
+              <em>2</em> try:
+            </span>
+            <span className="mock-code__line">
+              <em>3</em> run()
+            </span>
+            <span className="mock-code__line">
+              <em>4</em> except Exception:
+            </span>
           </pre>
         ),
       },
@@ -718,14 +1037,22 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         preview: (
           <div className="mock-diff">
             <pre className="mock-diff__col">
-              <span className="mock-diff__line mock-diff__line--rm">- timeout: 30s</span>
-              <span className="mock-diff__line mock-diff__line--rm">- retries: 3</span>
-              <span className="mock-diff__line">  qos: best</span>
+              <span className="mock-diff__line mock-diff__line--rm">
+                - timeout: 30s
+              </span>
+              <span className="mock-diff__line mock-diff__line--rm">
+                - retries: 3
+              </span>
+              <span className="mock-diff__line"> qos: best</span>
             </pre>
             <pre className="mock-diff__col">
-              <span className="mock-diff__line mock-diff__line--add">+ timeout: 60s</span>
-              <span className="mock-diff__line mock-diff__line--add">+ retries: 5</span>
-              <span className="mock-diff__line">  qos: best</span>
+              <span className="mock-diff__line mock-diff__line--add">
+                + timeout: 60s
+              </span>
+              <span className="mock-diff__line mock-diff__line--add">
+                + retries: 5
+              </span>
+              <span className="mock-diff__line"> qos: best</span>
             </pre>
           </div>
         ),
@@ -738,10 +1065,18 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         preview: (
           <pre className="mock-tree">
             <span className="mock-tree__line">▾ kafka:</span>
-            <span className="mock-tree__line" style={{ paddingLeft: '14px' }}>▸ topics: …</span>
-            <span className="mock-tree__line" style={{ paddingLeft: '14px' }}>▾ network:</span>
-            <span className="mock-tree__line" style={{ paddingLeft: '28px' }}>jitter: 40ms</span>
-            <span className="mock-tree__line" style={{ paddingLeft: '28px' }}>loss: 0.02%</span>
+            <span className="mock-tree__line" style={{ paddingLeft: '14px' }}>
+              ▸ topics: …
+            </span>
+            <span className="mock-tree__line" style={{ paddingLeft: '14px' }}>
+              ▾ network:
+            </span>
+            <span className="mock-tree__line" style={{ paddingLeft: '28px' }}>
+              jitter: 40ms
+            </span>
+            <span className="mock-tree__line" style={{ paddingLeft: '28px' }}>
+              loss: 0.02%
+            </span>
           </pre>
         ),
       },
@@ -751,7 +1086,9 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         status: 'Composition',
         preview: (
           <div className="mock-commit">
-            <MonoValue size="sm" weight="regular">a3f291b</MonoValue>
+            <MonoValue size="sm" weight="regular">
+              a3f291b
+            </MonoValue>
             <span className="mock-commit__sep">·</span>
             <span className="mock-commit__author">alice</span>
             <span className="mock-commit__sep">·</span>
@@ -766,11 +1103,20 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
         reference: REF_MONACO,
         preview: (
           <pre className="mock-manifest">
-            <span className="mock-manifest__line">apiVersion: chaos-mesh.org/v1alpha1</span>
+            <span className="mock-manifest__line">
+              apiVersion: chaos-mesh.org/v1alpha1
+            </span>
             <span className="mock-manifest__line">kind: NetworkChaos</span>
             <span className="mock-manifest__line">metadata:</span>
-            <span className="mock-manifest__line" style={{ paddingLeft: '14px' }}>name: kafka-drift</span>
-            <span className="mock-manifest__line">spec: <span className="mock-manifest__fold">{'{…}'}</span></span>
+            <span
+              className="mock-manifest__line"
+              style={{ paddingLeft: '14px' }}
+            >
+              name: kafka-drift
+            </span>
+            <span className="mock-manifest__line">
+              spec: <span className="mock-manifest__fold">{'{…}'}</span>
+            </span>
           </pre>
         ),
       },
@@ -787,7 +1133,9 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
           <div className="mock-evidence">
             <div className="mock-evidence__row">
               <StatusDot tone="warning" />
-              <span className="mock-evidence__msg">catalog→cart latency +480 ms</span>
+              <span className="mock-evidence__msg">
+                catalog→cart latency +480 ms
+              </span>
               <Chip tone="ghost">metric</Chip>
             </div>
             <div className="mock-evidence__row">
@@ -797,7 +1145,9 @@ const ROADMAP_GROUPS: RoadmapGroup[] = [
             </div>
             <div className="mock-evidence__row">
               <StatusDot tone="ink" />
-              <span className="mock-evidence__msg">cart DB timeout cluster</span>
+              <span className="mock-evidence__msg">
+                cart DB timeout cluster
+              </span>
               <Chip tone="ghost">trace</Chip>
             </div>
           </div>
@@ -900,7 +1250,9 @@ function App() {
       </header>
 
       {/* ── Color tokens ───────────────────────────────────────────── */}
-      <Panel title={<PanelTitle size="lg">Color &amp; surface tokens</PanelTitle>}>
+      <Panel
+        title={<PanelTitle size="lg">Color &amp; surface tokens</PanelTitle>}
+      >
         <div className="gallery__swatches">
           {COLOR_TOKENS.map((t) => (
             <div className="gallery__swatch" key={t.name}>
@@ -908,7 +1260,10 @@ function App() {
                 className="gallery__swatch-chip"
                 style={{
                   background: `var(${t.name})`,
-                  outline: t.value === '#FFFFFF' ? '1px solid var(--border-hairline)' : undefined,
+                  outline:
+                    t.value === '#FFFFFF'
+                      ? '1px solid var(--border-hairline)'
+                      : undefined,
                 }}
               />
               <div className="gallery__swatch-meta">
@@ -931,7 +1286,9 @@ function App() {
               <MetricLabel as="div" className="gallery__type-label">
                 {s.label}
               </MetricLabel>
-              <div className={`gallery__type-sample gallery__type-sample--${s.family}`}>
+              <div
+                className={`gallery__type-sample gallery__type-sample--${s.family}`}
+              >
                 {s.sample}
               </div>
               <span className="gallery__type-hint">{s.hint}</span>
@@ -973,10 +1330,7 @@ function App() {
       {/* ── Surface (Panel) ────────────────────────────────────────── */}
       <Panel title={<PanelTitle size="lg">Surface — Panel</PanelTitle>}>
         <div className="gallery__row gallery__row--panels">
-          <Panel
-            title="Default panel"
-            extra={<MetricLabel>label</MetricLabel>}
-          >
+          <Panel title="Default panel" extra={<MetricLabel>label</MetricLabel>}>
             <p className="gallery__panel-body">
               Hairline border, 16 px radius, ultra-subtle shadow. Title slot
               accepts string or rich node.
@@ -989,8 +1343,8 @@ function App() {
             extra={<MetricLabel inverted>active</MetricLabel>}
           >
             <p className="gallery__panel-body gallery__panel-body--inverted">
-              Surface flips to ink. Reserved for the currently-active card,
-              not for accent decoration.
+              Surface flips to ink. Reserved for the currently-active card, not
+              for accent decoration.
             </p>
           </Panel>
 
@@ -1173,10 +1527,22 @@ function App() {
         </SectionDivider>
         <div className="gallery__list">
           {[
-            { id: 'item-1', name: 'Network Partition', desc: 'Isolate node clusters' },
+            {
+              id: 'item-1',
+              name: 'Network Partition',
+              desc: 'Isolate node clusters',
+            },
             { id: 'item-2', name: 'CPU Stress', desc: 'Resource exhaustion' },
-            { id: 'item-3', name: 'Clock Drift', desc: 'Synchronicity failure' },
-            { id: 'item-4', name: 'Process Killer', desc: 'Random PID termination' },
+            {
+              id: 'item-3',
+              name: 'Clock Drift',
+              desc: 'Synchronicity failure',
+            },
+            {
+              id: 'item-4',
+              name: 'Process Killer',
+              desc: 'Random PID termination',
+            },
           ].map((it) => {
             const isActive = active === it.id;
             return (
@@ -1292,9 +1658,27 @@ function App() {
               },
             ]}
             data={[
-              { id: 'INJ-0001', type: 'NetworkLatency', target: 'order-svc', duration: '120 s', state: 'running' },
-              { id: 'INJ-0002', type: 'CPUStress', target: 'cart-svc', duration: '300 s', state: 'queued' },
-              { id: 'INJ-0003', type: 'PodKill', target: 'inventory', duration: '—', state: 'failed' },
+              {
+                id: 'INJ-0001',
+                type: 'NetworkLatency',
+                target: 'order-svc',
+                duration: '120 s',
+                state: 'running',
+              },
+              {
+                id: 'INJ-0002',
+                type: 'CPUStress',
+                target: 'cart-svc',
+                duration: '300 s',
+                state: 'queued',
+              },
+              {
+                id: 'INJ-0003',
+                type: 'PodKill',
+                target: 'inventory',
+                duration: '—',
+                state: 'failed',
+              },
             ]}
             rowKey={(row) => row.id}
           />
@@ -1365,10 +1749,7 @@ function App() {
             />
           </Specimen>
           <Specimen caption="expanded · full step" span={2}>
-            <TrajectoryStep
-              data={TRAJECTORY_STEPS[0]}
-              defaultExpanded
-            />
+            <TrajectoryStep data={TRAJECTORY_STEPS[0]} defaultExpanded />
           </Specimen>
         </div>
 
@@ -1391,10 +1772,30 @@ function App() {
         <SectionDivider>Terminal · with log levels</SectionDivider>
         <Terminal
           lines={[
-            { ts: '14:22:01', prefix: 'debug', level: 'debug', body: 'Worker pool initialized with 4 threads.' },
-            { ts: '14:22:05', prefix: 'info', level: 'info', body: 'Experiment "playing-the-world" started.' },
-            { ts: '14:23:12', prefix: 'warn', level: 'warn', body: 'Latency variance exceeds baseline by 15%.' },
-            { ts: '14:23:18', prefix: 'error', level: 'error', body: 'Data consistency thresholds breached in node 04.' },
+            {
+              ts: '14:22:01',
+              prefix: 'debug',
+              level: 'debug',
+              body: 'Worker pool initialized with 4 threads.',
+            },
+            {
+              ts: '14:22:05',
+              prefix: 'info',
+              level: 'info',
+              body: 'Experiment "playing-the-world" started.',
+            },
+            {
+              ts: '14:23:12',
+              prefix: 'warn',
+              level: 'warn',
+              body: 'Latency variance exceeds baseline by 15%.',
+            },
+            {
+              ts: '14:23:18',
+              prefix: 'error',
+              level: 'error',
+              body: 'Data consistency thresholds breached in node 04.',
+            },
           ]}
         />
 
@@ -1478,8 +1879,17 @@ function App() {
               trigger={<Chip tone="default">User menu</Chip>}
               items={[
                 { key: 'profile', label: 'Profile', icon: <UserOutlined /> },
-                { key: 'settings', label: 'Settings', icon: <SettingOutlined /> },
-                { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, danger: true },
+                {
+                  key: 'settings',
+                  label: 'Settings',
+                  icon: <SettingOutlined />,
+                },
+                {
+                  key: 'logout',
+                  label: 'Logout',
+                  icon: <LogoutOutlined />,
+                  danger: true,
+                },
               ]}
             />
           </Specimen>
@@ -1495,13 +1905,17 @@ function App() {
                 { id: '3', name: 'inventory-v2' },
               ]}
               selectedId="1"
-              onSelect={() => { /* gallery specimen — no-op */ }}
+              onSelect={() => {
+                /* gallery specimen — no-op */
+              }}
             />
           </Specimen>
           <Specimen caption="empty state">
             <ProjectSelector
               projects={[]}
-              onSelect={() => { /* gallery specimen — no-op */ }}
+              onSelect={() => {
+                /* gallery specimen — no-op */
+              }}
               placeholder="No projects"
             />
           </Specimen>
@@ -1535,21 +1949,30 @@ function App() {
           title="Profile"
           description="Update your personal information and preferences."
         >
-          <FormRow label="Display name" description="Shown across the platform.">
+          <FormRow
+            label="Display name"
+            description="Shown across the platform."
+          >
             <input
               type="text"
               defaultValue="Ada Lovelace"
               className="gallery__demo-input"
             />
           </FormRow>
-          <FormRow label="Email" description="Used for notifications and login.">
+          <FormRow
+            label="Email"
+            description="Used for notifications and login."
+          >
             <input
               type="text"
               defaultValue="ada@aegislab.io"
               className="gallery__demo-input"
             />
           </FormRow>
-          <FormRow label="Timezone" description="All times are displayed in this zone.">
+          <FormRow
+            label="Timezone"
+            description="All times are displayed in this zone."
+          >
             <select className="gallery__demo-input">
               <option>UTC</option>
               <option>Asia/Shanghai</option>
@@ -1561,13 +1984,19 @@ function App() {
           title="Notifications"
           description="Choose what you want to be notified about."
         >
-          <FormRow label="Email alerts" description="Receive email for critical events.">
+          <FormRow
+            label="Email alerts"
+            description="Receive email for critical events."
+          >
             <label className="gallery__demo-toggle">
               <input type="checkbox" defaultChecked />
               <span className="gallery__demo-toggle-track" />
             </label>
           </FormRow>
-          <FormRow label="Slack integration" description="Push notifications to your Slack channel.">
+          <FormRow
+            label="Slack integration"
+            description="Push notifications to your Slack channel."
+          >
             <label className="gallery__demo-toggle">
               <input type="checkbox" />
               <span className="gallery__demo-toggle-track" />
@@ -1576,12 +2005,14 @@ function App() {
         </SettingsSection>
 
         <SectionDivider>DangerZone</SectionDivider>
-        <DangerZone
-          description="Once you delete a project, all associated data will be permanently removed. This action cannot be undone."
-        >
+        <DangerZone description="Once you delete a project, all associated data will be permanently removed. This action cannot be undone.">
           <div className="gallery__danger-row">
-            <span>Delete project <MonoValue size="sm">catalog-service</MonoValue></span>
-            <button type="button" className="gallery__danger-btn">Delete project</button>
+            <span>
+              Delete project <MonoValue size="sm">catalog-service</MonoValue>
+            </span>
+            <button type="button" className="gallery__danger-btn">
+              Delete project
+            </button>
           </div>
         </DangerZone>
       </Panel>
@@ -1637,10 +2068,7 @@ function App() {
             />
           </Specimen>
           <Specimen caption="Switch">
-            <Switch
-              checked={switchOn}
-              onChange={setSwitchOn}
-            />
+            <Switch checked={switchOn} onChange={setSwitchOn} />
           </Specimen>
         </div>
 
@@ -1787,10 +2215,10 @@ function App() {
         extra={<MetricLabel>experiment-observation page</MetricLabel>}
       >
         <p className="gallery__panel-body">
-          Composition + wrapper layer for the multimodal experiment view —
-          logs, traces, metrics, code and config bound on a shared time axis.
-          Each card is a placeholder; the link points at the implementation
-          pattern we&apos;ll build on.
+          Composition + wrapper layer for the multimodal experiment view — logs,
+          traces, metrics, code and config bound on a shared time axis. Each
+          card is a placeholder; the link points at the implementation pattern
+          we&apos;ll build on.
         </p>
         {ROADMAP_GROUPS.map((group) => (
           <div key={group.label}>

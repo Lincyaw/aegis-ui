@@ -1,9 +1,9 @@
-import { HddOutlined } from '@ant-design/icons';
 import type { ReactElement } from 'react';
+
+import { HddOutlined } from '@ant-design/icons';
 import { Outlet } from 'react-router-dom';
 
 import type { AegisApp } from '../../../layouts/shell/types';
-
 import { ContainerCreate } from './ContainerCreate';
 import { ContainerDetail } from './ContainerDetail';
 import { ContainerList } from './ContainerList';

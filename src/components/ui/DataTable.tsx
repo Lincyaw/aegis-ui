@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { EmptyState } from './EmptyState';
 import './DataTable.css';
+import { EmptyState } from './EmptyState';
 
 export interface DataTableColumn<T> {
   key: string;

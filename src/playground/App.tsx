@@ -1,9 +1,9 @@
-import { UserOutlined } from '@ant-design/icons';
 import type { ReactElement } from 'react';
+
+import { UserOutlined } from '@ant-design/icons';
 import { BrowserRouter } from 'react-router-dom';
 
 import { AegisShell } from '../layouts/shell';
-
 import { containersApp } from './apps/containers';
 import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';

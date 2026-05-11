@@ -1,4 +1,5 @@
 import { type ReactElement, useMemo } from 'react';
+
 import {
   Navigate,
   type RouteObject,
@@ -7,13 +8,11 @@ import {
 } from 'react-router-dom';
 
 import { PageWrapper } from '../PageWrapper';
-
+import './AegisShell.css';
 import { BreadcrumbBar } from './BreadcrumbBar';
 import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
 import type { AegisApp, AegisShellProps } from './types';
-
-import './AegisShell.css';
 
 /**
  * Top-level layout: top header, two-section sidebar, breadcrumb bar, and

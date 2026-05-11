@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import './DropdownMenu.css';
 
@@ -28,7 +28,9 @@ export function DropdownMenu({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) {return;}
+    if (!open) {
+      return;
+    }
 
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -41,21 +43,22 @@ export function DropdownMenu({
   }, [open]);
 
   const handleItemClick = (item: DropdownItem) => {
-    if (item.disabled) {return;}
+    if (item.disabled) {
+      return;
+    }
     item.onClick?.();
     setOpen(false);
   };
 
-  const cls = [
-    'aegis-dropdown',
-    className ?? '',
-  ].filter(Boolean).join(' ');
+  const cls = ['aegis-dropdown', className ?? ''].filter(Boolean).join(' ');
 
   const panelCls = [
     'aegis-dropdown__panel',
     `aegis-dropdown__panel--${align}`,
     open ? 'aegis-dropdown__panel--open' : '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={cls} ref={ref}>
@@ -76,7 +79,9 @@ export function DropdownMenu({
               'aegis-dropdown__item',
               item.danger ? 'aegis-dropdown__item--danger' : '',
               item.disabled ? 'aegis-dropdown__item--disabled' : '',
-            ].filter(Boolean).join(' ')}
+            ]
+              .filter(Boolean)
+              .join(' ')}
             onClick={() => handleItemClick(item)}
             disabled={item.disabled}
           >

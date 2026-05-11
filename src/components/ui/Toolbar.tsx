@@ -1,5 +1,6 @@
-import { SearchOutlined } from '@ant-design/icons';
 import type { ReactNode } from 'react';
+
+import { SearchOutlined } from '@ant-design/icons';
 
 import { Chip } from './Chip';
 import './Toolbar.css';
@@ -76,9 +77,7 @@ export function Toolbar({
         )}
       </div>
 
-      {action && (
-        <div className="aegis-toolbar__right">{action}</div>
-      )}
+      {action && <div className="aegis-toolbar__right">{action}</div>}
     </div>
   );
 }

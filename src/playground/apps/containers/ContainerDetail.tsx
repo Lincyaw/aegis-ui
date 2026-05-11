@@ -1,5 +1,6 @@
-import { Button } from 'antd';
 import type { ReactElement } from 'react';
+
+import { Button } from 'antd';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { Chip } from '../../../components/ui/Chip';
@@ -9,7 +10,6 @@ import { MonoValue } from '../../../components/ui/MonoValue';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Panel } from '../../../components/ui/Panel';
 import { StatusDot } from '../../../components/ui/StatusDot';
-
 import type { ContainerStatus } from './data';
 import { useContainers } from './store';
 
@@ -37,7 +37,13 @@ export function ContainerDetail(): ReactElement {
             {
               k: 'status',
               v: (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
                   <StatusDot tone={statusTone(container.status)} />
                   <Chip tone="ghost">{container.status}</Chip>
                 </span>

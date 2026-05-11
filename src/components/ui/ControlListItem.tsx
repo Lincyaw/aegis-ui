@@ -36,9 +36,7 @@ export function ControlListItem({
     return (
       <button type="button" className={cls} style={style} onClick={onClick}>
         <span className="aegis-control-item__left">{left}</span>
-        {right && (
-          <span className="aegis-control-item__right">{right}</span>
-        )}
+        {right && <span className="aegis-control-item__right">{right}</span>}
       </button>
     );
   }

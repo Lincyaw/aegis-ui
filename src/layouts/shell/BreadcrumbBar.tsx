@@ -1,8 +1,11 @@
 import { type ReactElement, type ReactNode, useMemo } from 'react';
+
 import { Link, useLocation } from 'react-router-dom';
 
-import { Breadcrumb, type BreadcrumbItem } from '../../components/ui/Breadcrumb';
-
+import {
+  Breadcrumb,
+  type BreadcrumbItem,
+} from '../../components/ui/Breadcrumb';
 import type { AegisApp } from './types';
 
 interface BreadcrumbBarProps {
@@ -29,9 +32,7 @@ export function BreadcrumbBar({
       { label: activeApp.label, to: activeApp.basePath },
     ];
 
-    const navItems = (activeApp.sidebar ?? []).flatMap(
-      (group) => group.items,
-    );
+    const navItems = (activeApp.sidebar ?? []).flatMap((group) => group.items);
     const match = navItems.find((item) => {
       const full = joinPath(activeApp.basePath, item.to);
       if (item.end) {
@@ -62,7 +63,11 @@ interface InternalLinkProps {
   children: ReactNode;
 }
 
-function InternalLink({ to, className, children }: InternalLinkProps): ReactElement {
+function InternalLink({
+  to,
+  className,
+  children,
+}: InternalLinkProps): ReactElement {
   return (
     <Link to={to} className={className}>
       {children}

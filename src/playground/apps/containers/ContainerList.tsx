@@ -1,4 +1,5 @@
 import { type ReactElement, useMemo, useState } from 'react';
+
 import { Link } from 'react-router-dom';
 
 import { Chip } from '../../../components/ui/Chip';
@@ -8,7 +9,6 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Panel } from '../../../components/ui/Panel';
 import { StatusDot } from '../../../components/ui/StatusDot';
 import { Toolbar } from '../../../components/ui/Toolbar';
-
 import type { ContainerStatus, DemoContainer } from './data';
 import { useContainers } from './store';
 
@@ -31,11 +31,7 @@ export function ContainerList(): ReactElement {
       if (statusFilter !== 'all' && c.status !== statusFilter) {
         return false;
       }
-      if (
-        query &&
-        !c.name.includes(query) &&
-        !c.image.includes(query)
-      ) {
+      if (query && !c.name.includes(query) && !c.image.includes(query)) {
         return false;
       }
       return true;

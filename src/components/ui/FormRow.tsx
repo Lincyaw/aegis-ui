@@ -9,7 +9,12 @@ interface FormRowProps {
   className?: string;
 }
 
-export function FormRow({ label, description, children, className }: FormRowProps) {
+export function FormRow({
+  label,
+  description,
+  children,
+  className,
+}: FormRowProps) {
   const cls = ['aegis-form-row', className ?? ''].filter(Boolean).join(' ');
 
   return (
@@ -20,9 +25,7 @@ export function FormRow({ label, description, children, className }: FormRowProp
           <span className="aegis-form-row__description">{description}</span>
         )}
       </div>
-      <div className="aegis-form-row__control">
-        {children}
-      </div>
+      <div className="aegis-form-row__control">{children}</div>
     </div>
   );
 }

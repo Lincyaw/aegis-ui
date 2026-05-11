@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
-import { PanelTitle } from './PanelTitle';
 import { MetricLabel } from './MetricLabel';
 import './PageHeader.css';
+import { PanelTitle } from './PanelTitle';
 
 interface PageHeaderProps {
   title: string;
@@ -11,20 +11,23 @@ interface PageHeaderProps {
   className?: string;
 }
 
-export function PageHeader({ title, description, action, className }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  action,
+  className,
+}: PageHeaderProps) {
   const cls = ['aegis-page-header', className ?? ''].filter(Boolean).join(' ');
 
   return (
     <header className={cls}>
       <div className="aegis-page-header__text">
-        <PanelTitle size="lg" as="h1">{title}</PanelTitle>
-        {description && (
-          <MetricLabel>{description}</MetricLabel>
-        )}
+        <PanelTitle size="lg" as="h1">
+          {title}
+        </PanelTitle>
+        {description && <MetricLabel>{description}</MetricLabel>}
       </div>
-      {action && (
-        <div className="aegis-page-header__action">{action}</div>
-      )}
+      {action && <div className="aegis-page-header__action">{action}</div>}
     </header>
   );
 }

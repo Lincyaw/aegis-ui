@@ -32,7 +32,9 @@
 
 .aegis-metric-card--clickable {
   cursor: pointer;
-  transition: background var(--motion-fast), border-color var(--motion-fast);
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
 }
 
 .aegis-metric-card--clickable:hover {
