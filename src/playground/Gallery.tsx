@@ -882,7 +882,7 @@ function App() {
   const [switchOn, setSwitchOn] = useState(true);
 
   return (
-    <div className="page-wrapper gallery">
+    <div className="gallery">
       <header className="gallery__header">
         <div>
           <PanelTitle size="hero" as="h1">

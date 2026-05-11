@@ -12,5 +12,16 @@ export * from './components/ui';
 export { PageWrapper } from './layouts/PageWrapper';
 export type { PageWrapperProps } from './layouts/PageWrapper';
 
+// Shell (router-aware)
+export { AegisShell } from './layouts/shell';
+export type {
+  AegisApp,
+  AegisAppNavGroup,
+  AegisAppNavItem,
+  AegisBrand,
+  AegisShellProps,
+  AegisUser,
+} from './layouts/shell';
+
 // AntD ConfigProvider theme mapped to aegis-ui tokens.
 export { aegisTheme } from './theme/antdTheme';
