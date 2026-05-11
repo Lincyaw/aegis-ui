@@ -2,15 +2,29 @@ import { type ReactNode, useState } from 'react';
 
 import {
   LogoutOutlined,
+  PlusOutlined,
+  SearchOutlined,
   SettingOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import {
+  type AgentCommandInvocation,
+  type AgentContextValue,
+  type AgentMessage,
+  AgentPanel,
+  AgentProvider,
   AuthLayout,
   Avatar,
   BlastRadiusBar,
   Breadcrumb,
+  ChatComposer,
+  ChatMessage,
+  ChatMessageList,
   Chip,
+  type Command,
+  CommandInvocationCard,
+  CommandPalette,
+  CommandProvider,
   CodeBlock,
   ControlListItem,
   DangerZone,
@@ -26,6 +40,8 @@ import {
   type NotificationContextValue,
   NotificationBell,
   NotificationProvider,
+  useCommands,
+  useRegisterCommands,
   type KeyValueItem,
   KeyValueList,
   MetricCard,
@@ -359,6 +375,60 @@ const MOCK_NOTIF_VALUE: NotificationContextValue = {
   items: MOCK_NOTIFS,
   unreadCount: MOCK_NOTIFS.filter((n) => !n.read).length,
   loading: false,
+};
+
+const MOCK_INVOCATION_PENDING: AgentCommandInvocation = {
+  commandId: 'projects.create',
+  args: { name: 'rosetta-lab', team: 'platform' },
+  status: 'pending',
+};
+
+const MOCK_INVOCATION_SUCCESS: AgentCommandInvocation = {
+  commandId: 'experiments.run',
+  args: { id: 'exp-7421', dryRun: false },
+  status: 'success',
+};
+
+const MOCK_INVOCATION_ERROR: AgentCommandInvocation = {
+  commandId: 'datasets.delete',
+  args: { id: 'ds-9911' },
+  status: 'error',
+  error: 'permission denied: dataset is referenced by 3 experiments',
+};
+
+const MOCK_AGENT_MESSAGES: AgentMessage[] = [
+  {
+    id: 'm-1',
+    role: 'user',
+    content: 'Spin up a new project called rosetta-lab.',
+    timestamp: new Date(NOW - 4 * 60_000).toISOString(),
+  },
+  {
+    id: 'm-2',
+    role: 'assistant',
+    content:
+      'Creating project rosetta-lab under the platform team. I will confirm once it lands.',
+    invocations: [MOCK_INVOCATION_SUCCESS],
+    timestamp: new Date(NOW - 3 * 60_000).toISOString(),
+  },
+  {
+    id: 'm-3',
+    role: 'system',
+    content: 'Session resumed from earlier today.',
+    timestamp: new Date(NOW - 2 * 60_000).toISOString(),
+  },
+  {
+    id: 'm-4',
+    role: 'user',
+    content: 'Also kick off the smoke experiment when it is ready.',
+    timestamp: new Date(NOW - 60_000).toISOString(),
+  },
+];
+
+const MOCK_AGENT_VALUE: AgentContextValue = {
+  messages: MOCK_AGENT_MESSAGES,
+  sending: false,
+  send: () => undefined,
 };
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
@@ -2272,6 +2342,114 @@ function App() {
         </NotificationProvider>
       </Panel>
 
+      {/* ── Agent chat ─────────────────────────────────────────────── */}
+      <Panel title={<PanelTitle size='lg'>Agent</PanelTitle>}>
+        <SectionDivider>ChatMessage</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='user · plain text' span={2}>
+            <ChatMessage
+              role='user'
+              senderName='You'
+              avatar={<Avatar name='Alex Park' size='sm' />}
+              content='Spin up a new project called rosetta-lab.'
+              timestamp='12:04'
+            />
+          </Specimen>
+          <Specimen caption='assistant · plain text' span={2}>
+            <ChatMessage
+              role='assistant'
+              senderName='Aegis Assistant'
+              avatar={<Avatar name='Aegis Assistant' size='sm' />}
+              content='Creating project rosetta-lab under the platform team.'
+              timestamp='12:04'
+            />
+          </Specimen>
+          <Specimen caption='assistant · with command card' span={2}>
+            <ChatMessage
+              role='assistant'
+              senderName='Aegis Assistant'
+              avatar={<Avatar name='Aegis Assistant' size='sm' />}
+              content='Running the smoke experiment now.'
+              timestamp='12:05'
+              footer={
+                <CommandInvocationCard
+                  commandId={MOCK_INVOCATION_SUCCESS.commandId}
+                  args={MOCK_INVOCATION_SUCCESS.args}
+                  status={MOCK_INVOCATION_SUCCESS.status}
+                />
+              }
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>CommandInvocationCard</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='pending' span={2}>
+            <CommandInvocationCard
+              commandId={MOCK_INVOCATION_PENDING.commandId}
+              args={MOCK_INVOCATION_PENDING.args}
+              status={MOCK_INVOCATION_PENDING.status}
+            />
+          </Specimen>
+          <Specimen caption='success · undo' span={2}>
+            <CommandInvocationCard
+              commandId={MOCK_INVOCATION_SUCCESS.commandId}
+              args={MOCK_INVOCATION_SUCCESS.args}
+              status={MOCK_INVOCATION_SUCCESS.status}
+              onUndo={() => undefined}
+            />
+          </Specimen>
+          <Specimen caption='error' span={2}>
+            <CommandInvocationCard
+              commandId={MOCK_INVOCATION_ERROR.commandId}
+              args={MOCK_INVOCATION_ERROR.args}
+              status={MOCK_INVOCATION_ERROR.status}
+              error={MOCK_INVOCATION_ERROR.error}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>AgentPanel · full composition</SectionDivider>
+        <AgentProvider value={MOCK_AGENT_VALUE}>
+          <div className='gallery__agent-frame'>
+            <AgentPanel
+              title='Aegis Assistant'
+              footer={
+                <ChatComposer onSend={() => undefined} sending={false} />
+              }
+            >
+              <ChatMessageList>
+                {MOCK_AGENT_MESSAGES.map((m) => (
+                  <ChatMessage
+                    key={m.id}
+                    role={m.role}
+                    senderName={m.role === 'user' ? 'You' : 'Aegis Assistant'}
+                    avatar={
+                      m.role === 'system' ? undefined : (
+                        <Avatar
+                          name={m.role === 'user' ? 'You' : 'Aegis Assistant'}
+                          size='sm'
+                        />
+                      )
+                    }
+                    content={m.content}
+                    footer={m.invocations?.map((inv, i) => (
+                      <CommandInvocationCard
+                        key={i}
+                        commandId={inv.commandId}
+                        args={inv.args}
+                        status={inv.status}
+                        error={inv.error}
+                      />
+                    ))}
+                  />
+                ))}
+              </ChatMessageList>
+            </AgentPanel>
+          </div>
+        </AgentProvider>
+      </Panel>
+
       {/* ── AntD widgets under our theme ───────────────────────────── */}
       <Panel
         title={<PanelTitle size='lg'>AntD widgets · themed</PanelTitle>}
@@ -2464,6 +2642,24 @@ function App() {
         </Form>
       </Panel>
 
+      {/* ── Commands · command palette ─────────────────────────────── */}
+      <Panel
+        title={<PanelTitle size='lg'>Commands · command palette</PanelTitle>}
+        extra={<MetricLabel>cmdk</MetricLabel>}
+      >
+        <p className='gallery__panel-body'>
+          A command registry + searchable palette. Mount{' '}
+          <code>&lt;CommandProvider&gt;</code> once, then register commands per
+          app via <code>useRegisterCommands</code>. Press{' '}
+          <code>⌘K</code> / <code>Ctrl+K</code> to toggle, or click the button
+          below.
+        </p>
+        <CommandProvider>
+          <CommandGallerySpecimen />
+          <CommandPalette />
+        </CommandProvider>
+      </Panel>
+
       {/* ── Roadmap · planned components ───────────────────────────── */}
       <Panel
         title={<PanelTitle size='lg'>Roadmap · planned components</PanelTitle>}
@@ -2497,3 +2693,87 @@ function App() {
 }
 
 export default App;
+
+/* ── Commands gallery specimen ─────────────────────────────────────── */
+
+function CommandGallerySpecimen(): ReactNode {
+  const { setPaletteOpen } = useCommands();
+  const cmds: Command[] = [
+    {
+      id: 'projects.create',
+      label: 'Create project',
+      description: 'Spin up a new project workspace.',
+      group: 'Quick actions',
+      icon: <PlusOutlined />,
+      shortcut: 'mod+shift+n',
+      keywords: ['new', 'project', 'add'],
+      handler: () => console.warn('[demo] create project'),
+    },
+    {
+      id: 'experiments.run',
+      label: 'Run experiment',
+      description: 'Trigger the default experiment pipeline.',
+      group: 'Quick actions',
+      keywords: ['run', 'start', 'go'],
+      handler: () => console.warn('[demo] run experiment'),
+    },
+    {
+      id: 'search.global',
+      label: 'Global search',
+      description: 'Search across every workspace.',
+      group: 'Navigate',
+      icon: <SearchOutlined />,
+      shortcut: 'mod+/',
+      handler: () => console.warn('[demo] global search'),
+    },
+    {
+      id: 'nav.dashboard',
+      label: 'Go to dashboard',
+      group: 'Navigate',
+      handler: () => console.warn('[demo] dashboard'),
+    },
+    {
+      id: 'nav.inbox',
+      label: 'Go to inbox',
+      group: 'Navigate',
+      keywords: ['notifications'],
+      handler: () => console.warn('[demo] inbox'),
+    },
+    {
+      id: 'settings.profile',
+      label: 'Edit profile',
+      description: 'Update your name, avatar and contact info.',
+      group: 'Settings',
+      icon: <UserOutlined />,
+      handler: () => console.warn('[demo] profile'),
+    },
+    {
+      id: 'settings.preferences',
+      label: 'Preferences',
+      description: 'Theme, density, keyboard shortcuts.',
+      group: 'Settings',
+      icon: <SettingOutlined />,
+      shortcut: 'mod+,',
+      handler: () => console.warn('[demo] preferences'),
+    },
+    {
+      id: 'session.signout',
+      label: 'Sign out',
+      group: 'Settings',
+      icon: <LogoutOutlined />,
+      handler: () => console.warn('[demo] sign out'),
+    },
+  ];
+  useRegisterCommands(cmds);
+
+  return (
+    <div className='gallery__specimen-row'>
+      <Button type='primary' onClick={() => setPaletteOpen(true)}>
+        Open palette (or press ⌘K)
+      </Button>
+      <span className='gallery__specimen-hint'>
+        mod+k toggles globally while a CommandProvider is mounted.
+      </span>
+    </div>
+  );
+}

@@ -1,0 +1,98 @@
+.aegis-composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--bg-panel);
+  border-top: var(--size-hairline) solid var(--border-hairline);
+  font-family: var(--font-ui);
+}
+
+.aegis-composer__banner {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-warn-soft);
+  color: var(--ink-warn);
+  font-size: var(--fs-11);
+}
+
+.aegis-composer__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.aegis-composer__input {
+  flex: 1 1 auto;
+  min-height: var(--size-control-base);
+  max-height: 160px;
+  padding: var(--space-2) var(--space-3);
+  resize: vertical;
+  background: var(--bg-page);
+  color: var(--text-main);
+  font: inherit;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  transition: border-color var(--motion-fast);
+}
+
+.aegis-composer__input:focus {
+  outline: none;
+  border-color: var(--border-emphasis);
+}
+
+.aegis-composer__input:disabled {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.aegis-composer__send {
+  flex: 0 0 auto;
+  height: var(--size-control-base);
+  padding: 0 var(--space-4);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  border: var(--size-hairline) solid var(--bg-inverted);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast),
+    opacity var(--motion-fast);
+}
+
+.aegis-composer__send:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.aegis-composer__send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.aegis-composer__sending {
+  display: inline-block;
+  width: var(--size-icon-base);
+  height: var(--size-icon-base);
+  border: 2px solid var(--text-on-inverted-muted);
+  border-top-color: var(--text-on-inverted);
+  border-radius: var(--radius-circle);
+  animation: aegis-composer-spin 0.8s linear infinite;
+}
+
+@keyframes aegis-composer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.aegis-composer__hint {
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}

@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import type { RouteObject } from 'react-router-dom';
 
+import type { Command } from '../../commands';
+
 /**
  * One entry in an app's internal left-nav. Sub-app authors only have to
  * fill the URL and label; the shell renders + highlights.
@@ -67,6 +69,11 @@ export interface AegisApp {
    * the user menu rather than the app launcher (e.g. /settings).
    */
   hidden?: boolean;
+  /**
+   * Commands exposed by this app. Registered by AegisShell when this
+   * app becomes active. (Contract only — wiring is a separate task.)
+   */
+  commands?: Command[];
 }
 
 export interface AegisUserMenuItem {
@@ -128,4 +135,18 @@ export interface AegisShellProps {
   inboxPath?: string;
   /** Fired when the user navigates between apps. */
   onAppSwitch?: (appId: string) => void;
+  /**
+   * When true, AegisShell mounts <CommandPalette/> and threads
+   * active-app scope into the command registry. Requires
+   * <CommandProvider/> above the shell. (Contract only — wiring is a
+   * separate task.)
+   */
+  enableCommandPalette?: boolean;
+  /**
+   * When provided, AegisShell renders the node as a collapsible right-side
+   * panel (typically <AgentPanel/> filled with messages from useAgent()).
+   * The open state is owned by the host (read via the agent context's
+   * panelOpen field). Requires <AgentProvider/> above the shell.
+   */
+  agentPanel?: ReactNode;
 }
