@@ -91,14 +91,20 @@
 }
 
 /* Popover wrapper — vertical list, scrollable when many apps. */
+/* AntD's seed tokens are hardcoded light, so we re-skin the inner panel
+   from our theme tokens to keep it consistent across light/dark. */
 .aegis-shell__app-popover .ant-popover-inner {
   padding: var(--space-2);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-shell__app-popover .ant-popover-inner-content {
   width: min(20rem, calc(100vw - var(--space-6)));
   max-height: calc(100vh - var(--header-height) - var(--space-6));
   overflow-y: auto;
+  color: var(--text-main);
 }
 
 .aegis-shell__app-list {
