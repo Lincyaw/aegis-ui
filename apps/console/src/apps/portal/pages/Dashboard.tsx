@@ -323,7 +323,7 @@ export default function Dashboard() {
       {/* ── API Debug ──────────────────────────────────────────── */}
       <Panel
         title={<PanelTitle size="base">API Debug</PanelTitle>}
-        extra={<MetricLabel>@OperationsPAI/portal v1.3.0</MetricLabel>}
+        extra={<MetricLabel>@lincyaw/portal v1.3.0</MetricLabel>}
         className="dashboard__panel"
       >
         {error ? (

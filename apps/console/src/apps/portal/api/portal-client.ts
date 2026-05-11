@@ -15,7 +15,7 @@ import {
   TasksApi,
   TeamsApi,
   TracesApi,
-} from '@OperationsPAI/portal';
+} from '@lincyaw/portal';
 
 const config = new Configuration({
   basePath: '/api',
@@ -43,4 +43,4 @@ export type {
   ProjectProjectResp,
   TaskTaskResp,
   TraceTraceResp,
-} from '@OperationsPAI/portal';
+} from '@lincyaw/portal';
