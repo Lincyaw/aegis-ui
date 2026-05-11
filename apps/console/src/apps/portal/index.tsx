@@ -5,7 +5,6 @@ import {
   PlayCircleOutlined,
   ProfileOutlined,
   ProjectOutlined,
-  SettingOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
 import type { AegisApp } from '@OperationsPAI/aegis-ui';
@@ -31,7 +30,6 @@ import Observations from './pages/Observations';
 import ProjectCreate from './pages/ProjectCreate';
 import ProjectOverview from './pages/ProjectOverview';
 import Projects from './pages/Projects';
-import Settings from './pages/Settings';
 import TaskDetail from './pages/TaskDetail';
 import Tasks from './pages/Tasks';
 import TraceDetail from './pages/TraceDetail';
@@ -56,10 +54,6 @@ export const portalApp: AegisApp = {
         { to: 'labels', label: 'Labels', icon: <TagsOutlined /> },
         { to: 'tasks', label: 'Tasks', icon: <PlayCircleOutlined /> },
       ],
-    },
-    {
-      label: 'Admin',
-      items: [{ to: 'settings', label: 'Settings', icon: <SettingOutlined /> }],
     },
   ],
   routes: [
@@ -94,6 +88,5 @@ export const portalApp: AegisApp = {
     { path: 'labels/:labelId', element: <LabelDetail /> },
     { path: 'tasks', element: <Tasks /> },
     { path: 'tasks/:taskId', element: <TaskDetail /> },
-    { path: 'settings/*', element: <Settings /> },
   ],
 };

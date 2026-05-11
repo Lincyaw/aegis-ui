@@ -8,6 +8,7 @@ import { containersApp } from './apps/containers';
 import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';
 import { portalApp } from './apps/portal';
+import { settingsApp } from './apps/settings';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
@@ -31,7 +32,13 @@ export function ConsoleApp(): ReactElement {
               >
                 <AegisShell
                   brand={{ name: 'AegisLab', href: '/' }}
-                  apps={[portalApp, containersApp, datasetsApp, galleryApp]}
+                  apps={[
+                    portalApp,
+                    containersApp,
+                    datasetsApp,
+                    settingsApp,
+                    galleryApp,
+                  ]}
                   fallbackPath='/portal'
                   headerActions={<ThemeToggle />}
                 />

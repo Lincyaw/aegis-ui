@@ -1,0 +1,54 @@
+.teams-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.teams-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.teams-page__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.teams-page__head-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.teams-page__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.teams-page__avatars {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.teams-page__avatar {
+  display: inline-flex;
+  margin-right: calc(-1 * var(--space-2));
+  border-radius: var(--radius-circle);
+  box-shadow: 0 0 0 2px var(--bg-panel);
+}
+
+.teams-page__avatar:last-of-type {
+  margin-right: 0;
+}
+
+.teams-page__projects {
+  color: var(--text-muted);
+}

@@ -1,0 +1,54 @@
+.users-page__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.users-page__search {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.users-page__select {
+  min-width: 140px;
+}
+
+.users-page__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.users-page__user-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.users-page__user-name {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.users-page__user-email {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.users-page__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.users-page__last-active {
+  color: var(--text-muted);
+}
+
+.users-page__actions {
+  display: inline-flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
+}
