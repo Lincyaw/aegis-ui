@@ -4,3 +4,4 @@
 **/.turbo
 *.snap
 pnpm-lock.yaml
+apps/portal/

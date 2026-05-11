@@ -15,6 +15,7 @@ module.exports = {
     'packages/ui/src/styles/shared/**',
     'packages/ui/src/index.css',
     'apps/playground/**',
+    'apps/portal/**',
   ],
   rules: {
     /* Tokens are the only source of visual truth. */

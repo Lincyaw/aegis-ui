@@ -9,6 +9,15 @@ This is a **pnpm monorepo**: `packages/ui` is the published library
 (`@OperationsPAI/aegis-ui`); `apps/playground` is the private dev surface
 that hosts the gallery + demo apps. Only `packages/ui` ships to consumers.
 
+`apps/portal/` is the AegisLab portal (package `rcabench-frontend`),
+brought in under **shallow integration**: it shares root tooling
+(eslint / prettier / husky / commitlint / turbo) but still owns its own
+`src/components/ui/`, `src/styles/`, `src/theme/`, plus its own
+`.eslintrc.cjs` / `.prettierrc.cjs` / `tsconfig.json`. Portal is **not yet
+aligned** with `packages/ui`. Refactoring portal to consume
+`@OperationsPAI/aegis-ui` is a deliberate follow-up; do not touch portal's
+`src/` as part of unrelated work.
+
 It is a **library**, not an application. There is no API client, no Zustand
 store, no business state, no router instance owned by this repo. The
 playground (`src/playground/`) exists only to host the gallery and demo
@@ -112,29 +121,30 @@ themselves render content only, never the layout chrome.
 
 ## Where things live
 
-| Path                                                  | Purpose                                                            |
-| ----------------------------------------------------- | ------------------------------------------------------------------ |
-| `packages/ui/src/styles/theme.css`                    | Design tokens (CSS custom properties + keyframes)                  |
-| `packages/ui/src/styles/{responsive,utility}.css`     | Responsive helpers + utility classes                               |
-| `packages/ui/src/styles/shared/{card,form,table}.css` | Shared structural patterns                                         |
-| `packages/ui/src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono asset imports                       |
-| `packages/ui/src/components/ui/`                      | Primitives + their CSS, one component per file                     |
-| `packages/ui/src/components/ui/index.ts`              | Primitive barrel — public API of the UI kit                        |
-| `packages/ui/src/layouts/PageWrapper.{tsx,css}`       | Page root container                                                |
-| `packages/ui/src/layouts/shell/`                      | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar) |
-| `packages/ui/src/theme/antdTheme.ts`                  | Ant Design `ConfigProvider` mapped to our tokens                   |
-| `packages/ui/src/index.ts`                            | Library public API barrel                                          |
-| `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                              |
-| `packages/ui/package.json`                            | Library publish config — name, version, exports                    |
-| `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                       |
-| `apps/playground/src/playground/Gallery.{tsx,css}`    | Live spec — every primitive's specimen                             |
-| `apps/playground/src/playground/apps/*`               | Demo apps proving the shell contract                               |
-| `apps/playground/src/main.tsx`                        | Playground entry; NOT shipped                                      |
-| `apps/playground/index.html`                          | Vite HTML entry for the dev server                                 |
-| `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package               |
-| `pnpm-workspace.yaml`                                 | Workspace package globs                                            |
-| `turbo.json`                                          | Pipeline graph (build, type-check, lint, lint:css)                 |
-| `.changeset/`                                         | Versioning + publish tracking                                      |
+| Path                                                  | Purpose                                                                             |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `packages/ui/src/styles/theme.css`                    | Design tokens (CSS custom properties + keyframes)                                   |
+| `packages/ui/src/styles/{responsive,utility}.css`     | Responsive helpers + utility classes                                                |
+| `packages/ui/src/styles/shared/{card,form,table}.css` | Shared structural patterns                                                          |
+| `packages/ui/src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono asset imports                                        |
+| `packages/ui/src/components/ui/`                      | Primitives + their CSS, one component per file                                      |
+| `packages/ui/src/components/ui/index.ts`              | Primitive barrel — public API of the UI kit                                         |
+| `packages/ui/src/layouts/PageWrapper.{tsx,css}`       | Page root container                                                                 |
+| `packages/ui/src/layouts/shell/`                      | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar)                  |
+| `packages/ui/src/theme/antdTheme.ts`                  | Ant Design `ConfigProvider` mapped to our tokens                                    |
+| `packages/ui/src/index.ts`                            | Library public API barrel                                                           |
+| `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                                               |
+| `packages/ui/package.json`                            | Library publish config — name, version, exports                                     |
+| `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                                        |
+| `apps/playground/src/playground/Gallery.{tsx,css}`    | Live spec — every primitive's specimen                                              |
+| `apps/playground/src/playground/apps/*`               | Demo apps proving the shell contract                                                |
+| `apps/playground/src/main.tsx`                        | Playground entry; NOT shipped                                                       |
+| `apps/playground/index.html`                          | Vite HTML entry for the dev server                                                  |
+| `apps/portal/`                                        | AegisLab portal (`rcabench-frontend`) — shallow-integrated, owns its own UI for now |
+| `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package                                |
+| `pnpm-workspace.yaml`                                 | Workspace package globs                                                             |
+| `turbo.json`                                          | Pipeline graph (build, type-check, lint, lint:css)                                  |
+| `.changeset/`                                         | Versioning + publish tracking                                                       |
 
 ## Validation gates
 

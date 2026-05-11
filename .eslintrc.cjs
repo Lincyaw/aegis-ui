@@ -29,6 +29,7 @@ module.exports = {
     '.eslintrc.cjs',
     'commitlint.config.cjs',
     '**/vite.config.ts',
+    'apps/portal/**',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {

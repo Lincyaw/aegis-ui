@@ -226,29 +226,30 @@ This is a **pnpm monorepo**: `packages/ui` is the published library;
 `apps/playground` is a private dev surface that depends on it via
 `workspace:*`. Only `packages/ui` ships to consumers.
 
-| Path                                                  | Purpose                                                |
-| ----------------------------------------------------- | ------------------------------------------------------ |
-| `packages/ui/src/styles/theme.css`                    | Design tokens — the only source of visual truth        |
-| `packages/ui/src/styles/{responsive,utility}.css`     | Responsive + utility helpers                           |
-| `packages/ui/src/styles/shared/{card,form,table}.css` | Shared structural CSS                                  |
-| `packages/ui/src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono imports                 |
-| `packages/ui/src/components/ui/`                      | Primitives, one `.tsx`+`.css` per component            |
-| `packages/ui/src/components/ui/index.ts`              | Primitive barrel                                       |
-| `packages/ui/src/layouts/PageWrapper.{tsx,css}`       | Page root container                                    |
-| `packages/ui/src/layouts/shell/`                      | AegisShell, TopHeader, Sidebar, BreadcrumbBar          |
-| `packages/ui/src/theme/antdTheme.ts`                  | AntD `ConfigProvider` theme                            |
-| `packages/ui/src/index.ts`                            | Library public API (the only entry point)              |
-| `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                  |
-| `packages/ui/package.json`                            | Library publish config (`@OperationsPAI/aegis-ui`)     |
-| `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)           |
-| `apps/playground/src/playground/`                     | Gallery + demo apps; NOT shipped                       |
-| `apps/playground/src/main.tsx`                        | Playground entry                                       |
-| `apps/playground/index.html`                          | Vite dev-server HTML entry                             |
-| `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package   |
-| `pnpm-workspace.yaml`                                 | Workspace package globs                                |
-| `turbo.json`                                          | Pipeline graph (build, type-check, lint, lint:css)     |
-| `.changeset/`                                         | Versioning + publish tracking                          |
-| `CLAUDE.md`                                           | Working guidelines for Claude Code agents in this repo |
+| Path                                                  | Purpose                                                                             |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `packages/ui/src/styles/theme.css`                    | Design tokens — the only source of visual truth                                     |
+| `packages/ui/src/styles/{responsive,utility}.css`     | Responsive + utility helpers                                                        |
+| `packages/ui/src/styles/shared/{card,form,table}.css` | Shared structural CSS                                                               |
+| `packages/ui/src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono imports                                              |
+| `packages/ui/src/components/ui/`                      | Primitives, one `.tsx`+`.css` per component                                         |
+| `packages/ui/src/components/ui/index.ts`              | Primitive barrel                                                                    |
+| `packages/ui/src/layouts/PageWrapper.{tsx,css}`       | Page root container                                                                 |
+| `packages/ui/src/layouts/shell/`                      | AegisShell, TopHeader, Sidebar, BreadcrumbBar                                       |
+| `packages/ui/src/theme/antdTheme.ts`                  | AntD `ConfigProvider` theme                                                         |
+| `packages/ui/src/index.ts`                            | Library public API (the only entry point)                                           |
+| `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                                               |
+| `packages/ui/package.json`                            | Library publish config (`@OperationsPAI/aegis-ui`)                                  |
+| `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                                        |
+| `apps/playground/src/playground/`                     | Gallery + demo apps; NOT shipped                                                    |
+| `apps/playground/src/main.tsx`                        | Playground entry                                                                    |
+| `apps/playground/index.html`                          | Vite dev-server HTML entry                                                          |
+| `apps/portal/`                                        | AegisLab portal (`rcabench-frontend`); shallow integration, owns its own UI for now |
+| `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package                                |
+| `pnpm-workspace.yaml`                                 | Workspace package globs                                                             |
+| `turbo.json`                                          | Pipeline graph (build, type-check, lint, lint:css)                                  |
+| `.changeset/`                                         | Versioning + publish tracking                                                       |
+| `CLAUDE.md`                                           | Working guidelines for Claude Code agents in this repo                              |
 
 ## Related
 
