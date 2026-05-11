@@ -11,7 +11,7 @@
 }
 
 .aegis-panel-title--sm {
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 .aegis-panel-title--base {
@@ -28,7 +28,7 @@
 
 @media (max-width: 768px) {
   .aegis-panel-title--hero {
-    font-size: 28px;
+    font-size: var(--fs-28);
   }
   .aegis-panel-title--lg {
     font-size: var(--fs-18);

@@ -29,9 +29,5 @@
 }
 
 .aegis-sparkline--inverted.aegis-sparkline--backdrop {
-  background: linear-gradient(
-    to bottom,
-    var(--bg-inverted),
-    rgba(0, 0, 0, 0.7)
-  );
+  background: linear-gradient(to bottom, var(--bg-inverted), transparent);
 }

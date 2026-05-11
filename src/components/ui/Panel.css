@@ -12,7 +12,7 @@
 }
 
 .aegis-panel:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-popover);
 }
 
 .aegis-panel--inverted {
@@ -26,11 +26,11 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-panel--inverted .aegis-panel__header {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: var(--border-on-inverted);
 }
 
 .aegis-panel__title {

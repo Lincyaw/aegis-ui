@@ -29,6 +29,6 @@
 .aegis-section-divider--ruled::after {
   content: '';
   display: block;
-  height: 1px;
+  height: var(--size-hairline);
   background: var(--border-hairline);
 }

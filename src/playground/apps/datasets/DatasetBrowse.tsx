@@ -88,7 +88,7 @@ export function DatasetBrowse(): ReactElement {
                 <div
                   style={{
                     color: 'var(--text-muted)',
-                    fontSize: 'var(--fs-12)',
+                    fontSize: 'var(--fs-11)',
                     margin: 'var(--space-1) 0',
                   }}
                 >

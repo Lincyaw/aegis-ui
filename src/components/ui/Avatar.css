@@ -13,19 +13,19 @@
 }
 
 .aegis-avatar--sm {
-  width: 24px;
-  height: 24px;
+  width: var(--size-avatar-sm);
+  height: var(--size-avatar-sm);
   font-size: var(--fs-11);
 }
 
 .aegis-avatar--base {
-  width: 32px;
-  height: 32px;
+  width: var(--size-avatar-base);
+  height: var(--size-avatar-base);
   font-size: var(--fs-13);
 }
 
 .aegis-avatar--lg {
-  width: 40px;
-  height: 40px;
+  width: var(--size-avatar-lg);
+  height: var(--size-avatar-lg);
   font-size: var(--fs-16);
 }

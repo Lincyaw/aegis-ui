@@ -18,12 +18,12 @@
   top: calc(100% + var(--space-1));
   z-index: var(--z-dropdown);
   display: none;
-  min-width: 180px;
+  min-width: 11.25rem;
   padding: var(--space-1);
   background: var(--bg-panel);
-  border: 1px solid var(--border-hairline);
+  border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-popover);
 }
 
 .aegis-dropdown__panel--open {
@@ -74,9 +74,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  font-size: 14px;
+  width: var(--size-icon-base);
+  height: var(--size-icon-base);
+  font-size: var(--fs-14);
   flex-shrink: 0;
 }
 

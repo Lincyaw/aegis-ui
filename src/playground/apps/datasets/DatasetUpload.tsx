@@ -126,7 +126,7 @@ export function DatasetUpload(): ReactElement {
                 <div
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: 'var(--fs-12)',
+                    fontSize: 'var(--fs-11)',
                     color: u.done ? 'var(--text-main)' : 'var(--text-muted)',
                   }}
                 >

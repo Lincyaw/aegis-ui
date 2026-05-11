@@ -25,7 +25,11 @@
 
   /* ── Border / divider ────────────────────────────────────────────── */
   --border-hairline: rgba(0, 0, 0, 0.08);
+  /* Mid-weight border used on hover / expanded states. */
+  --border-emphasis: rgba(0, 0, 0, 0.18);
   --border-strong: var(--text-main);
+  /* Border used on `--bg-inverted` surfaces (inverted state). */
+  --border-on-inverted: rgba(255, 255, 255, 0.1);
 
   /* ── Semantic accent (use sparingly — anomalies only) ────────────── */
   --accent-warning: #e11d48;
@@ -47,7 +51,8 @@
   --radius-pill: 20px;
   --radius-circle: 50%;
 
-  /* ── Spacing (4px scale) ─────────────────────────────────────────── */
+  /* ── Spacing (4px scale + 2px micro) ─────────────────────────────── */
+  --space-px: 2px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -74,9 +79,11 @@
   --fs-10: 10px;
   --fs-11: 11px;
   --fs-13: 13px;
+  --fs-14: 14px;
   --fs-16: 16px;
   --fs-18: 18px;
   --fs-24: 24px;
+  --fs-28: 28px;
   --fs-42: 42px;
 
   /* ── Weights ─────────────────────────────────────────────────────── */
@@ -89,8 +96,17 @@
   --tracking-label: 0.05em; /* uppercase meta labels */
   --tracking-brand: -0.02em; /* serif logo */
 
-  /* ── Shadow (panel only, very subtle) ────────────────────────────── */
+  /* ── Shadow ──────────────────────────────────────────────────────── */
   --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.02);
+  --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+  /* ── Terminal surface (always dark in both themes) ───────────────── */
+  --bg-terminal: #0d0d0d;
+  --bg-terminal-soft: rgba(255, 255, 255, 0.04);
+  --text-terminal: #e8e8ed;
+  --text-terminal-muted: rgba(255, 255, 255, 0.5);
+  --text-terminal-strong: rgba(255, 255, 255, 0.75);
+  --border-terminal: rgba(255, 255, 255, 0.08);
 
   /* ── Motion ──────────────────────────────────────────────────────── */
   --motion-fast: 200ms ease;
@@ -151,7 +167,9 @@
 
   /* Borders */
   --border-hairline: rgba(255, 255, 255, 0.1);
+  --border-emphasis: rgba(255, 255, 255, 0.22);
   --border-strong: var(--text-main);
+  --border-on-inverted: rgba(0, 0, 0, 0.1);
 
   /* Semantic accents */
   --accent-warning: #fb7185; /* lighter pink-red — readable on dark ink */
@@ -163,6 +181,7 @@
 
   /* Shadow + scrollbar */
   --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.5);
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.32);
 }

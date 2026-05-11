@@ -2,18 +2,18 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-panel);
-  border: 1px solid var(--border-hairline);
+  border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: border-color var(--motion-fast);
 }
 
 .aegis-step:hover {
-  border-color: rgba(0, 0, 0, 0.18);
+  border-color: var(--border-emphasis);
 }
 
 .aegis-step--expanded {
-  border-color: rgba(0, 0, 0, 0.18);
+  border-color: var(--border-emphasis);
 }
 
 /* ── Header ──────────────────────────────────────────────────────── */
@@ -56,7 +56,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
+  min-width: 1.75rem;
   color: var(--text-muted);
 }
 
@@ -73,7 +73,7 @@
 .aegis-step__chevron {
   font-size: var(--fs-11);
   color: var(--text-muted);
-  width: 14px;
+  width: 0.875rem;
   text-align: center;
 }
 
@@ -84,7 +84,7 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: 0 var(--space-4) var(--space-4) var(--space-4);
-  border-top: 1px solid var(--border-hairline);
+  border-top: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-step__section {
@@ -113,7 +113,7 @@
   line-height: 1.6;
   color: var(--text-main);
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ── Markdown rendering inside step ──────────────────────────────── */
@@ -171,13 +171,13 @@
 }
 
 .aegis-step__markdown li {
-  margin-bottom: 2px;
+  margin-bottom: var(--space-px);
 }
 
 .aegis-step__markdown a {
   color: var(--text-main);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: var(--space-px);
 }
 
 .aegis-step__markdown a:hover {
@@ -188,7 +188,7 @@
   font-family: var(--font-mono);
   font-size: var(--fs-11);
   background: var(--bg-muted);
-  padding: 1px 4px;
+  padding: var(--size-hairline) var(--space-1);
   border-radius: var(--radius-sm);
   color: var(--text-main);
 }
@@ -196,7 +196,7 @@
 .aegis-step__markdown pre {
   margin: 0 0 var(--space-2) 0;
   padding: var(--space-3);
-  background: #0d0d0d;
+  background: var(--bg-terminal);
   border-radius: var(--radius-md);
   overflow-x: auto;
 }
@@ -205,7 +205,7 @@
   background: none;
   padding: 0;
   border-radius: 0;
-  color: #e8e8ed;
+  color: var(--text-terminal);
   font-size: var(--fs-11);
   line-height: 1.6;
 }
@@ -213,7 +213,7 @@
 .aegis-step__markdown blockquote {
   margin: 0 0 var(--space-2) 0;
   padding: var(--space-2) var(--space-3);
-  border-left: 2px solid var(--text-main);
+  border-left: var(--space-px) solid var(--text-main);
   background: var(--bg-page);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
@@ -224,7 +224,7 @@
 
 .aegis-step__markdown hr {
   border: none;
-  border-top: 1px solid var(--border-hairline);
+  border-top: var(--size-hairline) solid var(--border-hairline);
   margin: var(--space-3) 0;
 }
 

@@ -3,16 +3,16 @@
 }
 
 .aegis-blast-radius__track {
-  height: 4px;
+  height: var(--space-1);
   background: var(--bg-muted);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   overflow: hidden;
 }
 
 .aegis-blast-radius__fill {
   height: 100%;
   background: var(--text-main);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   transition: width var(--motion-base);
 }
 

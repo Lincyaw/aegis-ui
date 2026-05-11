@@ -26,7 +26,7 @@
 }
 
 .aegis-project-selector__trigger-icon {
-  font-size: 14px;
+  font-size: var(--fs-14);
   flex-shrink: 0;
 }
 
@@ -38,7 +38,7 @@
 }
 
 .aegis-project-selector__trigger-chevron {
-  font-size: 9px;
+  font-size: var(--fs-9);
   opacity: 0.5;
   flex-shrink: 0;
 }
@@ -57,7 +57,7 @@
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   color: var(--text-main);
-  width: 160px;
+  width: 10rem;
 }
 
 .aegis-project-selector__search-input::placeholder {

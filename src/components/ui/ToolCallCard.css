@@ -3,8 +3,8 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3);
-  background: #0d0d0d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-terminal);
+  border: var(--size-hairline) solid var(--border-terminal);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: var(--fs-11);
@@ -30,14 +30,14 @@
   padding: var(--space-1) 0;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-terminal-muted);
   cursor: pointer;
   font: inherit;
   text-align: left;
 }
 
 .aegis-tool-call__code-label:hover {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-terminal-strong);
 }
 
 .aegis-tool-call__fold-indicator {
@@ -48,12 +48,12 @@
 .aegis-tool-call__code-body {
   margin: 0;
   padding: var(--space-2) var(--space-3);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-terminal-soft);
   border-radius: var(--radius-sm);
-  color: #e8e8ed;
+  color: var(--text-terminal);
   overflow-x: auto;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: break-word;
   font: inherit;
   line-height: 1.6;
 }

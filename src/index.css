@@ -54,15 +54,15 @@ samp {
 
 /* Custom scrollbar — quiet, ink-toned. */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: var(--space-2);
+  height: var(--space-2);
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
@@ -70,8 +70,8 @@ samp {
 
 /* Focus — keyboard-only ring, ink-coloured. */
 :focus-visible {
-  outline: 2px solid var(--text-main);
-  outline-offset: 2px;
+  outline: var(--space-px) solid var(--text-main);
+  outline-offset: var(--space-px);
 }
 :focus:not(:focus-visible) {
   outline: none;

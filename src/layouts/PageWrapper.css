@@ -2,7 +2,7 @@
 
 .page-wrapper {
   padding: var(--space-6);
-  max-width: 1200px;
+  max-width: var(--page-max-width);
   margin: 0 auto;
   animation: page-fade-in var(--motion-base) forwards;
 }
@@ -37,7 +37,7 @@
 .page-table {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--size-hairline);
   background: var(--border-hairline);
   border-radius: var(--radius-md);
   overflow: hidden;

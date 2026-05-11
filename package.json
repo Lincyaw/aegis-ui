@@ -30,7 +30,8 @@
     "lint:fix": "eslint src --ext ts,tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json,md}\"",
-    "check": "pnpm type-check && pnpm lint && pnpm format:check",
+    "lint:css": "stylelint \"src/**/*.css\"",
+    "check": "pnpm type-check && pnpm lint && pnpm lint:css && pnpm format:check",
     "prepare": "husky"
   },
   "peerDependencies": {
@@ -73,6 +74,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.22.0",
+    "stylelint": "^17.11.0",
+    "stylelint-config-standard": "^40.0.0",
     "typescript": "^5.4.0",
     "vite": "^5.1.5",
     "vite-plugin-dts": "^4.5.0"
@@ -82,7 +85,11 @@
       "eslint --max-warnings 0 --fix",
       "prettier --write"
     ],
-    "*.{css,json,md}": [
+    "*.css": [
+      "stylelint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
       "prettier --write"
     ]
   },

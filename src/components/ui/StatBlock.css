@@ -18,5 +18,5 @@
 }
 
 .aegis-stat__unit {
-  margin-left: 2px;
+  margin-left: var(--space-px);
 }
