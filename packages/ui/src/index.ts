@@ -4,6 +4,7 @@
  * Add a new primitive ⇒ export it here AND add a specimen to
  * `src/playground/Gallery.tsx`. The gallery is the live spec.
  */
+import './index.css';
 
 // Primitives
 export * from './components/ui';

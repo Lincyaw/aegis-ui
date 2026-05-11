@@ -220,5 +220,8 @@ function findActiveApp(
 }
 
 function stripTrailingSlash(p: string): string {
-  return p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p;
+  if (p === '/') {
+    return '';
+  }
+  return p.endsWith('/') ? p.slice(0, -1) : p;
 }
