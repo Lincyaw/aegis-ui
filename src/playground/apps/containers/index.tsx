@@ -1,13 +1,14 @@
 import type { ReactElement } from 'react';
 
-import { HddOutlined } from '@ant-design/icons';
-import { Outlet } from 'react-router-dom';
+import { HddOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Input } from 'antd';
+import { Outlet, useNavigate } from 'react-router-dom';
 
 import type { AegisApp } from '../../../layouts/shell/types';
 import { ContainerCreate } from './ContainerCreate';
 import { ContainerDetail } from './ContainerDetail';
 import { ContainerList } from './ContainerList';
-import { ContainersProvider } from './store';
+import { ContainersProvider, useContainers } from './store';
 
 function AppRoot(): ReactElement {
   return (
@@ -17,12 +18,53 @@ function AppRoot(): ReactElement {
   );
 }
 
+/**
+ * Demo pattern: toolbar-style app header. Sits below the shell header,
+ * sticky, app-scoped. Shows a search field + primary action.
+ */
+function ContainersHeader(): ReactElement {
+  const { query, setQuery } = useContainers();
+  const navigate = useNavigate();
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 24px',
+      }}
+    >
+      <strong style={{ fontFamily: 'var(--font-brand)' }}>Containers</strong>
+      <Input
+        size="small"
+        placeholder="Search by name…"
+        prefix={<SearchOutlined />}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        style={{ maxWidth: 280, marginLeft: 8 }}
+        allowClear
+      />
+      <div style={{ marginLeft: 'auto' }}>
+        <Button
+          type="primary"
+          size="small"
+          icon={<PlusOutlined />}
+          onClick={() => navigate('/containers/new')}
+        >
+          New container
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export const containersApp: AegisApp = {
   id: 'containers',
   label: 'Containers',
   icon: <HddOutlined />,
   basePath: '/containers',
-  description: 'Manage demo workloads (list / detail / create).',
+  description: 'Toolbar header + sidebar nav pattern.',
+  header: <ContainersHeader />,
   sidebar: [
     {
       items: [

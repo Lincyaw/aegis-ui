@@ -12,6 +12,8 @@ import { type DemoContainer, seedContainers } from './data';
 
 interface ContainersState {
   containers: DemoContainer[];
+  query: string;
+  setQuery: (q: string) => void;
   addContainer: (input: Omit<DemoContainer, 'id' | 'createdAt'>) => string;
   removeContainer: (id: string) => void;
 }
@@ -24,6 +26,7 @@ export function ContainersProvider({
   children: ReactNode;
 }): ReactElement {
   const [containers, setContainers] = useState<DemoContainer[]>(seedContainers);
+  const [query, setQuery] = useState('');
 
   const addContainer = useCallback<ContainersState['addContainer']>((input) => {
     const id = `c-${Math.random().toString(36).slice(2, 6)}`;
@@ -44,8 +47,8 @@ export function ContainersProvider({
   );
 
   const value = useMemo(
-    () => ({ containers, addContainer, removeContainer }),
-    [containers, addContainer, removeContainer],
+    () => ({ containers, query, setQuery, addContainer, removeContainer }),
+    [containers, query, addContainer, removeContainer],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

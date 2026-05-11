@@ -41,6 +41,12 @@ export interface AegisApp {
   routes: RouteObject[];
   /** Optional inner sidebar shown when this app is active. */
   sidebar?: AegisAppNavGroup[];
+  /**
+   * Optional sub-header rendered between the shell's `TopHeader` and the
+   * page content. Use for app-scoped toolbars, tab nav, filters, etc.
+   * Sticky by default so it stays in view while the page scrolls.
+   */
+  header?: ReactNode;
   /** Optional one-line description shown in app pickers. */
   description?: string;
 }

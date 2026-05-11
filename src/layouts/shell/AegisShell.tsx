@@ -135,6 +135,9 @@ export function AegisShell({
         onClick={closeMobileNav}
       />
       <main className="aegis-shell__main">
+        {activeApp?.header && (
+          <div className="aegis-shell__app-header">{activeApp.header}</div>
+        )}
         <BreadcrumbBar apps={apps} activeApp={activeApp} />
         <div className="aegis-shell__content">{element}</div>
       </main>

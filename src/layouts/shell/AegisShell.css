@@ -278,6 +278,40 @@
   flex-direction: column;
 }
 
+/* App-scoped sub-header. Sticks below the shell header. */
+.aegis-shell__app-header {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 15;
+  background: var(--bg-panel);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+/* Tab pattern usable inside an app header. */
+.aegis-shell__app-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: var(--space-px) solid transparent;
+  transition:
+    color var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.aegis-shell__app-tab:hover {
+  color: var(--text-main);
+}
+
+.aegis-shell__app-tab--active {
+  color: var(--text-main);
+  font-weight: var(--fw-medium);
+  border-bottom-color: var(--text-main);
+}
+
 /* Mobile menu trigger — only renders on small screens. */
 .aegis-shell__menu-toggle {
   display: none;
