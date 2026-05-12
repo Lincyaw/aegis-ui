@@ -11,3 +11,20 @@ export type {
   AegisUser,
   AegisUserMenuItem,
 } from './types';
+export {
+  ENVIRONMENT_CHANGED_EVENT,
+  clearManifestCache,
+  fetchManifest,
+  manifestUrl,
+  useCurrentEnvironment,
+  useEnvironmentManifest,
+  validateManifest,
+} from './environments';
+export type {
+  AegisAppEnvironmentsConfig,
+  EnvironmentBadge,
+  EnvironmentChangedEventDetail,
+  EnvironmentDescriptor,
+  EnvironmentManifest,
+  EnvironmentManifestStatus,
+} from './environments';

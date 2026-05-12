@@ -1,6 +1,7 @@
 import {
   type ReactElement,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useState,
@@ -12,11 +13,18 @@ import {
   Navigate,
   type RouteObject,
   useLocation,
+  useNavigate,
   useRoutes,
 } from 'react-router-dom';
 
+import {
+  AegisAgentProvider,
+  AskOverlay,
+  type ShellSnapshot,
+} from '../../agent';
 import { type AegisAuthUser, useAuth } from '../../auth';
 import { Chip } from '../../components/ui/Chip';
+import { ThemeContext } from '../../theme/themeContext';
 import { PageWrapper } from '../PageWrapper';
 import './AegisShell.css';
 import { AuthRequiredCard } from './AuthRequiredCard';
@@ -24,6 +32,7 @@ import { BreadcrumbBar } from './BreadcrumbBar';
 import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
 import { ActiveAppContext } from './activeAppContext';
+import { ActiveAppEnvironmentProvider } from './environments';
 import type { AegisApp, AegisShellProps, AegisUser } from './types';
 
 /**
@@ -47,8 +56,11 @@ export function AegisShell({
   inboxPath,
   onAppSwitch,
 }: AegisShellProps): ReactElement {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { pathname } = location;
   const auth = useAuth();
+  const themeCtx = useContext(ThemeContext);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [inlineSlot, setInlineSlot] = useState<HTMLDivElement | null>(null);
 
@@ -159,6 +171,24 @@ export function AegisShell({
 
   const element = useRoutes(routeTree);
 
+  const shellSnapshot = useCallback((): ShellSnapshot => {
+    const w = typeof window !== 'undefined' ? window : null;
+    return {
+      currentAppId: activeApp?.id ?? null,
+      route: {
+        pathname,
+        search: location.search,
+        params: {},
+      },
+      breadcrumbs: [],
+      theme: themeCtx?.resolved ?? 'light',
+      viewport: {
+        width: w?.innerWidth ?? 0,
+        height: w?.innerHeight ?? 0,
+      },
+    };
+  }, [activeApp, pathname, location.search, themeCtx]);
+
   // Bare routes (e.g. /login) render without the shell chrome.
   const isBareRoute = rootRoutes.some(
     (r) => r.bare && r.path && pathname === r.path,
@@ -180,56 +210,65 @@ export function AegisShell({
     .join(' ');
 
   return (
-    <div className={shellClass}>
-      <TopHeader
-        brand={brand}
-        apps={visibleApps}
-        activeAppId={activeApp?.id}
-        onAppSwitch={onAppSwitch}
-        user={resolvedUser}
-        headerCenter={headerCenter}
-        headerActions={
-          <>
-            {headerActions}
-            {auth.status === 'unauthenticated' && auth.signIn && (
-              <Chip
-                tone="ink"
-                onClick={() => {
-                  void auth.signIn?.({});
-                }}
-              >
-                Sign in
-              </Chip>
+    <AegisAgentProvider
+      appId={activeApp?.id ?? null}
+      shellSnapshot={shellSnapshot}
+      navigate={navigate}
+    >
+      <ActiveAppEnvironmentProvider app={activeApp}>
+        <div className={shellClass}>
+          <TopHeader
+            brand={brand}
+            apps={visibleApps}
+            activeAppId={activeApp?.id}
+            onAppSwitch={onAppSwitch}
+            user={resolvedUser}
+            headerCenter={headerCenter}
+            headerActions={
+              <>
+                {headerActions}
+                {auth.status === 'unauthenticated' && auth.signIn && (
+                  <Chip
+                    tone="ink"
+                    onClick={() => {
+                      void auth.signIn?.({});
+                    }}
+                  >
+                    Sign in
+                  </Chip>
+                )}
+              </>
+            }
+            inboxPath={auth.status === 'authenticated' ? inboxPath : undefined}
+            onMobileMenuToggle={toggleMobileNav}
+            showMobileMenu={hasSidebar}
+            inlineSlotRef={setInlineSlot}
+            inlineSlotActive={Boolean(activeApp?.header)}
+          />
+          {hasSidebar && <Sidebar activeApp={activeApp} />}
+          <button
+            type="button"
+            className="aegis-shell__backdrop"
+            aria-label="Close navigation"
+            onClick={closeMobileNav}
+          />
+          <main className="aegis-shell__main">
+            {renderAppRegion(
+              activeApp,
+              activeAppValue,
+              <>
+                {activeApp?.header &&
+                  inlineSlot &&
+                  createPortal(activeApp.header, inlineSlot)}
+                <BreadcrumbBar apps={apps} activeApp={activeApp} />
+                <div className="aegis-shell__content">{element}</div>
+              </>,
             )}
-          </>
-        }
-        inboxPath={auth.status === 'authenticated' ? inboxPath : undefined}
-        onMobileMenuToggle={toggleMobileNav}
-        showMobileMenu={hasSidebar}
-        inlineSlotRef={setInlineSlot}
-        inlineSlotActive={Boolean(activeApp?.header)}
-      />
-      {hasSidebar && <Sidebar activeApp={activeApp} />}
-      <button
-        type="button"
-        className="aegis-shell__backdrop"
-        aria-label="Close navigation"
-        onClick={closeMobileNav}
-      />
-      <main className="aegis-shell__main">
-        {renderAppRegion(
-          activeApp,
-          activeAppValue,
-          <>
-            {activeApp?.header &&
-              inlineSlot &&
-              createPortal(activeApp.header, inlineSlot)}
-            <BreadcrumbBar apps={apps} activeApp={activeApp} />
-            <div className="aegis-shell__content">{element}</div>
-          </>,
-        )}
-      </main>
-    </div>
+          </main>
+          <AskOverlay />
+        </div>
+      </ActiveAppEnvironmentProvider>
+    </AegisAgentProvider>
   );
 }
 

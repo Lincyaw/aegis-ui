@@ -5,6 +5,7 @@
  * '@/components/ui'` without knowing the file layout.
  */
 
+export { Button } from './Button';
 export { Panel } from './Panel';
 export { PanelTitle } from './PanelTitle';
 export { MetricLabel } from './MetricLabel';
@@ -32,6 +33,8 @@ export { TimeDisplay } from './TimeDisplay';
 export { CodeBlock } from './CodeBlock';
 export { DataTable } from './DataTable';
 export type { DataTableColumn } from './DataTable';
+export { DataList } from './DataList';
+export type { DataListColumn, DataListItem, DataListSurface } from './DataList';
 export { Toolbar } from './Toolbar';
 export type { FilterChip } from './Toolbar';
 export { Tabs } from './Tabs';
@@ -74,3 +77,9 @@ export type { TimelineItem } from './Timeline';
 export { ParquetViewer } from './ParquetViewer';
 export { TraceTree } from './TraceTree';
 export type { TraceSpan } from './TraceTree';
+export { EnvironmentSwitcher } from './EnvironmentSwitcher';
+export type {
+  EnvironmentSwitcherBadge,
+  EnvironmentSwitcherOption,
+  EnvironmentSwitcherProps,
+} from './EnvironmentSwitcher';

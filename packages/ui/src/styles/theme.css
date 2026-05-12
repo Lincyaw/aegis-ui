@@ -39,6 +39,11 @@
   --ink-warn: #d97706; /* amber-600 — logs & cautions, NOT anomaly red */
   --bg-warn-soft: #fffbeb;
 
+  /* ── Environment switcher badge tones ─────────────────────────────── */
+  /* Distinct from --accent-warning (anomaly red) — used to label envs. */
+  --accent-info: #2563eb; /* blue-600 — informational env badge */
+  --accent-caution: #d97706; /* amber-600 — pre-prod / staging env badge */
+
   /* ── Scrollbar ───────────────────────────────────────────────────── */
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.32);
@@ -139,6 +144,18 @@
   --motion-fast: 200ms ease;
   --motion-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 
+  /* ── Aegis highlight (agent "look here" cue) ─────────────────────── */
+  --aegis-highlight-ring: rgba(99, 102, 241, 0.55);
+  --aegis-highlight-ring-width: 6px;
+  --aegis-highlight-duration: 1200ms;
+
+  /* ── Ask-AI affordance — see docs/agent-native-ui.md §7. ─────────── */
+  --ask-panel-bg: var(--bg-panel);
+  --ask-panel-border: var(--border-emphasis);
+  --ask-panel-shadow: var(--shadow-popover);
+  --ask-panel-width: 360px;
+  --ask-panel-max-height: 480px;
+
   /* ── Component sizing (icons, controls, avatars) ─────────────────── */
   --size-icon-sm: 12px;
   --size-icon-base: 16px;
@@ -202,9 +219,16 @@
   --accent-warning: #fb7185; /* lighter pink-red — readable on dark ink */
   --accent-warning-soft: var(--bg-warning-soft);
 
+  /* Aegis highlight (agent "look here" cue) — brighter ring on dark ink. */
+  --aegis-highlight-ring: rgba(165, 180, 252, 0.7);
+
   /* Secondary semantic */
   --ink-warn: #fbbf24; /* amber-400 — brighter for dark surfaces */
   --bg-warn-soft: #2a200a;
+
+  /* Environment switcher badge tones — brighter on dark ink */
+  --accent-info: #60a5fa;
+  --accent-caution: #fbbf24;
 
   /* Avatar palette — lighter for dark surfaces */
   --avatar-hue-1: #64748b;
@@ -272,6 +296,25 @@
     opacity: 0.4;
     transform: scale(1.2);
   }
+}
+
+/* ── Aegis highlight (agent "look here" cue) ───────────────────────── */
+@keyframes aegis-highlight-ring {
+  0% {
+    box-shadow: 0 0 0 0 var(--aegis-highlight-ring);
+  }
+  40% {
+    box-shadow: 0 0 0 var(--aegis-highlight-ring-width)
+      var(--aegis-highlight-ring);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+[data-aegis-highlight] {
+  animation: aegis-highlight-ring var(--aegis-highlight-duration) ease-out;
+  border-radius: var(--radius-md);
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────── */

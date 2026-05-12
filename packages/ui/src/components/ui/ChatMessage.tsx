@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import type { AgentMessageRole } from '../../agent';
+import type { AgentMessageRole } from '../../agent/agentContext';
 import './ChatMessage.css';
 
 interface ChatMessageProps {

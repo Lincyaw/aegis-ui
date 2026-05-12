@@ -10,6 +10,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"encoding/json"
 	"flag"
@@ -21,9 +22,12 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"runtime"
 	"strings"
+	"syscall"
+	"time"
 )
 
 //go:embed all:dist
@@ -45,9 +49,18 @@ type config struct {
 	SsoClientID        string `json:"ssoClientId"`
 	SsoScope           string `json:"ssoScope"`
 	Open               bool   `json:"open"`
+	Bridge             bool   `json:"bridge"`
+	BridgeNoAuth       bool   `json:"bridgeNoAuth"`
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "mcp" {
+		if err := runMcpSubcommand(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
 	cfg := config{
 		Port:            3323,
 		Host:            "127.0.0.1",
@@ -74,6 +87,8 @@ func main() {
 	flag.StringVar(&cfg.SsoScope, "sso-scope", cfg.SsoScope, "OIDC scope")
 	flag.StringVar(&configFile, "config", "", "Load JSON config (CLI flags override file values)")
 	flag.BoolVar(&cfg.Open, "open", false, "Open the browser after starting")
+	flag.BoolVar(&cfg.Bridge, "bridge", false, "Enable the MCP bridge (lock file + /aegis-bridge/ws)")
+	flag.BoolVar(&cfg.BridgeNoAuth, "bridge-no-auth", false, "Skip bridge auth check (dev only)")
 	flag.BoolVar(&showVersion, "version", false, "Show version and exit")
 	flag.BoolVar(&showVersion, "v", false, "Show version and exit (shorthand)")
 	flag.BoolVar(&showHelp, "help", false, "Show help and exit")
@@ -153,7 +168,12 @@ func serve(cfg config) error {
 		return fmt.Errorf("dist/index.html missing — run `pnpm bundle:prepare` first")
 	}
 
-	configJS := buildConfigJS(cfg)
+	var br *bridge
+	if cfg.Bridge {
+		br = newBridge(cfg.Port, cfg.BridgeNoAuth)
+	}
+
+	configJS := buildConfigJS(cfg, br)
 
 	gatewayProxy := mustProxy(cfg.Gateway)
 	chProxy := mustProxy(cfg.Clickhouse)
@@ -204,11 +224,33 @@ func serve(cfg config) error {
 		})
 	}
 
+	if br != nil {
+		mux.HandleFunc(bridgeWSPath, func(w http.ResponseWriter, r *http.Request) {
+			br.handleBrowserWS(w, r)
+		})
+	}
+
 	staticHandler := newStaticHandler(dist)
 	mux.Handle("/", staticHandler)
 
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	srv := &http.Server{Addr: addr, Handler: mux}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	if br != nil {
+		br.startLockWriter(ctx)
+		log.Printf("  bridge       : enabled at ws://%s%s (auth=%t)", addr, bridgeWSPath, !cfg.BridgeNoAuth)
+		if !cfg.BridgeNoAuth {
+			log.Printf("  bridge token : %s (in %s)", br.authToken, br.lockPath())
+		}
+	}
+	go func() {
+		<-ctx.Done()
+		shutCtx, shutCancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer shutCancel()
+		_ = srv.Shutdown(shutCtx)
+	}()
 
 	url := fmt.Sprintf("http://%s/", addr)
 	log.Printf("aegis-console %s listening on %s", version, url)
@@ -222,7 +264,10 @@ func serve(cfg config) error {
 	if cfg.Open {
 		go openBrowser(url)
 	}
-	return srv.ListenAndServe()
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
 
 func mustProxy(target string) *httputil.ReverseProxy {
@@ -243,7 +288,7 @@ func mustProxy(target string) *httputil.ReverseProxy {
 	return rp
 }
 
-func buildConfigJS(cfg config) []byte {
+func buildConfigJS(cfg config, br *bridge) []byte {
 	payload := map[string]any{
 		"gatewayUrl":            "",
 		"ssoOrigin":             "",
@@ -264,6 +309,19 @@ func buildConfigJS(cfg config) []byte {
 	buf.WriteString("window.__AEGIS_CONFIG__ = ")
 	buf.Write(body)
 	buf.WriteString(";\n")
+	if br != nil {
+		bridgePayload := map[string]any{
+			"url":         fmt.Sprintf("ws://%s:%d%s", cfg.Host, cfg.Port, bridgeWSPath),
+			"autoConnect": true,
+		}
+		if !br.noAuth {
+			bridgePayload["authToken"] = br.authToken
+		}
+		bbody, _ := json.MarshalIndent(bridgePayload, "", "  ")
+		buf.WriteString("window.__AEGIS_BRIDGE__ = ")
+		buf.Write(bbody)
+		buf.WriteString(";\n")
+	}
 	return buf.Bytes()
 }
 

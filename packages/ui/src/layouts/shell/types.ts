@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
 import type { Command } from '../../commands';
+import type { AegisAppEnvironmentsConfig } from './environments/types';
 
 /**
  * One entry in an app's internal left-nav. Sub-app authors only have to
@@ -88,6 +89,19 @@ export interface AegisApp {
    * (subject to `requiresAuth`).
    */
   requiredRoles?: string[];
+  /**
+   * Seed URL for backend-declared environment discovery. When set, the shell
+   * fetches `<apiBaseUrl><environments.discoveryPath>` (default
+   * `/.well-known/aegis-environments.json`) and renders an `<EnvironmentSwitcher>`
+   * in the top header for the active app. Apps observe selection via
+   * `useCurrentEnvironment()` or the `app.environmentChanged` runtime event.
+   *
+   * The shell does not rewrite axios base URLs — it surfaces the choice;
+   * apps consume it.
+   */
+  apiBaseUrl?: string;
+  /** Optional knobs for environment discovery. See AegisAppEnvironmentsConfig. */
+  environments?: AegisAppEnvironmentsConfig;
 }
 
 export interface AegisUserMenuItem {

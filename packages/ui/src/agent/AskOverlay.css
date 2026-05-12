@@ -1,0 +1,10 @@
+.aegis-ask-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-popover);
+  pointer-events: none;
+}
+
+.aegis-ask-overlay > * {
+  pointer-events: auto;
+}

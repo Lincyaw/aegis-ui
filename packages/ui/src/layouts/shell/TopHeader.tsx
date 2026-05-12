@@ -6,8 +6,10 @@ import {
   type DropdownItem,
   DropdownMenu,
 } from '../../components/ui/DropdownMenu';
+import { EnvironmentSwitcher } from '../../components/ui/EnvironmentSwitcher';
 import { NotificationBell } from '../../components/ui/NotificationBell';
 import { AppSwitcher } from './AppSwitcher';
+import { useEnvironmentManifest } from './environments';
 import type { AegisApp, AegisBrand, AegisUser } from './types';
 
 interface TopHeaderProps {
@@ -93,11 +95,32 @@ export function TopHeader({
         {!inlineSlotActive && headerCenter}
       </div>
       <div className="aegis-shell__header-right">
+        <ActiveEnvironmentSwitcher />
         {headerActions}
         {inboxPath && <NotificationBell inboxPath={inboxPath} />}
         {user && <UserMenu user={user} />}
       </div>
     </header>
+  );
+}
+
+function ActiveEnvironmentSwitcher(): ReactElement | null {
+  const state = useEnvironmentManifest();
+  if (state.status !== 'ready') {
+    return null;
+  }
+  const options = state.manifest.environments.map((e) => ({
+    id: e.id,
+    label: e.label,
+    badge: e.badge,
+    hint: e.baseUrl,
+  }));
+  return (
+    <EnvironmentSwitcher
+      options={options}
+      currentId={state.currentEnvId}
+      onChange={state.setCurrentEnv}
+    />
   );
 }
 
