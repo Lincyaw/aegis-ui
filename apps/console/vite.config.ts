@@ -20,7 +20,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: Number(env.VITE_PORT) || 3100,
+      port: Number(env.VITE_PORT) || 3323,
+      strictPort: true,
       proxy: (() => {
         const apiTarget = env.VITE_API_TARGET || 'http://127.0.0.1:8082';
         const ssoTarget = env.VITE_SSO_TARGET || 'http://127.0.0.1:8083';

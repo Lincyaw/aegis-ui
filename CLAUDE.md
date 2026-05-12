@@ -310,7 +310,7 @@ Secondary tiebreaker: **fix the primitive before the page** — see "First princ
 | Format       | `pnpm format:check`                                                                                   | Prettier — fix with `pnpm format`                                   |
 | Build        | `pnpm build`                                                                                          | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css       |
 | Full gate    | `pnpm check`                                                                                          | type-check + lint + lint:css + format:check; run before commit + PR |
-| Dev server   | `pnpm dev`                                                                                            | apps/console at `:3100` — use for dual-theme + responsive checks    |
+| Dev server   | `pnpm dev`                                                                                            | apps/console at `:3323` — use for dual-theme + responsive checks    |
 | Measure NS#2 | `pnpm check:gallery`                                                                                  | Gallery specimen coverage (also folded into `pnpm check`)           |
 | Measure NS#4 | see north-star target 4                                                                               | Token discipline grep                                               |
 | Bundle size  | `pnpm -F @OperationsPAI/aegis-ui build && du -b packages/ui/dist/index.js packages/ui/dist/style.css` | Compare to baseline before/after primitive changes                  |

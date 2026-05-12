@@ -132,7 +132,7 @@ a single `<AegisShell>`. Run `pnpm dev` to see it.
 
 ```bash
 NPM_TOKEN=<token> pnpm install
-pnpm dev              # local console on http://localhost:3100
+pnpm dev              # local console on http://localhost:3323
 pnpm type-check       # tsc --noEmit, strict mode
 pnpm lint             # eslint --max-warnings 0
 pnpm format:check     # prettier
