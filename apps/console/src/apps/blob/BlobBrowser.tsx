@@ -21,19 +21,15 @@ import {
 
 import { ApiError } from '../../api/apiClient';
 import {
+  type BucketSummary,
   deleteObject,
   inlineUrl,
+  listBuckets,
   listObjects,
   type ObjectRow,
   presignPut,
   uploadWithPresign,
 } from '../../api/blobClient';
-
-const DEFAULT_BUCKETS =
-  (import.meta.env.VITE_BLOB_BUCKETS as string | undefined)
-    ?.split(',')
-    .map((s) => s.trim())
-    .filter(Boolean) ?? ['scratch'];
 
 const PARQUET_RE = /\.parquet$/i;
 
@@ -78,14 +74,45 @@ function errMsg(e: unknown): string {
 
 export default function BlobBrowser() {
   const { message: msg, modal } = AntdApp.useApp();
-  const [bucket, setBucket] = useState<string>(DEFAULT_BUCKETS[0] ?? 'scratch');
+  const [buckets, setBuckets] = useState<BucketSummary[]>([]);
+  const [bucket, setBucket] = useState<string>('');
   const [rows, setRows] = useState<ObjectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploads, setUploads] = useState<FileDropzoneItem[]>([]);
   const [preview, setPreview] = useState<ObjectRow | null>(null);
 
+  useEffect(() => {
+    const cancelled = { value: false };
+    void (async () => {
+      try {
+        const items = await listBuckets();
+        if (cancelled.value) {
+          return;
+        }
+        setBuckets(items);
+        if (items.length > 0 && bucket === '') {
+          setBucket(items[0]?.name ?? '');
+        }
+      } catch (e) {
+        if (!cancelled.value) {
+          setError(errMsg(e));
+        }
+      }
+    })();
+    return () => {
+      cancelled.value = true;
+    };
+    // Only run once on mount; subsequent re-fetches are explicit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const refresh = useCallback(async (): Promise<void> => {
+    if (bucket === '') {
+      setRows([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -252,8 +279,12 @@ export default function BlobBrowser() {
             <Select
               value={bucket}
               onChange={setBucket}
-              options={DEFAULT_BUCKETS.map((b) => ({ value: b, label: b }))}
-              style={{ width: 160 }}
+              options={buckets.map((b) => ({ value: b.name, label: b.name }))}
+              placeholder={
+                buckets.length === 0 ? 'No buckets configured' : 'Pick a bucket'
+              }
+              disabled={buckets.length === 0}
+              style={{ width: 200 }}
             />
             <Button
               icon={<ReloadOutlined />}

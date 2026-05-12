@@ -65,6 +65,19 @@ export interface ListResp {
   next_cursor?: string;
 }
 
+export interface BucketSummary {
+  name: string;
+  driver: string;
+  max_object_bytes?: number;
+  retention_days?: number;
+  public_read?: boolean;
+}
+
+export async function listBuckets(): Promise<BucketSummary[]> {
+  const res = await apiJson<{ items: BucketSummary[] }>(`${ROOT}/buckets`);
+  return res.items;
+}
+
 export interface ListParams {
   cursor?: string;
   limit?: number;
