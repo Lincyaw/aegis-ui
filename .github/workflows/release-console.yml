@@ -51,8 +51,8 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build SPA dist
-        run: pnpm -F @lincyaw/console bundle:prepare
+      - name: Build library + SPA dist
+        run: pnpm -F @lincyaw/aegis-ui build && pnpm -F @lincyaw/console bundle:prepare
 
       - name: Resolve version
         id: ver
