@@ -1,0 +1,138 @@
+.aegis-trace-tree {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+}
+
+.aegis-trace-tree__row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(120px, 2fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  cursor: pointer;
+  transition: background var(--motion-fast);
+  outline: none;
+}
+
+.aegis-trace-tree__row:hover,
+.aegis-trace-tree__row:focus-visible {
+  background: var(--bg-muted);
+}
+
+.aegis-trace-tree__row--selected {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-trace-tree__row--selected:hover {
+  background: var(--bg-inverted);
+}
+
+.aegis-trace-tree__row--error .aegis-trace-tree__name {
+  color: var(--accent-warning);
+}
+
+.aegis-trace-tree__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding-left: calc(var(--depth, 0) * var(--space-4));
+}
+
+.aegis-trace-tree__caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-base);
+  height: var(--size-icon-base);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--fs-10);
+}
+
+.aegis-trace-tree__row--selected .aegis-trace-tree__caret {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-trace-tree__caret--leaf {
+  cursor: default;
+}
+
+.aegis-trace-tree__kind {
+  flex-shrink: 0;
+}
+
+.aegis-trace-tree__name {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.aegis-trace-tree__bar-track {
+  position: relative;
+  height: var(--space-3);
+  background: var(--bg-muted);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.aegis-trace-tree__row--selected .aegis-trace-tree__bar-track {
+  background: var(--border-on-inverted);
+}
+
+.aegis-trace-tree__bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--text-main);
+  border-radius: var(--radius-xs);
+  min-width: var(--size-hairline);
+}
+
+.aegis-trace-tree__row--selected .aegis-trace-tree__bar {
+  background: var(--text-on-inverted);
+}
+
+.aegis-trace-tree__row--error .aegis-trace-tree__bar {
+  background: var(--accent-warning);
+}
+
+.aegis-trace-tree__duration {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.aegis-trace-tree__row--selected .aegis-trace-tree__duration {
+  color: var(--text-on-inverted-muted);
+}
+
+@media (max-width: 768px) {
+  .aegis-trace-tree__row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'label duration'
+      'bar bar';
+    gap: var(--space-2);
+  }
+  .aegis-trace-tree__label {
+    grid-area: label;
+  }
+  .aegis-trace-tree__bar-track {
+    grid-area: bar;
+  }
+  .aegis-trace-tree__duration {
+    grid-area: duration;
+  }
+}

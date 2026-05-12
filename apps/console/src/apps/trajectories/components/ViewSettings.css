@@ -1,0 +1,198 @@
+.aegis-view-settings__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-backdrop);
+  display: flex;
+  justify-content: flex-end;
+  z-index: var(--z-modal);
+}
+
+.aegis-view-settings {
+  width: min(480px, 100vw);
+  background: var(--bg-panel);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-popover);
+  overflow: hidden;
+}
+
+.aegis-view-settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-view-settings__title {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-semibold);
+}
+
+.aegis-view-settings__close {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: var(--fs-24);
+  color: var(--text-muted);
+  line-height: 1;
+  padding: 0 var(--space-2);
+}
+
+.aegis-view-settings__close:hover {
+  color: var(--text-main);
+}
+
+.aegis-view-settings__section {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-view-settings__hint {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.aegis-view-settings__hint code {
+  font-family: var(--font-mono);
+  background: var(--bg-muted);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-xs);
+}
+
+.aegis-view-settings__chips {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.aegis-view-settings__rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.aegis-view-settings__rule {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+}
+
+.aegis-view-settings__rule-empty {
+  padding: var(--space-3);
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: var(--fs-13);
+  text-align: center;
+}
+
+.aegis-view-settings__pattern {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aegis-view-settings__arrow {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.aegis-view-settings__remove {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: var(--fs-18);
+  color: var(--text-muted);
+  line-height: 1;
+  padding: 0 var(--space-2);
+}
+
+.aegis-view-settings__remove:hover {
+  color: var(--accent-warning);
+}
+
+.aegis-view-settings__add {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.aegis-view-settings__input {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  padding: var(--space-2) var(--space-3);
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  background: var(--bg-page);
+  color: var(--text-main);
+}
+
+.aegis-view-settings__input:focus {
+  outline: none;
+  border-color: var(--text-main);
+}
+
+.aegis-view-settings__select {
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  padding: var(--space-2) var(--space-3);
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  background: var(--bg-page);
+  color: var(--text-main);
+}
+
+.aegis-view-settings__add-btn {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  border: 0;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--fw-medium);
+}
+
+.aegis-view-settings__add-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.aegis-view-settings__footer {
+  padding: var(--space-4);
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.aegis-view-settings__reset {
+  background: transparent;
+  border: var(--size-hairline) solid var(--border-emphasis);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--accent-warning);
+  font: inherit;
+  font-weight: var(--fw-medium);
+}
+
+.aegis-view-settings__reset:hover {
+  background: var(--bg-warning-soft);
+}

@@ -1,0 +1,46 @@
+.aegis-trajectories-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-panel);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-trajectories-filter__group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.aegis-trajectories-filter__chips {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.aegis-trajectories-filter__spacer {
+  flex: 1 1 auto;
+}
+
+.aegis-trajectories-filter__icon-btn {
+  width: var(--size-control-base);
+  height: var(--size-control-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--fs-16);
+  font-family: var(--font-ui);
+}
+
+.aegis-trajectories-filter__icon-btn:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+}

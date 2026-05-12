@@ -1,0 +1,104 @@
+.aegis-three-pane {
+  display: grid;
+  grid-template-rows: 1fr;
+  height: calc(100vh - var(--header-height) - var(--space-12));
+  min-height: 400px;
+  background: var(--bg-page);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.aegis-three-pane__side {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.aegis-three-pane__side--right {
+  border-left: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-three-pane__side--left {
+  border-right: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-three-pane__center {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.aegis-three-pane__pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  font-family: var(--font-brand);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+  height: 36px;
+}
+
+.aegis-three-pane__pane-label {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}
+
+.aegis-three-pane__rotated-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+  margin: var(--space-3) 0;
+}
+
+.aegis-three-pane__toggle {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: var(--fs-16);
+  color: var(--text-muted);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  line-height: 1;
+}
+
+.aegis-three-pane__toggle:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.aegis-three-pane__side-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.aegis-three-pane__handle {
+  background: var(--border-hairline);
+  cursor: col-resize;
+  transition: background var(--motion-fast);
+}
+
+.aegis-three-pane__handle:hover,
+.aegis-three-pane__handle:active {
+  background: var(--border-emphasis);
+}
+
+.aegis-three-pane__handle--disabled {
+  background: var(--border-hairline);
+  cursor: default;
+  pointer-events: none;
+}

@@ -55,6 +55,8 @@ import {
   Panel,
   PanelTitle,
   ParquetViewer,
+  TraceTree,
+  type TraceSpan,
   PasswordField,
   ProjectSelector,
   RegisterForm,
@@ -2715,6 +2717,15 @@ function App() {
             <ParquetViewerSpecimen />
           </Specimen>
         </div>
+
+        <SectionDivider extra={<MetricLabel>OTel agent traces</MetricLabel>}>
+          TraceTree
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen caption='span hierarchy + inline gantt' span={3}>
+            <TraceTreeSpecimen />
+          </Specimen>
+        </div>
       </Panel>
 
       {/* ── AntD widgets under our theme ───────────────────────────── */}
@@ -3061,5 +3072,81 @@ function ParquetViewerSpecimen(): ReactNode {
       />
       <ParquetViewer file={file} title={file?.name ?? 'Parquet preview'} />
     </div>
+  );
+}
+
+const traceTreeDemoSpans: TraceSpan[] = [
+  {
+    id: 's',
+    name: 'agentm.session',
+    startMs: 0,
+    durationMs: 1840,
+    status: 'ok',
+    kind: 'session',
+  },
+  {
+    id: 't0',
+    parentId: 's',
+    name: 'agentm.turn',
+    startMs: 12,
+    durationMs: 905,
+    status: 'ok',
+    kind: 'turn 0',
+  },
+  {
+    id: 't0-llm',
+    parentId: 't0',
+    name: 'agentm.llm.request',
+    startMs: 18,
+    durationMs: 642,
+    status: 'ok',
+    kind: 'llm',
+  },
+  {
+    id: 't0-tool',
+    parentId: 't0',
+    name: 'agentm.tool.execute · bash',
+    startMs: 670,
+    durationMs: 230,
+    status: 'ok',
+    kind: 'tool',
+  },
+  {
+    id: 't1',
+    parentId: 's',
+    name: 'agentm.turn',
+    startMs: 940,
+    durationMs: 880,
+    status: 'error',
+    kind: 'turn 1',
+  },
+  {
+    id: 't1-llm',
+    parentId: 't1',
+    name: 'agentm.llm.request',
+    startMs: 945,
+    durationMs: 410,
+    status: 'ok',
+    kind: 'llm',
+  },
+  {
+    id: 't1-tool',
+    parentId: 't1',
+    name: 'agentm.tool.execute · http_get',
+    startMs: 1360,
+    durationMs: 455,
+    status: 'error',
+    kind: 'tool',
+  },
+];
+
+function TraceTreeSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string>('t1-tool');
+  return (
+    <TraceTree
+      spans={traceTreeDemoSpans}
+      selectedId={selected}
+      onSelect={(s) => setSelected(s.id)}
+    />
   );
 }

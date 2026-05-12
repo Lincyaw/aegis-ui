@@ -24,6 +24,8 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       proxy: (() => {
         const target = env.VITE_API_TARGET || 'http://127.0.0.1:8082';
+        const clickhouseTarget =
+          env.VITE_CLICKHOUSE_TARGET || 'http://127.0.0.1:8123';
         const opts: { target: string; changeOrigin: true } = {
           target,
           changeOrigin: true,
@@ -31,6 +33,11 @@ export default defineConfig(({ mode }) => {
         return {
           '/api/v2/inbox': { ...opts, ws: true },
           '/api/v2/blob': opts,
+          '/api/v2/clickhouse': {
+            target: clickhouseTarget,
+            changeOrigin: true,
+            rewrite: (p: string) => p.replace(/^\/api\/v2\/clickhouse/, ''),
+          },
           '/api': { ...opts, ws: true },
           '/.well-known': opts,
           '/authorize': opts,

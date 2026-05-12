@@ -1,0 +1,140 @@
+.aegis-storyline {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.aegis-storyline__empty {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.aegis-storyline__item {
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  overflow: hidden;
+  transition: border-color var(--motion-fast);
+}
+
+.aegis-storyline__item:hover {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-storyline__item--selected {
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 var(--size-hairline) var(--text-main);
+}
+
+.aegis-storyline__item--error {
+  border-color: var(--accent-warning);
+}
+
+.aegis-storyline__head-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.aegis-storyline__head {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--text-main);
+  min-width: 0;
+}
+
+.aegis-storyline__head:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-storyline__title {
+  flex: 1 1 auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aegis-storyline__dur {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.aegis-storyline__caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  background: transparent;
+  border: 0;
+  border-left: var(--size-hairline) solid var(--border-hairline);
+  padding: 0 var(--space-2);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--fs-11);
+  flex-shrink: 0;
+}
+
+.aegis-storyline__caret:hover {
+  color: var(--text-main);
+}
+
+.aegis-storyline__body {
+  padding: 0 var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-storyline__llm-stats {
+  padding: 0 var(--space-4) var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+}
+
+.aegis-storyline__code {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-3);
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 240px;
+  overflow: auto;
+}
+
+/* Kind-specific accent strip on the left edge */
+.aegis-storyline__item--llm {
+  border-left: 3px solid var(--ink-warn);
+}
+
+.aegis-storyline__item--tool {
+  border-left: 3px solid var(--avatar-hue-2);
+}
+
+.aegis-storyline__item--turn {
+  border-left: 3px solid var(--text-main);
+}
+
+.aegis-storyline__item--session {
+  border-left: 3px solid var(--avatar-hue-3);
+}
+
+.aegis-storyline__item--error {
+  border-left: 3px solid var(--accent-warning);
+}

@@ -1,0 +1,79 @@
+.aegis-shortcuts__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.aegis-shortcuts {
+  width: min(420px, 90vw);
+  background: var(--bg-panel);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popover);
+  display: flex;
+  flex-direction: column;
+}
+
+.aegis-shortcuts__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-shortcuts__title {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-semibold);
+}
+
+.aegis-shortcuts__close {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: var(--fs-24);
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.aegis-shortcuts__close:hover {
+  color: var(--text-main);
+}
+
+.aegis-shortcuts__list {
+  margin: 0;
+  padding: var(--space-4);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-4);
+}
+
+.aegis-shortcuts__row {
+  display: contents;
+}
+
+.aegis-shortcuts__list dt {
+  margin: 0;
+}
+
+.aegis-shortcuts__list dd {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+  align-self: center;
+}
+
+.aegis-shortcuts__list kbd {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  background: var(--bg-muted);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: var(--size-hairline) solid var(--border-hairline);
+  white-space: nowrap;
+}

@@ -72,3 +72,5 @@ export { DiffViewer } from './DiffViewer';
 export { Timeline } from './Timeline';
 export type { TimelineItem } from './Timeline';
 export { ParquetViewer } from './ParquetViewer';
+export { TraceTree } from './TraceTree';
+export type { TraceSpan } from './TraceTree';

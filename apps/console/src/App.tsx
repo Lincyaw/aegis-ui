@@ -16,6 +16,7 @@ import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';
 import { portalApp } from './apps/portal';
 import { settingsApp } from './apps/settings';
+import { trajectoriesApp } from './apps/trajectories';
 import { Callback } from './pages/auth/Callback';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { Login } from './pages/auth/Login';
@@ -49,6 +50,7 @@ export function ConsoleApp(): ReactElement {
                       portalApp,
                       containersApp,
                       datasetsApp,
+                      trajectoriesApp,
                       blobApp,
                       settingsApp,
                       galleryApp,
