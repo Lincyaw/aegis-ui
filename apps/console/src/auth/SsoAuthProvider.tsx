@@ -25,6 +25,10 @@ import {
   type UserInfo,
 } from './ssoClient';
 import {
+  SsoCallbackContext,
+  type SsoAuthHandle,
+} from './ssoCallbackContext';
+import {
   readPending,
   readTokens,
   writePending,
@@ -164,8 +168,6 @@ export function SsoAuthProvider({
     [cfg, setTokens],
   );
 
-  // Stash the completion callback on the context value so the Callback
-  // page can pick it up via a tiny custom hook without re-deriving PKCE.
   const value = useMemo<AuthContextValue<AegisAuthUser>>(
     () => ({
       status,
@@ -175,44 +177,16 @@ export function SsoAuthProvider({
     }),
     [status, user, signIn, signOut],
   );
+  const callbackHandle = useMemo<SsoAuthHandle>(
+    () => ({ complete: completeCallback }),
+    [completeCallback],
+  );
 
   return (
     <AuthProvider value={value}>
-      <CallbackBridge completeCallback={completeCallback}>
+      <SsoCallbackContext.Provider value={callbackHandle}>
         {children}
-      </CallbackBridge>
+      </SsoCallbackContext.Provider>
     </AuthProvider>
   );
-}
-
-// CallbackBridge exposes the OIDC code-exchange function via a window-scoped
-// hook so the /auth/callback route can complete the flow without ripping
-// the provider's internal state through context. The bridge re-renders
-// each time the completion function identity changes.
-interface CallbackBridgeProps {
-  completeCallback: (code: string, state: string) => Promise<string>;
-  children: ReactNode;
-}
-export interface SsoAuthHandle {
-  complete: (code: string, state: string) => Promise<string>;
-}
-declare global {
-  // Re-declared in window scope so /auth/callback can resolve at runtime.
-  interface Window {
-    __aegisSsoAuth?: SsoAuthHandle;
-  }
-}
-function CallbackBridge({
-  completeCallback,
-  children,
-}: CallbackBridgeProps): ReactElement {
-  useEffect(() => {
-    window.__aegisSsoAuth = { complete: completeCallback };
-    return () => {
-      if (window.__aegisSsoAuth?.complete === completeCallback) {
-        window.__aegisSsoAuth = undefined;
-      }
-    };
-  }, [completeCallback]);
-  return children as ReactElement;
 }

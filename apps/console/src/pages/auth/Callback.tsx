@@ -3,10 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AuthLayout } from '@OperationsPAI/aegis-ui';
 
+import { useSsoCallback } from '../../auth/ssoCallbackContext';
+
 export function Callback(): ReactElement {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [error, setError] = useState<string | undefined>();
+  const handle = useSsoCallback();
 
   useEffect(() => {
     const code = params.get('code');
@@ -20,11 +23,6 @@ export function Callback(): ReactElement {
       setError('Missing code/state in callback');
       return;
     }
-    const handle = window.__aegisSsoAuth;
-    if (!handle) {
-      setError('Auth bridge not ready');
-      return;
-    }
     void (async () => {
       try {
         const dest = await handle.complete(code, state);
@@ -33,7 +31,7 @@ export function Callback(): ReactElement {
         setError(e instanceof Error ? e.message : 'Sign in failed');
       }
     })();
-  }, [params, navigate]);
+  }, [params, navigate, handle]);
 
   return (
     <AuthLayout
