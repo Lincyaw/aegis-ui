@@ -26,6 +26,12 @@ export interface RuntimeConfig {
   clickhouseTracesTable: string;
   clickhouseUser?: string;
   clickhousePassword?: string;
+  /** OpenAI-compatible chat completions base URL (no trailing slash). Empty disables AI. */
+  aiBaseUrl: string;
+  /** Model id for chat completions. */
+  aiModel: string;
+  /** Bearer token. Read from localStorage override only — never injected via window. */
+  aiApiKey: string;
 }
 
 declare global {
@@ -44,6 +50,9 @@ const DEFAULTS: RuntimeConfig = {
   clickhouseUrl: '',
   clickhouseDatabase: 'otel',
   clickhouseTracesTable: 'otel_traces',
+  aiBaseUrl: '',
+  aiModel: 'gpt-4o-mini',
+  aiApiKey: '',
 };
 
 function trimTrailingSlash(s: string): string {
@@ -63,7 +72,12 @@ function readLocalOverride(): Partial<RuntimeConfig> {
 }
 
 function compose(): RuntimeConfig {
-  const win = (typeof window !== 'undefined' && window.__AEGIS_CONFIG__) || {};
+  const winRaw =
+    (typeof window !== 'undefined' && window.__AEGIS_CONFIG__) || {};
+  // Why: aiApiKey is a secret — never accept it from /config.js (the page-injected
+  // window blob). Only the per-user localStorage override may set it.
+  const win: Partial<RuntimeConfig> = { ...winRaw };
+  delete win.aiApiKey;
   const ls = readLocalOverride();
   const merged = { ...DEFAULTS, ...win, ...ls };
   const gateway = trimTrailingSlash(merged.gatewayUrl);
@@ -72,6 +86,7 @@ function compose(): RuntimeConfig {
     gatewayUrl: gateway,
     ssoOrigin: trimTrailingSlash(merged.ssoOrigin || gateway),
     clickhouseUrl: trimTrailingSlash(merged.clickhouseUrl),
+    aiBaseUrl: trimTrailingSlash(merged.aiBaseUrl),
   };
 }
 

@@ -451,6 +451,57 @@ const MOCK_AGENT_VALUE: AgentContextValue = {
   send: () => undefined,
 };
 
+/* ── Gallery demo actions (Pattern B) ──────────────────────────────── */
+
+const galleryNoop = (label: string) => (): void => {
+  console.warn(`[gallery] action invoked: ${label}`);
+};
+
+const GALLERY_ACTIONS = {
+  themeCycle: {
+    id: 'gallery.theme.cycle',
+    label: 'Cycle theme',
+    description: 'Demo action — does nothing real.',
+    run: galleryNoop('theme.cycle'),
+  },
+  notifOpen: {
+    id: 'gallery.notif.open',
+    label: 'Open inbox',
+    description: 'Demo action — does nothing real.',
+    run: galleryNoop('notif.open'),
+  },
+  controlRun: {
+    id: 'gallery.control.run',
+    label: 'Run control item',
+    description: 'Demo action — does nothing real.',
+    run: galleryNoop('control.run'),
+  },
+  dropdownView: {
+    id: 'gallery.dropdown.view-details',
+    label: 'View details',
+    description: 'Demo action — does nothing real.',
+    run: galleryNoop('dropdown.view-details'),
+  },
+  tabOverview: {
+    id: 'gallery.tabs.overview',
+    label: 'Overview tab',
+    description: 'Demo action — does nothing real.',
+    run: galleryNoop('tabs.overview'),
+  },
+  projectSelect: {
+    id: 'gallery.project.select-catalog',
+    label: 'Select catalog-service',
+    description: 'Demo action — does nothing real.',
+    run: galleryNoop('project.select-catalog'),
+  },
+  envSelectProd: {
+    id: 'gallery.env.select-prod',
+    label: 'Switch to Production',
+    description: 'Demo action — does nothing real.',
+    run: galleryNoop('env.select-prod'),
+  },
+} satisfies Record<string, AegisAction<void, void>>;
+
 /* ── Helpers ────────────────────────────────────────────────────────── */
 
 interface SpecimenProps {
@@ -1468,7 +1519,20 @@ function App() {
             <MonoValue size='sm'>0.142</MonoValue>
           </Specimen>
           <Specimen caption='base · medium'>
-            <MonoValue size='base'>0.142</MonoValue>
+            <MonoValue
+              size='base'
+              surface={{
+                id: 'gallery.mono.value',
+                kind: 'value',
+                label: 'Demo numeric value',
+                askSuggestions: ['What does this number mean?'],
+                project: (children) => ({
+                  fields: [{ name: 'value', type: 'number', value: String(children) }],
+                }),
+              }}
+            >
+              0.142
+            </MonoValue>
           </Specimen>
           <Specimen caption='lg · medium'>
             <MonoValue size='lg'>0.142</MonoValue>
@@ -1504,8 +1568,9 @@ function App() {
 
         <SectionDivider>ThemeToggle</SectionDivider>
         <div className='gallery__row'>
+          {/* right-click any surface/action below (or Cmd/Ctrl+`.`) to open the AskOverlay */}
           <Specimen caption='one-click cycler · light → dark → system'>
-            <ThemeToggle />
+            <ThemeToggle action={GALLERY_ACTIONS.themeCycle} />
           </Specimen>
         </div>
       </Panel>
@@ -1514,7 +1579,21 @@ function App() {
       <Panel title={<PanelTitle size='lg'>Surface — Panel</PanelTitle>}>
         <SectionDivider>Panel</SectionDivider>
         <div className='gallery__row gallery__row--panels'>
-          <Panel title='Default panel' extra={<MetricLabel>label</MetricLabel>}>
+          <Panel
+            title='Default panel'
+            extra={<MetricLabel>label</MetricLabel>}
+            surface={{
+              id: 'gallery.panel.basic',
+              kind: 'panel',
+              label: 'Default panel',
+              askSuggestions: ['What is this panel?', 'Summarize this panel'],
+              project: () => ({
+                fields: [
+                  { name: 'shape', type: 'string', value: 'hairline border, 16px radius' },
+                ],
+              }),
+            }}
+          >
             <p className='gallery__panel-body'>
               Hairline border, 16 px radius, ultra-subtle shadow. Title slot
               accepts string or rich node.
@@ -1567,7 +1646,20 @@ function App() {
             <Chip>queued</Chip>
           </Specimen>
           <Specimen caption='ink'>
-            <Chip tone='ink'>running</Chip>
+            <Chip
+              tone='ink'
+              surface={{
+                id: 'gallery.chip.running',
+                kind: 'tag',
+                label: 'Status chip · running',
+                askSuggestions: ['What does this status mean?'],
+                project: (children) => ({
+                  fields: [{ name: 'status', type: 'string', value: String(children) }],
+                }),
+              }}
+            >
+              running
+            </Chip>
           </Specimen>
           <Specimen caption='warning'>
             <Chip tone='warning'>failed</Chip>
@@ -1582,7 +1674,22 @@ function App() {
 
         <SectionDivider>BlastRadiusBar</SectionDivider>
         <div className='gallery__stack'>
-          <BlastRadiusBar value={20} centerLabel='Node Group A · 20 %' />
+          <BlastRadiusBar
+            value={20}
+            centerLabel='Node Group A · 20 %'
+            surface={{
+              id: 'gallery.blast.20',
+              kind: 'metric',
+              label: 'Blast radius · Node Group A',
+              askSuggestions: ['Is this blast radius safe?'],
+              project: (data) => ({
+                fields: [
+                  { name: 'value', type: 'number', value: data.value },
+                  { name: 'centerLabel', type: 'string', value: data.centerLabel ?? '' },
+                ],
+              }),
+            }}
+          />
           <BlastRadiusBar value={65} centerLabel='Node Group A · 65 %' />
           <BlastRadiusBar value={92} centerLabel='Node Group A · 92 %' />
           <BlastRadiusBar value={50} hideTicks />
@@ -1594,7 +1701,24 @@ function App() {
         <SectionDivider>StatBlock</SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='horizontal'>
-            <StatBlock label='latency_p99' value='142' unit='ms' />
+            <StatBlock
+              label='latency_p99'
+              value='142'
+              unit='ms'
+              surface={{
+                id: 'gallery.stat.latency-p99',
+                kind: 'metric',
+                label: 'latency_p99',
+                askSuggestions: ['Is this latency normal?'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'metric', type: 'string', value: String(data.label) },
+                    { name: 'value', type: 'string', value: String(data.value) },
+                    { name: 'unit', type: 'string', value: String(data.unit ?? '') },
+                  ],
+                }),
+              }}
+            />
           </Specimen>
           <Specimen caption='vertical · emphasized'>
             <StatBlock
@@ -1615,7 +1739,22 @@ function App() {
         <SectionDivider>KeyValueList</SectionDivider>
         <div className='gallery__row gallery__row--wide'>
           <Specimen caption='mono keys (parameters)' span={2}>
-            <KeyValueList items={KV_PARAMS} />
+            <KeyValueList
+              items={KV_PARAMS}
+              surface={{
+                id: 'gallery.kv.params',
+                kind: 'detail',
+                label: 'Experiment parameters',
+                askSuggestions: ['What do these parameters mean?'],
+                project: (items) => ({
+                  fields: items.map((it) => ({
+                    name: String(it.k),
+                    type: 'string',
+                    value: String(it.v),
+                  })),
+                }),
+              }}
+            />
           </Specimen>
           <Specimen caption='uppercase keys (metadata)' span={2}>
             <KeyValueList items={KV_META} uppercaseKeys />
@@ -1626,7 +1765,21 @@ function App() {
         <div className='gallery__row'>
           <Specimen caption='rising'>
             <div className='gallery__spark-host'>
-              <SparkLine points={SPARK_RISING} />
+              <SparkLine
+                points={SPARK_RISING}
+                surface={{
+                  id: 'gallery.spark.rising',
+                  kind: 'chart',
+                  label: 'Sparkline · rising',
+                  askSuggestions: ['What does this trend indicate?'],
+                  project: (points) => ({
+                    fields: [
+                      { name: 'count', type: 'number', value: points.length },
+                      { name: 'last', type: 'number', value: points[points.length - 1] ?? 0 },
+                    ],
+                  }),
+                }}
+              />
             </div>
           </Specimen>
           <Specimen caption='dip / recover'>
@@ -1660,6 +1813,19 @@ function App() {
               value='9 384'
               unit='rps'
               sparkline={SPARK_RISING}
+              surface={{
+                id: 'gallery.metric.throughput',
+                kind: 'metric',
+                label: 'Throughput metric card',
+                askSuggestions: ['Is throughput trending up?'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'metric', type: 'string', value: String(data.label) },
+                    { name: 'value', type: 'string', value: String(data.value) },
+                    { name: 'unit', type: 'string', value: String(data.unit ?? '') },
+                  ],
+                }),
+              }}
             />
           </Specimen>
           <Specimen caption='inverted + sparkline'>
@@ -1755,6 +1921,7 @@ function App() {
         <SectionDivider>Static rows (no onClick)</SectionDivider>
         <div className='gallery__list'>
           <ControlListItem
+            action={GALLERY_ACTIONS.controlRun}
             left={
               <>
                 <StatusDot pulse />
@@ -1865,6 +2032,20 @@ function App() {
               },
             ]}
             rowKey={(row) => row.id}
+            surface={{
+              id: 'gallery.table.injections',
+              kind: 'table',
+              label: 'Injections table',
+              askSuggestions: ['Which injections are failing?'],
+              project: (rows) => ({
+                entities: rows.map((r) => ({
+                  id: r.id,
+                  type: 'injection',
+                  label: r.id,
+                  data: { type: r.type, target: r.target, state: r.state },
+                })),
+              }),
+            }}
           />
         </Specimen>
 
@@ -1910,6 +2091,20 @@ function App() {
               { key: 'status', label: 'Status' },
             ]}
             selectedId='ds-002'
+            surface={{
+              id: 'gallery.list.datasets',
+              kind: 'list',
+              label: 'Datasets list',
+              askSuggestions: ['Which dataset is still syncing?'],
+              project: (rows) => ({
+                entities: rows.map((r) => ({
+                  id: r.id,
+                  type: 'dataset',
+                  label: r.name,
+                  data: { status: r.status },
+                })),
+              }),
+            }}
           />
         </Specimen>
       </Panel>
@@ -1922,7 +2117,22 @@ function App() {
         <SectionDivider>ToolCallCard</SectionDivider>
         <div className='gallery__row gallery__row--wide'>
           <Specimen caption='with result' span={2}>
-            <ToolCallCard data={TOOL_QUERY_METRICS} />
+            <ToolCallCard
+              data={TOOL_QUERY_METRICS}
+              surface={{
+                id: 'gallery.toolcall.query-metrics',
+                kind: 'panel',
+                label: 'Tool call · query_metrics',
+                askSuggestions: ['What did this tool call return?'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'tool', type: 'string', value: data.name },
+                    { name: 'arguments', type: 'string', value: data.arguments ?? '' },
+                    { name: 'result', type: 'string', value: data.result ?? '' },
+                  ],
+                }),
+              }}
+            />
           </Specimen>
           <Specimen caption='no result yet' span={2}>
             <ToolCallCard
@@ -1950,7 +2160,23 @@ function App() {
             />
           </Specimen>
           <Specimen caption='expanded · full step' span={2}>
-            <TrajectoryStep data={TRAJECTORY_STEPS[0]} defaultExpanded />
+            <TrajectoryStep
+              data={TRAJECTORY_STEPS[0]}
+              defaultExpanded
+              surface={{
+                id: 'gallery.trajectory.step1',
+                kind: 'panel',
+                label: 'Trajectory step · 1',
+                askSuggestions: ['Why did the agent take this step?'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'step', type: 'number', value: data.step },
+                    { name: 'actionType', type: 'string', value: data.actionType ?? '' },
+                    { name: 'durationMs', type: 'number', value: data.durationMs ?? 0 },
+                  ],
+                }),
+              }}
+            />
           </Specimen>
         </div>
 
@@ -1961,6 +2187,18 @@ function App() {
             status='completed'
             totalDurationMs={4790}
             steps={TRAJECTORY_STEPS}
+            surface={{
+              id: 'gallery.trajectory.timeline',
+              kind: 'timeline',
+              label: 'rca-agent trajectory',
+              askSuggestions: ['Summarize the agent reasoning'],
+              project: (steps) => ({
+                fields: [
+                  { name: 'stepCount', type: 'number', value: steps.length },
+                  { name: 'agent', type: 'string', value: 'rca-agent' },
+                ],
+              }),
+            }}
           />
         </div>
       </Panel>
@@ -1968,7 +2206,21 @@ function App() {
       {/* ── Logs / Terminal ────────────────────────────────────────── */}
       <Panel title={<PanelTitle size='lg'>Logs — Terminal</PanelTitle>}>
         <SectionDivider>Terminal · plain</SectionDivider>
-        <Terminal lines={TERMINAL_LINES} />
+        <Terminal
+          lines={TERMINAL_LINES}
+          surface={{
+            id: 'gallery.terminal.plain',
+            kind: 'terminal',
+            label: 'Experiment log',
+            askSuggestions: ['Summarize the log', 'Anything anomalous?'],
+            project: (lines) => ({
+              fields: [
+                { name: 'lineCount', type: 'number', value: lines.length },
+                { name: 'lastLine', type: 'string', value: lines[lines.length - 1]?.body ?? '' },
+              ],
+            }),
+          }}
+        />
 
         <SectionDivider>Terminal · with log levels</SectionDivider>
         <Terminal
@@ -2006,6 +2258,18 @@ function App() {
             <CodeBlock
               language='json'
               code='{\n  "service": "catalog",\n  "metric": "latency_p99",\n  "value": 482,\n  "unit": "ms"\n}'
+              surface={{
+                id: 'gallery.codeblock.json',
+                kind: 'code',
+                label: 'JSON snippet',
+                askSuggestions: ['Explain this JSON'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'language', type: 'string', value: data.language },
+                    { name: 'lines', type: 'number', value: data.code.split('\n').length },
+                  ],
+                }),
+              }}
             />
           </Specimen>
           <Specimen caption='bash' span={2}>
@@ -2022,7 +2286,7 @@ function App() {
         <SectionDivider>Tabs</SectionDivider>
         <RosettaTabs
           items={[
-            { key: 'overview', label: 'Overview' },
+            { key: 'overview', label: 'Overview', action: GALLERY_ACTIONS.tabOverview },
             { key: 'params', label: 'Parameters' },
             { key: 'logs', label: 'Logs' },
           ]}
@@ -2050,7 +2314,22 @@ function App() {
         <SectionDivider>Avatar</SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='initials · sm'>
-            <Avatar size='sm' name='Ada Lovelace' />
+            <Avatar
+              size='sm'
+              name='Ada Lovelace'
+              surface={{
+                id: 'gallery.avatar.ada',
+                kind: 'entity',
+                label: 'Ada Lovelace',
+                askSuggestions: ['Who is this user?'],
+                project: (data) => ({
+                  entities: [
+                    { id: 'user-ada', type: 'user', label: data.name },
+                  ],
+                  fields: [{ name: 'name', type: 'string', value: data.name }],
+                }),
+              }}
+            />
           </Specimen>
           <Specimen caption='initials · md'>
             <Avatar size='md' name='Grace Hopper' />
@@ -2244,7 +2523,7 @@ function App() {
             <DropdownMenu
               trigger={<Chip tone='ink'>Open menu</Chip>}
               items={[
-                { key: 'view', label: 'View details' },
+                { key: 'view', label: 'View details', action: GALLERY_ACTIONS.dropdownView },
                 { key: 'edit', label: 'Edit' },
                 { key: 'del', label: 'Delete', danger: true },
               ]}
@@ -2279,7 +2558,7 @@ function App() {
           <Specimen caption='with projects' span={2}>
             <ProjectSelector
               projects={[
-                { id: '1', name: 'catalog-service' },
+                { id: '1', name: 'catalog-service', action: GALLERY_ACTIONS.projectSelect },
                 { id: '2', name: 'order-platform' },
                 { id: '3', name: 'inventory-v2' },
               ]}
@@ -2421,7 +2700,7 @@ function App() {
           <div className='gallery__row'>
             <Specimen caption='trigger · click to open'>
               <div className='gallery__notif-bell-host'>
-                <NotificationBell inboxPath='/inbox' />
+                <NotificationBell inboxPath='/inbox' action={GALLERY_ACTIONS.notifOpen} />
               </div>
             </Specimen>
           </div>
@@ -2430,7 +2709,22 @@ function App() {
         <SectionDivider>InboxPage</SectionDivider>
         <NotificationProvider value={MOCK_NOTIF_VALUE}>
           <div className='gallery__inbox-frame'>
-            <InboxPage />
+            <InboxPage
+              surface={{
+                id: 'gallery.inbox',
+                kind: 'list',
+                label: 'Inbox',
+                askSuggestions: ['Any unread alerts?'],
+                project: (items) => ({
+                  entities: items.slice(0, 3).map((n) => ({
+                    id: n.id,
+                    type: 'notification',
+                    label: n.title,
+                    data: { severity: n.severity, read: n.read },
+                  })),
+                }),
+              }}
+            />
           </div>
         </NotificationProvider>
       </Panel>
@@ -2455,6 +2749,18 @@ function App() {
               avatar={<Avatar name='Aegis Assistant' size='sm' />}
               content='Creating project rosetta-lab under the platform team.'
               timestamp='12:04'
+              surface={{
+                id: 'gallery.chat.assistant',
+                kind: 'message',
+                label: 'Assistant message',
+                askSuggestions: ['Summarize this message'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'role', type: 'string', value: data.role },
+                    { name: 'content', type: 'string', value: String(data.content) },
+                  ],
+                }),
+              }}
             />
           </Specimen>
           <Specimen caption='assistant · with command card' span={2}>
@@ -2482,6 +2788,18 @@ function App() {
               commandId={MOCK_INVOCATION_PENDING.commandId}
               args={MOCK_INVOCATION_PENDING.args}
               status={MOCK_INVOCATION_PENDING.status}
+              surface={{
+                id: 'gallery.cmdinvoke.pending',
+                kind: 'panel',
+                label: 'Command invocation · pending',
+                askSuggestions: ['What is this command doing?'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'commandId', type: 'string', value: data.commandId },
+                    { name: 'status', type: 'string', value: String(data.status ?? '') },
+                  ],
+                }),
+              }}
             />
           </Specimen>
           <Specimen caption='success · undo' span={2}>
@@ -2527,6 +2845,15 @@ function App() {
                 footer={
                   <MetricLabel size='xs'>Aegis Assistant is typing…</MetricLabel>
                 }
+                surface={{
+                  id: 'gallery.chatlist.demo',
+                  kind: 'chat',
+                  label: 'Chat transcript',
+                  askSuggestions: ['Summarize the conversation'],
+                  project: (count) => ({
+                    fields: [{ name: 'messageCount', type: 'number', value: count }],
+                  }),
+                }}
               >
                 <ChatMessage
                   role='user'
@@ -2555,6 +2882,15 @@ function App() {
               footer={
                 <ChatComposer onSend={() => undefined} sending={false} />
               }
+              surface={{
+                id: 'gallery.agentpanel',
+                kind: 'panel',
+                label: 'Agent panel',
+                askSuggestions: ['What is this agent doing?'],
+                project: () => ({
+                  fields: [{ name: 'agent', type: 'string', value: 'Aegis Assistant' }],
+                }),
+              }}
             >
               <ChatMessageList>
                 {MOCK_AGENT_MESSAGES.map((m) => (
@@ -2649,6 +2985,18 @@ function App() {
               mimeType='image/png'
               name='hero.png'
               maxHeight={200}
+              surface={{
+                id: 'gallery.filepreview.image',
+                kind: 'preview',
+                label: 'File preview · hero.png',
+                askSuggestions: ['What kind of file is this?'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'src', type: 'string', value: data.src },
+                    { name: 'mimeType', type: 'string', value: data.mimeType ?? '' },
+                  ],
+                }),
+              }}
             />
           </Specimen>
           <Specimen caption='binary fallback'>
@@ -2672,6 +3020,18 @@ function App() {
               language='json'
               onChange={() => undefined}
               height={160}
+              surface={{
+                id: 'gallery.editor.json',
+                kind: 'editor',
+                label: 'Code editor · json',
+                askSuggestions: ['Validate this config'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'language', type: 'string', value: data.language },
+                    { name: 'lines', type: 'number', value: data.value.split('\n').length },
+                  ],
+                }),
+              }}
             />
           </Specimen>
           <Specimen caption='yaml · read-only' span={2}>
@@ -2695,6 +3055,18 @@ function App() {
               splitView
               leftTitle='revision 41'
               rightTitle='revision 42'
+              surface={{
+                id: 'gallery.diff.json',
+                kind: 'diff',
+                label: 'Diff · json revision',
+                askSuggestions: ['What changed between revisions?'],
+                project: (data) => ({
+                  fields: [
+                    { name: 'oldLines', type: 'number', value: data.oldValue.split('\n').length },
+                    { name: 'newLines', type: 'number', value: data.newValue.split('\n').length },
+                  ],
+                }),
+              }}
             />
           </Specimen>
           <Specimen caption='unified · diff-only' span={3}>
@@ -2713,6 +3085,20 @@ function App() {
         <div className='gallery__row gallery__row--wide'>
           <Specimen caption='audit log · mixed actors' span={3}>
             <Timeline
+              surface={{
+                id: 'gallery.timeline.audit',
+                kind: 'timeline',
+                label: 'Audit log timeline',
+                askSuggestions: ['What changed recently?'],
+                project: (items) => ({
+                  entities: items.map((it) => ({
+                    id: it.id,
+                    type: 'audit-event',
+                    label: typeof it.title === 'string' ? it.title : it.id,
+                    data: { timestamp: it.timestamp },
+                  })),
+                }),
+              }}
               items={[
                 {
                   id: '1',
@@ -3026,6 +3412,7 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
       label: 'Production',
       badge: 'default',
       hint: 'https://api.example.com',
+      action: GALLERY_ACTIONS.envSelectProd,
     },
     {
       id: 'stage',
@@ -3193,7 +3580,22 @@ function ParquetViewerSpecimen(): ReactNode {
         accept={{ 'application/octet-stream': ['.parquet'] }}
         multiple={false}
       />
-      <ParquetViewer file={file} title={file?.name ?? 'Parquet preview'} />
+      <ParquetViewer
+        file={file}
+        title={file?.name ?? 'Parquet preview'}
+        surface={{
+          id: 'gallery.parquet.preview',
+          kind: 'preview',
+          label: 'Parquet preview',
+          askSuggestions: ['Describe this file'],
+          project: (data) => ({
+            fields: [
+              { name: 'totalRows', type: 'number', value: data.totalRows },
+              { name: 'columnCount', type: 'number', value: data.columns.length },
+            ],
+          }),
+        }}
+      />
     </div>
   );
 }
@@ -3270,6 +3672,20 @@ function TraceTreeSpecimen(): ReactNode {
       spans={traceTreeDemoSpans}
       selectedId={selected}
       onSelect={(s) => setSelected(s.id)}
+      surface={{
+        id: 'gallery.trace.tree',
+        kind: 'tree',
+        label: 'OTel trace tree',
+        askSuggestions: ['Which span is failing?'],
+        project: (spans) => ({
+          entities: spans.map((sp) => ({
+            id: sp.id,
+            type: 'span',
+            label: sp.name,
+            data: { status: sp.status, durationMs: sp.durationMs },
+          })),
+        }),
+      }}
     />
   );
 }

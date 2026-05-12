@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import { AegisShell, InboxPage, ThemeToggle } from '@lincyaw/aegis-ui';
+import { AegisShell, InboxPage } from '@lincyaw/aegis-ui';
 
+import { AiDockHost } from './ai/AiDockHost';
 import { SsoAuthProvider } from './auth/SsoAuthProvider';
 import { RealNotificationProvider } from './notifications/RealNotificationProvider';
 import { Callback } from './pages/auth/Callback';
@@ -42,7 +43,7 @@ export function ConsoleApp(): ReactElement {
                     { path: '/error/forbidden', element: <Forbidden /> },
                     { path: '/error/server', element: <ServerError /> },
                   ]}
-                  headerActions={<ThemeToggle />}
+                  headerActions={<AiDockHost />}
                   inboxPath='/inbox'
                   userMenu={[
                     {

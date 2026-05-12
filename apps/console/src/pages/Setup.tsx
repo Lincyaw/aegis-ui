@@ -20,6 +20,7 @@ interface FieldDef {
   label: string;
   placeholder: string;
   hint: string;
+  secret?: boolean;
 }
 
 const FIELDS: FieldDef[] = [
@@ -47,6 +48,25 @@ const FIELDS: FieldDef[] = [
     placeholder: 'otel',
     hint: 'Database holding otel_traces. Default: otel.',
   },
+  {
+    key: 'aiBaseUrl',
+    label: 'AI base URL',
+    placeholder: 'https://api.openai.com/v1',
+    hint: 'OpenAI-compatible chat completions endpoint. Empty disables the in-app AI panel.',
+  },
+  {
+    key: 'aiModel',
+    label: 'AI model',
+    placeholder: 'gpt-4o-mini',
+    hint: 'Model id passed to the chat completions endpoint.',
+  },
+  {
+    key: 'aiApiKey',
+    label: 'AI API key',
+    placeholder: 'sk-…',
+    hint: 'Bearer token. Stored only in this browser (localStorage); never injected from /config.js.',
+    secret: true,
+  },
 ];
 
 export function Setup(): ReactElement {
@@ -57,6 +77,9 @@ export function Setup(): ReactElement {
     ssoOrigin: current.ssoOrigin === current.gatewayUrl ? '' : current.ssoOrigin,
     clickhouseUrl: current.clickhouseUrl,
     clickhouseDatabase: current.clickhouseDatabase,
+    aiBaseUrl: current.aiBaseUrl,
+    aiModel: current.aiModel,
+    aiApiKey: current.aiApiKey,
   });
   const [saved, setSaved] = useState(false);
 
@@ -67,6 +90,9 @@ export function Setup(): ReactElement {
       ssoOrigin: draft.ssoOrigin?.trim() ?? '',
       clickhouseUrl: draft.clickhouseUrl?.trim() ?? '',
       clickhouseDatabase: draft.clickhouseDatabase?.trim() || 'otel',
+      aiBaseUrl: draft.aiBaseUrl?.trim() ?? '',
+      aiModel: draft.aiModel?.trim() || 'gpt-4o-mini',
+      aiApiKey: draft.aiApiKey ?? '',
     });
     setSaved(true);
     window.setTimeout(() => {
@@ -106,7 +132,7 @@ export function Setup(): ReactElement {
           >
             <span style={{ font: 'var(--text-label)' }}>{f.label}</span>
             <input
-              type='text'
+              type={f.secret ? 'password' : 'text'}
               value={draft[f.key] ?? ''}
               placeholder={f.placeholder}
               onChange={(e) => {

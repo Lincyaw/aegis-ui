@@ -1,0 +1,60 @@
+.aegis-ai-dock {
+  position: fixed;
+  top: var(--header-height);
+  right: 0;
+  bottom: 0;
+  width: var(--ask-panel-width);
+  max-width: 100vw;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-popover);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  animation: aegis-ai-dock-in var(--motion-fast);
+}
+
+.aegis-ai-dock > .aegis-agent-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.aegis-ai-dock__header-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.aegis-ai-dock__btn {
+  font: var(--text-caption);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+
+.aegis-ai-dock__btn:hover {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+@keyframes aegis-ai-dock-in {
+  from {
+    transform: translateX(var(--space-6));
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .aegis-ai-dock {
+    top: 0;
+    width: 100vw;
+    border-left: none;
+  }
+}
