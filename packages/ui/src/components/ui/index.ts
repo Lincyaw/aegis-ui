@@ -71,3 +71,4 @@ export type { CodeEditorLanguage } from './CodeEditor';
 export { DiffViewer } from './DiffViewer';
 export { Timeline } from './Timeline';
 export type { TimelineItem } from './Timeline';
+export { ParquetViewer } from './ParquetViewer';

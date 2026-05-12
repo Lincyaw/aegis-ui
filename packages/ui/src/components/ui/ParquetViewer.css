@@ -1,0 +1,146 @@
+.aegis-parquet-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.aegis-parquet-viewer__empty,
+.aegis-parquet-viewer__error {
+  padding: var(--space-6);
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+}
+
+.aegis-parquet-viewer__error {
+  color: var(--accent-warning);
+}
+
+.aegis-parquet-viewer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.aegis-parquet-viewer__title {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-16);
+  color: var(--text-main);
+}
+
+.aegis-parquet-viewer__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}
+
+.aegis-parquet-viewer__dot {
+  color: var(--border-emphasis);
+}
+
+.aegis-parquet-viewer__created-by {
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aegis-parquet-viewer__schema {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.aegis-parquet-viewer__chip-name {
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-main);
+}
+
+.aegis-parquet-viewer__chip-type {
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+  margin-left: var(--space-1);
+}
+
+.aegis-parquet-viewer__table {
+  min-height: var(--space-12);
+}
+
+.aegis-parquet-viewer__col-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px);
+}
+
+.aegis-parquet-viewer__col-name {
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  color: var(--text-main);
+}
+
+.aegis-parquet-viewer__col-type {
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+  text-transform: lowercase;
+}
+
+.aegis-parquet-viewer__cell {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+}
+
+.aegis-parquet-viewer__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.aegis-parquet-viewer__page-btn {
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.aegis-parquet-viewer__page-btn:hover:not(:disabled) {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+}
+
+.aegis-parquet-viewer__page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.aegis-parquet-viewer__page-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}

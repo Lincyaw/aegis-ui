@@ -54,6 +54,7 @@ import {
   PageHeader,
   Panel,
   PanelTitle,
+  ParquetViewer,
   PasswordField,
   ProjectSelector,
   RegisterForm,
@@ -2705,6 +2706,15 @@ function App() {
             />
           </Specimen>
         </div>
+
+        <SectionDivider extra={<MetricLabel>hyparquet</MetricLabel>}>
+          ParquetViewer
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen caption='drop a .parquet to inspect' span={3}>
+            <ParquetViewerSpecimen />
+          </Specimen>
+        </div>
       </Panel>
 
       {/* ── AntD widgets under our theme ───────────────────────────── */}
@@ -3032,6 +3042,24 @@ function CommandGallerySpecimen(): ReactNode {
       <span className='gallery__specimen-hint'>
         mod+k toggles globally while a CommandProvider is mounted.
       </span>
+    </div>
+  );
+}
+
+function ParquetViewerSpecimen(): ReactNode {
+  const [file, setFile] = useState<File | undefined>();
+  return (
+    <div className='gallery__stack'>
+      <FileDropzone
+        onDrop={(files) => {
+          if (files[0]) {
+            setFile(files[0]);
+          }
+        }}
+        accept={{ 'application/octet-stream': ['.parquet'] }}
+        multiple={false}
+      />
+      <ParquetViewer file={file} title={file?.name ?? 'Parquet preview'} />
     </div>
   );
 }
