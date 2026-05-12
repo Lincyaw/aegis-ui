@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button } from 'antd';
 
-import { ErrorState } from '@OperationsPAI/aegis-ui';
+import { ErrorState } from '@lincyaw/aegis-ui';
 
 export function Forbidden(): ReactElement {
   const navigate = useNavigate();

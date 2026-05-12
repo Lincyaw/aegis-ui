@@ -13,7 +13,7 @@ import {
   type NotificationContextValue,
   NotificationProvider,
   useAuth,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { gatewayUrlFor } from '../config/runtime';
 

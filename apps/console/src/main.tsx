@@ -4,8 +4,8 @@ import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/geist';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
-import { getAegisTheme, ThemeProvider, useTheme } from '@OperationsPAI/aegis-ui';
-import '@OperationsPAI/aegis-ui/style.css';
+import { getAegisTheme, ThemeProvider, useTheme } from '@lincyaw/aegis-ui';
+import '@lincyaw/aegis-ui/style.css';
 import { App as AntdApp, ConfigProvider } from 'antd';
 
 import { ConsoleApp } from './App';

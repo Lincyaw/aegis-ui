@@ -1,7 +1,7 @@
 import { type ReactElement, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { AuthLayout } from '@OperationsPAI/aegis-ui';
+import { AuthLayout } from '@lincyaw/aegis-ui';
 
 import { useSsoCallback } from '../../auth/ssoCallbackContext';
 

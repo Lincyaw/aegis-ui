@@ -7,7 +7,7 @@ import {
   ProjectOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
-import type { AegisApp } from '@OperationsPAI/aegis-ui';
+import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import ContainerCreate from './pages/ContainerCreate';
 import ContainerDetail from './pages/ContainerDetail';

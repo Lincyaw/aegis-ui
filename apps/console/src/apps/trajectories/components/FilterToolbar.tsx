@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 
-import { Chip, MetricLabel } from '@OperationsPAI/aegis-ui';
+import { Chip, MetricLabel } from '@lincyaw/aegis-ui';
 
 import {
   FILTERABLE_SPAN_KINDS,

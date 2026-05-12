@@ -10,18 +10,18 @@ Prereqs: Node, pnpm, Go ≥ 1.22.
 
 ```sh
 # Host platform
-pnpm -F @OperationsPAI/console bundle:host
+pnpm -F @lincyaw/console bundle:host
 ./apps/console/bin/aegis-console --help
 
 # Specific targets (cross-compiled, no toolchain needed)
-pnpm -F @OperationsPAI/console bundle:linux-x64
-pnpm -F @OperationsPAI/console bundle:linux-arm64
-pnpm -F @OperationsPAI/console bundle:macos-x64
-pnpm -F @OperationsPAI/console bundle:macos-arm64
-pnpm -F @OperationsPAI/console bundle:windows-x64
+pnpm -F @lincyaw/console bundle:linux-x64
+pnpm -F @lincyaw/console bundle:linux-arm64
+pnpm -F @lincyaw/console bundle:macos-x64
+pnpm -F @lincyaw/console bundle:macos-arm64
+pnpm -F @lincyaw/console bundle:windows-x64
 
 # Everything
-pnpm -F @OperationsPAI/console bundle:all
+pnpm -F @lincyaw/console bundle:all
 ```
 
 Output goes to `apps/console/bin/aegis-console-<platform>`. Each binary

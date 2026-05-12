@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { ProfileOutlined } from '@ant-design/icons';
-import { type AegisApp, useActiveApp } from '@OperationsPAI/aegis-ui';
+import { type AegisApp, useActiveApp } from '@lincyaw/aegis-ui';
 
 import { DatasetBrowse } from './DatasetBrowse';
 import { DatasetDetail } from './DatasetDetail';

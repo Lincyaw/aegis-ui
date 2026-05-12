@@ -13,7 +13,7 @@ import {
   PanelTitle,
   TimeDisplay,
   Toolbar,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import {
   type SessionSummary,

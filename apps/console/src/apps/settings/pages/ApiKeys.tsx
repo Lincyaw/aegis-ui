@@ -11,7 +11,7 @@ import {
   PageHeader,
   Panel,
   TextField,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 interface ApiKey {
   id: string;

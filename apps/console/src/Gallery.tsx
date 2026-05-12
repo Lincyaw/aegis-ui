@@ -89,7 +89,7 @@ import {
   useAegisSurface,
   type AegisSearchResult,
   type SearchProvider,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 import {
   Button,
   Form,

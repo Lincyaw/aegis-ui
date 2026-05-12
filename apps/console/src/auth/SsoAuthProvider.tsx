@@ -13,7 +13,7 @@ import {
   AuthProvider,
   type AuthContextValue,
   type AuthStatus,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { randomUrlSafe, s256Challenge } from './pkce';
 import { loadSsoConfig, ssoUrl } from './ssoConfig';

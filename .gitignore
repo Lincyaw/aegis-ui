@@ -11,3 +11,5 @@ dist
 .turbo
 **/.turbo
 .claude/
+apps/console/server/aegis-console
+apps/console/server/server

@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HddOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { type AegisApp, useActiveApp } from '@OperationsPAI/aegis-ui';
+import { type AegisApp, useActiveApp } from '@lincyaw/aegis-ui';
 import { Button, Input } from 'antd';
 
 import { ContainerCreate } from './ContainerCreate';

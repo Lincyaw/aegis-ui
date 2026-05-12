@@ -8,7 +8,7 @@ import {
   Panel,
   PanelTitle,
   useAppNavigate,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 const QUICK_LINKS = [
   { label: 'Injections', to: 'injections', count: 12 },

@@ -1,6 +1,6 @@
 import { NodeIndexOutlined } from '@ant-design/icons';
 
-import type { AegisApp } from '@OperationsPAI/aegis-ui';
+import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import { Compare } from './pages/Compare';
 import { SessionDetail } from './pages/SessionDetail';

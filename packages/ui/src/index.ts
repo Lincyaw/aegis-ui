@@ -1,5 +1,5 @@
 /**
- * @OperationsPAI/aegis-ui — public API.
+ * @lincyaw/aegis-ui — public API.
  *
  * Add a new primitive ⇒ export it here AND add a specimen to
  * `src/playground/Gallery.tsx`. The gallery is the live spec.

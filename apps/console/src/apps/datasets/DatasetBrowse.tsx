@@ -9,7 +9,7 @@ import {
   Panel,
   Tabs,
   TimeDisplay,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import type { DemoDataset } from './data';
 import { useDatasets } from './store';

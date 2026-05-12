@@ -5,7 +5,7 @@ import {
   PageHeader,
   Panel,
   useAppNavigate,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 const DEMO_DATASETS = [
   { id: 'ds-001', name: 'catalog-faults', versions: 3 },

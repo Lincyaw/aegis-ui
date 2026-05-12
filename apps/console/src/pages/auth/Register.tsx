@@ -1,7 +1,7 @@
 import { type ReactElement, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { AuthLayout, RegisterForm } from '@OperationsPAI/aegis-ui';
+import { AuthLayout, RegisterForm } from '@lincyaw/aegis-ui';
 
 import { registerUser } from '../../auth/ssoClient';
 import { loadSsoConfig } from '../../auth/ssoConfig';

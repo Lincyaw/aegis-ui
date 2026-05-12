@@ -9,7 +9,7 @@ import {
   PageHeader,
   Panel,
   StatusDot,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 import { Button } from 'antd';
 
 import type { ContainerStatus } from './data';

@@ -1,4 +1,4 @@
-# @OperationsPAI/aegis-ui
+# @lincyaw/aegis-ui
 
 The shared design system + multi-app shell for every AegisLab portal.
 One visual language, one navigation chrome, many independent sub-apps.
@@ -57,14 +57,14 @@ right call because:
 Install (GitHub Packages — see [.npmrc setup](#consumer-npmrc-setup)):
 
 ```bash
-NPM_TOKEN=<your_github_token> pnpm add @OperationsPAI/aegis-ui
+NPM_TOKEN=<your_github_token> pnpm add @lincyaw/aegis-ui
 ```
 
 ### Composing a page
 
 ```tsx
-import { PageWrapper, PageHeader, Panel, DataTable } from '@OperationsPAI/aegis-ui';
-import '@OperationsPAI/aegis-ui/style.css';
+import { PageWrapper, PageHeader, Panel, DataTable } from '@lincyaw/aegis-ui';
+import '@lincyaw/aegis-ui/style.css';
 
 export default function ContainersPage() {
   return (
@@ -81,7 +81,7 @@ export default function ContainersPage() {
 ### Wiring the AntD theme
 
 ```tsx
-import { aegisTheme } from '@OperationsPAI/aegis-ui';
+import { aegisTheme } from '@lincyaw/aegis-ui';
 import { ConfigProvider } from 'antd';
 
 <ConfigProvider theme={aegisTheme}>
@@ -93,8 +93,8 @@ import { ConfigProvider } from 'antd';
 
 ```tsx
 import { BrowserRouter } from 'react-router-dom';
-import { AegisShell, type AegisApp } from '@OperationsPAI/aegis-ui';
-import '@OperationsPAI/aegis-ui/style.css';
+import { AegisShell, type AegisApp } from '@lincyaw/aegis-ui';
+import '@lincyaw/aegis-ui/style.css';
 
 const containersApp: AegisApp = {
   id: 'containers',
@@ -201,7 +201,7 @@ describing the migration step for the consumer.
     renamed token, dropped peer-dep range, or changed CSS contract that
     consumers might rely on.
 - The `dist/` is published to **GitHub Packages** under the
-  `@OperationsPAI` scope. The version in `package.json` is the source of
+  `@lincyaw` scope. The version in `package.json` is the source of
   truth; CI publishes on tag (workflow lands in a follow-up PR).
 
 ### Commit + branch policy
@@ -215,7 +215,7 @@ describing the migration step for the consumer.
 ### Consumer .npmrc setup
 
 ```ini
-@OperationsPAI:registry=https://npm.pkg.github.com/
+@lincyaw:registry=https://npm.pkg.github.com/
 //npm.pkg.github.com/:_authToken=${NPM_TOKEN}
 ```
 
@@ -241,7 +241,7 @@ This is a **pnpm monorepo**: `packages/ui` is the published library;
 | `packages/ui/src/theme/antdTheme.ts`                  | AntD `ConfigProvider` theme                                                         |
 | `packages/ui/src/index.ts`                            | Library public API (the only entry point)                                           |
 | `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                                               |
-| `packages/ui/package.json`                            | Library publish config (`@OperationsPAI/aegis-ui`)                                  |
+| `packages/ui/package.json`                            | Library publish config (`@lincyaw/aegis-ui`)                                        |
 | `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                                        |
 | `apps/console/src/`                                   | Gallery + demo apps; NOT shipped                                                    |
 | `apps/console/src/main.tsx`                           | Console entry                                                                       |

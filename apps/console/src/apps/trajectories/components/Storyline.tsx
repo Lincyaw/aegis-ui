@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 
-import { Chip, MetricLabel, MonoValue } from '@OperationsPAI/aegis-ui';
+import { Chip, MetricLabel, MonoValue } from '@lincyaw/aegis-ui';
 
 import type { SpanRow } from '../api/clickhouse';
 import { formatDurationMs, formatTokens } from '../conversation';

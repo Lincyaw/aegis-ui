@@ -6,7 +6,7 @@ import {
   InboxPage,
   ThemeToggle,
   useAuth,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { SsoAuthProvider } from './auth/SsoAuthProvider';
 import { RealNotificationProvider } from './notifications/RealNotificationProvider';

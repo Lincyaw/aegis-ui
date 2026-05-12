@@ -7,7 +7,7 @@
  * code necessary on this side), so we cast the response shape directly.
  */
 
-import type { AegisNotification } from '@OperationsPAI/aegis-ui';
+import type { AegisNotification } from '@lincyaw/aegis-ui';
 
 import { apiFetch, apiJson } from './apiClient';
 

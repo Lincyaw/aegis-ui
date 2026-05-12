@@ -7,9 +7,9 @@ RCA workbench, …).
 
 This is a **pnpm monorepo**:
 
-- `packages/ui` — the published library (`@OperationsPAI/aegis-ui`). The
+- `packages/ui` — the published library (`@lincyaw/aegis-ui`). The
   only thing that ships to consumers.
-- `apps/console` — the unified Vite app (`@OperationsPAI/console`,
+- `apps/console` — the unified Vite app (`@lincyaw/console`,
   private). It mounts `<AegisShell>` and registers every sub-app via the
   `AegisApp[]` config. Sub-apps live under `apps/console/src/apps/`
   (portal, gallery, …). Currently:
@@ -27,7 +27,7 @@ reusable lives in `packages/ui/src/layouts/shell/` (AegisShell + the
 ## What this repo ships
 
 ```
-@OperationsPAI/aegis-ui
+@lincyaw/aegis-ui
 ├── tokens               src/styles/theme.css
 ├── primitives           src/components/ui/*    (~30 components, plain CSS, no biz logic)
 ├── layouts              src/layouts/PageWrapper.tsx
@@ -37,8 +37,8 @@ reusable lives in `packages/ui/src/layouts/shell/` (AegisShell + the
 ```
 
 `dist/` is the published artifact (ESM + CJS + d.ts + style.css). Consumers
-do `import { Panel } from '@OperationsPAI/aegis-ui'` and
-`import '@OperationsPAI/aegis-ui/style.css'` — they should never reach into
+do `import { Panel } from '@lincyaw/aegis-ui'` and
+`import '@lincyaw/aegis-ui/style.css'` — they should never reach into
 internal paths.
 
 ## Top-down hierarchy — maintain in this order, never invert
@@ -163,8 +163,8 @@ pnpm check           # type-check + lint + lint:css + format:check in one shot
 Single-package shortcuts:
 
 ```bash
-pnpm -F @OperationsPAI/aegis-ui build     # library only
-pnpm -F @OperationsPAI/console dev     # console only
+pnpm -F @lincyaw/aegis-ui build     # library only
+pnpm -F @lincyaw/console dev     # console only
 ```
 
 A primitive is "done" only after the gallery renders cleanly in the
@@ -257,7 +257,7 @@ When in doubt: invest in the foundation, not the symptom.
 - This repo is **independent of the aegis monorepo**. It does not link
   to `../AegisLab/project-index.yaml` and does not share the aegis
   skills directory.
-- Published to GitHub Packages under `@OperationsPAI` scope. `.npmrc`
+- Published to GitHub Packages under `@lincyaw` scope. `.npmrc`
   reads `${NPM_TOKEN}` for both install and publish.
 
 <!-- auto-harness:begin -->
@@ -274,7 +274,7 @@ Full text: `/home/ddq/.claude/plugins/cache/autoharness/autoharness/1.1.3/refere
 
 ## North-star targets
 
-1. **Design language coherence across sub-apps** (Primary) — every page in `apps/console/src/apps/*` is composed only of `@OperationsPAI/aegis-ui` primitives + `PageWrapper`; no page-local re-implementation of primitives, no raw antd component without going through `getAegisTheme`.
+1. **Design language coherence across sub-apps** (Primary) — every page in `apps/console/src/apps/*` is composed only of `@lincyaw/aegis-ui` primitives + `PageWrapper`; no page-local re-implementation of primitives, no raw antd component without going through `getAegisTheme`.
    Measure: agent review on every page-touching change. Compare new pages against the gallery's primitive inventory and the "First principle" section.
    Mechanism: **agent**. Baseline: unmeasured.
 
@@ -302,18 +302,18 @@ Secondary tiebreaker: **fix the primitive before the page** — see "First princ
 
 ## Dev-loop stages
 
-| Stage        | Command                                                                                               | Notes                                                               |
-| ------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Type check   | `pnpm type-check`                                                                                     | Run after every TS change                                           |
-| Lint         | `pnpm lint`                                                                                           | ESLint `--max-warnings 0` enforced                                  |
-| Lint CSS     | `pnpm lint:css`                                                                                       | Stylelint over `packages/ui/src/**/*.css`                           |
-| Format       | `pnpm format:check`                                                                                   | Prettier — fix with `pnpm format`                                   |
-| Build        | `pnpm build`                                                                                          | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css       |
-| Full gate    | `pnpm check`                                                                                          | type-check + lint + lint:css + format:check; run before commit + PR |
-| Dev server   | `pnpm dev`                                                                                            | apps/console at `:3323` — use for dual-theme + responsive checks    |
-| Measure NS#2 | `pnpm check:gallery`                                                                                  | Gallery specimen coverage (also folded into `pnpm check`)           |
-| Measure NS#4 | see north-star target 4                                                                               | Token discipline grep                                               |
-| Bundle size  | `pnpm -F @OperationsPAI/aegis-ui build && du -b packages/ui/dist/index.js packages/ui/dist/style.css` | Compare to baseline before/after primitive changes                  |
+| Stage        | Command                                                                                         | Notes                                                               |
+| ------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Type check   | `pnpm type-check`                                                                               | Run after every TS change                                           |
+| Lint         | `pnpm lint`                                                                                     | ESLint `--max-warnings 0` enforced                                  |
+| Lint CSS     | `pnpm lint:css`                                                                                 | Stylelint over `packages/ui/src/**/*.css`                           |
+| Format       | `pnpm format:check`                                                                             | Prettier — fix with `pnpm format`                                   |
+| Build        | `pnpm build`                                                                                    | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css       |
+| Full gate    | `pnpm check`                                                                                    | type-check + lint + lint:css + format:check; run before commit + PR |
+| Dev server   | `pnpm dev`                                                                                      | apps/console at `:3323` — use for dual-theme + responsive checks    |
+| Measure NS#2 | `pnpm check:gallery`                                                                            | Gallery specimen coverage (also folded into `pnpm check`)           |
+| Measure NS#4 | see north-star target 4                                                                         | Token discipline grep                                               |
+| Bundle size  | `pnpm -F @lincyaw/aegis-ui build && du -b packages/ui/dist/index.js packages/ui/dist/style.css` | Compare to baseline before/after primitive changes                  |
 
 No unit-test runner is configured. Visual verification in `pnpm dev` is the testing substrate for primitives; type-check + lint + build catch correctness regressions.
 

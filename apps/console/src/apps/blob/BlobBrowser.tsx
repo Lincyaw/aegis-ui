@@ -17,7 +17,7 @@ import {
   Panel,
   PanelTitle,
   ParquetViewer,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { ApiError } from '../../api/apiClient';
 import {

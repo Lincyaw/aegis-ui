@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
+import { EmptyState, PageHeader, Panel } from '@lincyaw/aegis-ui';
 
 export default function InjectionDetail() {
   const { projectId, injectionId } = useParams<{

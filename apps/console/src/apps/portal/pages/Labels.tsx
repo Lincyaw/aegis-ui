@@ -5,7 +5,7 @@ import {
   PageHeader,
   Panel,
   useAppNavigate,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 const DEMO_LABELS = [
   { id: 'lbl-001', name: 'critical', color: '#E11D48' },

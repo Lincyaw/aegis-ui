@@ -8,7 +8,7 @@ import {
   Panel,
   StatusDot,
   useAppNavigate,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 const DEMO_EXECUTIONS = [
   { id: 'exec-001', name: 'rca-algo-v1', status: 'completed' },

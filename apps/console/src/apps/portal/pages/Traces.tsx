@@ -6,7 +6,7 @@ import {
   PageHeader,
   Panel,
   useAppNavigate,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 const DEMO_TRACES = [
   { id: 'trace-001', name: 'GET /products', duration: '2.84s' },

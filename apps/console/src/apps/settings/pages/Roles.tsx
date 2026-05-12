@@ -1,6 +1,6 @@
 import { Button, Checkbox } from 'antd';
 
-import { MonoValue, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
+import { MonoValue, PageHeader, Panel } from '@lincyaw/aegis-ui';
 
 import './Roles.css';
 

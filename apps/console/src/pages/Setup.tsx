@@ -6,7 +6,7 @@ import {
   MetricLabel,
   Panel,
   PanelTitle,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import {
   clearLocalOverride,

@@ -11,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import { Navigate } from 'react-router-dom';
 
-import type { AegisApp } from '@OperationsPAI/aegis-ui';
+import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import ApiKeys from './pages/ApiKeys';
 import AuditLogs from './pages/AuditLogs';

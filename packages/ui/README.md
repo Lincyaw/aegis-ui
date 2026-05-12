@@ -1,4 +1,4 @@
-# @OperationsPAI/aegis-ui
+# @lincyaw/aegis-ui
 
 AegisLab shared design system: tokens, primitives, layout, AntD theme.
 
@@ -8,10 +8,10 @@ conventions, and the AegisApp contract.
 ## Install
 
 ```bash
-pnpm add @OperationsPAI/aegis-ui
+pnpm add @lincyaw/aegis-ui
 ```
 
 ```ts
-import { PageWrapper, Panel } from '@OperationsPAI/aegis-ui';
-import '@OperationsPAI/aegis-ui/style.css';
+import { PageWrapper, Panel } from '@lincyaw/aegis-ui';
+import '@lincyaw/aegis-ui/style.css';
 ```

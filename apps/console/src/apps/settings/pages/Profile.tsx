@@ -11,7 +11,7 @@ import {
   SettingsSection,
   TextField,
   useAuth,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 const noop = (): void => undefined;
 

@@ -1,5 +1,5 @@
 import { AppstoreOutlined } from '@ant-design/icons';
-import type { AegisApp } from '@OperationsPAI/aegis-ui';
+import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import Gallery from '../../Gallery';
 

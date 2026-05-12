@@ -8,7 +8,7 @@ import {
   Panel,
   SettingsSection,
   TextField,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { ApiError } from '../../../api/apiClient';
 import {

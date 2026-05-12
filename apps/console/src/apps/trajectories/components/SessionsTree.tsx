@@ -1,6 +1,6 @@
 import { type ReactElement, useMemo, useState } from 'react';
 
-import { Chip, MetricLabel, MonoValue, StatusDot } from '@OperationsPAI/aegis-ui';
+import { Chip, MetricLabel, MonoValue, StatusDot } from '@lincyaw/aegis-ui';
 
 import type { SpanRow } from '../api/clickhouse';
 import { formatDurationMs } from '../conversation';

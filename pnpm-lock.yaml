@@ -86,7 +86,7 @@ importers:
 
   apps/console:
     dependencies:
-      '@OperationsPAI/aegis-ui':
+      '@lincyaw/aegis-ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@ant-design/icons':

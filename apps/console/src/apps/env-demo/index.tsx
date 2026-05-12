@@ -16,7 +16,7 @@ import {
   PanelTitle,
   StatusDot,
   useCurrentEnvironment,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 function EnvDemoPage({ appLabel }: { appLabel: string }): ReactElement {
   const env = useCurrentEnvironment();

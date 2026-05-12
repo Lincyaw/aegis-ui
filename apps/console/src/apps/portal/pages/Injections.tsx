@@ -8,7 +8,7 @@ import {
   Panel,
   StatusDot,
   useAppNavigate,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 const DEMO_INJECTIONS = [
   { id: 'inj-001', name: 'clock-drift-01', status: 'completed' },

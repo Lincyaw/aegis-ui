@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { FormRow, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
+import { FormRow, PageHeader, Panel } from '@lincyaw/aegis-ui';
 import { Button, Form, Input, InputNumber, Select } from 'antd';
 
 import type { ContainerStatus } from './data';

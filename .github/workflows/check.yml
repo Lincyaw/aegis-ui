@@ -58,7 +58,7 @@ jobs:
           cache: false
 
       - name: Console binary smoke build
-        run: pnpm -F @OperationsPAI/console bundle:host
+        run: pnpm -F @lincyaw/console bundle:host
 
       - name: Console binary smoke test
         run: |

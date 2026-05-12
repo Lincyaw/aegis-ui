@@ -56,7 +56,7 @@ Three principles to maintain in this order:
 ## 3. Core types
 
 Lives in `packages/ui/src/agent/types.ts`. Public from
-`@OperationsPAI/aegis-ui` under the `agent/*` subpath.
+`@lincyaw/aegis-ui` under the `agent/*` subpath.
 
 ### 3.1 Action
 

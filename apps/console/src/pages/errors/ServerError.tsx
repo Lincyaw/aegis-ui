@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 
 import { Button } from 'antd';
 
-import { ErrorState } from '@OperationsPAI/aegis-ui';
+import { ErrorState } from '@lincyaw/aegis-ui';
 
 export function ServerError(): ReactElement {
   return (

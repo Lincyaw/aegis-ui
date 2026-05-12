@@ -7,7 +7,7 @@ import {
   MonoValue,
   Panel,
   StatusDot,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import type { ContainerStatus, DemoContainer } from './data';
 import { useContainers } from './store';

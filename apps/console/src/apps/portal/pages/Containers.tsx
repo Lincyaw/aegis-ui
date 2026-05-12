@@ -6,7 +6,7 @@ import {
   Panel,
   StatusDot,
   useAppNavigate,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 const DEMO_CONTAINERS = [
   {

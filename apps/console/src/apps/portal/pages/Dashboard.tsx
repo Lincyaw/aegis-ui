@@ -16,7 +16,7 @@ import {
   TimeDisplay,
   type TrajectoryStepData,
   TrajectoryTimeline,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import {
   type ProjectProjectResp,

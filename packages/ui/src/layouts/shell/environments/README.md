@@ -50,7 +50,7 @@ CORS: the manifest endpoint must allow the console's origin
 ## Frontend integration (per app)
 
 ```ts
-import type { AegisApp } from '@OperationsPAI/aegis-ui';
+import type { AegisApp } from '@lincyaw/aegis-ui';
 
 export const myApp: AegisApp = {
   id: 'my-app',
@@ -68,7 +68,7 @@ export const myApp: AegisApp = {
 Inside the app, react to the chosen env:
 
 ```ts
-import { useCurrentEnvironment, ENVIRONMENT_CHANGED_EVENT } from '@OperationsPAI/aegis-ui';
+import { useCurrentEnvironment, ENVIRONMENT_CHANGED_EVENT } from '@lincyaw/aegis-ui';
 
 function MyPage() {
   const env = useCurrentEnvironment(); // { id, label, baseUrl, badge } | null

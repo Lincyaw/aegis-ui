@@ -1,7 +1,7 @@
 import { type ReactElement, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { AuthLayout, ForgotPasswordForm } from '@OperationsPAI/aegis-ui';
+import { AuthLayout, ForgotPasswordForm } from '@lincyaw/aegis-ui';
 
 // SSO has no password-reset endpoint yet; stub keeps the form working
 // so the user gets the standard "if an account exists…" acknowledgement.

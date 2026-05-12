@@ -1,4 +1,4 @@
-module github.com/OperationsPAI/aegis-console
+module github.com/lincyaw/aegis-ui/apps/console/server
 
 go 1.23
 

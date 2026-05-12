@@ -3,7 +3,7 @@ import {
   PageHeader,
   Panel,
   useAppNavigate,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 export default function ProjectCreate() {
   const navigate = useAppNavigate();

@@ -14,7 +14,7 @@ import {
   PageHeader,
   Panel,
   TextField,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { ApiError } from '../../../api/apiClient';
 import {

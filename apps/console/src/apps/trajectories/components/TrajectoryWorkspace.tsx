@@ -10,7 +10,7 @@ import {
   MonoValue,
   TraceTree,
   type TraceSpan,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { listSpansByRootSession, type SpanRow } from '../api/clickhouse';
 import { formatDurationMs } from '../conversation';

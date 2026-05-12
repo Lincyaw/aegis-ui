@@ -8,7 +8,7 @@ import {
   MonoValue,
   Panel,
   PanelTitle,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { TrajectoryWorkspace } from '../components/TrajectoryWorkspace';
 import { useCompareList } from '../compareList';

@@ -52,7 +52,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build SPA dist
-        run: pnpm -F @OperationsPAI/console bundle:prepare
+        run: pnpm -F @lincyaw/console bundle:prepare
 
       - name: Resolve version
         id: ver

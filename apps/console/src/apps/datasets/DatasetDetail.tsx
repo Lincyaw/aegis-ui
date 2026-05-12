@@ -9,7 +9,7 @@ import {
   MonoValue,
   PageHeader,
   Panel,
-} from '@OperationsPAI/aegis-ui';
+} from '@lincyaw/aegis-ui';
 
 import { useDatasets } from './store';
 

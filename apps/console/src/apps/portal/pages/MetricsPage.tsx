@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { Chip, EmptyState, PageHeader, Panel } from '@OperationsPAI/aegis-ui';
+import { Chip, EmptyState, PageHeader, Panel } from '@lincyaw/aegis-ui';
 
 export default function MetricsPage() {
   const { projectId } = useParams<{ projectId: string }>();
