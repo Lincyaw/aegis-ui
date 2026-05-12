@@ -1,0 +1,100 @@
+.aegis-file-preview {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: var(--bg-muted);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: var(--space-12);
+}
+
+.aegis-file-preview__image,
+.aegis-file-preview__video {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: auto;
+}
+
+.aegis-file-preview__audio {
+  width: 100%;
+  align-self: center;
+  padding: var(--space-3);
+}
+
+.aegis-file-preview__iframe {
+  flex: 1 1 auto;
+  width: 100%;
+  border: 0;
+  background: var(--bg-panel);
+}
+
+.aegis-file-preview__text {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-panel);
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  white-space: pre;
+  overflow: auto;
+  width: 100%;
+}
+
+.aegis-file-preview__loading,
+.aegis-file-preview__error {
+  align-self: center;
+  margin: auto;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  padding: var(--space-4);
+}
+
+.aegis-file-preview__error {
+  color: var(--accent-warning);
+}
+
+.aegis-file-preview__fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  margin: auto;
+  width: 100%;
+}
+
+.aegis-file-preview__fallback-name {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  word-break: break-all;
+  text-align: center;
+}
+
+.aegis-file-preview__fallback-meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}
+
+.aegis-file-preview__fallback-download {
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  text-decoration: underline;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  transition: background var(--motion-fast);
+}
+
+.aegis-file-preview__fallback-download:hover {
+  background: var(--bg-panel);
+}

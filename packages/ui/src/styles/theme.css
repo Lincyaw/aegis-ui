@@ -103,6 +103,16 @@
   --presence-busy: #dc2626;
   --presence-away: #d97706;
 
+  /* ── Diff (added / removed bands; word-level highlight on top) ───── */
+  --diff-added-bg: #e6ffed;
+  --diff-added-fg: #0a3622;
+  --diff-added-gutter: #cdffd8;
+  --diff-added-word: #acf2bd;
+  --diff-removed-bg: #ffeef0;
+  --diff-removed-fg: #86181d;
+  --diff-removed-gutter: #ffdce0;
+  --diff-removed-word: #fdb8c0;
+
   /* ── Weights ─────────────────────────────────────────────────────── */
   --fw-light: 300;
   --fw-regular: 400;
@@ -208,6 +218,16 @@
   --presence-offline: #9ca3af;
   --presence-busy: #f87171;
   --presence-away: #fbbf24;
+
+  /* Diff — muted on dark to keep contrast readable */
+  --diff-added-bg: #0f2a1a;
+  --diff-added-fg: #4ade80;
+  --diff-added-gutter: #14361f;
+  --diff-added-word: #1f5132;
+  --diff-removed-bg: #2a1218;
+  --diff-removed-fg: #fb7185;
+  --diff-removed-gutter: #361721;
+  --diff-removed-word: #5c1f2a;
 
   /* Shadow + scrollbar */
   --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.35);

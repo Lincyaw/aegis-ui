@@ -22,6 +22,7 @@ import {
   ChatMessageList,
   Chip,
   type Command,
+  CodeEditor,
   CommandInvocationCard,
   CommandPalette,
   CommandProvider,
@@ -29,9 +30,12 @@ import {
   ControlListItem,
   DangerZone,
   DataTable,
+  DiffViewer,
   DropdownMenu,
   EmptyState,
   ErrorState,
+  FileDropzone,
+  FilePreview,
   ForgotPasswordForm,
   FormRow,
   InboxPage,
@@ -62,6 +66,7 @@ import {
   Terminal,
   ThemeToggle,
   type TerminalLine,
+  Timeline,
   TextField,
   TimeDisplay,
   Toolbar,
@@ -2547,6 +2552,159 @@ function App() {
             </AgentPanel>
           </div>
         </AgentProvider>
+      </Panel>
+
+      {/* ── Service primitives (blob / configcenter / audit) ──────── */}
+      <Panel
+        title={<PanelTitle size='lg'>Service primitives</PanelTitle>}
+        extra={<MetricLabel>blob · configcenter · audit</MetricLabel>}
+      >
+        <SectionDivider extra={<MetricLabel>react-dropzone</MetricLabel>}>
+          FileDropzone
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='empty · multi · accept image/*' span={2}>
+            <FileDropzone
+              onDrop={(files) =>
+                console.warn(
+                  '[demo] dropped',
+                  files.map((f) => f.name),
+                )
+              }
+              accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] }}
+              maxSize={5 * 1024 * 1024}
+            />
+          </Specimen>
+          <Specimen caption='with queue · mixed states' span={2}>
+            <FileDropzone
+              onDrop={() => undefined}
+              items={[
+                {
+                  id: 'a',
+                  file: new File([''], 'corpus-2026-04.tar.gz'),
+                  status: 'uploading',
+                  progress: 64,
+                },
+                {
+                  id: 'b',
+                  file: new File([''], 'trace-snapshot.json'),
+                  status: 'done',
+                  progress: 100,
+                },
+                {
+                  id: 'c',
+                  file: new File([''], 'too-big.bin'),
+                  status: 'error',
+                  error: 'exceeds 5 MB cap',
+                },
+              ]}
+            />
+          </Specimen>
+          <Specimen caption='disabled'>
+            <FileDropzone onDrop={() => undefined} disabled />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>mime-aware</MetricLabel>}>
+          FilePreview
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='image'>
+            <FilePreview
+              src='https://placehold.co/600x400/png'
+              mimeType='image/png'
+              name='hero.png'
+              maxHeight={200}
+            />
+          </Specimen>
+          <Specimen caption='binary fallback'>
+            <FilePreview
+              src='#'
+              mimeType='application/octet-stream'
+              name='trace-2026-05-12.bin'
+              size={4_823_104}
+              maxHeight={200}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>codemirror</MetricLabel>}>
+          CodeEditor
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='json · editable' span={2}>
+            <CodeEditor
+              value={'{\n  "service": "aegis-blob",\n  "port": 8085\n}\n'}
+              language='json'
+              onChange={() => undefined}
+              height={160}
+            />
+          </Specimen>
+          <Specimen caption='yaml · read-only' span={2}>
+            <CodeEditor
+              value={'service: aegis-configcenter\nport: 8087\netcd:\n  endpoints:\n    - localhost:2379\n'}
+              language='yaml'
+              readOnly
+              height={160}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>react-diff-viewer-continued</MetricLabel>}>
+          DiffViewer
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen caption='split · json revision' span={3}>
+            <DiffViewer
+              oldValue={'{\n  "max_qps": 100,\n  "burst": 200\n}'}
+              newValue={'{\n  "max_qps": 250,\n  "burst": 500,\n  "shadow": true\n}'}
+              splitView
+              leftTitle='revision 41'
+              rightTitle='revision 42'
+            />
+          </Specimen>
+          <Specimen caption='unified · diff-only' span={3}>
+            <DiffViewer
+              oldValue={'service: aegis-blob\nport: 8085\nbuckets:\n  - name: scratch\n    driver: localfs\n'}
+              newValue={'service: aegis-blob\nport: 8085\nbuckets:\n  - name: scratch\n    driver: localfs\n  - name: artifacts\n    driver: s3\n'}
+              splitView={false}
+              showDiffOnly
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>configcenter audit</MetricLabel>}>
+          Timeline
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='audit log · mixed actors' span={3}>
+            <Timeline
+              items={[
+                {
+                  id: '1',
+                  title: 'alice@aegis updated db.dsn',
+                  description: 'rotated read-replica host',
+                  timestamp: '2026-05-12 09:14:02',
+                  meta: <MonoValue>rev 47</MonoValue>,
+                },
+                {
+                  id: '2',
+                  title: 'service-token (gateway) read auth.jwt_audience',
+                  timestamp: '2026-05-12 08:55:31',
+                  meta: <MonoValue>rev 46</MonoValue>,
+                },
+                {
+                  id: '3',
+                  title: 'bob@aegis created namespace ratelimit',
+                  description: 'seeded 4 keys from defaults.toml',
+                  timestamp: '2026-05-11 18:02:11',
+                  meta: <MonoValue>rev 45</MonoValue>,
+                  dotColor: 'var(--presence-online)',
+                },
+              ]}
+            />
+          </Specimen>
+        </div>
       </Panel>
 
       {/* ── AntD widgets under our theme ───────────────────────────── */}

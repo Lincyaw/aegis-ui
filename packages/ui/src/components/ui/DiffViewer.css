@@ -1,0 +1,12 @@
+.aegis-diff-viewer {
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-panel);
+}
+
+.aegis-diff-viewer pre,
+.aegis-diff-viewer code {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+}

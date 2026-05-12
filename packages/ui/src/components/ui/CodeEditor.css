@@ -1,0 +1,21 @@
+.aegis-code-editor {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.aegis-code-editor:focus-within {
+  border-color: var(--border-strong);
+}
+
+.aegis-code-editor .cm-editor {
+  height: 100%;
+  background: transparent;
+}
+
+.aegis-code-editor .cm-scroller {
+  font-family: var(--font-mono);
+}
