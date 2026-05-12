@@ -74,6 +74,20 @@ export interface AegisApp {
    * app becomes active. (Contract only — wiring is a separate task.)
    */
   commands?: Command[];
+  /**
+   * If false, the app is reachable by anonymous (unauthenticated) users
+   * and appears in the AppSwitcher / sidebar regardless of auth state.
+   * Default true — protected apps are hidden from anonymous users and
+   * routes show a sign-in CTA instead of content.
+   */
+  requiresAuth?: boolean;
+  /**
+   * Optional list of role tags. When set, only authenticated users whose
+   * `AegisAuthUser.roles` overlaps with this list can see the app. Apps
+   * without `requiredRoles` are visible to any authenticated user
+   * (subject to `requiresAuth`).
+   */
+  requiredRoles?: string[];
 }
 
 export interface AegisUserMenuItem {

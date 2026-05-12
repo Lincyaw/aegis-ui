@@ -11,6 +11,12 @@ export interface AegisAuthUser {
   name: string;
   email?: string;
   avatar?: string;
+  /**
+   * Optional role / permission tags. The shell uses these to gate apps
+   * marked with `requiredRoles`. Empty / missing means "no role claims";
+   * apps without `requiredRoles` are unaffected.
+   */
+  roles?: string[];
 }
 
 /**

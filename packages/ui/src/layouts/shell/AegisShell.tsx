@@ -15,9 +15,11 @@ import {
   useRoutes,
 } from 'react-router-dom';
 
-import { useAuth } from '../../auth';
+import { type AegisAuthUser, useAuth } from '../../auth';
+import { Chip } from '../../components/ui/Chip';
 import { PageWrapper } from '../PageWrapper';
 import './AegisShell.css';
+import { AuthRequiredCard } from './AuthRequiredCard';
 import { BreadcrumbBar } from './BreadcrumbBar';
 import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
@@ -70,6 +72,11 @@ export function AegisShell({
     return { name: auth.user.name, menu };
   }, [user, userMenu, auth]);
 
+  const visibleApps = useMemo(
+    () => apps.filter((app) => isAppVisible(app, auth.status, auth.user)),
+    [apps, auth.status, auth.user],
+  );
+
   const activeApp = useMemo(
     () => findActiveApp(apps, pathname),
     [apps, pathname],
@@ -103,7 +110,22 @@ export function AegisShell({
       path: `${stripTrailingSlash(app.basePath)}/*`,
       element: (
         <PageWrapper>
-          <AppRoutes app={app} />
+          {isAppVisible(app, auth.status, auth.user) ? (
+            <AppRoutes app={app} />
+          ) : (
+            <AuthRequiredCard
+              app={app}
+              status={auth.status}
+              user={auth.user}
+              onSignIn={
+                auth.signIn
+                  ? () => {
+                      void auth.signIn?.({});
+                    }
+                  : undefined
+              }
+            />
+          )}
         </PageWrapper>
       ),
     }));
@@ -133,7 +155,7 @@ export function AegisShell({
       ...appRoutes,
       ...(fallback ? [fallback] : []),
     ];
-  }, [apps, rootRoutes, fallbackPath, notFoundElement]);
+  }, [apps, rootRoutes, fallbackPath, notFoundElement, auth]);
 
   const element = useRoutes(routeTree);
 
@@ -161,13 +183,27 @@ export function AegisShell({
     <div className={shellClass}>
       <TopHeader
         brand={brand}
-        apps={apps}
+        apps={visibleApps}
         activeAppId={activeApp?.id}
         onAppSwitch={onAppSwitch}
         user={resolvedUser}
         headerCenter={headerCenter}
-        headerActions={headerActions}
-        inboxPath={inboxPath}
+        headerActions={
+          <>
+            {headerActions}
+            {auth.status === 'unauthenticated' && auth.signIn && (
+              <Chip
+                tone="ink"
+                onClick={() => {
+                  void auth.signIn?.({});
+                }}
+              >
+                Sign in
+              </Chip>
+            )}
+          </>
+        }
+        inboxPath={auth.status === 'authenticated' ? inboxPath : undefined}
         onMobileMenuToggle={toggleMobileNav}
         showMobileMenu={hasSidebar}
         inlineSlotRef={setInlineSlot}
@@ -252,4 +288,22 @@ function stripTrailingSlash(p: string): string {
     return '';
   }
   return p.endsWith('/') ? p.slice(0, -1) : p;
+}
+
+function isAppVisible(
+  app: AegisApp,
+  status: 'loading' | 'authenticated' | 'unauthenticated',
+  user: AegisAuthUser | null,
+): boolean {
+  if (app.requiresAuth === false) {
+    return true;
+  }
+  if (status !== 'authenticated') {
+    return false;
+  }
+  if (!app.requiredRoles || app.requiredRoles.length === 0) {
+    return true;
+  }
+  const userRoles = user?.roles ?? [];
+  return app.requiredRoles.some((r) => userRoles.includes(r));
 }
