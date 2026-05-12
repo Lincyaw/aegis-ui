@@ -1,7 +1,7 @@
 /**
  * Client for aegis-sso's /v1/clients admin surface (OIDC client CRUD +
- * secret rotation). Goes through the vite proxy (`/v1/*` → 8083 in
- * dev; configure VITE_SSO_TARGET for other envs).
+ * secret rotation). Goes through the vite proxy (`/v1/*` is forwarded
+ * to the gateway / sso upstream; configure VITE_API_TARGET).
  */
 
 import { apiFetch, apiJson } from './apiClient';

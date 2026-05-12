@@ -23,28 +23,21 @@ export default defineConfig(({ mode }) => {
       port: Number(env.VITE_PORT) || 3323,
       strictPort: true,
       proxy: (() => {
-        const apiTarget = env.VITE_API_TARGET || 'http://127.0.0.1:8082';
-        const ssoTarget = env.VITE_SSO_TARGET || 'http://127.0.0.1:8083';
-        const notifyTarget = env.VITE_NOTIFY_TARGET || 'http://127.0.0.1:8084';
-        const blobTarget = env.VITE_BLOB_TARGET || 'http://127.0.0.1:8085';
-        const sso = (): { target: string; changeOrigin: true } => ({
-          target: ssoTarget,
+        const target = env.VITE_API_TARGET || 'http://127.0.0.1:8082';
+        const opts: { target: string; changeOrigin: true } = {
+          target,
           changeOrigin: true,
-        });
+        };
         return {
-          '/api/v2/inbox': {
-            target: notifyTarget,
-            changeOrigin: true,
-            ws: true,
-          },
-          '/api/v2/blob': { target: blobTarget, changeOrigin: true },
-          '/api': { target: apiTarget, changeOrigin: true, ws: true },
-          '/.well-known': sso(),
-          '/authorize': sso(),
-          '/login': sso(),
-          '/token': sso(),
-          '/userinfo': sso(),
-          '/v1': sso(),
+          '/api/v2/inbox': { ...opts, ws: true },
+          '/api/v2/blob': opts,
+          '/api': { ...opts, ws: true },
+          '/.well-known': opts,
+          '/authorize': opts,
+          '/login': opts,
+          '/token': opts,
+          '/userinfo': opts,
+          '/v1': opts,
         };
       })(),
     },
