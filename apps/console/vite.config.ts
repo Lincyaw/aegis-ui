@@ -21,13 +21,23 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: Number(env.VITE_PORT) || 3100,
-      proxy: {
-        '/api': {
-          target: env.VITE_API_TARGET || 'http://127.0.0.1:8083',
+      proxy: (() => {
+        const apiTarget = env.VITE_API_TARGET || 'http://127.0.0.1:8083';
+        const ssoTarget = env.VITE_SSO_TARGET || apiTarget;
+        const sso = (): { target: string; changeOrigin: true } => ({
+          target: ssoTarget,
           changeOrigin: true,
-          ws: true,
-        },
-      },
+        });
+        return {
+          '/api': { target: apiTarget, changeOrigin: true, ws: true },
+          '/.well-known': sso(),
+          '/authorize': sso(),
+          '/login': sso(),
+          '/token': sso(),
+          '/userinfo': sso(),
+          '/v1': sso(),
+        };
+      })(),
     },
     optimizeDeps: {
       exclude: [

@@ -1,12 +1,16 @@
 import { type ReactElement, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { AuthLayout, RegisterForm, useAuth } from '@OperationsPAI/aegis-ui';
+import { AuthLayout, RegisterForm } from '@OperationsPAI/aegis-ui';
 
-import { register } from '../../auth/demoAuthStore';
+import { registerUser } from '../../auth/ssoClient';
+import { loadSsoConfig } from '../../auth/ssoConfig';
+
+function deriveUsername(email: string): string {
+  return email.split('@')[0]?.toLowerCase() || email.toLowerCase();
+}
 
 export function Register(): ReactElement {
-  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -19,9 +23,13 @@ export function Register(): ReactElement {
     setError(undefined);
     setSubmitting(true);
     try {
-      await register(values);
-      await signIn?.({ email: values.email, password: values.password });
-      navigate('/portal', { replace: true });
+      await registerUser(loadSsoConfig(), {
+        username: deriveUsername(values.email),
+        email: values.email,
+        password: values.password,
+        full_name: values.name,
+      });
+      navigate('/auth/login', { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Registration failed');
     } finally {

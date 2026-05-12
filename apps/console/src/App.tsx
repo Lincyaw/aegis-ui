@@ -8,13 +8,14 @@ import {
   ThemeToggle,
 } from '@OperationsPAI/aegis-ui';
 
-import { DemoAuthProvider } from './auth/DemoAuthProvider';
+import { SsoAuthProvider } from './auth/SsoAuthProvider';
 import { DemoNotificationProvider } from './notifications/DemoNotificationProvider';
 import { containersApp } from './apps/containers';
 import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';
 import { portalApp } from './apps/portal';
 import { settingsApp } from './apps/settings';
+import { Callback } from './pages/auth/Callback';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
@@ -25,11 +26,12 @@ import { ServerError } from './pages/errors/ServerError';
 export function ConsoleApp(): ReactElement {
   return (
     <BrowserRouter>
-      <DemoAuthProvider>
+      <SsoAuthProvider>
         <Routes>
           <Route path='/auth/login' element={<Login />} />
           <Route path='/auth/register' element={<Register />} />
           <Route path='/auth/forgot' element={<ForgotPassword />} />
+          <Route path='/auth/callback' element={<Callback />} />
           <Route
             path='/*'
             element={
@@ -72,7 +74,7 @@ export function ConsoleApp(): ReactElement {
             }
           />
         </Routes>
-      </DemoAuthProvider>
+      </SsoAuthProvider>
     </BrowserRouter>
   );
 }

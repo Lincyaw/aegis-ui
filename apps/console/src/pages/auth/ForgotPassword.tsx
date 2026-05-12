@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom';
 
 import { AuthLayout, ForgotPasswordForm } from '@OperationsPAI/aegis-ui';
 
-import { requestPasswordReset } from '../../auth/demoAuthStore';
+// SSO has no password-reset endpoint yet; stub keeps the form working
+// so the user gets the standard "if an account exists…" acknowledgement.
+async function requestPasswordReset(_email: string): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+}
 
 export function ForgotPassword(): ReactElement {
   const [submitting, setSubmitting] = useState(false);
