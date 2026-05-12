@@ -54,10 +54,10 @@ right call because:
 
 ## Use
 
-Install (GitHub Packages — see [.npmrc setup](#consumer-npmrc-setup)):
+Install from public npmjs.com — no auth needed:
 
 ```bash
-NPM_TOKEN=<your_github_token> pnpm add @lincyaw/aegis-ui
+pnpm add @lincyaw/aegis-ui
 ```
 
 ### Composing a page
@@ -212,15 +212,14 @@ describing the migration step for the consumer.
 - Husky commit-msg validates the header.
 - Don't pass `--no-verify` unless a human asks. Fix the underlying issue.
 
-### Consumer .npmrc setup
+### Consumer install
 
-```ini
-@lincyaw:registry=https://npm.pkg.github.com/
-//npm.pkg.github.com/:_authToken=${NPM_TOKEN}
+`@lincyaw/aegis-ui` is published to public npmjs.com — no `.npmrc` or
+auth token needed.
+
+```bash
+pnpm add @lincyaw/aegis-ui
 ```
-
-The `NPM_TOKEN` needs `read:packages` for install, plus
-`write:packages` for publish.
 
 ## Repo map
 
