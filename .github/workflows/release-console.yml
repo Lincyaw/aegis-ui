@@ -1,0 +1,141 @@
+name: release-console
+
+on:
+  push:
+    tags:
+      - 'console-v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag (e.g. console-v0.2.0). Used as the version + release name.'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-console-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - linux-x64
+          - linux-arm64
+          - macos-x64
+          - macos-arm64
+          - windows-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: false
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+        env:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build SPA dist
+        run: pnpm -F @OperationsPAI/console bundle:prepare
+
+      - name: Resolve version
+        id: ver
+        run: |
+          REF="${{ github.event.inputs.tag || github.ref_name }}"
+          VERSION="${REF#console-v}"
+          echo "tag=$REF"          >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION"  >> "$GITHUB_OUTPUT"
+
+      - name: Build ${{ matrix.target }}
+        env:
+          AEGIS_CONSOLE_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          # bundle:prepare already ran above; bundle.mjs re-syncs the staging dir.
+          node apps/console/server/bundle.mjs ${{ matrix.target }}
+
+      - name: Smoke-test (linux-x64 only)
+        if: matrix.target == 'linux-x64'
+        run: |
+          ./apps/console/bin/aegis-console-linux-x64 --version | tee /tmp/v
+          test "$(cat /tmp/v)" = "${{ steps.ver.outputs.version }}"
+          ./apps/console/bin/aegis-console-linux-x64 --port 13399 &
+          PID=$!
+          sleep 2
+          curl -fs http://127.0.0.1:13399/healthz
+          curl -fs http://127.0.0.1:13399/config.js | head -1
+          curl -fs -o /dev/null -w '%{http_code}\n' http://127.0.0.1:13399/
+          kill $PID
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aegis-console-${{ matrix.target }}
+          path: apps/console/bin/aegis-console-*
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Compute checksums
+        working-directory: artifacts
+        run: |
+          ls -lh
+          sha256sum aegis-console-* > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Resolve version
+        id: ver
+        run: |
+          REF="${{ github.event.inputs.tag || github.ref_name }}"
+          VERSION="${REF#console-v}"
+          echo "tag=$REF"          >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION"  >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: aegis-console ${{ steps.ver.outputs.version }}
+          generate_release_notes: true
+          files: |
+            artifacts/aegis-console-*
+            artifacts/SHA256SUMS
+          body: |
+            **aegis-console ${{ steps.ver.outputs.version }}** — single-binary local viewer for AegisLab trajectories + console.
+
+            ### Install
+            Download the binary for your platform, `chmod +x`, and run.
+            ```
+            ./aegis-console --help
+            ./aegis-console --clickhouse http://127.0.0.1:8123 --open
+            ./aegis-console --gateway https://gw.example.com --open
+            ```
+
+            ### Verify
+            ```
+            sha256sum -c SHA256SUMS --ignore-missing
+            ```

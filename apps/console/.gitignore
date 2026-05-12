@@ -10,7 +10,14 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+bin
 *.local
+
+# Embed staging directory — populated by bundle:prepare, but we keep the
+# folder + .gitkeep so `go build` succeeds before the first bundle run.
+!server/dist/
+server/dist/*
+!server/dist/.gitkeep
 
 # Editor directories and files
 .vscode/*

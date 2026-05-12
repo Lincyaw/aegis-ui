@@ -16,6 +16,8 @@ module.exports = {
   ignorePatterns: [
     'dist',
     'node_modules',
+    'bin',
+    'server',
     '.eslintrc.js',
     'commitlint.config.js',
     'vitest.config.ts',
