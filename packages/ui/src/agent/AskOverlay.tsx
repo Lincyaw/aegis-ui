@@ -16,6 +16,7 @@ import type { AskContext, AskOrigin } from './types';
 interface PanelState {
   context: AskContext;
   anchor: DOMRect | null;
+  point: { x: number; y: number } | null;
 }
 
 interface TriggerInfo {
@@ -71,9 +72,16 @@ export function AskOverlay(): ReactElement | null {
   const runtime = ctx?.runtime ?? null;
   const [panel, setPanel] = useState<PanelState | null>(null);
 
-  const open = useCallback((context: AskContext, anchor: DOMRect | null) => {
-    setPanel({ context, anchor });
-  }, []);
+  const open = useCallback(
+    (
+      context: AskContext,
+      anchor: DOMRect | null,
+      point: { x: number; y: number } | null,
+    ) => {
+      setPanel({ context, anchor, point });
+    },
+    [],
+  );
 
   const close = useCallback(() => {
     setPanel(null);
@@ -95,7 +103,10 @@ export function AskOverlay(): ReactElement | null {
       e.preventDefault();
       const askContext = buildAskContext(runtime, trigger);
       runtime.emitAskTriggered(askContext);
-      open(askContext, trigger.el.getBoundingClientRect());
+      open(askContext, trigger.el.getBoundingClientRect(), {
+        x: e.clientX,
+        y: e.clientY,
+      });
     };
     const onKeyDown = (e: KeyboardEvent): void => {
       const isAsk = (e.metaKey || e.ctrlKey) && e.key === '.';
@@ -110,7 +121,7 @@ export function AskOverlay(): ReactElement | null {
       e.preventDefault();
       const askContext = buildAskContext(runtime, trigger);
       runtime.emitAskTriggered(askContext);
-      open(askContext, trigger.el.getBoundingClientRect());
+      open(askContext, trigger.el.getBoundingClientRect(), null);
     };
     document.addEventListener('contextmenu', onContextMenu, true);
     document.addEventListener('keydown', onKeyDown, true);
@@ -137,7 +148,7 @@ export function AskOverlay(): ReactElement | null {
     w.__aegisOpenAskPanel = (trigger, anchorEl) => {
       const askContext = buildAskContext(runtime, trigger);
       runtime.emitAskTriggered(askContext);
-      open(askContext, anchorEl?.getBoundingClientRect() ?? null);
+      open(askContext, anchorEl?.getBoundingClientRect() ?? null, null);
     };
     return () => {
       if (w.__aegisOpenAskPanel) {
@@ -154,6 +165,7 @@ export function AskOverlay(): ReactElement | null {
       <AskPanel
         context={panel.context}
         anchorRect={panel.anchor}
+        anchorPoint={panel.point}
         onClose={close}
       />
     );

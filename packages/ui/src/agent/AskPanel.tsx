@@ -4,8 +4,10 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 
 import { Button } from '../components/ui/Button';
@@ -20,42 +22,78 @@ export interface AskPanelProps {
   tools?: AegisActionDescriptor[];
   /** Optional anchor — the panel positions itself near this rect. */
   anchorRect?: DOMRect | null;
+  /** Preferred anchor point (e.g. mouse position). Wins over anchorRect. */
+  anchorPoint?: { x: number; y: number } | null;
   onClose: () => void;
   /** When true, render fixed-positioned popover; when false, inline. */
   popover?: boolean;
 }
 
 const PANEL_OFFSET_PX = 8;
+const VIEWPORT_MARGIN_PX = 8;
+const PANEL_MIN_HEIGHT_PX = 160;
 
-function clampToViewport(
+interface Placement {
+  left: number;
+  top: number;
+  maxHeight: number;
+}
+
+function placeNear(
+  point: { x: number; y: number } | null,
   rect: DOMRect | null | undefined,
-): { left: number; top: number } | null {
-  if (!rect || typeof window === 'undefined') {
+  panelWidth: number,
+  panelHeight: number,
+): Placement | null {
+  if (typeof window === 'undefined') {
     return null;
   }
-  const panelW = 360;
-  const margin = 8;
-  let left = rect.left;
-  let top = rect.bottom + PANEL_OFFSET_PX;
-  if (left + panelW + margin > window.innerWidth) {
-    left = Math.max(margin, window.innerWidth - panelW - margin);
-  }
-  if (top + 40 > window.innerHeight) {
-    top = Math.max(margin, rect.top - PANEL_OFFSET_PX - 40);
-  }
-  return { left, top };
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const margin = VIEWPORT_MARGIN_PX;
+  const offset = PANEL_OFFSET_PX;
+
+  // Anchor: prefer mouse point; fall back to rect's bottom-left corner.
+  const ax = point?.x ?? rect?.left ?? margin;
+  const ay = point?.y ?? rect?.bottom ?? margin;
+
+  const spaceBelow = vh - ay - margin;
+  const spaceAbove = ay - margin;
+  const spaceRight = vw - ax - margin;
+  const spaceLeft = ax - margin;
+
+  // Pick vertical side with more room; allow shrinking max-height to fit.
+  const placeBelow = spaceBelow >= spaceAbove;
+  const verticalRoom = Math.max(
+    placeBelow ? spaceBelow : spaceAbove,
+    PANEL_MIN_HEIGHT_PX,
+  );
+  const maxHeight = Math.min(panelHeight, verticalRoom - offset);
+
+  let top = placeBelow ? ay + offset : ay - offset - maxHeight;
+  // Pick horizontal side with more room.
+  const placeRight = spaceRight >= spaceLeft;
+  let left = placeRight ? ax + offset : ax - offset - panelWidth;
+
+  // Clamp into viewport.
+  left = Math.max(margin, Math.min(left, vw - panelWidth - margin));
+  top = Math.max(margin, Math.min(top, vh - maxHeight - margin));
+
+  return { left, top, maxHeight };
 }
 
 export function AskPanel({
   context,
   tools,
   anchorRect,
+  anchorPoint,
   onClose,
   popover = true,
 }: AskPanelProps): ReactElement {
   const ctx = useContext(AegisAgentContext);
   const runtime = ctx?.runtime ?? null;
   const rootRef = useRef<HTMLDivElement>(null);
+  const [placement, setPlacement] = useState<Placement | null>(null);
 
   const resolvedTools = useMemo<AegisActionDescriptor[]>(() => {
     if (tools) {
@@ -123,9 +161,52 @@ export function AskPanel({
     };
   }, [onClose]);
 
-  const positioned = popover ? clampToViewport(anchorRect) : null;
-  const style: CSSProperties = positioned
-    ? { position: 'fixed', left: positioned.left, top: positioned.top }
+  useLayoutEffect(() => {
+    if (!popover) {
+      setPlacement(null);
+      return;
+    }
+    const compute = (): void => {
+      const el = rootRef.current;
+      if (!el) {
+        return;
+      }
+      // Use the natural (unconstrained) size as the desired height; the
+      // placement function will clamp it to the larger viewport gap.
+      const naturalHeight = el.scrollHeight || el.offsetHeight;
+      const width = el.offsetWidth;
+      const next = placeNear(
+        anchorPoint ?? null,
+        anchorRect ?? null,
+        width,
+        naturalHeight,
+      );
+      setPlacement(next);
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('scroll', compute, true);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('scroll', compute, true);
+    };
+  }, [popover, anchorPoint, anchorRect, resolvedTools, context]);
+
+  const style: CSSProperties = popover
+    ? placement
+      ? {
+          position: 'fixed',
+          left: placement.left,
+          top: placement.top,
+          maxHeight: placement.maxHeight,
+        }
+      : // First paint before measurement: render off-screen to avoid flicker.
+        {
+          position: 'fixed',
+          left: -9999,
+          top: -9999,
+          visibility: 'hidden',
+        }
     : {};
 
   const headerLabel = context.entity?.label ?? context.entity?.id;

@@ -89,6 +89,7 @@
   padding: var(--space-3) var(--space-4);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   overflow: auto;
+  min-height: 0;
 }
 
 .aegis-ask-panel__section-label {
