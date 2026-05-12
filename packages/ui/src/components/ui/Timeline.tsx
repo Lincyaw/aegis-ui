@@ -1,5 +1,7 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useRef } from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './Timeline.css';
 
 export interface TimelineItem {
@@ -16,19 +18,48 @@ export interface TimelineItem {
   dotColor?: string;
 }
 
+export interface TimelineSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (
+    items: TimelineItem[],
+  ) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
+
 interface TimelineProps {
   items: TimelineItem[];
   /** Reverse visual order (newest first vs oldest first). Doesn't sort. */
   className?: string;
   style?: CSSProperties;
+  surface?: TimelineSurface;
 }
 
-export function Timeline({ items, className, style }: TimelineProps) {
+export function Timeline({ items, className, style, surface }: TimelineProps) {
+  const wrapRef = useRef<HTMLOListElement>(null);
+  useAegisSurface<TimelineItem[]>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'timeline',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: items,
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const rootClass = ['aegis-timeline', className ?? '']
     .filter(Boolean)
     .join(' ');
   return (
-    <ol className={rootClass} style={style}>
+    <ol
+      ref={wrapRef}
+      className={rootClass}
+      style={style}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       {items.map((it) => (
         <li key={it.id} className="aegis-timeline__item">
           <span

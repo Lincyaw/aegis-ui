@@ -1,4 +1,17 @@
+import { useRef } from 'react';
+
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './SparkLine.css';
+
+export interface SparkLineSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (points: number[]) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface SparkLineProps {
   /** Sample values; rendered evenly on the X axis. */
@@ -14,6 +27,7 @@ interface SparkLineProps {
   inverted?: boolean;
   className?: string;
   ariaLabel?: string;
+  surface?: SparkLineSurface;
 }
 
 function buildPath(points: number[], w: number, h: number): string {
@@ -43,7 +57,19 @@ export function SparkLine({
   inverted = false,
   className,
   ariaLabel = 'sparkline',
+  surface,
 }: SparkLineProps) {
+  const wrapRef = useRef<HTMLSpanElement>(null);
+  useAegisSurface<number[]>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'chart',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: points,
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const path = buildPath(points, width, height);
   const cls = [
     'aegis-sparkline',
@@ -55,7 +81,14 @@ export function SparkLine({
     .join(' ');
 
   return (
-    <span className={cls} aria-label={ariaLabel} role="img">
+    <span
+      ref={wrapRef}
+      className={cls}
+      aria-label={ariaLabel}
+      role="img"
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"

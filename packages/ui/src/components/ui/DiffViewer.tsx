@@ -1,8 +1,22 @@
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useRef } from 'react';
 
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer-continued';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './DiffViewer.css';
+
+export interface DiffViewerSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (data: {
+    oldValue: string;
+    newValue: string;
+  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface DiffViewerProps {
   oldValue: string;
@@ -20,6 +34,7 @@ interface DiffViewerProps {
   rightTitle?: string;
   className?: string;
   style?: CSSProperties;
+  surface?: DiffViewerSurface;
 }
 
 const methodMap: Record<
@@ -42,12 +57,30 @@ export function DiffViewer({
   rightTitle,
   className,
   style,
+  surface,
 }: DiffViewerProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useAegisSurface<{ oldValue: string; newValue: string }>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'diff',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: { oldValue, newValue },
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const rootClass = ['aegis-diff-viewer', className ?? '']
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={rootClass} style={style}>
+    <div
+      ref={wrapRef}
+      className={rootClass}
+      style={style}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       <ReactDiffViewer
         oldValue={oldValue}
         newValue={newValue}

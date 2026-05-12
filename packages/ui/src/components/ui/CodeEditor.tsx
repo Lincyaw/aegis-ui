@@ -1,13 +1,27 @@
-import { type CSSProperties, useMemo } from 'react';
+import { type CSSProperties, useMemo, useRef } from 'react';
 
 import { json } from '@codemirror/lang-json';
 import { yaml } from '@codemirror/lang-yaml';
 import { EditorView } from '@codemirror/view';
 import CodeMirror, { type Extension } from '@uiw/react-codemirror';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './CodeEditor.css';
 
 export type CodeEditorLanguage = 'json' | 'yaml' | 'text';
+
+export interface CodeEditorSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (data: {
+    value: string;
+    language: CodeEditorLanguage;
+  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface CodeEditorProps {
   value: string;
@@ -21,6 +35,7 @@ interface CodeEditorProps {
   height?: number | string;
   className?: string;
   style?: CSSProperties;
+  surface?: CodeEditorSurface;
 }
 
 const baseTheme = EditorView.theme({
@@ -61,7 +76,19 @@ export function CodeEditor({
   height = 240,
   className,
   style,
+  surface,
 }: CodeEditorProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useAegisSurface<{ value: string; language: CodeEditorLanguage }>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'editor',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: { value, language },
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const extensions = useMemo<Extension[]>(() => {
     const exts: Extension[] = [baseTheme];
     if (language === 'json') {
@@ -81,7 +108,13 @@ export function CodeEditor({
   };
 
   return (
-    <div className={rootClass} style={rootStyle}>
+    <div
+      ref={wrapRef}
+      className={rootClass}
+      style={rootStyle}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       <CodeMirror
         value={value}
         height="100%"

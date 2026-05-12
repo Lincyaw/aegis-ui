@@ -1,8 +1,10 @@
-import { type ReactElement, useMemo, useState } from 'react';
+import { type ReactElement, useMemo, useRef, useState } from 'react';
 
 import { Button, Segmented } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import { type AegisNotification, useNotifications } from '../../notifications';
 import { Avatar } from './Avatar';
 import { Chip } from './Chip';
@@ -13,8 +15,20 @@ import { relativeTime } from './relativeTime';
 
 type Filter = 'all' | 'unread';
 
+export interface InboxPageSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (
+    items: AegisNotification[],
+  ) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
+
 interface InboxPageProps {
   defaultFilter?: Filter;
+  surface?: InboxPageSurface;
 }
 
 const SEVERITY_TONE: Record<
@@ -29,10 +43,22 @@ const SEVERITY_TONE: Record<
 
 export function InboxPage({
   defaultFilter = 'all',
+  surface,
 }: InboxPageProps): ReactElement {
   const { items, unreadCount, markRead, markAllRead } = useNotifications();
   const [filter, setFilter] = useState<Filter>(defaultFilter);
   const navigate = useNavigate();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useAegisSurface<AegisNotification[]>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'list',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: items,
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
 
   const visible = useMemo(
     () => (filter === 'unread' ? items.filter((n) => !n.read) : items),
@@ -49,7 +75,12 @@ export function InboxPage({
   };
 
   return (
-    <div className="aegis-inbox">
+    <div
+      ref={wrapRef}
+      className="aegis-inbox"
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       <PageHeader
         title="Inbox"
         description="Workspace activity, alerts, and invites in one place."

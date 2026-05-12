@@ -1,5 +1,7 @@
-import { type ReactNode, Suspense, lazy, useState } from 'react';
+import { type ReactNode, Suspense, lazy, useRef, useState } from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
@@ -22,10 +24,22 @@ export interface TrajectoryStepData {
   observation?: string;
 }
 
+export interface TrajectoryStepSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (
+    data: TrajectoryStepData,
+  ) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
+
 interface TrajectoryStepProps {
   data: TrajectoryStepData;
   defaultExpanded?: boolean;
   className?: string;
+  surface?: TrajectoryStepSurface;
 }
 
 function MarkdownContent({ source }: { source: string }) {
@@ -59,7 +73,19 @@ export function TrajectoryStep({
   data,
   defaultExpanded = false,
   className,
+  surface,
 }: TrajectoryStepProps) {
+  const wrapRef = useRef<HTMLElement>(null);
+  useAegisSurface<TrajectoryStepData>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'detail',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data,
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   const hasBody = Boolean(
@@ -82,7 +108,12 @@ export function TrajectoryStep({
     .join(' ');
 
   return (
-    <article className={cls}>
+    <article
+      ref={wrapRef}
+      className={cls}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       <button
         type="button"
         className="aegis-step__head"

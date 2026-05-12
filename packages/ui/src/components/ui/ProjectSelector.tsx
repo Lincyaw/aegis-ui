@@ -2,12 +2,15 @@ import { useMemo, useState } from 'react';
 
 import { FolderOutlined, SearchOutlined } from '@ant-design/icons';
 
+import type { AegisAction } from '../../agent/types';
 import { type DropdownItem, DropdownMenu } from './DropdownMenu';
 import './ProjectSelector.css';
 
 export interface ProjectOption {
   id: string;
   name: string;
+  /** Optional aegis-ui agent action — fired when the option is selected. */
+  action?: AegisAction<void, unknown>;
 }
 
 interface ProjectSelectorProps {
@@ -92,6 +95,7 @@ export function ProjectSelector({
             onSelect(p.id);
             setSearch('');
           },
+          action: p.action,
         });
       });
     }

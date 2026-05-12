@@ -1,0 +1,76 @@
+.landing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.landing-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  text-decoration: none;
+  transition:
+    box-shadow var(--motion-fast),
+    transform var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.landing-card:hover {
+  border-color: var(--border-emphasis);
+  box-shadow: var(--shadow-popover);
+}
+
+.landing-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-brand);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-18);
+  color: var(--text-main);
+}
+
+.landing-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-base);
+  height: var(--size-control-base);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  color: var(--text-main);
+  font-size: var(--fs-18);
+}
+
+.landing-card__desc {
+  font-family: var(--font-ui);
+  font-size: var(--fs-14);
+  color: var(--text-muted);
+  flex: 1;
+  line-height: 1.5;
+}
+
+.landing-card__cta {
+  font-family: var(--font-ui);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-13);
+  color: var(--text-on-inverted);
+  background: var(--bg-inverted);
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.landing-config-hint {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}

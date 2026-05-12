@@ -1,6 +1,17 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useRef } from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './AgentPanel.css';
+
+export interface AgentPanelSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project?: () => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface AgentPanelProps {
   title?: ReactNode;
@@ -11,6 +22,7 @@ interface AgentPanelProps {
   /** Sticky footer — typically ChatComposer. */
   footer?: ReactNode;
   className?: string;
+  surface?: AgentPanelSurface;
 }
 
 export function AgentPanel({
@@ -19,11 +31,29 @@ export function AgentPanel({
   children,
   footer,
   className,
+  surface,
 }: AgentPanelProps) {
+  const wrapRef = useRef<HTMLElement>(null);
+  useAegisSurface<null>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'panel',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: null,
+    project: surface?.project ?? (() => ({})),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const cls = ['aegis-agent-panel', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <aside className={cls} aria-label="Agent panel">
+    <aside
+      ref={wrapRef}
+      className={cls}
+      aria-label="Agent panel"
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       {(title ?? headerActions) && (
         <header className="aegis-agent-panel__header">
           <div className="aegis-agent-panel__title">{title}</div>

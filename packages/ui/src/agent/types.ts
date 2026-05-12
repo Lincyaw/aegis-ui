@@ -34,7 +34,19 @@ export type SurfaceKind =
   | 'dialog'
   | 'panel'
   | 'chart'
-  | 'editor';
+  | 'editor'
+  | 'metric'
+  | 'code'
+  | 'diff'
+  | 'preview'
+  | 'terminal'
+  | 'timeline'
+  | 'tree'
+  | 'chat'
+  | 'message'
+  | 'entity'
+  | 'value'
+  | 'tag';
 
 export interface SurfaceSnapshot {
   id: string;

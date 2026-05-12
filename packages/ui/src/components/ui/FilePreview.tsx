@@ -1,6 +1,28 @@
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './FilePreview.css';
+
+export interface FilePreviewSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (data: {
+    src: string;
+    mimeType?: string;
+    name?: string;
+    size?: number;
+  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface FilePreviewProps {
   /** Public URL or signed `/blob/raw/:token` link. */
@@ -17,6 +39,7 @@ interface FilePreviewProps {
   maxHeight?: number | string;
   className?: string;
   style?: CSSProperties;
+  surface?: FilePreviewSurface;
 }
 
 const TEXT_FETCH_LIMIT = 256 * 1024;
@@ -30,7 +53,24 @@ export function FilePreview({
   maxHeight = 480,
   className,
   style,
+  surface,
 }: FilePreviewProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useAegisSurface<{
+    src: string;
+    mimeType?: string;
+    name?: string;
+    size?: number;
+  }>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'preview',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: { src, mimeType, name, size },
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const kind = classify(mimeType);
   const rootClass = ['aegis-file-preview', className ?? '']
     .filter(Boolean)
@@ -38,7 +78,13 @@ export function FilePreview({
   const rootStyle: CSSProperties = { maxHeight, ...style };
 
   return (
-    <div className={rootClass} style={rootStyle}>
+    <div
+      ref={wrapRef}
+      className={rootClass}
+      style={rootStyle}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       {kind === 'image' ? (
         <img className="aegis-file-preview__image" src={src} alt={name ?? ''} />
       ) : kind === 'video' ? (

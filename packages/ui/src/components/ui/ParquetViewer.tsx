@@ -1,4 +1,10 @@
-import { type CSSProperties, useEffect, useMemo, useState } from 'react';
+import {
+  type CSSProperties,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   type AsyncBuffer,
@@ -10,9 +16,25 @@ import {
 } from 'hyparquet';
 import { compressors } from 'hyparquet-compressors';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import { Chip } from './Chip';
 import { DataTable, type DataTableColumn } from './DataTable';
 import './ParquetViewer.css';
+
+export interface ParquetViewerSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (data: {
+    src?: string;
+    file?: File | Blob;
+    totalRows: number;
+    columns: string[];
+  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface ParquetViewerProps {
   /** Local file (e.g. from FileDropzone). Takes precedence over `src`. */
@@ -25,6 +47,7 @@ interface ParquetViewerProps {
   title?: string;
   className?: string;
   style?: CSSProperties;
+  surface?: ParquetViewerSurface;
 }
 
 interface ColumnSpec {
@@ -92,12 +115,35 @@ export function ParquetViewer({
   title,
   className,
   style,
+  surface,
 }: ParquetViewerProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
   const [meta, setMeta] = useState<MetaSummary | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useAegisSurface<{
+    src?: string;
+    file?: File | Blob;
+    totalRows: number;
+    columns: string[];
+  }>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'table',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: {
+      src,
+      file,
+      totalRows: meta?.totalRows ?? 0,
+      columns: meta?.columns.map((c) => c.name) ?? [],
+    },
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
 
   useEffect(() => {
     setMeta(null);

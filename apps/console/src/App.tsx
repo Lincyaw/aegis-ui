@@ -1,45 +1,19 @@
 import type { ReactElement } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import {
-  AegisShell,
-  InboxPage,
-  ThemeToggle,
-  useAuth,
-} from '@lincyaw/aegis-ui';
+import { AegisShell, InboxPage, ThemeToggle } from '@lincyaw/aegis-ui';
 
 import { SsoAuthProvider } from './auth/SsoAuthProvider';
 import { RealNotificationProvider } from './notifications/RealNotificationProvider';
-import { blobApp } from './apps/blob';
-import { containersApp } from './apps/containers';
-import { datasetsApp } from './apps/datasets';
-import {
-  envDemoAlphaApp,
-  envDemoBravoApp,
-  envDemoNoneApp,
-} from './apps/env-demo';
-import { galleryApp } from './apps/gallery';
-import { portalApp } from './apps/portal';
-import { settingsApp } from './apps/settings';
-import { trajectoriesApp } from './apps/trajectories';
 import { Callback } from './pages/auth/Callback';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
-import { Setup } from './pages/Setup';
+import { Landing } from './pages/Landing';
 import { Forbidden } from './pages/errors/Forbidden';
 import { NotFound } from './pages/errors/NotFound';
 import { ServerError } from './pages/errors/ServerError';
-
-function RootRedirect(): ReactElement {
-  const { status } = useAuth();
-  return (
-    <Navigate
-      to={status === 'authenticated' ? '/portal' : '/trajectories'}
-      replace
-    />
-  );
-}
+import { registeredApps } from './registry';
 
 export function ConsoleApp(): ReactElement {
   return (
@@ -56,23 +30,15 @@ export function ConsoleApp(): ReactElement {
               <RealNotificationProvider>
                 <AegisShell
                   brand={{ name: 'AegisLab', href: '/' }}
-                  apps={[
-                    portalApp,
-                    containersApp,
-                    datasetsApp,
-                    trajectoriesApp,
-                    blobApp,
-                    settingsApp,
-                    galleryApp,
-                    envDemoAlphaApp,
-                    envDemoBravoApp,
-                    envDemoNoneApp,
-                  ]}
+                  apps={registeredApps}
                   notFoundElement={<NotFound />}
                   rootRoutes={[
-                    { path: '/', element: <RootRedirect /> },
+                    { path: '/', element: <Landing /> },
                     { path: '/inbox', element: <InboxPage /> },
-                    { path: '/setup', element: <Setup /> },
+                    {
+                      path: '/setup',
+                      element: <Navigate to='/settings/endpoints' replace />,
+                    },
                     { path: '/error/forbidden', element: <Forbidden /> },
                     { path: '/error/server', element: <ServerError /> },
                   ]}
@@ -85,7 +51,11 @@ export function ConsoleApp(): ReactElement {
                       to: '/settings/profile',
                     },
                     { key: 'settings', label: 'Settings', to: '/settings' },
-                    { key: 'connection', label: 'Connection', to: '/setup' },
+                    {
+                      key: 'endpoints',
+                      label: 'Endpoints',
+                      to: '/settings/endpoints',
+                    },
                   ]}
                 />
               </RealNotificationProvider>

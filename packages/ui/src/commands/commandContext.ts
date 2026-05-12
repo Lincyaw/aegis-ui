@@ -1,5 +1,7 @@
 import { type ReactNode, createContext } from 'react';
 
+import type { AegisAction } from '../agent/types';
+
 /**
  * A single executable action surfaced through the command palette and,
  * eventually, agent tool-calls. Commands are presentational contracts —
@@ -30,6 +32,8 @@ export interface Command<TArgs = unknown> {
   handler: (args?: TArgs) => void | Promise<void>;
   /** Optional undo callback — UI will surface an Undo affordance. */
   undo?: () => void | Promise<void>;
+  /** Optional aegis-ui agent action — fired alongside handler from the palette. */
+  action?: AegisAction<void, unknown>;
 }
 
 /**

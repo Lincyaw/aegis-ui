@@ -1,6 +1,7 @@
 import {
   ApiOutlined,
   BellOutlined,
+  CloudServerOutlined,
   FileTextOutlined,
   KeyOutlined,
   SafetyOutlined,
@@ -13,6 +14,7 @@ import { Navigate } from 'react-router-dom';
 
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
+import { Setup } from '../../pages/Setup';
 import ApiKeys from './pages/ApiKeys';
 import AuditLogs from './pages/AuditLogs';
 import Notifications from './pages/Notifications';
@@ -48,6 +50,12 @@ export const settingsApp: AegisApp = {
         { to: 'audit', label: 'Audit Logs', icon: <FileTextOutlined /> },
       ],
     },
+    {
+      label: 'System',
+      items: [
+        { to: 'endpoints', label: 'Endpoints', icon: <CloudServerOutlined /> },
+      ],
+    },
   ],
   routes: [
     { path: '', element: <Navigate to='profile' replace /> },
@@ -59,5 +67,6 @@ export const settingsApp: AegisApp = {
     { path: 'roles', element: <Roles /> },
     { path: 'oidc-clients', element: <OidcClients /> },
     { path: 'audit', element: <AuditLogs /> },
+    { path: 'endpoints', element: <Setup /> },
   ],
 };

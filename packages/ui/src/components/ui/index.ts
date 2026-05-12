@@ -7,32 +7,46 @@
 
 export { Button } from './Button';
 export { Panel } from './Panel';
+export type { PanelSurface } from './Panel';
 export { PanelTitle } from './PanelTitle';
 export { MetricLabel } from './MetricLabel';
 export { MonoValue } from './MonoValue';
+export type { MonoValueSurface } from './MonoValue';
 export { StatusDot } from './StatusDot';
 export { Terminal } from './Terminal';
-export type { TerminalLine, LogLevel } from './Terminal';
+export type { TerminalLine, LogLevel, TerminalSurface } from './Terminal';
 export { BlastRadiusBar } from './BlastRadiusBar';
+export type { BlastRadiusBarSurface } from './BlastRadiusBar';
 export { ControlListItem } from './ControlListItem';
 export { Chip } from './Chip';
+export type { ChipSurface } from './Chip';
 export { SectionDivider } from './SectionDivider';
 export { KeyValueList } from './KeyValueList';
-export type { KeyValueItem } from './KeyValueList';
+export type { KeyValueItem, KeyValueListSurface } from './KeyValueList';
 export { StatBlock } from './StatBlock';
+export type { StatBlockSurface } from './StatBlock';
 export { SparkLine } from './SparkLine';
+export type { SparkLineSurface } from './SparkLine';
 export { MetricCard } from './MetricCard';
+export type { MetricCardSurface } from './MetricCard';
 export { TrajectoryStep } from './TrajectoryStep';
-export type { TrajectoryStepData } from './TrajectoryStep';
+export type {
+  TrajectoryStepData,
+  TrajectoryStepSurface,
+} from './TrajectoryStep';
 export { TrajectoryTimeline } from './TrajectoryTimeline';
-export type { TrajectoryTimelineProps } from './TrajectoryTimeline';
+export type {
+  TrajectoryTimelineProps,
+  TrajectoryTimelineSurface,
+} from './TrajectoryTimeline';
 export { ToolCallCard } from './ToolCallCard';
-export type { ToolCallData } from './ToolCallCard';
+export type { ToolCallData, ToolCallCardSurface } from './ToolCallCard';
 export { EmptyState } from './EmptyState';
 export { TimeDisplay } from './TimeDisplay';
 export { CodeBlock } from './CodeBlock';
+export type { CodeBlockSurface } from './CodeBlock';
 export { DataTable } from './DataTable';
-export type { DataTableColumn } from './DataTable';
+export type { DataTableColumn, DataTableSurface } from './DataTable';
 export { DataList } from './DataList';
 export type { DataListColumn, DataListItem, DataListSurface } from './DataList';
 export { Toolbar } from './Toolbar';
@@ -42,6 +56,7 @@ export type { TabItem } from './Tabs';
 export { Breadcrumb } from './Breadcrumb';
 export type { BreadcrumbItem } from './Breadcrumb';
 export { Avatar } from './Avatar';
+export type { AvatarSurface } from './Avatar';
 export { DropdownMenu } from './DropdownMenu';
 export type { DropdownItem } from './DropdownMenu';
 export { ProjectSelector } from './ProjectSelector';
@@ -60,23 +75,31 @@ export { ForgotPasswordForm } from './ForgotPasswordForm';
 export { ErrorState } from './ErrorState';
 export { NotificationBell } from './NotificationBell';
 export { InboxPage } from './InboxPage';
+export type { InboxPageSurface } from './InboxPage';
 export { CommandPalette } from './CommandPalette';
 export { ChatMessage } from './ChatMessage';
+export type { ChatMessageSurface } from './ChatMessage';
 export { ChatMessageList } from './ChatMessageList';
+export type { ChatMessageListSurface } from './ChatMessageList';
 export { ChatComposer } from './ChatComposer';
 export { CommandInvocationCard } from './CommandInvocationCard';
+export type { CommandInvocationCardSurface } from './CommandInvocationCard';
 export { AgentPanel } from './AgentPanel';
+export type { AgentPanelSurface } from './AgentPanel';
 export { FileDropzone } from './FileDropzone';
 export type { FileDropzoneItem } from './FileDropzone';
 export { FilePreview } from './FilePreview';
+export type { FilePreviewSurface } from './FilePreview';
 export { CodeEditor } from './CodeEditor';
-export type { CodeEditorLanguage } from './CodeEditor';
+export type { CodeEditorLanguage, CodeEditorSurface } from './CodeEditor';
 export { DiffViewer } from './DiffViewer';
+export type { DiffViewerSurface } from './DiffViewer';
 export { Timeline } from './Timeline';
-export type { TimelineItem } from './Timeline';
+export type { TimelineItem, TimelineSurface } from './Timeline';
 export { ParquetViewer } from './ParquetViewer';
+export type { ParquetViewerSurface } from './ParquetViewer';
 export { TraceTree } from './TraceTree';
-export type { TraceSpan } from './TraceTree';
+export type { TraceSpan, TraceTreeSurface } from './TraceTree';
 export { EnvironmentSwitcher } from './EnvironmentSwitcher';
 export type {
   EnvironmentSwitcherBadge,

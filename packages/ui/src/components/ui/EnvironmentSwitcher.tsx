@@ -1,5 +1,7 @@
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 
+import { useAegisAction } from '../../agent/hooks';
+import type { AegisAction } from '../../agent/types';
 import './EnvironmentSwitcher.css';
 
 export type EnvironmentSwitcherBadge =
@@ -14,6 +16,8 @@ export interface EnvironmentSwitcherOption {
   badge?: EnvironmentSwitcherBadge;
   /** Optional secondary line (e.g. baseUrl) shown in the dropdown. */
   hint?: string;
+  /** Optional aegis-ui agent action — fired when the env is selected. */
+  action?: AegisAction<void, unknown>;
 }
 
 export interface EnvironmentSwitcherProps {
@@ -91,48 +95,70 @@ export function EnvironmentSwitcher({
       </button>
       {open && (
         <ul className="aegis-env-switcher__panel" role="listbox">
-          {options.map((opt) => {
-            const selected = opt.id === currentId;
-            return (
-              <li key={opt.id} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  className={[
-                    'aegis-env-switcher__item',
-                    selected ? 'aegis-env-switcher__item--selected' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  onClick={() => {
-                    setOpen(false);
-                    if (!selected) {
-                      onChange(opt.id);
-                    }
-                  }}
-                >
-                  <span
-                    className={`aegis-env-switcher__dot aegis-env-switcher__dot--${opt.badge ?? 'default'}`}
-                    aria-hidden="true"
-                  />
-                  <span className="aegis-env-switcher__item-text">
-                    <span className="aegis-env-switcher__item-label">
-                      {opt.label}
-                    </span>
-                    {opt.hint && (
-                      <span className="aegis-env-switcher__item-hint">
-                        {opt.hint}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
+          {options.map((opt) => (
+            <EnvironmentSwitcherItem
+              key={opt.id}
+              option={opt}
+              selected={opt.id === currentId}
+              onPick={() => {
+                setOpen(false);
+                if (opt.id !== currentId) {
+                  onChange(opt.id);
+                }
+              }}
+            />
+          ))}
         </ul>
       )}
     </div>
+  );
+}
+
+interface EnvironmentSwitcherItemProps {
+  option: EnvironmentSwitcherOption;
+  selected: boolean;
+  onPick: () => void;
+}
+
+function EnvironmentSwitcherItem({
+  option,
+  selected,
+  onPick,
+}: EnvironmentSwitcherItemProps) {
+  const bound = useAegisAction<void, unknown>(option.action);
+  const handleClick = (): void => {
+    onPick();
+    if (option.action) {
+      void bound.invoke();
+    }
+  };
+  return (
+    <li role="presentation">
+      <button
+        type="button"
+        role="option"
+        aria-selected={selected}
+        className={[
+          'aegis-env-switcher__item',
+          selected ? 'aegis-env-switcher__item--selected' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        onClick={handleClick}
+        data-agent-action-id={option.action?.id}
+      >
+        <span
+          className={`aegis-env-switcher__dot aegis-env-switcher__dot--${option.badge ?? 'default'}`}
+          aria-hidden="true"
+        />
+        <span className="aegis-env-switcher__item-text">
+          <span className="aegis-env-switcher__item-label">{option.label}</span>
+          {option.hint && (
+            <span className="aegis-env-switcher__item-hint">{option.hint}</span>
+          )}
+        </span>
+      </button>
+    </li>
   );
 }
 

@@ -3,13 +3,25 @@ import {
   type KeyboardEvent,
   type ReactNode,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import { Chip } from './Chip';
 import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
 import './TraceTree.css';
+
+export interface TraceTreeSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (spans: TraceSpan[]) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 export interface TraceSpan {
   id: string;
@@ -33,6 +45,7 @@ interface TraceTreeProps {
   defaultCollapsedDepth?: number;
   className?: string;
   style?: CSSProperties;
+  surface?: TraceTreeSurface;
 }
 
 interface Node {
@@ -97,7 +110,19 @@ export function TraceTree({
   defaultCollapsedDepth = 99,
   className,
   style,
+  surface,
 }: TraceTreeProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useAegisSurface<TraceSpan[]>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'tree',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: spans,
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const { roots, traceDuration, traceStart } = useMemo(() => {
     const r = buildForest(spans);
     const start = spans.length ? Math.min(...spans.map((s) => s.startMs)) : 0;
@@ -140,7 +165,14 @@ export function TraceTree({
   const cls = ['aegis-trace-tree', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div className={cls} style={style} role="tree">
+    <div
+      ref={wrapRef}
+      className={cls}
+      style={style}
+      role="tree"
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       {visible.map((n) => {
         const isCollapsed = collapsed.has(n.span.id);
         const hasChildren = n.children.length > 0;

@@ -1,9 +1,24 @@
-import type { KeyboardEvent, ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode, useRef } from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './MetricCard.css';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
 import { SparkLine } from './SparkLine';
+
+export interface MetricCardSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (data: {
+    label: ReactNode;
+    value: ReactNode;
+    unit?: ReactNode;
+  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface MetricCardProps {
   label: ReactNode;
@@ -17,6 +32,7 @@ interface MetricCardProps {
   inverted?: boolean;
   className?: string;
   onClick?: () => void;
+  surface?: MetricCardSurface;
 }
 
 export function MetricCard({
@@ -28,7 +44,19 @@ export function MetricCard({
   inverted = false,
   className,
   onClick,
+  surface,
 }: MetricCardProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useAegisSurface<{ label: ReactNode; value: ReactNode; unit?: ReactNode }>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'metric',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: { label, value, unit },
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const cls = [
     'aegis-metric-card',
     inverted ? 'aegis-metric-card--inverted' : '',
@@ -49,11 +77,14 @@ export function MetricCard({
   };
   return (
     <div
+      ref={wrapRef}
       className={cls}
       onClick={onClick}
       onKeyDown={interactive ? handleKeyDown : undefined}
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
     >
       <MetricLabel inverted={inverted}>{label}</MetricLabel>
       <div className="aegis-metric-card__value">

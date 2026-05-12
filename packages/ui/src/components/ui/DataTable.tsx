@@ -10,8 +10,19 @@ import {
   useState,
 } from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './DataTable.css';
 import { EmptyState } from './EmptyState';
+
+export interface DataTableSurface<T> {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (rows: T[]) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 export interface DataTableColumn<T> {
   key: string;
@@ -48,6 +59,7 @@ interface DataTableProps<T> {
    * `aegis-data-table:<persistKey>`. Use a stable key per table.
    */
   persistKey?: string;
+  surface?: DataTableSurface<T>;
 }
 
 const DEFAULT_MIN_WIDTH = 60;
@@ -102,8 +114,21 @@ export function DataTable<T>({
   emptyAction,
   className,
   persistKey,
+  surface,
 }: DataTableProps<T>) {
   const tableRef = useRef<HTMLTableElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useAegisSurface<T[]>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'table',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data,
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const [overrides, setOverrides] = useState<Record<string, number>>(() =>
     persistKey ? readPersisted(persistKey) : {},
   );
@@ -215,7 +240,12 @@ export function DataTable<T>({
   };
 
   return (
-    <div className={cls}>
+    <div
+      ref={wrapRef}
+      className={cls}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       <div className="aegis-data-table__scroll">
         <table
           ref={tableRef}

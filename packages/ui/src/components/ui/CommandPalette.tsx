@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 
+import { useAegisAction } from '../../agent/hooks';
 import { type Command, formatShortcut, useCommands } from '../../commands';
 import './CommandPalette.css';
 
@@ -221,39 +222,14 @@ export function CommandPalette(): ReactElement | null {
                 <div className="aegis-cmdk__group-label">{group.label}</div>
                 {group.items.map((cmd) => {
                   const idx = indexOf(cmd);
-                  const isActive = idx === selectedIndex;
                   return (
-                    <button
+                    <CommandPaletteRow
                       key={cmd.id}
-                      type="button"
-                      className={[
-                        'aegis-cmdk__row',
-                        isActive ? 'aegis-cmdk__row--active' : '',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                      onClick={() => handleSelect(cmd)}
-                      onMouseEnter={() => setSelectedIndex(idx)}
-                    >
-                      {cmd.icon && (
-                        <span className="aegis-cmdk__row-icon">{cmd.icon}</span>
-                      )}
-                      <span className="aegis-cmdk__row-body">
-                        <span className="aegis-cmdk__row-label">
-                          {cmd.label}
-                        </span>
-                        {cmd.description && (
-                          <span className="aegis-cmdk__row-desc">
-                            {cmd.description}
-                          </span>
-                        )}
-                      </span>
-                      {cmd.shortcut && (
-                        <span className="aegis-cmdk__row-shortcut">
-                          {formatShortcut(cmd.shortcut)}
-                        </span>
-                      )}
-                    </button>
+                      cmd={cmd}
+                      active={idx === selectedIndex}
+                      onSelect={() => handleSelect(cmd)}
+                      onHover={() => setSelectedIndex(idx)}
+                    />
                   );
                 })}
               </div>
@@ -261,6 +237,46 @@ export function CommandPalette(): ReactElement | null {
         </div>
       </div>
     </div>
+  );
+}
+
+interface CommandPaletteRowProps {
+  cmd: Command;
+  active: boolean;
+  onSelect: () => void;
+  onHover: () => void;
+}
+
+function CommandPaletteRow({
+  cmd,
+  active,
+  onSelect,
+  onHover,
+}: CommandPaletteRowProps): ReactElement {
+  useAegisAction<void, unknown>(cmd.action);
+  return (
+    <button
+      type="button"
+      className={['aegis-cmdk__row', active ? 'aegis-cmdk__row--active' : '']
+        .filter(Boolean)
+        .join(' ')}
+      onClick={onSelect}
+      onMouseEnter={onHover}
+      data-agent-action-id={cmd.action?.id}
+    >
+      {cmd.icon && <span className="aegis-cmdk__row-icon">{cmd.icon}</span>}
+      <span className="aegis-cmdk__row-body">
+        <span className="aegis-cmdk__row-label">{cmd.label}</span>
+        {cmd.description && (
+          <span className="aegis-cmdk__row-desc">{cmd.description}</span>
+        )}
+      </span>
+      {cmd.shortcut && (
+        <span className="aegis-cmdk__row-shortcut">
+          {formatShortcut(cmd.shortcut)}
+        </span>
+      )}
+    </button>
   );
 }
 

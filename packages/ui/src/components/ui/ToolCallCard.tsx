@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
 import './ToolCallCard.css';
@@ -10,9 +12,19 @@ export interface ToolCallData {
   result?: string;
 }
 
+export interface ToolCallCardSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (data: ToolCallData) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
+
 interface ToolCallCardProps {
   data: ToolCallData;
   className?: string;
+  surface?: ToolCallCardSurface;
 }
 
 function CodeBlock({ label, code }: { label: string; code: string }) {
@@ -43,11 +55,27 @@ function CodeBlock({ label, code }: { label: string; code: string }) {
   );
 }
 
-export function ToolCallCard({ data, className }: ToolCallCardProps) {
+export function ToolCallCard({ data, className, surface }: ToolCallCardProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useAegisSurface<ToolCallData>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'detail',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data,
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const cls = ['aegis-tool-call', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div className={cls}>
+    <div
+      ref={wrapRef}
+      className={cls}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       <div className="aegis-tool-call__head">
         <Chip tone="ink">{data.name}</Chip>
         <MetricLabel size="xs">tool_call</MetricLabel>

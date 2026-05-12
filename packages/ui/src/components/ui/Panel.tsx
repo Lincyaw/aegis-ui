@@ -1,6 +1,17 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useRef } from 'react';
 
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './Panel.css';
+
+export interface PanelSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project?: () => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface PanelProps {
   title?: ReactNode;
@@ -10,6 +21,7 @@ interface PanelProps {
   className?: string;
   style?: CSSProperties;
   children?: ReactNode;
+  surface?: PanelSurface;
 }
 
 export function Panel({
@@ -20,7 +32,19 @@ export function Panel({
   className,
   style,
   children,
+  surface,
 }: PanelProps) {
+  const wrapRef = useRef<HTMLElement>(null);
+  useAegisSurface<null>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'panel',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: null,
+    project: surface?.project ?? (() => ({})),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const rootClass = [
     'aegis-panel',
     inverted ? 'aegis-panel--inverted' : '',
@@ -32,7 +56,13 @@ export function Panel({
   const showHeader = Boolean(title ?? extra);
 
   return (
-    <section className={rootClass} style={style}>
+    <section
+      ref={wrapRef}
+      className={rootClass}
+      style={style}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       {showHeader && (
         <header className="aegis-panel__header">
           {typeof title === 'string' ? (

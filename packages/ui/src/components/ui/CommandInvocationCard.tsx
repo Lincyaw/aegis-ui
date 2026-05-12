@@ -1,7 +1,24 @@
+import { useRef } from 'react';
+
+import { useAegisSurface } from '../../agent/hooks';
+import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import { Chip } from './Chip';
 import './CommandInvocationCard.css';
 import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
+
+export interface CommandInvocationCardSurface {
+  id: string;
+  kind?: SurfaceKind;
+  label?: string;
+  project: (data: {
+    commandId: string;
+    args?: unknown;
+    status: 'pending' | 'success' | 'error';
+  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  askSuggestions?: string[];
+  ask?: boolean;
+}
 
 interface CommandInvocationCardProps {
   commandId: string;
@@ -10,6 +27,7 @@ interface CommandInvocationCardProps {
   error?: string;
   onUndo?: () => void;
   className?: string;
+  surface?: CommandInvocationCardSurface;
 }
 
 function formatArgs(args: unknown): string {
@@ -45,7 +63,23 @@ export function CommandInvocationCard({
   error,
   onUndo,
   className,
+  surface,
 }: CommandInvocationCardProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useAegisSurface<{
+    commandId: string;
+    args?: unknown;
+    status: 'pending' | 'success' | 'error';
+  }>({
+    id: surface?.id ?? '__unused__',
+    kind: surface?.kind ?? 'detail',
+    label: surface?.label,
+    askSuggestions: surface?.askSuggestions,
+    data: { commandId, args, status },
+    project: surface ? surface.project : () => ({}),
+    ref: wrapRef,
+    enabled: Boolean(surface),
+  });
   const cls = ['aegis-cmd-card', `aegis-cmd-card--${status}`, className ?? '']
     .filter(Boolean)
     .join(' ');
@@ -53,7 +87,12 @@ export function CommandInvocationCard({
   const argsStr = formatArgs(args);
 
   return (
-    <div className={cls}>
+    <div
+      ref={wrapRef}
+      className={cls}
+      data-agent-surface-id={surface?.id}
+      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+    >
       <div className="aegis-cmd-card__head">
         <span className="aegis-cmd-card__id">
           <MonoValue size="sm">{commandId}</MonoValue>

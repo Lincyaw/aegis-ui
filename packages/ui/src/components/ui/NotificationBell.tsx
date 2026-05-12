@@ -4,6 +4,8 @@ import { BellOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { useAegisAction } from '../../agent/hooks';
+import type { AegisAction } from '../../agent/types';
 import { type AegisNotification, useNotifications } from '../../notifications';
 import './NotificationBell.css';
 import { relativeTime } from './relativeTime';
@@ -13,6 +15,8 @@ interface NotificationBellProps {
   inboxPath: string;
   /** Override popover width in px. Defaults to 360. */
   width?: number;
+  /** Optional aegis-ui agent action — fired when the bell is clicked. */
+  action?: AegisAction<void, unknown>;
 }
 
 const MAX_PREVIEW_ITEMS = 8;
@@ -21,10 +25,12 @@ const DEFAULT_WIDTH = 360;
 export function NotificationBell({
   inboxPath,
   width = DEFAULT_WIDTH,
+  action,
 }: NotificationBellProps): ReactElement {
   const { items, unreadCount, markRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const bound = useAegisAction<void, unknown>(action);
 
   const preview = items.slice(0, MAX_PREVIEW_ITEMS);
 
@@ -121,6 +127,8 @@ export function NotificationBell({
             ? `Notifications: ${String(unreadCount)} unread`
             : 'Notifications'
         }
+        data-agent-action-id={action?.id}
+        onClick={action ? () => void bound.invoke() : undefined}
       >
         <BellOutlined className="aegis-notif-bell__icon" />
         {unreadCount > 0 && (
