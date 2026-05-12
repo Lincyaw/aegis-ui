@@ -1,4 +1,5 @@
 import {
+  ApiOutlined,
   BellOutlined,
   FileTextOutlined,
   KeyOutlined,
@@ -15,6 +16,7 @@ import type { AegisApp } from '@OperationsPAI/aegis-ui';
 import ApiKeys from './pages/ApiKeys';
 import AuditLogs from './pages/AuditLogs';
 import Notifications from './pages/Notifications';
+import OidcClients from './pages/OidcClients';
 import Profile from './pages/Profile';
 import Roles from './pages/Roles';
 import Teams from './pages/Teams';
@@ -42,6 +44,7 @@ export const settingsApp: AegisApp = {
         { to: 'users', label: 'Users', icon: <TeamOutlined /> },
         { to: 'teams', label: 'Teams', icon: <UsergroupAddOutlined /> },
         { to: 'roles', label: 'Roles & Permissions', icon: <SafetyOutlined /> },
+        { to: 'oidc-clients', label: 'OIDC Clients', icon: <ApiOutlined /> },
         { to: 'audit', label: 'Audit Logs', icon: <FileTextOutlined /> },
       ],
     },
@@ -54,6 +57,7 @@ export const settingsApp: AegisApp = {
     { path: 'users', element: <Users /> },
     { path: 'teams', element: <Teams /> },
     { path: 'roles', element: <Roles /> },
+    { path: 'oidc-clients', element: <OidcClients /> },
     { path: 'audit', element: <AuditLogs /> },
   ],
 };

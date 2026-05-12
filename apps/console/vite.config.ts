@@ -22,13 +22,21 @@ export default defineConfig(({ mode }) => {
     server: {
       port: Number(env.VITE_PORT) || 3100,
       proxy: (() => {
-        const apiTarget = env.VITE_API_TARGET || 'http://127.0.0.1:8083';
-        const ssoTarget = env.VITE_SSO_TARGET || apiTarget;
+        const apiTarget = env.VITE_API_TARGET || 'http://127.0.0.1:8082';
+        const ssoTarget = env.VITE_SSO_TARGET || 'http://127.0.0.1:8083';
+        const notifyTarget = env.VITE_NOTIFY_TARGET || 'http://127.0.0.1:8084';
+        const blobTarget = env.VITE_BLOB_TARGET || 'http://127.0.0.1:8085';
         const sso = (): { target: string; changeOrigin: true } => ({
           target: ssoTarget,
           changeOrigin: true,
         });
         return {
+          '/api/v2/inbox': {
+            target: notifyTarget,
+            changeOrigin: true,
+            ws: true,
+          },
+          '/api/v2/blob': { target: blobTarget, changeOrigin: true },
           '/api': { target: apiTarget, changeOrigin: true, ws: true },
           '/.well-known': sso(),
           '/authorize': sso(),

@@ -9,7 +9,8 @@ import {
 } from '@OperationsPAI/aegis-ui';
 
 import { SsoAuthProvider } from './auth/SsoAuthProvider';
-import { DemoNotificationProvider } from './notifications/DemoNotificationProvider';
+import { RealNotificationProvider } from './notifications/RealNotificationProvider';
+import { blobApp } from './apps/blob';
 import { containersApp } from './apps/containers';
 import { datasetsApp } from './apps/datasets';
 import { galleryApp } from './apps/gallery';
@@ -41,13 +42,14 @@ export function ConsoleApp(): ReactElement {
                   <div className='aegis-app-loading'>Loading…</div>
                 }
               >
-                <DemoNotificationProvider>
+                <RealNotificationProvider>
                   <AegisShell
                     brand={{ name: 'AegisLab', href: '/' }}
                     apps={[
                       portalApp,
                       containersApp,
                       datasetsApp,
+                      blobApp,
                       settingsApp,
                       galleryApp,
                     ]}
@@ -69,7 +71,7 @@ export function ConsoleApp(): ReactElement {
                       { key: 'settings', label: 'Settings', to: '/settings' },
                     ]}
                   />
-                </DemoNotificationProvider>
+                </RealNotificationProvider>
               </RequireAuth>
             }
           />
