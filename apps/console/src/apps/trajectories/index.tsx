@@ -13,6 +13,7 @@ export const trajectoriesApp: AegisApp = {
   basePath: '/trajectories',
   description:
     'Read-only viewer for AgentM OTel traces stored in ClickHouse.',
+  requiresAuth: false,
   sidebar: [
     {
       items: [

@@ -7,6 +7,7 @@
  * vite.config.ts), so callers stay on relative paths.
  */
 
+import { gatewayUrlFor } from '../config/runtime';
 import { readTokens } from '../auth/tokenStore';
 
 export interface ApiFetchOptions extends RequestInit {
@@ -63,7 +64,7 @@ export async function apiFetch(
   ) {
     merged.set('content-type', 'application/json');
   }
-  const res = await fetch(path, { ...rest, headers: merged });
+  const res = await fetch(gatewayUrlFor(path), { ...rest, headers: merged });
   if (res.ok) {
     return res;
   }

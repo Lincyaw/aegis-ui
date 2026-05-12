@@ -12,7 +12,10 @@ import {
   type AegisNotification,
   type NotificationContextValue,
   NotificationProvider,
+  useAuth,
 } from '@OperationsPAI/aegis-ui';
+
+import { gatewayUrlFor } from '../config/runtime';
 
 import {
   archive as archiveCall,
@@ -52,6 +55,8 @@ export function RealNotificationProvider({
   pollMs = 60_000,
   pageSize = 50,
 }: Props): ReactElement {
+  const { status: authStatus } = useAuth();
+  const isAuthed = authStatus === 'authenticated';
   const [items, setItems] = useState<AegisNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -94,6 +99,12 @@ export function RealNotificationProvider({
 
   // Initial load + safety-net polling. Independent of the stream lifecycle.
   useEffect(() => {
+    if (!isAuthed) {
+      setItems([]);
+      setUnread(0);
+      setLoading(false);
+      return;
+    }
     void refetch();
     const id = window.setInterval(() => {
       void refetchUnread();
@@ -101,12 +112,15 @@ export function RealNotificationProvider({
     return () => {
       window.clearInterval(id);
     };
-  }, [refetch, refetchUnread, pollMs]);
+  }, [isAuthed, refetch, refetchUnread, pollMs]);
 
   // Live SSE stream. Reconnects with exponential backoff on error,
   // closes cleanly on unmount, and triggers a refetch each time a
   // "notification" event arrives so the new row is on screen instantly.
   useEffect(() => {
+    if (!isAuthed) {
+      return;
+    }
     let stopped = false;
     let attempt = 0;
     let timer: number | undefined;
@@ -124,7 +138,7 @@ export function RealNotificationProvider({
         return;
       }
       controller = openSseStream({
-        url: STREAM_URL,
+        url: gatewayUrlFor(STREAM_URL),
         token: tokens.accessToken,
         onOpen: () => {
           attempt = 0;
@@ -157,7 +171,7 @@ export function RealNotificationProvider({
       }
       controller?.abort();
     };
-  }, [refetch]);
+  }, [isAuthed, refetch]);
 
   const markRead = useCallback(
     async (id: string): Promise<void> => {

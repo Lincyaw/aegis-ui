@@ -1,21 +1,13 @@
 /**
  * ClickHouse HTTP client for the default OTel exporter schema.
  *
- * Talks to the dev-server proxy at /api/v2/clickhouse → CH HTTP port (8123).
- * Returns rows in JSONCompact form so we don't pay the column-name tax for
+ * Endpoint comes from runtime config — empty defaults to the dev-server
+ * proxy at /api/v2/clickhouse → CH HTTP port (8123).
+ * Returns rows in JSON form so we don't pay the column-name tax for
  * every row.
  */
 
-const CH_PATH = '/api/v2/clickhouse';
-const CH_DATABASE =
-  (import.meta.env.VITE_CLICKHOUSE_DATABASE as string | undefined) ?? 'otel';
-const CH_TABLE =
-  (import.meta.env.VITE_CLICKHOUSE_TRACES_TABLE as string | undefined) ??
-  'otel_traces';
-const CH_USER = import.meta.env.VITE_CLICKHOUSE_USER as string | undefined;
-const CH_PASSWORD = import.meta.env.VITE_CLICKHOUSE_PASSWORD as
-  | string
-  | undefined;
+import { clickhouseBase, getRuntimeConfig } from '../../../config/runtime';
 
 interface ChJsonResponse<T> {
   meta: Array<{ name: string; type: string }>;
@@ -28,21 +20,22 @@ async function chQuery<TRow = unknown>(
   sql: string,
   params: Record<string, string | number> = {},
 ): Promise<TRow[]> {
+  const cfg = getRuntimeConfig();
   const search = new URLSearchParams();
-  search.set('database', CH_DATABASE);
+  search.set('database', cfg.clickhouseDatabase);
   search.set('default_format', 'JSON');
   search.set('output_format_json_quote_64bit_integers', '0');
   for (const [k, v] of Object.entries(params)) {
     search.set(`param_${k}`, String(v));
   }
   const headers: Record<string, string> = { 'Content-Type': 'text/plain' };
-  if (CH_USER) {
-    headers['X-ClickHouse-User'] = CH_USER;
+  if (cfg.clickhouseUser) {
+    headers['X-ClickHouse-User'] = cfg.clickhouseUser;
   }
-  if (CH_PASSWORD) {
-    headers['X-ClickHouse-Key'] = CH_PASSWORD;
+  if (cfg.clickhousePassword) {
+    headers['X-ClickHouse-Key'] = cfg.clickhousePassword;
   }
-  const res = await fetch(`${CH_PATH}/?${search.toString()}`, {
+  const res = await fetch(`${clickhouseBase()}/?${search.toString()}`, {
     method: 'POST',
     headers,
     body: sql,
@@ -157,6 +150,7 @@ export async function listSessions(opts: {
   // Reading from arbitrary spans (not just SpanName='agentm.session') means
   // in-flight trees show up immediately, before the orchestrator's session
   // span has ended.
+  const tbl = getRuntimeConfig().clickhouseTracesTable;
   const searchClause = search
     ? `AND (positionCaseInsensitive(SpanAttributes['agentm.root_session_id'], {search:String}) > 0
           OR positionCaseInsensitive(TraceId, {search:String}) > 0
@@ -198,7 +192,7 @@ SELECT
   sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])) AS output_tokens,
   anyIf(SpanAttributes['gen_ai.request.model'],
         SpanAttributes['gen_ai.request.model'] != '')                AS model
-FROM ${CH_TABLE}
+FROM ${tbl}
 WHERE Timestamp >= now() - toIntervalHour({sinceHours:UInt32})
   ${searchClause}
 GROUP BY TraceId
@@ -235,6 +229,7 @@ export async function listSpansByRootSession(
   opts: { sinceHours?: number } = {},
 ): Promise<SpanRow[]> {
   const sinceHours = opts.sinceHours ?? 720; // 30d window for detail
+  const tbl = getRuntimeConfig().clickhouseTracesTable;
   // Two-step: first resolve the set of TraceIds carrying this
   // root_session_id (cross-process trees may span multiple), then fetch
   // all their spans via the TraceId primary key. Doing it as one query
@@ -248,9 +243,9 @@ SELECT
   Duration, StatusCode, StatusMessage,
   SpanAttributes, ResourceAttributes,
   Events.Timestamp, Events.Name, Events.Attributes
-FROM ${CH_TABLE}
+FROM ${tbl}
 WHERE TraceId IN (
-  SELECT DISTINCT TraceId FROM ${CH_TABLE}
+  SELECT DISTINCT TraceId FROM ${tbl}
   WHERE SpanAttributes['agentm.root_session_id'] = {rootSessionId:String}
     AND Timestamp >= now() - toIntervalHour({sinceHours:UInt32})
 )

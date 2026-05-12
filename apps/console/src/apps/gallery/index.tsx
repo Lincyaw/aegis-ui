@@ -9,5 +9,6 @@ export const galleryApp: AegisApp = {
   icon: <AppstoreOutlined />,
   basePath: '/gallery',
   description: 'Live specimen of every primitive shipped by aegis-ui.',
+  requiresAuth: false,
   routes: [{ path: '', element: <Gallery /> }],
 };
