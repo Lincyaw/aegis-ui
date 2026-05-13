@@ -1,0 +1,203 @@
+.aegis-chat-switcher {
+  position: relative;
+  display: inline-flex;
+}
+
+.aegis-chat-switcher__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-caption);
+  font-family: var(--font-brand);
+  color: var(--text-main);
+  background: transparent;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  max-width: 240px;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.aegis-chat-switcher__trigger:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-emphasis);
+}
+
+.aegis-chat-switcher__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aegis-chat-switcher__caret {
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+}
+
+.aegis-chat-switcher__popover {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: var(--z-popover);
+  min-width: 260px;
+  max-width: 320px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-emphasis);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.aegis-chat-switcher__new {
+  text-align: left;
+  font: var(--text-caption);
+  font-family: var(--font-ui);
+  color: var(--text-main);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  transition: background var(--motion-fast);
+}
+
+.aegis-chat-switcher__new:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-chat-switcher__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.aegis-chat-switcher__row {
+  display: flex;
+  align-items: stretch;
+  border-radius: var(--radius-sm);
+}
+
+.aegis-chat-switcher__row:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-chat-switcher__row--active {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-chat-switcher__row--active:hover {
+  background: var(--bg-inverted);
+}
+
+.aegis-chat-switcher__row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-px);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+  color: inherit;
+  text-align: left;
+  min-width: 0;
+}
+
+.aegis-chat-switcher__row-title {
+  font: var(--text-caption);
+  font-family: var(--font-ui);
+  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.aegis-chat-switcher__row-time {
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+}
+
+.aegis-chat-switcher__row--active .aegis-chat-switcher__row-time {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-chat-switcher__row-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.aegis-chat-switcher__row-more {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.aegis-chat-switcher__row--active .aegis-chat-switcher__row-more {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-chat-switcher__row-more:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.aegis-chat-switcher__row-menu-popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: var(--z-popover);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+
+.aegis-chat-switcher__row-menu-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  font: var(--text-caption);
+  font-family: var(--font-ui);
+  color: var(--text-main);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.aegis-chat-switcher__row-menu-item:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-chat-switcher__row-menu-item--danger {
+  color: var(--accent-warning);
+}
+
+@media (max-width: 768px) {
+  .aegis-chat-switcher__popover {
+    min-width: 220px;
+    max-width: 80vw;
+  }
+}

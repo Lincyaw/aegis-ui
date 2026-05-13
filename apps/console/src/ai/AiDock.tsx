@@ -1,4 +1,4 @@
-import { type ReactElement, useCallback, useEffect } from 'react';
+import { type ReactElement, useCallback, useEffect, useRef } from 'react';
 
 import {
   AgentPanel,
@@ -9,6 +9,8 @@ import {
   useAgent,
 } from '@lincyaw/aegis-ui';
 
+import { ChatSwitcher } from './ChatSwitcher';
+import { useChatStore } from './chatStore';
 import './AiDock.css';
 
 interface AiDockProps {
@@ -18,6 +20,23 @@ interface AiDockProps {
 
 export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
   const { messages, sending, send, clear } = useAgent();
+  const { currentId, saveMessages, maybeAutoTitle, touchActive } =
+    useChatStore();
+
+  const lastSavedRef = useRef<string>('');
+  useEffect(() => {
+    const serialized = JSON.stringify(messages);
+    if (serialized === lastSavedRef.current) {
+      return;
+    }
+    lastSavedRef.current = serialized;
+    saveMessages(currentId, messages);
+    const firstUser = messages.find((m) => m.role === 'user');
+    if (firstUser) {
+      maybeAutoTitle(currentId, firstUser.content);
+      touchActive(currentId);
+    }
+  }, [messages, currentId, saveMessages, maybeAutoTitle, touchActive]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent): void => {
@@ -45,7 +64,7 @@ export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
   return (
     <div className='aegis-ai-dock' role='dialog' aria-label='AI assistant'>
       <AgentPanel
-        title='AI assistant'
+        title={<ChatSwitcher />}
         headerActions={
           <div className='aegis-ai-dock__header-actions'>
             {clear && messages.length > 0 && (

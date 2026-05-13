@@ -13,6 +13,7 @@ import {
 import '@lincyaw/aegis-ui/style.css';
 import { App as AntdApp, ConfigProvider } from 'antd';
 
+import { useChatStore } from './ai/chatStore';
 import { ConsoleApp } from './App';
 import './main.css';
 
@@ -22,11 +23,21 @@ const agentmGatewayUrl =
   import.meta.env.VITE_AGENTM_GATEWAY_URL ?? DEFAULT_AGENTM_GATEWAY_URL;
 const agentmToken = import.meta.env.VITE_AGENTM_TOKEN;
 
-const agentmChannel = { url: agentmGatewayUrl, token: agentmToken };
-
 function MaybeAgentm({ children }: { children: ReactNode }): ReactNode {
+  const { currentId, loadMessages } = useChatStore();
+  // Why: remount provider on chatId switch so React `messages` state and
+  // streamMap reset cleanly — the provider only seeds from initialMessages
+  // via useState initializer.
   return (
-    <AgentmChannelProvider channel={agentmChannel}>
+    <AgentmChannelProvider
+      key={currentId}
+      channel={{
+        url: agentmGatewayUrl,
+        token: agentmToken,
+        chatId: currentId,
+      }}
+      initialMessages={loadMessages(currentId)}
+    >
       {children}
     </AgentmChannelProvider>
   );
