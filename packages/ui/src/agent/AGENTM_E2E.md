@@ -142,11 +142,12 @@ breakage.
 
 - **Streamed outbounds are cumulative.** Each chunk sharing a
   `stream_id` carries the full text-so-far. Replace, don't append.
-- **Long streams may never set `final: true`.** Observed empirically on
-  `feat/gateway-websocket` as of 2026-05-13. The provider's
-  `streamMap` won't get released by `final` in that case; new
-  conversations work fine because each gets a new `stream_id`, but
-  a worker-side fix is the right long-term answer.
-- **One-shot short replies do set `final: true`** and arrive as a
-  single outbound — they hit the non-streaming branch of
+- **One-shot short replies arrive as a single outbound with
+  `final: true`** — they hit the non-streaming branch of
   `appendOutbound`.
+- **Every turn closes with a `final: true` frame followed by a
+  `turn_complete` control envelope.** Before AgentM commit `b97a003`
+  the WS deliverer glued multiple back-to-back records into one binary
+  message and the wire spec dropped everything after the first
+  envelope, so end-of-turn signals were invisible — pin AgentM to
+  ≥ `b97a003` if you depend on stream finalisation.
