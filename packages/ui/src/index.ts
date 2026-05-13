@@ -74,12 +74,22 @@ export {
 export type { Command, CommandContextValue } from './commands';
 
 // Agent context contract (presentational — host wires the LLM round-trip).
-export { AgentProvider, useAgent } from './agent';
+export {
+  AgentmChannelClient,
+  AgentmChannelProvider,
+  AgentProvider,
+  AGENTM_WIRE_VERSION,
+  useAgent,
+} from './agent';
 export type {
   AgentContextValue,
+  AgentCommandInvocation,
+  AgentmChannelClientOptions,
+  AgentmConnectionStatus,
+  AgentmEnvelope,
+  AgentmEnvelopeKind,
   AgentMessage,
   AgentMessageRole,
-  AgentCommandInvocation,
 } from './agent';
 
 // Agent-native UI substrate — runtime + hooks + provider.

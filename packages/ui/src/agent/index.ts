@@ -1,5 +1,16 @@
 export { AgentProvider } from './AgentProvider';
 export { useAgent } from './useAgent';
+export { AgentmChannelProvider } from './AgentmChannelProvider';
+export {
+  AgentmChannelClient,
+  WIRE_VERSION as AGENTM_WIRE_VERSION,
+} from './agentmChannelClient';
+export type {
+  AgentmChannelClientOptions,
+  ConnectionStatus as AgentmConnectionStatus,
+  Envelope as AgentmEnvelope,
+  EnvelopeKind as AgentmEnvelopeKind,
+} from './agentmChannelClient';
 export type {
   AgentContextValue,
   AgentMessage,
