@@ -83,6 +83,8 @@ export type { ChatMessageSurface } from './ChatMessage';
 export { ChatMessageList } from './ChatMessageList';
 export type { ChatMessageListSurface } from './ChatMessageList';
 export { ChatComposer } from './ChatComposer';
+export { ChatSessionList } from './ChatSessionList';
+export type { ChatSessionItem, ChatSessionListProps } from './ChatSessionList';
 export { CommandInvocationCard } from './CommandInvocationCard';
 export type { CommandInvocationCardSurface } from './CommandInvocationCard';
 export { AgentPanel } from './AgentPanel';

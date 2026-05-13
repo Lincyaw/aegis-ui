@@ -22,6 +22,7 @@ import {
   ChatComposer,
   ChatMessage,
   ChatMessageList,
+  ChatSessionList,
   Chip,
   type Command,
   CodeEditor,
@@ -2880,6 +2881,97 @@ function App() {
                   timestamp='12:01'
                 />
               </ChatMessageList>
+            </div>
+          </Specimen>
+        </div>
+
+        <SectionDivider>ChatSessionList</SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='compact · 3 items · second selected' span={2}>
+            <div style={{ maxWidth: 280 }}>
+              <ChatSessionList
+                density='compact'
+                items={[
+                  {
+                    id: 'a',
+                    title: '本周回归实验',
+                    timestamp: Date.now() - 4 * 60_000,
+                  },
+                  {
+                    id: 'b',
+                    title: '关于蓝色的散文',
+                    timestamp: Date.now() - 2 * 3600_000,
+                    selected: true,
+                  },
+                  {
+                    id: 'c',
+                    title: '新对话',
+                    timestamp: Date.now() - 3 * 86400_000,
+                  },
+                ]}
+                onSelect={(id) => {
+                  console.warn('[gallery] select', id);
+                }}
+                onRename={(id, next) => {
+                  console.warn('[gallery] rename', id, next);
+                }}
+                onDelete={(id) => {
+                  console.warn('[gallery] delete', id);
+                }}
+              />
+            </div>
+          </Specimen>
+          <Specimen caption='comfortable · long titles · first selected' span={2}>
+            <div style={{ maxWidth: 320 }}>
+              <ChatSessionList
+                density='comfortable'
+                items={[
+                  {
+                    id: 'a',
+                    title: '调研 RCA 在多租户场景下的告警合并策略',
+                    timestamp: Date.now() - 1 * 60_000,
+                    selected: true,
+                  },
+                  {
+                    id: 'b',
+                    title: '关于 OpenTelemetry trace 采样率的讨论',
+                    timestamp: Date.now() - 30 * 60_000,
+                  },
+                  {
+                    id: 'c',
+                    title: '短标题',
+                    timestamp: Date.now() - 25 * 3600_000,
+                  },
+                  {
+                    id: 'd',
+                    title: '故障演练流程重构',
+                    timestamp: Date.now() - 35 * 86400_000,
+                  },
+                  {
+                    id: 'e',
+                    title: '历史会话归档',
+                    timestamp: Date.now() - 400 * 86400_000,
+                  },
+                ]}
+                onSelect={(id) => {
+                  console.warn('[gallery] select', id);
+                }}
+                onRename={(id, next) => {
+                  console.warn('[gallery] rename', id, next);
+                }}
+                onDelete={(id) => {
+                  console.warn('[gallery] delete', id);
+                }}
+              />
+            </div>
+          </Specimen>
+          <Specimen caption='empty state' span={2}>
+            <div style={{ maxWidth: 280 }}>
+              <ChatSessionList
+                items={[]}
+                onSelect={() => undefined}
+                emptyState={<span>暂无对话</span>}
+              />
             </div>
           </Specimen>
         </div>

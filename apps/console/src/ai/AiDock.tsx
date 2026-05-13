@@ -13,6 +13,8 @@ import { ChatSwitcher } from './ChatSwitcher';
 import { useChatStore } from './chatStore';
 import './AiDock.css';
 
+const SAVE_DEBOUNCE_MS = 500;
+
 interface AiDockProps {
   open: boolean;
   onClose: () => void;
@@ -23,20 +25,62 @@ export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
   const { currentId, saveMessages, maybeAutoTitle, touchActive } =
     useChatStore();
 
+  // Debounced persistence: coalesce streaming writes to at most one per
+  // SAVE_DEBOUNCE_MS; flush on unmount / chat-switch so nothing is lost.
   const lastSavedRef = useRef<string>('');
+  const pendingRef = useRef<{ id: string; messages: typeof messages } | null>(
+    null,
+  );
   useEffect(() => {
     const serialized = JSON.stringify(messages);
     if (serialized === lastSavedRef.current) {
+      return undefined;
+    }
+    pendingRef.current = { id: currentId, messages };
+    const timer = window.setTimeout(() => {
+      const pending = pendingRef.current;
+      if (!pending) {
+        return;
+      }
+      saveMessages(pending.id, pending.messages);
+      lastSavedRef.current = JSON.stringify(pending.messages);
+      pendingRef.current = null;
+    }, SAVE_DEBOUNCE_MS);
+    return () => {
+      window.clearTimeout(timer);
+      const pending = pendingRef.current;
+      if (pending) {
+        saveMessages(pending.id, pending.messages);
+        lastSavedRef.current = JSON.stringify(pending.messages);
+        pendingRef.current = null;
+      }
+    };
+  }, [messages, currentId, saveMessages]);
+
+  // Title + lastActiveAt should bump only when a NEW user turn starts —
+  // i.e., the user-message count for this chat increases. Streaming
+  // assistant tokens must not reorder the chat list.
+  const prevUserCountRef = useRef<{ id: string; count: number }>({
+    id: currentId,
+    count: 0,
+  });
+  useEffect(() => {
+    const userMessages = messages.filter((m) => m.role === 'user');
+    const userCount = userMessages.length;
+    const prev = prevUserCountRef.current;
+    if (prev.id !== currentId) {
+      prevUserCountRef.current = { id: currentId, count: userCount };
       return;
     }
-    lastSavedRef.current = serialized;
-    saveMessages(currentId, messages);
-    const firstUser = messages.find((m) => m.role === 'user');
-    if (firstUser) {
-      maybeAutoTitle(currentId, firstUser.content);
+    if (userCount > prev.count) {
+      prevUserCountRef.current = { id: currentId, count: userCount };
+      const firstUser = userMessages[0];
+      if (firstUser) {
+        maybeAutoTitle(currentId, firstUser.content);
+      }
       touchActive(currentId);
     }
-  }, [messages, currentId, saveMessages, maybeAutoTitle, touchActive]);
+  }, [messages, currentId, maybeAutoTitle, touchActive]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent): void => {

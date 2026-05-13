@@ -1,0 +1,210 @@
+.aegis-chat-session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px);
+}
+
+.aegis-chat-session-list__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: var(--size-hairline) solid transparent;
+  background: transparent;
+  color: var(--text-main);
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.aegis-chat-session-list__row:hover,
+.aegis-chat-session-list__row:focus-within {
+  background: var(--bg-muted);
+}
+
+.aegis-chat-session-list__row--selected,
+.aegis-chat-session-list__row--selected:hover,
+.aegis-chat-session-list__row--selected:focus-within {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-chat-session-list__main {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  font: var(--text-caption);
+  font-family: var(--font-ui);
+}
+
+.aegis-chat-session-list__row--compact .aegis-chat-session-list__main {
+  padding: var(--space-2) var(--space-3);
+}
+
+.aegis-chat-session-list__row--comfortable .aegis-chat-session-list__main {
+  padding: var(--space-3);
+}
+
+.aegis-chat-session-list__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+}
+
+.aegis-chat-session-list__time {
+  flex-shrink: 0;
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+}
+
+.aegis-chat-session-list__row--selected .aegis-chat-session-list__time {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-chat-session-list__rename {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: var(--text-caption);
+  font-family: var(--font-ui);
+  padding: 0;
+  outline: none;
+}
+
+.aegis-chat-session-list__actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-right: var(--space-2);
+}
+
+.aegis-chat-session-list__more {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+  line-height: 1;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition:
+    opacity var(--motion-fast),
+    background var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.aegis-chat-session-list__row:hover .aegis-chat-session-list__more,
+.aegis-chat-session-list__row:focus-within .aegis-chat-session-list__more,
+.aegis-chat-session-list__row--selected .aegis-chat-session-list__more {
+  opacity: 1;
+}
+
+.aegis-chat-session-list__more:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.aegis-chat-session-list__row--selected .aegis-chat-session-list__more {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-chat-session-list__row--selected .aegis-chat-session-list__more:hover {
+  color: var(--text-on-inverted);
+  background: transparent;
+}
+
+.aegis-chat-session-list__menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: var(--z-popover);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+}
+
+.aegis-chat-session-list__menu-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  font: var(--text-caption);
+  font-family: var(--font-ui);
+  color: var(--text-main);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.aegis-chat-session-list__menu-item:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-chat-session-list__menu-item--danger {
+  color: var(--accent-warning);
+}
+
+.aegis-chat-session-list__confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.aegis-chat-session-list__confirm-btn {
+  background: transparent;
+  border: var(--size-hairline) solid var(--accent-warning);
+  color: var(--accent-warning);
+  border-radius: var(--radius-sm);
+  font: var(--text-caption);
+  font-family: var(--font-ui);
+  padding: var(--space-px) var(--space-2);
+  cursor: pointer;
+}
+
+.aegis-chat-session-list__confirm-btn:hover {
+  background: var(--accent-warning);
+  color: var(--text-on-inverted);
+}
+
+.aegis-chat-session-list__empty {
+  padding: var(--space-3);
+  font: var(--text-caption);
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .aegis-chat-session-list__row--compact .aegis-chat-session-list__time {
+    display: none;
+  }
+
+  .aegis-chat-session-list__more {
+    opacity: 1;
+  }
+}
