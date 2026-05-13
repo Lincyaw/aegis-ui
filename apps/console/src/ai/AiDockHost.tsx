@@ -13,6 +13,11 @@ import { AiDock } from './AiDock';
 
 const agentmConfigured = Boolean(import.meta.env.VITE_AGENTM_GATEWAY_URL);
 
+// eslint-disable-next-line no-console -- temporary diagnostic for AgentM wire-up
+console.info('[AiDockHost] agentmConfigured =', agentmConfigured, {
+  url: import.meta.env.VITE_AGENTM_GATEWAY_URL,
+});
+
 function ChatProviderShell({ children }: { children: ReactNode }): ReactNode {
   // When AgentM is wired (see main.tsx → MaybeAgentm), the outer
   // AgentmChannelProvider already supplies the AgentContext we need;
