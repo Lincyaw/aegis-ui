@@ -5,6 +5,7 @@ import {
   ChatComposer,
   ChatMessage,
   ChatMessageList,
+  Markdown,
   useAgent,
 } from '@lincyaw/aegis-ui';
 
@@ -80,7 +81,9 @@ export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
               <ChatMessage
                 key={m.id}
                 role={m.role}
-                content={m.content}
+                content={
+                  m.role === 'user' ? m.content : <Markdown>{m.content}</Markdown>
+                }
                 timestamp={m.timestamp}
               />
             ))

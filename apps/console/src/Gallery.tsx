@@ -55,6 +55,7 @@ import {
   type KeyValueItem,
   KeyValueList,
   MetricCard,
+  Markdown,
   MetricLabel,
   MonoValue,
   PageHeader,
@@ -1555,6 +1556,15 @@ function App() {
             </Panel>
           </Specimen>
           <Specimen caption="as='div'"><MetricLabel as='div'>block label</MetricLabel></Specimen>
+        </div>
+
+        <SectionDivider>Markdown</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='inline + block'>
+            <Markdown>
+              {`### Quick **markdown** sample\n\n- Lists work\n- Inline \`code\` and [links](https://example.com)\n\n\`\`\`ts\nconst hello = 'world';\n\`\`\`\n\n> Blockquotes too.`}
+            </Markdown>
+          </Specimen>
         </div>
 
         <SectionDivider>SectionDivider</SectionDivider>

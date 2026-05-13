@@ -1,17 +1,14 @@
-import { type ReactNode, Suspense, lazy, useRef, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 
 import { useAegisSurface } from '../../agent/hooks';
 import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import { Chip } from './Chip';
+import { Markdown } from './Markdown';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
 import { ToolCallCard, type ToolCallData } from './ToolCallCard';
 import './TrajectoryStep.css';
-
-const Markdown = lazy(() =>
-  import('react-markdown').then((m) => ({ default: m.default })),
-);
 
 export interface TrajectoryStepData {
   step: number;
@@ -43,13 +40,7 @@ interface TrajectoryStepProps {
 }
 
 function MarkdownContent({ source }: { source: string }) {
-  return (
-    <div className="aegis-step__markdown">
-      <Suspense fallback={<pre>{source}</pre>}>
-        <Markdown>{source}</Markdown>
-      </Suspense>
-    </div>
-  );
+  return <Markdown>{source}</Markdown>;
 }
 
 function StepSection({

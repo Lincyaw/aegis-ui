@@ -9,6 +9,7 @@ export { Button } from './Button';
 export { Panel } from './Panel';
 export type { PanelSurface } from './Panel';
 export { PanelTitle } from './PanelTitle';
+export { Markdown } from './Markdown';
 export { MetricLabel } from './MetricLabel';
 export { MonoValue } from './MonoValue';
 export type { MonoValueSurface } from './MonoValue';
