@@ -1,0 +1,26 @@
+.llmh-sft-row-pick {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+
+.llmh-sft-row-pick:hover {
+  text-decoration: underline;
+}
+
+.llmh-sft-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 1100px) {
+  .llmh-sft-grid {
+    grid-template-columns: 1fr;
+  }
+}

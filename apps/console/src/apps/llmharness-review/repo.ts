@@ -1,0 +1,326 @@
+/**
+ * CaseRepo — read-only access to a `cases/` root directory.
+ *
+ * Phase 1 impl is FS-Access-API-backed; the abstract interface keeps an
+ * HTTP-backed implementation a drop-in away if we add a backend later.
+ *
+ * Conventions:
+ *   - All paths are relative to the case directory root.
+ *   - Reads are lazy; the repo never holds parsed file contents in memory.
+ *   - Each list/read returns plain data so consumers can treat the repo as a
+ *     pure source. UI state lives in the page hooks, not here.
+ */
+
+import type {
+  CaseMeta,
+  CaseSummary,
+  DroppedRow,
+  FiringFile,
+  FiringPhase,
+  GraphSnapshotFile,
+  MainAgentMessage,
+  SftRowBase,
+  TrajectoryRow,
+  VerdictRow,
+} from './types';
+
+export interface CaseRepo {
+  /** Cosmetic label shown in headers; not load-bearing. */
+  readonly label: string;
+  listCases(): Promise<CaseSummary[]>;
+  readMeta(caseId: string): Promise<CaseMeta>;
+  readMainAgent(caseId: string): Promise<MainAgentMessage[]>;
+  listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]>;
+  readFiring(caseId: string, phase: FiringPhase, fileName: string): Promise<FiringFile>;
+  readVerdicts(caseId: string): Promise<VerdictRow[]>;
+  readTrajectory(caseId: string): Promise<TrajectoryRow[]>;
+  /** Cumulative graph state after an extractor firing succeeded.
+   * Returns null if the snapshot file is missing (firing didn't advance). */
+  readSnapshot(caseId: string, extractorSequence: number): Promise<GraphSnapshotFile | null>;
+}
+
+// --------------------------------------------------------------------------
+// FS Access API impl
+// --------------------------------------------------------------------------
+
+interface FileSystemDirectoryHandleLike {
+  kind: 'directory';
+  name: string;
+  values(): AsyncIterable<FileSystemDirectoryHandleLike | FileSystemFileHandleLike>;
+  getDirectoryHandle(name: string): Promise<FileSystemDirectoryHandleLike>;
+  getFileHandle(name: string): Promise<FileSystemFileHandleLike>;
+}
+interface FileSystemFileHandleLike {
+  kind: 'file';
+  name: string;
+  getFile(): Promise<File>;
+}
+
+async function readTextFile(
+  dir: FileSystemDirectoryHandleLike,
+  name: string,
+): Promise<string> {
+  const fh = await dir.getFileHandle(name);
+  const file = await fh.getFile();
+  return file.text();
+}
+
+function parseJsonl<T>(text: string): T[] {
+  const out: T[] = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    out.push(JSON.parse(line) as T);
+  }
+  return out;
+}
+
+async function readJsonlOrEmpty<T>(
+  dir: FileSystemDirectoryHandleLike,
+  name: string,
+): Promise<T[]> {
+  try {
+    return parseJsonl<T>(await readTextFile(dir, name));
+  } catch {
+    return [];
+  }
+}
+
+export class FSAccessCaseRepo implements CaseRepo {
+  readonly label: string;
+  private root: FileSystemDirectoryHandleLike;
+
+  constructor(root: FileSystemDirectoryHandleLike) {
+    this.root = root;
+    this.label = root.name;
+  }
+
+  private async caseDir(caseId: string): Promise<FileSystemDirectoryHandleLike> {
+    return this.root.getDirectoryHandle(caseId);
+  }
+
+  async listCases(): Promise<CaseSummary[]> {
+    const out: CaseSummary[] = [];
+    for await (const entry of this.root.values()) {
+      if (entry.kind !== 'directory') continue;
+      const dir = entry as FileSystemDirectoryHandleLike;
+      try {
+        const text = await readTextFile(dir, 'meta.json');
+        const meta = JSON.parse(text) as CaseMeta;
+        out.push({ caseId: dir.name, meta });
+      } catch {
+        // Skip dirs without a meta.json — not every child is a case.
+      }
+    }
+    out.sort((a, b) => a.caseId.localeCompare(b.caseId));
+    return out;
+  }
+
+  async readMeta(caseId: string): Promise<CaseMeta> {
+    const dir = await this.caseDir(caseId);
+    return JSON.parse(await readTextFile(dir, 'meta.json')) as CaseMeta;
+  }
+
+  async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
+    const dir = await this.caseDir(caseId);
+    return parseJsonl<MainAgentMessage>(await readTextFile(dir, 'main_agent.jsonl'));
+  }
+
+  async listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]> {
+    const dir = await this.caseDir(caseId);
+    const phaseDir = await dir.getDirectoryHandle(phase);
+    const names: string[] = [];
+    for await (const entry of phaseDir.values()) {
+      if (entry.kind === 'file' && entry.name.endsWith('.json')) {
+        names.push(entry.name);
+      }
+    }
+    names.sort();
+    return names;
+  }
+
+  async readFiring(
+    caseId: string,
+    phase: FiringPhase,
+    fileName: string,
+  ): Promise<FiringFile> {
+    const dir = await this.caseDir(caseId);
+    const phaseDir = await dir.getDirectoryHandle(phase);
+    const text = await readTextFile(phaseDir, fileName);
+    return JSON.parse(text) as FiringFile;
+  }
+
+  async readVerdicts(caseId: string): Promise<VerdictRow[]> {
+    return readJsonlOrEmpty<VerdictRow>(await this.caseDir(caseId), 'verdicts.jsonl');
+  }
+
+  async readTrajectory(caseId: string): Promise<TrajectoryRow[]> {
+    return readJsonlOrEmpty<TrajectoryRow>(await this.caseDir(caseId), 'trajectory.jsonl');
+  }
+
+  async readSnapshot(
+    caseId: string,
+    extractorSequence: number,
+  ): Promise<GraphSnapshotFile | null> {
+    const dir = await this.caseDir(caseId);
+    try {
+      const snapDir = await dir.getDirectoryHandle('event_graph');
+      const padded = String(extractorSequence).padStart(3, '0');
+      const text = await readTextFile(snapDir, `after_extractor_${padded}.json`);
+      return JSON.parse(text) as GraphSnapshotFile;
+    } catch {
+      return null;
+    }
+  }
+}
+
+// --------------------------------------------------------------------------
+// Browser hookup: pick a directory + remember the handle across reloads.
+// --------------------------------------------------------------------------
+
+interface ShowDirectoryPickerFn {
+  (options?: { id?: string; mode?: 'read' | 'readwrite' }): Promise<
+    FileSystemDirectoryHandleLike
+  >;
+}
+
+declare global {
+  interface Window {
+    showDirectoryPicker?: ShowDirectoryPickerFn;
+  }
+}
+
+const IDB_NAME = 'aegis-llmharness-review';
+const IDB_STORE = 'handles';
+const IDB_KEY = 'cases-root';
+const IDB_KEY_SFT = 'sft-root';
+
+function openIdb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbGet<T>(key: string): Promise<T | undefined> {
+  const db = await openIdb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result as T | undefined);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbSet(key: string, value: unknown): Promise<void> {
+  const db = await openIdb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function idbDelete(key: string): Promise<void> {
+  const db = await openIdb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export function isFsAccessSupported(): boolean {
+  return typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+}
+
+interface PersistedRootHelpers<R> {
+  pick: () => Promise<R>;
+  restore: () => Promise<R | null>;
+  clear: () => Promise<void>;
+}
+
+function createPersistedRoot<R>(
+  pickerId: string,
+  idbKey: string,
+  wrap: (handle: FileSystemDirectoryHandleLike) => R,
+): PersistedRootHelpers<R> {
+  const fsUnavailable = new Error('File System Access API is not available in this browser.');
+
+  return {
+    async pick() {
+      const picker = isFsAccessSupported() ? window.showDirectoryPicker : undefined;
+      if (!picker) throw fsUnavailable;
+      const handle = await picker({ id: pickerId, mode: 'read' });
+      await idbSet(idbKey, handle);
+      return wrap(handle);
+    },
+    async restore() {
+      if (!isFsAccessSupported()) return null;
+      const handle = await idbGet<FileSystemDirectoryHandleLike>(idbKey);
+      if (!handle) return null;
+      const queryable = handle as unknown as {
+        queryPermission?: (opts: { mode: 'read' }) => Promise<PermissionState>;
+        requestPermission?: (opts: { mode: 'read' }) => Promise<PermissionState>;
+      };
+      if (queryable.queryPermission) {
+        const state = await queryable.queryPermission({ mode: 'read' });
+        if (state !== 'granted') {
+          const next = queryable.requestPermission
+            ? await queryable.requestPermission({ mode: 'read' })
+            : state;
+          if (next !== 'granted') return null;
+        }
+      }
+      return wrap(handle);
+    },
+    async clear() {
+      await idbDelete(idbKey);
+    },
+  };
+}
+
+const casesRoot = createPersistedRoot(
+  'aegis-cases-root',
+  IDB_KEY,
+  (h) => new FSAccessCaseRepo(h),
+);
+
+export const pickCasesRoot = casesRoot.pick;
+export const restoreCasesRoot = casesRoot.restore;
+export const clearStoredRoot = casesRoot.clear;
+
+// --------------------------------------------------------------------------
+// SftRepo — sibling 'sft/' directory holding extractor/auditor/dropped JSONL.
+// --------------------------------------------------------------------------
+
+export class FSAccessSftRepo {
+  readonly label: string;
+  private root: FileSystemDirectoryHandleLike;
+
+  constructor(root: FileSystemDirectoryHandleLike) {
+    this.root = root;
+    this.label = root.name;
+  }
+
+  readExtractor = (): Promise<SftRowBase[]> =>
+    readJsonlOrEmpty<SftRowBase>(this.root, 'extractor.jsonl');
+  readAuditor = (): Promise<SftRowBase[]> =>
+    readJsonlOrEmpty<SftRowBase>(this.root, 'auditor.jsonl');
+  readDropped = (): Promise<DroppedRow[]> =>
+    readJsonlOrEmpty<DroppedRow>(this.root, 'dropped.jsonl');
+}
+
+const sftRoot = createPersistedRoot(
+  'aegis-sft-root',
+  IDB_KEY_SFT,
+  (h) => new FSAccessSftRepo(h),
+);
+
+export const pickSftRoot = sftRoot.pick;
+export const restoreSftRoot = sftRoot.restore;
+export const clearStoredSftRoot = sftRoot.clear;

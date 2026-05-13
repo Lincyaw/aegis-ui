@@ -9,6 +9,7 @@ import {
   envDemoNoneApp,
 } from './apps/env-demo';
 import { galleryApp } from './apps/gallery';
+import { llmharnessReviewApp } from './apps/llmharness-review';
 import { portalApp } from './apps/portal';
 import { settingsApp } from './apps/settings';
 import { trajectoriesApp } from './apps/trajectories';
@@ -18,6 +19,7 @@ export const registeredApps: AegisApp[] = [
   containersApp,
   datasetsApp,
   trajectoriesApp,
+  llmharnessReviewApp,
   blobApp,
   settingsApp,
   galleryApp,

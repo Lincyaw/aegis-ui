@@ -1,0 +1,74 @@
+.llmh-msg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.llmh-msg__text {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  line-height: 1.55;
+}
+
+.llmh-msg__thinking {
+  border: var(--size-hairline) dashed var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}
+
+.llmh-msg__thinking pre {
+  margin: var(--space-1) 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.llmh-msg__tool {
+  background: var(--bg-terminal);
+  color: var(--text-terminal);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  padding: var(--space-2) var(--space-3);
+}
+
+.llmh-msg__tool--result {
+  background: var(--bg-terminal-soft);
+  color: var(--text-terminal-strong);
+}
+
+.llmh-msg__tool-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.llmh-msg__tool-tag {
+  color: var(--text-terminal-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: var(--fs-9);
+}
+
+.llmh-msg__tool-name {
+  color: var(--text-terminal);
+}
+
+.llmh-msg__tool-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.llmh-msg__raw {
+  margin: 0;
+  padding: var(--space-2);
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}

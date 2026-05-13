@@ -1,0 +1,5 @@
+.llmh-sft-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
