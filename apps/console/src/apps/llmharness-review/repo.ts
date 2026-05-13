@@ -11,6 +11,7 @@
  *     pure source. UI state lives in the page hooks, not here.
  */
 
+import { fetchHealth, getBackendUrl } from './connection';
 import type {
   CaseMeta,
   CaseSummary,
@@ -324,3 +325,119 @@ const sftRoot = createPersistedRoot(
 export const pickSftRoot = sftRoot.pick;
 export const restoreSftRoot = sftRoot.restore;
 export const clearStoredSftRoot = sftRoot.clear;
+
+// --------------------------------------------------------------------------
+// HTTP-backed repo — talks to `llmharness serve` on a user-configured URL.
+// Lives next to the FSAccess impl so both satisfy the same CaseRepo contract.
+// --------------------------------------------------------------------------
+
+export class HttpCaseRepo implements CaseRepo {
+  readonly label: string;
+  private readonly base: string;
+
+  constructor(baseUrl: string, label?: string) {
+    this.base = baseUrl.replace(/\/+$/, '');
+    this.label = label ?? new URL(this.base).host;
+  }
+
+  private async getJson<T>(path: string): Promise<T> {
+    const r = await fetch(`${this.base}${path}`);
+    if (!r.ok) {
+      throw new Error(`GET ${path} → ${r.status}`);
+    }
+    return (await r.json()) as T;
+  }
+
+  private async getText(path: string): Promise<string> {
+    const r = await fetch(`${this.base}${path}`);
+    if (!r.ok) {
+      throw new Error(`GET ${path} → ${r.status}`);
+    }
+    return r.text();
+  }
+
+  async listCases(): Promise<CaseSummary[]> {
+    const payload = await this.getJson<{
+      cases: Array<{ case_id: string; meta: CaseMeta }>;
+    }>('/api/cases');
+    return payload.cases.map((c) => ({ caseId: c.case_id, meta: c.meta }));
+  }
+
+  readMeta(caseId: string): Promise<CaseMeta> {
+    return this.getJson<CaseMeta>(`/api/cases/${encodeURIComponent(caseId)}/meta`);
+  }
+
+  async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
+    return parseJsonl<MainAgentMessage>(
+      await this.getText(`/api/cases/${encodeURIComponent(caseId)}/main_agent`),
+    );
+  }
+
+  async listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]> {
+    const payload = await this.getJson<{ files: string[] }>(
+      `/api/cases/${encodeURIComponent(caseId)}/firings/${phase}`,
+    );
+    return payload.files;
+  }
+
+  readFiring(
+    caseId: string,
+    phase: FiringPhase,
+    fileName: string,
+  ): Promise<FiringFile> {
+    return this.getJson<FiringFile>(
+      `/api/cases/${encodeURIComponent(caseId)}/firings/${phase}/${encodeURIComponent(fileName)}`,
+    );
+  }
+
+  async readVerdicts(caseId: string): Promise<VerdictRow[]> {
+    try {
+      return parseJsonl<VerdictRow>(
+        await this.getText(`/api/cases/${encodeURIComponent(caseId)}/verdicts`),
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  async readTrajectory(caseId: string): Promise<TrajectoryRow[]> {
+    try {
+      return parseJsonl<TrajectoryRow>(
+        await this.getText(`/api/cases/${encodeURIComponent(caseId)}/trajectory`),
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  async readSnapshot(
+    caseId: string,
+    sequence: number,
+  ): Promise<GraphSnapshotFile | null> {
+    try {
+      return await this.getJson<GraphSnapshotFile>(
+        `/api/cases/${encodeURIComponent(caseId)}/snapshots/${sequence}`,
+      );
+    } catch {
+      return null;
+    }
+  }
+}
+
+/**
+ * Probe the configured backend (if any) and return a ready HttpCaseRepo.
+ * Returns null when no URL is configured or the health check fails — the
+ * caller falls back to the FS-Access flow.
+ */
+export async function probeHttpCaseRepo(): Promise<HttpCaseRepo | null> {
+  const url = getBackendUrl();
+  if (!url) {
+    return null;
+  }
+  try {
+    const info = await fetchHealth(url);
+    return new HttpCaseRepo(url, info.root);
+  } catch {
+    return null;
+  }
+}

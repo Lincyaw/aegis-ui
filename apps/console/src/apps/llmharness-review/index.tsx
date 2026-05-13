@@ -1,4 +1,5 @@
 import {
+  ApiOutlined,
   DatabaseOutlined,
   ExperimentOutlined,
   UnorderedListOutlined,
@@ -8,6 +9,7 @@ import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import { CaseDetailPage } from './pages/CaseDetailPage';
 import { CaseListPage } from './pages/CaseListPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { SftPage } from './pages/SftPage';
 
 export const llmharnessReviewApp: AegisApp = {
@@ -23,12 +25,14 @@ export const llmharnessReviewApp: AegisApp = {
       items: [
         { to: '', label: 'Cases', icon: <UnorderedListOutlined />, end: true },
         { to: 'sft', label: 'SFT preview', icon: <DatabaseOutlined /> },
+        { to: 'settings', label: 'Connection', icon: <ApiOutlined /> },
       ],
     },
   ],
   routes: [
     { path: '', element: <CaseListPage /> },
     { path: 'sft', element: <SftPage /> },
+    { path: 'settings', element: <SettingsPage /> },
     { path: ':caseId', element: <CaseDetailPage /> },
   ],
 };

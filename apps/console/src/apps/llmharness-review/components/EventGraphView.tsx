@@ -57,8 +57,22 @@ function colOf(event: GraphEvent): number {
   return Math.min(...event.source_turns);
 }
 
-function positionEvents(events: GraphEvent[]): Map<number, { x: number; y: number }> {
-  // Bucket by column (min source turn).
+/**
+ * Cumulative snapshots reuse local ids across firings — event #1 at turn 0
+ * is a different entity than event #1 at turn 4. Disambiguate every node
+ * (and edge endpoint) by composing `${min(source_turns)}-${id}`.
+ */
+function nodeKeyOf(event: GraphEvent): string {
+  const t = event.source_turns.length > 0 ? Math.min(...event.source_turns) : -1;
+  return `${t}-${event.id}`;
+}
+
+function endpointKey(id: number, turns: number[] | undefined): string {
+  const t = turns && turns.length > 0 ? Math.min(...turns) : -1;
+  return `${t}-${id}`;
+}
+
+function positionEvents(events: GraphEvent[]): Map<string, { x: number; y: number }> {
   const byCol = new Map<number, GraphEvent[]>();
   for (const e of events) {
     const c = colOf(e);
@@ -70,7 +84,7 @@ function positionEvents(events: GraphEvent[]): Map<number, { x: number; y: numbe
   const colIndex = new Map<number, number>();
   sortedCols.forEach((c, i) => colIndex.set(c, i));
 
-  const out = new Map<number, { x: number; y: number }>();
+  const out = new Map<string, { x: number; y: number }>();
   for (const [col, list] of byCol) {
     list.sort((a, b) => {
       const dl = laneOf(a.kind) - laneOf(b.kind);
@@ -79,7 +93,7 @@ function positionEvents(events: GraphEvent[]): Map<number, { x: number; y: numbe
     });
     list.forEach((e, i) => {
       const cIdx = colIndex.get(col) ?? 0;
-      out.set(e.id, { x: cIdx * COL_WIDTH, y: i * ROW_HEIGHT });
+      out.set(nodeKeyOf(e), { x: cIdx * COL_WIDTH, y: i * ROW_HEIGHT });
     });
   }
   return out;
@@ -94,41 +108,48 @@ export function EventGraphView({
 }: EventGraphViewProps) {
   const nodes: Array<RFNode<EventNodeData>> = useMemo(() => {
     const pos = positionEvents(events);
-    return events.map((e) => ({
-      id: String(e.id),
-      type: 'event',
-      position: pos.get(e.id) ?? { x: 0, y: 0 },
-      data: {
-        id: e.id,
-        kind: String(e.kind),
-        summary: e.summary,
-        source_turns: e.source_turns,
-        highlighted: selectedEventId === e.id,
-        onSelect: onSelectEvent,
-        onSelectTurn,
-      },
-    }));
+    return events.map((e) => {
+      const key = nodeKeyOf(e);
+      return {
+        id: key,
+        type: 'event',
+        position: pos.get(key) ?? { x: 0, y: 0 },
+        data: {
+          id: e.id,
+          kind: String(e.kind),
+          summary: e.summary,
+          source_turns: e.source_turns,
+          highlighted: selectedEventId === e.id,
+          onSelect: onSelectEvent,
+          onSelectTurn,
+        },
+      };
+    });
   }, [events, selectedEventId, onSelectEvent, onSelectTurn]);
 
   const rfEdges: RFEdge[] = useMemo(
     () =>
-      edges.map((ed, i) => ({
-        id: `e-${i}-${ed.src}-${ed.dst}`,
-        source: String(ed.src),
-        target: String(ed.dst),
-        label: ed.reason ? ed.reason.slice(0, 24) : ed.kind,
-        animated:
-          selectedEventId !== null &&
-          (ed.src === selectedEventId || ed.dst === selectedEventId),
-        style: {
-          stroke: ed.kind === 'ref' ? 'var(--accent-info)' : 'var(--text-muted)',
-        },
-        labelStyle: {
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          fill: 'var(--text-muted)',
-        },
-      })),
+      edges.map((ed, i) => {
+        const source = endpointKey(ed.src, ed.src_turns);
+        const target = endpointKey(ed.dst, ed.dst_turns);
+        return {
+          id: `e-${i}-${source}-${target}`,
+          source,
+          target,
+          label: ed.reason ? ed.reason.slice(0, 24) : ed.kind,
+          animated:
+            selectedEventId !== null &&
+            (ed.src === selectedEventId || ed.dst === selectedEventId),
+          style: {
+            stroke: ed.kind === 'ref' ? 'var(--accent-info)' : 'var(--text-muted)',
+          },
+          labelStyle: {
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            fill: 'var(--text-muted)',
+          },
+        };
+      }),
     [edges, selectedEventId],
   );
 

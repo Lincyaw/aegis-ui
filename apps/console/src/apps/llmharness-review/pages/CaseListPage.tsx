@@ -1,4 +1,4 @@
-import { FolderOpenOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ApiOutlined, FolderOpenOutlined, ReloadOutlined } from '@ant-design/icons';
 import { type ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -19,10 +19,12 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import {
-  type FSAccessCaseRepo,
+  type CaseRepo,
+  HttpCaseRepo,
   clearStoredRoot,
   isFsAccessSupported,
   pickCasesRoot,
+  probeHttpCaseRepo,
   restoreCasesRoot,
 } from '../repo';
 import type { CaseSummary } from '../types';
@@ -37,7 +39,7 @@ function nsToIsoOrNull(ns: number): string | null {
 }
 
 export function CaseListPage(): ReactElement {
-  const [repo, setRepo] = useState<FSAccessCaseRepo | null>(null);
+  const [repo, setRepo] = useState<CaseRepo | null>(null);
   const [cases, setCases] = useState<CaseSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function CaseListPage(): ReactElement {
   const [datasetFilter, setDatasetFilter] = useState<string | null>(null);
 
   const refresh = useCallback(
-    async (r: FSAccessCaseRepo) => {
+    async (r: CaseRepo) => {
       setLoading(true);
       setError(null);
       try {
@@ -62,21 +64,37 @@ export function CaseListPage(): ReactElement {
 
   useEffect(() => {
     let cancelled = false;
-    restoreCasesRoot()
-      .then((r) => {
-        if (cancelled) return;
-        if (r) {
-          setRepo(r);
-          void refresh(r);
+    (async () => {
+      try {
+        const http = await probeHttpCaseRepo();
+        if (cancelled) {
+          return;
+        }
+        if (http) {
+          setRepo(http);
+          await refresh(http);
+          return;
+        }
+        const fs = await restoreCasesRoot();
+        if (cancelled) {
+          return;
+        }
+        if (fs) {
+          setRepo(fs);
+          await refresh(fs);
         } else {
           setLoading(false);
         }
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
+      } catch (err) {
+        if (cancelled) {
+          return;
+        }
         setError(err instanceof Error ? err.message : String(err));
         setLoading(false);
-      });
+      }
+    })().catch(() => {
+      /* swallow — the inner try already handles. */
+    });
     return () => {
       cancelled = true;
     };
@@ -127,35 +145,36 @@ export function CaseListPage(): ReactElement {
     });
   }, [cases, search, onlySurfaced, datasetFilter]);
 
-  if (!isFsAccessSupported()) {
-    return (
-      <Panel title={<PanelTitle size='lg'>Case review</PanelTitle>}>
-        <ErrorState
-          title='Browser not supported'
-          description='This viewer needs the File System Access API. Use a Chromium-based browser (Chrome, Edge, or Brave).'
-        />
-      </Panel>
-    );
-  }
-
   if (!repo) {
+    const fsAction = isFsAccessSupported() ? (
+      <Button tone='ghost' onClick={() => void handlePick()}>
+        <FolderOpenOutlined /> Pick a local directory
+      </Button>
+    ) : null;
     return (
       <Panel
         title={<PanelTitle size='lg'>Case review</PanelTitle>}
         extra={<MetricLabel>llmharness · case aggregator</MetricLabel>}
       >
         <EmptyState
-          title='Pick a cases root directory'
-          description='Choose the directory that llmharness-aggregate wrote to (the parent of each `<case_id>/` folder).'
+          title='Connect to an llmharness backend'
+          description='Configure a `llmharness serve` URL in Connection settings, or pick a local cases/ directory (Chromium-based browsers only).'
           action={
-            <Button onClick={handlePick}>
-              <FolderOpenOutlined /> Open directory
-            </Button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Link to='settings'>
+                <Button>
+                  <ApiOutlined /> Open Connection settings
+                </Button>
+              </Link>
+              {fsAction}
+            </div>
           }
         />
       </Panel>
     );
   }
+
+  const isRemote = repo instanceof HttpCaseRepo;
 
   const filterChips: FilterChip[] = [
     ...(onlySurfaced ? [{ key: 'surfaced', label: 'surfaced only' }] : []),
@@ -238,13 +257,18 @@ export function CaseListPage(): ReactElement {
       title={<PanelTitle size='lg'>Cases</PanelTitle>}
       extra={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <MetricLabel>{repo.label}</MetricLabel>
+          <MetricLabel>
+            {isRemote ? 'remote · ' : ''}
+            {repo.label}
+          </MetricLabel>
           <Button tone='ghost' onClick={() => void refresh(repo)}>
             <ReloadOutlined /> Refresh
           </Button>
-          <Button tone='ghost' onClick={() => void handleClear()}>
-            Change root
-          </Button>
+          {!isRemote && (
+            <Button tone='ghost' onClick={() => void handleClear()}>
+              Change root
+            </Button>
+          )}
         </div>
       }
     >
