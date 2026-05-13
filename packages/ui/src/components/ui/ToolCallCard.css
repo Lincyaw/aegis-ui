@@ -61,3 +61,51 @@
 .aegis-tool-call__code-body code {
   font: inherit;
 }
+
+.aegis-tool-call__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  height: var(--size-control-sm);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-9);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.aegis-tool-call__status--running {
+  background: var(--bg-terminal-soft);
+  color: var(--text-terminal-muted);
+}
+
+.aegis-tool-call__status--ok {
+  background: var(--bg-terminal-soft);
+  color: var(--text-terminal-strong);
+}
+
+.aegis-tool-call__status--error {
+  background: var(--accent-warning-soft);
+  color: var(--accent-warning);
+}
+
+.aegis-tool-call--error {
+  border-color: var(--accent-warning);
+}
+
+.aegis-tool-call__spinner {
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+  border-radius: 50%;
+  border: var(--size-hairline) solid var(--text-terminal-muted);
+  border-top-color: transparent;
+  animation: aegis-tool-call-spin var(--motion-base) linear infinite;
+}
+
+@keyframes aegis-tool-call-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

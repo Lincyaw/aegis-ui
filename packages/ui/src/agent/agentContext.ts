@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-export type AgentMessageRole = 'user' | 'assistant' | 'system';
+export type AgentMessageRole = 'user' | 'assistant' | 'system' | 'tool';
 
 export interface AgentCommandInvocation {
   /** The command id the agent called, e.g. 'projects.create'. */
@@ -12,12 +12,26 @@ export interface AgentCommandInvocation {
   error?: string;
 }
 
+export interface AgentToolCallRecord {
+  toolCallId: string;
+  name: string;
+  /** Raw args dict from the gateway; renderers stringify on demand. */
+  args: unknown;
+  status: 'running' | 'ok' | 'error';
+  resultText?: string;
+  isError?: boolean;
+  startedAt?: number;
+  endedAt?: number;
+}
+
 export interface AgentMessage {
   id: string;
   role: AgentMessageRole;
   content: string;
   /** Command calls the assistant attempted in this message. */
   invocations?: AgentCommandInvocation[];
+  /** Set on messages with role === 'tool'. */
+  toolCall?: AgentToolCallRecord;
   /** ISO timestamp. */
   timestamp: string;
 }

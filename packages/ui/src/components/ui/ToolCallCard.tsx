@@ -6,10 +6,14 @@ import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
 import './ToolCallCard.css';
 
+export type ToolCallStatus = 'running' | 'ok' | 'error';
+
 export interface ToolCallData {
   name: string;
   arguments: string;
   result?: string;
+  status?: ToolCallStatus;
+  isError?: boolean;
 }
 
 export interface ToolCallCardSurface {
@@ -67,7 +71,10 @@ export function ToolCallCard({ data, className, surface }: ToolCallCardProps) {
     ref: wrapRef,
     enabled: Boolean(surface),
   });
-  const cls = ['aegis-tool-call', className ?? ''].filter(Boolean).join(' ');
+  const status: ToolCallStatus = data.status ?? 'ok';
+  const cls = ['aegis-tool-call', `aegis-tool-call--${status}`, className ?? '']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div
@@ -78,11 +85,39 @@ export function ToolCallCard({ data, className, surface }: ToolCallCardProps) {
     >
       <div className="aegis-tool-call__head">
         <Chip tone="ink">{data.name}</Chip>
-        <MetricLabel size="xs">tool_call</MetricLabel>
+        <StatusChip status={status} />
       </div>
       <CodeBlock label="arguments" code={data.arguments} />
-      {data.result && <CodeBlock label="result" code={data.result} />}
+      {data.result && (
+        <CodeBlock
+          label={status === 'error' ? 'error' : 'result'}
+          code={data.result}
+        />
+      )}
     </div>
+  );
+}
+
+function StatusChip({ status }: { status: ToolCallStatus }) {
+  if (status === 'running') {
+    return (
+      <span className="aegis-tool-call__status aegis-tool-call__status--running">
+        <span className="aegis-tool-call__spinner" aria-hidden="true" />
+        running
+      </span>
+    );
+  }
+  if (status === 'error') {
+    return (
+      <span className="aegis-tool-call__status aegis-tool-call__status--error">
+        error
+      </span>
+    );
+  }
+  return (
+    <span className="aegis-tool-call__status aegis-tool-call__status--ok">
+      ok
+    </span>
   );
 }
 

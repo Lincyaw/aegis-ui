@@ -2154,6 +2154,27 @@ function App() {
               }}
             />
           </Specimen>
+          <Specimen caption='running' span={2}>
+            <ToolCallCard
+              data={{
+                name: 'bash',
+                arguments: '{\n  "cmd": "ls -la /var/log"\n}',
+                status: 'running',
+              }}
+            />
+          </Specimen>
+          <Specimen caption='error · anomaly chip' span={2}>
+            <ToolCallCard
+              data={{
+                name: 'read_file',
+                arguments: '{\n  "path": "/etc/missing.conf"\n}',
+                status: 'error',
+                isError: true,
+                result:
+                  'Traceback (most recent call last):\n  File "read_file.py", line 12\nFileNotFoundError: /etc/missing.conf',
+              }}
+            />
+          </Specimen>
         </div>
 
         <SectionDivider>TrajectoryStep</SectionDivider>

@@ -13,6 +13,7 @@ import type {
   AgentContextValue,
   AgentMessage,
   AgentMessageRole,
+  AgentToolCallRecord,
 } from './agentContext';
 import {
   AgentmChannelClient,
@@ -40,12 +41,15 @@ interface AgentmChannelProviderProps {
    * Custom mapper from an `outbound` envelope to a renderable assistant
    * message. Default reads `body.content` as the text body.
    */
-  mapOutbound?: (env: Envelope) => {
-    content: string;
-    role?: AgentMessageRole;
-    final?: boolean;
-    streamId?: string | null;
-  } | null;
+  mapOutbound?: (env: Envelope) => MappedOutbound | null;
+}
+
+interface MappedOutbound {
+  content: string;
+  role?: AgentMessageRole;
+  final?: boolean;
+  streamId?: string | null;
+  toolCall?: AgentToolCallRecord;
 }
 
 function readPersistedPeerId(): string {
@@ -68,26 +72,72 @@ function readPersistedPeerId(): string {
   }
 }
 
-function defaultMapOutbound(env: Envelope): {
-  content: string;
-  role?: AgentMessageRole;
-  final?: boolean;
-  streamId?: string | null;
-} | null {
+function defaultMapOutbound(env: Envelope): MappedOutbound | null {
   const body = env.body as {
     content?: unknown;
     final?: unknown;
     stream_id?: unknown;
     kind?: unknown;
+    metadata?: unknown;
   };
+  const streamId = typeof body.stream_id === 'string' ? body.stream_id : null;
+  if (body.kind === 'tool_call') {
+    const toolCall = parseToolCall(body.metadata);
+    if (!toolCall) {
+      return null;
+    }
+    return {
+      role: 'tool',
+      content: '',
+      streamId,
+      final: body.final === true,
+      toolCall,
+    };
+  }
   if (typeof body.content !== 'string') {
     return null;
   }
   return {
     content: body.content,
     final: body.final === true,
-    streamId: typeof body.stream_id === 'string' ? body.stream_id : null,
+    streamId,
   };
+}
+
+function parseToolCall(metadata: unknown): AgentToolCallRecord | null {
+  if (typeof metadata !== 'object' || metadata === null) {
+    return null;
+  }
+  const m = metadata as Record<string, unknown>;
+  const toolCallId = m.tool_call_id;
+  const name = m.tool_name;
+  const status = m.status;
+  if (typeof toolCallId !== 'string' || typeof name !== 'string') {
+    return null;
+  }
+  const normalizedStatus: AgentToolCallRecord['status'] =
+    status === 'running' || status === 'ok' || status === 'error'
+      ? status
+      : 'running';
+  const record: AgentToolCallRecord = {
+    toolCallId,
+    name,
+    args: m.args,
+    status: normalizedStatus,
+  };
+  if (typeof m.result_text === 'string') {
+    record.resultText = m.result_text;
+  }
+  if (typeof m.is_error === 'boolean') {
+    record.isError = m.is_error;
+  }
+  if (typeof m.started_at === 'number') {
+    record.startedAt = m.started_at;
+  }
+  if (typeof m.ended_at === 'number') {
+    record.endedAt = m.ended_at;
+  }
+  return record;
 }
 
 function messageId(): string {
@@ -275,12 +325,7 @@ export function AgentmChannelProvider({
 
 function appendOutbound(
   prev: AgentMessage[],
-  mapped: {
-    content: string;
-    role?: AgentMessageRole;
-    final?: boolean;
-    streamId?: string | null;
-  },
+  mapped: MappedOutbound,
   streamMap: Map<string, string>,
 ): AgentMessage[] {
   const role: AgentMessageRole = mapped.role ?? 'assistant';
@@ -292,7 +337,13 @@ function appendOutbound(
       // contrib/channels sends cumulative content per stream_id (each
       // chunk is the full text so far, not a delta), so replace.
       const next = prev.map((m) =>
-        m.id === existingId ? { ...m, content: mapped.content } : m,
+        m.id === existingId
+          ? {
+              ...m,
+              content: mapped.content,
+              ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
+            }
+          : m,
       );
       if (mapped.final) {
         streamMap.delete(mapped.streamId);
@@ -306,6 +357,7 @@ function appendOutbound(
       role,
       content: mapped.content,
       timestamp,
+      ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
     };
     if (mapped.final) {
       streamMap.delete(mapped.streamId);
@@ -315,6 +367,12 @@ function appendOutbound(
 
   return [
     ...prev,
-    { id: messageId(), role, content: mapped.content, timestamp },
+    {
+      id: messageId(),
+      role,
+      content: mapped.content,
+      timestamp,
+      ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
+    },
   ];
 }

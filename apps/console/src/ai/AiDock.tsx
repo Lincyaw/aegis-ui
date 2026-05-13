@@ -1,11 +1,13 @@
 import { type ReactElement, useCallback, useEffect, useRef } from 'react';
 
 import {
+  type AgentMessage,
   AgentPanel,
   ChatComposer,
   ChatMessage,
   ChatMessageList,
   Markdown,
+  ToolCallCard,
   useAgent,
 } from '@lincyaw/aegis-ui';
 
@@ -140,21 +142,63 @@ export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
               content='Hi — ask me anything about what is on your screen.'
             />
           ) : (
-            messages.map((m) => (
-              <ChatMessage
-                key={m.id}
-                role={m.role}
-                content={
-                  m.role === 'user' ? m.content : <Markdown>{m.content}</Markdown>
-                }
-                timestamp={m.timestamp}
-              />
-            ))
+            messages.map((m) => {
+              if (m.role === 'tool' && m.toolCall) {
+                return (
+                  <ChatMessage
+                    key={m.id}
+                    role='assistant'
+                    content={<ToolCallCard data={renderToolCallData(m)} />}
+                    timestamp={m.timestamp}
+                  />
+                );
+              }
+              return (
+                <ChatMessage
+                  key={m.id}
+                  role={m.role === 'tool' ? 'assistant' : m.role}
+                  content={
+                    m.role === 'user' ? (
+                      m.content
+                    ) : (
+                      <Markdown>{m.content}</Markdown>
+                    )
+                  }
+                  timestamp={m.timestamp}
+                />
+              );
+            })
           )}
         </ChatMessageList>
       </AgentPanel>
     </div>
   );
+}
+
+function renderToolCallData(message: AgentMessage): {
+  name: string;
+  arguments: string;
+  result?: string;
+  status: 'running' | 'ok' | 'error';
+  isError?: boolean;
+} {
+  const tc = message.toolCall;
+  if (!tc) {
+    return { name: 'tool', arguments: '', status: 'ok' };
+  }
+  let argsText = '';
+  try {
+    argsText = JSON.stringify(tc.args ?? {}, null, 2);
+  } catch {
+    argsText = String(tc.args ?? '');
+  }
+  return {
+    name: tc.name,
+    arguments: argsText,
+    result: tc.resultText,
+    status: tc.status,
+    isError: tc.isError,
+  };
 }
 
 export default AiDock;

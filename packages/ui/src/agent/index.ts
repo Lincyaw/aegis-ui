@@ -16,6 +16,7 @@ export type {
   AgentMessage,
   AgentMessageRole,
   AgentCommandInvocation,
+  AgentToolCallRecord,
 } from './agentContext';
 
 // Agent-native UI substrate (docs/agent-native-ui.md).
