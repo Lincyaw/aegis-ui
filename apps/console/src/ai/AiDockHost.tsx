@@ -1,33 +1,12 @@
-import {
-  type ReactElement,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { type ReactElement, useCallback, useEffect, useState } from 'react';
 
 import { ThemeToggle } from '@lincyaw/aegis-ui';
 
-import { AgentChatProvider } from './AgentChatProvider';
 import { AiDock } from './AiDock';
 
-const agentmConfigured = Boolean(import.meta.env.VITE_AGENTM_GATEWAY_URL);
-
-// eslint-disable-next-line no-console -- temporary diagnostic for AgentM wire-up
-console.info('[AiDockHost] agentmConfigured =', agentmConfigured, {
-  url: import.meta.env.VITE_AGENTM_GATEWAY_URL,
-});
-
-function ChatProviderShell({ children }: { children: ReactNode }): ReactNode {
-  // When AgentM is wired (see main.tsx → MaybeAgentm), the outer
-  // AgentmChannelProvider already supplies the AgentContext we need;
-  // mounting AgentChatProvider here would shadow it with the direct
-  // OpenAI client and surface "AI endpoint not configured".
-  if (agentmConfigured) {
-    return children;
-  }
-  return <AgentChatProvider>{children}</AgentChatProvider>;
-}
+// main.tsx always mounts AgentmChannelProvider (with a localhost default
+// when VITE_AGENTM_GATEWAY_URL is unset), so AgentChatProvider is no
+// longer needed as the chat backend here.
 
 const OPEN_KEY = 'aegis.ai.dock.open.v1';
 
@@ -79,7 +58,7 @@ export function AiDockHost(): ReactElement {
   }, [toggle]);
 
   return (
-    <ChatProviderShell>
+    <>
       <button
         type='button'
         className='aegis-ai-dock-toggle'
@@ -101,7 +80,7 @@ export function AiDockHost(): ReactElement {
       </button>
       <ThemeToggle />
       <AiDock open={open} onClose={close} />
-    </ChatProviderShell>
+    </>
   );
 }
 

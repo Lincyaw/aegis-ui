@@ -56,9 +56,16 @@ channel** (it registers as `channel=web` on hello).
 
 ## 3. Point the console at the gateway
 
-Write `apps/console/.env.local` (gitignored). Vite picks up `VITE_*`
-vars at startup, so the dev server must be (re)started **after** this
-file exists:
+`apps/console/src/main.tsx` defaults `VITE_AGENTM_GATEWAY_URL` to
+`ws://127.0.0.1:7777/agentm`, so if you bound the gateway to the same
+URL above you can skip this step entirely — the console will connect
+out of the box. Set `VITE_AGENTM_TOKEN` in `.env.local` if your token
+file is non-empty (the default gateway command requires one).
+
+Write `apps/console/.env.local` (gitignored) only when overriding the
+default URL or supplying a token. Vite picks up `VITE_*` vars at
+startup, so the dev server must be (re)started **after** this file
+exists:
 
 ```bash
 TOKEN=$(cat /tmp/agentm-e2e/tokens)

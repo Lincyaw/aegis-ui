@@ -16,17 +16,15 @@ import { App as AntdApp, ConfigProvider } from 'antd';
 import { ConsoleApp } from './App';
 import './main.css';
 
-const agentmGatewayUrl = import.meta.env.VITE_AGENTM_GATEWAY_URL;
+const DEFAULT_AGENTM_GATEWAY_URL = 'ws://127.0.0.1:7777/agentm';
+
+const agentmGatewayUrl =
+  import.meta.env.VITE_AGENTM_GATEWAY_URL ?? DEFAULT_AGENTM_GATEWAY_URL;
 const agentmToken = import.meta.env.VITE_AGENTM_TOKEN;
 
-const agentmChannel = agentmGatewayUrl
-  ? { url: agentmGatewayUrl, token: agentmToken }
-  : null;
+const agentmChannel = { url: agentmGatewayUrl, token: agentmToken };
 
 function MaybeAgentm({ children }: { children: ReactNode }): ReactNode {
-  if (!agentmChannel) {
-    return children;
-  }
   return (
     <AgentmChannelProvider channel={agentmChannel}>
       {children}
