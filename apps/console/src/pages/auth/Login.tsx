@@ -35,13 +35,55 @@ function readHandoff(params: URLSearchParams): OidcHandoff | null {
   };
 }
 
+// Mirrors backend `consts.LoginError*` (aegislab/src/platform/consts/oidc.go).
+// Keep in sync — error codes are part of the SSO contract.
+export const SsoErrorCode = {
+  InvalidCredentials: 'invalid_credentials',
+  UnsupportedResponseType: 'unsupported_response_type',
+  UnknownClient: 'unknown_client',
+  ClientNotConfigured: 'client_not_configured',
+  InvalidRedirectURI: 'invalid_redirect_uri',
+  InvalidClientOrRedirect: 'invalid_client_or_redirect',
+  PKCERequired: 'pkce_required',
+  UnsupportedPKCEMethod: 'unsupported_pkce_method',
+  Internal: 'internal_error',
+} as const;
+
+const SSO_ERROR_MESSAGES: Record<string, string> = {
+  [SsoErrorCode.InvalidCredentials]:
+    'Incorrect username or password. Please try again.',
+  [SsoErrorCode.UnsupportedResponseType]:
+    'This sign-in flow is not supported by the server.',
+  [SsoErrorCode.UnknownClient]:
+    'Unknown client. Contact your administrator.',
+  [SsoErrorCode.ClientNotConfigured]:
+    'This client is not configured for sign-in. Contact your administrator.',
+  [SsoErrorCode.InvalidRedirectURI]:
+    'The redirect URL is not allowed for this client.',
+  [SsoErrorCode.InvalidClientOrRedirect]:
+    'Invalid client or redirect URL. Contact your administrator.',
+  [SsoErrorCode.PKCERequired]:
+    'This client requires PKCE. Reload the sign-in page.',
+  [SsoErrorCode.UnsupportedPKCEMethod]:
+    'Unsupported PKCE method.',
+  [SsoErrorCode.Internal]:
+    'Something went wrong on our side. Please try again.',
+};
+
+function ssoErrorMessage(code: string | null): string | undefined {
+  if (!code) return undefined;
+  return SSO_ERROR_MESSAGES[code] ?? `Sign in failed (${code}).`;
+}
+
 export function Login(): ReactElement {
   const { signIn, status } = useAuth();
   const location = useLocation();
   const [params] = useSearchParams();
   const handoff = readHandoff(params);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | undefined>(() =>
+    ssoErrorMessage(params.get('error')),
+  );
   const triggered = useRef(false);
 
   useEffect(() => {
