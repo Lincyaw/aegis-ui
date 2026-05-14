@@ -144,6 +144,117 @@ export function inlineUrl(bucket: string, key: string): string {
   return `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects/${encodeURIComponent(key)}`;
 }
 
+/** Driver-level list (storage source-of-truth). Supports prefix/delimiter for
+ *  hierarchical browsing — `common_prefixes` carries the sub-directories at
+ *  the current level. */
+export interface DriverListResult {
+  items: Array<{
+    key: string;
+    size_bytes: number;
+    content_type?: string;
+    etag?: string;
+    updated_at: string;
+    metadata?: Record<string, string>;
+  }>;
+  common_prefixes?: string[];
+  next_continuation_token?: string;
+  is_truncated?: boolean;
+}
+
+export interface DriverListParams {
+  prefix?: string;
+  delimiter?: string;
+  continuation_token?: string;
+  max_keys?: number;
+}
+
+export async function driverList(
+  bucket: string,
+  params: DriverListParams = {},
+): Promise<DriverListResult> {
+  const u = new URLSearchParams();
+  if (params.prefix) {
+    u.set('prefix', params.prefix);
+  }
+  if (params.delimiter) {
+    u.set('delimiter', params.delimiter);
+  }
+  if (params.continuation_token) {
+    u.set('continuation_token', params.continuation_token);
+  }
+  if (params.max_keys !== undefined) {
+    u.set('max_keys', params.max_keys.toString());
+  }
+  const q = u.toString();
+  return apiJson<DriverListResult>(
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`,
+  );
+}
+
+/* ── Local share registry ────────────────────────────────────────────
+ *
+ * Backend doesn't persist presigned URLs — once issued, they're stateless
+ * until TTL expires. We keep a per-browser registry in localStorage so the
+ * Shares page can show "still-live" links and let the user copy them again.
+ * "Revoke" is best-effort (drops from the registry only — the URL itself
+ * keeps working until expiry).
+ */
+
+const SHARE_STORAGE_KEY = 'aegis-blob:shares';
+
+export interface ShareRecord {
+  id: string;
+  bucket: string;
+  key: string;
+  url: string;
+  expiresAt: string;
+  createdAt: string;
+  asAttachment?: boolean;
+}
+
+export function readShares(): ShareRecord[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  try {
+    const raw = window.localStorage.getItem(SHARE_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed as ShareRecord[];
+  } catch {
+    return [];
+  }
+}
+
+function writeShares(records: ShareRecord[]): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.localStorage.setItem(SHARE_STORAGE_KEY, JSON.stringify(records));
+}
+
+export function recordShare(rec: ShareRecord): void {
+  const all = readShares().filter((r) => r.id !== rec.id);
+  all.unshift(rec);
+  writeShares(all);
+}
+
+export function forgetShare(id: string): void {
+  writeShares(readShares().filter((r) => r.id !== id));
+}
+
+export function pruneExpiredShares(): void {
+  const now = Date.now();
+  writeShares(
+    readShares().filter((r) => new Date(r.expiresAt).getTime() > now),
+  );
+}
+
 /**
  * Upload a file through a presign-put result. Localfs driver returns
  * a URL like /api/v2/blob/raw/<token>; same-origin so we just PUT it.

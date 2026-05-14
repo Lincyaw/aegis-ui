@@ -2,18 +2,27 @@ import { CloudOutlined } from '@ant-design/icons';
 
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
-import BlobBrowser from './BlobBrowser';
+import BucketBrowser from './pages/BucketBrowser';
+import BucketsOverview from './pages/BucketsOverview';
+import SharesPage from './pages/SharesPage';
 
 export const blobApp: AegisApp = {
   id: 'blob',
-  label: 'Blob',
+  label: 'Files',
   icon: <CloudOutlined />,
   basePath: '/blob',
-  description: 'Object storage browser backed by aegis-blob.',
+  description: 'Object storage browser, uploader, and share-link manager.',
   sidebar: [
     {
-      items: [{ to: '', label: 'Browser', end: true }],
+      items: [
+        { to: '', label: 'Buckets', end: true },
+        { to: 'shares', label: 'My shares' },
+      ],
     },
   ],
-  routes: [{ path: '', element: <BlobBrowser /> }],
+  routes: [
+    { path: '', element: <BucketsOverview /> },
+    { path: 'shares', element: <SharesPage /> },
+    { path: ':bucket', element: <BucketBrowser /> },
+  ],
 };

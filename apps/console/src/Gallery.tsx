@@ -41,8 +41,12 @@ import {
   EnvironmentSwitcher,
   type EnvironmentSwitcherOption,
   ErrorState,
+  BucketCard,
   FileDropzone,
   FilePreview,
+  ObjectBrowser,
+  ShareLinkDialog,
+  UploadQueue,
   ForgotPasswordForm,
   FormRow,
   InboxPage,
@@ -3095,6 +3099,121 @@ function App() {
           </Specimen>
           <Specimen caption='disabled'>
             <FileDropzone onDrop={() => undefined} disabled />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>standalone queue</MetricLabel>}>
+          UploadQueue
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='mixed states' span={3}>
+            <UploadQueue
+              items={[
+                {
+                  id: 'a',
+                  file: new File([''], 'corpus-2026-04.tar.gz'),
+                  status: 'uploading',
+                  progress: 64,
+                },
+                {
+                  id: 'b',
+                  file: new File([''], 'trace-snapshot.json'),
+                  status: 'done',
+                  progress: 100,
+                },
+                {
+                  id: 'c',
+                  file: new File([''], 'too-big.bin'),
+                  status: 'error',
+                  error: 'exceeds 5 MB cap',
+                },
+              ]}
+              onRetry={() => undefined}
+              onDismiss={() => undefined}
+              onClearCompleted={() => undefined}
+            />
+          </Specimen>
+          <Specimen caption='empty'>
+            <UploadQueue items={[]} />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>blob bucket summary</MetricLabel>}>
+          BucketCard
+        </SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='s3 bucket'>
+            <BucketCard
+              name='artifacts'
+              driver='s3'
+              maxObjectBytes={5 * 1024 * 1024 * 1024}
+              retentionDays={90}
+              objectCount={1284}
+              totalBytes={42 * 1024 * 1024 * 1024}
+            />
+          </Specimen>
+          <Specimen caption='localfs · public · clickable'>
+            <BucketCard
+              name='scratch'
+              driver='localfs'
+              publicRead
+              objectCount={37}
+              totalBytes={4 * 1024 * 1024}
+              onClick={() => undefined}
+            />
+          </Specimen>
+          <Specimen caption='minimal'>
+            <BucketCard name='shared-uploads' driver='s3' />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>prefix tree + table shell</MetricLabel>}>
+          ObjectBrowser
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='browse a prefix · 2 selected' span={3}>
+            <ObjectBrowser
+              prefixes={['datasets/2026-04/', 'datasets/2026-05/', 'datasets/archive/']}
+              currentPrefix='datasets/'
+              onPrefixChange={() => undefined}
+              selectionCount={2}
+              toolbar={
+                <>
+                  <Chip tone='ghost'>Download</Chip>
+                  <Chip tone='ghost'>Share</Chip>
+                  <Chip tone='ghost'>Delete</Chip>
+                </>
+              }
+            >
+              <div
+                style={{
+                  padding: 'var(--space-6)',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  border: 'var(--size-hairline) dashed var(--border-hairline)',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                <MetricLabel>host renders DataTable here</MetricLabel>
+              </div>
+            </ObjectBrowser>
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>presigned GET</MetricLabel>}>
+          ShareLinkDialog
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='before generate · TTL presets' span={2}>
+            <ShareLinkDialog
+              objectKey='datasets/2026-04/trace-snapshot.json'
+              onGenerate={() =>
+                Promise.resolve({
+                  url: 'https://example.com/blob/raw/eyJhbGciOiJIUzI1NiIs...',
+                  expiresAt: new Date(Date.now() + 3600_000).toISOString(),
+                })
+              }
+            />
           </Specimen>
         </div>
 

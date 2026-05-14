@@ -103,6 +103,11 @@ export { ParquetViewer } from './ParquetViewer';
 export type { ParquetViewerSurface } from './ParquetViewer';
 export { TraceTree } from './TraceTree';
 export type { TraceSpan, TraceTreeSurface } from './TraceTree';
+export { BucketCard } from './BucketCard';
+export { ObjectBrowser } from './ObjectBrowser';
+export { ShareLinkDialog } from './ShareLinkDialog';
+export type { ShareLinkOptions, ShareLinkResult } from './ShareLinkDialog';
+export { UploadQueue } from './UploadQueue';
 export { EnvironmentSwitcher } from './EnvironmentSwitcher';
 export type {
   EnvironmentSwitcherBadge,

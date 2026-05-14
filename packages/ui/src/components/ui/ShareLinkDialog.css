@@ -1,0 +1,100 @@
+.aegis-share-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  min-width: 0;
+}
+
+.aegis-share-link__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px);
+  padding-bottom: var(--space-2);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-share-link__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-share-link__ttl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.aegis-share-link__ttl-pill {
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: var(--size-hairline) solid var(--border-hairline);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.aegis-share-link__ttl-pill:hover {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-share-link__ttl-pill--active {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  border-color: var(--bg-inverted);
+}
+
+.aegis-share-link__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--fs-14);
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.aegis-share-link__result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  border: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-share-link__url {
+  word-break: break-all;
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+}
+
+.aegis-share-link__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.aegis-share-link__error {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bg-warning-soft);
+  color: var(--accent-warning);
+}
+
+.aegis-share-link__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
