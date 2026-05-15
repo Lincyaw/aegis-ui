@@ -7,6 +7,7 @@
  * every row.
  */
 
+import { readTokens } from '../../../auth/tokenStore';
 import { clickhouseBase, getRuntimeConfig } from '../../../config/runtime';
 
 interface ChJsonResponse<T> {
@@ -34,6 +35,13 @@ async function chQuery<TRow = unknown>(
   }
   if (cfg.clickhousePassword) {
     headers['X-ClickHouse-Key'] = cfg.clickhousePassword;
+  }
+  // When ClickHouse is reached through the gateway proxy (empty
+  // clickhouseUrl → /api/v2/clickhouse), the gateway requires a bearer
+  // token; for a direct ClickHouse URL the header is harmless.
+  const tokens = readTokens();
+  if (tokens) {
+    headers['Authorization'] = `Bearer ${tokens.accessToken}`;
   }
   const res = await fetch(`${clickhouseBase()}/?${search.toString()}`, {
     method: 'POST',
