@@ -570,8 +570,14 @@ export default function BucketBrowser() {
   }, [bucket, modal, msg, selected]);
 
   const handleMove = useCallback(async (): Promise<void> => {
+    // TODO(cross-bucket-move): needs backend POST /buckets/:src/cross-copy
+    // endpoint. Until then this only moves within bucket={bucket}.
     const keys = Array.from(selected);
     if (keys.length === 0 || moveTarget === '') {
+      return;
+    }
+    if (moveTarget.startsWith('/') || moveTarget.startsWith('..')) {
+      void msg.error('Target prefix must be a relative path within this bucket.');
       return;
     }
     setMoveLoading(true);
@@ -594,11 +600,14 @@ export default function BucketBrowser() {
     setMoveLoading(false);
     setMoveOpen(false);
     setMoveTarget('');
+    if (preview !== null && keys.includes(preview.key)) {
+      setPreview(null);
+    }
     if (failed === 0) {
       void msg.success(`Moved ${keys.length.toString()} objects`);
     }
     await refresh();
-  }, [bucket, moveTarget, msg, refresh, selected]);
+  }, [bucket, moveTarget, msg, preview, refresh, selected]);
 
   const generateShareLink = useCallback(
     async (item: ObjItem, opts: { ttlSeconds: number; asAttachment: boolean }): Promise<ShareLinkResult> => {
@@ -790,13 +799,6 @@ export default function BucketBrowser() {
         ),
       });
     }
-    tabs.push({
-      id: 'versions',
-      label: 'Versions',
-      disabled: true,
-      hint: 'Versioning is not enabled on this bucket.',
-      content: null,
-    });
     return tabs;
   }, [preview, previewUrl]);
 
@@ -1295,7 +1297,7 @@ export default function BucketBrowser() {
       </Modal>
 
       <Modal
-        title="Move selected objects"
+        title={`Move within "${bucket}"`}
         open={moveOpen}
         onCancel={() => {
           setMoveOpen(false);
@@ -1309,7 +1311,7 @@ export default function BucketBrowser() {
         destroyOnClose
       >
         <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>
-          Server-side copy then delete — no client bandwidth round-trip.
+          Server-side copy then delete within this bucket — no client bandwidth round-trip. Cross-bucket move is not yet supported.
         </p>
         <Input
           placeholder="target/prefix/"
