@@ -16,28 +16,17 @@ import {
   useActiveApp,
 } from '@lincyaw/aegis-ui';
 
-import { ApiError, apiJson } from '../../../api/apiClient';
-import { type BucketSummary, listBuckets } from '../../../api/blobClient';
+import { ApiError } from '../../../api/apiClient';
+import {
+  type BucketSummary,
+  createBucket,
+  listBuckets,
+} from '../../../api/blobClient';
 
 const DRIVERS = ['localfs', 's3'] as const;
 type Driver = (typeof DRIVERS)[number];
 
 type SortKey = 'name-asc' | 'name-desc';
-
-interface CreateBucketReq {
-  name: string;
-  driver: Driver;
-  max_object_bytes?: number;
-  retention_days?: number;
-  public_read?: boolean;
-}
-
-async function createBucket(req: CreateBucketReq): Promise<void> {
-  await apiJson<unknown>('/api/v2/blob/buckets', {
-    method: 'POST',
-    body: JSON.stringify(req),
-  });
-}
 
 function errMsg(e: unknown): string {
   if (e instanceof ApiError || e instanceof Error) {

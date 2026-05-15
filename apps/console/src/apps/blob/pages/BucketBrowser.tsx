@@ -13,7 +13,6 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 import { App as AntdApp, Button, Input, Modal, Tooltip } from 'antd';
-import JSZip from 'jszip';
 
 import {
   Breadcrumb,
@@ -45,7 +44,10 @@ import {
 
 import { ApiError } from '../../../api/apiClient';
 import {
+  batchDelete,
+  copyObject,
   deleteObject,
+  downloadZip,
   driverList,
   type DriverListResult,
   inlineUrl,
@@ -484,8 +486,18 @@ export default function BucketBrowser() {
       okButtonProps: { danger: true },
       onOk: async () => {
         const keys = Array.from(selected);
-        await Promise.allSettled(keys.map((k) => deleteObject(bucket, k)));
-        void msg.success(`Deleted ${keys.length.toString()} objects`);
+        try {
+          const res = await batchDelete(bucket, keys);
+          if (res.failed.length === 0) {
+            void msg.success(`Deleted ${res.deleted.length.toString()} objects`);
+          } else {
+            void msg.warning(
+              `Deleted ${res.deleted.length.toString()}, ${res.failed.length.toString()} failed`,
+            );
+          }
+        } catch (e) {
+          void msg.error(`Batch delete failed: ${errMsg(e)}`);
+        }
         await refresh();
       },
     });
@@ -496,8 +508,8 @@ export default function BucketBrowser() {
     if (keys.length === 0) {
       return;
     }
-    if (keys.length > 200) {
-      void msg.error('Select at most 200 objects for zip download.');
+    if (keys.length > 1000) {
+      void msg.error('Select at most 1000 objects for zip download.');
       return;
     }
     const confirmed = await new Promise<boolean>((resolve) => {
@@ -507,7 +519,7 @@ export default function BucketBrowser() {
       }
       modal.confirm({
         title: `Download ${keys.length.toString()} objects as ZIP?`,
-        content: 'This will fetch all selected objects. Continue?',
+        content: 'The server streams the archive — large selections may take a moment.',
         onOk: () => { resolve(true); },
         onCancel: () => { resolve(false); },
       });
@@ -515,32 +527,14 @@ export default function BucketBrowser() {
     if (!confirmed) {
       return;
     }
-    const key = msg.loading('Building ZIP…', 0);
+    const dismiss = msg.loading('Streaming ZIP…', 0);
     try {
-      const zip = new JSZip();
-      await Promise.all(
-        keys.map(async (k) => {
-          const url = inlineUrl(bucket, k);
-          const res = await fetch(url);
-          if (!res.ok) {
-            throw new Error(`${k}: HTTP ${res.status.toString()}`);
-          }
-          const blob = await res.blob();
-          zip.file(k, blob);
-        }),
-      );
-      const blob = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${bucket}-selection.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await downloadZip(bucket, keys, `${bucket}-selection.zip`);
       void msg.success('ZIP downloaded');
     } catch (e) {
       void msg.error(`ZIP failed: ${errMsg(e)}`);
     } finally {
-      key();
+      dismiss();
     }
   }, [bucket, modal, msg, selected]);
 
@@ -554,26 +548,12 @@ export default function BucketBrowser() {
     let failed = 0;
     await Promise.allSettled(
       keys.map(async (k) => {
-        if (k.split('').reduce((acc) => acc, 0) > 100 * 1024 * 1024) {
-          void msg.warning(`Skipped ${k} (>100 MB)`);
-          return;
-        }
         try {
-          const srcUrl = inlineUrl(bucket, k);
-          const getRes = await fetch(srcUrl);
-          if (!getRes.ok) {
-            throw new Error(`GET failed: HTTP ${getRes.status.toString()}`);
-          }
-          const blob = await getRes.blob();
-          const newKey = targetPrefix + lastSegment(k);
-          const presign = await presignPut(bucket, {
-            key: newKey,
-            content_type: blob.type || 'application/octet-stream',
-            content_length: blob.size,
-            ttl_seconds: 300,
+          await copyObject(bucket, {
+            src: k,
+            dst: targetPrefix + lastSegment(k),
+            delete_src: true,
           });
-          await uploadWithPresign(presign.presigned, blob);
-          await deleteObject(bucket, k);
         } catch (e) {
           failed += 1;
           void msg.error(`Move failed for ${lastSegment(k)}: ${errMsg(e)}`);
@@ -1273,8 +1253,7 @@ export default function BucketBrowser() {
         destroyOnClose
       >
         <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>
-          Objects are re-uploaded to the new prefix then deleted. Large files (&gt;100 MB) are skipped.
-          This doubles bandwidth usage.
+          Server-side copy then delete — no client bandwidth round-trip.
         </p>
         <Input
           placeholder="target/prefix/"

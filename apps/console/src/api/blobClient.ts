@@ -132,16 +132,95 @@ export async function presignGet(
   );
 }
 
+/** Encode a key as a multi-segment URL path. Backend routes use gin's *key
+ *  wildcard, so slashes must remain literal — only encode each segment. */
+function encodeKeyPath(key: string): string {
+  return key.split('/').map(encodeURIComponent).join('/');
+}
+
 export async function deleteObject(bucket: string, key: string): Promise<void> {
   await apiFetch(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects/${encodeURIComponent(key)}`,
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects/${encodeKeyPath(key)}`,
     { method: 'DELETE' },
   );
 }
 
 /** Inline GET URL — caller renders as <img>/<video> etc. directly. */
 export function inlineUrl(bucket: string, key: string): string {
-  return `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects/${encodeURIComponent(key)}`;
+  return `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects/${encodeKeyPath(key)}`;
+}
+
+export interface CopyObjectReq {
+  src: string;
+  dst: string;
+  delete_src?: boolean;
+}
+
+export async function copyObject(
+  bucket: string,
+  req: CopyObjectReq,
+): Promise<void> {
+  await apiJson<unknown>(
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/copy`,
+    { method: 'POST', body: JSON.stringify(req) },
+  );
+}
+
+export interface BatchDeleteResult {
+  deleted: string[];
+  failed: Array<{ key: string; error: string }>;
+}
+
+export async function batchDelete(
+  bucket: string,
+  keys: string[],
+): Promise<BatchDeleteResult> {
+  return apiJson<BatchDeleteResult>(
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/delete-batch`,
+    { method: 'POST', body: JSON.stringify({ keys }) },
+  );
+}
+
+/** Stream the server-side zip archive of the selected keys. Drives an
+ *  anchor click so the browser handles the file save with the right
+ *  filename. */
+export async function downloadZip(
+  bucket: string,
+  keys: string[],
+  archiveName?: string,
+): Promise<void> {
+  const res = await apiFetch(
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/zip`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ keys, archive_name: archiveName }),
+      headers: { 'content-type': 'application/json' },
+    },
+  );
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = archiveName ?? `${bucket}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export interface CreateBucketReq {
+  name: string;
+  driver: string;
+  max_object_bytes?: number;
+  retention_days?: number;
+  public_read?: boolean;
+}
+
+export async function createBucket(req: CreateBucketReq): Promise<BucketSummary> {
+  return apiJson<BucketSummary>(`${ROOT}/buckets`, {
+    method: 'POST',
+    body: JSON.stringify(req),
+  });
 }
 
 /** Driver-level list (storage source-of-truth). Supports prefix/delimiter for
