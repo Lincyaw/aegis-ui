@@ -151,7 +151,7 @@ export default function BucketBrowser() {
   }, [refresh]);
 
   const items: ObjItem[] = useMemo(() => {
-    if (!result) {
+    if (!result?.items) {
       return [];
     }
     return result.items.map((it) => ({
