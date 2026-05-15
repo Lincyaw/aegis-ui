@@ -1246,6 +1246,7 @@ export default function BucketBrowser() {
         }
         actions={inspectorActions}
         width={720}
+        defaultMaximized
       />
 
       <Modal

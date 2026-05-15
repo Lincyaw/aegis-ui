@@ -1,6 +1,10 @@
 import { type ReactNode, useState } from 'react';
 
-import { CloseOutlined } from '@ant-design/icons';
+import {
+  CloseOutlined,
+  FullscreenExitOutlined,
+  FullscreenOutlined,
+} from '@ant-design/icons';
 import { Drawer } from 'antd';
 
 import { MetricLabel } from './MetricLabel';
@@ -27,6 +31,10 @@ export interface ObjectInspectorProps {
   actions?: ReactNode;
   /** Default: 720 */
   width?: number | string;
+  /** Width when the inspector is maximized. Default: '100vw' */
+  maximizedWidth?: number | string;
+  /** Start maximized. Default: false */
+  defaultMaximized?: boolean;
 }
 
 export function ObjectInspector({
@@ -38,7 +46,10 @@ export function ObjectInspector({
   defaultTabId,
   actions,
   width = 720,
+  maximizedWidth = '100vw',
+  defaultMaximized = false,
 }: ObjectInspectorProps) {
+  const [maximized, setMaximized] = useState<boolean>(defaultMaximized);
   function resolveInitialTabId(): string {
     if (defaultTabId !== undefined) {
       return defaultTabId;
@@ -57,7 +68,7 @@ export function ObjectInspector({
     <Drawer
       open={open}
       onClose={onClose}
-      width={width}
+      width={maximized ? maximizedWidth : width}
       placement="right"
       closable={false}
       className="aegis-object-inspector__drawer"
@@ -82,14 +93,29 @@ export function ObjectInspector({
               </MetricLabel>
             ) : null}
           </div>
-          <button
-            type="button"
-            className="aegis-object-inspector__close"
-            onClick={onClose}
-            aria-label="Close inspector"
-          >
-            <CloseOutlined />
-          </button>
+          <div className="aegis-object-inspector__header-buttons">
+            <button
+              type="button"
+              className="aegis-object-inspector__close"
+              onClick={() => {
+                setMaximized((m) => !m);
+              }}
+              aria-label={
+                maximized ? 'Restore inspector' : 'Maximize inspector'
+              }
+              title={maximized ? 'Restore' : 'Maximize'}
+            >
+              {maximized ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+            </button>
+            <button
+              type="button"
+              className="aegis-object-inspector__close"
+              onClick={onClose}
+              aria-label="Close inspector"
+            >
+              <CloseOutlined />
+            </button>
+          </div>
         </header>
 
         {/* Actions */}

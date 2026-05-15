@@ -180,7 +180,7 @@
   --header-height: 56px;
   --sidebar-width-expanded: 240px;
   --sidebar-width-collapsed: 64px;
-  --page-max-width: 1200px;
+  --page-max-width: none;
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;

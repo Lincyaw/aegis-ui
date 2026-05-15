@@ -54,6 +54,13 @@
   white-space: nowrap;
 }
 
+.aegis-object-inspector__header-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
 .aegis-object-inspector__close {
   display: inline-flex;
   align-items: center;
