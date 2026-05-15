@@ -46,8 +46,12 @@ local-debug:
 # Build and Push Recipes
 # =============================================================================
 
+# Build the SPA image from the monorepo root so workspace deps
+# (`@lincyaw/aegis-ui` -> `workspace:*`) resolve. The repo's root
+# Dockerfile runs pnpm install + builds both packages inside the
+# image, then nginx serves /apps/console/dist.
 build tag=version:
-    docker build \
+    cd {{root}}/../.. && docker build \
         --network=host \
         -t {{registry}}/{{image}}:{{tag}} .
 
