@@ -4079,10 +4079,10 @@ function ObjectInspectorSpecimen(): ReactNode {
               ),
             },
             {
-              id: 'versions',
-              label: 'Versions',
+              id: 'audit-log',
+              label: 'Audit log',
               disabled: true,
-              hint: 'Not enabled on this bucket',
+              hint: 'Coming soon',
               content: null,
             },
           ]}
