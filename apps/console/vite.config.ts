@@ -69,6 +69,51 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: 'esnext',
+      sourcemap: 'hidden',
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('hyparquet') || id.includes('workerBundle')) {
+              return 'parquet';
+            }
+            if (
+              id.includes('/node_modules/echarts') ||
+              id.includes('/node_modules/echarts-for-react') ||
+              id.includes('/node_modules/zrender')
+            ) {
+              return 'echarts';
+            }
+            if (
+              id.includes('/node_modules/reactflow') ||
+              id.includes('/node_modules/@reactflow/')
+            ) {
+              return 'reactflow';
+            }
+            if (
+              id.includes('/node_modules/apache-arrow') ||
+              id.includes('/node_modules/arrow-js-ffi')
+            ) {
+              return 'arrow';
+            }
+            if (
+              id.includes('/node_modules/react/') ||
+              id.includes('/node_modules/react-dom/') ||
+              id.includes('/node_modules/react-router-dom/') ||
+              id.includes('/node_modules/react-router/')
+            ) {
+              return 'react';
+            }
+            if (
+              id.includes('/node_modules/antd/') ||
+              id.includes('/node_modules/@rc-component/') ||
+              id.includes('/node_modules/@ant-design/')
+            ) {
+              return 'antd';
+            }
+            return undefined;
+          },
+        },
+      },
     },
   };
 });
