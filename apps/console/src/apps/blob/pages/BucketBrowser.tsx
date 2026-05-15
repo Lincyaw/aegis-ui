@@ -201,6 +201,37 @@ export default function BucketBrowser() {
   const [moveOpen, setMoveOpen] = useState(false);
   const [moveTarget, setMoveTarget] = useState('');
   const [moveLoading, setMoveLoading] = useState(false);
+  // Presigned same-origin URL for the active preview. The inspector
+  // surfaces this through <img>/<iframe>/parquet-fetcher, none of which
+  // can attach an Authorization header — so we mint a /raw/<token>
+  // URL where the HMAC itself is the auth.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!preview) {
+      setPreviewUrl(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const pr = await presignGet(bucket, {
+          key: preview.key,
+          ttl_seconds: 600,
+        });
+        if (!cancelled) {
+          setPreviewUrl(pr.url);
+        }
+      } catch {
+        if (!cancelled) {
+          setPreviewUrl(inlineUrl(bucket, preview.key));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [bucket, preview]);
 
   const refresh = useCallback(async (): Promise<void> => {
     if (bucket === '') {
@@ -616,6 +647,26 @@ export default function BucketBrowser() {
     [bucket, msg],
   );
 
+  const downloadAsAttachment = useCallback(
+    async (item: ObjItem): Promise<void> => {
+      try {
+        const pr = await presignGet(bucket, {
+          key: item.key,
+          ttl_seconds: 300,
+        });
+        const a = document.createElement('a');
+        a.href = pr.url;
+        a.download = lastSegment(item.key);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (e) {
+        void msg.error(`Download failed: ${errMsg(e)}`);
+      }
+    },
+    [bucket, msg],
+  );
+
   const handleNewFolder = useCallback(async (): Promise<void> => {
     const name = newFolderName.trim();
     if (!name) {
@@ -713,12 +764,16 @@ export default function BucketBrowser() {
         id: 'preview',
         label: 'Preview',
         content: (
-          <FilePreview
-            src={inlineUrl(bucket, preview.key)}
-            mimeType={inferMime(preview)}
-            name={preview.key}
-            size={preview.size}
-          />
+          previewUrl ? (
+            <FilePreview
+              src={previewUrl}
+              mimeType={inferMime(preview)}
+              name={preview.key}
+              size={preview.size}
+            />
+          ) : (
+            <span style={{ color: 'var(--text-muted)' }}>Loading preview…</span>
+          )
         ),
       },
     ];
@@ -727,10 +782,11 @@ export default function BucketBrowser() {
         id: 'parquet',
         label: 'Parquet',
         content: (
-          <ParquetViewer
-            src={inlineUrl(bucket, preview.key)}
-            title={preview.key}
-          />
+          previewUrl ? (
+            <ParquetViewer src={previewUrl} title={preview.key} />
+          ) : (
+            <span style={{ color: 'var(--text-muted)' }}>Loading parquet…</span>
+          )
         ),
       });
     }
@@ -742,7 +798,7 @@ export default function BucketBrowser() {
       content: null,
     });
     return tabs;
-  }, [bucket, preview]);
+  }, [preview, previewUrl]);
 
   const inspectorActions = useMemo(() => {
     if (!preview) {
@@ -754,7 +810,7 @@ export default function BucketBrowser() {
           size="small"
           icon={<DownloadOutlined />}
           onClick={() => {
-            window.open(inlineUrl(bucket, preview.key), '_blank');
+            void downloadAsAttachment(preview);
           }}
         >
           Download
@@ -790,7 +846,7 @@ export default function BucketBrowser() {
         </Button>
       </span>
     );
-  }, [bucket, copyUrl, handleDelete, preview]);
+  }, [copyUrl, downloadAsAttachment, handleDelete, preview]);
 
   const columns = useMemo<Array<DataTableColumn<ObjItem>>>(
     () => [
@@ -878,7 +934,7 @@ export default function BucketBrowser() {
                 label: 'Download',
                 icon: <DownloadOutlined />,
                 onClick: () => {
-                  window.open(inlineUrl(bucket, row.key), '_blank');
+                  void downloadAsAttachment(row);
                 },
               },
               {
@@ -912,7 +968,7 @@ export default function BucketBrowser() {
         ),
       },
     ],
-    [bucket, copyUrl, handleDelete, selected],
+    [copyUrl, downloadAsAttachment, handleDelete, selected],
   );
 
   // Window-level drag-over detection
