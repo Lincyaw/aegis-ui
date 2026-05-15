@@ -4,6 +4,20 @@
   gap: var(--space-3);
 }
 
+.aegis-file-dropzone__root--overlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-dropdown);
+  gap: 0;
+}
+
+.aegis-file-dropzone--overlay {
+  position: absolute;
+  inset: 0;
+  min-height: unset;
+  border-radius: var(--radius-md);
+}
+
 .aegis-file-dropzone {
   display: flex;
   align-items: center;

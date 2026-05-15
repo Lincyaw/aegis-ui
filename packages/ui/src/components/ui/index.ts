@@ -51,7 +51,16 @@ export type { DataTableColumn, DataTableSurface } from './DataTable';
 export { DataList } from './DataList';
 export type { DataListColumn, DataListItem, DataListSurface } from './DataList';
 export { Toolbar } from './Toolbar';
-export type { FilterChip } from './Toolbar';
+export type { FilterChip, ToolbarProps } from './Toolbar';
+export { SearchInput } from './SearchInput';
+export type { SearchInputProps } from './SearchInput';
+export { MetadataList } from './MetadataList';
+export type { MetadataEntry, MetadataListProps } from './MetadataList';
+export { ObjectInspector } from './ObjectInspector';
+export type {
+  ObjectInspectorProps,
+  ObjectInspectorTab,
+} from './ObjectInspector';
 export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
 export { Breadcrumb } from './Breadcrumb';

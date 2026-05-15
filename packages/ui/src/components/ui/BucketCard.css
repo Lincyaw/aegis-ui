@@ -67,8 +67,27 @@
   min-width: 0;
 }
 
+.aegis-bucket-card__quick-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: var(--size-hairline) solid var(--border-hairline);
+  opacity: 0;
+  transition: opacity var(--motion-fast);
+}
+
+.aegis-bucket-card--has-actions:hover .aegis-bucket-card__quick-actions,
+.aegis-bucket-card--has-actions:focus-within .aegis-bucket-card__quick-actions {
+  opacity: 1;
+}
+
 @media (max-width: 768px) {
   .aegis-bucket-card__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .aegis-bucket-card__quick-actions {
+    opacity: 1;
   }
 }

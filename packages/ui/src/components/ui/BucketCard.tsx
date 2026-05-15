@@ -19,6 +19,11 @@ interface BucketCardProps {
   /** Optional object count / size summary shown on the right. */
   objectCount?: number;
   totalBytes?: number;
+  /**
+   * Row of quick-action buttons (e.g. settings icon button).
+   * Revealed on hover via CSS.
+   */
+  quickActions?: ReactNode;
   onClick?: () => void;
   className?: string;
 }
@@ -45,6 +50,7 @@ export function BucketCard({
   publicRead = false,
   objectCount,
   totalBytes,
+  quickActions,
   onClick,
   className,
 }: BucketCardProps) {
@@ -52,6 +58,7 @@ export function BucketCard({
   const cls = [
     'aegis-bucket-card',
     interactive ? 'aegis-bucket-card--clickable' : '',
+    quickActions !== undefined ? 'aegis-bucket-card--has-actions' : '',
     className ?? '',
   ]
     .filter(Boolean)
@@ -117,6 +124,9 @@ export function BucketCard({
           </MonoValue>
         </div>
       </div>
+      {quickActions !== undefined ? (
+        <div className="aegis-bucket-card__quick-actions">{quickActions}</div>
+      ) : null}
     </div>
   );
 }

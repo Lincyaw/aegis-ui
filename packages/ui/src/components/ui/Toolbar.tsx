@@ -10,18 +10,31 @@ export interface FilterChip {
   label: string;
 }
 
-interface ToolbarProps {
+export interface ToolbarProps {
+  /** Generic left slot — when provided, replaces the baked-in search row. */
+  left?: ReactNode;
+  /** Optional center slot. */
+  center?: ReactNode;
+  /** Generic right slot — when provided, replaces the `action` prop. */
+  right?: ReactNode;
+
+  /* ── Legacy search-bar props (backwards-compatible) ── */
   searchPlaceholder?: string;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   filters?: FilterChip[];
   onFilterRemove?: (key: string) => void;
   onClearFilters?: () => void;
+  /** @deprecated Use `right` instead. */
   action?: ReactNode;
+
   className?: string;
 }
 
 export function Toolbar({
+  left,
+  center,
+  right,
   searchPlaceholder = 'Search…',
   searchValue = '',
   onSearchChange,
@@ -32,12 +45,13 @@ export function Toolbar({
   className,
 }: ToolbarProps) {
   const hasFilters = filters.length > 0;
-
   const cls = ['aegis-toolbar', className ?? ''].filter(Boolean).join(' ');
 
-  return (
-    <div className={cls}>
-      <div className="aegis-toolbar__left">
+  const leftContent =
+    left !== undefined ? (
+      left
+    ) : (
+      <>
         <div className="aegis-toolbar__search">
           <SearchOutlined className="aegis-toolbar__search-icon" />
           <input
@@ -49,7 +63,6 @@ export function Toolbar({
             aria-label="Search"
           />
         </div>
-
         {hasFilters && (
           <div className="aegis-toolbar__filters">
             {filters.map((f) => (
@@ -75,9 +88,20 @@ export function Toolbar({
             )}
           </div>
         )}
-      </div>
+      </>
+    );
 
-      {action && <div className="aegis-toolbar__right">{action}</div>}
+  const rightContent = right !== undefined ? right : action;
+
+  return (
+    <div className={cls}>
+      <div className="aegis-toolbar__left">{leftContent}</div>
+      {center !== undefined ? (
+        <div className="aegis-toolbar__center">{center}</div>
+      ) : null}
+      {rightContent !== undefined ? (
+        <div className="aegis-toolbar__right">{rightContent}</div>
+      ) : null}
     </div>
   );
 }

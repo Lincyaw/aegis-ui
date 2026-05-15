@@ -12,6 +12,14 @@ export interface FileDropzoneItem {
   progress?: number;
   status: 'queued' | 'uploading' | 'done' | 'error';
   error?: string;
+  /** Bytes transferred so far. */
+  bytesUploaded?: number;
+  /** Transfer speed in bytes per second. */
+  speedBps?: number;
+  /** Estimated seconds remaining. */
+  etaSeconds?: number;
+  /** Called when the user cancels an in-progress upload. */
+  onCancel?: () => void;
 }
 
 interface FileDropzoneProps {
@@ -22,6 +30,17 @@ interface FileDropzoneProps {
   disabled?: boolean;
   /** Reject files bigger than this many bytes (forwarded to react-dropzone). */
   maxSize?: number;
+  /**
+   * When true, the `<input>` gets `webkitdirectory` so the user can select
+   * an entire folder.  Each `File` carries its `webkitRelativePath`.
+   */
+  directory?: boolean;
+  /**
+   * `'inline'` (default) — standard dashed-border dropzone block.
+   * `'overlay'` — fixed/absolute fullscreen overlay with a dashed border and
+   *   centred hint; use inside a `position: relative` container.
+   */
+  variant?: 'inline' | 'overlay';
   /** Optional in-flight queue rendered under the drop area. */
   items?: FileDropzoneItem[];
   /** Override the body text in the drop area. */
@@ -36,6 +55,8 @@ export function FileDropzone({
   multiple = true,
   disabled = false,
   maxSize,
+  directory = false,
+  variant = 'inline',
   items,
   hint,
   className,
@@ -50,8 +71,11 @@ export function FileDropzone({
       maxSize,
     });
 
+  const isOverlay = variant === 'overlay';
+
   const rootClass = [
     'aegis-file-dropzone',
+    isOverlay ? 'aegis-file-dropzone--overlay' : '',
     isDragActive ? 'aegis-file-dropzone--active' : '',
     isDragReject ? 'aegis-file-dropzone--reject' : '',
     disabled ? 'aegis-file-dropzone--disabled' : '',
@@ -60,17 +84,34 @@ export function FileDropzone({
     .filter(Boolean)
     .join(' ');
 
+  const inputProps = getInputProps();
+
   return (
-    <div className="aegis-file-dropzone__root" style={style}>
+    <div
+      className={
+        isOverlay
+          ? 'aegis-file-dropzone__root aegis-file-dropzone__root--overlay'
+          : 'aegis-file-dropzone__root'
+      }
+      style={style}
+    >
       <div {...getRootProps({ className: rootClass })}>
-        <input {...getInputProps()} />
+        <input
+          {...inputProps}
+          /* eslint-disable-next-line react/no-unknown-property */
+          {...(directory ? { webkitdirectory: '', mozdirectory: '' } : {})}
+        />
         <div className="aegis-file-dropzone__hint">
           {hint ?? (
             <>
               <span className="aegis-file-dropzone__primary">
                 {isDragActive
-                  ? 'Drop to upload'
-                  : 'Drag files here or click to browse'}
+                  ? directory
+                    ? 'Drop folder to upload'
+                    : 'Drop to upload'
+                  : directory
+                    ? 'Drag a folder here or click to browse'
+                    : 'Drag files here or click to browse'}
               </span>
               {accept ? (
                 <span className="aegis-file-dropzone__meta">

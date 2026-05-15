@@ -1,0 +1,82 @@
+.aegis-search-input {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-page);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  min-width: 0;
+  transition: border-color var(--motion-fast);
+}
+
+.aegis-search-input:focus-within {
+  border-color: var(--text-main);
+}
+
+.aegis-search-input__icon {
+  color: var(--text-muted);
+  font-size: var(--fs-14);
+  flex-shrink: 0;
+}
+
+.aegis-search-input__field {
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  width: 15rem;
+  min-width: 7.5rem;
+}
+
+.aegis-search-input__field::placeholder {
+  color: var(--text-muted);
+}
+
+.aegis-search-input__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--fs-11);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: color var(--motion-fast);
+}
+
+.aegis-search-input__clear:hover {
+  color: var(--text-main);
+}
+
+.aegis-search-input__kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-1);
+  background: var(--bg-muted);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .aegis-search-input {
+    width: 100%;
+  }
+
+  .aegis-search-input__field {
+    width: 100%;
+  }
+}

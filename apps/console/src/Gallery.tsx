@@ -44,7 +44,10 @@ import {
   BucketCard,
   FileDropzone,
   FilePreview,
+  MetadataList,
   ObjectBrowser,
+  ObjectInspector,
+  SearchInput,
   ShareLinkDialog,
   UploadQueue,
   ForgotPasswordForm,
@@ -3100,29 +3103,65 @@ function App() {
           <Specimen caption='disabled'>
             <FileDropzone onDrop={() => undefined} disabled />
           </Specimen>
+          <Specimen caption='directory=true'>
+            <FileDropzone
+              onDrop={() => undefined}
+              directory
+              hint={
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 'var(--fs-14)' }}>
+                  Drop a folder or click to select one
+                </span>
+              }
+            />
+          </Specimen>
+          <Specimen caption='overlay variant (contained)' span={2}>
+            <div style={{ position: 'relative', height: 200, border: 'var(--size-hairline) dashed var(--border-emphasis)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ padding: 'var(--space-4)', color: 'var(--text-muted)' }}>
+                <MetricLabel>underlying content</MetricLabel>
+              </div>
+              <FileDropzone
+                onDrop={() => undefined}
+                variant='overlay'
+                hint={
+                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 'var(--fw-medium)', fontSize: 'var(--fs-14)' }}>
+                    Drop files to upload
+                  </span>
+                }
+              />
+            </div>
+          </Specimen>
         </div>
 
         <SectionDivider extra={<MetricLabel>standalone queue</MetricLabel>}>
           UploadQueue
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
-          <Specimen caption='mixed states' span={3}>
+          <Specimen caption='mixed states with progress + speed' span={3}>
             <UploadQueue
               items={[
                 {
-                  id: 'a',
-                  file: new File([''], 'corpus-2026-04.tar.gz'),
-                  status: 'uploading',
-                  progress: 64,
+                  id: 'q1',
+                  file: new File([''], 'waiting.tar.gz'),
+                  status: 'queued',
                 },
                 {
-                  id: 'b',
+                  id: 'u1',
+                  file: new File(new Array(50 * 1024 * 1024).fill(0), 'corpus-2026-04.tar.gz'),
+                  status: 'uploading',
+                  progress: 0.5,
+                  bytesUploaded: 25 * 1024 * 1024,
+                  speedBps: 2.4 * 1024 * 1024,
+                  etaSeconds: 12,
+                  onCancel: () => undefined,
+                },
+                {
+                  id: 'd1',
                   file: new File([''], 'trace-snapshot.json'),
                   status: 'done',
-                  progress: 100,
+                  progress: 1,
                 },
                 {
-                  id: 'c',
+                  id: 'e1',
                   file: new File([''], 'too-big.bin'),
                   status: 'error',
                   error: 'exceeds 5 MB cap',
@@ -3165,7 +3204,100 @@ function App() {
           <Specimen caption='minimal'>
             <BucketCard name='shared-uploads' driver='s3' />
           </Specimen>
+          <Specimen caption='with quickActions (hover to reveal)'>
+            <BucketCard
+              name='model-artifacts'
+              driver='s3'
+              objectCount={5120}
+              totalBytes={128 * 1024 * 1024 * 1024}
+              quickActions={
+                <>
+                  <Chip tone='ghost'>Settings</Chip>
+                  <Chip tone='ghost'>Lifecycle</Chip>
+                </>
+              }
+              onClick={() => undefined}
+            />
+          </Specimen>
         </div>
+
+        <SectionDivider extra={<MetricLabel>3-slot generic toolbar</MetricLabel>}>
+          Toolbar
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='left + right' span={2}>
+            <Toolbar
+              left={<SearchInput value='' onChange={() => undefined} placeholder='Search objects…' kbd='⌘K' />}
+              right={
+                <>
+                  <Chip tone='ghost'>Upload</Chip>
+                  <Chip tone='ink'>New folder</Chip>
+                </>
+              }
+            />
+          </Specimen>
+          <Specimen caption='with center slot' span={2}>
+            <Toolbar
+              left={<SearchInput value='' onChange={() => undefined} />}
+              center={
+                <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                  <Chip tone='ghost'>List</Chip>
+                  <Chip tone='ink'>Grid</Chip>
+                </div>
+              }
+              right={<Chip tone='ghost'>Filter</Chip>}
+            />
+          </Specimen>
+          <Specimen caption='legacy search + filter chips' span={3}>
+            <Toolbar
+              searchPlaceholder='Search…'
+              searchValue=''
+              onSearchChange={() => undefined}
+              filters={[{ key: 'type', label: 'type: image' }]}
+              onFilterRemove={() => undefined}
+              onClearFilters={() => undefined}
+              action={<Chip tone='ghost'>Export</Chip>}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>single-line search</MetricLabel>}>
+          SearchInput
+        </SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='empty with kbd hint'>
+            <SearchInput value='' onChange={() => undefined} placeholder='Search…' kbd='⌘K' />
+          </Specimen>
+          <Specimen caption='populated with clear'>
+            <SearchInput value='trace-snapshot.json' onChange={() => undefined} onClear={() => undefined} />
+          </Specimen>
+          <Specimen caption='no kbd, no value'>
+            <SearchInput value='' onChange={() => undefined} placeholder='Filter by prefix…' />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>key/value metadata</MetricLabel>}>
+          MetadataList
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='mixed entries' span={2}>
+            <MetadataList
+              entries={[
+                { label: 'Key', value: 'datasets/2026-05/trace.json', mono: true, copyable: true },
+                { label: 'Size', value: '4.2 MB', mono: true },
+                { label: 'Content-Type', value: 'application/json', mono: true, copyable: true },
+                { label: 'Last modified', value: '2026-05-14 08:21 UTC' },
+                { label: 'ETag', value: '"a3f29c8d0e11b7ce2a4f1d6e90b5a823"', mono: true, copyable: true },
+                { label: 'Storage class', value: 'STANDARD' },
+              ]}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>object side-panel</MetricLabel>}>
+          ObjectInspector
+        </SectionDivider>
+        <ObjectInspectorSpecimen />
 
         <SectionDivider extra={<MetricLabel>prefix tree + table shell</MetricLabel>}>
           ObjectBrowser
@@ -3195,6 +3327,89 @@ function App() {
                 }}
               >
                 <MetricLabel>host renders DataTable here</MetricLabel>
+              </div>
+            </ObjectBrowser>
+          </Specimen>
+          <Specimen caption='searchSlot + viewModeSlot + footer' span={3}>
+            <ObjectBrowser
+              prefixes={['models/', 'experiments/']}
+              currentPrefix=''
+              onPrefixChange={() => undefined}
+              searchSlot={<SearchInput value='' onChange={() => undefined} placeholder='Filter objects…' />}
+              viewModeSlot={
+                <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                  <Chip tone='ghost'>≡</Chip>
+                  <Chip tone='ink'>⊞</Chip>
+                </div>
+              }
+              footer={<Chip tone='ghost'>Load more</Chip>}
+            >
+              <div
+                style={{
+                  padding: 'var(--space-6)',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  border: 'var(--size-hairline) dashed var(--border-hairline)',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                <MetricLabel>DataTable content</MetricLabel>
+              </div>
+            </ObjectBrowser>
+          </Specimen>
+          <Specimen caption='loading skeleton' span={2}>
+            <ObjectBrowser
+              prefixes={[]}
+              currentPrefix=''
+              onPrefixChange={() => undefined}
+              loading
+            >
+              <div />
+            </ObjectBrowser>
+          </Specimen>
+          <Specimen caption='dragOverlay visible' span={2}>
+            <ObjectBrowser
+              prefixes={['data/']}
+              currentPrefix=''
+              onPrefixChange={() => undefined}
+              dragOverlay={
+                <FileDropzone
+                  onDrop={() => undefined}
+                  variant='overlay'
+                  hint={<span style={{ fontFamily: 'var(--font-ui)', fontWeight: 'var(--fw-medium)' }}>Drop files to upload</span>}
+                />
+              }
+            >
+              <div
+                style={{
+                  padding: 'var(--space-6)',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  border: 'var(--size-hairline) dashed var(--border-hairline)',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                <MetricLabel>drag a file over this area</MetricLabel>
+              </div>
+            </ObjectBrowser>
+          </Specimen>
+          <Specimen caption='tree collapsed by default' span={2}>
+            <ObjectBrowser
+              prefixes={['logs/', 'traces/']}
+              currentPrefix=''
+              onPrefixChange={() => undefined}
+              defaultTreeCollapsed
+            >
+              <div
+                style={{
+                  padding: 'var(--space-6)',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  border: 'var(--size-hairline) dashed var(--border-hairline)',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                <MetricLabel>collapsed tree</MetricLabel>
               </div>
             </ObjectBrowser>
           </Specimen>
@@ -3805,6 +4020,75 @@ function CommandGallerySpecimen(): ReactNode {
       <span className='gallery__specimen-hint'>
         mod+k toggles globally while a CommandProvider is mounted.
       </span>
+    </div>
+  );
+}
+
+function ObjectInspectorSpecimen(): ReactNode {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='toggle to open inspector'>
+        <AegisButton onClick={() => setOpen(true)}>Open ObjectInspector</AegisButton>
+        <ObjectInspector
+          open={open}
+          onClose={() => setOpen(false)}
+          title='trace-snapshot.json'
+          subtitle='datasets/2026-05/trace-snapshot.json'
+          defaultTabId='summary'
+          actions={
+            <>
+              <Chip tone='ghost'>Download</Chip>
+              <Chip tone='ghost'>Copy URL</Chip>
+              <Chip tone='ghost'>Share</Chip>
+              <Chip tone='warning'>Delete</Chip>
+            </>
+          }
+          tabs={[
+            {
+              id: 'summary',
+              label: 'Summary',
+              content: (
+                <MetadataList
+                  entries={[
+                    { label: 'Key', value: 'datasets/2026-05/trace-snapshot.json', mono: true, copyable: true },
+                    { label: 'Size', value: '4.2 MB', mono: true },
+                    { label: 'Content-Type', value: 'application/json', mono: true },
+                    { label: 'Last modified', value: '2026-05-14 08:21 UTC' },
+                    { label: 'ETag', value: '"a3f29c8d0e11b7ce2a4f1d6e90b5a823"', mono: true, copyable: true },
+                  ]}
+                />
+              ),
+            },
+            {
+              id: 'preview',
+              label: 'Preview',
+              content: (
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-13)', color: 'var(--text-muted)' }}>
+                  Preview placeholder — host renders FilePreview here.
+                </div>
+              ),
+            },
+            {
+              id: 'parquet',
+              label: 'Parquet',
+              content: (
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-13)', color: 'var(--text-muted)' }}>
+                  Parquet viewer placeholder — host renders ParquetViewer here.
+                </div>
+              ),
+            },
+            {
+              id: 'versions',
+              label: 'Versions',
+              disabled: true,
+              hint: 'Not enabled on this bucket',
+              content: null,
+            },
+          ]}
+          width={680}
+        />
+      </Specimen>
     </div>
   );
 }
