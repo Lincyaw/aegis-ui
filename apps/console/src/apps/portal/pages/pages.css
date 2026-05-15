@@ -1,32 +1,6 @@
-/* Shared page layout styles — imported by all page components */
-
-.page-wrapper {
-  padding: var(--space-6);
-  max-width: 1200px;
-  margin: 0 auto;
-  animation: page-fade-in var(--motion-base) forwards;
-}
-
-.page-wrapper > * + * {
-  margin-top: var(--space-6);
-}
-
-/* Stagger children inside page-wrapper for subtle sequential reveal */
-.page-wrapper > *:nth-child(1) {
-  animation-delay: 0ms;
-}
-.page-wrapper > *:nth-child(2) {
-  animation-delay: 40ms;
-}
-.page-wrapper > *:nth-child(3) {
-  animation-delay: 80ms;
-}
-.page-wrapper > *:nth-child(4) {
-  animation-delay: 120ms;
-}
-.page-wrapper > *:nth-child(5) {
-  animation-delay: 160ms;
-}
+/* Portal-specific patterns. The .page-wrapper rules live in
+   packages/ui/src/layouts/PageWrapper.css — do NOT re-declare them here
+   or the library token (--page-max-width) gets overridden. */
 
 /* Overview stat grid */
 .page-overview-grid {
@@ -92,10 +66,6 @@
 @media (max-width: 768px) {
   .page-overview-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .page-wrapper {
-    padding: var(--space-4);
   }
 
   .page-table__head,
