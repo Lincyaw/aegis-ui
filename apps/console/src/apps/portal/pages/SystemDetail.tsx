@@ -1,3 +1,4 @@
+import { App as AntdApp } from 'antd';
 import { Link, useParams } from 'react-router-dom';
 
 import {
@@ -5,123 +6,186 @@ import {
   Chip,
   CodeBlock,
   DataList,
+  EmptyState,
   KeyValueList,
   MetricCard,
+  MonoValue,
   PageHeader,
   Panel,
   PanelTitle,
   SectionDivider,
   StatusDot,
   useAppHref,
+  useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-interface Pedestal {
-  id: string;
-  namespace: string;
-  version: string;
-  status: 'Running' | 'Pending' | 'Failed';
-}
-
-const PEDESTALS: Pedestal[] = [
-  { id: 'ped-001', namespace: 'ts-1', version: 'v1.4.2', status: 'Running' },
-  { id: 'ped-002', namespace: 'ts-2', version: 'v1.4.2', status: 'Running' },
-];
-
-interface Inj {
-  id: string;
-  fault: string;
-  target: string;
-  startedAt: string;
-}
-
-const RECENT: Inj[] = [
-  { id: 'inj-9921', fault: 'pod-failure', target: 'ts-travel-service', startedAt: '2026-05-15T09:42Z' },
-  { id: 'inj-9920', fault: 'network-delay', target: 'ts-order-service', startedAt: '2026-05-15T08:11Z' },
-];
+import { StatusChip } from '../components/StatusChip';
+import { useMockStore } from '../mocks';
+import type { MockInjection, MockPedestal } from '../mocks/types';
 
 export default function SystemDetail() {
   const { code } = useParams<{ code: string }>();
   const href = useAppHref();
+  const navigate = useAppNavigate();
+  const { message: msg } = AntdApp.useApp();
+
+  const system = useMockStore((s) => s.systems.find((x) => x.code === code));
+  const pedestals = useMockStore((s) => s.pedestals.filter((p) => p.systemCode === code));
+  const recent = useMockStore((s) =>
+    s.injections.filter((i) => i.systemCode === code).slice(0, 8),
+  );
+  const enableSystem = useMockStore((s) => s.enableSystem);
+  const disableSystem = useMockStore((s) => s.disableSystem);
+
+  if (!system) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title='System not found' />
+        <Panel>
+          <EmptyState title='Not found' description='No such system code.' />
+        </Panel>
+      </div>
+    );
+  }
+
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={`System ${code ?? ''}`}
-        description='Benchmark system overview, pedestals, and prereqs.'
+        title={system.name}
+        description={system.description}
         action={
-          <>
-            <Button tone='secondary'>Disable</Button>{' '}
-            <Button tone='secondary'>Publish chart</Button>
-          </>
+          <div className='page-action-row'>
+            <Button
+              tone='primary'
+              onClick={() => navigate(`projects/proj-catalog/injections/new?system=${system.code}`)}
+            >
+              Inject fault
+            </Button>
+            {system.enabled ? (
+              <Button
+                tone='secondary'
+                onClick={() => {
+                  disableSystem(system.code);
+                  void msg.success(`Disabled ${system.code}`);
+                }}
+              >
+                Disable
+              </Button>
+            ) : (
+              <Button
+                tone='secondary'
+                onClick={() => {
+                  enableSystem(system.code);
+                  void msg.success(`Enabled ${system.code}`);
+                }}
+              >
+                Enable
+              </Button>
+            )}
+            <Button
+              tone='secondary'
+              onClick={() => navigate(`pedestals/new?system=${system.code}`)}
+            >
+              Install pedestal
+            </Button>
+          </div>
         }
       />
 
       <Panel title={<PanelTitle size='base'>Overview</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'chart', v: `oci://opspai/benchmarks/${code ?? ''}` },
-            { k: 'version', v: 'v1.4.2' },
-            { k: 'otel sink', v: 'otel-kube-stack/otlp:4317' },
-            { k: 'enabled', v: <StatusDot size={6} tone='ink' /> },
-          ]}
-        />
-      </Panel>
-
-      <SectionDivider>Pedestals</SectionDivider>
-      <Panel>
-        <DataList<Pedestal>
-          items={PEDESTALS}
-          columns={[
+            { k: 'short code', v: <MonoValue size='sm'>{system.code}</MonoValue> },
+            { k: 'chart', v: <MonoValue size='sm'>{system.chart}</MonoValue> },
+            { k: 'version', v: <MonoValue size='sm'>{system.version}</MonoValue> },
+            { k: 'otel sink', v: <MonoValue size='sm'>{system.otelEndpoint}</MonoValue> },
             {
-              key: 'ns',
-              label: 'Namespace',
-              render: (r) => <Link to={href(`pedestals/${r.id}`)}>{r.namespace}</Link>,
+              k: 'enabled',
+              v: (
+                <StatusDot
+                  size={6}
+                  tone={system.enabled ? 'ink' : 'muted'}
+                />
+              ),
             },
-            { key: 'version', label: 'Version', render: (r) => r.version },
-            { key: 'status', label: 'Status', render: (r) => <Chip tone='ink'>{r.status}</Chip> },
-          ]}
-        />
-      </Panel>
-
-      <SectionDivider>Recent injections</SectionDivider>
-      <Panel>
-        <DataList<Inj>
-          items={RECENT}
-          columns={[
-            {
-              key: 'id',
-              label: 'Injection',
-              render: (r) => <Link to={href(`projects/default/injections/${r.id}`)}>{r.id}</Link>,
-            },
-            { key: 'fault', label: 'Fault', render: (r) => r.fault },
-            { key: 'target', label: 'Target', render: (r) => r.target },
-            { key: 'startedAt', label: 'Started', render: (r) => r.startedAt },
-          ]}
-        />
-      </Panel>
-
-      <SectionDivider>Prereqs</SectionDivider>
-      <Panel>
-        <KeyValueList
-          items={[
-            { k: 'helm chart published', v: <Chip tone='ink'>OK</Chip> },
-            { k: 'otel collector reachable', v: <Chip tone='ink'>OK</Chip> },
-            { k: 'db seed applied', v: <Chip tone='ink'>OK</Chip> },
-            { k: 'sidecar image mirrored', v: <Chip tone='warning'>volces only</Chip> },
           ]}
         />
       </Panel>
 
       <div className='page-overview-grid'>
-        <MetricCard label='Injections (7d)' value={142} />
-        <MetricCard label='Pedestals' value={PEDESTALS.length} />
-        <MetricCard label='Datasets' value={9} />
-        <MetricCard label='Success rate' value='98.6%' />
+        <MetricCard label='Pedestals' value={pedestals.length} />
+        <MetricCard label='Recent injections' value={recent.length} />
+        <MetricCard label='Status' value={system.enabled ? 'active' : 'disabled'} />
+        <MetricCard label='Version' value={system.version} />
       </div>
+
+      <SectionDivider>Pedestals</SectionDivider>
+      <Panel>
+        {pedestals.length === 0 ? (
+          <EmptyState
+            title='No pedestals deployed'
+            description='Install one to begin injecting faults.'
+          />
+        ) : (
+          <DataList<MockPedestal>
+            items={pedestals}
+            columns={[
+              {
+                key: 'ns',
+                label: 'Namespace',
+                render: (r) => <Link to={href(`pedestals/${r.id}`)}>{r.namespace}</Link>,
+              },
+              { key: 'version', label: 'Version', render: (r) => r.version },
+              {
+                key: 'status',
+                label: 'Status',
+                render: (r) => <StatusChip status={r.status} />,
+              },
+            ]}
+          />
+        )}
+      </Panel>
+
+      <SectionDivider>Recent injections</SectionDivider>
+      <Panel>
+        {recent.length === 0 ? (
+          <EmptyState title='No recent injections' description='Inject a fault to populate.' />
+        ) : (
+          <DataList<MockInjection>
+            items={recent}
+            columns={[
+              {
+                key: 'id',
+                label: 'Injection',
+                render: (r) => (
+                  <Link to={href(`projects/${r.projectId}/injections/${r.id}`)}>{r.id}</Link>
+                ),
+              },
+              { key: 'name', label: 'Fault', render: (r) => r.name },
+              { key: 'status', label: 'Status', render: (r) => <StatusChip status={r.status} /> },
+            ]}
+          />
+        )}
+      </Panel>
+
+      <SectionDivider>Prereqs</SectionDivider>
+      <Panel>
+        <KeyValueList
+          items={system.prereqs.map((p) => ({
+            k: p.name,
+            v: p.ok ? (
+              <Chip tone='ink'>OK</Chip>
+            ) : (
+              <Chip tone='warning'>{p.note ?? 'failing'}</Chip>
+            ),
+          }))}
+        />
+      </Panel>
 
       <Panel title={<PanelTitle size='base'>Helm values (pinned)</PanelTitle>}>
         <CodeBlock
           language='yaml'
-          code={`image:\n  repository: pair-cn-shanghai.cr.volces.com/opspai/${code ?? ''}\n  tag: v1.4.2\notel:\n  endpoint: http://otel-collector:4317\n`}
+          code={`image:\n  repository: pair-cn-shanghai.cr.volces.com/opspai/${system.code}\n  tag: ${system.version}\notel:\n  endpoint: ${system.otelEndpoint}\n`}
         />
       </Panel>
     </div>

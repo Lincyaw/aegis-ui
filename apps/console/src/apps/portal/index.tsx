@@ -25,6 +25,7 @@ import Dashboard from './pages/Dashboard';
 import DatasetCreate from './pages/DatasetCreate';
 import DatasetDetail from './pages/DatasetDetail';
 import Datasets from './pages/Datasets';
+import EvalCaseDetail from './pages/EvalCaseDetail';
 import EvalRunCreate from './pages/EvalRunCreate';
 import EvalRunDetail from './pages/EvalRunDetail';
 import EvalRuns from './pages/EvalRuns';
@@ -145,6 +146,7 @@ export const portalApp: AegisApp = {
     { path: 'eval', element: <EvalRuns /> },
     { path: 'eval/new', element: <EvalRunCreate /> },
     { path: 'eval/:runId', element: <EvalRunDetail /> },
+    { path: 'eval/:runId/cases/:caseId', element: <EvalCaseDetail /> },
     { path: 'cluster', element: <ClusterStatus /> },
   ],
 };

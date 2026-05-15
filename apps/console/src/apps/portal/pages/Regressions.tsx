@@ -12,24 +12,14 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-interface RegressionRow {
-  caseName: string;
-  lastStatus: 'pass' | 'fail' | 'running';
-  passRate: string;
-  lastRun: string;
-  owner: string;
-}
-
-const CASES: RegressionRow[] = [
-  { caseName: 'ts-baseline', lastStatus: 'pass', passRate: '98.6%', lastRun: '2026-05-15T08:00Z', owner: 'lincyaw' },
-  { caseName: 'otel-cart-failure', lastStatus: 'pass', passRate: '100%', lastRun: '2026-05-15T07:00Z', owner: 'boxiyu' },
-  { caseName: 'hs-network-jitter', lastStatus: 'fail', passRate: '82.4%', lastRun: '2026-05-14T22:00Z', owner: 'lincyaw' },
-  { caseName: 'sn-cpu-burn', lastStatus: 'running', passRate: '—', lastRun: '2026-05-15T10:00Z', owner: 'boxiyu' },
-];
+import { useMockStore } from '../mocks';
+import type { MockRegressionCase } from '../mocks/types';
 
 export default function Regressions() {
   const navigate = useAppNavigate();
   const href = useAppHref();
+  const cases = useMockStore((s) => s.regressionCases);
+
   return (
     <div className='page-wrapper'>
       <PageHeader
@@ -42,15 +32,62 @@ export default function Regressions() {
         }
       />
       <Panel>
-        <DataTable<RegressionRow>
-          data={CASES}
-          rowKey={(r) => r.caseName}
+        <DataTable<MockRegressionCase>
+          data={cases}
+          rowKey={(r) => r.id}
           columns={[
-            { key: 'case', header: 'Case', render: (r) => <Link to={href(`regression/${r.caseName}`)}><MonoValue size='sm'>{r.caseName}</MonoValue></Link> },
-            { key: 'status', header: 'Last status', render: (r) => <Chip tone={r.lastStatus === 'pass' ? 'ink' : r.lastStatus === 'fail' ? 'warning' : 'ghost'}>{r.lastStatus}</Chip> },
-            { key: 'rate', header: 'Pass rate', render: (r) => <MonoValue size='sm'>{r.passRate}</MonoValue> },
-            { key: 'lastRun', header: 'Last run', render: (r) => <TimeDisplay value={r.lastRun} /> },
+            {
+              key: 'case',
+              header: 'Case',
+              render: (r) => (
+                <Link to={href(`regression/${r.name}`)}>
+                  <MonoValue size='sm'>{r.name}</MonoValue>
+                </Link>
+              ),
+            },
+            { key: 'desc', header: 'Description', render: (r) => r.description },
+            {
+              key: 'status',
+              header: 'Last status',
+              render: (r) => (
+                <Chip
+                  tone={
+                    r.lastStatus === 'pass'
+                      ? 'ink'
+                      : r.lastStatus === 'fail'
+                        ? 'warning'
+                        : 'ghost'
+                  }
+                >
+                  {r.lastStatus}
+                </Chip>
+              ),
+            },
+            {
+              key: 'rate',
+              header: 'Pass rate',
+              render: (r) => (
+                <MonoValue size='sm'>{(r.passRate * 100).toFixed(1)}%</MonoValue>
+              ),
+            },
+            {
+              key: 'last',
+              header: 'Last run',
+              render: (r) => <TimeDisplay value={r.lastRunAt} />,
+            },
             { key: 'owner', header: 'Owner', render: (r) => r.owner },
+            {
+              key: 'run',
+              header: '',
+              render: (r) => (
+                <Button
+                  tone='secondary'
+                  onClick={() => navigate(`regression/new?case=${r.id}`)}
+                >
+                  Run
+                </Button>
+              ),
+            },
           ]}
         />
       </Panel>

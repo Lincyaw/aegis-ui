@@ -1,64 +1,69 @@
+import { Link } from 'react-router-dom';
+
 import {
-  Chip,
-  EmptyState,
+  Button,
+  DataTable,
   MonoValue,
   PageHeader,
   Panel,
+  TimeDisplay,
+  useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-const DEMO_DATASETS = [
-  { id: 'ds-001', name: 'catalog-faults', versions: 3 },
-  { id: 'ds-002', name: 'payment-traces', versions: 1 },
-  { id: 'ds-003', name: 'auth-metrics', versions: 5 },
-];
+import { useMockStore } from '../mocks';
+import type { MockDataset } from '../mocks/types';
 
 export default function Datasets() {
   const navigate = useAppNavigate();
+  const href = useAppHref();
+  const datasets = useMockStore((s) => s.datasets);
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='Datasets'
-        description='Manage evaluation datasets and their versions.'
+        description='Curated bundles of injections + traces for replay & eval.'
         action={
-          <Chip tone='ink' onClick={() => navigate('datasets/new')}>
+          <Button tone='primary' onClick={() => navigate('datasets/new')}>
             + New dataset
-          </Chip>
+          </Button>
         }
       />
       <Panel>
-        {DEMO_DATASETS.length === 0 ? (
-          <EmptyState
-            title='No datasets'
-            description='Datasets will appear here once created.'
-          />
-        ) : (
-          <div className='page-table'>
-            <div className='page-table__head'>
-              <span className='page-table__cell'>Name</span>
-              <span className='page-table__cell'>ID</span>
-              <span className='page-table__cell'>Versions</span>
-            </div>
-            {DEMO_DATASETS.map((d) => (
-              <div
-                key={d.id}
-                className='page-table__row'
-                onClick={() => navigate(`datasets/${d.id}`)}
-              >
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{d.name}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{d.id}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{d.versions}</MonoValue>
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        <DataTable<MockDataset>
+          data={datasets}
+          rowKey={(r) => r.id}
+          emptyTitle='No datasets'
+          emptyDescription='Build a dataset from the Injections list.'
+          columns={[
+            {
+              key: 'name',
+              header: 'Name',
+              render: (r) => (
+                <Link to={href(`datasets/${r.id}`)}>
+                  <MonoValue size='sm'>{r.name}</MonoValue>
+                </Link>
+              ),
+            },
+            { key: 'desc', header: 'Description', render: (r) => r.description },
+            {
+              key: 'inj',
+              header: 'Injections',
+              render: (r) => <MonoValue size='sm'>{r.injectionIds.length}</MonoValue>,
+            },
+            {
+              key: 'size',
+              header: 'Size',
+              render: (r) => <MonoValue size='sm'>{r.sizeMb} MB</MonoValue>,
+            },
+            {
+              key: 'created',
+              header: 'Created',
+              render: (r) => <TimeDisplay value={r.createdAt} />,
+            },
+          ]}
+        />
       </Panel>
     </div>
   );

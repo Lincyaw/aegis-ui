@@ -1,60 +1,69 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 import {
+  DataTable,
   EmptyState,
   MonoValue,
   PageHeader,
   Panel,
-  useAppNavigate,
+  TimeDisplay,
+  useAppHref,
 } from '@lincyaw/aegis-ui';
 
-const DEMO_TRACES = [
-  { id: 'trace-001', name: 'GET /products', duration: '2.84s' },
-  { id: 'trace-002', name: 'POST /checkout', duration: '1.21s' },
-  { id: 'trace-003', name: 'GET /user/profile', duration: '0.45s' },
-];
+import { useMockStore } from '../mocks';
+import type { MockTrace } from '../mocks/types';
 
 export default function Traces() {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useAppNavigate();
+  const href = useAppHref();
+  const traces = useMockStore((s) =>
+    s.traces.filter((t) => !projectId || t.projectId === projectId),
+  );
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='Traces'
-        description={`Distributed traces for project ${projectId}.`}
+        description={`Distributed traces for project ${projectId ?? ''}.`}
       />
       <Panel>
-        {DEMO_TRACES.length === 0 ? (
+        {traces.length === 0 ? (
           <EmptyState
             title='No traces'
-            description='Traces will appear here once data is collected.'
+            description='Traces appear once an injection lands.'
           />
         ) : (
-          <div className='page-table'>
-            <div className='page-table__head'>
-              <span className='page-table__cell'>Operation</span>
-              <span className='page-table__cell'>ID</span>
-              <span className='page-table__cell'>Duration</span>
-            </div>
-            {DEMO_TRACES.map((t) => (
-              <div
-                key={t.id}
-                className='page-table__row'
-                onClick={() => navigate(`projects/${projectId}/traces/${t.id}`)}
-              >
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{t.name}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{t.id}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{t.duration}</MonoValue>
-                </span>
-              </div>
-            ))}
-          </div>
+          <DataTable<MockTrace>
+            data={traces}
+            rowKey={(r) => r.id}
+            columns={[
+              {
+                key: 'id',
+                header: 'Trace',
+                render: (r) => (
+                  <Link to={href(`projects/${r.projectId}/traces/${r.id}`)}>
+                    <MonoValue size='sm'>{r.id}</MonoValue>
+                  </Link>
+                ),
+              },
+              { key: 'op', header: 'Root op', render: (r) => r.rootOperation },
+              {
+                key: 'dur',
+                header: 'Duration',
+                render: (r) => <MonoValue size='sm'>{r.durationMs} ms</MonoValue>,
+              },
+              {
+                key: 'spans',
+                header: 'Spans',
+                render: (r) => <MonoValue size='sm'>{r.spanCount}</MonoValue>,
+              },
+              {
+                key: 'started',
+                header: 'Started',
+                render: (r) => <TimeDisplay value={r.startedAt} />,
+              },
+            ]}
+          />
         )}
       </Panel>
     </div>

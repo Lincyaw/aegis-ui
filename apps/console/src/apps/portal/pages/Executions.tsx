@@ -1,83 +1,78 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 import {
-  Chip,
-  EmptyState,
+  Button,
+  DataTable,
   MonoValue,
   PageHeader,
   Panel,
-  StatusDot,
+  TimeDisplay,
+  useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-const DEMO_EXECUTIONS = [
-  { id: 'exec-001', name: 'rca-algo-v1', status: 'completed' },
-  { id: 'exec-002', name: 'rca-algo-v2', status: 'running' },
-  { id: 'exec-003', name: 'baseline-run', status: 'completed' },
-];
+import { StatusChip } from '../components/StatusChip';
+import { useMockStore } from '../mocks';
+import type { MockTask } from '../mocks/types';
 
 export default function Executions() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useAppNavigate();
+  const href = useAppHref();
+  const tasks = useMockStore((s) =>
+    s.tasks.filter((t) => t.kind === 'regression' || t.kind === 'eval'),
+  );
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='Executions'
-        description={`Algorithm executions for project ${projectId}.`}
+        description={`Algorithm + eval executions for project ${projectId ?? ''}.`}
         action={
-          <Chip
-            tone='ink'
-            onClick={() => navigate(`projects/${projectId}/executions/new`)}
+          <Button
+            tone='primary'
+            onClick={() => navigate(`projects/${projectId ?? 'proj-catalog'}/executions/new`)}
           >
             + Run algorithm
-          </Chip>
+          </Button>
         }
       />
       <Panel>
-        {DEMO_EXECUTIONS.length === 0 ? (
-          <EmptyState
-            title='No executions'
-            description='Executions will appear here once algorithms are run.'
-          />
-        ) : (
-          <div className='page-table'>
-            <div className='page-table__head'>
-              <span className='page-table__cell'>Name</span>
-              <span className='page-table__cell'>ID</span>
-              <span className='page-table__cell'>Status</span>
-            </div>
-            {DEMO_EXECUTIONS.map((e) => (
-              <div
-                key={e.id}
-                className='page-table__row'
-                onClick={() =>
-                  navigate(`projects/${projectId}/executions/${e.id}`)
-                }
-              >
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{e.name}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{e.id}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <StatusDot
-                    size={6}
-                    pulse={e.status === 'running'}
-                    tone={
-                      e.status === 'completed'
-                        ? 'ink'
-                        : e.status === 'running'
-                          ? 'ink'
-                          : 'warning'
-                    }
-                  />
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        <DataTable<MockTask>
+          data={tasks.slice(0, 30)}
+          rowKey={(r) => r.id}
+          columns={[
+            {
+              key: 'id',
+              header: 'Execution',
+              render: (r) => (
+                <Link
+                  to={href(
+                    `projects/${projectId ?? 'proj-catalog'}/executions/${r.id}`,
+                  )}
+                >
+                  <MonoValue size='sm'>{r.id}</MonoValue>
+                </Link>
+              ),
+            },
+            { key: 'kind', header: 'Kind', render: (r) => r.kind },
+            {
+              key: 'parent',
+              header: 'Parent',
+              render: (r) => <MonoValue size='sm'>{r.parentLabel}</MonoValue>,
+            },
+            {
+              key: 'status',
+              header: 'Status',
+              render: (r) => <StatusChip status={r.status} />,
+            },
+            {
+              key: 'started',
+              header: 'Started',
+              render: (r) => <TimeDisplay value={r.startedAt} />,
+            },
+          ]}
+        />
       </Panel>
     </div>
   );

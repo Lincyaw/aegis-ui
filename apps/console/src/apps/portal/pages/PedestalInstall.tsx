@@ -1,38 +1,88 @@
+import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-import { Button, FormRow, PageHeader, Panel, TextField } from '@lincyaw/aegis-ui';
+import {
+  Button,
+  CodeEditor,
+  FormRow,
+  PageHeader,
+  Panel,
+  TextField,
+  useAppNavigate,
+} from '@lincyaw/aegis-ui';
+
+import { useMockStore } from '../mocks';
+
+const DEFAULT_VALUES =
+  'image:\n  repository: pair-cn-shanghai.cr.volces.com/opspai/<system>\n  tag: v1.0.0\notel:\n  endpoint: http://otel-collector:4317\n';
 
 export default function PedestalInstall() {
-  const [system, setSystem] = useState('');
-  const [version, setVersion] = useState('');
-  const [ns, setNs] = useState('');
-  const [overrides, setOverrides] = useState(false);
+  const navigate = useAppNavigate();
+  const [params] = useSearchParams();
+  const { message: msg } = AntdApp.useApp();
+
+  const systems = useMockStore((s) => s.systems);
+  const installPedestal = useMockStore((s) => s.installPedestal);
+
+  const [systemCode, setSystemCode] = useState(params.get('system') ?? '');
+  const [version, setVersion] = useState('v1.0.0');
+  const [namespace, setNamespace] = useState('');
+  const [helmValues, setHelmValues] = useState(DEFAULT_VALUES);
 
   const submit = (): void => {
-    // eslint-disable-next-line no-console
-    console.log('install pedestal', { system, version, ns, overrides });
+    if (!systemCode || !namespace) {
+      void msg.error('system + namespace are required');
+      return;
+    }
+    const created = installPedestal({ systemCode, version, namespace, helmValues });
+    void msg.success(`Pedestal ${created.id} installing`);
+    navigate(`pedestals/${created.id}`);
   };
 
   return (
     <div className='page-wrapper'>
-      <PageHeader title='Install pedestal' description='Provision a new benchmark instance.' />
+      <PageHeader
+        title='Install pedestal'
+        description='Provision a new benchmark instance.'
+        action={
+          <Button tone='secondary' onClick={() => navigate('pedestals')}>
+            Cancel
+          </Button>
+        }
+      />
       <Panel>
-        <FormRow label='System short code'>
-          <TextField value={system} onChange={(e) => setSystem(e.target.value)} placeholder='ts' />
+        <FormRow label='System'>
+          <Select
+            style={{ width: '100%' }}
+            value={systemCode || undefined}
+            onChange={setSystemCode}
+            placeholder='select system'
+            options={systems.map((s) => ({ value: s.code, label: `${s.code} — ${s.name}` }))}
+          />
         </FormRow>
         <FormRow label='Version'>
-          <TextField value={version} onChange={(e) => setVersion(e.target.value)} placeholder='v1.4.2' />
+          <TextField value={version} onChange={(e) => setVersion(e.target.value)} />
         </FormRow>
         <FormRow label='Namespace'>
-          <TextField value={ns} onChange={(e) => setNs(e.target.value)} placeholder='ts-3' />
+          <TextField
+            value={namespace}
+            onChange={(e) => setNamespace(e.target.value)}
+            placeholder='ts-3'
+          />
         </FormRow>
-        <FormRow label='Apply DB overrides' description='Merge helm_config_values rows (matches RestartPedestal).'>
-          <label>
-            <input type='checkbox' checked={overrides} onChange={(e) => setOverrides(e.target.checked)} /> Apply overrides
-          </label>
+        <FormRow label='Helm values'>
+          <CodeEditor
+            value={helmValues}
+            onChange={setHelmValues}
+            language='yaml'
+            height={240}
+          />
         </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit}>Install</Button>
+      <Button tone='primary' onClick={submit}>
+        Install
+      </Button>
     </div>
   );
 }

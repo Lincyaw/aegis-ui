@@ -1,67 +1,75 @@
 import { useParams } from 'react-router-dom';
 
 import {
+  Button,
   CodeBlock,
-  DataList,
+  EmptyState,
+  KeyValueList,
   MetricCard,
+  MonoValue,
   PageHeader,
   Panel,
   PanelTitle,
   SectionDivider,
+  useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-const SPEC = `{
-  "fault_type": "network",
-  "action": "delay",
-  "params": {
-    "latency": "200ms",
-    "jitter": "20ms",
-    "correlation": "75",
-    "direction": "to"
-  },
-  "selector": {
-    "namespaces": ["${'${SYSTEM_NS}'}"],
-    "labelSelectors": { "app": "${'${TARGET}'}" }
-  }
-}`;
-
-interface CandidateRow {
-  id: string;
-  target: string;
-  estCases: number;
-}
-
-const CANDIDATES: CandidateRow[] = [
-  { id: 'c1', target: 'ts-travel-service', estCases: 12 },
-  { id: 'c2', target: 'ts-order-service', estCases: 8 },
-  { id: 'c3', target: 'ts-station-service', estCases: 6 },
-];
+import { useMockStore } from '../mocks';
 
 export default function ContractDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useAppNavigate();
+  const contract = useMockStore((s) => s.contracts.find((c) => c.id === id));
+  const injections = useMockStore((s) =>
+    s.injections.filter((i) => i.contractId === id),
+  );
+
+  if (!contract) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title='Contract not found' />
+        <Panel>
+          <EmptyState title='Not found' description='No such contract.' />
+        </Panel>
+      </div>
+    );
+  }
+
   return (
     <div className='page-wrapper'>
-      <PageHeader title={`Contract ${id ?? ''}`} description='Fault contract spec, expansion, and usage stats.' />
+      <PageHeader
+        title={`Contract ${contract.name}`}
+        description={contract.description}
+        action={
+          <Button
+            tone='primary'
+            onClick={() =>
+              navigate(`projects/proj-catalog/injections/new?contract=${contract.id}`)
+            }
+          >
+            Use contract
+          </Button>
+        }
+      />
 
       <div className='page-overview-grid'>
-        <MetricCard label='Times used' value={487} />
-        <MetricCard label='Systems' value={5} />
-        <MetricCard label='Avg duration' value='90s' />
-        <MetricCard label='Success rate' value='97.1%' />
+        <MetricCard label='Times used' value={injections.length} />
+        <MetricCard label='Fault type' value={contract.faultType} />
+        <MetricCard label='Target kind' value={contract.targetKind} />
+        <MetricCard label='Params' value={contract.paramCount} />
       </div>
 
-      <Panel title={<PanelTitle size='base'>Contract spec</PanelTitle>}>
-        <CodeBlock language='json' code={SPEC} />
+      <Panel title={<PanelTitle size='base'>Spec</PanelTitle>}>
+        <CodeBlock language='json' code={contract.spec} />
       </Panel>
 
-      <SectionDivider>Expansion preview</SectionDivider>
+      <SectionDivider>Sample of injections using this contract</SectionDivider>
       <Panel>
-        <DataList<CandidateRow>
-          items={CANDIDATES}
-          columns={[
-            { key: 'target', label: 'Target', render: (r) => r.target },
-            { key: 'cases', label: 'Estimated cases', render: (r) => r.estCases },
-          ]}
+        <KeyValueList
+          items={injections.slice(0, 8).map((i) => ({
+            k: <MonoValue size='sm'>{i.id}</MonoValue>,
+            v: `${i.systemCode} · ${i.status}`,
+          }))}
         />
       </Panel>
     </div>

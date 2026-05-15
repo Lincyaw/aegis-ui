@@ -1,38 +1,85 @@
+import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-import { Button, FormRow, PageHeader, Panel, TextField } from '@lincyaw/aegis-ui';
+import {
+  Button,
+  FormRow,
+  PageHeader,
+  Panel,
+  useAppNavigate,
+} from '@lincyaw/aegis-ui';
+
+import { useMockStore } from '../mocks';
+
+const MODELS = ['claude-opus-4-7', 'gpt-5-4', 'claude-sonnet-4-6'];
 
 export default function EvalRunCreate() {
-  const [model, setModel] = useState('claude-opus-4-7');
-  const [dataset, setDataset] = useState('');
-  const [n, setN] = useState('100');
-  const [replay, setReplay] = useState(false);
+  const navigate = useAppNavigate();
+  const [params] = useSearchParams();
+  const { message: msg } = AntdApp.useApp();
+
+  const datasets = useMockStore((s) => s.datasets);
+  const createEvalRun = useMockStore((s) => s.createEvalRun);
+
+  const [model, setModel] = useState<string>(MODELS[0] ?? 'claude-opus-4-7');
+  const [datasetId, setDatasetId] = useState(
+    params.get('dataset') ?? datasets[0]?.id ?? '',
+  );
+  const [nCases, setNCases] = useState(8);
 
   const submit = (): void => {
-    // eslint-disable-next-line no-console
-    console.log('start eval', { model, dataset, n, replay });
+    if (!datasetId) {
+      void msg.error('select a dataset');
+      return;
+    }
+    const created = createEvalRun({ model, datasetId, nCases });
+    void msg.success(`Eval ${created.id} started`);
+    navigate(`eval/${created.id}`);
   };
 
   return (
     <div className='page-wrapper'>
-      <PageHeader title='New evaluation run' description='Launch an RCA agent eval.' />
+      <PageHeader
+        title='New evaluation run'
+        description='Launch an RCA agent eval.'
+        action={
+          <Button tone='secondary' onClick={() => navigate('eval')}>
+            Cancel
+          </Button>
+        }
+      />
       <Panel>
         <FormRow label='Model'>
-          <TextField value={model} onChange={(e) => setModel(e.target.value)} />
+          <Select
+            style={{ width: '100%' }}
+            value={model}
+            onChange={setModel}
+            options={MODELS.map((m) => ({ value: m, label: m }))}
+          />
         </FormRow>
         <FormRow label='Dataset'>
-          <TextField value={dataset} onChange={(e) => setDataset(e.target.value)} placeholder='ts-2026-04-25-n500' />
+          <Select
+            style={{ width: '100%' }}
+            value={datasetId}
+            onChange={setDatasetId}
+            options={datasets.map((d) => ({ value: d.id, label: d.name }))}
+          />
         </FormRow>
-        <FormRow label='N cases'>
-          <TextField value={n} onChange={(e) => setN(e.target.value)} />
-        </FormRow>
-        <FormRow label='Replay-only' description='Skip live inference, replay cached traces.'>
-          <label>
-            <input type='checkbox' checked={replay} onChange={(e) => setReplay(e.target.checked)} /> Enable replay
-          </label>
+        <FormRow label={`N cases · ${nCases}`}>
+          <input
+            type='range'
+            min={4}
+            max={64}
+            value={nCases}
+            onChange={(e) => setNCases(Number(e.target.value))}
+            className='wizard-range'
+          />
         </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit}>Start</Button>
+      <Button tone='primary' onClick={submit}>
+        Start
+      </Button>
     </div>
   );
 }

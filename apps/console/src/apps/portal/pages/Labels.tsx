@@ -1,20 +1,23 @@
+import { Link } from 'react-router-dom';
+
 import {
+  Button,
   Chip,
-  EmptyState,
+  DataTable,
   MonoValue,
   PageHeader,
   Panel,
+  useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-const DEMO_LABELS = [
-  { id: 'lbl-001', name: 'critical', color: '#E11D48' },
-  { id: 'lbl-002', name: 'staging', color: '#3B82F6' },
-  { id: 'lbl-003', name: 'production', color: '#10B981' },
-];
+import { useMockStore } from '../mocks';
+import type { MockLabel } from '../mocks/types';
 
 export default function Labels() {
   const navigate = useAppNavigate();
+  const href = useAppHref();
+  const labels = useMockStore((s) => s.labels);
 
   return (
     <div className='page-wrapper'>
@@ -22,51 +25,49 @@ export default function Labels() {
         title='Labels'
         description='Organize and filter resources with custom labels.'
         action={
-          <Chip tone='ink' onClick={() => navigate('labels/new')}>
+          <Button tone='primary' onClick={() => navigate('labels/new')}>
             + New label
-          </Chip>
+          </Button>
         }
       />
       <Panel>
-        {DEMO_LABELS.length === 0 ? (
-          <EmptyState
-            title='No labels'
-            description='Labels will appear here once created.'
-          />
-        ) : (
-          <div className='page-table'>
-            <div className='page-table__head'>
-              <span className='page-table__cell'>Name</span>
-              <span className='page-table__cell'>ID</span>
-              <span className='page-table__cell'>Color</span>
-            </div>
-            {DEMO_LABELS.map((l) => (
-              <div
-                key={l.id}
-                className='page-table__row'
-                onClick={() => navigate(`labels/${l.id}`)}
-              >
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{l.name}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{l.id}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      width: 12,
-                      height: 12,
-                      borderRadius: 'var(--radius-circle)',
-                      background: l.color,
-                    }}
-                  />
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        <DataTable<MockLabel>
+          data={labels}
+          rowKey={(r) => r.id}
+          columns={[
+            {
+              key: 'name',
+              header: 'Name',
+              render: (r) => (
+                <Link to={href(`labels/${r.id}`)}>
+                  <MonoValue size='sm'>{r.name}</MonoValue>
+                </Link>
+              ),
+            },
+            {
+              key: 'color',
+              header: 'Color',
+              render: (r) => (
+                <Chip
+                  tone={
+                    r.color === 'warning'
+                      ? 'warning'
+                      : r.color === 'ink'
+                        ? 'ink'
+                        : 'ghost'
+                  }
+                >
+                  {r.color}
+                </Chip>
+              ),
+            },
+            {
+              key: 'count',
+              header: 'Uses',
+              render: (r) => <MonoValue size='sm'>{r.count}</MonoValue>,
+            },
+          ]}
+        />
       </Panel>
     </div>
   );

@@ -1,31 +1,20 @@
 import {
-  Chip,
-  EmptyState,
+  Button,
+  DataTable,
   MonoValue,
   PageHeader,
   Panel,
-  StatusDot,
+  TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-const DEMO_PROJECTS = [
-  {
-    id: 'proj-catalog',
-    name: 'catalog-service',
-    status: 'active',
-    injections: 12,
-  },
-  {
-    id: 'proj-payment',
-    name: 'payment-gateway',
-    status: 'active',
-    injections: 8,
-  },
-  { id: 'proj-auth', name: 'auth-service', status: 'archived', injections: 24 },
-];
+import { StatusChip } from '../components/StatusChip';
+import { useMockStore } from '../mocks';
+import type { MockProject } from '../mocks/types';
 
 export default function Projects() {
   const navigate = useAppNavigate();
+  const projects = useMockStore((s) => s.projects);
 
   return (
     <div className='page-wrapper'>
@@ -33,46 +22,51 @@ export default function Projects() {
         title='Projects'
         description='Manage fault-injection projects and their associated resources.'
         action={
-          <Chip tone='ink' onClick={() => navigate('projects/new')}>
+          <Button tone='primary' onClick={() => navigate('projects/new')}>
             + New project
-          </Chip>
+          </Button>
         }
       />
       <Panel>
-        {DEMO_PROJECTS.length === 0 ? (
-          <EmptyState
-            title='No projects'
-            description='Projects will appear here once created.'
-          />
-        ) : (
-          <div className='page-table'>
-            <div className='page-table__head'>
-              <span className='page-table__cell'>Name</span>
-              <span className='page-table__cell'>Status</span>
-              <span className='page-table__cell'>Injections</span>
-            </div>
-            {DEMO_PROJECTS.map((p) => (
-              <div
-                key={p.id}
-                className='page-table__row'
-                onClick={() => navigate(`projects/${p.id}/overview`)}
-              >
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{p.name}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <StatusDot
-                    size={6}
-                    tone={p.status === 'active' ? 'ink' : 'muted'}
-                  />
-                </span>
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{p.injections}</MonoValue>
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        <DataTable<MockProject>
+          data={projects}
+          rowKey={(r) => r.id}
+          emptyTitle='No projects'
+          emptyDescription='Create a project to start.'
+          columns={[
+            {
+              key: 'name',
+              header: 'Name',
+              render: (r) => (
+                <a
+                  href='#'
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`projects/${r.id}/overview`);
+                  }}
+                >
+                  <MonoValue size='sm'>{r.name}</MonoValue>
+                </a>
+              ),
+            },
+            { key: 'desc', header: 'Description', render: (r) => r.description },
+            {
+              key: 'status',
+              header: 'Status',
+              render: (r) => <StatusChip status={r.status} />,
+            },
+            {
+              key: 'inj',
+              header: 'Injections',
+              render: (r) => <MonoValue size='sm'>{r.injectionCount}</MonoValue>,
+            },
+            {
+              key: 'created',
+              header: 'Created',
+              render: (r) => <TimeDisplay value={r.createdAt} />,
+            },
+          ]}
+        />
       </Panel>
     </div>
   );

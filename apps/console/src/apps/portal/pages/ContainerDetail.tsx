@@ -1,83 +1,44 @@
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
-  Chip,
-  DataList,
   EmptyState,
+  KeyValueList,
+  MonoValue,
   PageHeader,
   Panel,
-  SectionDivider,
-  useAppHref,
+  PanelTitle,
+  TimeDisplay,
 } from '@lincyaw/aegis-ui';
 
-interface Exec {
-  id: string;
-  startedAt: string;
-}
-interface Dset {
-  id: string;
-  name: string;
-}
-
-const EXECS: Exec[] = [
-  { id: 'exec-201', startedAt: '2026-05-15T10:00Z' },
-  { id: 'exec-198', startedAt: '2026-05-14T14:00Z' },
-];
-
-const USED_BY: Dset[] = [
-  { id: 'ds-77', name: 'ts-baseline-2026-05' },
-  { id: 'ds-74', name: 'hs-network-faults' },
-];
+import { useMockStore } from '../mocks';
 
 export default function ContainerDetail() {
   const { containerId } = useParams<{ containerId: string }>();
-  const href = useAppHref();
+  const container = useMockStore((s) =>
+    s.containers.find((c) => c.id === containerId),
+  );
+
+  if (!container) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title='Container not found' />
+        <Panel>
+          <EmptyState title='Not found' description='Unknown container.' />
+        </Panel>
+      </div>
+    );
+  }
 
   return (
     <div className='page-wrapper'>
-      <PageHeader
-        title={`Container ${containerId}`}
-        description='Container configuration and version history.'
-        action={<Chip tone='ink'>+ New version</Chip>}
-      />
-      <Panel>
-        <EmptyState
-          title='Container detail'
-          description='Container metadata, versions, and helm charts will appear here.'
-        />
-      </Panel>
-
-      <SectionDivider>Linked executions</SectionDivider>
-      <Panel>
-        <DataList<Exec>
-          items={EXECS}
-          columns={[
-            {
-              key: 'id',
-              label: 'Execution',
-              render: (r) => (
-                <Link to={href(`projects/default/executions/${r.id}`)}>
-                  {r.id}
-                </Link>
-              ),
-            },
-            { key: 'startedAt', label: 'Started', render: (r) => r.startedAt },
-          ]}
-        />
-      </Panel>
-
-      <SectionDivider>Used by datasets</SectionDivider>
-      <Panel>
-        <DataList<Dset>
-          items={USED_BY}
-          columns={[
-            {
-              key: 'id',
-              label: 'Dataset',
-              render: (r) => (
-                <Link to={href(`datasets/${r.id}`)}>{r.name}</Link>
-              ),
-            },
+      <PageHeader title={container.name} description={container.algorithm} />
+      <Panel title={<PanelTitle size='base'>Summary</PanelTitle>}>
+        <KeyValueList
+          items={[
+            { k: 'id', v: <MonoValue size='sm'>{container.id}</MonoValue> },
+            { k: 'image', v: <MonoValue size='sm'>{container.image}</MonoValue> },
+            { k: 'algorithm', v: container.algorithm },
+            { k: 'created', v: <TimeDisplay value={container.createdAt} /> },
           ]}
         />
       </Panel>
