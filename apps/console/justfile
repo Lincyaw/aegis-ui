@@ -7,7 +7,6 @@ set dotenv-load := true
 set dotenv-filename := ".env.local"
 
 # Configuration
-npm_token := env_var_or_default("NPM_TOKEN", "")
 registry := env_var_or_default("REGISTRY", "docker.io/opspai")
 image := "rcabench-frontend"
 
@@ -48,14 +47,8 @@ local-debug:
 # =============================================================================
 
 build tag=version:
-    @if [ -z "{{npm_token}}" ]; then \
-        echo "Error: NPM_TOKEN is not defined in .env.local"; \
-        exit 1; \
-    fi
-    export NPM_TOKEN="{{npm_token}}" && \
     docker build \
         --network=host \
-        --secret id=NPM_TOKEN,env=NPM_TOKEN \
         -t {{registry}}/{{image}}:{{tag}} .
 
 push tag=version: (build tag)

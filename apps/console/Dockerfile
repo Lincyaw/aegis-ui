@@ -9,9 +9,7 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml .npmrc ./
 
-RUN --mount=type=secret,id=NPM_TOKEN \
-    export NPM_TOKEN=$(cat /run/secrets/NPM_TOKEN) && \
-    pnpm install --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 COPY . .
 

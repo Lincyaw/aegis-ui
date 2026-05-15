@@ -150,7 +150,7 @@ themselves render content only, never the layout chrome.
 ## Validation gates
 
 ```bash
-NPM_TOKEN=<token> pnpm install
+pnpm install
 pnpm type-check      # turbo run type-check (strict + noUnused* across packages)
 pnpm lint            # turbo run lint --max-warnings 0
 pnpm lint:css        # stylelint via turbo on packages/ui
@@ -257,8 +257,8 @@ When in doubt: invest in the foundation, not the symptom.
 - This repo is **independent of the aegis monorepo**. It does not link
   to `../AegisLab/project-index.yaml` and does not share the aegis
   skills directory.
-- Published to GitHub Packages under `@lincyaw` scope. `.npmrc`
-  reads `${NPM_TOKEN}` for both install and publish.
+- Published to npmjs.org under the public `@lincyaw` scope — no auth
+  needed for install.
 
 <!-- auto-harness:begin -->
 
