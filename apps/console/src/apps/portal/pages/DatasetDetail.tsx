@@ -1,9 +1,30 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
-import { Chip, EmptyState, PageHeader, Panel } from '@lincyaw/aegis-ui';
+import {
+  Chip,
+  DataList,
+  EmptyState,
+  PageHeader,
+  Panel,
+  SectionDivider,
+  useAppHref,
+} from '@lincyaw/aegis-ui';
+
+interface Inj {
+  id: string;
+  fault: string;
+  target: string;
+}
+
+const CONTRIBS: Inj[] = [
+  { id: 'inj-9921', fault: 'pod-failure', target: 'ts-travel-service' },
+  { id: 'inj-9920', fault: 'network-delay', target: 'ts-order-service' },
+  { id: 'inj-9918', fault: 'cpu-stress', target: 'ts-station-service' },
+];
 
 export default function DatasetDetail() {
   const { datasetId } = useParams<{ datasetId: string }>();
+  const href = useAppHref();
 
   return (
     <div className='page-wrapper'>
@@ -16,6 +37,26 @@ export default function DatasetDetail() {
         <EmptyState
           title='Dataset detail'
           description='Dataset metadata, version history, and injection mappings will appear here.'
+        />
+      </Panel>
+
+      <SectionDivider>Contributing injections</SectionDivider>
+      <Panel>
+        <DataList<Inj>
+          items={CONTRIBS}
+          columns={[
+            {
+              key: 'id',
+              label: 'Injection',
+              render: (r) => (
+                <Link to={href(`projects/default/injections/${r.id}`)}>
+                  {r.id}
+                </Link>
+              ),
+            },
+            { key: 'fault', label: 'Fault', render: (r) => r.fault },
+            { key: 'target', label: 'Target', render: (r) => r.target },
+          ]}
         />
       </Panel>
     </div>
