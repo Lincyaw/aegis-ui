@@ -88,6 +88,25 @@ function totalRowsOf(meta: FileMetaData): number {
   return typeof n === 'bigint' ? Number(n) : n;
 }
 
+// Some writers (notably ClickHouse) emit a stale `converted_type = UTF8`
+// annotation on non-byte-array columns alongside the correct `logical_type`
+// (e.g. TIMESTAMP/INT64 + UTF8). hyparquet's convert() checks ctype=UTF8
+// before the logical-type branches and tries to TextDecoder.decode() bigints,
+// which throws. Clearing the bogus annotation lets it fall through to the
+// proper TIMESTAMP/INTEGER branch.
+function sanitizeMetadata(meta: FileMetaData): void {
+  for (const s of meta.schema) {
+    if (
+      s.type &&
+      s.type !== 'BYTE_ARRAY' &&
+      s.type !== 'FIXED_LEN_BYTE_ARRAY' &&
+      s.converted_type === 'UTF8'
+    ) {
+      s.converted_type = undefined;
+    }
+  }
+}
+
 function formatCell(value: unknown): string {
   if (value === null || value === undefined) {
     return '';
@@ -164,6 +183,7 @@ export function ParquetViewer({
         if (state.cancelled) {
           return;
         }
+        sanitizeMetadata(metadata);
         setMeta({
           buffer,
           metadata,
