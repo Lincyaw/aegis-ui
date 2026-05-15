@@ -14,7 +14,6 @@ import {
   RobotOutlined,
   SafetyOutlined,
   TagsOutlined,
-  ThunderboltOutlined,
 } from '@ant-design/icons';
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
@@ -79,7 +78,6 @@ export const portalApp: AegisApp = {
       label: 'Workspace',
       items: [
         { to: '', label: 'Dashboard', icon: <DashboardOutlined />, end: true },
-        { to: 'inject', label: 'Inject', icon: <ThunderboltOutlined /> },
         { to: 'injections', label: 'Injections', icon: <PlayCircleOutlined /> },
         { to: 'tasks', label: 'Tasks', icon: <NodeIndexOutlined /> },
         { to: 'traces', label: 'Traces', icon: <FundOutlined /> },
