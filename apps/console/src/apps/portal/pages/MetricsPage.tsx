@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
 
 import {
   MetricCard,
@@ -8,12 +7,12 @@ import {
   PanelTitle,
 } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../mocks';
+import { useActiveProjectId, useMockStore } from '../mocks';
 
 export default function MetricsPage() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const projectId = useActiveProjectId();
   const injections = useMockStore((s) =>
-    s.injections.filter((i) => !projectId || i.projectId === projectId),
+    s.injections.filter((i) => i.projectId === projectId),
   );
 
   const stats = useMemo(() => {
@@ -28,7 +27,7 @@ export default function MetricsPage() {
     <div className='page-wrapper'>
       <PageHeader
         title='Metrics'
-        description={`Performance & reliability metrics for project ${projectId ?? ''}.`}
+        description={`Performance & reliability metrics for project ${projectId}.`}
       />
       <div className='page-overview-grid'>
         <MetricCard label='Total injections' value={injections.length} />

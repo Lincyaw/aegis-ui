@@ -1,6 +1,6 @@
 import { App as AntdApp, Modal, Radio, Select } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import {
   Button,
@@ -15,7 +15,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { StatusChip } from '../components/StatusChip';
-import { useMockStore } from '../mocks';
+import { useActiveProjectId, useMockStore } from '../mocks';
 
 interface InjectionRow {
   id: string;
@@ -27,7 +27,7 @@ interface InjectionRow {
 }
 
 export default function Injections() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const projectId = useActiveProjectId();
   const [params] = useSearchParams();
   const navigate = useAppNavigate();
   const href = useAppHref();
@@ -36,11 +36,14 @@ export default function Injections() {
   const injections = useMockStore((s) => s.injections);
   const datasets = useMockStore((s) => s.datasets);
   const addInjectionsToDataset = useMockStore((s) => s.addInjectionsToDataset);
+  const stagedCount = useMockStore(
+    (s) => s.stagedInjections.filter((it) => it.projectId === projectId).length,
+  );
 
   const filtered = useMemo<InjectionRow[]>(
     () =>
       injections
-        .filter((i) => !projectId || i.projectId === projectId)
+        .filter((i) => i.projectId === projectId)
         .map((i) => ({
           id: i.id,
           name: i.name,
@@ -113,14 +116,24 @@ export default function Injections() {
     <div className='page-wrapper'>
       <PageHeader
         title='Injections'
-        description={`Fault injections for project ${projectId ?? ''}.`}
+        description={`Fault injections for project ${projectId}.`}
         action={
-          <Button
-            tone='primary'
-            onClick={() => navigate(`projects/${projectId ?? 'proj-catalog'}/injections/new`)}
-          >
-            + Inject
-          </Button>
+          <div className='page-action-row'>
+            {stagedCount > 0 && (
+              <Button
+                tone='secondary'
+                onClick={() => navigate('injections/batch')}
+              >
+                Batch ({stagedCount})
+              </Button>
+            )}
+            <Button
+              tone='primary'
+              onClick={() => navigate('injections/new')}
+            >
+              + Inject
+            </Button>
+          </div>
         }
       />
 
@@ -184,7 +197,7 @@ export default function Injections() {
               header: 'Injection',
               render: (r) => (
                 <Link
-                  to={href(`projects/${projectId ?? 'proj-catalog'}/injections/${r.id}`)}
+                  to={href(`injections/${r.id}`)}
                 >
                   <MonoValue size='sm'>{r.id}</MonoValue>
                 </Link>

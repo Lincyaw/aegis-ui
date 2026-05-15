@@ -255,3 +255,45 @@
   gap: var(--space-2);
   flex-wrap: wrap;
 }
+
+/* ── Inject wizard layout ────────────────────────────────────────── */
+
+.wizard-steps__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.inject-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.inject-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.inject-layout__side {
+  position: sticky;
+  top: var(--space-4);
+}
+
+@media (max-width: 1024px) {
+  .inject-layout {
+    grid-template-columns: 1fr;
+  }
+  .inject-layout__side {
+    position: static;
+  }
+}

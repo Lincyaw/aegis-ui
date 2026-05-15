@@ -57,7 +57,7 @@ export default function SystemDetail() {
           <div className='page-action-row'>
             <Button
               tone='primary'
-              onClick={() => navigate(`projects/proj-catalog/injections/new?system=${system.code}`)}
+              onClick={() => navigate(`injections/new?system=${system.code}`)}
             >
               Inject fault
             </Button>
@@ -158,7 +158,7 @@ export default function SystemDetail() {
                 key: 'id',
                 label: 'Injection',
                 render: (r) => (
-                  <Link to={href(`projects/${r.projectId}/injections/${r.id}`)}>{r.id}</Link>
+                  <Link to={href(`injections/${r.id}`)}>{r.id}</Link>
                 ),
               },
               { key: 'name', label: 'Fault', render: (r) => r.name },

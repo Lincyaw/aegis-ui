@@ -7,11 +7,13 @@ import type {
   MockEvalCase,
   MockEvalRun,
   MockInjection,
+  MockInjectionTemplate,
   MockLabel,
   MockPedestal,
   MockProject,
   MockRegressionCase,
   MockRegressionRun,
+  MockStagedInjection,
   MockStoreState,
   MockSystem,
   MockTask,
@@ -65,6 +67,17 @@ const systems: MockSystem[] = [
       { name: 'otel collector reachable', ok: true },
       { name: 'db seed applied', ok: true },
     ],
+    systemType: 'otel-demo',
+    apps: [
+      'cartservice',
+      'checkoutservice',
+      'productcatalogservice',
+      'currencyservice',
+      'paymentservice',
+      'recommendationservice',
+      'shippingservice',
+      'emailservice',
+    ],
   },
   {
     code: 'ts',
@@ -82,6 +95,17 @@ const systems: MockSystem[] = [
       { name: 'db seed applied', ok: true },
       { name: 'sidecar image mirrored', ok: false, note: 'volces only' },
     ],
+    systemType: 'train-ticket',
+    apps: [
+      'ts-ui-dashboard',
+      'ts-auth-service',
+      'ts-order-service',
+      'ts-travel-service',
+      'ts-station-service',
+      'ts-payment-service',
+      'ts-user-service',
+      'ts-route-service',
+    ],
   },
   {
     code: 'hs',
@@ -96,6 +120,17 @@ const systems: MockSystem[] = [
     prereqs: [
       { name: 'helm chart published', ok: true },
       { name: 'jaeger-otlp bridge', ok: true },
+    ],
+    systemType: 'hotel-reservation',
+    apps: [
+      'frontend',
+      'profile',
+      'reservation',
+      'search',
+      'rate',
+      'user',
+      'geo',
+      'recommendation',
     ],
   },
   {
@@ -112,6 +147,16 @@ const systems: MockSystem[] = [
       { name: 'jaeger-otlp bridge', ok: true },
       { name: 'dsb-wrk2 loadgen', ok: true },
     ],
+    systemType: 'social-network',
+    apps: [
+      'user-service',
+      'post-service',
+      'media-service',
+      'home-timeline-service',
+      'user-timeline-service',
+      'compose-post-service',
+      'url-shorten-service',
+    ],
   },
   {
     code: 'mm',
@@ -124,6 +169,8 @@ const systems: MockSystem[] = [
     pedestalCount: 0,
     lastInjectionAt: iso(60 * 24 * 5),
     prereqs: [{ name: 'helm chart published', ok: true }],
+    systemType: 'media-microservices',
+    apps: ['compose-review', 'read-page', 'unique-id', 'cast-info', 'movie-info', 'plot'],
   },
   {
     code: 'sockshop',
@@ -138,6 +185,17 @@ const systems: MockSystem[] = [
     prereqs: [
       { name: 'helm chart published', ok: true },
       { name: 'otel collector reachable', ok: true },
+    ],
+    systemType: 'sock-shop',
+    apps: [
+      'orders',
+      'carts',
+      'payment',
+      'catalogue',
+      'shipping',
+      'user',
+      'front-end',
+      'queue-master',
     ],
   },
   {
@@ -154,6 +212,8 @@ const systems: MockSystem[] = [
       { name: 'jaeger-client-java + bridge', ok: true },
       { name: 'env-inject sidecar', ok: true },
     ],
+    systemType: 'teastore',
+    apps: ['webui', 'auth', 'persistence', 'recommender', 'image', 'registry'],
   },
   {
     code: 'mediamicroservices',
@@ -166,6 +226,8 @@ const systems: MockSystem[] = [
     pedestalCount: 1,
     lastInjectionAt: iso(60 * 24 * 1),
     prereqs: [{ name: 'jaeger-otlp bridge', ok: true }],
+    systemType: 'media-microservices',
+    apps: ['compose-review', 'movie-info', 'cast-info', 'plot', 'rating'],
   },
 ];
 
@@ -820,6 +882,104 @@ const clusterEvents: MockClusterEvent[] = [
   { ts: '10:01:08', level: 'warn', body: 'otel-collector queue depth 1280' },
 ];
 
+const baseSpec = {
+  namespaceMode: 'auto' as const,
+  namespace: '',
+  install: false,
+  readyTimeoutSec: 180,
+  durationSec: 60,
+  skipRestartPedestal: false,
+  skipStaleCheck: false,
+};
+
+const injectionTemplates: MockInjectionTemplate[] = [
+  {
+    id: 'tpl-ts-pod-kill',
+    name: 'Kill ts-order-service pod',
+    description: 'Hard pod kill on Train-Ticket order service.',
+    spec: {
+      ...baseSpec,
+      systemCode: 'ts',
+      systemType: 'train-ticket',
+      app: 'ts-order-service',
+      container: '',
+      targetService: '',
+      chaosType: 'PodKill',
+    },
+  },
+  {
+    id: 'tpl-otel-checkout-delay',
+    name: '500ms latency on /api/checkout',
+    description: 'HTTP response delay on otel-demo checkout route.',
+    spec: {
+      ...baseSpec,
+      systemCode: 'otel-demo',
+      systemType: 'otel-demo',
+      app: 'checkoutservice',
+      container: '',
+      targetService: 'checkoutservice',
+      chaosType: 'HTTPResponseDelay',
+      route: '/api/checkout',
+      httpMethod: 'POST',
+      latencyMs: 500,
+      latencyDuration: 60,
+    },
+  },
+  {
+    id: 'tpl-ts-user-exception',
+    name: 'JVM exception on UserService.login',
+    description: 'Throw runtime exception inside login method.',
+    spec: {
+      ...baseSpec,
+      systemCode: 'ts',
+      systemType: 'train-ticket',
+      app: 'ts-user-service',
+      container: '',
+      targetService: '',
+      chaosType: 'JVMException',
+      class: 'com.cloudhubs.trainticket.user.service.UserServiceImpl',
+      method: 'login',
+      exceptionOpt: 'java.lang.RuntimeException("aegis-injected")',
+    },
+  },
+  {
+    id: 'tpl-hs-net-delay',
+    name: 'Network jitter on hs frontend',
+    description: '200ms ± 50ms egress jitter on Hotel-Reservation frontend.',
+    spec: {
+      ...baseSpec,
+      systemCode: 'hs',
+      systemType: 'hotel-reservation',
+      app: 'frontend',
+      container: '',
+      targetService: '',
+      chaosType: 'NetworkDelay',
+      direction: 'both',
+      latencyMs: 200,
+      jitter: 50,
+      correlation: 25,
+    },
+  },
+  {
+    id: 'tpl-sn-cpu',
+    name: 'CPU burn on sn user-service',
+    description: 'stress-ng 80% CPU on 2 workers.',
+    spec: {
+      ...baseSpec,
+      systemCode: 'sn',
+      systemType: 'social-network',
+      app: 'user-service',
+      container: '',
+      targetService: '',
+      chaosType: 'CPUStress',
+      cpuLoad: 80,
+      cpuWorker: 2,
+    },
+  },
+];
+
+const stagedInjections: MockStagedInjection[] = [];
+
 export const seedState: MockStoreState = {
   projects,
   systems,
@@ -837,4 +997,7 @@ export const seedState: MockStoreState = {
   evalCases,
   clusterChecks,
   clusterEvents,
+  injectionTemplates,
+  stagedInjections,
+  activeProjectId: projects[0]?.id ?? '',
 };

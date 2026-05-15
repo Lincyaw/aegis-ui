@@ -28,10 +28,7 @@ function buildSpans(traceId: string, root: string): TraceSpan[] {
 }
 
 export default function TraceDetail() {
-  const { projectId, traceId } = useParams<{
-    projectId: string;
-    traceId: string;
-  }>();
+  const { traceId } = useParams<{ traceId: string }>();
   const [params] = useSearchParams();
   const href = useAppHref();
 
@@ -86,12 +83,12 @@ export default function TraceDetail() {
           items={[
             {
               k: 'project',
-              v: <MonoValue size='sm'>{projectId ?? trace.projectId}</MonoValue>,
+              v: <MonoValue size='sm'>{trace.projectId}</MonoValue>,
             },
             {
               k: 'originating injection',
               v: injection ? (
-                <Link to={href(`projects/${trace.projectId}/injections/${injection.id}`)}>
+                <Link to={href(`injections/${injection.id}`)}>
                   {injection.id}
                 </Link>
               ) : (

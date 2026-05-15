@@ -15,8 +15,8 @@ import {
   TrajectoryTimeline,
 } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../mocks';
-import type { MockInjection, MockProject } from '../mocks/types';
+import { useActiveProjectId, useMockStore } from '../mocks';
+import type { MockInjection } from '../mocks/types';
 
 import './Dashboard.css';
 
@@ -53,13 +53,24 @@ const DEMO_TERMINAL_LINES: TerminalLine[] = [
 ];
 
 export default function Dashboard() {
-  const projects = useMockStore((s) => s.projects);
-  const injections = useMockStore((s) => s.injections);
-  const traces = useMockStore((s) => s.traces);
+  const activeProjectId = useActiveProjectId();
+  const project = useMockStore((s) =>
+    s.projects.find((p) => p.id === activeProjectId),
+  );
+  const injections = useMockStore((s) =>
+    s.injections.filter((i) => i.projectId === activeProjectId),
+  );
+  const traces = useMockStore((s) =>
+    s.traces.filter((t) => t.projectId === activeProjectId),
+  );
   const tasks = useMockStore((s) => s.tasks);
 
   const runningTasks = tasks.filter((t) => t.status === 'running').length;
-  const recentProjects = projects.slice(0, 6);
+  const recentInjectionIds = new Set(injections.map((i) => i.id));
+  const projectTasks = tasks.filter(
+    (t) =>
+      t.kind === 'injection' && t.parentId !== null && recentInjectionIds.has(t.parentId),
+  );
 
   return (
     <div className='page-wrapper dashboard'>
@@ -67,10 +78,12 @@ export default function Dashboard() {
         <div className='dashboard__header-left'>
           <h1 className='dashboard__title'>
             <PanelTitle size='hero' as='span'>
-              Dashboard
+              {project?.name ?? 'Dashboard'}
             </PanelTitle>
           </h1>
-          <MetricLabel>AegisLab · prototype</MetricLabel>
+          <MetricLabel>
+            AegisLab · use the project switcher in the header to scope this view
+          </MetricLabel>
         </div>
         <div className='dashboard__header-right'>
           <Chip tone='ink'>mock</Chip>
@@ -78,8 +91,8 @@ export default function Dashboard() {
       </header>
 
       <section className='dashboard__kpi-row'>
-        <MetricCard label='Projects' value={projects.length} />
         <MetricCard label='Injections' value={injections.length} />
+        <MetricCard label='Traces' value={traces.length} />
         <MetricCard
           label='Running tasks'
           value={runningTasks}
@@ -90,42 +103,13 @@ export default function Dashboard() {
             </span>
           }
         />
-        <MetricCard label='Traces' value={traces.length} />
+        <MetricCard
+          label='Project tasks'
+          value={projectTasks.length}
+        />
       </section>
 
       <section className='dashboard__two-col'>
-        <Panel
-          title={<PanelTitle size='base'>Projects</PanelTitle>}
-          extra={<MetricLabel>{projects.length} total</MetricLabel>}
-          className='dashboard__panel'
-        >
-          <DataTable<MockProject>
-            data={recentProjects}
-            rowKey={(p) => p.id}
-            columns={[
-              {
-                key: 'name',
-                header: 'Project',
-                render: (p) => <MonoValue size='sm'>{p.name}</MonoValue>,
-              },
-              {
-                key: 'inj',
-                header: 'Injections',
-                align: 'right',
-                render: (p) => <MonoValue size='sm'>{p.injectionCount}</MonoValue>,
-              },
-              {
-                key: 'status',
-                header: 'Status',
-                align: 'center',
-                render: (p) => (
-                  <Chip tone={p.status === 'active' ? 'ink' : 'ghost'}>{p.status}</Chip>
-                ),
-              },
-            ]}
-          />
-        </Panel>
-
         <Panel
           title={<PanelTitle size='base'>Recent injections</PanelTitle>}
           extra={<MetricLabel>{injections.length} total</MetricLabel>}
@@ -163,6 +147,35 @@ export default function Dashboard() {
                 header: 'Created',
                 align: 'right',
                 render: (i) => <TimeDisplay value={i.createdAt} />,
+              },
+            ]}
+          />
+        </Panel>
+
+        <Panel
+          title={<PanelTitle size='base'>Recent traces</PanelTitle>}
+          extra={<MetricLabel>{traces.length} total</MetricLabel>}
+          className='dashboard__panel'
+        >
+          <DataTable
+            data={traces.slice(0, 6)}
+            rowKey={(t) => t.id}
+            columns={[
+              {
+                key: 'id',
+                header: 'Trace',
+                render: (t) => <MonoValue size='sm'>{t.id}</MonoValue>,
+              },
+              {
+                key: 'op',
+                header: 'Root op',
+                render: (t) => <MonoValue size='sm'>{t.rootOperation}</MonoValue>,
+              },
+              {
+                key: 'dur',
+                header: 'Duration',
+                align: 'right',
+                render: (t) => <MonoValue size='sm'>{t.durationMs} ms</MonoValue>,
               },
             ]}
           />

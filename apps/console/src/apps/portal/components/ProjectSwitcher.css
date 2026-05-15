@@ -1,0 +1,112 @@
+.project-switcher-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.project-switcher-bar__left,
+.project-switcher-bar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.project-switcher__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  transition: background var(--motion-fast), border-color var(--motion-fast);
+}
+
+.project-switcher__trigger:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+}
+
+.project-switcher__icon {
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+}
+
+.project-switcher__name {
+  font-weight: var(--fw-medium);
+}
+
+.project-switcher__caret {
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}
+
+.project-switcher__overlay .ant-dropdown-menu {
+  min-width: 280px;
+}
+
+.project-switcher__heading {
+  font-family: var(--font-ui);
+  font-size: var(--fs-11);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+}
+
+.project-switcher__item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.project-switcher__item-name {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-primary);
+}
+
+.project-switcher__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-ui);
+  font-size: var(--fs-11);
+  font-weight: var(--fw-medium);
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.project-switcher__chip--active {
+  background: var(--accent-ink-bg, var(--bg-muted));
+  color: var(--text-primary);
+}
+
+.project-switcher__chip--archived {
+  opacity: 0.6;
+}
+
+.project-switcher__meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}
+
+.project-switcher__new {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--fw-medium);
+}

@@ -106,7 +106,7 @@ export default function DatasetDetail() {
                 key: 'id',
                 label: 'Injection',
                 render: (r) => (
-                  <Link to={href(`projects/${r.projectId}/injections/${r.id}`)}>
+                  <Link to={href(`injections/${r.id}`)}>
                     {r.id}
                   </Link>
                 ),

@@ -1,2 +1,2 @@
-export { useMockStore } from './store';
+export { useMockStore, useActiveProjectId } from './store';
 export type * from './types';

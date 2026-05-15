@@ -104,7 +104,7 @@ export default function EvalCaseDetail() {
             {
               k: 'injection',
               v: (
-                <Link to={href(`projects/proj-catalog/injections/${ec.injectionId}`)}>
+                <Link to={href(`injections/${ec.injectionId}`)}>
                   <MonoValue size='sm'>{ec.injectionId}</MonoValue>
                 </Link>
               ),
@@ -114,7 +114,7 @@ export default function EvalCaseDetail() {
               v: (
                 <Link
                   to={href(
-                    `projects/proj-catalog/traces/${ec.traceId}?from=eval&runId=${run.id}&caseId=${ec.id}`,
+                    `traces/${ec.traceId}?from=eval&runId=${run.id}&caseId=${ec.id}`,
                   )}
                 >
                   <MonoValue size='sm'>{ec.traceId}</MonoValue>

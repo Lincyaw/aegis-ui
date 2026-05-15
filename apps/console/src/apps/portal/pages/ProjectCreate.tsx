@@ -15,6 +15,7 @@ import { useMockStore } from '../mocks';
 export default function ProjectCreate() {
   const navigate = useAppNavigate();
   const createProject = useMockStore((s) => s.createProject);
+  const setActiveProject = useMockStore((s) => s.setActiveProject);
   const { message: msg } = AntdApp.useApp();
 
   const [name, setName] = useState('');
@@ -26,8 +27,9 @@ export default function ProjectCreate() {
       return;
     }
     const created = createProject({ name, description });
+    setActiveProject(created.id);
     void msg.success(`Project ${created.name} created`);
-    navigate(`projects/${created.id}/overview`);
+    navigate('');
   };
 
   return (

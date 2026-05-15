@@ -2,12 +2,14 @@ import { create } from 'zustand';
 
 import { seedState } from './seed';
 import type {
+  GuidedInjectionSpec,
   MockClusterCheck,
   MockContainer,
   MockDataset,
   MockEvalCase,
   MockEvalRun,
   MockInjection,
+  MockInjectionTemplate,
   MockLabel,
   MockPedestal,
   MockProject,
@@ -21,15 +23,25 @@ const nowIso = (): string => new Date().toISOString();
 const rand = (prefix: string): string =>
   `${prefix}-${Math.floor(Math.random() * 90000 + 10000)}`;
 
+export interface CreateInjectionInput {
+  projectId: string;
+  systemCode: string;
+  contractId?: string;
+  blastRadius: MockInjection['blastRadius'];
+  durationSec: number;
+  intensity: number;
+  spec?: GuidedInjectionSpec;
+  name?: string;
+}
+
 interface StoreActions {
-  createInjection: (input: {
-    projectId: string;
-    systemCode: string;
-    contractId: string;
-    blastRadius: MockInjection['blastRadius'];
-    durationSec: number;
-    intensity: number;
-  }) => MockInjection;
+  createInjection: (input: CreateInjectionInput) => MockInjection;
+  stageInjection: (projectId: string, spec: GuidedInjectionSpec) => void;
+  removeStaged: (index: number) => void;
+  clearBatch: () => void;
+  submitBatch: (projectId: string) => MockInjection[];
+  saveTemplate: (name: string, description: string, spec: GuidedInjectionSpec) => MockInjectionTemplate;
+  deleteTemplate: (id: string) => void;
   cancelTask: (id: string) => void;
   expediteTask: (id: string) => void;
   cancelInjection: (id: string) => void;
@@ -83,6 +95,8 @@ interface StoreActions {
   appendClusterEvent: (level: 'info' | 'warn' | 'error', body: string) => void;
   setEvalRunStatus: (id: string, status: MockEvalRun['status']) => void;
   setRegressionRunStatus: (id: string, status: MockRegressionRun['status']) => void;
+
+  setActiveProject: (id: string) => void;
 }
 
 type MockStore = MockStoreState & StoreActions;
@@ -93,12 +107,17 @@ export const useMockStore = create<MockStore>((set, get) => ({
   createInjection: (input) => {
     const id = rand('inj');
     const taskId = rand('task');
-    const contract = get().contracts.find((c) => c.id === input.contractId);
+    const contract = input.contractId
+      ? get().contracts.find((c) => c.id === input.contractId)
+      : undefined;
+    const labelFromSpec = input.spec
+      ? `${input.spec.chaosType}-${input.spec.app || input.systemCode}`
+      : undefined;
     const created: MockInjection = {
       id,
       projectId: input.projectId,
       systemCode: input.systemCode,
-      contractId: input.contractId,
+      contractId: input.contractId ?? '',
       taskId,
       traceId: null,
       blastRadius: input.blastRadius,
@@ -106,7 +125,8 @@ export const useMockStore = create<MockStore>((set, get) => ({
       intensity: input.intensity,
       status: 'pending',
       createdAt: nowIso(),
-      name: `${contract?.name ?? 'fault'}-${input.systemCode}`,
+      name: input.name ?? labelFromSpec ?? `${contract?.name ?? 'fault'}-${input.systemCode}`,
+      spec: input.spec,
     };
     const task: MockTask = {
       id: taskId,
@@ -118,7 +138,13 @@ export const useMockStore = create<MockStore>((set, get) => ({
       durationMs: 0,
       logs: [
         { ts: '00:00:00', level: 'info', body: `task spawned for ${id}` },
-        { ts: '00:00:00', level: 'info', body: `contract=${contract?.name ?? input.contractId} target=${input.systemCode}` },
+        {
+          ts: '00:00:00',
+          level: 'info',
+          body: input.spec
+            ? `chaos=${input.spec.chaosType} target=${input.spec.app || input.systemCode}`
+            : `contract=${contract?.name ?? input.contractId ?? 'n/a'} target=${input.systemCode}`,
+        },
       ],
     };
     set((s) => ({ injections: [created, ...s.injections], tasks: [task, ...s.tasks] }));
@@ -159,6 +185,47 @@ export const useMockStore = create<MockStore>((set, get) => ({
     }, 4000);
 
     return created;
+  },
+
+  stageInjection: (projectId, spec) => {
+    const entry = { id: rand('staged'), projectId, spec, addedAt: nowIso() };
+    set((s) => ({ stagedInjections: [...s.stagedInjections, entry] }));
+  },
+  removeStaged: (index) => {
+    set((s) => ({
+      stagedInjections: s.stagedInjections.filter((_, i) => i !== index),
+    }));
+  },
+  clearBatch: () => {
+    set(() => ({ stagedInjections: [] }));
+  },
+  submitBatch: (projectId) => {
+    const items = get().stagedInjections.filter((it) => it.projectId === projectId);
+    const created: MockInjection[] = [];
+    for (const it of items) {
+      created.push(
+        get().createInjection({
+          projectId,
+          systemCode: it.spec.systemCode,
+          blastRadius: 'service',
+          durationSec: it.spec.durationSec,
+          intensity: 50,
+          spec: it.spec,
+        }),
+      );
+    }
+    set((s) => ({
+      stagedInjections: s.stagedInjections.filter((it) => it.projectId !== projectId),
+    }));
+    return created;
+  },
+  saveTemplate: (name, description, spec) => {
+    const tpl: MockInjectionTemplate = { id: rand('tpl'), name, description, spec };
+    set((s) => ({ injectionTemplates: [tpl, ...s.injectionTemplates] }));
+    return tpl;
+  },
+  deleteTemplate: (id) => {
+    set((s) => ({ injectionTemplates: s.injectionTemplates.filter((t) => t.id !== id) }));
   },
 
   cancelTask: (id) => {
@@ -536,4 +603,12 @@ export const useMockStore = create<MockStore>((set, get) => ({
       regressionRuns: s.regressionRuns.map((r) => (r.id === id ? { ...r, status } : r)),
     }));
   },
+
+  setActiveProject: (id) => {
+    set(() => ({ activeProjectId: id }));
+  },
 }));
+
+export function useActiveProjectId(): string {
+  return useMockStore((s) => s.activeProjectId);
+}

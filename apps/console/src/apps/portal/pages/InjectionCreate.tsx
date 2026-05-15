@@ -1,272 +1,253 @@
-import { App as AntdApp } from 'antd';
-import { useMemo, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { App as AntdApp, Input, Modal } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
+import { Button, Chip, PageHeader, useAppNavigate } from '@lincyaw/aegis-ui';
+
+import { LivePreview } from '../components/inject/LivePreview';
 import {
-  BlastRadiusBar,
-  Button,
-  Chip,
-  KeyValueList,
-  MetricLabel,
-  MonoValue,
-  PageHeader,
-  Panel,
-  PanelTitle,
-  SectionDivider,
-  useAppNavigate,
-} from '@lincyaw/aegis-ui';
+  CHAOS_BY_NAME,
+  defaultSpec,
+  isStepValid,
+} from '../components/inject/paramSchema';
+import { Step1Target } from '../components/inject/Step1Target';
+import { Step2ChaosType } from '../components/inject/Step2ChaosType';
+import { Step3Params } from '../components/inject/Step3Params';
+import { Step4Lifecycle } from '../components/inject/Step4Lifecycle';
+import { Step5Stage } from '../components/inject/Step5Stage';
+import { Step6Review } from '../components/inject/Step6Review';
+import { useActiveProjectId, useMockStore } from '../mocks';
+import type { GuidedInjectionSpec } from '../mocks/types';
 
-import { WizardSteps } from '../components/WizardSteps';
-import { useMockStore } from '../mocks';
+const STEPS = ['Target', 'Chaos type', 'Parameters', 'Lifecycle', 'Stage', 'Review'];
 
-const STEPS = ['Target', 'Fault', 'Blast Radius', 'Review'];
+function draftKey(projectId: string): string {
+  return `inject-guided-draft:${projectId}`;
+}
 
 export default function InjectionCreate() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const pid = useActiveProjectId();
   const [params] = useSearchParams();
   const navigate = useAppNavigate();
-  const { message: msg } = AntdApp.useApp();
+  const { message: msg, modal } = AntdApp.useApp();
 
   const systems = useMockStore((s) => s.systems);
-  const contracts = useMockStore((s) => s.contracts);
-  const pedestals = useMockStore((s) => s.pedestals);
   const createInjection = useMockStore((s) => s.createInjection);
+  const stageInjection = useMockStore((s) => s.stageInjection);
+  const submitBatch = useMockStore((s) => s.submitBatch);
+  const stagedForProject = useMockStore((s) =>
+    s.stagedInjections.filter((it) => it.projectId === pid),
+  );
+  const saveTemplate = useMockStore((s) => s.saveTemplate);
+
+  const initialSpec = useMemo<GuidedInjectionSpec>(() => {
+    const sys = params.get('system') ?? '';
+    const chaos = params.get('chaosType') ?? '';
+    const sysObj = systems.find((s) => s.code === sys);
+    return {
+      ...defaultSpec(sys),
+      systemType: sysObj?.systemType ?? '',
+      chaosType: chaos,
+    };
+  }, [params, systems]);
 
   const [step, setStep] = useState(0);
-  const [systemCode, setSystemCode] = useState(params.get('system') ?? '');
-  const [contractId, setContractId] = useState(params.get('contract') ?? '');
-  const [blastRadius, setBlastRadius] = useState<'pod' | 'service' | 'namespace'>('service');
-  const [durationSec, setDurationSec] = useState(60);
-  const [intensity, setIntensity] = useState(50);
+  const [spec, setSpec] = useState<GuidedInjectionSpec>(initialSpec);
+  const [submitMode, setSubmitMode] = useState<'submit' | 'stage'>('submit');
+  const [resumeAsked, setResumeAsked] = useState(false);
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateDesc, setTemplateDesc] = useState('');
 
-  const selectedSystem = systems.find((s) => s.code === systemCode);
-  const selectedContract = contracts.find((c) => c.id === contractId);
-  const targetPedestals = useMemo(
-    () => pedestals.filter((p) => p.systemCode === systemCode),
-    [pedestals, systemCode],
-  );
+  const update = (patch: Partial<GuidedInjectionSpec>): void => {
+    setSpec((s) => ({ ...s, ...patch }));
+  };
 
-  const familyGroups = useMemo(() => {
-    const map = new Map<string, typeof contracts>();
-    for (const c of contracts) {
-      const arr = map.get(c.family) ?? [];
-      arr.push(c);
-      map.set(c.family, arr);
-    }
-    return Array.from(map.entries());
-  }, [contracts]);
+  // Persist draft to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem(draftKey(pid), JSON.stringify(spec));
+  }, [spec, pid]);
 
-  const canNext =
-    (step === 0 && !!systemCode) ||
-    (step === 1 && !!contractId) ||
-    (step === 2 && durationSec > 0) ||
-    step === 3;
-
-  const submit = (): void => {
-    if (!systemCode || !contractId) {
-      void msg.error('select a target system and a contract');
+  // Offer to resume
+  useEffect(() => {
+    if (resumeAsked) return;
+    const raw = sessionStorage.getItem(draftKey(pid));
+    if (!raw) {
+      setResumeAsked(true);
       return;
     }
+    try {
+      const parsed = JSON.parse(raw) as GuidedInjectionSpec;
+      if (parsed.systemCode || parsed.chaosType) {
+        modal.confirm({
+          title: 'Resume previous draft?',
+          content: `A previous fault-injection draft for ${pid} was found.`,
+          okText: 'Resume',
+          cancelText: 'Start fresh',
+          onOk: () => {
+            setSpec(parsed);
+          },
+          onCancel: () => {
+            sessionStorage.removeItem(draftKey(pid));
+          },
+        });
+      }
+    } catch {
+      // ignore
+    }
+    setResumeAsked(true);
+  }, [modal, pid, resumeAsked]);
+
+  const canNext = isStepValid(step, spec);
+  const isLast = step === STEPS.length - 1;
+
+  const reset = (): void => {
+    sessionStorage.removeItem(draftKey(pid));
+    setSpec(defaultSpec(''));
+    setStep(0);
+  };
+
+  const submit = (): void => {
+    if (submitMode === 'stage') {
+      stageInjection(pid, spec);
+      void msg.success('Draft added to batch');
+      setSpec(defaultSpec(spec.systemCode));
+      setStep(0);
+      return;
+    }
+    const def = CHAOS_BY_NAME[spec.chaosType];
     const created = createInjection({
-      projectId: projectId ?? 'proj-catalog',
-      systemCode,
-      contractId,
-      blastRadius,
-      durationSec,
-      intensity,
+      projectId: pid,
+      systemCode: spec.systemCode,
+      blastRadius: def?.blastHint ?? 'service',
+      durationSec: spec.durationSec,
+      intensity: 50,
+      spec,
+      name: `${spec.chaosType}-${spec.app}`,
     });
     void msg.success(`Injection ${created.id} queued`);
-    navigate(`projects/${projectId ?? 'proj-catalog'}/injections/${created.id}`);
+    sessionStorage.removeItem(draftKey(pid));
+    navigate(`injections/${created.id}`);
+  };
+
+  const submitBatchNow = (): void => {
+    const created = submitBatch(pid);
+    if (created.length === 0) {
+      void msg.info('No staged drafts');
+      return;
+    }
+    void msg.success(`${created.length} injection${created.length === 1 ? '' : 's'} queued`);
+    navigate('injections');
   };
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='New Injection'
-        description={`Submit a fault injection for project ${projectId ?? ''}.`}
+        description={`Guided fault-injection wizard for project ${pid}.`}
         action={
-          <Button
-            tone='secondary'
-            onClick={() => {
-              navigate(`projects/${projectId ?? 'proj-catalog'}/injections`);
-            }}
-          >
-            Cancel
-          </Button>
+          <div className='page-action-row'>
+            <Chip tone='ghost'>step {step + 1} / {STEPS.length}</Chip>
+            <Button tone='ghost' onClick={reset}>Reset</Button>
+            <Button tone='secondary' onClick={() => navigate('injections')}>
+              Cancel
+            </Button>
+          </div>
         }
       />
 
-      <WizardSteps steps={STEPS} activeIndex={step} />
-
-      {step === 0 && (
-        <Panel title={<PanelTitle size='base'>1. Select target system</PanelTitle>}>
-          <div className='page-overview-grid'>
-            {systems.map((s) => (
-              <button
-                key={s.code}
-                type='button'
-                className='wizard-card'
-                data-active={s.code === systemCode}
-                onClick={() => setSystemCode(s.code)}
-                disabled={!s.enabled}
+      <div className='wizard-steps-clickable'>
+        <ol className='wizard-steps'>
+          {STEPS.map((label, idx) => {
+            const state = idx < step ? 'done' : idx === step ? 'active' : 'todo';
+            return (
+              <li
+                key={label}
+                className={`wizard-steps__item wizard-steps__item--${state}`}
               >
-                <div className='wizard-card__head'>
-                  <MonoValue size='sm'>{s.code}</MonoValue>
-                  <Chip tone={s.enabled ? 'ink' : 'ghost'}>
-                    {s.enabled ? 'enabled' : 'disabled'}
-                  </Chip>
-                </div>
-                <div className='wizard-card__name'>{s.name}</div>
-                <MetricLabel size='xs'>{s.pedestalCount} pedestals</MetricLabel>
-              </button>
-            ))}
-          </div>
-          {selectedSystem && (
-            <>
-              <SectionDivider>Available pedestals</SectionDivider>
-              {targetPedestals.length === 0 ? (
-                <MetricLabel>no pedestals deployed for {selectedSystem.code}</MetricLabel>
-              ) : (
-                <KeyValueList
-                  items={targetPedestals.map((p) => ({
-                    k: p.namespace,
-                    v: (
-                      <span>
-                        <MonoValue size='sm'>{p.version}</MonoValue> · {p.status}
-                      </span>
-                    ),
-                  }))}
-                />
-              )}
-            </>
-          )}
-        </Panel>
-      )}
+                <button
+                  type='button'
+                  className='wizard-steps__btn'
+                  onClick={() => setStep(idx)}
+                >
+                  <span className='wizard-steps__num'>{idx + 1}</span>
+                  <span className='wizard-steps__label'>{label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
 
-      {step === 1 && (
-        <Panel title={<PanelTitle size='base'>2. Select fault contract</PanelTitle>}>
-          {familyGroups.map(([family, items]) => (
-            <div key={family} className='wizard-family'>
-              <SectionDivider>{family}</SectionDivider>
-              <div className='wizard-contract-grid'>
-                {items.map((c) => (
-                  <button
-                    key={c.id}
-                    type='button'
-                    className='wizard-card'
-                    data-active={c.id === contractId}
-                    onClick={() => setContractId(c.id)}
-                  >
-                    <div className='wizard-card__head'>
-                      <MonoValue size='sm'>{c.name}</MonoValue>
-                      <Chip tone='ghost'>{c.faultType}</Chip>
-                    </div>
-                    <div className='wizard-card__desc'>{c.description}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </Panel>
-      )}
-
-      {step === 2 && (
-        <Panel title={<PanelTitle size='base'>3. Blast radius &amp; duration</PanelTitle>}>
-          <div className='wizard-form-grid'>
-            <div>
-              <MetricLabel>Scope</MetricLabel>
-              <div className='wizard-radio-row'>
-                {(['pod', 'service', 'namespace'] as const).map((b) => (
-                  <button
-                    key={b}
-                    type='button'
-                    className='wizard-card wizard-card--inline'
-                    data-active={blastRadius === b}
-                    onClick={() => setBlastRadius(b)}
-                  >
-                    {b}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <MetricLabel>Duration · {durationSec}s</MetricLabel>
-              <input
-                type='range'
-                min={15}
-                max={600}
-                step={15}
-                value={durationSec}
-                onChange={(e) => setDurationSec(Number(e.target.value))}
-                className='wizard-range'
-              />
-            </div>
-            <div>
-              <MetricLabel>Intensity · {intensity}%</MetricLabel>
-              <input
-                type='range'
-                min={10}
-                max={100}
-                step={10}
-                value={intensity}
-                onChange={(e) => setIntensity(Number(e.target.value))}
-                className='wizard-range'
-              />
-            </div>
-            <div>
-              <MetricLabel>Estimated blast</MetricLabel>
-              <BlastRadiusBar
-                value={blastRadius === 'pod' ? 25 : blastRadius === 'service' ? 55 : 90}
-              />
-            </div>
-          </div>
-        </Panel>
-      )}
-
-      {step === 3 && (
-        <Panel title={<PanelTitle size='base'>4. Review &amp; confirm</PanelTitle>}>
-          <KeyValueList
-            items={[
-              { k: 'project', v: <MonoValue size='sm'>{projectId ?? ''}</MonoValue> },
-              { k: 'system', v: <MonoValue size='sm'>{systemCode}</MonoValue> },
-              {
-                k: 'contract',
-                v: <MonoValue size='sm'>{selectedContract?.name ?? ''}</MonoValue>,
-              },
-              { k: 'blast radius', v: blastRadius },
-              { k: 'duration', v: `${durationSec}s` },
-              { k: 'intensity', v: `${intensity}%` },
-            ]}
-          />
-        </Panel>
-      )}
+      <div className='inject-layout'>
+        <div className='inject-layout__main'>
+          {step === 0 && <Step1Target spec={spec} update={update} />}
+          {step === 1 && <Step2ChaosType spec={spec} update={update} />}
+          {step === 2 && <Step3Params spec={spec} update={update} />}
+          {step === 3 && <Step4Lifecycle spec={spec} update={update} />}
+          {step === 4 && <Step5Stage projectId={pid} mode={submitMode} setMode={setSubmitMode} />}
+          {step === 5 && <Step6Review spec={spec} />}
+        </div>
+        <aside className='inject-layout__side'>
+          <LivePreview spec={spec} />
+        </aside>
+      </div>
 
       <div className='wizard-actions'>
-        <Button
-          tone='ghost'
-          onClick={() => {
-            setStep((s) => Math.max(0, s - 1));
-          }}
-          disabled={step === 0}
-        >
+        {stagedForProject.length > 0 && (
+          <Button tone='secondary' onClick={submitBatchNow}>
+            Submit batch ({stagedForProject.length})
+          </Button>
+        )}
+        <Button tone='ghost' onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
           Back
         </Button>
-        {step < STEPS.length - 1 ? (
-          <Button
-            tone='primary'
-            onClick={() => {
-              setStep((s) => s + 1);
-            }}
-            disabled={!canNext}
-          >
+        {!isLast ? (
+          <Button tone='primary' onClick={() => setStep((s) => s + 1)} disabled={!canNext}>
             Next
           </Button>
         ) : (
-          <Button tone='primary' onClick={submit}>
-            Inject now
-          </Button>
+          <>
+            <Button tone='ghost' onClick={() => setTemplateModalOpen(true)}>
+              Save as template
+            </Button>
+            <Button tone='primary' onClick={submit} disabled={!canNext}>
+              {submitMode === 'stage' ? 'Add to batch' : 'Inject now'}
+            </Button>
+          </>
         )}
       </div>
+
+      <Modal
+        title='Save as template'
+        open={templateModalOpen}
+        onCancel={() => setTemplateModalOpen(false)}
+        onOk={() => {
+          if (!templateName.trim()) {
+            void msg.error('name is required');
+            return;
+          }
+          saveTemplate(templateName, templateDesc, spec);
+          void msg.success(`Template '${templateName}' saved`);
+          setTemplateModalOpen(false);
+          setTemplateName('');
+          setTemplateDesc('');
+        }}
+        okText='Save'
+      >
+        <Input
+          value={templateName}
+          onChange={(e) => setTemplateName(e.target.value)}
+          placeholder='template name'
+          style={{ marginBottom: 8 }}
+        />
+        <Input.TextArea
+          value={templateDesc}
+          onChange={(e) => setTemplateDesc(e.target.value)}
+          placeholder='description (optional)'
+          rows={3}
+        />
+      </Modal>
     </div>
   );
 }

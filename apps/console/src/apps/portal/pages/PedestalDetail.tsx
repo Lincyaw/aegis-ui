@@ -91,7 +91,7 @@ export default function PedestalDetail() {
           <div className='page-action-row'>
             <StatusChip status={pedestal.status} />
             <Button tone='primary'
-              onClick={() => navigate(`projects/proj-catalog/injections/new?system=${pedestal.systemCode}`)}>
+              onClick={() => navigate(`injections/new?system=${pedestal.systemCode}`)}>
               Inject first fault
             </Button>
             <Button tone='secondary' onClick={onRestart}>Restart</Button>
@@ -129,7 +129,7 @@ export default function PedestalDetail() {
                 key: 'id',
                 label: 'Injection',
                 render: (r) => (
-                  <Link to={href(`projects/${r.projectId}/injections/${r.id}`)}>{r.id}</Link>
+                  <Link to={href(`injections/${r.id}`)}>{r.id}</Link>
                 ),
               },
               { key: 'name', label: 'Fault', render: (r) => r.name },

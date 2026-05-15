@@ -24,6 +24,29 @@ export default function ContractDetail() {
     s.injections.filter((i) => i.contractId === id),
   );
 
+  const contractToChaosType: Record<string, string> = {
+    'pod-kill': 'PodKill',
+    'pod-failure': 'PodFailure',
+    'container-kill': 'ContainerKill',
+    'network-delay': 'NetworkDelay',
+    'network-loss': 'NetworkLoss',
+    'network-corrupt': 'NetworkCorrupt',
+    'network-partition': 'NetworkPartition',
+    'dns-error': 'DNSError',
+    'dns-delay': 'DNSError',
+    'http-abort': 'HTTPRequestAbort',
+    'http-500': 'HTTPResponseReplaceCode',
+    'http-delay': 'HTTPResponseDelay',
+    'jvm-cpu-burn': 'JVMCPUStress',
+    'jvm-mem-pressure': 'JVMMemoryStress',
+    'jvm-throw': 'JVMException',
+    'jvm-gc-pressure': 'JVMGarbageCollector',
+    'stress-cpu': 'CPUStress',
+    'stress-memory': 'MemoryStress',
+    'stress-io': 'CPUStress',
+    'time-shift': 'TimeSkew',
+  };
+
   if (!contract) {
     return (
       <div className='page-wrapper'>
@@ -43,9 +66,12 @@ export default function ContractDetail() {
         action={
           <Button
             tone='primary'
-            onClick={() =>
-              navigate(`projects/proj-catalog/injections/new?contract=${contract.id}`)
-            }
+            onClick={() => {
+              const chaosType = contractToChaosType[contract.name] ?? '';
+              const qs = new URLSearchParams({ contract: contract.id });
+              if (chaosType) qs.set('chaosType', chaosType);
+              navigate(`injections/new?${qs.toString()}`);
+            }}
           >
             Use contract
           </Button>

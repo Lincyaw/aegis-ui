@@ -15,6 +15,7 @@ import type { MockProject } from '../mocks/types';
 export default function Projects() {
   const navigate = useAppNavigate();
   const projects = useMockStore((s) => s.projects);
+  const setActiveProject = useMockStore((s) => s.setActiveProject);
 
   return (
     <div className='page-wrapper'>
@@ -42,7 +43,8 @@ export default function Projects() {
                   href='#'
                   onClick={(e) => {
                     e.preventDefault();
-                    navigate(`projects/${r.id}/overview`);
+                    setActiveProject(r.id);
+                    navigate(`projects/${r.id}`);
                   }}
                 >
                   <MonoValue size='sm'>{r.name}</MonoValue>

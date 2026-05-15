@@ -57,6 +57,8 @@ export default function SystemRegister() {
       version,
       otelEndpoint: otel,
       enabled: true,
+      systemType: code,
+      apps: [],
       prereqs: DEFAULT_PREREQS.map((p) => ({
         name: p,
         ok: prereqs[p] ?? false,

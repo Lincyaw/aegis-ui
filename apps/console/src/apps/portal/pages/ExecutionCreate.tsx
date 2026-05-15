@@ -1,6 +1,5 @@
 import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import {
   Button,
@@ -10,10 +9,10 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../mocks';
+import { useActiveProjectId, useMockStore } from '../mocks';
 
 export default function ExecutionCreate() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const projectId = useActiveProjectId();
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
 
@@ -29,18 +28,18 @@ export default function ExecutionCreate() {
       return;
     }
     void msg.success('Algorithm execution queued (mocked)');
-    navigate(`projects/${projectId ?? 'proj-catalog'}/executions`);
+    navigate('executions');
   };
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='Run algorithm'
-        description={`Submit an algorithm execution for project ${projectId ?? ''}.`}
+        description={`Submit an algorithm execution for project ${projectId}.`}
         action={
           <Button
             tone='secondary'
-            onClick={() => navigate(`projects/${projectId ?? 'proj-catalog'}/executions`)}
+            onClick={() => navigate('executions')}
           >
             Cancel
           </Button>

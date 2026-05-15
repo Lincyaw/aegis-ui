@@ -4,16 +4,22 @@ import {
   DashboardOutlined,
   DeploymentUnitOutlined,
   ExperimentOutlined,
+  EyeOutlined,
   FileProtectOutlined,
+  FundOutlined,
   HddOutlined,
+  NodeIndexOutlined,
   PlayCircleOutlined,
   ProfileOutlined,
-  ProjectOutlined,
   RobotOutlined,
   SafetyOutlined,
   TagsOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import type { AegisApp } from '@lincyaw/aegis-ui';
+
+import { LegacyProjectRedirect } from './components/LegacyProjectRedirect';
+import { ProjectSwitcher } from './components/ProjectSwitcher';
 
 import ClusterStatus from './pages/ClusterStatus';
 import ContainerCreate from './pages/ContainerCreate';
@@ -32,6 +38,7 @@ import EvalRuns from './pages/EvalRuns';
 import ExecutionCreate from './pages/ExecutionCreate';
 import ExecutionDetail from './pages/ExecutionDetail';
 import Executions from './pages/Executions';
+import BatchInjections from './pages/BatchInjections';
 import InjectionCreate from './pages/InjectionCreate';
 import InjectionDetail from './pages/InjectionDetail';
 import Injections from './pages/Injections';
@@ -66,12 +73,19 @@ export const portalApp: AegisApp = {
     'Root scenarios — projects, containers, datasets, experiments, observability.',
   icon: <AppstoreOutlined />,
   basePath: '/portal',
+  header: <ProjectSwitcher />,
   sidebar: [
     {
       label: 'Workspace',
       items: [
         { to: '', label: 'Dashboard', icon: <DashboardOutlined />, end: true },
-        { to: 'projects', label: 'Projects', icon: <ProjectOutlined /> },
+        { to: 'inject', label: 'Inject', icon: <ThunderboltOutlined /> },
+        { to: 'injections', label: 'Injections', icon: <PlayCircleOutlined /> },
+        { to: 'tasks', label: 'Tasks', icon: <NodeIndexOutlined /> },
+        { to: 'traces', label: 'Traces', icon: <FundOutlined /> },
+        { to: 'observations', label: 'Observations', icon: <EyeOutlined /> },
+        { to: 'metrics', label: 'Metrics', icon: <FundOutlined /> },
+        { to: 'executions', label: 'Executions', icon: <PlayCircleOutlined /> },
       ],
     },
     {
@@ -85,7 +99,6 @@ export const portalApp: AegisApp = {
     {
       label: 'Execution & Eval',
       items: [
-        { to: 'tasks', label: 'Tasks', icon: <PlayCircleOutlined /> },
         { to: 'regression', label: 'Regression', icon: <ExperimentOutlined /> },
         { to: 'eval', label: 'LLM Eval', icon: <RobotOutlined /> },
       ],
@@ -102,25 +115,76 @@ export const portalApp: AegisApp = {
   ],
   routes: [
     { path: '', element: <Dashboard /> },
+
+    // Project-scoped flat routes
+    { path: 'inject', element: <InjectionCreate /> },
+    { path: 'injections', element: <Injections /> },
+    { path: 'injections/new', element: <InjectionCreate /> },
+    { path: 'injections/batch', element: <BatchInjections /> },
+    { path: 'injections/:injectionId', element: <InjectionDetail /> },
+    { path: 'executions', element: <Executions /> },
+    { path: 'executions/new', element: <ExecutionCreate /> },
+    { path: 'executions/:executionId', element: <ExecutionDetail /> },
+    { path: 'traces', element: <Traces /> },
+    { path: 'traces/:traceId', element: <TraceDetail /> },
+    { path: 'tasks', element: <Tasks /> },
+    { path: 'tasks/:taskId', element: <TaskDetail /> },
+    { path: 'observations', element: <Observations /> },
+    { path: 'metrics', element: <MetricsPage /> },
+
+    // Project management surfaces (still reachable via header dropdown)
     { path: 'projects', element: <Projects /> },
     { path: 'projects/new', element: <ProjectCreate /> },
+    { path: 'projects/:projectId', element: <ProjectOverview /> },
+    { path: 'projects/:projectId/overview', element: <ProjectOverview /> },
+
+    // Legacy project-nested → flat redirects (preserve old links)
     {
-      path: 'projects/:projectId',
-      children: [
-        { path: '', element: <ProjectOverview /> },
-        { path: 'overview', element: <ProjectOverview /> },
-        { path: 'injections', element: <Injections /> },
-        { path: 'injections/new', element: <InjectionCreate /> },
-        { path: 'injections/:injectionId', element: <InjectionDetail /> },
-        { path: 'executions', element: <Executions /> },
-        { path: 'executions/new', element: <ExecutionCreate /> },
-        { path: 'executions/:executionId', element: <ExecutionDetail /> },
-        { path: 'traces', element: <Traces /> },
-        { path: 'traces/:traceId', element: <TraceDetail /> },
-        { path: 'observations', element: <Observations /> },
-        { path: 'metrics', element: <MetricsPage /> },
-      ],
+      path: 'projects/:projectId/injections',
+      element: <LegacyProjectRedirect to='injections' />,
     },
+    {
+      path: 'projects/:projectId/injections/new',
+      element: <LegacyProjectRedirect to='injections/new' />,
+    },
+    {
+      path: 'projects/:projectId/injections/batch',
+      element: <LegacyProjectRedirect to='injections/batch' />,
+    },
+    {
+      path: 'projects/:projectId/injections/:injectionId',
+      element: <LegacyProjectRedirect to='injections/:injectionId' />,
+    },
+    {
+      path: 'projects/:projectId/executions',
+      element: <LegacyProjectRedirect to='executions' />,
+    },
+    {
+      path: 'projects/:projectId/executions/new',
+      element: <LegacyProjectRedirect to='executions/new' />,
+    },
+    {
+      path: 'projects/:projectId/executions/:executionId',
+      element: <LegacyProjectRedirect to='executions/:executionId' />,
+    },
+    {
+      path: 'projects/:projectId/traces',
+      element: <LegacyProjectRedirect to='traces' />,
+    },
+    {
+      path: 'projects/:projectId/traces/:traceId',
+      element: <LegacyProjectRedirect to='traces/:traceId' />,
+    },
+    {
+      path: 'projects/:projectId/observations',
+      element: <LegacyProjectRedirect to='observations' />,
+    },
+    {
+      path: 'projects/:projectId/metrics',
+      element: <LegacyProjectRedirect to='metrics' />,
+    },
+
+    // Assets
     { path: 'containers', element: <Containers /> },
     { path: 'containers/new', element: <ContainerCreate /> },
     { path: 'containers/:containerId', element: <ContainerDetail /> },
@@ -130,8 +194,8 @@ export const portalApp: AegisApp = {
     { path: 'labels', element: <Labels /> },
     { path: 'labels/new', element: <LabelCreate /> },
     { path: 'labels/:labelId', element: <LabelDetail /> },
-    { path: 'tasks', element: <Tasks /> },
-    { path: 'tasks/:taskId', element: <TaskDetail /> },
+
+    // Platform
     { path: 'systems', element: <Systems /> },
     { path: 'systems/new', element: <SystemRegister /> },
     { path: 'systems/:code', element: <SystemDetail /> },

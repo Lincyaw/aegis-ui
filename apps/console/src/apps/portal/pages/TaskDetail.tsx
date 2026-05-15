@@ -89,7 +89,7 @@ export default function TaskDetail() {
                 <Link
                   to={
                     task.kind === 'injection'
-                      ? href(`projects/proj-catalog/injections/${task.parentId}`)
+                      ? href(`injections/${task.parentId}`)
                       : task.kind === 'regression'
                         ? href(`regression/${task.parentLabel}`)
                         : href(`eval/${task.parentId}`)

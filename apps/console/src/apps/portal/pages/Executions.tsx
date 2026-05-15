@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import {
   Button,
@@ -12,11 +12,11 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { StatusChip } from '../components/StatusChip';
-import { useMockStore } from '../mocks';
+import { useActiveProjectId, useMockStore } from '../mocks';
 import type { MockTask } from '../mocks/types';
 
 export default function Executions() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const projectId = useActiveProjectId();
   const navigate = useAppNavigate();
   const href = useAppHref();
   const tasks = useMockStore((s) =>
@@ -27,11 +27,11 @@ export default function Executions() {
     <div className='page-wrapper'>
       <PageHeader
         title='Executions'
-        description={`Algorithm + eval executions for project ${projectId ?? ''}.`}
+        description={`Algorithm + eval executions for project ${projectId}.`}
         action={
           <Button
             tone='primary'
-            onClick={() => navigate(`projects/${projectId ?? 'proj-catalog'}/executions/new`)}
+            onClick={() => navigate('executions/new')}
           >
             + Run algorithm
           </Button>
@@ -46,11 +46,7 @@ export default function Executions() {
               key: 'id',
               header: 'Execution',
               render: (r) => (
-                <Link
-                  to={href(
-                    `projects/${projectId ?? 'proj-catalog'}/executions/${r.id}`,
-                  )}
-                >
+                <Link to={href(`executions/${r.id}`)}>
                   <MonoValue size='sm'>{r.id}</MonoValue>
                 </Link>
               ),

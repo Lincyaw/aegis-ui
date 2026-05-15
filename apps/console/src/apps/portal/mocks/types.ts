@@ -27,6 +27,8 @@ export interface MockSystem {
   pedestalCount: number;
   lastInjectionAt: string;
   prereqs: Array<{ name: string; ok: boolean; note?: string }>;
+  systemType: string;
+  apps: string[];
 }
 
 export interface MockPedestal {
@@ -52,6 +54,60 @@ export interface MockContract {
   description: string;
 }
 
+export type NamespaceMode = 'specific' | 'auto' | 'auto-bootstrap';
+
+export interface GuidedInjectionSpec {
+  namespaceMode: NamespaceMode;
+  namespace: string;
+  systemCode: string;
+  systemType: string;
+  app: string;
+  container: string;
+  targetService: string;
+  chaosType: string;
+  install: boolean;
+  readyTimeoutSec: number;
+  durationSec: number;
+  skipRestartPedestal: boolean;
+  skipStaleCheck: boolean;
+  // Type-specific knobs
+  memType?: 'ram' | 'swap' | 'cache';
+  memSize?: number;
+  memWorker?: number;
+  cpuLoad?: number;
+  cpuWorker?: number;
+  cpuCount?: number;
+  direction?: 'to' | 'from' | 'both';
+  latencyMs?: number;
+  jitter?: number;
+  correlation?: number;
+  loss?: number;
+  duplicate?: number;
+  corrupt?: number;
+  rate?: number;
+  limit?: number;
+  buffer?: number;
+  route?: string;
+  httpMethod?: string;
+  bodyType?: 'json' | 'text' | 'xml';
+  body?: string;
+  replacePath?: string;
+  replaceMethod?: string;
+  returnCode?: number;
+  domain?: string;
+  timeOffset?: number;
+  class?: string;
+  method?: string;
+  latencyDuration?: number;
+  database?: string;
+  table?: string;
+  operation?: 'select' | 'insert' | 'update' | 'delete';
+  returnType?: 'string' | 'int' | 'bool' | 'object' | 'null';
+  returnOpt?: string;
+  exceptionOpt?: string;
+  mutatorConfig?: string;
+}
+
 export interface MockInjection {
   id: string;
   projectId: string;
@@ -65,6 +121,21 @@ export interface MockInjection {
   status: EntityStatus;
   createdAt: string;
   name: string;
+  spec?: GuidedInjectionSpec;
+}
+
+export interface MockInjectionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  spec: GuidedInjectionSpec;
+}
+
+export interface MockStagedInjection {
+  id: string;
+  projectId: string;
+  spec: GuidedInjectionSpec;
+  addedAt: string;
 }
 
 export interface MockTask {
@@ -200,4 +271,7 @@ export interface MockStoreState {
   evalCases: MockEvalCase[];
   clusterChecks: MockClusterCheck[];
   clusterEvents: MockClusterEvent[];
+  injectionTemplates: MockInjectionTemplate[];
+  stagedInjections: MockStagedInjection[];
+  activeProjectId: string;
 }

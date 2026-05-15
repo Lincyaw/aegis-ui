@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import {
   DataTable,
@@ -10,21 +10,21 @@ import {
   useAppHref,
 } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../mocks';
+import { useActiveProjectId, useMockStore } from '../mocks';
 import type { MockTrace } from '../mocks/types';
 
 export default function Traces() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const projectId = useActiveProjectId();
   const href = useAppHref();
   const traces = useMockStore((s) =>
-    s.traces.filter((t) => !projectId || t.projectId === projectId),
+    s.traces.filter((t) => t.projectId === projectId),
   );
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='Traces'
-        description={`Distributed traces for project ${projectId ?? ''}.`}
+        description={`Distributed traces for project ${projectId}.`}
       />
       <Panel>
         {traces.length === 0 ? (
@@ -41,7 +41,7 @@ export default function Traces() {
                 key: 'id',
                 header: 'Trace',
                 render: (r) => (
-                  <Link to={href(`projects/${r.projectId}/traces/${r.id}`)}>
+                  <Link to={href(`traces/${r.id}`)}>
                     <MonoValue size='sm'>{r.id}</MonoValue>
                   </Link>
                 ),

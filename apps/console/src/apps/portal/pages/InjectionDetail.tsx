@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import {
   Button,
   Chip,
+  CodeBlock,
   EmptyState,
   KeyValueList,
   MetricLabel,
@@ -17,14 +18,13 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
+import { specToYaml } from '../components/inject/paramSchema';
+
 import { StatusChip } from '../components/StatusChip';
 import { useMockStore } from '../mocks';
 
 export default function InjectionDetail() {
-  const { injectionId } = useParams<{
-    projectId: string;
-    injectionId: string;
-  }>();
+  const { injectionId } = useParams<{ injectionId: string }>();
   const href = useAppHref();
   const navigate = useAppNavigate();
   const { message: msg, modal } = AntdApp.useApp();
@@ -109,11 +109,7 @@ export default function InjectionDetail() {
             {
               k: 'trace',
               v: traceReady && injection.traceId ? (
-                <Link
-                  to={href(
-                    `projects/${injection.projectId}/traces/${injection.traceId}`,
-                  )}
-                >
+                <Link to={href(`traces/${injection.traceId}`)}>
                   {injection.traceId}
                 </Link>
               ) : (
@@ -136,6 +132,12 @@ export default function InjectionDetail() {
         />
       </Panel>
 
+      {injection.spec && (
+        <Panel title={<PanelTitle size='base'>Spec</PanelTitle>}>
+          <CodeBlock language='yaml' code={specToYaml(injection.spec)} />
+        </Panel>
+      )}
+
       <SectionDivider>Actions</SectionDivider>
       <div className='page-action-row'>
         <Button
@@ -143,7 +145,7 @@ export default function InjectionDetail() {
           disabled={!traceReady || !injection.traceId}
           onClick={() => {
             if (injection.traceId) {
-              navigate(`projects/${injection.projectId}/traces/${injection.traceId}`);
+              navigate(`traces/${injection.traceId}`);
             }
           }}
         >
@@ -151,13 +153,13 @@ export default function InjectionDetail() {
         </Button>
         <Button
           tone='secondary'
-          onClick={() => navigate(`projects/${injection.projectId}/observations`)}
+          onClick={() => navigate('observations')}
         >
           View observations
         </Button>
         <Button
           tone='secondary'
-          onClick={() => navigate(`projects/${injection.projectId}/injections?select=${injection.id}`)}
+          onClick={() => navigate(`injections?select=${injection.id}`)}
         >
           Add to dataset
         </Button>

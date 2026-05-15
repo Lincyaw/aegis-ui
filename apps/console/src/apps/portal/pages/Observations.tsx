@@ -1,5 +1,3 @@
-import { useParams } from 'react-router-dom';
-
 import {
   Chip,
   KeyValueList,
@@ -9,12 +7,12 @@ import {
   PanelTitle,
 } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../mocks';
+import { useActiveProjectId, useMockStore } from '../mocks';
 
 export default function Observations() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const projectId = useActiveProjectId();
   const traces = useMockStore((s) =>
-    s.traces.filter((t) => !projectId || t.projectId === projectId),
+    s.traces.filter((t) => t.projectId === projectId),
   );
 
   const totalSpans = traces.reduce((sum, t) => sum + t.spanCount, 0);
@@ -27,7 +25,7 @@ export default function Observations() {
     <div className='page-wrapper'>
       <PageHeader
         title='Observations'
-        description={`OTel signal sources for project ${projectId ?? ''}.`}
+        description={`OTel signal sources for project ${projectId}.`}
       />
 
       <div className='page-overview-grid'>

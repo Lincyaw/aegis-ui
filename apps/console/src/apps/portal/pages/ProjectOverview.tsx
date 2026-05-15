@@ -1,15 +1,19 @@
+import { App as AntdApp } from 'antd';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
   Button,
+  Chip,
+  DangerZone,
   EmptyState,
+  KeyValueList,
   MetricCard,
   MonoValue,
   PageHeader,
   Panel,
   PanelTitle,
-  StatusDot,
+  TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
@@ -18,8 +22,10 @@ import { useMockStore } from '../mocks';
 export default function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useAppNavigate();
+  const { message: msg, modal } = AntdApp.useApp();
 
   const project = useMockStore((s) => s.projects.find((p) => p.id === projectId));
+  const setActiveProject = useMockStore((s) => s.setActiveProject);
   const injections = useMockStore((s) =>
     s.injections.filter((i) => i.projectId === projectId),
   );
@@ -46,18 +52,25 @@ export default function ProjectOverview() {
     );
   }
 
+  const switchAndGo = (to: string): void => {
+    setActiveProject(project.id);
+    navigate(to);
+  };
+
   return (
     <div className='page-wrapper'>
       <PageHeader
         title={project.name}
         description={project.description}
         action={
-          <Button
-            tone='primary'
-            onClick={() => navigate(`projects/${project.id}/injections/new`)}
-          >
-            + Inject
-          </Button>
+          <div className='page-action-row'>
+            <Chip tone={project.status === 'active' ? 'ink' : 'ghost'}>
+              {project.status}
+            </Chip>
+            <Button tone='primary' onClick={() => switchAndGo('inject')}>
+              Switch & inject
+            </Button>
+          </div>
         }
       />
 
@@ -65,69 +78,60 @@ export default function ProjectOverview() {
         <MetricCard
           label='Injections'
           value={injections.length}
-          onClick={() => navigate(`projects/${project.id}/injections`)}
+          onClick={() => switchAndGo('injections')}
         />
-        <MetricCard
-          label='Running'
-          value={running}
-          unit={
-            <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-              {running > 0 && <StatusDot size={6} pulse />}
-              {running > 0 ? 'active' : 'idle'}
-            </span>
-          }
-        />
+        <MetricCard label='Running' value={running} />
         <MetricCard
           label='Traces'
           value={traces.length}
-          onClick={() => navigate(`projects/${project.id}/traces`)}
+          onClick={() => switchAndGo('traces')}
         />
         <MetricCard label='Status' value={project.status} />
       </div>
 
-      <Panel title={<PanelTitle size='base'>Recent injections</PanelTitle>}>
-        {injections.length === 0 ? (
-          <EmptyState
-            title='No injections yet'
-            description='Inject your first fault to populate this list.'
-          />
-        ) : (
-          <div className='page-table'>
-            <div className='page-table__head'>
-              <span className='page-table__cell'>ID</span>
-              <span className='page-table__cell'>System</span>
-              <span className='page-table__cell'>Status</span>
-            </div>
-            {injections.slice(0, 6).map((i) => (
-              <div
-                key={i.id}
-                className='page-table__row'
-                onClick={() => navigate(`projects/${project.id}/injections/${i.id}`)}
-              >
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{i.id}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <MonoValue size='sm'>{i.systemCode}</MonoValue>
-                </span>
-                <span className='page-table__cell'>
-                  <StatusDot
-                    size={6}
-                    pulse={i.status === 'running'}
-                    tone={
-                      i.status === 'failed'
-                        ? 'warning'
-                        : i.status === 'running' || i.status === 'completed'
-                          ? 'ink'
-                          : 'muted'
-                    }
-                  />
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+      <Panel title={<PanelTitle size='base'>Settings</PanelTitle>}>
+        <KeyValueList
+          items={[
+            { k: 'project id', v: <MonoValue size='sm'>{project.id}</MonoValue> },
+            { k: 'name', v: project.name },
+            { k: 'description', v: project.description || '—' },
+            { k: 'status', v: project.status },
+            { k: 'created', v: <TimeDisplay value={project.createdAt} /> },
+            { k: 'default namespace', v: <MonoValue size='sm'>aegis-default</MonoValue> },
+          ]}
+        />
       </Panel>
+
+      <Panel title={<PanelTitle size='base'>Members</PanelTitle>}>
+        <KeyValueList
+          items={[
+            { k: 'lincyaw', v: 'owner' },
+            { k: 'boxiyu', v: 'maintainer' },
+          ]}
+        />
+      </Panel>
+
+      <DangerZone
+        title='Danger zone'
+        description='Permanently delete this project and all associated data.'
+      >
+        <Button
+          tone='secondary'
+          onClick={() =>
+            modal.confirm({
+              title: `Delete ${project.name}?`,
+              content: 'This action cannot be undone (mock — no-op).',
+              okText: 'Delete',
+              okButtonProps: { danger: true },
+              onOk: () => {
+                void msg.info('Delete is mocked — no change applied.');
+              },
+            })
+          }
+        >
+          Delete project
+        </Button>
+      </DangerZone>
     </div>
   );
 }
