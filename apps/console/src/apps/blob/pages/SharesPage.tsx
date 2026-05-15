@@ -10,6 +10,7 @@ import {
   DataTable,
   type DataTableColumn,
   EmptyState,
+  MetricLabel,
   MonoValue,
   PageHeader,
   Panel,
@@ -169,6 +170,12 @@ export default function SharesPage() {
         title="My shares"
         description="Presigned links you've generated from this browser. Stored locally — clearing browser data drops the list, but live URLs keep working until they expire."
       />
+
+      <Panel>
+        <MetricLabel>
+          Local browser history — not synced. Links keep working until their TTL expires; revoke only removes the row here.
+        </MetricLabel>
+      </Panel>
 
       {shares.length === 0 ? (
         <Panel>
