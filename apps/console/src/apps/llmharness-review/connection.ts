@@ -62,3 +62,68 @@ export async function fetchHealth(url: string): Promise<HealthInfo> {
   const raw = (await r.json()) as HealthPayload;
   return { root: raw.root, caseCount: raw.case_count, version: raw.version };
 }
+
+/* ── Blob-backed cases root ──────────────────────────────────────────
+ *
+ * When set, the Case Review sub-app reads cases from the platform's
+ * blob storage instead of (or in addition to) an external llmharness
+ * backend / FS-Access local directory. Same `CaseRepo` contract — the
+ * sub-app stays agnostic.
+ */
+
+const BLOB_STORAGE_KEY = 'aegis.llmharness.blob';
+
+export interface BlobRoot {
+  bucket: string;
+  /** Directory prefix inside the bucket. Always normalised to end with '/'.
+   *  Empty string means the root of the bucket. */
+  prefix: string;
+}
+
+function normaliseBlobPrefix(prefix: string): string {
+  let p = prefix.trim().replace(/^\/+/, '');
+  if (p && !p.endsWith('/')) {
+    p = `${p}/`;
+  }
+  return p;
+}
+
+export function getBlobRoot(): BlobRoot | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const raw = window.localStorage.getItem(BLOB_STORAGE_KEY);
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw) as Partial<BlobRoot>;
+    if (typeof parsed.bucket !== 'string' || !parsed.bucket.trim()) {
+      return null;
+    }
+    return {
+      bucket: parsed.bucket.trim(),
+      prefix: normaliseBlobPrefix(parsed.prefix ?? ''),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function setBlobRoot(root: BlobRoot): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const value: BlobRoot = {
+    bucket: root.bucket.trim(),
+    prefix: normaliseBlobPrefix(root.prefix),
+  };
+  window.localStorage.setItem(BLOB_STORAGE_KEY, JSON.stringify(value));
+}
+
+export function clearBlobRoot(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.localStorage.removeItem(BLOB_STORAGE_KEY);
+}

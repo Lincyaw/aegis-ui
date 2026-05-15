@@ -19,11 +19,13 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import {
+  BlobCaseRepo,
   type CaseRepo,
   HttpCaseRepo,
   clearStoredRoot,
   isFsAccessSupported,
   pickCasesRoot,
+  probeBlobCaseRepo,
   probeHttpCaseRepo,
   restoreCasesRoot,
 } from '../repo';
@@ -73,6 +75,15 @@ export function CaseListPage(): ReactElement {
         if (http) {
           setRepo(http);
           await refresh(http);
+          return;
+        }
+        const blob = probeBlobCaseRepo();
+        if (cancelled) {
+          return;
+        }
+        if (blob) {
+          setRepo(blob);
+          await refresh(blob);
           return;
         }
         const fs = await restoreCasesRoot();
@@ -157,8 +168,8 @@ export function CaseListPage(): ReactElement {
         extra={<MetricLabel>llmharness · case aggregator</MetricLabel>}
       >
         <EmptyState
-          title='Connect to an llmharness backend'
-          description='Configure a `llmharness serve` URL in Connection settings, or pick a local cases/ directory (Chromium-based browsers only).'
+          title='Connect to a case source'
+          description='Configure a `llmharness serve` URL, point at a path inside platform blob storage, or pick a local cases/ directory (Chromium-based browsers only).'
           action={
             <div style={{ display: 'flex', gap: 8 }}>
               <Link to='settings'>
@@ -174,7 +185,14 @@ export function CaseListPage(): ReactElement {
     );
   }
 
-  const isRemote = repo instanceof HttpCaseRepo;
+  const isHttpRemote = repo instanceof HttpCaseRepo;
+  const isBlobRemote = repo instanceof BlobCaseRepo;
+  const isRemote = isHttpRemote || isBlobRemote;
+  const sourceLabel = isHttpRemote
+    ? 'remote · '
+    : isBlobRemote
+      ? 'blob · '
+      : '';
 
   const filterChips: FilterChip[] = [
     ...(onlySurfaced ? [{ key: 'surfaced', label: 'surfaced only' }] : []),
@@ -258,7 +276,7 @@ export function CaseListPage(): ReactElement {
       extra={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <MetricLabel>
-            {isRemote ? 'remote · ' : ''}
+            {sourceLabel}
             {repo.label}
           </MetricLabel>
           <Button tone='ghost' onClick={() => void refresh(repo)}>

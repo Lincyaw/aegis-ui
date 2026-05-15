@@ -11,7 +11,14 @@
  *     pure source. UI state lives in the page hooks, not here.
  */
 
-import { fetchHealth, getBackendUrl } from './connection';
+import { apiFetch, ApiError } from '../../api/apiClient';
+import { driverList, inlineUrl } from '../../api/blobClient';
+import {
+  type BlobRoot,
+  fetchHealth,
+  getBackendUrl,
+  getBlobRoot,
+} from './connection';
 import type {
   CaseMeta,
   CaseSummary,
@@ -422,6 +429,195 @@ export class HttpCaseRepo implements CaseRepo {
       return null;
     }
   }
+}
+
+// --------------------------------------------------------------------------
+// Blob-backed repo — reads cases out of the platform's aegis-blob storage
+// via the same /api/v2/blob surface used by the Blob sub-app. The user
+// supplies (bucket, prefix); the repo enumerates case directories under
+// that prefix and reads files via inline GETs.
+// --------------------------------------------------------------------------
+
+export class BlobCaseRepo implements CaseRepo {
+  readonly label: string;
+  readonly bucket: string;
+  /** Directory prefix inside the bucket. Either empty or ends with '/'. */
+  readonly prefix: string;
+
+  constructor(bucket: string, prefix: string) {
+    this.bucket = bucket;
+    this.prefix = prefix;
+    this.label = prefix ? `${bucket}/${prefix.replace(/\/$/, '')}` : bucket;
+  }
+
+  /** Path within the bucket for a given case-relative key. */
+  private keyFor(caseId: string, suffix: string): string {
+    return `${this.prefix}${caseId}/${suffix}`;
+  }
+
+  private async getText(key: string): Promise<string> {
+    const res = await apiFetch(inlineUrl(this.bucket, key));
+    return res.text();
+  }
+
+  private async getJson<T>(key: string): Promise<T> {
+    return JSON.parse(await this.getText(key)) as T;
+  }
+
+  private async getJsonlOrEmpty<T>(key: string): Promise<T[]> {
+    try {
+      return parseJsonl<T>(await this.getText(key));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        return [];
+      }
+      throw err;
+    }
+  }
+
+  private async listChildDirs(prefix: string): Promise<string[]> {
+    const out: string[] = [];
+    let token: string | undefined;
+    do {
+      const page = await driverList(this.bucket, {
+        prefix,
+        delimiter: '/',
+        max_keys: 1000,
+        continuation_token: token,
+      });
+      for (const cp of page.common_prefixes ?? []) {
+        const rel = cp.slice(prefix.length).replace(/\/$/, '');
+        if (rel) {
+          out.push(rel);
+        }
+      }
+      token = page.next_continuation_token;
+    } while (token);
+    return out;
+  }
+
+  private async listChildFiles(prefix: string): Promise<string[]> {
+    const out: string[] = [];
+    let token: string | undefined;
+    do {
+      const page = await driverList(this.bucket, {
+        prefix,
+        delimiter: '/',
+        max_keys: 1000,
+        continuation_token: token,
+      });
+      for (const item of page.items) {
+        const name = item.key.slice(prefix.length);
+        if (name && !name.includes('/')) {
+          out.push(name);
+        }
+      }
+      token = page.next_continuation_token;
+    } while (token);
+    return out;
+  }
+
+  async listCases(): Promise<CaseSummary[]> {
+    const dirs = await this.listChildDirs(this.prefix);
+    const out: CaseSummary[] = [];
+    // Read each meta.json in parallel; skip dirs without one.
+    const settled = await Promise.allSettled(
+      dirs.map(async (caseId) => ({
+        caseId,
+        meta: await this.getJson<CaseMeta>(this.keyFor(caseId, 'meta.json')),
+      })),
+    );
+    for (const r of settled) {
+      if (r.status === 'fulfilled') {
+        out.push(r.value);
+      }
+    }
+    out.sort((a, b) => a.caseId.localeCompare(b.caseId));
+    return out;
+  }
+
+  readMeta(caseId: string): Promise<CaseMeta> {
+    return this.getJson<CaseMeta>(this.keyFor(caseId, 'meta.json'));
+  }
+
+  async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
+    return parseJsonl<MainAgentMessage>(
+      await this.getText(this.keyFor(caseId, 'main_agent.jsonl')),
+    );
+  }
+
+  async listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]> {
+    const names = await this.listChildFiles(
+      `${this.prefix}${caseId}/${phase}/`,
+    );
+    return names.filter((n) => n.endsWith('.json')).sort();
+  }
+
+  readFiring(
+    caseId: string,
+    phase: FiringPhase,
+    fileName: string,
+  ): Promise<FiringFile> {
+    return this.getJson<FiringFile>(`${this.prefix}${caseId}/${phase}/${fileName}`);
+  }
+
+  readVerdicts(caseId: string): Promise<VerdictRow[]> {
+    return this.getJsonlOrEmpty<VerdictRow>(this.keyFor(caseId, 'verdicts.jsonl'));
+  }
+
+  readTrajectory(caseId: string): Promise<TrajectoryRow[]> {
+    return this.getJsonlOrEmpty<TrajectoryRow>(
+      this.keyFor(caseId, 'trajectory.jsonl'),
+    );
+  }
+
+  async readSnapshot(
+    caseId: string,
+    sequence: number,
+  ): Promise<GraphSnapshotFile | null> {
+    const padded = String(sequence).padStart(3, '0');
+    try {
+      return await this.getJson<GraphSnapshotFile>(
+        `${this.prefix}${caseId}/event_graph/after_extractor_${padded}.json`,
+      );
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        return null;
+      }
+      throw err;
+    }
+  }
+}
+
+export interface BlobProbeInfo {
+  bucket: string;
+  prefix: string;
+  caseCount: number;
+}
+
+/** Probe a (bucket, prefix) by listing one page of common-prefixes. Used by
+ *  the Settings page to confirm the path before saving. */
+export async function probeBlobRoot(
+  root: BlobRoot,
+): Promise<BlobProbeInfo> {
+  const page = await driverList(root.bucket, {
+    prefix: root.prefix,
+    delimiter: '/',
+    max_keys: 1000,
+  });
+  const count = (page.common_prefixes ?? []).filter(
+    (p) => p !== root.prefix,
+  ).length;
+  return { bucket: root.bucket, prefix: root.prefix, caseCount: count };
+}
+
+/** Return a ready BlobCaseRepo when one has been configured, else null. */
+export function probeBlobCaseRepo(): BlobCaseRepo | null {
+  const root = getBlobRoot();
+  if (!root) {
+    return null;
+  }
+  return new BlobCaseRepo(root.bucket, root.prefix);
 }
 
 /**
