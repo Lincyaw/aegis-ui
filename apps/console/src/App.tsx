@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v6';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { AegisShell, InboxPage } from '@lincyaw/aegis-ui';
@@ -19,51 +20,53 @@ import { registeredApps } from './registry';
 export function ConsoleApp(): ReactElement {
   return (
     <BrowserRouter>
-      <SsoAuthProvider>
-        <Routes>
-          <Route path='/auth/login' element={<Login />} />
-          <Route path='/auth/register' element={<Register />} />
-          <Route path='/auth/forgot' element={<ForgotPassword />} />
-          <Route path='/auth/callback' element={<Callback />} />
-          <Route
-            path='/*'
-            element={
-              <RealNotificationProvider>
-                <AegisShell
-                  brand={{ name: 'AegisLab', href: '/' }}
-                  apps={registeredApps}
-                  notFoundElement={<NotFound />}
-                  rootRoutes={[
-                    { path: '/', element: <Landing /> },
-                    { path: '/inbox', element: <InboxPage /> },
-                    {
-                      path: '/setup',
-                      element: <Navigate to='/settings/endpoints' replace />,
-                    },
-                    { path: '/error/forbidden', element: <Forbidden /> },
-                    { path: '/error/server', element: <ServerError /> },
-                  ]}
-                  headerActions={<AiDockHost />}
-                  inboxPath='/inbox'
-                  userMenu={[
-                    {
-                      key: 'profile',
-                      label: 'Profile',
-                      to: '/settings/profile',
-                    },
-                    { key: 'settings', label: 'Settings', to: '/settings' },
-                    {
-                      key: 'endpoints',
-                      label: 'Endpoints',
-                      to: '/settings/endpoints',
-                    },
-                  ]}
-                />
-              </RealNotificationProvider>
-            }
-          />
-        </Routes>
-      </SsoAuthProvider>
+      <NuqsAdapter>
+        <SsoAuthProvider>
+          <Routes>
+            <Route path='/auth/login' element={<Login />} />
+            <Route path='/auth/register' element={<Register />} />
+            <Route path='/auth/forgot' element={<ForgotPassword />} />
+            <Route path='/auth/callback' element={<Callback />} />
+            <Route
+              path='/*'
+              element={
+                <RealNotificationProvider>
+                  <AegisShell
+                    brand={{ name: 'AegisLab', href: '/' }}
+                    apps={registeredApps}
+                    notFoundElement={<NotFound />}
+                    rootRoutes={[
+                      { path: '/', element: <Landing /> },
+                      { path: '/inbox', element: <InboxPage /> },
+                      {
+                        path: '/setup',
+                        element: <Navigate to='/settings/endpoints' replace />,
+                      },
+                      { path: '/error/forbidden', element: <Forbidden /> },
+                      { path: '/error/server', element: <ServerError /> },
+                    ]}
+                    headerActions={<AiDockHost />}
+                    inboxPath='/inbox'
+                    userMenu={[
+                      {
+                        key: 'profile',
+                        label: 'Profile',
+                        to: '/settings/profile',
+                      },
+                      { key: 'settings', label: 'Settings', to: '/settings' },
+                      {
+                        key: 'endpoints',
+                        label: 'Endpoints',
+                        to: '/settings/endpoints',
+                      },
+                    ]}
+                  />
+                </RealNotificationProvider>
+              }
+            />
+          </Routes>
+        </SsoAuthProvider>
+      </NuqsAdapter>
     </BrowserRouter>
   );
 }

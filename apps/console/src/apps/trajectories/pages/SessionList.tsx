@@ -1,4 +1,5 @@
 import { type ReactElement, useEffect, useState } from 'react';
+import { parseAsString, useQueryState } from 'nuqs';
 import { Link } from 'react-router-dom';
 
 import {
@@ -6,36 +7,51 @@ import {
   DataTable,
   type DataTableColumn,
   ErrorState,
-  type FilterChip,
   MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
+  parseTimeRangeInput,
   TimeDisplay,
+  TimeRangePicker,
   Toolbar,
 } from '@lincyaw/aegis-ui';
 
-import {
-  type SessionSummary,
-  listSessions,
-} from '../api/clickhouse';
+import { type SessionSummary, listSessions } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
 import { formatDurationMs, formatTokens } from '../conversation';
 
-const SINCE_OPTIONS = [
-  { hours: 1, label: '1h' },
-  { hours: 24, label: '24h' },
-  { hours: 168, label: '7d' },
-  { hours: 720, label: '30d' },
+const SINCE_PRESETS = [
+  { label: '1h', value: 'now-1h' },
+  { label: '24h', value: 'now-24h' },
+  { label: '7d', value: 'now-7d' },
+  { label: '30d', value: 'now-30d' },
 ];
+
+const DEFAULT_SINCE = 'now-7d';
 
 export function SessionList(): ReactElement {
   const [rows, setRows] = useState<SessionSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sinceHours, setSinceHours] = useState(168);
-  const [search, setSearch] = useState('');
+  const [since, setSince] = useQueryState(
+    'since',
+    parseAsString.withDefault(DEFAULT_SINCE),
+  );
+  const [search, setSearch] = useQueryState(
+    'q',
+    parseAsString.withDefault(''),
+  );
   const { pinned, toggle } = useCompareList();
+
+  const range =
+    parseTimeRangeInput(since) ?? parseTimeRangeInput(DEFAULT_SINCE);
+  const sinceHours = range
+    ? Math.max(
+        1,
+        Math.ceil((range.to.getTime() - range.from.getTime()) / 3_600_000),
+      )
+    : 168;
 
   useEffect(() => {
     let cancelled = false;
@@ -163,23 +179,14 @@ export function SessionList(): ReactElement {
     },
   ];
 
-  const filterChips: FilterChip[] = SINCE_OPTIONS.filter(
-    (opt) => opt.hours === sinceHours,
-  ).map((opt) => ({ key: `since:${opt.hours.toString()}`, label: `last ${opt.label}` }));
-
   return (
     <Panel
       title={<PanelTitle size='lg'>Agent sessions</PanelTitle>}
       extra={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {pinned.length > 0 && (
-            <Link
-              to='compare'
-              style={{ textDecoration: 'none' }}
-            >
-              <Chip tone='ink'>
-                ★ {pinned.length}/2 → compare
-              </Chip>
+            <Link to='compare' style={{ textDecoration: 'none' }}>
+              <Chip tone='ink'>★ {pinned.length}/2 → compare</Chip>
             </Link>
           )}
           <MetricLabel>otel · clickhouse</MetricLabel>
@@ -189,20 +196,14 @@ export function SessionList(): ReactElement {
       <Toolbar
         searchPlaceholder='session_id / trace_id / service'
         searchValue={search}
-        onSearchChange={setSearch}
-        filters={filterChips}
+        onSearchChange={(v) => void setSearch(v)}
+        filters={[]}
         action={
-          <div style={{ display: 'flex', gap: 8 }}>
-            {SINCE_OPTIONS.map((opt) => (
-              <Chip
-                key={opt.hours}
-                tone={opt.hours === sinceHours ? 'ink' : 'default'}
-                onClick={() => setSinceHours(opt.hours)}
-              >
-                {opt.label}
-              </Chip>
-            ))}
-          </div>
+          <TimeRangePicker
+            value={since}
+            onChange={(v) => void setSince(v)}
+            presets={SINCE_PRESETS}
+          />
         }
       />
       <div style={{ marginTop: 16 }}>

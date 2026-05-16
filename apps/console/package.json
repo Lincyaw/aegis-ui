@@ -48,6 +48,7 @@
     "echarts-for-react": "^3.0.2",
     "fzstd": "^0.1.1",
     "lz4js": "^0.2.0",
+    "nuqs": "^2.8.9",
     "parquet-wasm": "^0.7.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
