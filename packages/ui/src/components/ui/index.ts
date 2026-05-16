@@ -48,6 +48,8 @@ export { CodeBlock } from './CodeBlock';
 export type { CodeBlockSurface } from './CodeBlock';
 export { DataTable } from './DataTable';
 export type { DataTableColumn, DataTableSurface } from './DataTable';
+export { EventTable } from './EventTable';
+export type { EventTableColumn, EventTableProps } from './EventTable';
 export { DataList } from './DataList';
 export type { DataListColumn, DataListItem, DataListSurface } from './DataList';
 export { Toolbar } from './Toolbar';

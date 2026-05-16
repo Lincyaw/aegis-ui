@@ -35,6 +35,8 @@ import {
   DataList,
   type DataListColumn,
   DataTable,
+  EventTable,
+  type EventTableColumn,
   DiffViewer,
   DropdownMenu,
   EmptyState,
@@ -2143,6 +2145,14 @@ function App() {
             emptyTitle='No executions'
             emptyDescription='Run an experiment to see results here.'
           />
+        </Specimen>
+
+        <SectionDivider>EventTable</SectionDivider>
+        <Specimen
+          caption='virtualized · sticky header · selection · onLoadMore'
+          span={3}
+        >
+          <EventTableSpecimen />
         </Specimen>
 
         <SectionDivider>DataList</SectionDivider>
@@ -4796,6 +4806,135 @@ function AskAffordanceSpecimen(): ReactNode {
           </pre>
         </div>
       </Specimen>
+    </div>
+  );
+}
+
+interface SampleEvent {
+  id: string;
+  ts: string;
+  level: 'info' | 'warn' | 'error';
+  service: string;
+  message: string;
+}
+
+const SERVICES = [
+  'order-svc',
+  'cart-svc',
+  'inventory',
+  'auth',
+  'gateway',
+  'billing',
+];
+const LEVELS: Array<SampleEvent['level']> = ['info', 'warn', 'error'];
+
+function makeEvent(i: number): SampleEvent {
+  const level = LEVELS[i % LEVELS.length] ?? 'info';
+  const service = SERVICES[i % SERVICES.length] ?? 'gateway';
+  return {
+    id: `evt-${String(i).padStart(6, '0')}`,
+    ts: new Date(1_700_000_000_000 + i * 1000).toISOString(),
+    level,
+    service,
+    message: `request handled in ${(20 + (i % 480)).toString()}ms`,
+  };
+}
+
+function makeEvents(count: number, offset = 0): SampleEvent[] {
+  return Array.from({ length: count }, (_, i) => makeEvent(i + offset));
+}
+
+const eventColumns: Array<EventTableColumn<SampleEvent>> = [
+  {
+    key: 'ts',
+    header: 'Timestamp',
+    width: 220,
+    render: (row) => <MonoValue size='sm'>{row.ts}</MonoValue>,
+  },
+  {
+    key: 'level',
+    header: 'Level',
+    width: 90,
+    align: 'center',
+    render: (row) => {
+      const tone =
+        row.level === 'error'
+          ? 'warning'
+          : row.level === 'warn'
+            ? 'ink'
+            : 'default';
+      return <Chip tone={tone}>{row.level}</Chip>;
+    },
+    truncate: false,
+  },
+  {
+    key: 'service',
+    header: 'Service',
+    width: 140,
+    render: (row) => row.service,
+  },
+  {
+    key: 'message',
+    header: 'Message',
+    render: (row) => row.message,
+  },
+];
+
+const SMALL_EVENTS = makeEvents(50);
+const LARGE_EVENTS = makeEvents(10_000);
+
+function EventTableSpecimen(): ReactNode {
+  const [selectedKey, setSelectedKey] = useState<string | undefined>(
+    SMALL_EVENTS[2]?.id,
+  );
+  const [paginated, setPaginated] = useState<SampleEvent[]>(() =>
+    makeEvents(200),
+  );
+  const handleLoadMore = useCallback(() => {
+    setPaginated((prev) => prev.concat(makeEvents(1000, prev.length)));
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      <div>
+        <MetricLabel as='div' size='xs'>
+          50 rows · sticky header · row selection
+        </MetricLabel>
+        <EventTable
+          columns={eventColumns}
+          data={SMALL_EVENTS}
+          rowKey={(row) => row.id}
+          selectedKey={selectedKey}
+          onRowClick={(row) => {
+            setSelectedKey(row.id);
+          }}
+          maxVisibleRows={10}
+        />
+      </div>
+      <div>
+        <MetricLabel as='div' size='xs'>
+          10,000 rows · virtualization perf
+        </MetricLabel>
+        <EventTable
+          columns={eventColumns}
+          data={LARGE_EVENTS}
+          rowKey={(row) => row.id}
+          maxVisibleRows={12}
+        />
+      </div>
+      <div>
+        <MetricLabel as='div' size='xs'>
+          onLoadMore · appends 1,000 rows on scroll-to-bottom · current size{' '}
+          {paginated.length.toString()}
+        </MetricLabel>
+        <EventTable
+          columns={eventColumns}
+          data={paginated}
+          rowKey={(row) => row.id}
+          onLoadMore={handleLoadMore}
+          maxVisibleRows={12}
+        />
+      </div>
     </div>
   );
 }
