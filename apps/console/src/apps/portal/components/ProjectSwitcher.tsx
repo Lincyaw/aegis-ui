@@ -3,43 +3,45 @@ import { App as AntdApp, Dropdown, type MenuProps } from 'antd';
 
 import { Button, useAppNavigate } from '@lincyaw/aegis-ui';
 
-import { useActiveProjectId, useMockStore } from '../mocks';
+import { useActiveProjectStore } from '../hooks/useActiveProject';
+import { useProjectsList } from '../hooks/useProjects';
 
 import './ProjectSwitcher.css';
 
 export function ProjectSwitcher() {
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
-  const projects = useMockStore((s) => s.projects);
-  const activeId = useActiveProjectId();
-  const setActiveProject = useMockStore((s) => s.setActiveProject);
+  const { data: projects } = useProjectsList();
+  const activeId = useActiveProjectStore((s) => s.activeProjectId);
+  const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
 
-  const active = projects.find((p) => p.id === activeId) ?? projects[0];
+  const list = projects ?? [];
+  const active = list.find((p) => p.id === activeId) ?? list[0];
 
   const items: MenuProps['items'] = [
     {
       key: 'projects-heading',
       label: <span className='project-switcher__heading'>Projects</span>,
       type: 'group',
-      children: projects.map((p) => ({
-        key: p.id,
+      children: list.map((p) => ({
+        key: String(p.id ?? ''),
         label: (
           <div className='project-switcher__item'>
-            <span className='project-switcher__item-name'>{p.name}</span>
+            <span className='project-switcher__item-name'>{p.name ?? '—'}</span>
             <span
-              className={`project-switcher__chip project-switcher__chip--${p.status}`}
+              className={`project-switcher__chip project-switcher__chip--${p.status ?? 'unknown'}`}
             >
-              {p.status}
+              {p.status ?? 'unknown'}
             </span>
             <span className='project-switcher__meta'>
-              {p.injectionCount} inj
+              {p.injection_count ?? 0} inj
             </span>
           </div>
         ),
         onClick: () => {
-          if (p.id !== activeId) {
+          if (p.id !== undefined && p.id !== activeId) {
             setActiveProject(p.id);
-            void msg.success(`Switched to ${p.name}`);
+            void msg.success(`Switched to ${p.name ?? 'project'}`);
           }
         },
       })),
