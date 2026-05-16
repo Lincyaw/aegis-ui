@@ -21,6 +21,20 @@ export {
 } from './lib/timeRange';
 export type { RelativeTimePreset, TimeRange } from './lib/timeRange';
 
+// LuceneQL — pure helpers used by QueryAutocomplete + sub-apps that
+// need to compile a search box value into ClickHouse SQL.
+export {
+  compileLuceneToSql,
+  replaceTokenAtCursor,
+  tokenizeAtCursor,
+} from './lib/luceneQuery';
+export type {
+  CompileOptions,
+  CompileResult,
+  CursorToken,
+  FieldMapping,
+} from './lib/luceneQuery';
+
 // Layouts
 export { PageWrapper } from './layouts/PageWrapper';
 export type { PageWrapperProps } from './layouts/PageWrapper';

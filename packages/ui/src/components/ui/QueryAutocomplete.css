@@ -1,0 +1,129 @@
+.aegis-query-ac {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-page);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  width: 100%;
+  min-width: 0;
+  transition: border-color var(--motion-fast);
+}
+
+.aegis-query-ac:focus-within {
+  border-color: var(--text-main);
+}
+
+.aegis-query-ac__input {
+  flex: 1 1 auto;
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  min-width: 0;
+}
+
+.aegis-query-ac__input::placeholder {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+}
+
+.aegis-query-ac__input:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.aegis-query-ac__help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: var(--fs-14);
+  cursor: help;
+  transition: color var(--motion-fast);
+}
+
+.aegis-query-ac__help-icon:hover {
+  color: var(--text-main);
+}
+
+.aegis-query-ac__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 20rem;
+  overflow-y: auto;
+  min-width: 18rem;
+}
+
+.aegis-query-ac__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  border-radius: var(--radius-sm);
+  transition: background var(--motion-fast);
+}
+
+.aegis-query-ac__item.is-active,
+.aegis-query-ac__item:hover {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-query-ac__item-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aegis-query-ac__item-hint {
+  font-family: var(--font-ui);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.aegis-query-ac__item.is-active .aegis-query-ac__item-hint,
+.aegis-query-ac__item:hover .aegis-query-ac__item-hint {
+  color: var(--text-on-inverted);
+  opacity: 0.7;
+}
+
+.aegis-query-ac__help {
+  border-collapse: collapse;
+  font-size: var(--fs-12);
+}
+
+.aegis-query-ac__help td {
+  padding: var(--space-1) var(--space-3) var(--space-1) 0;
+  vertical-align: top;
+}
+
+.aegis-query-ac__help-syntax {
+  font-family: var(--font-mono);
+  color: var(--text-on-inverted);
+  white-space: nowrap;
+}
+
+.aegis-query-ac__help-desc {
+  font-family: var(--font-ui);
+  color: var(--text-on-inverted);
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .aegis-query-ac {
+    width: 100%;
+  }
+}

@@ -56,6 +56,12 @@ export { Toolbar } from './Toolbar';
 export type { FilterChip, ToolbarProps } from './Toolbar';
 export { SearchInput } from './SearchInput';
 export type { SearchInputProps } from './SearchInput';
+export { QueryAutocomplete } from './QueryAutocomplete';
+export type {
+  QueryAutocompleteFieldSuggestion,
+  QueryAutocompleteProps,
+  QueryAutocompleteValueSuggestion,
+} from './QueryAutocomplete';
 export { MetadataList } from './MetadataList';
 export type { MetadataEntry, MetadataListProps } from './MetadataList';
 export { ObjectInspector } from './ObjectInspector';
