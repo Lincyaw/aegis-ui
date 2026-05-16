@@ -22,6 +22,7 @@ import { CaseMetaBar, MessageBlocks, SftRowDetail } from '../components';
 import {
   type CaseRepo,
   type CaseSftBundle,
+  probeBlobCaseRepo,
   probeHttpCaseRepo,
   restoreCasesRoot,
 } from '../repo';
@@ -957,6 +958,10 @@ export function CaseDetailPage(): ReactElement {
       if (http) {
         return http;
       }
+      const blob = probeBlobCaseRepo();
+      if (blob) {
+        return blob;
+      }
       return restoreCasesRoot();
     })()
       .then(async (repo) => {
@@ -965,7 +970,7 @@ export function CaseDetailPage(): ReactElement {
         }
         if (!repo) {
           setError(
-            'No backend connected. Configure a `llmharness serve` URL in Connection settings, or open a local cases root first.',
+            'No backend connected. Configure a `llmharness serve` URL, a blob root (bucket + prefix), or open a local cases root from the Cases list first.',
           );
           return;
         }
