@@ -2,58 +2,89 @@ import { useParams } from 'react-router-dom';
 
 import {
   EmptyState,
+  ErrorState,
   KeyValueList,
   MonoValue,
   PageHeader,
   Panel,
   PanelTitle,
-  Terminal,
-  type TerminalLine,
 } from '@lincyaw/aegis-ui';
 
 import { StatusChip } from '../components/StatusChip';
-import { useMockStore } from '../mocks';
+import { useExecutionDetail } from '../hooks/useExecutions';
 
 export default function ExecutionDetail() {
   const { executionId } = useParams<{ executionId: string }>();
-  const task = useMockStore((s) => s.tasks.find((t) => t.id === executionId));
+  const numericId = executionId ? Number(executionId) : undefined;
+  const { data, isLoading, isError, error } = useExecutionDetail(numericId);
 
-  if (!task) {
+  if (isLoading) {
     return (
       <div className='page-wrapper'>
         <PageHeader title={`Execution ${executionId ?? ''}`} />
         <Panel>
-          <EmptyState title='Not found' description='Unknown execution.' />
+          <EmptyState title='Loading…' description='Fetching execution.' />
         </Panel>
       </div>
     );
   }
 
-  const lines: TerminalLine[] = task.logs.map((l) => ({
-    ts: l.ts,
-    level: l.level,
-    body: l.body,
-  }));
+  if (isError || !data) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title={`Execution ${executionId ?? ''}`} />
+        <Panel>
+          <ErrorState
+            title='Not found'
+            description={error instanceof Error ? error.message : 'Unknown execution.'}
+          />
+        </Panel>
+      </div>
+    );
+  }
 
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={`Execution ${task.id}`}
-        description={`${task.kind} · ${task.parentLabel}`}
-        action={<StatusChip status={task.status} />}
+        title={`Execution ${String(data.id ?? '')}`}
+        description={`${data.algorithm_name ?? 'algorithm'} · ${data.datapack_name ?? 'datapack'}`}
+        action={<StatusChip status={data.state ?? data.status ?? 'pending'} />}
       />
       <Panel title={<PanelTitle size='base'>Origin</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'kind', v: task.kind },
-            { k: 'parent', v: <MonoValue size='sm'>{task.parentLabel}</MonoValue> },
-            { k: 'duration', v: `${(task.durationMs / 1000).toFixed(1)}s` },
+            { k: 'algorithm', v: data.algorithm_name ?? '—' },
+            { k: 'version', v: data.algorithm_version ?? '—' },
+            {
+              k: 'datapack',
+              v: <MonoValue size='sm'>{data.datapack_name ?? '—'}</MonoValue>,
+            },
+            {
+              k: 'task',
+              v: <MonoValue size='sm'>{data.task_id ?? '—'}</MonoValue>,
+            },
+            {
+              k: 'duration',
+              v: data.duration != null ? `${(data.duration / 1000).toFixed(1)}s` : '—',
+            },
           ]}
         />
       </Panel>
-      <Panel title={<PanelTitle size='base'>Logs</PanelTitle>}>
-        <Terminal lines={lines} />
-      </Panel>
+      {data.granularity_results && data.granularity_results.length > 0 && (
+        <Panel title={<PanelTitle size='base'>Granularity results</PanelTitle>}>
+          <KeyValueList
+            items={data.granularity_results.map((g) => ({
+              k: `${g.level} #${String(g.rank)}`,
+              v: (
+                <span>
+                  <MonoValue size='sm'>{g.result}</MonoValue>
+                  {g.confidence != null && ` (${(g.confidence * 100).toFixed(1)}%)`}
+                </span>
+              ),
+            }))}
+          />
+        </Panel>
+      )}
     </div>
   );
 }
