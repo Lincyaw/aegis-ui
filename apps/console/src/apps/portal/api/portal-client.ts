@@ -1,5 +1,8 @@
+import axios from 'axios';
 import {
   AuthenticationApi,
+  BlobApi,
+  ConfigCenterApi,
   Configuration,
   ContainersApi,
   DatasetsApi,
@@ -12,30 +15,57 @@ import {
   NotificationApi,
   ObservationApi,
   ProjectsApi,
+  SSOAdminApi,
+  SSOClientsApi,
+  ShareApi,
   TasksApi,
   TeamsApi,
   TracesApi,
 } from '@lincyaw/portal';
 
-const config = new Configuration({
-  basePath: '/api',
+import { readTokens } from '../../../auth/tokenStore';
+import { gatewayUrlFor } from '../../../config/runtime';
+
+const portalAxios = axios.create();
+
+portalAxios.interceptors.request.use((req) => {
+  const tokens = readTokens();
+  if (tokens?.accessToken) {
+    req.headers = req.headers ?? {};
+    (req.headers as Record<string, string>).authorization = `Bearer ${tokens.accessToken}`;
+  }
+  return req;
 });
 
-export const authenticationApi = new AuthenticationApi(config);
-export const containersApi = new ContainersApi(config);
-export const datasetsApi = new DatasetsApi(config);
-export const evaluationsApi = new EvaluationsApi(config);
-export const executionsApi = new ExecutionsApi(config);
-export const groupsApi = new GroupsApi(config);
-export const injectionsApi = new InjectionsApi(config);
-export const labelsApi = new LabelsApi(config);
-export const metricsApi = new MetricsApi(config);
-export const notificationsApi = new NotificationApi(config);
-export const observationApi = new ObservationApi(config);
-export const projectsApi = new ProjectsApi(config);
-export const tasksApi = new TasksApi(config);
-export const teamsApi = new TeamsApi(config);
-export const tracesApi = new TracesApi(config);
+const basePath = gatewayUrlFor('/api');
+
+const config = new Configuration({
+  basePath,
+  accessToken: () => readTokens()?.accessToken ?? '',
+});
+
+export const authenticationApi = new AuthenticationApi(config, basePath, portalAxios);
+export const blobApi = new BlobApi(config, basePath, portalAxios);
+export const configCenterApi = new ConfigCenterApi(config, basePath, portalAxios);
+export const containersApi = new ContainersApi(config, basePath, portalAxios);
+export const datasetsApi = new DatasetsApi(config, basePath, portalAxios);
+export const evaluationsApi = new EvaluationsApi(config, basePath, portalAxios);
+export const executionsApi = new ExecutionsApi(config, basePath, portalAxios);
+export const groupsApi = new GroupsApi(config, basePath, portalAxios);
+export const injectionsApi = new InjectionsApi(config, basePath, portalAxios);
+export const labelsApi = new LabelsApi(config, basePath, portalAxios);
+export const metricsApi = new MetricsApi(config, basePath, portalAxios);
+export const notificationsApi = new NotificationApi(config, basePath, portalAxios);
+export const observationApi = new ObservationApi(config, basePath, portalAxios);
+export const projectsApi = new ProjectsApi(config, basePath, portalAxios);
+export const shareApi = new ShareApi(config, basePath, portalAxios);
+export const ssoAdminApi = new SSOAdminApi(config, basePath, portalAxios);
+export const ssoClientsApi = new SSOClientsApi(config, basePath, portalAxios);
+export const tasksApi = new TasksApi(config, basePath, portalAxios);
+export const teamsApi = new TeamsApi(config, basePath, portalAxios);
+export const tracesApi = new TracesApi(config, basePath, portalAxios);
+
+export { portalAxios };
 
 export type {
   Configuration,
