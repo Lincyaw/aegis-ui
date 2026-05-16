@@ -9,7 +9,7 @@ import {
   InjectionsApi,
   LabelsApi,
   MetricsApi,
-  NotificationsApi,
+  NotificationApi,
   ObservationApi,
   ProjectsApi,
   TasksApi,
@@ -30,7 +30,7 @@ export const groupsApi = new GroupsApi(config);
 export const injectionsApi = new InjectionsApi(config);
 export const labelsApi = new LabelsApi(config);
 export const metricsApi = new MetricsApi(config);
-export const notificationsApi = new NotificationsApi(config);
+export const notificationsApi = new NotificationApi(config);
 export const observationApi = new ObservationApi(config);
 export const projectsApi = new ProjectsApi(config);
 export const tasksApi = new TasksApi(config);
@@ -41,6 +41,6 @@ export type {
   Configuration,
   ConfigurationParameters,
   ProjectProjectResp,
-  TaskTaskResp,
+  TaskResp,
   TraceTraceResp,
 } from '@lincyaw/portal';
