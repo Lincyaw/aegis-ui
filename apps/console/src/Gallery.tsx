@@ -4094,8 +4094,8 @@ function SavedQueryBarSpecimen(): ReactNode {
 
   useEffect(() => {
     try {
-      window.localStorage.removeItem('aegis.saved-queries.' + emptyNs);
-      const seededKey = 'aegis.saved-queries.' + seededNs;
+      window.localStorage.removeItem(`aegis.saved-queries.${emptyNs}`);
+      const seededKey = `aegis.saved-queries.${seededNs}`;
       if (window.localStorage.getItem(seededKey) === null) {
         const now = Date.now();
         const seed: SavedQuery[] = [
