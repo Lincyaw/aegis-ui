@@ -30,7 +30,7 @@ import type {
   SftRowBase,
   TrajectoryRow,
   VerdictRow,
-} from './types';
+} from './schemas';
 
 export interface CaseRepo {
   /** Cosmetic label shown in headers; not load-bearing. */

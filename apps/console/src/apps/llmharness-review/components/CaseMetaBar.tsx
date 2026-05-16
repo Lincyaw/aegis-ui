@@ -1,6 +1,6 @@
 import { Chip, MetricLabel, MonoValue, TimeDisplay } from '@lincyaw/aegis-ui';
 
-import type { CaseMeta } from '../types';
+import type { CaseMeta } from '../schemas';
 
 import './CaseMetaBar.css';
 

@@ -8,7 +8,7 @@ import {
   Tabs,
 } from '@lincyaw/aegis-ui';
 
-import type { SftRowBase } from '../types';
+import type { SftRowBase } from '../schemas';
 
 import './SftRowDetail.css';
 

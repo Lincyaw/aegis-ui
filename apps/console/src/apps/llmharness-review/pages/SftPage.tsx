@@ -30,7 +30,7 @@ import {
   pickSftRoot,
   restoreSftRoot,
 } from '../repo';
-import type { DroppedRow, SftRowBase } from '../types';
+import type { DroppedRow, SftRowBase } from '../schemas';
 
 import './SftPage.css';
 

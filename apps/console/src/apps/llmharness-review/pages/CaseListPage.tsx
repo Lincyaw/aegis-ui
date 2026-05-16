@@ -39,7 +39,7 @@ import {
   probeHttpCaseRepo,
   restoreCasesRoot,
 } from '../repo';
-import type { CaseSummary } from '../types';
+import type { CaseSummary } from '../schemas';
 
 function nsToMs(ns: number): number {
   return Math.round(ns / 1_000_000);

@@ -1,6 +1,6 @@
 import { Chip, KeyValueList, MetricLabel } from '@lincyaw/aegis-ui';
 
-import type { DroppedRow, SftRowBase } from '../types';
+import type { DroppedRow, SftRowBase } from '../schemas';
 
 import './SftStats.css';
 
