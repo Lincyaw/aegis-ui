@@ -26,12 +26,6 @@ const queryClient = new QueryClient({
 
 const DEFAULT_AGENTM_GATEWAY_URL = 'ws://127.0.0.1:7777/agentm';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { staleTime: 30_000, refetchOnWindowFocus: false, retry: 1 },
-  },
-});
-
 const agentmGatewayUrl =
   import.meta.env.VITE_AGENTM_GATEWAY_URL ?? DEFAULT_AGENTM_GATEWAY_URL;
 const agentmToken = import.meta.env.VITE_AGENTM_TOKEN;
