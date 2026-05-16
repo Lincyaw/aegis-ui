@@ -100,6 +100,8 @@ import {
   Toolbar,
   ToolCallCard,
   type ToolCallData,
+  TimelineChart,
+  type TimelineSpan,
   TrajectoryStep,
   type TrajectoryStepData,
   TrajectoryTimeline,
@@ -3671,6 +3673,21 @@ function App() {
           </Specimen>
         </div>
 
+<SectionDivider extra={<MetricLabel>flame / waterfall</MetricLabel>}>
+          TimelineChart
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen caption='8-span trace · depth tree' span={3}>
+            <TimelineChartDepthSpecimen />
+          </Specimen>
+          <Specimen caption='500 spans · virtualized · 3 kinds' span={3}>
+            <TimelineChartLargeSpecimen />
+          </Specimen>
+          <Specimen caption='selectable · click logs to console' span={3}>
+            <TimelineChartSelectableSpecimen />
+          </Specimen>
+        </div>
+
         <SectionDivider extra={<MetricLabel>drag · keyboard · persist</MetricLabel>}>
           ResizableSidePanel
         </SectionDivider>
@@ -4388,6 +4405,129 @@ function TraceTreeSpecimen(): ReactNode {
             data: { status: sp.status, durationMs: sp.durationMs },
           })),
         }),
+      }}
+    />
+  );
+}
+
+const NS_PER_MS = 1_000_000;
+
+const timelineDepthSpans: TimelineSpan[] = [
+  {
+    id: 'root',
+    label: 'http.request POST /v1/sessions',
+    startNs: 0,
+    durationNs: 1800 * NS_PER_MS,
+    depth: 0,
+    kind: 'http',
+    status: 'ok',
+  },
+  {
+    id: 'auth',
+    label: 'auth.verify_jwt',
+    startNs: 12 * NS_PER_MS,
+    durationNs: 84 * NS_PER_MS,
+    depth: 1,
+    kind: 'compute',
+    status: 'ok',
+  },
+  {
+    id: 'db.session.lookup',
+    label: 'db.session.lookup',
+    startNs: 110 * NS_PER_MS,
+    durationNs: 220 * NS_PER_MS,
+    depth: 1,
+    kind: 'db',
+    status: 'ok',
+  },
+  {
+    id: 'db.session.lookup.query',
+    label: 'pg.exec SELECT * FROM sessions',
+    startNs: 130 * NS_PER_MS,
+    durationNs: 180 * NS_PER_MS,
+    depth: 2,
+    kind: 'db',
+    status: 'ok',
+  },
+  {
+    id: 'llm.call',
+    label: 'llm.call gpt-5',
+    startNs: 340 * NS_PER_MS,
+    durationNs: 1200 * NS_PER_MS,
+    depth: 1,
+    kind: 'compute',
+    status: 'ok',
+  },
+  {
+    id: 'llm.call.tokenize',
+    label: 'tokenize',
+    startNs: 350 * NS_PER_MS,
+    durationNs: 40 * NS_PER_MS,
+    depth: 2,
+    kind: 'compute',
+    status: 'ok',
+  },
+  {
+    id: 'llm.call.network',
+    label: 'http.fetch openai',
+    startNs: 400 * NS_PER_MS,
+    durationNs: 1130 * NS_PER_MS,
+    depth: 2,
+    kind: 'http',
+    status: 'error',
+  },
+  {
+    id: 'persist',
+    label: 'db.session.update',
+    startNs: 1560 * NS_PER_MS,
+    durationNs: 220 * NS_PER_MS,
+    depth: 1,
+    kind: 'db',
+    status: 'ok',
+  },
+];
+
+function TimelineChartDepthSpecimen(): ReactNode {
+  return <TimelineChart spans={timelineDepthSpans} maxVisibleRows={10} />;
+}
+
+function makeLargeTimeline(): TimelineSpan[] {
+  const kinds = ['http', 'db', 'compute'] as const;
+  const spans: TimelineSpan[] = [];
+  let cursor = 0;
+  for (let i = 0; i < 500; i++) {
+    const kind = kinds[i % kinds.length] ?? 'compute';
+    const base = kind === 'http' ? 30 : kind === 'db' ? 12 : 5;
+    const dur = base * NS_PER_MS * (1 + (i % 7) * 0.15);
+    spans.push({
+      id: `s-${i}`,
+      label: `${kind}.op[${i}]`,
+      startNs: cursor,
+      durationNs: dur,
+      depth: i % 4,
+      kind,
+      status: i % 53 === 0 ? 'error' : 'ok',
+    });
+    cursor += dur * 0.6;
+  }
+  return spans;
+}
+
+function TimelineChartLargeSpecimen(): ReactNode {
+  const spans = useMemo(() => makeLargeTimeline(), []);
+  return <TimelineChart spans={spans} maxVisibleRows={12} />;
+}
+
+function TimelineChartSelectableSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string>('llm.call.network');
+  return (
+    <TimelineChart
+      spans={timelineDepthSpans}
+      selectedId={selected}
+      maxVisibleRows={10}
+      onSpanClick={(s) => {
+        setSelected(s.id);
+        console.warn('TimelineChart click:', s.id, s.label);
       }}
     />
   );
