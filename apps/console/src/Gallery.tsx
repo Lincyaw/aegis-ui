@@ -84,6 +84,8 @@ import {
   RegisterForm,
   ResizableSidePanel,
   Tabs as RosettaTabs,
+  SavedQueryBar,
+  type SavedQuery,
   SectionDivider,
   SettingsSection,
   SparkLine,
@@ -3346,6 +3348,11 @@ function App() {
         </SectionDivider>
         <QueryAutocompleteSpecimen />
 
+        <SectionDivider extra={<MetricLabel>localStorage · namespaced</MetricLabel>}>
+          SavedQueryBar
+        </SectionDivider>
+        <SavedQueryBarSpecimen />
+
         <SectionDivider extra={<MetricLabel>key/value metadata</MetricLabel>}>
           MetadataList
         </SectionDivider>
@@ -4033,6 +4040,111 @@ function QueryAutocompleteSpecimen(): ReactNode {
             null,
             2,
           )}\nreferencedFields = ${JSON.stringify(compiled.referencedFields)}`}
+        </pre>
+      </Specimen>
+    </div>
+  );
+}
+
+function SavedQueryBarSpecimen(): ReactNode {
+  const emptyNs = 'gallery.saved-queries.empty';
+  const seededNs = 'gallery.saved-queries.seeded';
+  const [emptyValue, setEmptyValue] = useState('status:queued');
+  const [seededValue, setSeededValue] = useState('service.name:checkout');
+  const [lastApplied, setLastApplied] = useState<SavedQuery | null>(null);
+
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem('aegis.saved-queries.' + emptyNs);
+      const seededKey = 'aegis.saved-queries.' + seededNs;
+      if (window.localStorage.getItem(seededKey) === null) {
+        const now = Date.now();
+        const seed: SavedQuery[] = [
+          {
+            id: 'seed-failed',
+            name: 'Failed runs · 24h',
+            value: 'status:failed AND ts:>now-24h',
+            pinned: true,
+            lastUsedAt: now - 1000,
+          },
+          {
+            id: 'seed-slow',
+            name: 'Slow traces',
+            value: 'duration:>1000ms',
+            pinned: true,
+            lastUsedAt: now - 2000,
+          },
+          {
+            id: 'seed-checkout',
+            name: 'Checkout errors',
+            value: 'service.name:checkout AND error:true',
+            pinned: false,
+            lastUsedAt: now - 3000,
+          },
+        ];
+        window.localStorage.setItem(seededKey, JSON.stringify(seed));
+      }
+    } catch {
+      /* localStorage unavailable in this environment */
+    }
+  }, []);
+
+  return (
+    <div className='gallery__row gallery__row--wide'>
+      <Specimen caption='empty · save current to seed' span={2}>
+        <SearchInput
+          value={emptyValue}
+          onChange={setEmptyValue}
+          placeholder='Try a query, then save it…'
+        />
+        <SavedQueryBar
+          namespace={emptyNs}
+          currentValue={emptyValue}
+          onApply={(q) => {
+            setEmptyValue(q.value);
+            setLastApplied(q);
+          }}
+        />
+      </Specimen>
+      <Specimen caption='seeded · 2 pinned + 1 unpinned' span={2}>
+        <SearchInput
+          value={seededValue}
+          onChange={setSeededValue}
+          placeholder='Search…'
+        />
+        <SavedQueryBar
+          namespace={seededNs}
+          currentValue={seededValue}
+          onApply={(q) => {
+            setSeededValue(q.value);
+            setLastApplied(q);
+          }}
+        />
+        <pre
+          style={{
+            marginTop: 'var(--space-2)',
+            padding: 'var(--space-2) var(--space-3)',
+            background: 'var(--bg-muted)',
+            border: 'var(--size-hairline) solid var(--border-hairline)',
+            borderRadius: 'var(--radius-sm)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--fs-11)',
+            color: 'var(--text-main)',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          }}
+        >
+          {lastApplied
+            ? `last applied = ${JSON.stringify(
+                {
+                  name: lastApplied.name,
+                  value: lastApplied.value,
+                  pinned: lastApplied.pinned,
+                },
+                null,
+                2,
+              )}`
+            : '(click a chip to apply)'}
         </pre>
       </Specimen>
     </div>

@@ -135,3 +135,5 @@ export type {
 } from './EnvironmentSwitcher';
 export { TimeRangePicker } from './TimeRangePicker';
 export type { TimeRangePickerProps } from './TimeRangePicker';
+export { SavedQueryBar } from './SavedQueryBar';
+export type { SavedQueryBarProps } from './SavedQueryBar';
