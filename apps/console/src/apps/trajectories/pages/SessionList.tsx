@@ -1,16 +1,18 @@
-import { type ReactElement, useEffect, useState } from 'react';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
   Chip,
-  DataTable,
-  type DataTableColumn,
+  compileLuceneToSql,
+  EventTable,
+  type EventTableColumn,
   ErrorState,
   MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
   parseTimeRangeInput,
+  QueryAutocomplete,
   TimeDisplay,
   TimeRangePicker,
   Toolbar,
@@ -20,6 +22,11 @@ import { parseAsString, useQueryState } from 'nuqs';
 import { listSessions, type SessionSummary } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
 import { formatDurationMs, formatTokens } from '../conversation';
+import {
+  SESSION_FIELD_MAPPINGS,
+  SESSION_FIELD_SUGGESTIONS,
+  suggestSessionFieldValues,
+} from '../sessionFields';
 
 const SINCE_PRESETS = [
   { label: '1h', value: 'now-1h' },
@@ -50,11 +57,35 @@ export function SessionList(): ReactElement {
       )
     : 168;
 
+  const compiled = useMemo(
+    () =>
+      compileLuceneToSql(search, {
+        fields: SESSION_FIELD_MAPPINGS,
+      }),
+    [search],
+  );
+
+  const whereParams = useMemo(() => {
+    // Strip Date-typed params — listSessions only ever needs primitives.
+    const out: Record<string, string | number | boolean> = {};
+    for (const [k, v] of Object.entries(compiled.params)) {
+      if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+        out[k] = v;
+      }
+    }
+    return out;
+  }, [compiled.params]);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    listSessions({ sinceHours, search, limit: 200 })
+    listSessions({
+      sinceHours,
+      whereSql: compiled.sql,
+      whereParams,
+      limit: 200,
+    })
       .then((data) => {
         if (!cancelled) {
           setRows(data);
@@ -73,9 +104,9 @@ export function SessionList(): ReactElement {
     return () => {
       cancelled = true;
     };
-  }, [sinceHours, search]);
+  }, [sinceHours, compiled.sql, whereParams]);
 
-  const columns: Array<DataTableColumn<SessionSummary>> = [
+  const columns: Array<EventTableColumn<SessionSummary>> = [
     {
       key: 'session',
       header: 'Agent tree',
@@ -193,11 +224,18 @@ export function SessionList(): ReactElement {
       }
     >
       <Toolbar
-        searchPlaceholder='session_id / trace_id / service'
-        searchValue={search}
-        onSearchChange={(v) => void setSearch(v)}
-        filters={[]}
-        action={
+        left={
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <QueryAutocomplete
+              value={search}
+              onChange={(v) => void setSearch(v)}
+              fieldSuggestions={SESSION_FIELD_SUGGESTIONS}
+              valueSuggestions={suggestSessionFieldValues}
+              placeholder='service.name:foo AND status:STATUS_CODE_ERROR'
+            />
+          </div>
+        }
+        right={
           <TimeRangePicker
             value={since}
             onChange={(v) => void setSince(v)}
@@ -205,18 +243,23 @@ export function SessionList(): ReactElement {
           />
         }
       />
+      {compiled.referencedFields.length > 0 && (
+        <MetricLabel size='xs' style={{ marginTop: 'var(--space-2)' }}>
+          {compiled.explanation}
+        </MetricLabel>
+      )}
       <div style={{ marginTop: 16 }}>
         {error ? (
           <ErrorState title='ClickHouse query failed' description={error} />
         ) : (
-          <DataTable
+          <EventTable
             columns={columns}
             data={rows}
             rowKey={(r) => r.rootSessionId}
             loading={loading}
             emptyTitle='No sessions in window'
             emptyDescription='Try widening the time range or clearing the search.'
-            persistKey='trajectories.sessions'
+            maxVisibleRows={20}
           />
         )}
       </div>

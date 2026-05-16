@@ -4,7 +4,7 @@ import type { SpanKind } from './spanKind';
 
 const STORAGE_KEY = 'aegis.trajectories.prefs.v1';
 
-export type PrimaryView = 'storyline' | 'trace';
+export type PrimaryView = 'storyline' | 'trace' | 'timeline';
 
 export interface CustomSpanRule {
   /** Substring match on SpanName. First matching rule wins. */

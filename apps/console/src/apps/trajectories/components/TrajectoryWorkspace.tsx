@@ -8,6 +8,8 @@ import {
   KeyValueList,
   MetricLabel,
   MonoValue,
+  TimelineChart,
+  type TimelineSpan,
   type TraceSpan,
   TraceTree,
 } from '@lincyaw/aegis-ui';
@@ -17,7 +19,7 @@ import { formatDurationMs } from '../conversation';
 import { type PrimaryView, useTrajectoriesPrefs } from '../prefs';
 import { useSelection } from '../selection';
 import { applySpanFilter } from '../spanFilter';
-import { spanDisplayName } from '../spanKind';
+import { classifyWithRules, spanDisplayName } from '../spanKind';
 import { useKeyboardNav } from '../useKeyboardNav';
 
 import { FilterToolbar } from './FilterToolbar';
@@ -50,6 +52,44 @@ function toTraceSpans(spans: SpanRow[]): TraceSpan[] {
     startMs: new Date(s.timestamp).getTime() - traceStartMs,
     durationMs: s.durationNs / 1_000_000,
     status: statusEnumToTone(s.statusCode),
+  }));
+}
+
+function statusEnumToTimelineStatus(code: string): TimelineSpan['status'] {
+  if (code === 'STATUS_CODE_ERROR') {
+    return 'error';
+  }
+  if (code === 'STATUS_CODE_OK') {
+    return 'ok';
+  }
+  return undefined;
+}
+
+function toTimelineSpans(
+  spans: SpanRow[],
+  customRules: ReturnType<typeof useTrajectoriesPrefs>['prefs']['customSpanRules'],
+): TimelineSpan[] {
+  if (spans.length === 0) {
+    return [];
+  }
+  // Build a parent-id → depth lookup so siblings stack neatly under their
+  // parent without re-running the tree walk on every render.
+  const idToDepth = new Map<string, number>();
+  for (const s of spans) {
+    if (!s.parentSpanId || !idToDepth.has(s.parentSpanId)) {
+      idToDepth.set(s.spanId, idToDepth.get(s.parentSpanId ?? '') ?? 0);
+    } else {
+      idToDepth.set(s.spanId, (idToDepth.get(s.parentSpanId) ?? -1) + 1);
+    }
+  }
+  return spans.map((s) => ({
+    id: s.spanId,
+    label: spanDisplayName(s),
+    startNs: new Date(s.timestamp).getTime() * 1_000_000,
+    durationNs: s.durationNs,
+    depth: idToDepth.get(s.spanId) ?? 0,
+    kind: classifyWithRules(s.name, customRules),
+    status: statusEnumToTimelineStatus(s.statusCode),
   }));
 }
 
@@ -105,6 +145,10 @@ export function TrajectoryWorkspace({
     [spans, prefs, selection.sessionId]
   );
   const treeSpans = useMemo(() => toTraceSpans(filteredSpans), [filteredSpans]);
+  const timelineSpans = useMemo(
+    () => toTimelineSpans(filteredSpans, prefs.customSpanRules),
+    [filteredSpans, prefs.customSpanRules],
+  );
   const selectedSpan = useMemo(
     () => spans.find((s) => s.spanId === selection.spanId),
     [spans, selection.spanId]
@@ -180,6 +224,7 @@ export function TrajectoryWorkspace({
               onViewChange={(v) => setSelection({ view: v })}
               filteredSpans={filteredSpans}
               treeSpans={treeSpans}
+              timelineSpans={timelineSpans}
               selectedSpanId={selection.spanId}
               onSelectSpan={(spanId) => setSelection({ spanId })}
               customRules={prefs.customSpanRules}
@@ -218,6 +263,7 @@ function CenterPane({
   onViewChange,
   filteredSpans,
   treeSpans,
+  timelineSpans,
   selectedSpanId,
   onSelectSpan,
   customRules,
@@ -226,6 +272,7 @@ function CenterPane({
   onViewChange: (v: PrimaryView) => void;
   filteredSpans: SpanRow[];
   treeSpans: TraceSpan[];
+  timelineSpans: TimelineSpan[];
   selectedSpanId: string;
   onSelectSpan: (id: string) => void;
   customRules: ReturnType<
@@ -235,7 +282,7 @@ function CenterPane({
   return (
     <>
       <div className='trajectories-detail__view-tabs'>
-        {(['storyline', 'trace'] as const).map((v) => (
+        {(['storyline', 'trace', 'timeline'] as const).map((v) => (
           <button
             type='button'
             key={v}
@@ -252,19 +299,30 @@ function CenterPane({
         </span>
       </div>
       <div className='trajectories-detail__view-body'>
-        {view === 'storyline' ? (
+        {view === 'storyline' && (
           <Storyline
             spans={filteredSpans}
             selectedSpanId={selectedSpanId}
             onSelectSpan={onSelectSpan}
             customRules={customRules}
           />
-        ) : (
+        )}
+        {view === 'trace' && (
           <div style={{ padding: 'var(--space-3)' }}>
             <TraceTree
               spans={treeSpans}
               selectedId={selectedSpanId}
               onSelect={(s) => onSelectSpan(s.id)}
+            />
+          </div>
+        )}
+        {view === 'timeline' && (
+          <div style={{ padding: 'var(--space-3)' }}>
+            <TimelineChart
+              spans={timelineSpans}
+              selectedId={selectedSpanId}
+              onSpanClick={(s) => onSelectSpan(s.id)}
+              maxVisibleRows={24}
             />
           </div>
         )}

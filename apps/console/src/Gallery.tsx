@@ -83,7 +83,12 @@ import {
   type QueryAutocompleteValueSuggestion,
   RegisterForm,
   ResizableSidePanel,
+  ServiceMap,
+  type ServiceMapEdge,
+  type ServiceMapNode,
   Tabs as RosettaTabs,
+  SavedQueryBar,
+  type SavedQuery,
   SearchInput,
   type SearchProvider,
   SectionDivider,
@@ -92,6 +97,7 @@ import {
   Skeleton,
   SkeletonText,
   SparkLine,
+  type CodeEditorField,
   StatBlock,
   StatusDot,
   Terminal,
@@ -3547,6 +3553,11 @@ function App() {
         </SectionDivider>
         <QueryAutocompleteSpecimen />
 
+        <SectionDivider extra={<MetricLabel>localStorage · namespaced</MetricLabel>}>
+          SavedQueryBar
+        </SectionDivider>
+        <SavedQueryBarSpecimen />
+
         <SectionDivider extra={<MetricLabel>key/value metadata</MetricLabel>}>
           MetadataList
         </SectionDivider>
@@ -3816,6 +3827,12 @@ function App() {
               height={160}
             />
           </Specimen>
+          <Specimen
+            caption='sql · field+table autocomplete · Cmd+Enter submit'
+            span={3}
+          >
+            <SqlCodeEditorSpecimen />
+          </Specimen>
         </div>
 
         <SectionDivider
@@ -3946,6 +3963,24 @@ function App() {
           </Specimen>
           <Specimen caption='selectable · click logs to console' span={3}>
             <TimelineChartSelectableSpecimen />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>dagre · xyflow</MetricLabel>}>
+          ServiceMap
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen caption='microservice topology · LR · status mix' span={3}>
+            <ServiceMapMicroSpecimen />
+          </Specimen>
+          <Specimen
+            caption='AgentM session DAG · TB · root → turns → tools'
+            span={3}
+          >
+            <ServiceMapAgentSpecimen />
+          </Specimen>
+          <Specimen caption='single-node degenerate case' span={3}>
+            <ServiceMapSingleSpecimen />
           </Specimen>
         </div>
 
@@ -4321,6 +4356,156 @@ function QueryAutocompleteSpecimen(): ReactNode {
         </pre>
       </Specimen>
     </div>
+  );
+}
+
+function SavedQueryBarSpecimen(): ReactNode {
+  const emptyNs = 'gallery.saved-queries.empty';
+  const seededNs = 'gallery.saved-queries.seeded';
+  const [emptyValue, setEmptyValue] = useState('status:queued');
+  const [seededValue, setSeededValue] = useState('service.name:checkout');
+  const [lastApplied, setLastApplied] = useState<SavedQuery | null>(null);
+
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem(`aegis.saved-queries.${emptyNs}`);
+      const seededKey = `aegis.saved-queries.${seededNs}`;
+      if (window.localStorage.getItem(seededKey) === null) {
+        const now = Date.now();
+        const seed: SavedQuery[] = [
+          {
+            id: 'seed-failed',
+            name: 'Failed runs · 24h',
+            value: 'status:failed AND ts:>now-24h',
+            pinned: true,
+            lastUsedAt: now - 1000,
+          },
+          {
+            id: 'seed-slow',
+            name: 'Slow traces',
+            value: 'duration:>1000ms',
+            pinned: true,
+            lastUsedAt: now - 2000,
+          },
+          {
+            id: 'seed-checkout',
+            name: 'Checkout errors',
+            value: 'service.name:checkout AND error:true',
+            pinned: false,
+            lastUsedAt: now - 3000,
+          },
+        ];
+        window.localStorage.setItem(seededKey, JSON.stringify(seed));
+      }
+    } catch {
+      /* localStorage unavailable in this environment */
+    }
+  }, []);
+
+  return (
+    <div className='gallery__row gallery__row--wide'>
+      <Specimen caption='empty · save current to seed' span={2}>
+        <SearchInput
+          value={emptyValue}
+          onChange={setEmptyValue}
+          placeholder='Try a query, then save it…'
+        />
+        <SavedQueryBar
+          namespace={emptyNs}
+          currentValue={emptyValue}
+          onApply={(q) => {
+            setEmptyValue(q.value);
+            setLastApplied(q);
+          }}
+        />
+      </Specimen>
+      <Specimen caption='seeded · 2 pinned + 1 unpinned' span={2}>
+        <SearchInput
+          value={seededValue}
+          onChange={setSeededValue}
+          placeholder='Search…'
+        />
+        <SavedQueryBar
+          namespace={seededNs}
+          currentValue={seededValue}
+          onApply={(q) => {
+            setSeededValue(q.value);
+            setLastApplied(q);
+          }}
+        />
+        <pre
+          style={{
+            marginTop: 'var(--space-2)',
+            padding: 'var(--space-2) var(--space-3)',
+            background: 'var(--bg-muted)',
+            border: 'var(--size-hairline) solid var(--border-hairline)',
+            borderRadius: 'var(--radius-sm)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--fs-11)',
+            color: 'var(--text-main)',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          }}
+        >
+          {lastApplied
+            ? `last applied = ${JSON.stringify(
+                {
+                  name: lastApplied.name,
+                  value: lastApplied.value,
+                  pinned: lastApplied.pinned,
+                },
+                null,
+                2,
+              )}`
+            : '(click a chip to apply)'}
+        </pre>
+      </Specimen>
+    </div>
+  );
+}
+
+const SQL_EDITOR_FIELDS: CodeEditorField[] = [
+  { name: 'TraceId' },
+  { name: 'SpanName' },
+  { name: 'Duration', type: 'UInt64' },
+  { name: 'StatusCode', type: 'String' },
+];
+
+function SqlCodeEditorSpecimen(): ReactNode {
+  const [value, setValue] = useState(
+    'SELECT TraceId, SpanName\nFROM otel_traces\nWHERE Duration > 1000',
+  );
+  const [submitted, setSubmitted] = useState<string | null>(null);
+  return (
+    <>
+      <CodeEditor
+        value={value}
+        language='sql'
+        onChange={setValue}
+        onSubmit={setSubmitted}
+        fields={SQL_EDITOR_FIELDS}
+        tables={['otel_traces', 'otel_logs', 'otel_metrics']}
+        height={160}
+      />
+      <pre
+        style={{
+          marginTop: 'var(--space-2)',
+          padding: 'var(--space-2) var(--space-3)',
+          background: 'var(--bg-muted)',
+          border: 'var(--size-hairline) solid var(--border-hairline)',
+          borderRadius: 'var(--radius-sm)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--fs-11)',
+          color: 'var(--text-main)',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        }}
+      >
+        {submitted == null
+          ? 'press Cmd+Enter / Ctrl+Enter to submit'
+          : `submitted → ${submitted}`}
+      </pre>
+    </>
   );
 }
 
@@ -4829,6 +5014,107 @@ function TimelineChartSelectableSpecimen(): ReactNode {
         setSelected(s.id);
         console.warn('TimelineChart click:', s.id, s.label);
       }}
+    />
+  );
+}
+
+const SERVICE_MAP_MICRO_NODES: ServiceMapNode[] = [
+  { id: 'gateway', label: 'gateway', sublabel: 'edge · 4 pods', status: 'ok' },
+  { id: 'auth', label: 'auth-service', sublabel: 'p99 142ms', status: 'ok' },
+  {
+    id: 'orders',
+    label: 'orders-service',
+    sublabel: 'p99 980ms',
+    status: 'warn',
+    badge: 12,
+  },
+  {
+    id: 'inventory',
+    label: 'inventory-service',
+    sublabel: '5xx 4.2%',
+    status: 'error',
+    badge: 87,
+  },
+  { id: 'cache', label: 'redis', sublabel: 'cache', status: 'muted' },
+  { id: 'db', label: 'postgres', sublabel: 'primary', status: 'ok' },
+];
+
+const SERVICE_MAP_MICRO_EDGES: ServiceMapEdge[] = [
+  { id: 'e1', source: 'gateway', target: 'auth', label: '1.2k/s', status: 'ok' },
+  { id: 'e2', source: 'gateway', target: 'orders', label: '820/s', status: 'warn' },
+  { id: 'e3', source: 'gateway', target: 'inventory', label: '610/s', status: 'error' },
+  { id: 'e4', source: 'orders', target: 'inventory', label: '410/s', status: 'error' },
+  { id: 'e5', source: 'orders', target: 'cache', label: '2.4k/s', status: 'muted' },
+  { id: 'e6', source: 'inventory', target: 'db', label: '610/s', status: 'ok' },
+  { id: 'e7', source: 'auth', target: 'db', label: '200/s', status: 'ok' },
+];
+
+function ServiceMapMicroSpecimen(): ReactNode {
+  return (
+    <ServiceMap
+      nodes={SERVICE_MAP_MICRO_NODES}
+      edges={SERVICE_MAP_MICRO_EDGES}
+      height={420}
+      selectedNodeId='inventory'
+    />
+  );
+}
+
+function buildAgentDag(): { nodes: ServiceMapNode[]; edges: ServiceMapEdge[] } {
+  const nodes: ServiceMapNode[] = [
+    { id: 'root', label: 'agent · root', sublabel: 'session#42', status: 'ok' },
+  ];
+  const edges: ServiceMapEdge[] = [];
+  for (let t = 1; t <= 4; t += 1) {
+    const turnId = `turn-${String(t)}`;
+    const turnStatus: ServiceMapNode['status'] = t === 3 ? 'warn' : 'ok';
+    nodes.push({
+      id: turnId,
+      label: `turn ${String(t)}`,
+      sublabel: t === 3 ? 'retry · throttled' : 'tool plan',
+      status: turnStatus,
+    });
+    edges.push({ id: `r-${turnId}`, source: 'root', target: turnId, status: turnStatus });
+    const toolCount = t === 4 ? 1 : t === 1 ? 3 : 2;
+    for (let i = 0; i < toolCount; i += 1) {
+      const toolId = `${turnId}-tool-${String(i)}`;
+      const isErr = t === 3 && i === 0;
+      nodes.push({
+        id: toolId,
+        label: isErr ? 'fs.write' : 'bash.exec',
+        sublabel: isErr ? 'EACCES' : `tool#${String(i + 1)}`,
+        status: isErr ? 'error' : 'ok',
+        badge: isErr ? 'fail' : undefined,
+      });
+      edges.push({
+        id: `${turnId}-e-${String(i)}`,
+        source: turnId,
+        target: toolId,
+        status: isErr ? 'error' : 'ok',
+      });
+    }
+  }
+  return { nodes, edges };
+}
+
+function ServiceMapAgentSpecimen(): ReactNode {
+  const { nodes, edges } = buildAgentDag();
+  return <ServiceMap nodes={nodes} edges={edges} direction='TB' height={460} />;
+}
+
+function ServiceMapSingleSpecimen(): ReactNode {
+  return (
+    <ServiceMap
+      nodes={[
+        {
+          id: 'only',
+          label: 'orphan-service',
+          sublabel: 'no callers',
+          status: 'muted',
+        },
+      ]}
+      edges={[]}
+      height={300}
     />
   );
 }

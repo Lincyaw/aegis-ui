@@ -112,7 +112,11 @@ export type { FileDropzoneItem } from './FileDropzone';
 export { FilePreview } from './FilePreview';
 export type { FilePreviewSurface } from './FilePreview';
 export { CodeEditor } from './CodeEditor';
-export type { CodeEditorLanguage, CodeEditorSurface } from './CodeEditor';
+export type {
+  CodeEditorField,
+  CodeEditorLanguage,
+  CodeEditorSurface,
+} from './CodeEditor';
 export { DiffViewer } from './DiffViewer';
 export type { DiffViewerSurface } from './DiffViewer';
 export { Timeline } from './Timeline';
@@ -138,3 +142,13 @@ export type {
 } from './EnvironmentSwitcher';
 export { TimeRangePicker } from './TimeRangePicker';
 export type { TimeRangePickerProps } from './TimeRangePicker';
+export { ServiceMap } from './ServiceMap';
+export type {
+  ServiceMapDirection,
+  ServiceMapEdge,
+  ServiceMapNode,
+  ServiceMapProps,
+  ServiceMapStatus,
+} from './ServiceMap';
+export { SavedQueryBar } from './SavedQueryBar';
+export type { SavedQueryBarProps } from './SavedQueryBar';

@@ -18,7 +18,7 @@ interface ChJsonResponse<T> {
 
 async function chQuery<TRow = unknown>(
   sql: string,
-  params: Record<string, string | number> = {}
+  params: Record<string, string | number | boolean> = {}
 ): Promise<TRow[]> {
   const cfg = getRuntimeConfig();
   const search = new URLSearchParams();
@@ -141,27 +141,29 @@ interface RawSpan {
 
 /* ── Queries ─────────────────────────────────────────────────────────── */
 
+export interface ListSessionsOpts {
+  limit?: number;
+  sinceHours?: number;
+  /** Pre-compiled SQL WHERE fragment (without the leading WHERE/AND). */
+  whereSql?: string;
+  /** Bound parameters keyed to match {name:Type} refs inside whereSql. */
+  whereParams?: Record<string, string | number | boolean>;
+}
+
 export async function listSessions(
-  opts: {
-    limit?: number;
-    sinceHours?: number;
-    search?: string;
-  } = {}
+  opts: ListSessionsOpts = {}
 ): Promise<SessionSummary[]> {
   const limit = opts.limit ?? 100;
   const sinceHours = opts.sinceHours ?? 168;
-  const search = opts.search?.trim() ?? '';
+  const whereSql = opts.whereSql?.trim() ?? '';
+  const whereParams = opts.whereParams ?? {};
   // Group by `agentm.root_session_id` so each row represents one whole
   // agent tree (orchestrator + all in-process / cross-process children).
   // Reading from arbitrary spans (not just SpanName='agentm.session') means
   // in-flight trees show up immediately, before the orchestrator's session
   // span has ended.
   const tbl = getRuntimeConfig().clickhouseTracesTable;
-  const searchClause = search
-    ? `AND (positionCaseInsensitive(SpanAttributes['agentm.root_session_id'], {search:String}) > 0
-          OR positionCaseInsensitive(TraceId, {search:String}) > 0
-          OR positionCaseInsensitive(ServiceName, {search:String}) > 0)`
-    : '';
+  const searchClause = whereSql ? `AND (${whereSql})` : '';
   // Group by TraceId. With standard W3C propagation, every span in one
   // agent tree (orchestrator + in-process children + cross-process
   // children whose embedder set TRACEPARENT) shares one TraceId, so
@@ -210,7 +212,7 @@ FORMAT JSON`;
   const rows = await chQuery<RawSession>(sql, {
     limit,
     sinceHours,
-    ...(search ? { search } : {}),
+    ...whereParams,
   });
   return rows.map((r) => ({
     rootSessionId: r.root_session_id,
