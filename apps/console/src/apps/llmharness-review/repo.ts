@@ -32,11 +32,18 @@ import {
   type GraphSnapshotFile,
   type MainAgentMessage,
   type MainTurn,
+  type SftRow,
   type SftRowBase,
   type TrajectoryRow,
   type VerdictRow,
   computeCaseLinks,
 } from './schemas';
+
+export interface CaseSftBundle {
+  extractor: SftRow[];
+  auditor: SftRow[];
+  dropped: DroppedRow[];
+}
 
 export interface CaseRepo {
   /** Cosmetic label shown in headers; not load-bearing. */
@@ -59,6 +66,13 @@ export interface CaseRepo {
    *  CaseBundle, computing the cross-pane link index in one place. SFT is
    *  excluded (different backends source it differently); pages load it lazily. */
   loadBundle(caseId: string): Promise<CaseBundle>;
+  /** Lazy per-case SFT slice. Returns `null` when SFT isn't available for this
+   *  backend; callers should render an "SFT not available" state rather than
+   *  treat that as an error. */
+  loadSftForCase(
+    caseId: string,
+    rootSessionId: string,
+  ): Promise<CaseSftBundle | null>;
 }
 
 function parseFiringFileName(
@@ -290,6 +304,25 @@ export class FSAccessCaseRepo implements CaseRepo {
 
   loadBundle(caseId: string): Promise<CaseBundle> {
     return loadBundleViaRepo(this, caseId);
+  }
+
+  async loadSftForCase(caseId: string): Promise<CaseSftBundle | null> {
+    const dir = await this.caseDir(caseId);
+    let sftDir: FileSystemDirectoryHandleLike;
+    try {
+      sftDir = await dir.getDirectoryHandle('sft');
+    } catch {
+      return null;
+    }
+    const [extractor, auditor, dropped] = await Promise.all([
+      readJsonlOrEmpty<SftRow>(sftDir, 'extractor.jsonl'),
+      readJsonlOrEmpty<SftRow>(sftDir, 'auditor.jsonl'),
+      readJsonlOrEmpty<DroppedRow>(sftDir, 'dropped.jsonl'),
+    ]);
+    if (extractor.length === 0 && auditor.length === 0 && dropped.length === 0) {
+      return null;
+    }
+    return { extractor, auditor, dropped };
   }
 }
 
@@ -558,6 +591,17 @@ export class HttpCaseRepo implements CaseRepo {
   loadBundle(caseId: string): Promise<CaseBundle> {
     return loadBundleViaRepo(this, caseId);
   }
+
+  async loadSftForCase(caseId: string): Promise<CaseSftBundle | null> {
+    const r = await fetch(`${this.base}/api/cases/${encodeURIComponent(caseId)}/sft`);
+    if (r.status === 404) {
+      return null;
+    }
+    if (!r.ok) {
+      throw new Error(`GET /api/cases/${caseId}/sft → ${r.status}`);
+    }
+    return (await r.json()) as CaseSftBundle;
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -723,6 +767,37 @@ export class BlobCaseRepo implements CaseRepo {
 
   loadBundle(caseId: string): Promise<CaseBundle> {
     return loadBundleViaRepo(this, caseId);
+  }
+
+  async loadSftForCase(
+    caseId: string,
+    rootSessionId: string,
+  ): Promise<CaseSftBundle | null> {
+    // Per-case sibling first: `<prefix><caseId>/sft/*.jsonl`.
+    const perCasePrefix = `${this.prefix}${caseId}/sft/`;
+    const [pcExt, pcAud, pcDrop] = await Promise.all([
+      this.getJsonlOrEmpty<SftRow>(`${perCasePrefix}extractor.jsonl`),
+      this.getJsonlOrEmpty<SftRow>(`${perCasePrefix}auditor.jsonl`),
+      this.getJsonlOrEmpty<DroppedRow>(`${perCasePrefix}dropped.jsonl`),
+    ]);
+    if (pcExt.length > 0 || pcAud.length > 0 || pcDrop.length > 0) {
+      return { extractor: pcExt, auditor: pcAud, dropped: pcDrop };
+    }
+
+    // Fallback: global flat at `<prefix>sft/*.jsonl`, filtered by root session.
+    const globalPrefix = `${this.prefix}sft/`;
+    const [gExt, gAud, gDrop] = await Promise.all([
+      this.getJsonlOrEmpty<SftRow>(`${globalPrefix}extractor.jsonl`),
+      this.getJsonlOrEmpty<SftRow>(`${globalPrefix}auditor.jsonl`),
+      this.getJsonlOrEmpty<DroppedRow>(`${globalPrefix}dropped.jsonl`),
+    ]);
+    const extractor = gExt.filter((r) => r.root_session_id === rootSessionId);
+    const auditor = gAud.filter((r) => r.root_session_id === rootSessionId);
+    const dropped = gDrop.filter((r) => r.root_session_id === rootSessionId);
+    if (extractor.length === 0 && auditor.length === 0 && dropped.length === 0) {
+      return null;
+    }
+    return { extractor, auditor, dropped };
   }
 }
 

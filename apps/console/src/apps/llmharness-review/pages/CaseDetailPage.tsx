@@ -19,11 +19,15 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { CaseMetaBar, MessageBlocks, SftRowDetail } from '../components';
-import { type CaseRepo, probeHttpCaseRepo, restoreCasesRoot } from '../repo';
+import {
+  type CaseRepo,
+  type CaseSftBundle,
+  probeHttpCaseRepo,
+  restoreCasesRoot,
+} from '../repo';
 import type {
   AuditorFiring,
   CaseBundle,
-  DroppedRow,
   ExtractorEvent,
   ExtractorFiring,
   Finding,
@@ -695,24 +699,64 @@ function AuditorColumn({ bundle }: { bundle: CaseBundle }): ReactElement {
 
 // --- SFT drawer ----------------------------------------------------------
 
-interface SftBundle {
-  extractor: SftRow[];
-  auditor: SftRow[];
-  dropped: DroppedRow[];
+type SftLoadState =
+  | { kind: 'idle' }
+  | { kind: 'loading' }
+  | { kind: 'loaded'; sft: CaseSftBundle }
+  | { kind: 'unavailable' }
+  | { kind: 'error'; message: string };
+
+interface SftDrawerProps {
+  repo: CaseRepo;
+  caseId: string;
+  rootSessionId: string;
 }
 
-function SftDrawer({ sft }: { sft: SftBundle | null }): ReactElement {
+function SftDrawer({ repo, caseId, rootSessionId }: SftDrawerProps): ReactElement {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<'extractor' | 'auditor' | 'dropped'>(
     'extractor',
   );
   const [selected, setSelected] = useState<SftRow | null>(null);
+  const [load, setLoad] = useState<SftLoadState>({ kind: 'idle' });
 
-  const counts = {
-    extractor: sft?.extractor.length ?? 0,
-    auditor: sft?.auditor.length ?? 0,
-    dropped: sft?.dropped.length ?? 0,
-  };
+  useEffect(() => {
+    if (!open || load.kind !== 'idle') {
+      return undefined;
+    }
+    let cancelled = false;
+    setLoad({ kind: 'loading' });
+    repo
+      .loadSftForCase(caseId, rootSessionId)
+      .then((res) => {
+        if (cancelled) {
+          return;
+        }
+        if (!res) {
+          setLoad({ kind: 'unavailable' });
+        } else {
+          setLoad({ kind: 'loaded', sft: res });
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setLoad({
+            kind: 'error',
+            message: err instanceof Error ? err.message : String(err),
+          });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, load.kind, repo, caseId, rootSessionId]);
+
+  const sft = load.kind === 'loaded' ? load.sft : null;
+
+  const counts =
+    sft !== null
+      ? `${sft.extractor.length} ext · ${sft.auditor.length} aud · ${sft.dropped.length} dropped`
+      : '—';
 
   const rows: SftRow[] = useMemo(() => {
     if (!sft) {
@@ -737,18 +781,21 @@ function SftDrawer({ sft }: { sft: SftBundle | null }): ReactElement {
         }}
       >
         <span>{open ? '▼' : '▶'} SFT export</span>
-        <MetricLabel size='xs'>
-          {counts.extractor} ext · {counts.auditor} aud · {counts.dropped}{' '}
-          dropped
-        </MetricLabel>
+        <MetricLabel size='xs'>{counts}</MetricLabel>
       </button>
       {open && (
         <div className='llmh-cdp__sft-body'>
-          {!sft ? (
+          {load.kind === 'loading' ? (
+            <EmptyState title='Loading SFT…' />
+          ) : load.kind === 'unavailable' ? (
             <EmptyState
               title='SFT not available'
-              description='No sft/ directory found alongside this case.'
+              description='No sft/ directory or endpoint found for this case.'
             />
+          ) : load.kind === 'error' ? (
+            <ErrorState title='Failed to load SFT' description={load.message} />
+          ) : !sft ? (
+            <EmptyState title='SFT not available' />
           ) : (
             <>
               <div className='llmh-cdp__chip-row' style={{ marginBottom: 8 }}>
@@ -759,7 +806,7 @@ function SftDrawer({ sft }: { sft: SftBundle | null }): ReactElement {
                     setSelected(null);
                   }}
                 >
-                  extractor ({counts.extractor})
+                  extractor ({sft.extractor.length})
                 </Chip>
                 <Chip
                   tone={tab === 'auditor' ? 'ink' : 'default'}
@@ -768,7 +815,7 @@ function SftDrawer({ sft }: { sft: SftBundle | null }): ReactElement {
                     setSelected(null);
                   }}
                 >
-                  auditor ({counts.auditor})
+                  auditor ({sft.auditor.length})
                 </Chip>
                 <Chip
                   tone={tab === 'dropped' ? 'ink' : 'default'}
@@ -777,7 +824,7 @@ function SftDrawer({ sft }: { sft: SftBundle | null }): ReactElement {
                     setSelected(null);
                   }}
                 >
-                  dropped ({counts.dropped})
+                  dropped ({sft.dropped.length})
                 </Chip>
               </div>
               {tab === 'dropped' ? (
@@ -829,8 +876,9 @@ function SftDrawer({ sft }: { sft: SftBundle | null }): ReactElement {
 // --- Page root -----------------------------------------------------------
 
 interface LoadedCase {
+  repo: CaseRepo;
+  caseId: string;
   bundle: CaseBundle;
-  sft: SftBundle | null;
 }
 
 function ColumnHeader({ children }: { children: ReactNode }): ReactElement {
@@ -871,7 +919,11 @@ function CaseDetailBody({ data }: { data: LoadedCase }): ReactElement {
           </div>
         </div>
       </div>
-      <SftDrawer sft={data.sft} />
+      <SftDrawer
+        repo={data.repo}
+        caseId={data.caseId}
+        rootSessionId={data.bundle.meta.root_session_id}
+      />
     </div>
   );
 }
@@ -908,7 +960,7 @@ export function CaseDetailPage(): ReactElement {
         if (cancelled) {
           return;
         }
-        setData({ bundle, sft: null });
+        setData({ repo, caseId, bundle });
       })
       .catch((err: unknown) => {
         if (!cancelled) {
