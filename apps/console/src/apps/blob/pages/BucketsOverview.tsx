@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-
 import { useNavigate } from 'react-router-dom';
 
 import { PlusOutlined } from '@ant-design/icons';
-import { App as AntdApp, Button, Input, Modal, Select } from 'antd';
-
 import {
   BucketCard,
   EmptyState,
@@ -15,6 +12,7 @@ import {
   Toolbar,
   useActiveApp,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Button, Input, Modal, Select } from 'antd';
 
 import { ApiError } from '../../../api/apiClient';
 import {
@@ -114,8 +112,8 @@ export default function BucketsOverview() {
   return (
     <>
       <PageHeader
-        title="Files"
-        description="Browse, upload, and share objects across aegis-blob buckets."
+        title='Files'
+        description='Browse, upload, and share objects across aegis-blob buckets.'
       />
 
       <Toolbar
@@ -123,15 +121,17 @@ export default function BucketsOverview() {
           <SearchInput
             value={search}
             onChange={setSearch}
-            placeholder="Search buckets…"
-            onClear={() => { setSearch(''); }}
+            placeholder='Search buckets…'
+            onClear={() => {
+              setSearch('');
+            }}
           />
         }
         center={
           <Select<SortKey>
             value={sort}
             onChange={setSort}
-            size="small"
+            size='small'
             options={[
               { value: 'name-asc', label: 'Name A→Z' },
               { value: 'name-desc', label: 'Name Z→A' },
@@ -154,7 +154,7 @@ export default function BucketsOverview() {
       {error !== null ? (
         <Panel>
           <ErrorState
-            title="Could not list buckets"
+            title='Could not list buckets'
             description={error}
             action={
               <Button
@@ -207,7 +207,7 @@ export default function BucketsOverview() {
       ) : null}
 
       <Modal
-        title="New bucket"
+        title='New bucket'
         open={createOpen}
         onCancel={() => {
           setCreateOpen(false);
@@ -218,17 +218,29 @@ export default function BucketsOverview() {
         onOk={() => {
           void handleCreate();
         }}
-        okText="Create"
+        okText='Create'
         confirmLoading={createLoading}
         destroyOnClose
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-3)',
+          }}
+        >
           <div>
-            <label style={{ display: 'block', marginBottom: 'var(--space-1)', color: 'var(--text-muted)' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: 'var(--space-1)',
+                color: 'var(--text-muted)',
+              }}
+            >
               Bucket name
             </label>
             <Input
-              placeholder="my-bucket"
+              placeholder='my-bucket'
               value={newName}
               onChange={(e) => {
                 setNewName(e.target.value);
@@ -239,7 +251,13 @@ export default function BucketsOverview() {
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: 'var(--space-1)', color: 'var(--text-muted)' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: 'var(--space-1)',
+                color: 'var(--text-muted)',
+              }}
+            >
               Driver
             </label>
             <Select<Driver>

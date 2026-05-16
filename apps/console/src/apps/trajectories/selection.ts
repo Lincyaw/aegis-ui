@@ -59,7 +59,7 @@ function selectionToHash(sel: Selection): string {
  */
 export function useSelection(
   defaultView: PrimaryView,
-  urlSync = true,
+  urlSync = true
 ): {
   selection: Selection;
   setSelection: (patch: Partial<Selection>) => void;

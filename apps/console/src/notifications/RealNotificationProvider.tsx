@@ -15,8 +15,6 @@ import {
   useAuth,
 } from '@lincyaw/aegis-ui';
 
-import { gatewayUrlFor } from '../config/runtime';
-
 import {
   archive as archiveCall,
   listInbox,
@@ -26,6 +24,7 @@ import {
 } from '../api/notificationClient';
 import { openSseStream } from '../api/sseClient';
 import { readTokens } from '../auth/tokenStore';
+import { gatewayUrlFor } from '../config/runtime';
 
 interface Props {
   children: ReactNode;
@@ -155,7 +154,7 @@ export function RealNotificationProvider({
           }
           const delay = Math.min(
             RECONNECT_MAX_MS,
-            RECONNECT_BASE_MS * 2 ** attempt,
+            RECONNECT_BASE_MS * 2 ** attempt
           );
           attempt += 1;
           timer = window.setTimeout(connect, delay);
@@ -175,7 +174,9 @@ export function RealNotificationProvider({
 
   const markRead = useCallback(
     async (id: string): Promise<void> => {
-      setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      setItems((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
       setUnread((u) => Math.max(0, u - 1));
       try {
         await markReadCall(id);
@@ -183,7 +184,7 @@ export function RealNotificationProvider({
         void refetch();
       }
     },
-    [refetch],
+    [refetch]
   );
 
   const markAllRead = useCallback(async (): Promise<void> => {
@@ -205,7 +206,7 @@ export function RealNotificationProvider({
         void refetch();
       }
     },
-    [refetch],
+    [refetch]
   );
 
   const value = useMemo<NotificationContextValue>(
@@ -218,7 +219,7 @@ export function RealNotificationProvider({
       archive,
       refetch,
     }),
-    [items, unread, loading, markRead, markAllRead, archive, refetch],
+    [items, unread, loading, markRead, markAllRead, archive, refetch]
   );
 
   return <NotificationProvider value={value}>{children}</NotificationProvider>;

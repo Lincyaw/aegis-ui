@@ -1,4 +1,5 @@
 import type { SpanRow } from './api/clickhouse';
+
 import type { CustomSpanRule } from './prefs';
 
 /**
@@ -31,7 +32,7 @@ export const ALL_SPAN_KINDS: SpanKind[] = [
 
 export function classifyWithRules(
   name: string,
-  rules: CustomSpanRule[],
+  rules: CustomSpanRule[]
 ): SpanKind {
   for (const r of rules) {
     if (r.pattern && name.includes(r.pattern)) {

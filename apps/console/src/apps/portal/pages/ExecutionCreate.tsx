@@ -1,4 +1,3 @@
-import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
 
 import {
@@ -8,6 +7,7 @@ import {
   Panel,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Select } from 'antd';
 
 import { useActiveProjectNumericId } from '../hooks/useActiveProjectNumericId';
 import {
@@ -27,7 +27,9 @@ export default function ExecutionCreate() {
   const datasetsQ = useDatasetsList();
   const runAlgorithm = useRunAlgorithm();
 
-  const [containerName, setContainerName] = useState<string | undefined>(undefined);
+  const [containerName, setContainerName] = useState<string | undefined>(
+    undefined
+  );
   const [datasetName, setDatasetName] = useState<string | undefined>(undefined);
 
   const submit = (): void => {
@@ -50,7 +52,7 @@ export default function ExecutionCreate() {
         onError: (err) => {
           void msg.error(err instanceof Error ? err.message : 'Submit failed');
         },
-      },
+      }
     );
   };
 
@@ -99,11 +101,7 @@ export default function ExecutionCreate() {
           />
         </FormRow>
       </Panel>
-      <Button
-        tone='primary'
-        onClick={submit}
-        disabled={runAlgorithm.isPending}
-      >
+      <Button tone='primary' onClick={submit} disabled={runAlgorithm.isPending}>
         {runAlgorithm.isPending ? 'Submitting…' : 'Run'}
       </Button>
     </div>

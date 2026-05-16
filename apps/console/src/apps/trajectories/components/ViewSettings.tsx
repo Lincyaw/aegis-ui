@@ -4,6 +4,7 @@ import { Chip, MetricLabel } from '@lincyaw/aegis-ui';
 
 import type { CustomSpanRule, PrimaryView, TrajectoriesPrefs } from '../prefs';
 import { ALL_SPAN_KINDS, type SpanKind } from '../spanKind';
+
 import './ViewSettings.css';
 
 interface ViewSettingsProps {
@@ -93,8 +94,13 @@ export function ViewSettings({
               </li>
             )}
             {prefs.customSpanRules.map((rule, i) => (
-              <li className='aegis-view-settings__rule' key={`${rule.pattern}-${i.toString()}`}>
-                <code className='aegis-view-settings__pattern'>{rule.pattern}</code>
+              <li
+                className='aegis-view-settings__rule'
+                key={`${rule.pattern}-${i.toString()}`}
+              >
+                <code className='aegis-view-settings__pattern'>
+                  {rule.pattern}
+                </code>
                 <span className='aegis-view-settings__arrow'>→</span>
                 <Chip tone='ink'>{rule.kind}</Chip>
                 <button

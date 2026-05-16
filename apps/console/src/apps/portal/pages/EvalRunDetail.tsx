@@ -49,7 +49,9 @@ export default function EvalRunDetail() {
           <EmptyState
             title={isError ? 'Failed to load' : 'Not found'}
             description={
-              error instanceof Error ? error.message : 'Run may have been removed.'
+              error instanceof Error
+                ? error.message
+                : 'Run may have been removed.'
             }
           />
         </Panel>
@@ -75,7 +77,10 @@ export default function EvalRunDetail() {
       <Panel title={<PanelTitle size='base'>Metadata</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'algorithm', v: <MonoValue size='sm'>{run.algorithm_name}</MonoValue> },
+            {
+              k: 'algorithm',
+              v: <MonoValue size='sm'>{run.algorithm_name}</MonoValue>,
+            },
             {
               k: 'algorithm version',
               v: <MonoValue size='sm'>{run.algorithm_version}</MonoValue>,
@@ -93,7 +98,10 @@ export default function EvalRunDetail() {
               k: 'datapack',
               v: <MonoValue size='sm'>{run.datapack_name ?? '—'}</MonoValue>,
             },
-            { k: 'eval type', v: <MonoValue size='sm'>{run.eval_type}</MonoValue> },
+            {
+              k: 'eval type',
+              v: <MonoValue size='sm'>{run.eval_type}</MonoValue>,
+            },
             { k: 'created', v: <TimeDisplay value={run.created_at} /> },
             { k: 'updated', v: <TimeDisplay value={run.updated_at} /> },
           ]}

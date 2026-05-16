@@ -34,7 +34,9 @@ export default function Traces() {
   const [service, setService] = useState('');
   const [op, setOp] = useState('');
   const [status, setStatus] = useState('');
-  const [cursors, setCursors] = useState<Array<string | undefined>>([undefined]);
+  const [cursors, setCursors] = useState<Array<string | undefined>>([
+    undefined,
+  ]);
   const [pageIdx, setPageIdx] = useState(0);
 
   const resetPaging = (): void => {
@@ -158,10 +160,9 @@ export default function Traces() {
                     render: (r) => (
                       <Link
                         to={href(
-                          'traces/' +
-                            encodeURIComponent(r.trace_id ?? '') +
-                            '?injection=' +
-                            String(injectionId),
+                          `traces/${encodeURIComponent(
+                            r.trace_id ?? ''
+                          )}?injection=${String(injectionId)}`
                         )}
                       >
                         <MonoValue size='sm'>{r.trace_id ?? '—'}</MonoValue>
@@ -184,7 +185,7 @@ export default function Traces() {
                     render: (r) => (
                       <MonoValue size='sm'>
                         {r.duration_ns !== undefined
-                          ? (r.duration_ns / 1_000_000).toFixed(1) + ' ms'
+                          ? `${(r.duration_ns / 1_000_000).toFixed(1)} ms`
                           : '—'}
                       </MonoValue>
                     ),
@@ -230,9 +231,7 @@ export default function Traces() {
                 </Button>
                 <Button
                   tone='secondary'
-                  disabled={
-                    nextCursor === undefined || nextCursor.length === 0
-                  }
+                  disabled={nextCursor === undefined || nextCursor.length === 0}
                   onClick={() => {
                     if (nextCursor !== undefined && nextCursor.length > 0) {
                       const next = [...cursors];

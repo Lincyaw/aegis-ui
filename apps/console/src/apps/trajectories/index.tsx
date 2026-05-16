@@ -1,5 +1,4 @@
 import { NodeIndexOutlined } from '@ant-design/icons';
-
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import { Compare } from './pages/Compare';
@@ -11,8 +10,7 @@ export const trajectoriesApp: AegisApp = {
   label: 'Trajectories',
   icon: <NodeIndexOutlined />,
   basePath: '/trajectories',
-  description:
-    'Read-only viewer for AgentM OTel traces stored in ClickHouse.',
+  description: 'Read-only viewer for AgentM OTel traces stored in ClickHouse.',
   requiresAuth: false,
   sidebar: [
     {

@@ -7,8 +7,8 @@ import {
 } from '@ant-design/icons';
 import {
   type AegisApp,
-  type EnvironmentChangedEventDetail,
   ENVIRONMENT_CHANGED_EVENT,
+  type EnvironmentChangedEventDetail,
   KeyValueList,
   MetricLabel,
   MonoValue,
@@ -40,10 +40,9 @@ function EnvDemoPage({ appLabel }: { appLabel: string }): ReactElement {
       extra={<MetricLabel>environment discovery demo</MetricLabel>}
     >
       <p>
-        This page reads <code>useCurrentEnvironment()</code> and listens for
-        the <code>app.environmentChanged</code> runtime event. Switch
-        environments using the dropdown in the top header and watch this
-        page react.
+        This page reads <code>useCurrentEnvironment()</code> and listens for the{' '}
+        <code>app.environmentChanged</code> runtime event. Switch environments
+        using the dropdown in the top header and watch this page react.
       </p>
       <KeyValueList
         items={[
@@ -97,9 +96,7 @@ export const envDemoAlphaApp: AegisApp = {
   description: 'Verifies env switcher against backend A.',
   requiresAuth: false,
   apiBaseUrl: 'http://127.0.0.1:18081',
-  routes: [
-    { path: '', element: <EnvDemoPage appLabel='Alpha backend' /> },
-  ],
+  routes: [{ path: '', element: <EnvDemoPage appLabel='Alpha backend' /> }],
 };
 
 export const envDemoBravoApp: AegisApp = {
@@ -110,9 +107,7 @@ export const envDemoBravoApp: AegisApp = {
   description: 'Verifies env switcher against backend B.',
   requiresAuth: false,
   apiBaseUrl: 'http://127.0.0.1:18082',
-  routes: [
-    { path: '', element: <EnvDemoPage appLabel='Bravo backend' /> },
-  ],
+  routes: [{ path: '', element: <EnvDemoPage appLabel='Bravo backend' /> }],
 };
 
 /**
@@ -126,7 +121,5 @@ export const envDemoNoneApp: AegisApp = {
   basePath: '/env-demo/none',
   description: 'No apiBaseUrl — switcher should be hidden.',
   requiresAuth: false,
-  routes: [
-    { path: '', element: <EnvDemoPage appLabel='No-manifest app' /> },
-  ],
+  routes: [{ path: '', element: <EnvDemoPage appLabel='No-manifest app' /> }],
 };

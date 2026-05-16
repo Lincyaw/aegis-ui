@@ -1,7 +1,5 @@
 import { useState } from 'react';
 
-import { App, Button, Input, Modal, Select } from 'antd';
-
 import {
   Avatar,
   Chip,
@@ -12,6 +10,7 @@ import {
   Panel,
   StatusDot,
 } from '@lincyaw/aegis-ui';
+import { App, Button, Input, Modal, Select } from 'antd';
 
 import './Users.css';
 

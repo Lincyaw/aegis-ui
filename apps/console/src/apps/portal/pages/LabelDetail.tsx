@@ -1,4 +1,3 @@
-import { App as AntdApp, Spin } from 'antd';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -14,6 +13,7 @@ import {
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Spin } from 'antd';
 
 import { useDeleteLabel, useLabel } from '../api/labels';
 
@@ -30,7 +30,13 @@ export default function LabelDetail() {
       <div className='page-wrapper'>
         <PageHeader title='Loading…' />
         <Panel>
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--space-6)',
+            }}
+          >
             <Spin />
           </div>
         </Panel>
@@ -45,7 +51,9 @@ export default function LabelDetail() {
         <Panel>
           <ErrorState
             title='Failed to load label'
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
           />
         </Panel>
       </div>
@@ -83,7 +91,9 @@ export default function LabelDetail() {
                 },
                 onError: (err) => {
                   void msg.error(
-                    err instanceof Error ? err.message : 'Failed to delete label',
+                    err instanceof Error
+                      ? err.message
+                      : 'Failed to delete label'
                   );
                 },
               });
@@ -97,20 +107,40 @@ export default function LabelDetail() {
         <KeyValueList
           items={[
             { k: 'id', v: <MonoValue size='sm'>{String(label.id)}</MonoValue> },
-            { k: 'key', v: <MonoValue size='sm'>{label.key ?? '—'}</MonoValue> },
-            { k: 'value', v: <MonoValue size='sm'>{label.value ?? '—'}</MonoValue> },
-            { k: 'category', v: <Chip tone='ghost'>{label.category ?? '—'}</Chip> },
+            {
+              k: 'key',
+              v: <MonoValue size='sm'>{label.key ?? '—'}</MonoValue>,
+            },
+            {
+              k: 'value',
+              v: <MonoValue size='sm'>{label.value ?? '—'}</MonoValue>,
+            },
+            {
+              k: 'category',
+              v: <Chip tone='ghost'>{label.category ?? '—'}</Chip>,
+            },
             { k: 'system', v: label.is_system ? 'yes' : 'no' },
             { k: 'color', v: label.color ?? '—' },
             { k: 'status', v: label.status ?? '—' },
-            { k: 'uses', v: <MonoValue size='sm'>{label.usage ?? 0}</MonoValue> },
+            {
+              k: 'uses',
+              v: <MonoValue size='sm'>{label.usage ?? 0}</MonoValue>,
+            },
             {
               k: 'created',
-              v: label.created_at ? <TimeDisplay value={label.created_at} /> : '—',
+              v: label.created_at ? (
+                <TimeDisplay value={label.created_at} />
+              ) : (
+                '—'
+              ),
             },
             {
               k: 'updated',
-              v: label.updated_at ? <TimeDisplay value={label.updated_at} /> : '—',
+              v: label.updated_at ? (
+                <TimeDisplay value={label.updated_at} />
+              ) : (
+                '—'
+              ),
             },
           ]}
         />

@@ -46,7 +46,11 @@ export default function Regressions() {
                 </Link>
               ),
             },
-            { key: 'desc', header: 'Description', render: (r) => r.description },
+            {
+              key: 'desc',
+              header: 'Description',
+              render: (r) => r.description,
+            },
             {
               key: 'status',
               header: 'Last status',
@@ -68,7 +72,9 @@ export default function Regressions() {
               key: 'rate',
               header: 'Pass rate',
               render: (r) => (
-                <MonoValue size='sm'>{(r.passRate * 100).toFixed(1)}%</MonoValue>
+                <MonoValue size='sm'>
+                  {(r.passRate * 100).toFixed(1)}%
+                </MonoValue>
               ),
             },
             {

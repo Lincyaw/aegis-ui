@@ -1,5 +1,3 @@
-import { Button } from 'antd';
-
 import {
   Avatar,
   Chip,
@@ -12,6 +10,7 @@ import {
   TextField,
   useAuth,
 } from '@lincyaw/aegis-ui';
+import { Button } from 'antd';
 
 const noop = (): void => undefined;
 

@@ -1,9 +1,16 @@
-import { Tabs } from 'antd';
 import { useState } from 'react';
 
-import { Chip, MetricLabel, MonoValue, Panel, PanelTitle } from '@lincyaw/aegis-ui';
+import {
+  Chip,
+  MetricLabel,
+  MonoValue,
+  Panel,
+  PanelTitle,
+} from '@lincyaw/aegis-ui';
+import { Tabs } from 'antd';
 
 import type { GuidedInjectionSpec } from '../../mocks/types';
+
 import { CHAOS_BY_NAME, CHAOS_TYPES, FAMILIES } from './paramSchema';
 
 interface Props {

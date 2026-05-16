@@ -3,7 +3,6 @@
  * message's `content` is a list of blocks; each block has a `type` plus
  * type-specific payload. Unknown block types fall through to a JSON dump.
  */
-
 import { type ReactElement, type ReactNode } from 'react';
 
 import './MessageBlocks.css';
@@ -63,7 +62,9 @@ function renderBlock(block: Block, key: number): ReactNode {
         <div className='llmh-msg__tool-head'>
           <span className='llmh-msg__tool-tag'>tool_result</span>
           {block.tool_use_id && (
-            <span className='llmh-msg__tool-name'>{String(block.tool_use_id)}</span>
+            <span className='llmh-msg__tool-name'>
+              {String(block.tool_use_id)}
+            </span>
           )}
         </div>
         <pre className='llmh-msg__tool-body'>{stringify(block.content)}</pre>

@@ -1,4 +1,3 @@
-import { App as AntdApp } from 'antd';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -13,6 +12,7 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import { useActiveProjectIdNum, useInjectionsList } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
@@ -44,7 +44,7 @@ export default function Injections() {
         status: i.status ?? i.state ?? 'unknown',
         createdAt: i.created_at ?? '',
       })),
-    [data],
+    [data]
   );
 
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -69,7 +69,10 @@ export default function Injections() {
         action={
           <div className='page-action-row'>
             {stagedCount > 0 && (
-              <Button tone='secondary' onClick={() => navigate('injections/batch')}>
+              <Button
+                tone='secondary'
+                onClick={() => navigate('injections/batch')}
+              >
                 Batch ({stagedCount})
               </Button>
             )}
@@ -103,7 +106,9 @@ export default function Injections() {
         {isError ? (
           <EmptyState
             title='Failed to load injections'
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
           />
         ) : (
           <DataTable<InjectionRow>

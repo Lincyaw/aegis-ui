@@ -1,5 +1,3 @@
-import { App as AntdApp, Input, Select } from 'antd';
-import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -11,6 +9,8 @@ import {
   Panel,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { useQuery } from '@tanstack/react-query';
+import { App as AntdApp, Input, Select } from 'antd';
 
 import { apiJson } from '../../../api/apiClient';
 import { useBatchEvaluateDataset } from '../api/hooks/useEvaluations';
@@ -39,7 +39,7 @@ export default function EvalRunCreate() {
     queryKey: ['datasets', { page: 1, size: 100 }],
     queryFn: async () => {
       const res = await apiJson<GenericResponse<DatasetListResp>>(
-        '/api/v2/datasets?page=1&size=100',
+        '/api/v2/datasets?page=1&size=100'
       );
       return res.data?.items ?? [];
     },
@@ -77,7 +77,7 @@ export default function EvalRunCreate() {
           navigate('eval');
         },
         onError: (e) => void msg.error(e.message),
-      },
+      }
     );
   };
 

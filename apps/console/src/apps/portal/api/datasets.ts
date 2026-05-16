@@ -1,10 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   DatasetCreateDatasetReq,
   DatasetDatasetDetailResp,
   DatasetDatasetResp,
   DatasetUpdateDatasetReq,
 } from '@lincyaw/portal';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { datasetsApi } from './portal-client';
 
@@ -48,8 +48,12 @@ export function useDataset(datasetId: number | undefined) {
 export function useCreateDataset() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (body: DatasetCreateDatasetReq): Promise<DatasetDatasetResp> => {
-      const res = await datasetsApi.createDataset({ datasetCreateDatasetReq: body });
+    mutationFn: async (
+      body: DatasetCreateDatasetReq
+    ): Promise<DatasetDatasetResp> => {
+      const res = await datasetsApi.createDataset({
+        datasetCreateDatasetReq: body,
+      });
       return res.data.data ?? {};
     },
     onSuccess: () => {
@@ -61,7 +65,10 @@ export function useCreateDataset() {
 export function useUpdateDataset() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (args: { datasetId: number; body: DatasetUpdateDatasetReq }) => {
+    mutationFn: async (args: {
+      datasetId: number;
+      body: DatasetUpdateDatasetReq;
+    }) => {
       const res = await datasetsApi.updateDataset({
         datasetId: args.datasetId,
         datasetUpdateDatasetReq: args.body,
@@ -69,7 +76,9 @@ export function useUpdateDataset() {
       return res.data.data ?? {};
     },
     onSuccess: (_data, vars) => {
-      void qc.invalidateQueries({ queryKey: datasetsKeys.detail(vars.datasetId) });
+      void qc.invalidateQueries({
+        queryKey: datasetsKeys.detail(vars.datasetId),
+      });
       void qc.invalidateQueries({ queryKey: datasetsKeys.all });
     },
   });

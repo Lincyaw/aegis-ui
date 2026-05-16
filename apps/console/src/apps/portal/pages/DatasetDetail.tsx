@@ -1,4 +1,3 @@
-import { App as AntdApp, Spin } from 'antd';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -16,6 +15,7 @@ import {
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Spin } from 'antd';
 
 import { useDataset, useDeleteDataset } from '../api/datasets';
 
@@ -32,7 +32,13 @@ export default function DatasetDetail() {
       <div className='page-wrapper'>
         <PageHeader title='Loading…' />
         <Panel>
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--space-6)',
+            }}
+          >
             <Spin />
           </div>
         </Panel>
@@ -47,7 +53,9 @@ export default function DatasetDetail() {
         <Panel>
           <ErrorState
             title='Failed to load dataset'
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
           />
         </Panel>
       </div>
@@ -59,7 +67,10 @@ export default function DatasetDetail() {
       <div className='page-wrapper'>
         <PageHeader title='Dataset not found' />
         <Panel>
-          <EmptyState title='Not found' description='This dataset no longer exists.' />
+          <EmptyState
+            title='Not found'
+            description='This dataset no longer exists.'
+          />
         </Panel>
       </div>
     );
@@ -78,7 +89,9 @@ export default function DatasetDetail() {
           <div className='page-action-row'>
             <Button
               tone='primary'
-              onClick={() => navigate(`eval/new?dataset=${String(dataset.id ?? '')}`)}
+              onClick={() =>
+                navigate(`eval/new?dataset=${String(dataset.id ?? '')}`)
+              }
             >
               Use in eval
             </Button>
@@ -95,7 +108,9 @@ export default function DatasetDetail() {
                   },
                   onError: (err) => {
                     void msg.error(
-                      err instanceof Error ? err.message : 'Failed to delete dataset',
+                      err instanceof Error
+                        ? err.message
+                        : 'Failed to delete dataset'
                     );
                   },
                 });
@@ -114,14 +129,23 @@ export default function DatasetDetail() {
         <MetricCard label='Type' value={dataset.type ?? '—'} />
         <MetricCard
           label='Created'
-          value={dataset.created_at ? <TimeDisplay value={dataset.created_at} /> : '—'}
+          value={
+            dataset.created_at ? (
+              <TimeDisplay value={dataset.created_at} />
+            ) : (
+              '—'
+            )
+          }
         />
       </div>
 
       <Panel title={<PanelTitle size='base'>Summary</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'id', v: <MonoValue size='sm'>{String(dataset.id)}</MonoValue> },
+            {
+              k: 'id',
+              v: <MonoValue size='sm'>{String(dataset.id)}</MonoValue>,
+            },
             { k: 'name', v: dataset.name ?? '—' },
             { k: 'description', v: dataset.description ?? '—' },
             { k: 'visibility', v: dataset.is_public ? 'public' : 'private' },
@@ -132,7 +156,13 @@ export default function DatasetDetail() {
                 labelEntries.length === 0 ? (
                   '—'
                 ) : (
-                  <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 'var(--space-2)',
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     {labelEntries.map((l, idx) => (
                       <Chip
                         key={`${l.key ?? ''}-${l.value ?? ''}-${String(idx)}`}
@@ -158,7 +188,11 @@ export default function DatasetDetail() {
         ) : (
           <KeyValueList
             items={versions.map((v) => ({
-              k: <MonoValue size='sm'>{v.name ?? `#${String(v.id ?? '')}`}</MonoValue>,
+              k: (
+                <MonoValue size='sm'>
+                  {v.name ?? `#${String(v.id ?? '')}`}
+                </MonoValue>
+              ),
               v: (
                 <span>
                   files: {v.file_count ?? 0}

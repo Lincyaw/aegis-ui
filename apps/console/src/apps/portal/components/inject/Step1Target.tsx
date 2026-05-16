@@ -1,6 +1,5 @@
-import { Form, Input, InputNumber, Radio, Select, Switch } from 'antd';
-
 import { Panel, PanelTitle, SectionDivider } from '@lincyaw/aegis-ui';
+import { Form, Input, InputNumber, Radio, Select, Switch } from 'antd';
 
 import type { GuidedInjectionSpec, NamespaceMode } from '../../mocks/types';
 import { useInjectBatch } from '../../state/inject-batch';
@@ -40,7 +39,9 @@ export function Step1Target({ spec, update }: Props) {
         >
           <Radio.Group
             value={spec.namespaceMode}
-            onChange={(e) => update({ namespaceMode: e.target.value as NamespaceMode })}
+            onChange={(e) =>
+              update({ namespaceMode: e.target.value as NamespaceMode })
+            }
           >
             <Radio value='specific'>Specific namespace</Radio>
             <Radio value='auto'>Auto-allocate from pool</Radio>
@@ -58,7 +59,11 @@ export function Step1Target({ spec, update }: Props) {
           </Form.Item>
         )}
 
-        <Form.Item label='System short_code' required extra='e.g. ts, otel-demo, sn.'>
+        <Form.Item
+          label='System short_code'
+          required
+          extra='e.g. ts, otel-demo, sn.'
+        >
           <Input
             value={spec.systemCode}
             onChange={(e) => update({ systemCode: e.target.value, app: '' })}
@@ -83,7 +88,10 @@ export function Step1Target({ spec, update }: Props) {
           />
         </Form.Item>
 
-        <Form.Item label='Container (optional)' extra='leave blank to target the first container.'>
+        <Form.Item
+          label='Container (optional)'
+          extra='leave blank to target the first container.'
+        >
           <Input
             value={spec.container}
             onChange={(e) => update({ container: e.target.value })}
@@ -104,7 +112,10 @@ export function Step1Target({ spec, update }: Props) {
 
         <SectionDivider>Pedestal bootstrap</SectionDivider>
         <Form.Item label='Install if missing' extra='maps to --install.'>
-          <Switch checked={spec.install} onChange={(v) => update({ install: v })} />
+          <Switch
+            checked={spec.install}
+            onChange={(v) => update({ install: v })}
+          />
         </Form.Item>
         {spec.install && (
           <Form.Item label='Ready timeout (seconds)'>

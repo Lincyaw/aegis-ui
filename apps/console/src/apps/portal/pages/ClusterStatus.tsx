@@ -1,5 +1,3 @@
-import { App as AntdApp } from 'antd';
-
 import {
   Button,
   Chip,
@@ -10,6 +8,7 @@ import {
   Terminal,
   type TerminalLine,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import { useMockStore } from '../mocks';
 
@@ -64,7 +63,8 @@ export default function ClusterStatus() {
       </div>
 
       <Panel title={<PanelTitle size='base'>Failing checks</PanelTitle>}>
-        {checks.filter((c) => c.status === 'warn' || c.status === 'fail').length === 0 ? (
+        {checks.filter((c) => c.status === 'warn' || c.status === 'fail')
+          .length === 0 ? (
           <Chip tone='ink'>All checks green</Chip>
         ) : (
           <div className='page-table'>
@@ -85,7 +85,10 @@ export default function ClusterStatus() {
                         tone='secondary'
                         onClick={() => {
                           const label = c.action?.label ?? 'action';
-                          appendClusterEvent('info', `${label} clicked for ${c.name}`);
+                          appendClusterEvent(
+                            'info',
+                            `${label} clicked for ${c.name}`
+                          );
                           void msg.success(`${label} triggered`);
                         }}
                       >

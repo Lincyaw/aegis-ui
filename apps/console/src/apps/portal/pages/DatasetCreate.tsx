@@ -1,4 +1,3 @@
-import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
 
 import {
@@ -9,6 +8,7 @@ import {
   TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Select } from 'antd';
 
 import { useCreateDataset } from '../api/datasets';
 
@@ -49,9 +49,11 @@ export default function DatasetCreate() {
           }
         },
         onError: (err) => {
-          void msg.error(err instanceof Error ? err.message : 'Failed to create dataset');
+          void msg.error(
+            err instanceof Error ? err.message : 'Failed to create dataset'
+          );
         },
-      },
+      }
     );
   };
 

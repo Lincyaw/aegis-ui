@@ -4,7 +4,6 @@ import {
   ExperimentOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons';
-
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import { CaseDetailPage } from './pages/CaseDetailPage';

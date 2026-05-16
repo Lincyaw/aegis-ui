@@ -4,8 +4,8 @@ import {
   CodeBlock,
   KeyValueList,
   SectionDivider,
-  Tabs,
   type TabItem,
+  Tabs,
 } from '@lincyaw/aegis-ui';
 
 import type { SftRowBase } from '../types';
@@ -52,7 +52,10 @@ export function SftRowDetail({ row }: SftRowDetailProps) {
           <CodeBlock language='text' code={row.input.system} />
         )}
         {active === 'target' && (
-          <CodeBlock language='json' code={JSON.stringify(row.target, null, 2)} />
+          <CodeBlock
+            language='json'
+            code={JSON.stringify(row.target, null, 2)}
+          />
         )}
         {active === 'meta' && (
           <CodeBlock

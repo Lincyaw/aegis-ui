@@ -170,7 +170,14 @@ const systems: MockSystem[] = [
     lastInjectionAt: iso(60 * 24 * 5),
     prereqs: [{ name: 'helm chart published', ok: true }],
     systemType: 'media-microservices',
-    apps: ['compose-review', 'read-page', 'unique-id', 'cast-info', 'movie-info', 'plot'],
+    apps: [
+      'compose-review',
+      'read-page',
+      'unique-id',
+      'cast-info',
+      'movie-info',
+      'plot',
+    ],
   },
   {
     code: 'sockshop',
@@ -343,7 +350,7 @@ const buildContract = (
   family: string,
   targetKind: string,
   paramCount: number,
-  description: string,
+  description: string
 ): MockContract => ({
   id,
   name,
@@ -360,13 +367,21 @@ const buildContract = (
       selector: { namespaces: ['<SYSTEM_NS>'], labels: { app: '<TARGET>' } },
     },
     null,
-    2,
+    2
   ),
   description,
 });
 
 const contracts: MockContract[] = [
-  buildContract('ctr-pod-kill', 'pod-kill', 'pod', 'pod', 'Pod', 2, 'Hard pod kill.'),
+  buildContract(
+    'ctr-pod-kill',
+    'pod-kill',
+    'pod',
+    'pod',
+    'Pod',
+    2,
+    'Hard pod kill.'
+  ),
   buildContract(
     'ctr-pod-failure',
     'pod-failure',
@@ -374,7 +389,7 @@ const contracts: MockContract[] = [
     'pod',
     'Pod',
     3,
-    'Mark pod unready for N seconds.',
+    'Mark pod unready for N seconds.'
   ),
   buildContract(
     'ctr-container-kill',
@@ -383,7 +398,7 @@ const contracts: MockContract[] = [
     'pod',
     'Container',
     2,
-    'Kill a specific container in a pod.',
+    'Kill a specific container in a pod.'
   ),
   buildContract(
     'ctr-net-delay',
@@ -392,7 +407,7 @@ const contracts: MockContract[] = [
     'network',
     'Service',
     5,
-    'Inject latency on egress.',
+    'Inject latency on egress.'
   ),
   buildContract(
     'ctr-net-loss',
@@ -401,7 +416,7 @@ const contracts: MockContract[] = [
     'network',
     'Service',
     4,
-    'Drop packets at egress.',
+    'Drop packets at egress.'
   ),
   buildContract(
     'ctr-net-corrupt',
@@ -410,7 +425,7 @@ const contracts: MockContract[] = [
     'network',
     'Service',
     4,
-    'Corrupt packets.',
+    'Corrupt packets.'
   ),
   buildContract(
     'ctr-net-partition',
@@ -419,7 +434,7 @@ const contracts: MockContract[] = [
     'network',
     'Service',
     3,
-    'Sever traffic between two services.',
+    'Sever traffic between two services.'
   ),
   buildContract(
     'ctr-dns',
@@ -428,7 +443,7 @@ const contracts: MockContract[] = [
     'network',
     'Service',
     2,
-    'Return NXDOMAIN for selected hosts.',
+    'Return NXDOMAIN for selected hosts.'
   ),
   buildContract(
     'ctr-http-abort',
@@ -437,7 +452,7 @@ const contracts: MockContract[] = [
     'http',
     'Ingress',
     4,
-    'Abort HTTP requests at proxy.',
+    'Abort HTTP requests at proxy.'
   ),
   buildContract(
     'ctr-http-500',
@@ -446,7 +461,7 @@ const contracts: MockContract[] = [
     'http',
     'Ingress',
     3,
-    'Return synthetic 500.',
+    'Return synthetic 500.'
   ),
   buildContract(
     'ctr-http-delay',
@@ -455,7 +470,7 @@ const contracts: MockContract[] = [
     'http',
     'Ingress',
     3,
-    'Delay HTTP responses.',
+    'Delay HTTP responses.'
   ),
   buildContract(
     'ctr-jvm-cpu',
@@ -464,7 +479,7 @@ const contracts: MockContract[] = [
     'jvm',
     'Pod',
     2,
-    'Burn CPU inside JVM via attach.',
+    'Burn CPU inside JVM via attach.'
   ),
   buildContract(
     'ctr-jvm-mem',
@@ -473,7 +488,7 @@ const contracts: MockContract[] = [
     'jvm',
     'Pod',
     2,
-    'Allocate to fill heap.',
+    'Allocate to fill heap.'
   ),
   buildContract(
     'ctr-jvm-throw',
@@ -482,7 +497,7 @@ const contracts: MockContract[] = [
     'jvm',
     'Pod',
     3,
-    'Throw exception from method.',
+    'Throw exception from method.'
   ),
   buildContract(
     'ctr-stress-cpu',
@@ -491,7 +506,7 @@ const contracts: MockContract[] = [
     'stress',
     'Pod',
     2,
-    'CPU stress with stress-ng.',
+    'CPU stress with stress-ng.'
   ),
   buildContract(
     'ctr-stress-mem',
@@ -500,7 +515,7 @@ const contracts: MockContract[] = [
     'stress',
     'Pod',
     2,
-    'Memory stress.',
+    'Memory stress.'
   ),
   buildContract(
     'ctr-stress-io',
@@ -509,7 +524,7 @@ const contracts: MockContract[] = [
     'stress',
     'Pod',
     3,
-    'Disk IO stress.',
+    'Disk IO stress.'
   ),
   buildContract(
     'ctr-time-shift',
@@ -518,7 +533,7 @@ const contracts: MockContract[] = [
     'time',
     'Pod',
     2,
-    'Skew clock inside container.',
+    'Skew clock inside container.'
   ),
   buildContract(
     'ctr-jvm-gc',
@@ -527,7 +542,7 @@ const contracts: MockContract[] = [
     'jvm',
     'Pod',
     2,
-    'Trigger frequent GC.',
+    'Trigger frequent GC.'
   ),
   buildContract(
     'ctr-dns-delay',
@@ -536,7 +551,7 @@ const contracts: MockContract[] = [
     'network',
     'Service',
     2,
-    'Slow DNS responses.',
+    'Slow DNS responses.'
   ),
 ];
 
@@ -552,7 +567,12 @@ const STATUS_CYCLE: Array<MockInjection['status']> = [
 
 const SYS_TARGETS: Record<string, string[]> = {
   'otel-demo': ['cartservice', 'checkoutservice', 'productcatalogservice'],
-  ts: ['ts-travel-service', 'ts-order-service', 'ts-station-service', 'ts-payment-service'],
+  ts: [
+    'ts-travel-service',
+    'ts-order-service',
+    'ts-station-service',
+    'ts-payment-service',
+  ],
   hs: ['frontend', 'profile', 'reservation', 'search'],
   sn: ['user-service', 'post-service', 'media-service'],
   mm: ['compose-review', 'read-page', 'unique-id'],
@@ -585,7 +605,9 @@ for (let i = 0; i < 50; i++) {
   const id = `inj-${injCounter++}`;
   const taskId = `task-${taskCounter++}`;
   const traceId =
-    status === 'pending' || status === 'cancelled' ? null : `trace-${traceCounter++}`;
+    status === 'pending' || status === 'cancelled'
+      ? null
+      : `trace-${traceCounter++}`;
   const createdAt = iso(i * 47);
 
   injections.push({
@@ -612,7 +634,11 @@ for (let i = 0; i < 50; i++) {
     durationMs: 60000 + (i % 5) * 12000,
     logs: [
       { ts: '00:00:00', level: 'info', body: `task spawned for ${id}` },
-      { ts: '00:00:01', level: 'info', body: `inject contract=${contract.name} target=${target}` },
+      {
+        ts: '00:00:01',
+        level: 'info',
+        body: `inject contract=${contract.name} target=${target}`,
+      },
       { ts: '00:00:02', level: 'info', body: 'chaos resource applied' },
     ],
   });
@@ -634,7 +660,9 @@ const datasets: MockDataset[] = [
     id: 'ds-ts-2026-04-25',
     name: 'ts-2026-04-25-n500',
     description: 'Train-Ticket clean replay baseline, n=500.',
-    injectionIds: injections.filter((i) => i.systemCode === 'ts').map((i) => i.id),
+    injectionIds: injections
+      .filter((i) => i.systemCode === 'ts')
+      .map((i) => i.id),
     fileCount: 12,
     sizeMb: 480,
     createdAt: iso(60 * 24 * 4),
@@ -643,7 +671,9 @@ const datasets: MockDataset[] = [
     id: 'ds-hs-2026-04-30',
     name: 'hs-2026-04-30-n200',
     description: 'Hotel-Reservation focused replay.',
-    injectionIds: injections.filter((i) => i.systemCode === 'hs').map((i) => i.id),
+    injectionIds: injections
+      .filter((i) => i.systemCode === 'hs')
+      .map((i) => i.id),
     fileCount: 8,
     sizeMb: 220,
     createdAt: iso(60 * 24 * 3),
@@ -661,7 +691,9 @@ const datasets: MockDataset[] = [
     id: 'ds-otel-cart',
     name: 'otel-cart-baseline',
     description: 'otel-demo cart-service campaign.',
-    injectionIds: injections.filter((i) => i.systemCode === 'otel-demo').map((i) => i.id),
+    injectionIds: injections
+      .filter((i) => i.systemCode === 'otel-demo')
+      .map((i) => i.id),
     fileCount: 6,
     sizeMb: 140,
     createdAt: iso(60 * 24 * 7),
@@ -754,10 +786,17 @@ for (const c of regressionCases) {
         kind: 'regression',
         parentId: id,
         parentLabel: c.name,
-        status: i === 0 ? 'running' : j === 0 && c.lastStatus === 'fail' ? 'failed' : 'completed',
+        status:
+          i === 0
+            ? 'running'
+            : j === 0 && c.lastStatus === 'fail'
+              ? 'failed'
+              : 'completed',
         startedAt: iso(60 * 24 * (i + 1)),
         durationMs: 90000 + j * 5000,
-        logs: [{ ts: '00:00:00', level: 'info', body: `regression child ${j}` }],
+        logs: [
+          { ts: '00:00:00', level: 'info', body: `regression child ${j}` },
+        ],
       });
     }
     const fails = c.lastStatus === 'fail' && i === 2 ? 1 : 0;
@@ -778,7 +817,12 @@ for (const c of regressionCases) {
 
 const evalRuns: MockEvalRun[] = [];
 const evalCases: MockEvalCase[] = [];
-const MODELS = ['claude-opus-4-7', 'gpt-5-4', 'claude-sonnet-4-6', 'claude-opus-4-7'];
+const MODELS = [
+  'claude-opus-4-7',
+  'gpt-5-4',
+  'claude-sonnet-4-6',
+  'claude-opus-4-7',
+];
 let evalCounter = 1;
 let caseCounter = 1;
 
@@ -794,7 +838,11 @@ for (let r = 0; r < 4; r++) {
     if (!inj) {
       continue;
     }
-    const altPatterns = ['symptom_propagation', 'process_tax_signal', 'co_anomaly_inference'];
+    const altPatterns = [
+      'symptom_propagation',
+      'process_tax_signal',
+      'co_anomaly_inference',
+    ];
     evalCases.push({
       id: cid,
       runId: id,
@@ -802,7 +850,7 @@ for (let r = 0; r < 4; r++) {
       traceId: inj.traceId ?? 'trace-7700',
       pattern: passed
         ? 'path_reachability'
-        : altPatterns[i % altPatterns.length] ?? 'symptom_propagation',
+        : (altPatterns[i % altPatterns.length] ?? 'symptom_propagation'),
       tier: i % 2 === 0 ? 'tier-1' : 'tier-2',
       passed,
       score: passed ? 0.72 + Math.random() * 0.18 : 0.2 + Math.random() * 0.2,
@@ -851,7 +899,12 @@ for (let r = 0; r < 4; r++) {
 }
 
 const clusterChecks: MockClusterCheck[] = [
-  { id: 'chk-k8s', name: 'K8s API', status: 'ok', detail: 'reachable (latency 12ms)' },
+  {
+    id: 'chk-k8s',
+    name: 'K8s API',
+    status: 'ok',
+    detail: 'reachable (latency 12ms)',
+  },
   { id: 'chk-redis', name: 'Redis', status: 'ok', detail: 'ping ok' },
   { id: 'chk-mysql', name: 'MySQL', status: 'ok', detail: 'pool healthy' },
   { id: 'chk-etcd', name: 'etcd', status: 'ok', detail: 'quorum 3/3' },

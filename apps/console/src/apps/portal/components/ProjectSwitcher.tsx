@@ -1,7 +1,10 @@
-import { CaretDownOutlined, PlusOutlined, ProjectOutlined } from '@ant-design/icons';
-import { App as AntdApp, Dropdown, type MenuProps } from 'antd';
-
+import {
+  CaretDownOutlined,
+  PlusOutlined,
+  ProjectOutlined,
+} from '@ant-design/icons';
 import { Button, useAppNavigate } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Dropdown, type MenuProps } from 'antd';
 
 import { useActiveProjectStore } from '../hooks/useActiveProject';
 import { useProjectsList } from '../hooks/useProjects';

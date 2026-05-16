@@ -1,4 +1,3 @@
-import type { ExecutionExecutionResp } from '@lincyaw/portal';
 import { Link } from 'react-router-dom';
 
 import {
@@ -13,6 +12,7 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import type { ExecutionExecutionResp } from '@lincyaw/portal';
 
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectNumericId } from '../hooks/useActiveProjectNumericId';
@@ -22,7 +22,8 @@ export default function Executions() {
   const projectId = useActiveProjectNumericId();
   const navigate = useAppNavigate();
   const href = useAppHref();
-  const { data, isLoading, isError, error, refetch } = useExecutionsList(projectId);
+  const { data, isLoading, isError, error, refetch } =
+    useExecutionsList(projectId);
   const items: ExecutionExecutionResp[] = data?.items ?? [];
 
   return (
@@ -45,7 +46,9 @@ export default function Executions() {
         {isError ? (
           <ErrorState
             title='Failed to load executions'
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
             action={
               <Button
                 tone='secondary'
@@ -60,7 +63,10 @@ export default function Executions() {
         ) : isLoading ? (
           <EmptyState title='Loading…' description='Fetching executions.' />
         ) : items.length === 0 ? (
-          <EmptyState title='No executions' description='Run an algorithm to see results here.' />
+          <EmptyState
+            title='No executions'
+            description='Run an algorithm to see results here.'
+          />
         ) : (
           <DataTable<ExecutionExecutionResp>
             data={items}
@@ -84,12 +90,16 @@ export default function Executions() {
               {
                 key: 'datapack',
                 header: 'Datapack',
-                render: (r) => <MonoValue size='sm'>{r.datapack_name ?? '—'}</MonoValue>,
+                render: (r) => (
+                  <MonoValue size='sm'>{r.datapack_name ?? '—'}</MonoValue>
+                ),
               },
               {
                 key: 'state',
                 header: 'State',
-                render: (r) => <StatusChip status={r.state ?? r.status ?? 'pending'} />,
+                render: (r) => (
+                  <StatusChip status={r.state ?? r.status ?? 'pending'} />
+                ),
               },
               {
                 key: 'started',

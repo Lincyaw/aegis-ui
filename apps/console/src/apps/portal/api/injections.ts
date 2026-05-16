@@ -5,18 +5,23 @@ import {
   type InjectionSubmitInjectionReq,
 } from '@lincyaw/portal';
 import {
-  type UseMutationResult,
-  type UseQueryResult,
   useMutation,
+  type UseMutationResult,
   useQuery,
   useQueryClient,
+  type UseQueryResult,
 } from '@tanstack/react-query';
 
 import type { GuidedInjectionSpec } from '../mocks/types';
 
 import { injectionsApi, projectsApi } from './portal-client';
 
-const STATUS_ACTIVE = new Set(['pending', 'running', 'restarting', 'installing']);
+const STATUS_ACTIVE = new Set([
+  'pending',
+  'running',
+  'restarting',
+  'installing',
+]);
 
 export function isActiveStatus(status: string | undefined): boolean {
   return status ? STATUS_ACTIVE.has(status.toLowerCase()) : false;
@@ -86,7 +91,11 @@ export function useActiveProjectIdNum(): number {
   return 1;
 }
 
-export function injectionsKey(projectId: number, page = 1, size = 50): readonly unknown[] {
+export function injectionsKey(
+  projectId: number,
+  page = 1,
+  size = 50
+): readonly unknown[] {
   return ['portal', 'injections', projectId, page, size] as const;
 }
 
@@ -96,14 +105,18 @@ export function injectionKey(id: number): readonly unknown[] {
 
 export function useInjectionsList(
   projectId: number,
-  opts?: { page?: number; size?: number },
+  opts?: { page?: number; size?: number }
 ): UseQueryResult<InjectionInjectionResp[]> {
   const page = opts?.page ?? 1;
   const size = opts?.size ?? 50;
   return useQuery({
     queryKey: injectionsKey(projectId, page, size),
     queryFn: async () => {
-      const resp = await projectsApi.listProjectInjections({ projectId, page, size });
+      const resp = await projectsApi.listProjectInjections({
+        projectId,
+        page,
+        size,
+      });
       return resp.data.data?.items ?? [];
     },
     enabled: projectId > 0,
@@ -111,7 +124,7 @@ export function useInjectionsList(
 }
 
 export function useInjectionDetail(
-  id: number | null,
+  id: number | null
 ): UseQueryResult<InjectionInjectionDetailResp | undefined> {
   return useQuery({
     queryKey: id != null ? injectionKey(id) : ['portal', 'injection', 'null'],
@@ -122,7 +135,9 @@ export function useInjectionDetail(
     },
     enabled: id != null && id > 0,
     refetchInterval: (query) => {
-      const detail = query.state.data as InjectionInjectionDetailResp | undefined;
+      const detail = query.state.data as
+        | InjectionInjectionDetailResp
+        | undefined;
       return isActiveStatus(detail?.status) ? 3_000 : false;
     },
   });
@@ -136,7 +151,11 @@ export interface SubmitInjectionInput {
   skipRestartPedestal?: boolean;
 }
 
-export function useSubmitInjection(): UseMutationResult<unknown, Error, SubmitInjectionInput> {
+export function useSubmitInjection(): UseMutationResult<
+  unknown,
+  Error,
+  SubmitInjectionInput
+> {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input) => {
@@ -155,7 +174,9 @@ export function useSubmitInjection(): UseMutationResult<unknown, Error, SubmitIn
       return resp.data.data;
     },
     onSuccess: (_, vars) => {
-      void qc.invalidateQueries({ queryKey: ['portal', 'injections', vars.projectId] });
+      void qc.invalidateQueries({
+        queryKey: ['portal', 'injections', vars.projectId],
+      });
     },
   });
 }

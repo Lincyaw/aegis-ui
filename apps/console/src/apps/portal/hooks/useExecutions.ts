@@ -7,9 +7,18 @@ export interface ExecutionsPage {
   size?: number;
 }
 
-export function useExecutionsList(projectId: number, page: ExecutionsPage = {}) {
+export function useExecutionsList(
+  projectId: number,
+  page: ExecutionsPage = {}
+) {
   return useQuery({
-    queryKey: ['portal', 'executions', projectId, page.page ?? 1, page.size ?? 30],
+    queryKey: [
+      'portal',
+      'executions',
+      projectId,
+      page.page ?? 1,
+      page.size ?? 30,
+    ],
     queryFn: async () => {
       const res = await projectsApi.listProjectExecutions({
         projectId,
@@ -26,7 +35,9 @@ export function useExecutionDetail(executionId: number | undefined) {
     queryKey: ['portal', 'execution', executionId],
     enabled: executionId !== undefined && Number.isFinite(executionId),
     queryFn: async () => {
-      const res = await executionsApi.getExecutionById({ id: executionId as number });
+      const res = await executionsApi.getExecutionById({
+        id: executionId as number,
+      });
       return res.data.data;
     },
     refetchInterval: (query) => {
@@ -74,7 +85,9 @@ export function useRunAlgorithm() {
       return res.data.data;
     },
     onSuccess: (_data, vars) => {
-      void qc.invalidateQueries({ queryKey: ['portal', 'executions', vars.projectId] });
+      void qc.invalidateQueries({
+        queryKey: ['portal', 'executions', vars.projectId],
+      });
     },
   });
 }

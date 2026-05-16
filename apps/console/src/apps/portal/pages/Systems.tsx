@@ -55,10 +55,7 @@ export default function Systems() {
               header: 'Status',
               render: (r) => (
                 <Chip tone={r.enabled ? 'ink' : 'ghost'}>
-                  <StatusDot
-                    size={6}
-                    tone={r.enabled ? 'ink' : 'muted'}
-                  />{' '}
+                  <StatusDot size={6} tone={r.enabled ? 'ink' : 'muted'} />{' '}
                   {r.enabled ? 'Enabled' : 'Disabled'}
                 </Chip>
               ),

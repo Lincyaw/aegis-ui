@@ -1,4 +1,3 @@
-import { App as AntdApp } from 'antd';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -16,6 +15,7 @@ import {
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import { useActiveProjectStore } from '../hooks/useActiveProject';
 import { useDeleteProject, useProject } from '../hooks/useProjects';
@@ -97,7 +97,10 @@ export default function ProjectOverview() {
         />
         <MetricCard label='Executions' value={project.execution_count ?? 0} />
         <MetricCard label='Datasets' value={project.datasets?.length ?? 0} />
-        <MetricCard label='Containers' value={project.containers?.length ?? 0} />
+        <MetricCard
+          label='Containers'
+          value={project.containers?.length ?? 0}
+        />
       </div>
 
       <Panel title={<PanelTitle size='base'>Settings</PanelTitle>}>

@@ -1,4 +1,3 @@
-import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
 
 import {
@@ -10,6 +9,7 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import { LabelCategory } from '@lincyaw/portal';
+import { App as AntdApp, Select } from 'antd';
 
 import { useCreateLabel } from '../api/labels';
 
@@ -47,13 +47,17 @@ export default function LabelCreate() {
       { key, value, description, color, category },
       {
         onSuccess: (created) => {
-          void msg.success(`Label ${created.key ?? key}=${created.value ?? value} created`);
+          void msg.success(
+            `Label ${created.key ?? key}=${created.value ?? value} created`
+          );
           navigate('labels');
         },
         onError: (err) => {
-          void msg.error(err instanceof Error ? err.message : 'Failed to create label');
+          void msg.error(
+            err instanceof Error ? err.message : 'Failed to create label'
+          );
         },
-      },
+      }
     );
   };
 
@@ -70,7 +74,11 @@ export default function LabelCreate() {
       />
       <Panel>
         <FormRow label='Key'>
-          <TextField value={key} onChange={(e) => setKey(e.target.value)} placeholder='env' />
+          <TextField
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder='env'
+          />
         </FormRow>
         <FormRow label='Value'>
           <TextField

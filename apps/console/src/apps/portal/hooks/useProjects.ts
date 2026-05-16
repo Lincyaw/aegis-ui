@@ -1,18 +1,18 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type UseMutationResult,
-  type UseQueryResult,
-} from '@tanstack/react-query';
-
-import { projectsApi } from '../api/portal-client';
 import type {
   ProjectCreateProjectReq,
   ProjectProjectDetailResp,
   ProjectProjectResp,
   ProjectUpdateProjectReq,
 } from '@lincyaw/portal';
+import {
+  useMutation,
+  type UseMutationResult,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query';
+
+import { projectsApi } from '../api/portal-client';
 
 export const projectKeys = {
   all: ['portal', 'projects'] as const,
@@ -31,10 +31,13 @@ export function useProjectsList(): UseQueryResult<ProjectProjectResp[]> {
 }
 
 export function useProject(
-  id: number | undefined,
+  id: number | undefined
 ): UseQueryResult<ProjectProjectDetailResp> {
   return useQuery({
-    queryKey: id === undefined ? ['portal', 'projects', 'detail', 'none'] : projectKeys.detail(id),
+    queryKey:
+      id === undefined
+        ? ['portal', 'projects', 'detail', 'none']
+        : projectKeys.detail(id),
     enabled: id !== undefined && Number.isFinite(id),
     queryFn: async () => {
       const res = await projectsApi.getProjectById({ projectId: id as number });
@@ -55,7 +58,9 @@ export function useCreateProject(): UseMutationResult<
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (body: ProjectCreateProjectReq) => {
-      const res = await projectsApi.createProject({ projectCreateProjectReq: body });
+      const res = await projectsApi.createProject({
+        projectCreateProjectReq: body,
+      });
       const created = res.data.data;
       if (!created) {
         throw new Error('Create project returned no data');

@@ -21,7 +21,11 @@ interface BatchState {
   stage: (spec: GuidedInjectionSpec) => void;
   remove: (index: number) => void;
   clear: () => void;
-  saveTemplate: (name: string, description: string, spec: GuidedInjectionSpec) => InjectionTemplate;
+  saveTemplate: (
+    name: string,
+    description: string,
+    spec: GuidedInjectionSpec
+  ) => InjectionTemplate;
 }
 
 let counter = 0;
@@ -35,7 +39,10 @@ export const useInjectBatch = create<BatchState>((set) => ({
   templates: [],
   stage: (spec) => {
     set((s) => ({
-      staged: [...s.staged, { id: rand('staged'), spec, addedAt: new Date().toISOString() }],
+      staged: [
+        ...s.staged,
+        { id: rand('staged'), spec, addedAt: new Date().toISOString() },
+      ],
     }));
   },
   remove: (index) => {

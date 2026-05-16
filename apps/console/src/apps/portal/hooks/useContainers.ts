@@ -5,17 +5,15 @@ import {
   type ContainersApiListContainersRequest,
   ContainerType,
 } from '@lincyaw/portal';
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { containersApi } from '../api/portal-client';
 
 const KEY = 'containers';
 
-export function useContainersList(params: ContainersApiListContainersRequest = {}) {
+export function useContainersList(
+  params: ContainersApiListContainersRequest = {}
+) {
   return useQuery({
     queryKey: [KEY, 'list', params],
     queryFn: async (): Promise<{

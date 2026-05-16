@@ -1,4 +1,3 @@
-import { App as AntdApp } from 'antd';
 import { Link, useParams } from 'react-router-dom';
 
 import {
@@ -15,6 +14,7 @@ import {
   TimeDisplay,
   useAppHref,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import { StatusChip } from '../components/StatusChip';
 // TODO(portal-wire): no RegressionsApi in @lincyaw/portal 1.3.0/1.4.0 — regression cases/runs have no backend surface yet; stays on mocks.
@@ -27,10 +27,10 @@ export default function RegressionDetail() {
   const { message: msg } = AntdApp.useApp();
 
   const caseRec = useMockStore((s) =>
-    s.regressionCases.find((c) => c.name === caseName),
+    s.regressionCases.find((c) => c.name === caseName)
   );
   const runs = useMockStore((s) =>
-    s.regressionRuns.filter((r) => r.caseId === caseRec?.id),
+    s.regressionRuns.filter((r) => r.caseId === caseRec?.id)
   );
   const runRegression = useMockStore((s) => s.runRegression);
 
@@ -39,7 +39,10 @@ export default function RegressionDetail() {
       <div className='page-wrapper'>
         <PageHeader title='Case not found' />
         <Panel>
-          <EmptyState title='Not found' description='Unknown regression case.' />
+          <EmptyState
+            title='Not found'
+            description='Unknown regression case.'
+          />
         </Panel>
       </div>
     );
@@ -58,7 +61,7 @@ export default function RegressionDetail() {
   const avgDuration =
     runs.length > 0
       ? Math.round(
-          runs.reduce((sum, r) => sum + r.durationMs, 0) / runs.length / 1000,
+          runs.reduce((sum, r) => sum + r.durationMs, 0) / runs.length / 1000
         )
       : 0;
 
@@ -76,11 +79,18 @@ export default function RegressionDetail() {
 
       <div className='page-overview-grid'>
         <MetricCard label='Runs' value={runs.length} />
-        <MetricCard label='Pass rate' value={`${(caseRec.passRate * 100).toFixed(1)}%`} />
+        <MetricCard
+          label='Pass rate'
+          value={`${(caseRec.passRate * 100).toFixed(1)}%`}
+        />
         <MetricCard label='Avg duration' value={`${avgDuration}s`} />
         <MetricCard
           label='Last status'
-          value={<Chip tone={caseRec.lastStatus === 'pass' ? 'ink' : 'warning'}>{caseRec.lastStatus}</Chip>}
+          value={
+            <Chip tone={caseRec.lastStatus === 'pass' ? 'ink' : 'warning'}>
+              {caseRec.lastStatus}
+            </Chip>
+          }
         />
       </div>
 
@@ -154,7 +164,12 @@ export default function RegressionDetail() {
             ...Array.from({ length: 4 }, (_, idx) => ({
               key: `child-${idx}`,
               header: `case-${idx + 1}`,
-              render: (r: { id: string; status: string; passes: number; fails: number }) => (
+              render: (r: {
+                id: string;
+                status: string;
+                passes: number;
+                fails: number;
+              }) => (
                 <Chip tone={idx < r.passes ? 'ink' : 'warning'}>
                   {idx < r.passes ? 'pass' : 'fail'}
                 </Chip>

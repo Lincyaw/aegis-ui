@@ -38,7 +38,8 @@ export function StatusChip({ status, pulse }: StatusChipProps) {
     status === 'running' || status === 'restarting' || status === 'installing';
   return (
     <Chip tone={tone}>
-      <StatusDot size={6} pulse={pulse ?? isLive} tone={DOT_MAP[tone]} /> {status}
+      <StatusDot size={6} pulse={pulse ?? isLive} tone={DOT_MAP[tone]} />{' '}
+      {status}
     </Chip>
   );
 }

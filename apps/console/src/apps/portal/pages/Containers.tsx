@@ -1,4 +1,3 @@
-import { type ContainerContainerResp } from '@lincyaw/portal';
 import { Link } from 'react-router-dom';
 
 import {
@@ -12,6 +11,7 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { type ContainerContainerResp } from '@lincyaw/portal';
 
 import { containerTypeLabel, useContainersList } from '../hooks/useContainers';
 
@@ -59,12 +59,10 @@ export default function Containers() {
               key: 'type',
               header: 'Type',
               render: (r) =>
-                r.type !== undefined ? (
-                  containerTypeLabel[r.type as unknown as 0 | 1 | 2] ??
-                  String(r.type)
-                ) : (
-                  '—'
-                ),
+                r.type !== undefined
+                  ? (containerTypeLabel[r.type as unknown as 0 | 1 | 2] ??
+                    String(r.type))
+                  : '—',
             },
             {
               key: 'status',

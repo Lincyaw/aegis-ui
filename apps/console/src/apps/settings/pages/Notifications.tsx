@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { App as AntdApp, Switch } from 'antd';
-
 import {
   FormRow,
   PageHeader,
@@ -9,6 +7,7 @@ import {
   SettingsSection,
   TextField,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Switch } from 'antd';
 
 import { ApiError } from '../../../api/apiClient';
 import {
@@ -21,7 +20,11 @@ const noop = (): void => undefined;
 
 // Categories the console understands. Backend may know more — we render
 // any extra ones it returns at the bottom.
-const KNOWN_CATEGORIES: Array<{ key: string; label: string; description: string }> = [
+const KNOWN_CATEGORIES: Array<{
+  key: string;
+  label: string;
+  description: string;
+}> = [
   {
     key: 'injection.completed',
     label: 'Injection completed',
@@ -104,7 +107,7 @@ export default function Notifications() {
         void load();
       });
     },
-    [load, msg],
+    [load, msg]
   );
 
   // Unknown categories returned by server but not in our list — render
@@ -138,7 +141,10 @@ export default function Notifications() {
           <FormRow label='Slack' description='Connected workspace: aegislab'>
             <Switch defaultChecked onChange={noop} />
           </FormRow>
-          <FormRow label='Webhook' description='Configure a custom HTTP endpoint.'>
+          <FormRow
+            label='Webhook'
+            description='Configure a custom HTTP endpoint.'
+          >
             <Switch onChange={noop} />
           </FormRow>
         </SettingsSection>

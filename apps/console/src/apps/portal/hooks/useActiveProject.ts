@@ -14,6 +14,6 @@ export const useActiveProjectStore = create<ActiveProjectState>()(
         set({ activeProjectId: id });
       },
     }),
-    { name: 'portal:active-project' },
-  ),
+    { name: 'portal:active-project' }
+  )
 );

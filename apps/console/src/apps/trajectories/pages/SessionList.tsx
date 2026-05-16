@@ -1,5 +1,4 @@
 import { type ReactElement, useEffect, useState } from 'react';
-import { parseAsString, useQueryState } from 'nuqs';
 import { Link } from 'react-router-dom';
 
 import {
@@ -16,8 +15,9 @@ import {
   TimeRangePicker,
   Toolbar,
 } from '@lincyaw/aegis-ui';
+import { parseAsString, useQueryState } from 'nuqs';
 
-import { type SessionSummary, listSessions } from '../api/clickhouse';
+import { listSessions, type SessionSummary } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
 import { formatDurationMs, formatTokens } from '../conversation';
 
@@ -36,12 +36,9 @@ export function SessionList(): ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [since, setSince] = useQueryState(
     'since',
-    parseAsString.withDefault(DEFAULT_SINCE),
+    parseAsString.withDefault(DEFAULT_SINCE)
   );
-  const [search, setSearch] = useQueryState(
-    'q',
-    parseAsString.withDefault(''),
-  );
+  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const { pinned, toggle } = useCompareList();
 
   const range =
@@ -49,7 +46,7 @@ export function SessionList(): ReactElement {
   const sinceHours = range
     ? Math.max(
         1,
-        Math.ceil((range.to.getTime() - range.from.getTime()) / 3_600_000),
+        Math.ceil((range.to.getTime() - range.from.getTime()) / 3_600_000)
       )
     : 168;
 
@@ -97,7 +94,9 @@ export function SessionList(): ReactElement {
           <MonoValue size='sm'>{r.sessionId.slice(0, 16)}</MonoValue>
           <MetricLabel size='xs'>
             {r.serviceName}
-            {r.sessionCount > 1 ? ` · ${r.sessionCount.toString()} sessions` : ''}
+            {r.sessionCount > 1
+              ? ` · ${r.sessionCount.toString()} sessions`
+              : ''}
           </MetricLabel>
         </Link>
       ),
@@ -208,10 +207,7 @@ export function SessionList(): ReactElement {
       />
       <div style={{ marginTop: 16 }}>
         {error ? (
-          <ErrorState
-            title='ClickHouse query failed'
-            description={error}
-          />
+          <ErrorState title='ClickHouse query failed' description={error} />
         ) : (
           <DataTable
             columns={columns}

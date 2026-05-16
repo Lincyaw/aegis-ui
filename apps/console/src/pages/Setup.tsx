@@ -1,12 +1,7 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  Chip,
-  MetricLabel,
-  Panel,
-  PanelTitle,
-} from '@lincyaw/aegis-ui';
+import { Chip, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
 
 import {
   clearLocalOverride,
@@ -74,7 +69,8 @@ export function Setup(): ReactElement {
   const current = getRuntimeConfig();
   const [draft, setDraft] = useState<Record<string, string>>({
     gatewayUrl: current.gatewayUrl,
-    ssoOrigin: current.ssoOrigin === current.gatewayUrl ? '' : current.ssoOrigin,
+    ssoOrigin:
+      current.ssoOrigin === current.gatewayUrl ? '' : current.ssoOrigin,
     clickhouseUrl: current.clickhouseUrl,
     clickhouseDatabase: current.clickhouseDatabase,
     aiBaseUrl: current.aiBaseUrl,
@@ -112,7 +108,9 @@ export function Setup(): ReactElement {
       title={<PanelTitle size='lg'>Connection</PanelTitle>}
       extra={
         <MetricLabel>
-          {overridden ? 'localStorage override active' : 'using /config.js defaults'}
+          {overridden
+            ? 'localStorage override active'
+            : 'using /config.js defaults'}
         </MetricLabel>
       }
     >
@@ -128,7 +126,11 @@ export function Setup(): ReactElement {
         {FIELDS.map((f) => (
           <label
             key={f.key}
-            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-1)',
+            }}
           >
             <span style={{ font: 'var(--text-label)' }}>{f.label}</span>
             <input
@@ -157,8 +159,17 @@ export function Setup(): ReactElement {
             </span>
           </label>
         ))}
-        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
-          <Chip tone='ink' onClick={() => submit(new Event('submit') as unknown as FormEvent)}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 'var(--space-3)',
+            alignItems: 'center',
+          }}
+        >
+          <Chip
+            tone='ink'
+            onClick={() => submit(new Event('submit') as unknown as FormEvent)}
+          >
             {saved ? 'Saved · reloading' : 'Save & reload'}
           </Chip>
           {overridden && (

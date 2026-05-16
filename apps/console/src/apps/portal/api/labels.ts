@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   LabelCategory,
   LabelCreateLabelReq,
@@ -6,6 +5,7 @@ import type {
   LabelLabelResp,
   LabelUpdateLabelReq,
 } from '@lincyaw/portal';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { labelsApi } from './portal-client';
 
@@ -64,7 +64,10 @@ export function useCreateLabel() {
 export function useUpdateLabel() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (args: { labelId: number; body: LabelUpdateLabelReq }) => {
+    mutationFn: async (args: {
+      labelId: number;
+      body: LabelUpdateLabelReq;
+    }) => {
       const res = await labelsApi.updateLabel({
         labelId: args.labelId,
         labelUpdateLabelReq: args.body,

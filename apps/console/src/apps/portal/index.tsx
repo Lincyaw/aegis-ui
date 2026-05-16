@@ -19,7 +19,7 @@ import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import { LegacyProjectRedirect } from './components/LegacyProjectRedirect';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
-
+import BatchInjections from './pages/BatchInjections';
 import ClusterStatus from './pages/ClusterStatus';
 import ContainerCreate from './pages/ContainerCreate';
 import ContainerDetail from './pages/ContainerDetail';
@@ -37,7 +37,6 @@ import EvalRuns from './pages/EvalRuns';
 import ExecutionCreate from './pages/ExecutionCreate';
 import ExecutionDetail from './pages/ExecutionDetail';
 import Executions from './pages/Executions';
-import BatchInjections from './pages/BatchInjections';
 import InjectionCreate from './pages/InjectionCreate';
 import InjectionDetail from './pages/InjectionDetail';
 import Injections from './pages/Injections';

@@ -50,7 +50,9 @@ export default function Pedestals() {
             {
               key: 'system',
               header: 'System',
-              render: (r) => <Link to={href(`systems/${r.systemCode}`)}>{r.systemCode}</Link>,
+              render: (r) => (
+                <Link to={href(`systems/${r.systemCode}`)}>{r.systemCode}</Link>
+              ),
             },
             {
               key: 'version',

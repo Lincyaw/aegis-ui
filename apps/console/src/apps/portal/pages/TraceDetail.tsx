@@ -12,18 +12,14 @@ import {
   Panel,
   PanelTitle,
   SectionDivider,
-  TraceTree,
   type TraceSpan,
+  TraceTree,
 } from '@lincyaw/aegis-ui';
 import type { ObservationSpanNode } from '@lincyaw/portal';
 
 import { useSpanTree } from '../hooks/observability';
 
-const NS_PER_MS = 1_000_000;
-
-function statusOf(
-  raw: string | undefined,
-): TraceSpan['status'] {
+function statusOf(raw: string | undefined): TraceSpan['status'] {
   if (raw === undefined) {
     return 'unset';
   }
@@ -66,7 +62,8 @@ function toTraceSpans(nodes: ObservationSpanNode[]): TraceSpan[] {
     .filter((t) => Number.isFinite(t));
   const traceStart = startTimes.length > 0 ? Math.min(...startTimes) : 0;
   return nodes.map((n) => {
-    const start = n.start_ts !== undefined ? Date.parse(n.start_ts) : traceStart;
+    const start =
+      n.start_ts !== undefined ? Date.parse(n.start_ts) : traceStart;
     const end = n.end_ts !== undefined ? Date.parse(n.end_ts) : start;
     return {
       id: n.span_id ?? '',
@@ -77,7 +74,7 @@ function toTraceSpans(nodes: ObservationSpanNode[]): TraceSpan[] {
       name:
         n.op !== undefined && n.op.length > 0
           ? n.service !== undefined
-            ? n.service + ' · ' + n.op
+            ? `${n.service} · ${n.op}`
             : n.op
           : (n.service ?? 'span'),
       startMs: Math.max(0, start - traceStart),
@@ -102,7 +99,7 @@ export default function TraceDetail() {
 
   const spans = useMemo<TraceSpan[]>(
     () => toTraceSpans(query.data?.spans ?? []),
-    [query.data],
+    [query.data]
   );
 
   const rootSpan = spans.find((s) => s.parentId === undefined) ?? spans[0];
@@ -112,7 +109,7 @@ export default function TraceDetail() {
   if (injectionId === null) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title={'Trace ' + (traceId ?? '')} />
+        <PageHeader title={`Trace ${traceId ?? ''}`} />
         <Panel>
           <EmptyState
             title='Missing injection scope'
@@ -126,7 +123,7 @@ export default function TraceDetail() {
   if (query.isError) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title={'Trace ' + (traceId ?? '')} />
+        <PageHeader title={`Trace ${traceId ?? ''}`} />
         <Panel>
           <ErrorState
             title='Failed to load span tree'
@@ -140,7 +137,7 @@ export default function TraceDetail() {
   if (query.isLoading) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title={'Trace ' + (traceId ?? '')} />
+        <PageHeader title={`Trace ${traceId ?? ''}`} />
         <Panel>
           <EmptyState title='Loading…' />
         </Panel>
@@ -151,7 +148,7 @@ export default function TraceDetail() {
   if (spans.length === 0) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title={'Trace ' + (traceId ?? '')} />
+        <PageHeader title={`Trace ${traceId ?? ''}`} />
         <Panel>
           <EmptyState
             title='Trace not found'
@@ -165,7 +162,7 @@ export default function TraceDetail() {
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={'Trace ' + (traceId ?? '')}
+        title={`Trace ${traceId ?? ''}`}
         description={rootSpan?.name}
         action={<Chip tone='ghost'>{spans.length} spans</Chip>}
       />
@@ -181,13 +178,16 @@ export default function TraceDetail() {
               k: 'trace id',
               v: <MonoValue size='sm'>{traceId ?? '—'}</MonoValue>,
             },
-            { k: 'root', v: <MonoValue size='sm'>{rootSpan?.name ?? '—'}</MonoValue> },
+            {
+              k: 'root',
+              v: <MonoValue size='sm'>{rootSpan?.name ?? '—'}</MonoValue>,
+            },
           ]}
         />
       </Panel>
 
       <div className='page-overview-grid'>
-        <MetricCard label='Duration' value={totalDuration.toFixed(0) + ' ms'} />
+        <MetricCard label='Duration' value={`${totalDuration.toFixed(0)} ms`} />
         <MetricCard label='Spans' value={spans.length} />
         <MetricCard
           label='Status'

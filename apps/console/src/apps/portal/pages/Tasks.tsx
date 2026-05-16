@@ -1,4 +1,3 @@
-import type { TaskResp } from '@lincyaw/portal';
 import { Link } from 'react-router-dom';
 
 import {
@@ -12,6 +11,7 @@ import {
   TimeDisplay,
   useAppHref,
 } from '@lincyaw/aegis-ui';
+import type { TaskResp } from '@lincyaw/portal';
 
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectNumericId } from '../hooks/useActiveProjectNumericId';
@@ -20,7 +20,9 @@ import { useTasksList } from '../hooks/useTasks';
 export default function Tasks() {
   const href = useAppHref();
   const projectId = useActiveProjectNumericId();
-  const { data, isLoading, isError, error, refetch } = useTasksList({ projectId });
+  const { data, isLoading, isError, error, refetch } = useTasksList({
+    projectId,
+  });
   const items: TaskResp[] = data?.items ?? [];
 
   return (
@@ -33,7 +35,9 @@ export default function Tasks() {
         {isError ? (
           <ErrorState
             title='Failed to load tasks'
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
             action={
               <Button
                 tone='secondary'
@@ -48,7 +52,10 @@ export default function Tasks() {
         ) : isLoading ? (
           <EmptyState title='Loading…' description='Fetching tasks.' />
         ) : items.length === 0 ? (
-          <EmptyState title='No tasks' description='No background jobs in this project yet.' />
+          <EmptyState
+            title='No tasks'
+            description='No background jobs in this project yet.'
+          />
         ) : (
           <DataTable<TaskResp>
             data={items}
@@ -67,12 +74,16 @@ export default function Tasks() {
               {
                 key: 'trace',
                 header: 'Trace',
-                render: (r) => <MonoValue size='sm'>{r.trace_id ?? '—'}</MonoValue>,
+                render: (r) => (
+                  <MonoValue size='sm'>{r.trace_id ?? '—'}</MonoValue>
+                ),
               },
               {
                 key: 'state',
                 header: 'State',
-                render: (r) => <StatusChip status={r.state ?? r.status ?? 'pending'} />,
+                render: (r) => (
+                  <StatusChip status={r.state ?? r.status ?? 'pending'} />
+                ),
               },
               {
                 key: 'started',

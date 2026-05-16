@@ -1,5 +1,3 @@
-import { Radio } from 'antd';
-
 import {
   Button,
   Chip,
@@ -9,6 +7,7 @@ import {
   Panel,
   PanelTitle,
 } from '@lincyaw/aegis-ui';
+import { Radio } from 'antd';
 
 import { useInjectBatch } from '../../state/inject-batch';
 
@@ -58,7 +57,10 @@ export function Step5Stage({ mode, setMode }: Props) {
 
       {rows.length > 0 && (
         <div style={{ marginTop: 'var(--space-4)' }}>
-          <div className='page-action-row' style={{ marginBottom: 'var(--space-3)' }}>
+          <div
+            className='page-action-row'
+            style={{ marginBottom: 'var(--space-3)' }}
+          >
             <Chip tone='ink'>{rows.length} staged</Chip>
             <Button tone='ghost' onClick={() => clear()}>
               Clear batch
@@ -81,7 +83,11 @@ export function Step5Stage({ mode, setMode }: Props) {
                 header: 'Chaos type',
                 render: (r) => <MonoValue size='sm'>{r.chaosType}</MonoValue>,
               },
-              { key: 'dur', header: 'Duration', render: (r) => `${r.durationSec}s` },
+              {
+                key: 'dur',
+                header: 'Duration',
+                render: (r) => `${r.durationSec}s`,
+              },
               {
                 key: 'rm',
                 header: '',

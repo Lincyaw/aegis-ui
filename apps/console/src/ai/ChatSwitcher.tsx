@@ -7,9 +7,10 @@ import {
   useState,
 } from 'react';
 
-import { ChatSessionList, type ChatSessionItem } from '@lincyaw/aegis-ui';
+import { type ChatSessionItem, ChatSessionList } from '@lincyaw/aegis-ui';
 
 import { useChatStore } from './chatStore';
+
 import './ChatSwitcher.css';
 
 function truncate(value: string, max: number): string {
@@ -67,7 +68,7 @@ export function ChatSwitcher(): ReactElement {
       switchChat(id);
       setOpen(false);
     },
-    [switchChat],
+    [switchChat]
   );
 
   const items = useMemo<ChatSessionItem[]>(
@@ -78,7 +79,7 @@ export function ChatSwitcher(): ReactElement {
         timestamp: s.lastActiveAt,
         selected: s.id === currentId,
       })),
-    [sessions, currentId],
+    [sessions, currentId]
   );
 
   return (

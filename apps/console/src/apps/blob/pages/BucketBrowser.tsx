@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 
 import {
   CaretDownOutlined,
@@ -12,8 +16,6 @@ import {
   ShareAltOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
-import { App as AntdApp, Button, Input, Modal, Tooltip } from 'antd';
-
 import {
   Breadcrumb,
   type BreadcrumbItem,
@@ -41,6 +43,7 @@ import {
   UploadQueue,
   useActiveApp,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Button, Input, Modal, Tooltip } from 'antd';
 
 import { ApiError } from '../../../api/apiClient';
 import {
@@ -127,7 +130,7 @@ function lastSegment(key: string): string {
 function runPool<T>(
   items: T[],
   concurrency: number,
-  worker: (item: T) => Promise<void>,
+  worker: (item: T) => Promise<void>
 ): Promise<void> {
   return new Promise((resolve) => {
     let idx = 0;
@@ -173,16 +176,15 @@ export default function BucketBrowser() {
 
   const setPrefix = useCallback(
     (next: string): void => {
-      setSearchParams(
-        next === '' ? {} : { prefix: next },
-        { replace: false },
-      );
+      setSearchParams(next === '' ? {} : { prefix: next }, { replace: false });
     },
-    [setSearchParams],
+    [setSearchParams]
   );
 
   const [result, setResult] = useState<DriverListResult | null>(null);
-  const [continuationToken, setContinuationToken] = useState<string | undefined>(undefined);
+  const [continuationToken, setContinuationToken] = useState<
+    string | undefined
+  >(undefined);
   const [isTruncated, setIsTruncated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -325,8 +327,8 @@ export default function BucketBrowser() {
         void (async () => {
           setUploads((prev) =>
             prev.map((u) =>
-              u.id === item.id ? { ...u, status: 'uploading' } : u,
-            ),
+              u.id === item.id ? { ...u, status: 'uploading' } : u
+            )
           );
           let presign: Awaited<ReturnType<typeof presignPut>>;
           try {
@@ -341,8 +343,8 @@ export default function BucketBrowser() {
               prev.map((u) =>
                 u.id === item.id
                   ? { ...u, status: 'error', error: errMsg(e) }
-                  : u,
-              ),
+                  : u
+              )
             );
             resolve();
             return;
@@ -372,7 +374,8 @@ export default function BucketBrowser() {
             lastLoaded = ev.loaded;
             lastTime = now;
             const remaining = file.size - ev.loaded;
-            const etaSeconds = ewmaSpeed > 0 ? remaining / ewmaSpeed : undefined;
+            const etaSeconds =
+              ewmaSpeed > 0 ? remaining / ewmaSpeed : undefined;
             setUploads((prev) =>
               prev.map((u) =>
                 u.id === item.id
@@ -383,8 +386,8 @@ export default function BucketBrowser() {
                       speedBps: ewmaSpeed,
                       etaSeconds,
                     }
-                  : u,
-              ),
+                  : u
+              )
             );
           };
 
@@ -393,10 +396,8 @@ export default function BucketBrowser() {
             if (xhr.status >= 200 && xhr.status < 300) {
               setUploads((prev) =>
                 prev.map((u) =>
-                  u.id === item.id
-                    ? { ...u, status: 'done', progress: 1 }
-                    : u,
-                ),
+                  u.id === item.id ? { ...u, status: 'done', progress: 1 } : u
+                )
               );
             } else {
               setUploads((prev) =>
@@ -407,8 +408,8 @@ export default function BucketBrowser() {
                         status: 'error',
                         error: `HTTP ${xhr.status.toString()}`,
                       }
-                    : u,
-                ),
+                    : u
+                )
               );
             }
             resolve();
@@ -420,8 +421,8 @@ export default function BucketBrowser() {
               prev.map((u) =>
                 u.id === item.id
                   ? { ...u, status: 'error', error: 'Network error' }
-                  : u,
-              ),
+                  : u
+              )
             );
             resolve();
           };
@@ -432,8 +433,8 @@ export default function BucketBrowser() {
               prev.map((u) =>
                 u.id === item.id
                   ? { ...u, status: 'error', error: 'Cancelled' }
-                  : u,
-              ),
+                  : u
+              )
             );
             resolve();
           };
@@ -449,7 +450,7 @@ export default function BucketBrowser() {
         })();
       });
     },
-    [bucket],
+    [bucket]
   );
 
   const handleDrop = useCallback(
@@ -479,7 +480,7 @@ export default function BucketBrowser() {
 
       await refresh();
     },
-    [prefix, refresh, uploadOneXhr],
+    [prefix, refresh, uploadOneXhr]
   );
 
   const handleDelete = useCallback(
@@ -503,7 +504,7 @@ export default function BucketBrowser() {
         },
       });
     },
-    [bucket, msg, modal, preview, refresh],
+    [bucket, msg, modal, preview, refresh]
   );
 
   const handleBulkDelete = useCallback(() => {
@@ -520,10 +521,12 @@ export default function BucketBrowser() {
         try {
           const res = await batchDelete(bucket, keys);
           if (res.failed.length === 0) {
-            void msg.success(`Deleted ${res.deleted.length.toString()} objects`);
+            void msg.success(
+              `Deleted ${res.deleted.length.toString()} objects`
+            );
           } else {
             void msg.warning(
-              `Deleted ${res.deleted.length.toString()}, ${res.failed.length.toString()} failed`,
+              `Deleted ${res.deleted.length.toString()}, ${res.failed.length.toString()} failed`
             );
           }
         } catch (e) {
@@ -550,9 +553,14 @@ export default function BucketBrowser() {
       }
       modal.confirm({
         title: `Download ${keys.length.toString()} objects as ZIP?`,
-        content: 'The server streams the archive — large selections may take a moment.',
-        onOk: () => { resolve(true); },
-        onCancel: () => { resolve(false); },
+        content:
+          'The server streams the archive — large selections may take a moment.',
+        onOk: () => {
+          resolve(true);
+        },
+        onCancel: () => {
+          resolve(false);
+        },
       });
     });
     if (!confirmed) {
@@ -577,11 +585,15 @@ export default function BucketBrowser() {
       return;
     }
     if (moveTarget.startsWith('/') || moveTarget.startsWith('..')) {
-      void msg.error('Target prefix must be a relative path within this bucket.');
+      void msg.error(
+        'Target prefix must be a relative path within this bucket.'
+      );
       return;
     }
     setMoveLoading(true);
-    const targetPrefix = moveTarget.endsWith('/') ? moveTarget : `${moveTarget}/`;
+    const targetPrefix = moveTarget.endsWith('/')
+      ? moveTarget
+      : `${moveTarget}/`;
     let failed = 0;
     await Promise.allSettled(
       keys.map(async (k) => {
@@ -595,7 +607,7 @@ export default function BucketBrowser() {
           failed += 1;
           void msg.error(`Move failed for ${lastSegment(k)}: ${errMsg(e)}`);
         }
-      }),
+      })
     );
     setMoveLoading(false);
     setMoveOpen(false);
@@ -610,7 +622,10 @@ export default function BucketBrowser() {
   }, [bucket, moveTarget, msg, preview, refresh, selected]);
 
   const generateShareLink = useCallback(
-    async (item: ObjItem, opts: { ttlSeconds: number; asAttachment: boolean }): Promise<ShareLinkResult> => {
+    async (
+      item: ObjItem,
+      opts: { ttlSeconds: number; asAttachment: boolean }
+    ): Promise<ShareLinkResult> => {
       const filename = lastSegment(item.key);
       const pr = await presignGet(bucket, {
         key: item.key,
@@ -637,13 +652,16 @@ export default function BucketBrowser() {
       });
       return out;
     },
-    [bucket],
+    [bucket]
   );
 
   const copyUrl = useCallback(
     async (item: ObjItem): Promise<void> => {
       try {
-        const pr = await presignGet(bucket, { key: item.key, ttl_seconds: 300 });
+        const pr = await presignGet(bucket, {
+          key: item.key,
+          ttl_seconds: 300,
+        });
         const fullUrl = pr.url.startsWith('http')
           ? pr.url
           : `${window.location.origin}${pr.url}`;
@@ -653,7 +671,7 @@ export default function BucketBrowser() {
         void msg.error(`Copy URL failed: ${errMsg(e)}`);
       }
     },
-    [bucket, msg],
+    [bucket, msg]
   );
 
   const downloadAsAttachment = useCallback(
@@ -673,7 +691,7 @@ export default function BucketBrowser() {
         void msg.error(`Download failed: ${errMsg(e)}`);
       }
     },
-    [bucket, msg],
+    [bucket, msg]
   );
 
   const handleNewFolder = useCallback(async (): Promise<void> => {
@@ -772,17 +790,15 @@ export default function BucketBrowser() {
       {
         id: 'preview',
         label: 'Preview',
-        content: (
-          previewUrl ? (
-            <FilePreview
-              src={previewUrl}
-              mimeType={inferMime(preview)}
-              name={preview.key}
-              size={preview.size}
-            />
-          ) : (
-            <span style={{ color: 'var(--text-muted)' }}>Loading preview…</span>
-          )
+        content: previewUrl ? (
+          <FilePreview
+            src={previewUrl}
+            mimeType={inferMime(preview)}
+            name={preview.key}
+            size={preview.size}
+          />
+        ) : (
+          <span style={{ color: 'var(--text-muted)' }}>Loading preview…</span>
         ),
       },
     ];
@@ -790,12 +806,10 @@ export default function BucketBrowser() {
       tabs.push({
         id: 'parquet',
         label: 'Parquet',
-        content: (
-          previewUrl ? (
-            <ParquetViewer src={previewUrl} title={preview.key} />
-          ) : (
-            <span style={{ color: 'var(--text-muted)' }}>Loading parquet…</span>
-          )
+        content: previewUrl ? (
+          <ParquetViewer src={previewUrl} title={preview.key} />
+        ) : (
+          <span style={{ color: 'var(--text-muted)' }}>Loading parquet…</span>
         ),
       });
     }
@@ -809,7 +823,7 @@ export default function BucketBrowser() {
     return (
       <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
         <Button
-          size="small"
+          size='small'
           icon={<DownloadOutlined />}
           onClick={() => {
             void downloadAsAttachment(preview);
@@ -818,7 +832,7 @@ export default function BucketBrowser() {
           Download
         </Button>
         <Button
-          size="small"
+          size='small'
           icon={<CopyOutlined />}
           onClick={() => {
             void copyUrl(preview);
@@ -827,7 +841,7 @@ export default function BucketBrowser() {
           Copy URL
         </Button>
         <Button
-          size="small"
+          size='small'
           icon={<ShareAltOutlined />}
           onClick={() => {
             setShare(preview);
@@ -837,7 +851,7 @@ export default function BucketBrowser() {
           Share
         </Button>
         <Button
-          size="small"
+          size='small'
           danger
           icon={<DeleteOutlined />}
           onClick={() => {
@@ -859,7 +873,7 @@ export default function BucketBrowser() {
         truncate: false,
         render: (row) => (
           <input
-            type="checkbox"
+            type='checkbox'
             checked={selected.has(row.key)}
             onChange={(e) => {
               setSelected((prev) => {
@@ -878,14 +892,18 @@ export default function BucketBrowser() {
       {
         key: 'key',
         header: 'Name',
-        render: (row) => <MonoValue size="sm">{lastSegment(row.key)}</MonoValue>,
+        render: (row) => (
+          <MonoValue size='sm'>{lastSegment(row.key)}</MonoValue>
+        ),
       },
       {
         key: 'size',
         header: 'Size',
         align: 'right',
         width: 100,
-        render: (row) => <MonoValue size="sm">{humanBytes(row.size)}</MonoValue>,
+        render: (row) => (
+          <MonoValue size='sm'>{humanBytes(row.size)}</MonoValue>
+        ),
       },
       {
         key: 'type',
@@ -893,7 +911,7 @@ export default function BucketBrowser() {
         width: 200,
         render: (row) =>
           row.contentType ? (
-            <Chip tone="ghost">{row.contentType}</Chip>
+            <Chip tone='ghost'>{row.contentType}</Chip>
           ) : (
             <span style={{ color: 'var(--text-muted)' }}>—</span>
           ),
@@ -903,7 +921,7 @@ export default function BucketBrowser() {
         header: 'Updated',
         width: 180,
         render: (row) => (
-          <MonoValue size="sm">
+          <MonoValue size='sm'>
             {new Date(row.updatedAt).toLocaleString()}
           </MonoValue>
         ),
@@ -916,9 +934,9 @@ export default function BucketBrowser() {
         width: 200,
         render: (row) => (
           <DropdownMenu
-            align="right"
+            align='right'
             trigger={
-              <Button size="small" type="text">
+              <Button size='small' type='text'>
                 Actions <CaretDownOutlined />
               </Button>
             }
@@ -970,7 +988,7 @@ export default function BucketBrowser() {
         ),
       },
     ],
-    [copyUrl, downloadAsAttachment, handleDelete, selected],
+    [copyUrl, downloadAsAttachment, handleDelete, selected]
   );
 
   // Window-level drag-over detection
@@ -1028,11 +1046,7 @@ export default function BucketBrowser() {
         >
           Move…
         </Button>
-        <Button
-          danger
-          icon={<DeleteOutlined />}
-          onClick={handleBulkDelete}
-        >
+        <Button danger icon={<DeleteOutlined />} onClick={handleBulkDelete}>
           Delete ({selected.size.toString()})
         </Button>
       </span>
@@ -1047,7 +1061,7 @@ export default function BucketBrowser() {
           New folder
         </Button>
         <DropdownMenu
-          align="right"
+          align='right'
           trigger={
             <Button icon={<UploadOutlined />}>
               Upload <CaretDownOutlined />
@@ -1087,10 +1101,8 @@ export default function BucketBrowser() {
             },
           ]}
         />
-        <Tooltip title="List mode only" placement="top">
-          <Button disabled>
-            ☰
-          </Button>
+        <Tooltip title='List mode only' placement='top'>
+          <Button disabled>☰</Button>
         </Tooltip>
         <Button
           icon={<ReloadOutlined />}
@@ -1122,8 +1134,10 @@ export default function BucketBrowser() {
           <SearchInput
             value={search}
             onChange={setSearch}
-            placeholder="Filter objects…"
-            onClear={() => { setSearch(''); }}
+            placeholder='Filter objects…'
+            onClear={() => {
+              setSearch('');
+            }}
           />
         }
         right={toolbarRight}
@@ -1138,11 +1152,13 @@ export default function BucketBrowser() {
             }}
             onClearCompleted={() => {
               setUploads((prev) =>
-                prev.filter(
-                  (u) => u.status !== 'done' && u.status !== 'error',
-                ),
+                prev.filter((u) => u.status !== 'done' && u.status !== 'error')
               );
-              if (uploads.every((u) => u.status === 'done' || u.status === 'error')) {
+              if (
+                uploads.every(
+                  (u) => u.status === 'done' || u.status === 'error'
+                )
+              ) {
                 setShowUploadQueue(false);
               }
             }}
@@ -1153,7 +1169,7 @@ export default function BucketBrowser() {
       {error !== null ? (
         <Panel>
           <ErrorState
-            title="Could not list objects"
+            title='Could not list objects'
             description={error}
             action={
               <Button
@@ -1180,12 +1196,12 @@ export default function BucketBrowser() {
             dragOverlay={
               dragActive ? (
                 <FileDropzone
-                  variant="overlay"
+                  variant='overlay'
                   onDrop={(files) => {
                     void handleDrop(files);
                   }}
                   multiple
-                  hint="Drop to upload"
+                  hint='Drop to upload'
                 />
               ) : undefined
             }
@@ -1238,11 +1254,7 @@ export default function BucketBrowser() {
         subtitle={preview?.key}
         tabs={inspectorTabs}
         defaultTabId={
-          preview
-            ? isParquet(preview)
-              ? 'parquet'
-              : 'preview'
-            : undefined
+          preview ? (isParquet(preview) ? 'parquet' : 'preview') : undefined
         }
         actions={inspectorActions}
         width={720}
@@ -1250,7 +1262,7 @@ export default function BucketBrowser() {
       />
 
       <Modal
-        title="Share link"
+        title='Share link'
         open={shareModalOpen}
         onCancel={() => {
           setShareModalOpen(false);
@@ -1272,7 +1284,7 @@ export default function BucketBrowser() {
       </Modal>
 
       <Modal
-        title="New folder"
+        title='New folder'
         open={newFolderOpen}
         onCancel={() => {
           setNewFolderOpen(false);
@@ -1281,12 +1293,12 @@ export default function BucketBrowser() {
         onOk={() => {
           void handleNewFolder();
         }}
-        okText="Create"
+        okText='Create'
         confirmLoading={newFolderLoading}
         destroyOnClose
       >
         <Input
-          placeholder="folder-name"
+          placeholder='folder-name'
           value={newFolderName}
           onChange={(e) => {
             setNewFolderName(e.target.value);
@@ -1307,15 +1319,18 @@ export default function BucketBrowser() {
         onOk={() => {
           void handleMove();
         }}
-        okText="Move"
+        okText='Move'
         confirmLoading={moveLoading}
         destroyOnClose
       >
-        <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>
-          Server-side copy then delete within this bucket — no client bandwidth round-trip. Cross-bucket move is not yet supported.
+        <p
+          style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}
+        >
+          Server-side copy then delete within this bucket — no client bandwidth
+          round-trip. Cross-bucket move is not yet supported.
         </p>
         <Input
-          placeholder="target/prefix/"
+          placeholder='target/prefix/'
           value={moveTarget}
           onChange={(e) => {
             setMoveTarget(e.target.value);

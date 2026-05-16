@@ -1,8 +1,8 @@
 import {
   useMutation,
+  type UseMutationResult,
   useQuery,
   useQueryClient,
-  type UseMutationResult,
   type UseQueryResult,
 } from '@tanstack/react-query';
 
@@ -54,7 +54,7 @@ function unwrap<T>(r: GenericResponse<T>): T {
 }
 
 export function useEvaluations(
-  params: EvaluationsListParams = {},
+  params: EvaluationsListParams = {}
 ): UseQueryResult<EvaluationsListResp> {
   const { page = 1, size = 20 } = params;
   return useQuery({
@@ -65,7 +65,7 @@ export function useEvaluations(
         size: String(size),
       });
       const res = await apiJson<GenericResponse<EvaluationsListResp>>(
-        `${EVAL_BASE}?${qs.toString()}`,
+        `${EVAL_BASE}?${qs.toString()}`
       );
       return unwrap(res);
     },
@@ -73,14 +73,14 @@ export function useEvaluations(
 }
 
 export function useEvaluation(
-  id: number | undefined,
+  id: number | undefined
 ): UseQueryResult<EvaluationResp> {
   return useQuery({
     queryKey: ['evaluation', id],
     enabled: id !== undefined && Number.isFinite(id),
     queryFn: async () => {
       const res = await apiJson<GenericResponse<EvaluationResp>>(
-        `${EVAL_BASE}/${String(id)}`,
+        `${EVAL_BASE}/${String(id)}`
       );
       return unwrap(res);
     },
@@ -129,7 +129,7 @@ export function useBatchEvaluateDataset(): UseMutationResult<
         {
           method: 'POST',
           body: JSON.stringify(body),
-        },
+        }
       );
       return unwrap(res);
     },

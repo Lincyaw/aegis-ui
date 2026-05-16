@@ -54,8 +54,7 @@ const SSO_ERROR_MESSAGES: Record<string, string> = {
     'Incorrect username or password. Please try again.',
   [SsoErrorCode.UnsupportedResponseType]:
     'This sign-in flow is not supported by the server.',
-  [SsoErrorCode.UnknownClient]:
-    'Unknown client. Contact your administrator.',
+  [SsoErrorCode.UnknownClient]: 'Unknown client. Contact your administrator.',
   [SsoErrorCode.ClientNotConfigured]:
     'This client is not configured for sign-in. Contact your administrator.',
   [SsoErrorCode.InvalidRedirectURI]:
@@ -64,8 +63,7 @@ const SSO_ERROR_MESSAGES: Record<string, string> = {
     'Invalid client or redirect URL. Contact your administrator.',
   [SsoErrorCode.PKCERequired]:
     'This client requires PKCE. Reload the sign-in page.',
-  [SsoErrorCode.UnsupportedPKCEMethod]:
-    'Unsupported PKCE method.',
+  [SsoErrorCode.UnsupportedPKCEMethod]: 'Unsupported PKCE method.',
   [SsoErrorCode.Internal]:
     'Something went wrong on our side. Please try again.',
 };
@@ -82,7 +80,7 @@ export function Login(): ReactElement {
   const handoff = readHandoff(params);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(() =>
-    ssoErrorMessage(params.get('error')),
+    ssoErrorMessage(params.get('error'))
   );
   const triggered = useRef(false);
 
@@ -159,7 +157,11 @@ export function Login(): ReactElement {
         </span>
       }
     >
-      <LoginForm onSubmit={handleSubmit} submitting={submitting} error={error} />
+      <LoginForm
+        onSubmit={handleSubmit}
+        submitting={submitting}
+        error={error}
+      />
     </AuthLayout>
   );
 }

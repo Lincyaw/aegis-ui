@@ -4,9 +4,8 @@
  * Visual contract: kind chip + summary + source_turns chip. Highlighted
  * when the page's selectedEventId matches.
  */
-
 import { memo } from 'react';
-import { Handle, Position, type NodeProps } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 import './EventNode.css';
 
@@ -36,12 +35,16 @@ function EventNodeImpl({ data }: NodeProps<EventNodeData>) {
       role={data.onSelect ? 'button' : undefined}
       tabIndex={data.onSelect ? 0 : undefined}
     >
-      <Handle type='target' position={Position.Left} className='llmh-evt-node__handle' />
+      <Handle
+        type='target'
+        position={Position.Left}
+        className='llmh-evt-node__handle'
+      />
       <div className='llmh-evt-node__head'>
         <span className='llmh-evt-node__kind'>{data.kind}</span>
         <span className='llmh-evt-node__id'>#{data.id}</span>
-        {data.source_turns.length > 0 && (
-          data.onSelectTurn ? (
+        {data.source_turns.length > 0 &&
+          (data.onSelectTurn ? (
             <button
               type='button'
               className='llmh-evt-node__turns llmh-evt-node__turns--btn'
@@ -54,12 +57,17 @@ function EventNodeImpl({ data }: NodeProps<EventNodeData>) {
               ↗ turn {data.source_turns.join(',')}
             </button>
           ) : (
-            <span className='llmh-evt-node__turns'>turn {data.source_turns.join(',')}</span>
-          )
-        )}
+            <span className='llmh-evt-node__turns'>
+              turn {data.source_turns.join(',')}
+            </span>
+          ))}
       </div>
       <div className='llmh-evt-node__summary'>{data.summary}</div>
-      <Handle type='source' position={Position.Right} className='llmh-evt-node__handle' />
+      <Handle
+        type='source'
+        position={Position.Right}
+        className='llmh-evt-node__handle'
+      />
     </div>
   );
 }

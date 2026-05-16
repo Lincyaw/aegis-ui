@@ -4,6 +4,7 @@ import { Chip, MetricLabel, MonoValue, StatusDot } from '@lincyaw/aegis-ui';
 
 import type { SpanRow } from '../api/clickhouse';
 import { formatDurationMs } from '../conversation';
+
 import './SessionsTree.css';
 
 interface SessionNode {
@@ -46,7 +47,7 @@ function buildSessionForest(spans: SpanRow[]): SessionNode[] {
     n.children.sort(
       (a, b) =>
         new Date(a.span.timestamp).getTime() -
-        new Date(b.span.timestamp).getTime(),
+        new Date(b.span.timestamp).getTime()
     );
     n.children.forEach(sortRec);
   };
@@ -54,7 +55,7 @@ function buildSessionForest(spans: SpanRow[]): SessionNode[] {
   roots.sort(
     (a, b) =>
       new Date(a.span.timestamp).getTime() -
-      new Date(b.span.timestamp).getTime(),
+      new Date(b.span.timestamp).getTime()
   );
   return roots;
 }
@@ -83,7 +84,7 @@ function rolePill(span: SpanRow): string {
 function turnCount(span: SpanRow, allSpans: SpanRow[]): number {
   const sid = span.spanId;
   return allSpans.filter(
-    (s) => s.name === 'agentm.turn' && s.parentSpanId === sid,
+    (s) => s.name === 'agentm.turn' && s.parentSpanId === sid
   ).length;
 }
 
@@ -110,7 +111,7 @@ export function SessionsTree({
   const visible = useMemo(() => flatten(roots, collapsed), [roots, collapsed]);
   const allCount = useMemo(
     () => spans.filter((s) => s.name === 'agentm.session').length,
-    [spans],
+    [spans]
   );
 
   const toggle = (sid: string): void => {

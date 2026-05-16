@@ -37,7 +37,9 @@ export default function TaskDetail() {
         <Panel>
           <ErrorState
             title='Not found'
-            description={error instanceof Error ? error.message : 'Unknown task.'}
+            description={
+              error instanceof Error ? error.message : 'Unknown task.'
+            }
           />
         </Panel>
       </div>
@@ -80,7 +82,10 @@ export default function TaskDetail() {
         {lines.length > 0 ? (
           <Terminal lines={lines} />
         ) : (
-          <EmptyState title='No logs yet' description='Logs will appear as the task progresses.' />
+          <EmptyState
+            title='No logs yet'
+            description='Logs will appear as the task progresses.'
+          />
         )}
       </Panel>
     </div>

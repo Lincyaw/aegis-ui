@@ -1,4 +1,5 @@
 import type { SpanRow } from './api/clickhouse';
+
 import type { TrajectoriesPrefs } from './prefs';
 import { classifyWithRules } from './spanKind';
 
@@ -9,7 +10,7 @@ import { classifyWithRules } from './spanKind';
 export function applySpanFilter(
   spans: SpanRow[],
   prefs: TrajectoriesPrefs,
-  scopeSessionId: string,
+  scopeSessionId: string
 ): SpanRow[] {
   const minNs = prefs.minDurationMs * 1_000_000;
   const hidden = new Set(prefs.hiddenSpanKinds);
@@ -22,7 +23,7 @@ export function applySpanFilter(
     const sessionSpan = spans.find(
       (s) =>
         s.name === 'agentm.session' &&
-        s.attributes['agentm.session_id'] === scopeSessionId,
+        s.attributes['agentm.session_id'] === scopeSessionId
     );
     if (sessionSpan) {
       allowedSpanIds = new Set<string>([sessionSpan.spanId]);
@@ -30,7 +31,10 @@ export function applySpanFilter(
       while (grew) {
         grew = false;
         for (const s of spans) {
-          if (allowedSpanIds.has(s.parentSpanId) && !allowedSpanIds.has(s.spanId)) {
+          if (
+            allowedSpanIds.has(s.parentSpanId) &&
+            !allowedSpanIds.has(s.spanId)
+          ) {
             allowedSpanIds.add(s.spanId);
             grew = true;
           }

@@ -20,9 +20,7 @@ export function groupByTurn(spans: SpanRow[]): {
   const turnSpans = spans.filter((s) => s.name === 'agentm.turn');
   const turns = turnSpans
     .map<TurnSlice>((turnSpan) => {
-      const turnIndex = Number(
-        turnSpan.attributes['agentm.turn_index'] ?? '0',
-      );
+      const turnIndex = Number(turnSpan.attributes['agentm.turn_index'] ?? '0');
       const children = spans.filter((s) => s.parentSpanId === turnSpan.spanId);
       return {
         turnIndex,

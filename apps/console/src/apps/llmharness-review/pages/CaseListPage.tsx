@@ -1,7 +1,17 @@
-import { ApiOutlined, FolderOpenOutlined, ReloadOutlined } from '@ant-design/icons';
-import { type ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Link } from 'react-router-dom';
 
+import {
+  ApiOutlined,
+  FolderOpenOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
 import {
   Button,
   Chip,
@@ -21,8 +31,8 @@ import {
 import {
   BlobCaseRepo,
   type CaseRepo,
-  HttpCaseRepo,
   clearStoredRoot,
+  HttpCaseRepo,
   isFsAccessSupported,
   pickCasesRoot,
   probeBlobCaseRepo,
@@ -49,20 +59,17 @@ export function CaseListPage(): ReactElement {
   const [onlySurfaced, setOnlySurfaced] = useState(false);
   const [datasetFilter, setDatasetFilter] = useState<string | null>(null);
 
-  const refresh = useCallback(
-    async (r: CaseRepo) => {
-      setLoading(true);
-      setError(null);
-      try {
-        setCases(await r.listCases());
-      } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
+  const refresh = useCallback(async (r: CaseRepo) => {
+    setLoading(true);
+    setError(null);
+    try {
+      setCases(await r.listCases());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -196,7 +203,9 @@ export function CaseListPage(): ReactElement {
 
   const filterChips: FilterChip[] = [
     ...(onlySurfaced ? [{ key: 'surfaced', label: 'surfaced only' }] : []),
-    ...(datasetFilter ? [{ key: 'dataset', label: `dataset: ${datasetFilter}` }] : []),
+    ...(datasetFilter
+      ? [{ key: 'dataset', label: `dataset: ${datasetFilter}` }]
+      : []),
   ];
 
   const columns: Array<DataTableColumn<CaseSummary>> = [
@@ -239,7 +248,11 @@ export function CaseListPage(): ReactElement {
       width: 180,
       render: (r) => {
         const iso = nsToIsoOrNull(r.meta.started_at_ns);
-        return iso ? <TimeDisplay value={iso} /> : <MetricLabel size='xs'>—</MetricLabel>;
+        return iso ? (
+          <TimeDisplay value={iso} />
+        ) : (
+          <MetricLabel size='xs'>—</MetricLabel>
+        );
       },
     },
     {
@@ -247,7 +260,9 @@ export function CaseListPage(): ReactElement {
       header: 'Extractor',
       align: 'right',
       width: 100,
-      render: (r) => <MonoValue size='sm'>{r.meta.extractor_firings}</MonoValue>,
+      render: (r) => (
+        <MonoValue size='sm'>{r.meta.extractor_firings}</MonoValue>
+      ),
     },
     {
       key: 'aud',

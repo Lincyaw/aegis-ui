@@ -1,5 +1,3 @@
-import { App as AntdApp } from 'antd';
-
 import {
   Button,
   CodeBlock,
@@ -12,6 +10,7 @@ import {
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import { useActiveProjectIdNum, useSubmitInjection } from '../api/injections';
 import { specToYaml } from '../components/inject/paramSchema';
@@ -73,7 +72,7 @@ export default function BatchInjections() {
             onError: (err) => {
               void msg.error(`Batch submit failed: ${err.message}`);
             },
-          },
+          }
         );
       },
     });
@@ -82,7 +81,10 @@ export default function BatchInjections() {
   if (rows.length === 0) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title='Batch' description={`Staged injections for project ${pid}.`} />
+        <PageHeader
+          title='Batch'
+          description={`Staged injections for project ${pid}.`}
+        />
         <Panel>
           <EmptyState
             title='No staged drafts'
@@ -103,7 +105,11 @@ export default function BatchInjections() {
             <Button tone='ghost' onClick={() => clear()}>
               Clear all
             </Button>
-            <Button tone='primary' onClick={onSubmit} disabled={submitMutation.isPending}>
+            <Button
+              tone='primary'
+              onClick={onSubmit}
+              disabled={submitMutation.isPending}
+            >
               Submit all ({rows.length})
             </Button>
           </div>
@@ -128,7 +134,11 @@ export default function BatchInjections() {
               header: 'Chaos',
               render: (r) => <MonoValue size='sm'>{r.chaosType}</MonoValue>,
             },
-            { key: 'dur', header: 'Duration', render: (r) => `${r.durationSec}s` },
+            {
+              key: 'dur',
+              header: 'Duration',
+              render: (r) => `${r.durationSec}s`,
+            },
             {
               key: 'when',
               header: 'Added',
@@ -149,7 +159,9 @@ export default function BatchInjections() {
       <Panel title={<PanelTitle size='base'>Resolved YAML</PanelTitle>}>
         <CodeBlock
           language='yaml'
-          code={rows.map((r, i) => `# draft ${i + 1}\n${r.yaml}\n---`).join('\n')}
+          code={rows
+            .map((r, i) => `# draft ${i + 1}\n${r.yaml}\n---`)
+            .join('\n')}
         />
       </Panel>
     </div>

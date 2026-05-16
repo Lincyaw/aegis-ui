@@ -31,7 +31,7 @@ export default function Observations() {
   const edges = serviceMap.data?.edges ?? [];
   const totalErrors = nodes.reduce(
     (sum, n) => sum + Math.round((n.error_rate ?? 0) * (n.span_count ?? 0)),
-    0,
+    0
   );
 
   const updateInjection = (value: string): void => {
@@ -109,7 +109,7 @@ export default function Observations() {
                     <MonoValue size='sm'>
                       {m.unit ?? '—'}
                       {(m.dimensions ?? []).length > 0
-                        ? '  [' + (m.dimensions ?? []).join(', ') + ']'
+                        ? `  [${(m.dimensions ?? []).join(', ')}]`
                         : ''}
                     </MonoValue>
                   ),

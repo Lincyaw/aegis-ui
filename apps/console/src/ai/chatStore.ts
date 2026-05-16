@@ -99,7 +99,7 @@ export function loadMessages(chatId: string): AgentMessage[] {
         m !== null &&
         typeof (m as AgentMessage).id === 'string' &&
         typeof (m as AgentMessage).role === 'string' &&
-        typeof (m as AgentMessage).content === 'string',
+        typeof (m as AgentMessage).content === 'string'
     );
   } catch {
     return [];
@@ -220,7 +220,7 @@ function switchChat(id: string): void {
   }
   setState({
     sessions: state.sessions.map((s) =>
-      s.id === id ? { ...s, lastActiveAt: Date.now() } : s,
+      s.id === id ? { ...s, lastActiveAt: Date.now() } : s
     ),
     currentId: id,
   });
@@ -234,7 +234,7 @@ function renameChat(id: string, title: string): void {
   setState({
     ...state,
     sessions: state.sessions.map((s) =>
-      s.id === id ? { ...s, title: trimmed } : s,
+      s.id === id ? { ...s, title: trimmed } : s
     ),
   });
 }
@@ -271,7 +271,7 @@ function maybeAutoTitle(chatId: string, firstUserMessage: string): void {
   setState({
     ...state,
     sessions: state.sessions.map((s) =>
-      s.id === chatId ? { ...s, title: next, lastActiveAt: Date.now() } : s,
+      s.id === chatId ? { ...s, title: next, lastActiveAt: Date.now() } : s
     ),
   });
 }
@@ -284,7 +284,7 @@ function touchActive(chatId: string): void {
   setState({
     ...state,
     sessions: state.sessions.map((s) =>
-      s.id === chatId ? { ...s, lastActiveAt: Date.now() } : s,
+      s.id === chatId ? { ...s, lastActiveAt: Date.now() } : s
     ),
   });
 }
@@ -310,7 +310,9 @@ export function useChatStore(): UseChatStoreResult {
   // ensureCurrent() ran at module init, so sorted is guaranteed non-empty.
   const fallback = sorted[0];
   if (!fallback) {
-    throw new Error('aegis chat store: no session available — invariant broken');
+    throw new Error(
+      'aegis chat store: no session available — invariant broken'
+    );
   }
   const currentId = snapshot.currentId ?? fallback.id;
   const currentChat =

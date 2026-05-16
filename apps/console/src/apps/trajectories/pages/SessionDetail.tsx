@@ -9,8 +9,9 @@ import {
   PanelTitle,
 } from '@lincyaw/aegis-ui';
 
-import { TrajectoryWorkspace } from '../components/TrajectoryWorkspace';
 import { useCompareList } from '../compareList';
+import { TrajectoryWorkspace } from '../components/TrajectoryWorkspace';
+
 import './SessionDetail.css';
 
 export function SessionDetail(): ReactElement {
@@ -18,9 +19,7 @@ export function SessionDetail(): ReactElement {
   const { pinned, toggle } = useCompareList();
 
   if (!rootSessionId) {
-    return (
-      <Panel title={<PanelTitle>Missing root session id</PanelTitle>} />
-    );
+    return <Panel title={<PanelTitle>Missing root session id</PanelTitle>} />;
   }
 
   const isPinned = pinned.includes(rootSessionId);
@@ -36,7 +35,13 @@ export function SessionDetail(): ReactElement {
           </PanelTitle>
         }
         extra={
-          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 'var(--space-2)',
+              alignItems: 'center',
+            }}
+          >
             <MonoValue size='sm'>{rootSessionId.slice(0, 16)}…</MonoValue>
             <Chip
               tone={isPinned ? 'ink' : 'default'}

@@ -104,10 +104,7 @@ function parseFrame(frame: string): SseEvent | null {
     }
     const colon = line.indexOf(':');
     const field = colon === -1 ? line : line.slice(0, colon);
-    const value =
-      colon === -1
-        ? ''
-        : line.slice(colon + 1).replace(/^ /, ''); // strip one leading space
+    const value = colon === -1 ? '' : line.slice(colon + 1).replace(/^ /, ''); // strip one leading space
     if (field === 'event') {
       event = value;
     } else if (field === 'data') {

@@ -15,7 +15,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App as AntdApp, ConfigProvider } from 'antd';
 
 import { useChatStore } from './ai/chatStore';
+
 import { ConsoleApp } from './App';
+
 import './main.css';
 
 const queryClient = new QueryClient({

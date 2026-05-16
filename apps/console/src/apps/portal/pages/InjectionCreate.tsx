@@ -1,8 +1,8 @@
-import { App as AntdApp, Input, Modal } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Button, Chip, PageHeader, useAppNavigate } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Input, Modal } from 'antd';
 
 import { useActiveProjectIdNum, useSubmitInjection } from '../api/injections';
 import { LivePreview } from '../components/inject/LivePreview';
@@ -16,7 +16,14 @@ import { Step6Review } from '../components/inject/Step6Review';
 import type { GuidedInjectionSpec } from '../mocks/types';
 import { useInjectBatch } from '../state/inject-batch';
 
-const STEPS = ['Target', 'Chaos type', 'Parameters', 'Lifecycle', 'Stage', 'Review'];
+const STEPS = [
+  'Target',
+  'Chaos type',
+  'Parameters',
+  'Lifecycle',
+  'Stage',
+  'Review',
+];
 
 function draftKey(projectId: number): string {
   return `inject-guided-draft:${projectId}`;
@@ -125,7 +132,7 @@ export default function InjectionCreate() {
         onError: (err) => {
           void msg.error(`Submit failed: ${err.message}`);
         },
-      },
+      }
     );
   };
 
@@ -142,14 +149,16 @@ export default function InjectionCreate() {
       },
       {
         onSuccess: () => {
-          void msg.success(`${staged.length} injection${staged.length === 1 ? '' : 's'} queued`);
+          void msg.success(
+            `${staged.length} injection${staged.length === 1 ? '' : 's'} queued`
+          );
           clear();
           navigate('injections');
         },
         onError: (err) => {
           void msg.error(`Batch submit failed: ${err.message}`);
         },
-      },
+      }
     );
   };
 
@@ -176,7 +185,8 @@ export default function InjectionCreate() {
       <div className='wizard-steps-clickable'>
         <ol className='wizard-steps'>
           {STEPS.map((label, idx) => {
-            const state = idx < step ? 'done' : idx === step ? 'active' : 'todo';
+            const state =
+              idx < step ? 'done' : idx === step ? 'active' : 'todo';
             return (
               <li
                 key={label}
@@ -202,7 +212,9 @@ export default function InjectionCreate() {
           {step === 1 && <Step2ChaosType spec={spec} update={update} />}
           {step === 2 && <Step3Params spec={spec} update={update} />}
           {step === 3 && <Step4Lifecycle spec={spec} update={update} />}
-          {step === 4 && <Step5Stage mode={submitMode} setMode={setSubmitMode} />}
+          {step === 4 && (
+            <Step5Stage mode={submitMode} setMode={setSubmitMode} />
+          )}
           {step === 5 && <Step6Review spec={spec} />}
         </div>
         <aside className='inject-layout__side'>
@@ -212,7 +224,11 @@ export default function InjectionCreate() {
 
       <div className='wizard-actions'>
         {staged.length > 0 && (
-          <Button tone='secondary' onClick={submitBatchNow} disabled={submitMutation.isPending}>
+          <Button
+            tone='secondary'
+            onClick={submitBatchNow}
+            disabled={submitMutation.isPending}
+          >
             Submit batch ({staged.length})
           </Button>
         )}
@@ -224,7 +240,11 @@ export default function InjectionCreate() {
           Back
         </Button>
         {!isLast ? (
-          <Button tone='primary' onClick={() => setStep((s) => s + 1)} disabled={!canNext}>
+          <Button
+            tone='primary'
+            onClick={() => setStep((s) => s + 1)}
+            disabled={!canNext}
+          >
             Next
           </Button>
         ) : (

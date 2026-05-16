@@ -38,7 +38,11 @@ export default function Contracts() {
                 </Link>
               ),
             },
-            { key: 'fault', header: 'Fault type', render: (r) => <Chip tone='ghost'>{r.faultType}</Chip> },
+            {
+              key: 'fault',
+              header: 'Fault type',
+              render: (r) => <Chip tone='ghost'>{r.faultType}</Chip>,
+            },
             { key: 'family', header: 'Family', render: (r) => r.family },
             { key: 'target', header: 'Target', render: (r) => r.targetKind },
             {

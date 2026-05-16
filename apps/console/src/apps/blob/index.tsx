@@ -1,5 +1,4 @@
 import { CloudOutlined } from '@ant-design/icons';
-
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import BucketBrowser from './pages/BucketBrowser';

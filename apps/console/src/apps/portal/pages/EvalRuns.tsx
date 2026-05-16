@@ -1,4 +1,3 @@
-import { App as AntdApp } from 'antd';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -13,6 +12,7 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import {
   type EvaluationResp,
@@ -54,7 +54,9 @@ export default function EvalRuns() {
         ) : isError ? (
           <EmptyState
             title='Failed to load evaluations'
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
           />
         ) : items.length === 0 ? (
           <EmptyState
@@ -121,7 +123,8 @@ export default function EvalRuns() {
                     tone='secondary'
                     onClick={() => {
                       del.mutate(r.id, {
-                        onSuccess: () => void msg.success(`Deleted ${String(r.id)}`),
+                        onSuccess: () =>
+                          void msg.success(`Deleted ${String(r.id)}`),
                         onError: (e) => void msg.error(e.message),
                       });
                     }}

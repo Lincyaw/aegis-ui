@@ -1,4 +1,3 @@
-import { App as AntdApp } from 'antd';
 import { useState } from 'react';
 
 import {
@@ -9,6 +8,7 @@ import {
   TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import { useActiveProjectStore } from '../hooks/useActiveProject';
 import { useCreateProject } from '../hooks/useProjects';
@@ -45,7 +45,7 @@ export default function ProjectCreate() {
         onError: (err) => {
           void msg.error(`Failed to create project: ${err.message}`);
         },
-      },
+      }
     );
   };
 

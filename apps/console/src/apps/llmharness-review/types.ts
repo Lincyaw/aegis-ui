@@ -72,7 +72,14 @@ export interface CaseSummary {
 
 // --- Graph types (extractor output + cumulative snapshot) ------------------
 
-export type EventKind = 'task' | 'hyp' | 'evid' | 'act' | 'dec' | 'concl' | string;
+export type EventKind =
+  | 'task'
+  | 'hyp'
+  | 'evid'
+  | 'act'
+  | 'dec'
+  | 'concl'
+  | string;
 export type EdgeKind = 'data' | 'ref' | string;
 
 export interface GraphEvent {

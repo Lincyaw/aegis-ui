@@ -36,7 +36,9 @@ export default function ExecutionDetail() {
         <Panel>
           <ErrorState
             title='Not found'
-            description={error instanceof Error ? error.message : 'Unknown execution.'}
+            description={
+              error instanceof Error ? error.message : 'Unknown execution.'
+            }
           />
         </Panel>
       </div>
@@ -65,7 +67,10 @@ export default function ExecutionDetail() {
             },
             {
               k: 'duration',
-              v: data.duration != null ? `${(data.duration / 1000).toFixed(1)}s` : '—',
+              v:
+                data.duration != null
+                  ? `${(data.duration / 1000).toFixed(1)}s`
+                  : '—',
             },
           ]}
         />
@@ -78,7 +83,8 @@ export default function ExecutionDetail() {
               v: (
                 <span>
                   <MonoValue size='sm'>{g.result}</MonoValue>
-                  {g.confidence != null && ` (${(g.confidence * 100).toFixed(1)}%)`}
+                  {g.confidence != null &&
+                    ` (${(g.confidence * 100).toFixed(1)}%)`}
                 </span>
               ),
             }))}

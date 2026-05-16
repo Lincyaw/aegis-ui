@@ -1,4 +1,3 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { parseTimeRangeInput } from '@lincyaw/aegis-ui';
 import type {
   ObservationListSpansResp,
@@ -7,6 +6,7 @@ import type {
   ObservationServiceMapResp,
   ObservationSpanTreeResp,
 } from '@lincyaw/portal';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { observationApi } from '../api/portal-client';
 
@@ -30,7 +30,7 @@ export function resolveTimeRange(value: string): ResolvedTimeRange {
 }
 
 export function useMetricsCatalog(
-  injectionId: number | null,
+  injectionId: number | null
 ): UseQueryResult<ObservationMetricsCatalogResp> {
   return useQuery({
     queryKey: ['obs', 'metrics-catalog', injectionId],
@@ -54,7 +54,7 @@ export interface UseMetricsSeriesParams {
 }
 
 export function useMetricsSeries(
-  params: UseMetricsSeriesParams,
+  params: UseMetricsSeriesParams
 ): UseQueryResult<ObservationMetricsSeriesResp> {
   const { injectionId, metric, range, step, groupBy, filter } = params;
   const { start, end } = resolveTimeRange(range);
@@ -88,7 +88,7 @@ export function useMetricsSeries(
 
 export function useServiceMap(
   injectionId: number | null,
-  window?: string,
+  window?: string
 ): UseQueryResult<ObservationServiceMapResp> {
   return useQuery({
     queryKey: ['obs', 'service-map', injectionId, window],
@@ -115,7 +115,7 @@ export interface UseSpansListParams {
 }
 
 export function useSpansList(
-  params: UseSpansListParams,
+  params: UseSpansListParams
 ): UseQueryResult<ObservationListSpansResp> {
   const {
     injectionId,
@@ -162,7 +162,7 @@ export function useSpansList(
 
 export function useSpanTree(
   injectionId: number | null,
-  traceId: string | null,
+  traceId: string | null
 ): UseQueryResult<ObservationSpanTreeResp> {
   return useQuery({
     queryKey: ['obs', 'span-tree', injectionId, traceId],

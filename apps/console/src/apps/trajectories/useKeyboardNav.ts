@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 
 import type { SpanRow } from './api/clickhouse';
+
 import type { PrimaryView } from './prefs';
 import type { Selection } from './selection';
 
@@ -62,7 +63,9 @@ export function useKeyboardNav({
             return;
           }
           const dir = e.key === 'j' ? 1 : -1;
-          const cur = visibleSpans.findIndex((s) => s.spanId === selection.spanId);
+          const cur = visibleSpans.findIndex(
+            (s) => s.spanId === selection.spanId
+          );
           const next =
             cur < 0
               ? dir > 0
@@ -122,7 +125,14 @@ export function useKeyboardNav({
         default:
       }
     },
-    [visibleSpans, sessionIds, selection, setSelection, toggleInspector, showHelp],
+    [
+      visibleSpans,
+      sessionIds,
+      selection,
+      setSelection,
+      toggleInspector,
+      showHelp,
+    ]
   );
 
   useEffect(() => {

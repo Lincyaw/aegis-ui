@@ -1,5 +1,4 @@
 import type { ReactElement, ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
 
 import {
   Chip,
@@ -23,9 +22,10 @@ import {
 } from '@lincyaw/aegis-ui';
 import type {
   InjectionInjectionResp,
-  TaskTaskResp,
+  TaskResp,
   TraceTraceResp,
 } from '@lincyaw/portal';
+import { useQuery } from '@tanstack/react-query';
 
 import { projectsApi, tasksApi, tracesApi } from '../api/portal-client';
 
@@ -137,7 +137,7 @@ export default function Dashboard(): ReactElement {
 
   const injections: InjectionInjectionResp[] = injectionsQuery.data ?? [];
   const traces: TraceTraceResp[] = tracesQuery.data ?? [];
-  const tasks: TaskTaskResp[] = tasksQuery.data ?? [];
+  const tasks: TaskResp[] = tasksQuery.data ?? [];
 
   const runningTasks = tasks.filter((t) => t.status === 'running').length;
   const injectionCount = activeProject?.injection_count ?? injections.length;
@@ -328,7 +328,7 @@ export default function Dashboard(): ReactElement {
         ) : tasks.length === 0 ? (
           <EmptyState title='No tasks yet' />
         ) : (
-          <DataTable<TaskTaskResp>
+          <DataTable<TaskResp>
             data={tasks.slice(0, 6)}
             rowKey={(t) => String(t.id ?? '')}
             columns={[
@@ -381,12 +381,7 @@ interface KpiCardProps {
   unit?: ReactNode;
 }
 
-function KpiCard({
-  label,
-  value,
-  loading,
-  unit,
-}: KpiCardProps): ReactElement {
+function KpiCard({ label, value, loading, unit }: KpiCardProps): ReactElement {
   if (loading) {
     return (
       <Panel className='dashboard__panel'>

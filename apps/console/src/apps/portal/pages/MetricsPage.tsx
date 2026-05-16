@@ -127,9 +127,14 @@ export default function MetricsPage() {
             <MetricCard label='Series' value={rows.length} />
             <MetricCard
               label='Step'
-              value={<MonoValue size='sm'>{series.data?.step ?? step}</MonoValue>}
+              value={
+                <MonoValue size='sm'>{series.data?.step ?? step}</MonoValue>
+              }
             />
-            <MetricCard label='Range' value={<Chip tone='ghost'>{range}</Chip>} />
+            <MetricCard
+              label='Range'
+              value={<Chip tone='ghost'>{range}</Chip>}
+            />
           </div>
 
           <Panel title={<PanelTitle size='base'>Catalog</PanelTitle>}>

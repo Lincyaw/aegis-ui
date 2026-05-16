@@ -1,4 +1,3 @@
-import { App as AntdApp } from 'antd';
 import { Link, useParams } from 'react-router-dom';
 
 import {
@@ -18,6 +17,7 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import { StatusChip } from '../components/StatusChip';
 // TODO(portal-wire): no SystemsApi in @lincyaw/portal 1.3.0/1.4.0 — pages stay on mocks until backend exposes /system/chaossystem CRUD.
@@ -31,9 +31,11 @@ export default function SystemDetail() {
   const { message: msg } = AntdApp.useApp();
 
   const system = useMockStore((s) => s.systems.find((x) => x.code === code));
-  const pedestals = useMockStore((s) => s.pedestals.filter((p) => p.systemCode === code));
+  const pedestals = useMockStore((s) =>
+    s.pedestals.filter((p) => p.systemCode === code)
+  );
   const recent = useMockStore((s) =>
-    s.injections.filter((i) => i.systemCode === code).slice(0, 8),
+    s.injections.filter((i) => i.systemCode === code).slice(0, 8)
   );
   const enableSystem = useMockStore((s) => s.enableSystem);
   const disableSystem = useMockStore((s) => s.disableSystem);
@@ -96,18 +98,22 @@ export default function SystemDetail() {
       <Panel title={<PanelTitle size='base'>Overview</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'short code', v: <MonoValue size='sm'>{system.code}</MonoValue> },
+            {
+              k: 'short code',
+              v: <MonoValue size='sm'>{system.code}</MonoValue>,
+            },
             { k: 'chart', v: <MonoValue size='sm'>{system.chart}</MonoValue> },
-            { k: 'version', v: <MonoValue size='sm'>{system.version}</MonoValue> },
-            { k: 'otel sink', v: <MonoValue size='sm'>{system.otelEndpoint}</MonoValue> },
+            {
+              k: 'version',
+              v: <MonoValue size='sm'>{system.version}</MonoValue>,
+            },
+            {
+              k: 'otel sink',
+              v: <MonoValue size='sm'>{system.otelEndpoint}</MonoValue>,
+            },
             {
               k: 'enabled',
-              v: (
-                <StatusDot
-                  size={6}
-                  tone={system.enabled ? 'ink' : 'muted'}
-                />
-              ),
+              v: <StatusDot size={6} tone={system.enabled ? 'ink' : 'muted'} />,
             },
           ]}
         />
@@ -116,7 +122,10 @@ export default function SystemDetail() {
       <div className='page-overview-grid'>
         <MetricCard label='Pedestals' value={pedestals.length} />
         <MetricCard label='Recent injections' value={recent.length} />
-        <MetricCard label='Status' value={system.enabled ? 'active' : 'disabled'} />
+        <MetricCard
+          label='Status'
+          value={system.enabled ? 'active' : 'disabled'}
+        />
         <MetricCard label='Version' value={system.version} />
       </div>
 
@@ -134,7 +143,9 @@ export default function SystemDetail() {
               {
                 key: 'ns',
                 label: 'Namespace',
-                render: (r) => <Link to={href(`pedestals/${r.id}`)}>{r.namespace}</Link>,
+                render: (r) => (
+                  <Link to={href(`pedestals/${r.id}`)}>{r.namespace}</Link>
+                ),
               },
               { key: 'version', label: 'Version', render: (r) => r.version },
               {
@@ -150,7 +161,10 @@ export default function SystemDetail() {
       <SectionDivider>Recent injections</SectionDivider>
       <Panel>
         {recent.length === 0 ? (
-          <EmptyState title='No recent injections' description='Inject a fault to populate.' />
+          <EmptyState
+            title='No recent injections'
+            description='Inject a fault to populate.'
+          />
         ) : (
           <DataList<MockInjection>
             items={recent}
@@ -163,7 +177,11 @@ export default function SystemDetail() {
                 ),
               },
               { key: 'name', label: 'Fault', render: (r) => r.name },
-              { key: 'status', label: 'Status', render: (r) => <StatusChip status={r.status} /> },
+              {
+                key: 'status',
+                label: 'Status',
+                render: (r) => <StatusChip status={r.status} />,
+              },
             ]}
           />
         )}

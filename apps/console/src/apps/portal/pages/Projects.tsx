@@ -18,7 +18,13 @@ import { useProjectsList } from '../hooks/useProjects';
 export default function Projects() {
   const navigate = useAppNavigate();
   const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
-  const { data: projects, isLoading, isError, error, refetch } = useProjectsList();
+  const {
+    data: projects,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useProjectsList();
 
   return (
     <div className='page-wrapper'>

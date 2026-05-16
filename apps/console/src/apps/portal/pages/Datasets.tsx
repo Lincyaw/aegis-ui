@@ -1,4 +1,3 @@
-import { Spin } from 'antd';
 import { Link } from 'react-router-dom';
 
 import {
@@ -14,13 +13,17 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import type { DatasetDatasetResp } from '@lincyaw/portal';
+import { Spin } from 'antd';
 
 import { useDatasetsList } from '../api/datasets';
 
 export default function Datasets() {
   const navigate = useAppNavigate();
   const href = useAppHref();
-  const { data, isLoading, isError, error } = useDatasetsList({ page: 1, size: 50 });
+  const { data, isLoading, isError, error } = useDatasetsList({
+    page: 1,
+    size: 50,
+  });
   const datasets = data?.items ?? [];
 
   return (
@@ -36,13 +39,21 @@ export default function Datasets() {
       />
       <Panel>
         {isLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--space-6)',
+            }}
+          >
             <Spin />
           </div>
         ) : isError ? (
           <ErrorState
             title='Failed to load datasets'
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
           />
         ) : datasets.length === 0 ? (
           <EmptyState
@@ -69,7 +80,11 @@ export default function Datasets() {
                 header: 'Visibility',
                 render: (r) => (r.is_public ? 'public' : 'private'),
               },
-              { key: 'status', header: 'Status', render: (r) => r.status ?? '—' },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (r) => r.status ?? '—',
+              },
               {
                 key: 'created',
                 header: 'Created',

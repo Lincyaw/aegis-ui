@@ -39,10 +39,7 @@ export function Landing(): ReactElement {
             : 'Pick a workspace to enter. Some apps require sign-in.'
         }
         action={
-          <Link
-            to='/settings/endpoints'
-            style={{ textDecoration: 'none' }}
-          >
+          <Link to='/settings/endpoints' style={{ textDecoration: 'none' }}>
             <Chip tone='ghost'>Endpoints</Chip>
           </Link>
         }
