@@ -62,6 +62,8 @@ export function AegisShell({
   const auth = useAuth();
   const themeCtx = useContext(ThemeContext);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] =
+    useState<boolean>(readSidebarCollapsed);
   const [inlineSlot, setInlineSlot] = useState<HTMLDivElement | null>(null);
 
   const resolvedUser = useMemo<AegisUser | undefined>(() => {
@@ -116,6 +118,13 @@ export function AegisShell({
     () => setMobileNavOpen((open) => !open),
     [],
   );
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((collapsed) => {
+      const next = !collapsed;
+      writeSidebarCollapsed(next);
+      return next;
+    });
+  }, []);
 
   const routeTree = useMemo<RouteObject[]>(() => {
     const appRoutes: RouteObject[] = apps.map((app) => ({
@@ -197,9 +206,10 @@ export function AegisShell({
     return <div>{element}</div>;
   }
 
-  const hasSidebar = Boolean(
+  const appHasSidebar = Boolean(
     activeApp?.sidebar && activeApp.sidebar.length > 0,
   );
+  const hasSidebar = appHasSidebar && !sidebarCollapsed;
 
   const shellClass = [
     'aegis-shell',
@@ -242,6 +252,9 @@ export function AegisShell({
             inboxPath={auth.status === 'authenticated' ? inboxPath : undefined}
             onMobileMenuToggle={toggleMobileNav}
             showMobileMenu={hasSidebar}
+            sidebarCollapsible={appHasSidebar}
+            sidebarCollapsed={sidebarCollapsed}
+            onSidebarToggle={toggleSidebar}
             inlineSlotRef={setInlineSlot}
             inlineSlotActive={Boolean(activeApp?.header)}
           />
@@ -327,6 +340,30 @@ function stripTrailingSlash(p: string): string {
     return '';
   }
   return p.endsWith('/') ? p.slice(0, -1) : p;
+}
+
+const SIDEBAR_COLLAPSED_KEY = 'aegis-shell.sidebar-collapsed';
+
+function readSidebarCollapsed(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeSidebarCollapsed(value: boolean): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, value ? '1' : '0');
+  } catch {
+    // Storage may be unavailable (private mode, quota); fail silently.
+  }
 }
 
 function isAppVisible(

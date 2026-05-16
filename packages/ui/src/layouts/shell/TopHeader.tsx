@@ -26,6 +26,12 @@ interface TopHeaderProps {
   onMobileMenuToggle?: () => void;
   /** Whether to render the mobile hamburger at all (only when sidebar exists). */
   showMobileMenu?: boolean;
+  /** Whether to render the desktop sidebar collapse toggle. */
+  sidebarCollapsible?: boolean;
+  /** Current collapsed state — drives aria-pressed on the toggle. */
+  sidebarCollapsed?: boolean;
+  /** Fired by the desktop collapse button; the shell owns the state. */
+  onSidebarToggle?: () => void;
   /**
    * Ref callback for the inline app-header slot. The active app's
    * `header` is portalled into this node so it appears inside the shell
@@ -47,6 +53,9 @@ export function TopHeader({
   inboxPath,
   onMobileMenuToggle,
   showMobileMenu,
+  sidebarCollapsible,
+  sidebarCollapsed,
+  onSidebarToggle,
   inlineSlotRef,
   inlineSlotActive,
 }: TopHeaderProps): ReactElement {
@@ -71,6 +80,35 @@ export function TopHeader({
           >
             <span className="aegis-shell__menu-toggle-glyph" aria-hidden="true">
               ☰
+            </span>
+          </button>
+        )}
+        {sidebarCollapsible && onSidebarToggle && (
+          <button
+            type="button"
+            className="aegis-shell__sidebar-toggle"
+            onClick={onSidebarToggle}
+            aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+            aria-pressed={sidebarCollapsed}
+            title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+          >
+            <span
+              className="aegis-shell__sidebar-toggle-glyph"
+              aria-hidden="true"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect x="2.5" y="3.5" width="15" height="13" rx="2" />
+                <line x1="8" y1="3.5" x2="8" y2="16.5" />
+              </svg>
             </span>
           </button>
         )}

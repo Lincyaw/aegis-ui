@@ -311,6 +311,48 @@
   border-bottom-color: var(--text-main);
 }
 
+/* Desktop sidebar collapse toggle — hidden on mobile (the hamburger
+   drawer takes over there). */
+.aegis-shell__sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-base);
+  height: var(--size-control-base);
+  padding: 0;
+  background: transparent;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.aegis-shell__sidebar-toggle:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-emphasis);
+}
+
+.aegis-shell__sidebar-toggle:active {
+  transform: scale(0.96);
+}
+
+.aegis-shell__sidebar-toggle[aria-pressed='true'] {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  border-color: var(--bg-inverted);
+}
+
+.aegis-shell__sidebar-toggle-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
 /* Mobile menu trigger — only renders on small screens. */
 .aegis-shell__menu-toggle {
   display: none;
@@ -395,6 +437,10 @@
   .aegis-shell__menu-toggle {
     display: inline-flex;
     flex-shrink: 0;
+  }
+
+  .aegis-shell__sidebar-toggle {
+    display: none;
   }
 
   .aegis-shell__header-center {
