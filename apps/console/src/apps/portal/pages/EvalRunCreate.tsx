@@ -1,48 +1,91 @@
-import { App as AntdApp, Select } from 'antd';
+import { App as AntdApp, Input, Select } from 'antd';
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import {
   Button,
+  EmptyState,
   FormRow,
   PageHeader,
   Panel,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../mocks';
+import { apiJson } from '../../../api/apiClient';
+import { useBatchEvaluateDataset } from '../api/hooks/useEvaluations';
 
-const MODELS = ['claude-opus-4-7', 'gpt-5-4', 'claude-sonnet-4-6'];
+interface DatasetItem {
+  id?: number;
+  name?: string;
+}
+
+interface DatasetListResp {
+  items: DatasetItem[];
+}
+
+interface GenericResponse<T> {
+  code?: number;
+  data?: T;
+  message?: string;
+}
 
 export default function EvalRunCreate() {
   const navigate = useAppNavigate();
   const [params] = useSearchParams();
   const { message: msg } = AntdApp.useApp();
 
-  const datasets = useMockStore((s) => s.datasets);
-  const createEvalRun = useMockStore((s) => s.createEvalRun);
+  const datasetsQ = useQuery({
+    queryKey: ['datasets', { page: 1, size: 100 }],
+    queryFn: async () => {
+      const res = await apiJson<GenericResponse<DatasetListResp>>(
+        '/api/v2/datasets?page=1&size=100',
+      );
+      return res.data?.items ?? [];
+    },
+  });
+  const datasets = datasetsQ.data ?? [];
 
-  const [model, setModel] = useState<string>(MODELS[0] ?? 'claude-opus-4-7');
-  const [datasetId, setDatasetId] = useState(
-    params.get('dataset') ?? datasets[0]?.id ?? '',
-  );
-  const [nCases, setNCases] = useState(8);
+  const [algorithm, setAlgorithm] = useState('');
+  const [algorithmVersion, setAlgorithmVersion] = useState('latest');
+  const [datasetName, setDatasetName] = useState(params.get('dataset') ?? '');
+  const [datasetVersion, setDatasetVersion] = useState('latest');
+
+  const mutate = useBatchEvaluateDataset();
 
   const submit = (): void => {
-    if (!datasetId) {
+    if (!algorithm) {
+      void msg.error('algorithm name required');
+      return;
+    }
+    if (!datasetName) {
       void msg.error('select a dataset');
       return;
     }
-    const created = createEvalRun({ model, datasetId, nCases });
-    void msg.success(`Eval ${created.id} started`);
-    navigate(`eval/${created.id}`);
+    mutate.mutate(
+      {
+        specs: [
+          {
+            algorithm: { name: algorithm, version: algorithmVersion },
+            dataset: { name: datasetName, version: datasetVersion },
+          },
+        ],
+      },
+      {
+        onSuccess: () => {
+          void msg.success('Evaluation enqueued');
+          navigate('eval');
+        },
+        onError: (e) => void msg.error(e.message),
+      },
+    );
   };
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='New evaluation run'
-        description='Launch an RCA agent eval.'
+        description='Launch an algorithm evaluation against a dataset.'
         action={
           <Button tone='secondary' onClick={() => navigate('eval')}>
             Cancel
@@ -50,35 +93,50 @@ export default function EvalRunCreate() {
         }
       />
       <Panel>
-        <FormRow label='Model'>
-          <Select
-            style={{ width: '100%' }}
-            value={model}
-            onChange={setModel}
-            options={MODELS.map((m) => ({ value: m, label: m }))}
+        {datasetsQ.isError ? (
+          <EmptyState
+            title='Could not load datasets'
+            description={
+              datasetsQ.error instanceof Error
+                ? datasetsQ.error.message
+                : 'Unknown error'
+            }
+          />
+        ) : null}
+        <FormRow label='Algorithm name'>
+          <Input
+            value={algorithm}
+            onChange={(e) => setAlgorithm(e.target.value)}
+            placeholder='e.g. rca-baseline'
+          />
+        </FormRow>
+        <FormRow label='Algorithm version'>
+          <Input
+            value={algorithmVersion}
+            onChange={(e) => setAlgorithmVersion(e.target.value)}
           />
         </FormRow>
         <FormRow label='Dataset'>
           <Select
             style={{ width: '100%' }}
-            value={datasetId}
-            onChange={setDatasetId}
-            options={datasets.map((d) => ({ value: d.id, label: d.name }))}
+            value={datasetName || undefined}
+            onChange={setDatasetName}
+            loading={datasetsQ.isLoading}
+            options={datasets.map((d) => ({
+              value: d.name ?? '',
+              label: d.name ?? `#${String(d.id ?? '')}`,
+            }))}
           />
         </FormRow>
-        <FormRow label={`N cases · ${nCases}`}>
-          <input
-            type='range'
-            min={4}
-            max={64}
-            value={nCases}
-            onChange={(e) => setNCases(Number(e.target.value))}
-            className='wizard-range'
+        <FormRow label='Dataset version'>
+          <Input
+            value={datasetVersion}
+            onChange={(e) => setDatasetVersion(e.target.value)}
           />
         </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit}>
-        Start
+      <Button tone='primary' onClick={submit} disabled={mutate.isPending}>
+        {mutate.isPending ? 'Starting…' : 'Start'}
       </Button>
     </div>
   );
