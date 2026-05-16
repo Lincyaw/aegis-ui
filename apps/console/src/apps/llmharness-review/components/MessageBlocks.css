@@ -4,6 +4,19 @@
   gap: var(--space-2);
 }
 
+.llmh-msg--user .llmh-msg__text {
+  background: var(--bg-muted);
+  color: var(--text-main);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--text-muted);
+}
+
+.llmh-msg--assistant .llmh-msg__text {
+  color: var(--text-main);
+  padding: 0;
+}
+
 .llmh-msg__text {
   white-space: pre-wrap;
   overflow-wrap: break-word;
@@ -33,16 +46,50 @@
   padding: var(--space-2) var(--space-3);
 }
 
+.llmh-msg__tool--call {
+  background: var(--bg-terminal);
+  color: var(--text-terminal);
+  border-left: 2px solid var(--text-terminal-strong);
+}
+
 .llmh-msg__tool--result {
-  background: var(--bg-terminal-soft);
-  color: var(--text-terminal-strong);
+  background: var(--bg-terminal);
+  color: var(--text-terminal);
+  border-left: 2px solid var(--text-terminal-muted);
+}
+
+.llmh-msg__tool--error {
+  background: var(--bg-warning-soft);
+  color: var(--accent-warning);
+  border-left: 2px solid var(--accent-warning);
 }
 
 .llmh-msg__tool-head {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-1);
+  cursor: pointer;
+  list-style: none;
+}
+
+.llmh-msg__tool-head::-webkit-details-marker {
+  display: none;
+}
+
+.llmh-msg__tool-head::marker {
+  content: '';
+}
+
+.llmh-msg__tool-head::before {
+  content: '▸';
+  font-size: var(--fs-11);
+  color: var(--text-terminal-muted);
+  width: 0.7rem;
+  display: inline-block;
+}
+
+details[open] > .llmh-msg__tool-head::before {
+  content: '▾';
 }
 
 .llmh-msg__tool-tag {
@@ -54,12 +101,21 @@
 
 .llmh-msg__tool-name {
   color: var(--text-terminal);
+  font-weight: 600;
+}
+
+.llmh-msg__tool-id {
+  color: var(--text-terminal-muted);
+  font-size: var(--fs-9);
+  margin-left: auto;
 }
 
 .llmh-msg__tool-body {
-  margin: 0;
+  margin: var(--space-1) 0 0;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+  max-height: 24rem;
+  overflow: auto;
 }
 
 .llmh-msg__raw {

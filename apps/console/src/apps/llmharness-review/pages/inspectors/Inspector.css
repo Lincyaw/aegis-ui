@@ -1,0 +1,109 @@
+.llmh-insp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.llmh-insp__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-panel);
+}
+
+.llmh-insp__section--warn {
+  border-color: var(--accent-warning);
+  background: var(--bg-warning-soft);
+}
+
+.llmh-insp__section--surfaced {
+  border-color: var(--accent-warning);
+}
+
+.llmh-insp__sec-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-brand);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.llmh-insp__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.llmh-insp__row:hover {
+  background: var(--bg-muted);
+}
+
+.llmh-insp__row--selected {
+  outline: var(--size-hairline) solid var(--text-main);
+}
+
+.llmh-insp__row--cited {
+  background: var(--bg-muted);
+}
+
+.llmh-insp__row-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.llmh-insp__finding {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.llmh-insp__finding:hover {
+  background: var(--bg-muted);
+}
+
+.llmh-insp__finding--selected {
+  outline: var(--size-hairline) solid var(--text-main);
+}
+
+.llmh-insp__finding-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.llmh-insp__chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.llmh-insp__details {
+  font-size: var(--fs-12);
+}
+
+.llmh-insp__pre {
+  margin: 0;
+  padding: var(--space-2);
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}

@@ -1,93 +1,163 @@
 /**
- * Render AgentM-native message content into ReactNodes. The shape of a
- * message's `content` is a list of blocks; each block has a `type` plus
- * type-specific payload. Unknown block types fall through to a JSON dump.
+ * Render a main-agent turn as chat bubbles. The renderer never reads
+ * raw block shapes — it consumes a NormalizedTurn from messageAdapter,
+ * so as long as the normalizer recognises the source shape, the user
+ * sees prose instead of JSON.
  */
-import { type ReactElement, type ReactNode } from 'react';
+
+import { type ReactElement } from 'react';
+
+import {
+  normalizeContent,
+  normalizeTurn,
+  type NormalizedBlock,
+} from '../messageAdapter';
+import type { MainTurn } from '../schemas';
 
 import './MessageBlocks.css';
 
-interface Block {
-  type?: string;
-  text?: string;
-  name?: string;
-  input?: unknown;
-  tool_use_id?: string;
-  content?: unknown;
-  thinking?: string;
-  [k: string]: unknown;
-}
-
-function stringify(value: unknown): string {
-  if (value == null) return '';
-  if (typeof value === 'string') return value;
+function argsToText(args: unknown): string {
+  if (args == null) {
+    return '';
+  }
+  if (typeof args === 'string') {
+    return args;
+  }
   try {
-    return JSON.stringify(value, null, 2);
+    return JSON.stringify(args, null, 2);
   } catch {
-    return String(value);
+    return String(args);
   }
 }
 
-function renderBlock(block: Block, key: number): ReactNode {
-  const t = block.type;
-  if (t === 'text' && typeof block.text === 'string') {
-    return (
-      <div key={key} className='llmh-msg__text'>
-        {block.text}
-      </div>
-    );
+function shortId(id: string): string {
+  if (id.length <= 8) {
+    return id;
   }
-  if (t === 'thinking') {
-    return (
-      <details key={key} className='llmh-msg__thinking'>
-        <summary>thinking</summary>
-        <pre>{block.thinking ?? stringify(block)}</pre>
-      </details>
-    );
-  }
-  if (t === 'tool_use') {
-    return (
-      <div key={key} className='llmh-msg__tool'>
-        <div className='llmh-msg__tool-head'>
-          <span className='llmh-msg__tool-tag'>tool_use</span>
-          <span className='llmh-msg__tool-name'>{block.name ?? '?'}</span>
-        </div>
-        <pre className='llmh-msg__tool-body'>{stringify(block.input)}</pre>
-      </div>
-    );
-  }
-  if (t === 'tool_result') {
-    return (
-      <div key={key} className='llmh-msg__tool llmh-msg__tool--result'>
-        <div className='llmh-msg__tool-head'>
-          <span className='llmh-msg__tool-tag'>tool_result</span>
-          {block.tool_use_id && (
-            <span className='llmh-msg__tool-name'>
-              {String(block.tool_use_id)}
-            </span>
-          )}
-        </div>
-        <pre className='llmh-msg__tool-body'>{stringify(block.content)}</pre>
-      </div>
-    );
-  }
+  return `…${id.slice(-6)}`;
+}
+
+function ToolCallBlock({
+  name,
+  args,
+  id,
+}: {
+  name: string;
+  args: unknown;
+  id: string;
+}): ReactElement {
   return (
-    <pre key={key} className='llmh-msg__raw'>
-      {stringify(block)}
-    </pre>
+    <details className='llmh-msg__tool llmh-msg__tool--call' open>
+      <summary className='llmh-msg__tool-head'>
+        <span className='llmh-msg__tool-tag'>call</span>
+        <span className='llmh-msg__tool-name'>{name}</span>
+        {id && <span className='llmh-msg__tool-id'>{shortId(id)}</span>}
+      </summary>
+      <pre className='llmh-msg__tool-body'>{argsToText(args)}</pre>
+    </details>
   );
 }
 
-export function MessageBlocks({ content }: { content: unknown }): ReactElement {
-  if (typeof content === 'string') {
-    return <div className='llmh-msg__text'>{content}</div>;
+function ToolResultBlock({
+  text,
+  toolCallId,
+  ok,
+}: {
+  text: string;
+  toolCallId: string;
+  ok: boolean;
+}): ReactElement {
+  const cls = [
+    'llmh-msg__tool',
+    'llmh-msg__tool--result',
+    ok ? '' : 'llmh-msg__tool--error',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return (
+    <details className={cls}>
+      <summary className='llmh-msg__tool-head'>
+        <span className='llmh-msg__tool-tag'>{ok ? 'result' : 'error'}</span>
+        {toolCallId && (
+          <span className='llmh-msg__tool-id'>{shortId(toolCallId)}</span>
+        )}
+        <span className='llmh-msg__tool-id'>
+          {text.length.toString()} chars
+        </span>
+      </summary>
+      <pre className='llmh-msg__tool-body'>{text}</pre>
+    </details>
+  );
+}
+
+function renderBlock(block: NormalizedBlock, key: number): ReactElement {
+  switch (block.kind) {
+    case 'text':
+      return (
+        <div key={key} className='llmh-msg__text'>
+          {block.text}
+        </div>
+      );
+    case 'thinking':
+      return (
+        <details key={key} className='llmh-msg__thinking'>
+          <summary>thinking</summary>
+          <pre>{block.text}</pre>
+        </details>
+      );
+    case 'tool_call':
+      return (
+        <ToolCallBlock
+          key={key}
+          name={block.name}
+          args={block.args}
+          id={block.id}
+        />
+      );
+    case 'tool_result':
+      return (
+        <ToolResultBlock
+          key={key}
+          text={block.text}
+          toolCallId={block.toolCallId}
+          ok={block.ok}
+        />
+      );
+    case 'unknown':
+      return (
+        <pre key={key} className='llmh-msg__raw'>
+          {(() => {
+            try {
+              return JSON.stringify(block.raw, null, 2);
+            } catch {
+              return String(block.raw);
+            }
+          })()}
+        </pre>
+      );
   }
-  if (Array.isArray(content)) {
+}
+
+interface MessageBlocksProps {
+  /** Pass a full MainTurn (preferred — role drives bubble styling). */
+  turn?: MainTurn;
+  /** Or pass just the content array / string. */
+  content?: unknown;
+}
+
+export function MessageBlocks({
+  turn,
+  content,
+}: MessageBlocksProps): ReactElement {
+  if (turn) {
+    const n = normalizeTurn(turn);
+    const cls = ['llmh-msg', `llmh-msg--${n.role}`].join(' ');
     return (
-      <div className='llmh-msg'>
-        {(content as Block[]).map((b, i) => renderBlock(b, i))}
-      </div>
+      <div className={cls}>{n.blocks.map((b, i) => renderBlock(b, i))}</div>
     );
   }
-  return <pre className='llmh-msg__raw'>{stringify(content)}</pre>;
+  const blocks = normalizeContent(content);
+  return (
+    <div className='llmh-msg'>{blocks.map((b, i) => renderBlock(b, i))}</div>
+  );
 }

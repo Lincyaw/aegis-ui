@@ -28,6 +28,7 @@ import {
   type CaseSelection,
   type CaseSelectionApi,
   EMPTY_SELECTION,
+  type InspectorMode,
 } from './selection';
 
 function readNum(params: URLSearchParams, key: string): number | null {
@@ -39,12 +40,23 @@ function readNum(params: URLSearchParams, key: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function parseMode(raw: string | null): InspectorMode | null {
+  if (raw === 'extractor' || raw === 'auditor') {
+    return raw;
+  }
+  return null;
+}
+
 function parseHash(hash: string): Partial<CaseSelection> {
   if (!hash) {
     return {};
   }
   const params = new URLSearchParams(hash.replace(/^#/, ''));
   const out: Partial<CaseSelection> = {};
+  const mode = parseMode(params.get('mode'));
+  if (mode) {
+    out.mode = mode;
+  }
   const turn = readNum(params, 'turn');
   if (turn !== null) {
     out.turn = turn;
@@ -73,6 +85,9 @@ function parseHash(hash: string): Partial<CaseSelection> {
 
 function selectionToHash(sel: CaseSelection): string {
   const params = new URLSearchParams();
+  if (sel.mode) {
+    params.set('mode', sel.mode);
+  }
   if (sel.turn !== null) {
     params.set('turn', String(sel.turn));
   }
@@ -98,22 +113,14 @@ function selectionToHash(sel: CaseSelection): string {
 function applyCascade(
   cur: CaseSelection,
   patch: Partial<CaseSelection>,
-  links: CaseLinks,
+  _links: CaseLinks,
 ): CaseSelection {
   const next: CaseSelection = { ...cur, ...patch };
-
-  if (patch.eventId !== undefined && patch.eventId !== null) {
-    if (patch.extractorSeq === undefined) {
-      const origin = links.eventOrigin.get(patch.eventId);
-      if (origin !== undefined) {
-        next.extractorSeq = origin;
-      }
-    }
-  }
 
   if (patch.findingId !== undefined && patch.findingId !== null) {
     if (patch.auditorSeq === undefined) {
       next.auditorSeq = patch.findingId.auditorSeq;
+      next.mode = 'auditor';
     }
   }
 

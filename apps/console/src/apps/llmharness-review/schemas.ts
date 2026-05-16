@@ -32,12 +32,22 @@ export type FiringStatus =
   | 'partial';
 export type FiringPhase = 'extractor' | 'auditor';
 
+/**
+ * On-the-wire shapes for a main-agent turn's content blocks. The
+ * aggregator emits AgentM-native (tool_call / tool_result with
+ * tool_call_id, nested content arrays). Anthropic-SDK shapes (tool_use
+ * + tool_use_id) and LangGraph-state shapes (string content) are also
+ * accepted by `messageAdapter.normalizeTurn` so callers never see raw
+ * JSON in the chat column.
+ */
 export type ContentBlock =
   | { type: 'text'; text: string }
+  | { type: 'tool_call'; id: string; name: string; arguments: unknown }
   | { type: 'tool_use'; id: string; name: string; input: unknown }
   | {
       type: 'tool_result';
-      tool_use_id: string;
+      tool_call_id?: string;
+      tool_use_id?: string;
       content: unknown;
       is_error?: boolean;
     }

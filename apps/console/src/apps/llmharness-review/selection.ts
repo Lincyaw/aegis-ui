@@ -6,7 +6,15 @@
 
 import { createContext, useContext } from 'react';
 
+export type InspectorMode = 'extractor' | 'auditor';
+
 export interface CaseSelection {
+  /**
+   * Which inspector pane is active. The timeline writes this together
+   * with extractorSeq / auditorSeq; nothing else should mutate it
+   * (so cross-pane chip clicks inside an inspector stay in the same mode).
+   */
+  mode: InspectorMode | null;
   turn: number | null;
   extractorSeq: number | null;
   auditorSeq: number | null;
@@ -20,6 +28,7 @@ export interface CaseSelectionApi {
 }
 
 export const EMPTY_SELECTION: CaseSelection = {
+  mode: null,
   turn: null,
   extractorSeq: null,
   auditorSeq: null,
