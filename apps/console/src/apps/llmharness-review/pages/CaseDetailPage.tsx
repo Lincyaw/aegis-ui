@@ -250,6 +250,13 @@ function ExtractorDetail({
 }): ReactElement {
   const { selection, set } = useCaseSelection();
   const payload = firing.input.payload;
+  // collector writes summary_threshold as a sibling of payload (see
+  // llmharness.aggregate.collector._firing_input_payload), but older
+  // captures kept it inside payload — read from either.
+  const summaryThreshold =
+    (firing.input as { summary_threshold?: unknown }).summary_threshold ??
+    (payload as { summary_threshold?: unknown }).summary_threshold ??
+    null;
   const output = firing.output;
 
   const citedByFinding = useMemo<Set<number>>(() => {
@@ -271,8 +278,8 @@ function ExtractorDetail({
         <div className='llmh-cdp__detail-head'>
           input.payload
           <MetricLabel size='xs'>
-            new_turns={payload.new_turns.length} · threshold=
-            {payload.summary_threshold}
+            new_turns={payload.new_turns.length}
+            {summaryThreshold !== null && ` · threshold=${String(summaryThreshold)}`}
           </MetricLabel>
         </div>
         {payload.recent_graph && payload.recent_graph.length > 0 && (
