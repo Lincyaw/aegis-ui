@@ -13,8 +13,9 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
+import { useActiveProjectIdNum, useSubmitInjection } from '../api/injections';
 import { specToYaml } from '../components/inject/paramSchema';
-import { useActiveProjectId, useMockStore } from '../mocks';
+import { useInjectBatch } from '../state/inject-batch';
 
 interface BatchRow {
   index: number;
@@ -28,14 +29,14 @@ interface BatchRow {
 }
 
 export default function BatchInjections() {
-  const pid = useActiveProjectId();
+  const pid = useActiveProjectIdNum();
   const navigate = useAppNavigate();
   const { message: msg, modal } = AntdApp.useApp();
 
-  const staged = useMockStore((s) => s.stagedInjections.filter((it) => it.projectId === pid));
-  const removeStaged = useMockStore((s) => s.removeStaged);
-  const clearBatch = useMockStore((s) => s.clearBatch);
-  const submitBatch = useMockStore((s) => s.submitBatch);
+  const staged = useInjectBatch((s) => s.staged);
+  const remove = useInjectBatch((s) => s.remove);
+  const clear = useInjectBatch((s) => s.clear);
+  const submitMutation = useSubmitInjection();
 
   const rows: BatchRow[] = staged.map((it, i) => ({
     index: i,
@@ -49,15 +50,31 @@ export default function BatchInjections() {
   }));
 
   const onSubmit = (): void => {
-    if (rows.length === 0) return;
+    if (rows.length === 0) {
+      return;
+    }
     modal.confirm({
       title: `Submit ${rows.length} injection${rows.length === 1 ? '' : 's'}?`,
       content: 'Each staged draft becomes an injection.',
       okText: 'Submit all',
       onOk: () => {
-        const created = submitBatch(pid);
-        void msg.success(`${created.length} queued`);
-        navigate('injections');
+        submitMutation.mutate(
+          {
+            projectId: pid,
+            specs: staged.map((s) => s.spec),
+            autoAllocate: true,
+          },
+          {
+            onSuccess: () => {
+              void msg.success(`${rows.length} queued`);
+              clear();
+              navigate('injections');
+            },
+            onError: (err) => {
+              void msg.error(`Batch submit failed: ${err.message}`);
+            },
+          },
+        );
       },
     });
   };
@@ -65,7 +82,7 @@ export default function BatchInjections() {
   if (rows.length === 0) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title='Batch' description={`Staged injections for ${pid}.`} />
+        <PageHeader title='Batch' description={`Staged injections for project ${pid}.`} />
         <Panel>
           <EmptyState
             title='No staged drafts'
@@ -80,13 +97,13 @@ export default function BatchInjections() {
     <div className='page-wrapper'>
       <PageHeader
         title='Batch'
-        description={`Staged injections for ${pid}.`}
+        description={`Staged injections for project ${pid}.`}
         action={
           <div className='page-action-row'>
-            <Button tone='ghost' onClick={() => clearBatch()}>
+            <Button tone='ghost' onClick={() => clear()}>
               Clear all
             </Button>
-            <Button tone='primary' onClick={onSubmit}>
+            <Button tone='primary' onClick={onSubmit} disabled={submitMutation.isPending}>
               Submit all ({rows.length})
             </Button>
           </div>
@@ -121,7 +138,7 @@ export default function BatchInjections() {
               key: 'rm',
               header: '',
               render: (r) => (
-                <Button tone='ghost' onClick={() => removeStaged(r.index)}>
+                <Button tone='ghost' onClick={() => remove(r.index)}>
                   Remove
                 </Button>
               ),
@@ -132,9 +149,7 @@ export default function BatchInjections() {
       <Panel title={<PanelTitle size='base'>Resolved YAML</PanelTitle>}>
         <CodeBlock
           language='yaml'
-          code={rows
-            .map((r, i) => `# draft ${i + 1}\n${r.yaml}\n---`)
-            .join('\n')}
+          code={rows.map((r, i) => `# draft ${i + 1}\n${r.yaml}\n---`).join('\n')}
         />
       </Panel>
     </div>

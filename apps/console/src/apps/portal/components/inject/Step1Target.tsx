@@ -1,9 +1,9 @@
 import { Form, Input, InputNumber, Radio, Select, Switch } from 'antd';
 
-import { Chip, MonoValue, Panel, PanelTitle, SectionDivider } from '@lincyaw/aegis-ui';
+import { Panel, PanelTitle, SectionDivider } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../../mocks';
 import type { GuidedInjectionSpec, NamespaceMode } from '../../mocks/types';
+import { useInjectBatch } from '../../state/inject-batch';
 
 interface Props {
   spec: GuidedInjectionSpec;
@@ -11,10 +11,7 @@ interface Props {
 }
 
 export function Step1Target({ spec, update }: Props) {
-  const systems = useMockStore((s) => s.systems);
-  const templates = useMockStore((s) => s.injectionTemplates);
-  const selectedSystem = systems.find((s) => s.code === spec.systemCode);
-  const appOptions = selectedSystem?.apps ?? [];
+  const templates = useInjectBatch((s) => s.templates);
 
   return (
     <Panel title={<PanelTitle size='base'>1. Target</PanelTitle>}>
@@ -25,9 +22,13 @@ export function Step1Target({ spec, update }: Props) {
             allowClear
             options={templates.map((t) => ({ value: t.id, label: t.name }))}
             onChange={(id?: string) => {
-              if (!id) return;
+              if (!id) {
+                return;
+              }
               const t = templates.find((x) => x.id === id);
-              if (t) update(t.spec);
+              if (t) {
+                update(t.spec);
+              }
             }}
           />
         </Form.Item>
@@ -57,43 +58,30 @@ export function Step1Target({ spec, update }: Props) {
           </Form.Item>
         )}
 
-        <Form.Item label='System' required>
-          <Select
-            value={spec.systemCode || undefined}
-            onChange={(code: string) => {
-              const sys = systems.find((s) => s.code === code);
-              update({
-                systemCode: code,
-                systemType: sys?.systemType ?? '',
-                app: '',
-              });
-            }}
-            placeholder='select system short_code'
-            options={systems.map((s) => ({
-              value: s.code,
-              label: `${s.code} — ${s.name}`,
-              disabled: !s.enabled,
-            }))}
+        <Form.Item label='System short_code' required extra='e.g. ts, otel-demo, sn.'>
+          <Input
+            value={spec.systemCode}
+            onChange={(e) => update({ systemCode: e.target.value, app: '' })}
+            placeholder='system short_code'
           />
         </Form.Item>
 
-        {selectedSystem && (
-          <>
-            <SectionDivider>
-              <MonoValue size='sm'>{selectedSystem.code}</MonoValue>{' '}
-              <Chip tone='ghost'>{selectedSystem.systemType}</Chip>
-            </SectionDivider>
-            <Form.Item label='App / Deployment' required>
-              <Select
-                value={spec.app || undefined}
-                onChange={(v: string) => update({ app: v })}
-                showSearch
-                placeholder='pick a deployment label'
-                options={appOptions.map((a) => ({ value: a, label: a }))}
-              />
-            </Form.Item>
-          </>
-        )}
+        <Form.Item label='System type' extra='free-form chaos.system_type tag.'>
+          <Input
+            value={spec.systemType}
+            onChange={(e) => update({ systemType: e.target.value })}
+            placeholder='e.g. ts'
+          />
+        </Form.Item>
+
+        <SectionDivider>App</SectionDivider>
+        <Form.Item label='App / Deployment' required>
+          <Input
+            value={spec.app}
+            onChange={(e) => update({ app: e.target.value })}
+            placeholder='deployment label'
+          />
+        </Form.Item>
 
         <Form.Item label='Container (optional)' extra='leave blank to target the first container.'>
           <Input
@@ -103,7 +91,10 @@ export function Step1Target({ spec, update }: Props) {
           />
         </Form.Item>
 
-        <Form.Item label='Target service (optional)' extra='used by HTTP / JVM faults that scope per-service.'>
+        <Form.Item
+          label='Target service (optional)'
+          extra='used by HTTP / JVM faults that scope per-service.'
+        >
           <Input
             value={spec.targetService}
             onChange={(e) => update({ targetService: e.target.value })}

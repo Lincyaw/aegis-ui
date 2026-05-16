@@ -1,5 +1,4 @@
-import { App as AntdApp } from 'antd';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
   Button,
@@ -14,73 +13,69 @@ import {
   PanelTitle,
   SectionDivider,
   TimeDisplay,
-  useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-import { specToYaml } from '../components/inject/paramSchema';
-
+import { useInjectionDetail } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
-import { useMockStore } from '../mocks';
 
 export default function InjectionDetail() {
   const { injectionId } = useParams<{ injectionId: string }>();
-  const href = useAppHref();
   const navigate = useAppNavigate();
-  const { message: msg, modal } = AntdApp.useApp();
 
-  const injection = useMockStore((s) =>
-    s.injections.find((i) => i.id === injectionId),
+  const idNum = injectionId ? Number.parseInt(injectionId, 10) : Number.NaN;
+  const { data: injection, isLoading, isError, error } = useInjectionDetail(
+    Number.isNaN(idNum) ? null : idNum,
   );
-  const contracts = useMockStore((s) => s.contracts);
-  const cancelInjection = useMockStore((s) => s.cancelInjection);
 
-  if (!injection) {
+  if (Number.isNaN(idNum)) {
     return (
       <div className='page-wrapper'>
         <PageHeader title={`Injection ${injectionId ?? ''}`} />
         <Panel>
+          <EmptyState title='Invalid injection id' description={injectionId ?? ''} />
+        </Panel>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title={`Injection ${idNum}`} description='Loading…' />
+      </div>
+    );
+  }
+
+  if (isError || !injection) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title={`Injection ${idNum}`} />
+        <Panel>
           <EmptyState
             title='Injection not found'
-            description='It may have been removed or never existed.'
+            description={
+              error instanceof Error
+                ? error.message
+                : 'It may have been removed or never existed.'
+            }
           />
         </Panel>
       </div>
     );
   }
 
-  const contract = contracts.find((c) => c.id === injection.contractId);
-  const traceReady = injection.status === 'running' || injection.status === 'completed';
-  const cancellable =
-    injection.status === 'pending' || injection.status === 'running';
-
-  const onCancel = (): void => {
-    modal.confirm({
-      title: 'Cancel this injection?',
-      content: 'The backing task will be marked cancelled.',
-      okText: 'Cancel injection',
-      cancelText: 'Keep running',
-      okButtonProps: { danger: true },
-      onOk: () => {
-        cancelInjection(injection.id);
-        void msg.success(`Injection ${injection.id} cancelled`);
-      },
-    });
-  };
+  const status = injection.status ?? injection.state ?? 'unknown';
+  const traceReady = status === 'running' || status === 'completed';
 
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={`Injection ${injection.id}`}
+        title={`Injection ${injection.id ?? idNum}`}
         description={injection.name}
         action={
           <div className='page-action-row'>
-            <StatusChip status={injection.status} />
-            {cancellable && (
-              <Button tone='secondary' onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
+            <StatusChip status={status} />
           </div>
         }
       />
@@ -88,53 +83,41 @@ export default function InjectionDetail() {
       <Panel title={<PanelTitle size='base'>Provenance</PanelTitle>}>
         <KeyValueList
           items={[
+            { k: 'pedestal', v: injection.pedestal_name ?? String(injection.pedestal_id ?? '—') },
+            { k: 'benchmark', v: injection.benchmark_name ?? String(injection.benchmark_id ?? '—') },
             {
-              k: 'target system',
-              v: <Link to={href(`systems/${injection.systemCode}`)}>{injection.systemCode}</Link>,
+              k: 'fault type',
+              v: <MonoValue size='sm'>{injection.fault_type ?? '—'}</MonoValue>,
             },
+            { k: 'category', v: injection.category ?? '—' },
             {
-              k: 'contract',
-              v: (
-                <Link to={href(`contracts/${injection.contractId}`)}>
-                  {contract?.name ?? injection.contractId}
-                </Link>
-              ),
-            },
-            {
-              k: 'originating task',
-              v: (
-                <Link to={href(`tasks/${injection.taskId}`)}>{injection.taskId}</Link>
-              ),
+              k: 'task',
+              v: injection.task_id ? <MonoValue size='sm'>{injection.task_id}</MonoValue> : '—',
             },
             {
               k: 'trace',
-              v: traceReady && injection.traceId ? (
-                <Link to={href(`traces/${injection.traceId}`)}>
-                  {injection.traceId}
-                </Link>
+              v: traceReady && injection.trace_id ? (
+                <MonoValue size='sm'>{injection.trace_id}</MonoValue>
               ) : (
-                <Chip tone='ghost'>pending — trace appears after injection lands</Chip>
+                <Chip tone='ghost'>pending</Chip>
               ),
             },
-            { k: 'project', v: <MonoValue size='sm'>{injection.projectId}</MonoValue> },
-            { k: 'created', v: <TimeDisplay value={injection.createdAt} /> },
+            { k: 'created', v: <TimeDisplay value={injection.created_at ?? ''} /> },
+            { k: 'started', v: <TimeDisplay value={injection.start_time ?? ''} /> },
+            { k: 'ended', v: <TimeDisplay value={injection.end_time ?? ''} /> },
           ]}
         />
       </Panel>
 
-      <Panel title={<PanelTitle size='base'>Parameters</PanelTitle>}>
-        <KeyValueList
-          items={[
-            { k: 'blast radius', v: injection.blastRadius },
-            { k: 'duration', v: `${injection.durationSec}s` },
-            { k: 'intensity', v: `${injection.intensity}%` },
-          ]}
-        />
-      </Panel>
+      {injection.display_config && (
+        <Panel title={<PanelTitle size='base'>Display config</PanelTitle>}>
+          <CodeBlock language='json' code={JSON.stringify(injection.display_config, null, 2)} />
+        </Panel>
+      )}
 
-      {injection.spec && (
-        <Panel title={<PanelTitle size='base'>Spec</PanelTitle>}>
-          <CodeBlock language='yaml' code={specToYaml(injection.spec)} />
+      {injection.engine_config && injection.engine_config.length > 0 && (
+        <Panel title={<PanelTitle size='base'>Engine config</PanelTitle>}>
+          <CodeBlock language='json' code={JSON.stringify(injection.engine_config, null, 2)} />
         </Panel>
       )}
 
@@ -142,31 +125,22 @@ export default function InjectionDetail() {
       <div className='page-action-row'>
         <Button
           tone='primary'
-          disabled={!traceReady || !injection.traceId}
+          disabled={!traceReady || !injection.trace_id}
           onClick={() => {
-            if (injection.traceId) {
-              navigate(`traces/${injection.traceId}`);
+            if (injection.trace_id) {
+              navigate(`traces/${injection.trace_id}`);
             }
           }}
         >
           View trace
         </Button>
-        <Button
-          tone='secondary'
-          onClick={() => navigate('observations')}
-        >
+        <Button tone='secondary' onClick={() => navigate('observations')}>
           View observations
-        </Button>
-        <Button
-          tone='secondary'
-          onClick={() => navigate(`injections?select=${injection.id}`)}
-        >
-          Add to dataset
         </Button>
       </div>
 
       <Panel>
-        <MetricLabel>live status — page reflects store mutations</MetricLabel>
+        <MetricLabel>live status — refetches every 3s while pending/running</MetricLabel>
       </Panel>
     </div>
   );
