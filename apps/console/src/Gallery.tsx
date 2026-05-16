@@ -92,8 +92,7 @@ import {
   SectionDivider,
   SettingsSection,
   SparkLine,
-  SqlEditor,
-  type SqlField,
+  type CodeEditorField,
   StatBlock,
   StatusDot,
   Terminal,
@@ -3583,9 +3582,13 @@ function App() {
               height={160}
             />
           </Specimen>
+          <Specimen
+            caption='sql · field+table autocomplete · Cmd+Enter submit'
+            span={3}
+          >
+            <SqlCodeEditorSpecimen />
+          </Specimen>
         </div>
-
-        <SqlEditorSpecimen />
 
         <SectionDivider extra={<MetricLabel>react-diff-viewer-continued</MetricLabel>}>
           DiffViewer
@@ -4190,71 +4193,47 @@ function SavedQueryBarSpecimen(): ReactNode {
   );
 }
 
-const SQL_EDITOR_FIELDS: SqlField[] = [
+const SQL_EDITOR_FIELDS: CodeEditorField[] = [
   { name: 'TraceId' },
   { name: 'SpanName' },
   { name: 'Duration', type: 'UInt64' },
   { name: 'StatusCode', type: 'String' },
 ];
 
-function SqlEditorSpecimen(): ReactNode {
-  const [empty, setEmpty] = useState('');
-  const [prefilled, setPrefilled] = useState(
-    'SELECT TraceId, SpanName FROM otel_traces WHERE Duration > 1000',
+function SqlCodeEditorSpecimen(): ReactNode {
+  const [value, setValue] = useState(
+    'SELECT TraceId, SpanName\nFROM otel_traces\nWHERE Duration > 1000',
   );
   const [submitted, setSubmitted] = useState<string | null>(null);
-  const handleSubmit = useCallback((sql: string) => {
-    setSubmitted(sql);
-  }, []);
   return (
     <>
-      <SectionDivider extra={<MetricLabel>codemirror · clickhouse</MetricLabel>}>
-        SqlEditor
-      </SectionDivider>
-      <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='empty · placeholder + field autocomplete' span={3}>
-          <SqlEditor
-            value={empty}
-            onChange={setEmpty}
-            placeholder='SELECT … FROM otel_traces'
-            fields={SQL_EDITOR_FIELDS}
-            tables={['otel_traces', 'otel_logs', 'otel_metrics']}
-            height={160}
-          />
-        </Specimen>
-        <Specimen caption='pre-filled · Cmd+Enter to submit' span={3}>
-          <SqlEditor
-            value={prefilled}
-            onChange={setPrefilled}
-            onSubmit={handleSubmit}
-            fields={SQL_EDITOR_FIELDS}
-            tables={['otel_traces']}
-            height={160}
-          />
-          <pre
-            style={{
-              marginTop: 'var(--space-2)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 'var(--fs-13)',
-              color: 'var(--text-muted)',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-            }}
-          >
-            {submitted == null
-              ? 'submitted SQL → press Cmd+Enter / Ctrl+Enter'
-              : `submitted → ${submitted}`}
-          </pre>
-        </Specimen>
-        <Specimen caption='read-only · compiled SQL' span={3}>
-          <SqlEditor
-            value={'SELECT count(*)\nFROM otel_traces\nWHERE Duration > 1000\nGROUP BY SpanName'}
-            onChange={() => undefined}
-            readOnly
-            height={140}
-          />
-        </Specimen>
-      </div>
+      <CodeEditor
+        value={value}
+        language='sql'
+        onChange={setValue}
+        onSubmit={setSubmitted}
+        fields={SQL_EDITOR_FIELDS}
+        tables={['otel_traces', 'otel_logs', 'otel_metrics']}
+        height={160}
+      />
+      <pre
+        style={{
+          marginTop: 'var(--space-2)',
+          padding: 'var(--space-2) var(--space-3)',
+          background: 'var(--bg-muted)',
+          border: 'var(--size-hairline) solid var(--border-hairline)',
+          borderRadius: 'var(--radius-sm)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--fs-11)',
+          color: 'var(--text-main)',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        }}
+      >
+        {submitted == null
+          ? 'press Cmd+Enter / Ctrl+Enter to submit'
+          : `submitted → ${submitted}`}
+      </pre>
     </>
   );
 }

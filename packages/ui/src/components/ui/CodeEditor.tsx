@@ -1,15 +1,25 @@
 import { type CSSProperties, useMemo, useRef } from 'react';
 
+import { autocompletion, completeFromList } from '@codemirror/autocomplete';
 import { json } from '@codemirror/lang-json';
+import { MySQL, sql } from '@codemirror/lang-sql';
 import { yaml } from '@codemirror/lang-yaml';
-import { EditorView } from '@codemirror/view';
+import { Prec } from '@codemirror/state';
+import { EditorView, keymap } from '@codemirror/view';
 import CodeMirror, { type Extension } from '@uiw/react-codemirror';
 
 import { useAegisSurface } from '../../agent/hooks';
 import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
 import './CodeEditor.css';
 
-export type CodeEditorLanguage = 'json' | 'yaml' | 'text';
+export type CodeEditorLanguage = 'json' | 'yaml' | 'sql' | 'text';
+
+/** Schema hint for SQL autocompletion. */
+export interface CodeEditorField {
+  name: string;
+  /** Optional ClickHouse type ('UInt64', 'Map(String,String)', …) shown alongside the suggestion. */
+  type?: string;
+}
 
 export interface CodeEditorSurface {
   id: string;
@@ -36,6 +46,12 @@ interface CodeEditorProps {
   className?: string;
   style?: CSSProperties;
   surface?: CodeEditorSurface;
+  /** SQL-only: schema columns surfaced in autocomplete (language='sql'). */
+  fields?: CodeEditorField[];
+  /** SQL-only: table names surfaced in autocomplete (language='sql'). */
+  tables?: string[];
+  /** Fires on Cmd/Ctrl+Enter — useful for run-this-query affordances. */
+  onSubmit?: (value: string) => void;
 }
 
 const baseTheme = EditorView.theme({
@@ -77,6 +93,9 @@ export function CodeEditor({
   className,
   style,
   surface,
+  fields,
+  tables,
+  onSubmit,
 }: CodeEditorProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   useAegisSurface<{ value: string; language: CodeEditorLanguage }>({
@@ -95,9 +114,42 @@ export function CodeEditor({
       exts.push(json());
     } else if (language === 'yaml') {
       exts.push(yaml());
+    } else if (language === 'sql') {
+      exts.push(sql({ dialect: MySQL, upperCaseKeywords: true }));
+      const completions = [
+        ...(tables ?? []).map((name) => ({
+          label: name,
+          type: 'class' as const,
+        })),
+        ...(fields ?? []).map((field) => ({
+          label: field.name,
+          type: 'property' as const,
+          detail: field.type,
+        })),
+      ];
+      if (completions.length > 0) {
+        exts.push(
+          autocompletion({ override: [completeFromList(completions)] }),
+        );
+      }
+    }
+    if (onSubmit) {
+      exts.push(
+        Prec.highest(
+          keymap.of([
+            {
+              key: 'Mod-Enter',
+              run: (view) => {
+                onSubmit(view.state.doc.toString());
+                return true;
+              },
+            },
+          ]),
+        ),
+      );
     }
     return exts;
-  }, [language]);
+  }, [language, fields, tables, onSubmit]);
 
   const rootClass = ['aegis-code-editor', className ?? '']
     .filter(Boolean)
