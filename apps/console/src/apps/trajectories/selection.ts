@@ -28,7 +28,7 @@ function parseHash(hash: string): Partial<Selection> {
     out.spanId = span;
   }
   const view = params.get('view');
-  if (view === 'storyline' || view === 'trace') {
+  if (view === 'storyline' || view === 'trace' || view === 'timeline') {
     out.view = view;
   }
   return out;
