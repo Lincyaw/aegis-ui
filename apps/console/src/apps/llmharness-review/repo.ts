@@ -19,24 +19,24 @@ import {
   getBackendUrl,
   getBlobRoot,
 } from './connection';
-import type {
-  AuditorFiring,
-  CaseBundle,
-  CaseMeta,
-  CaseSummary,
-  DroppedRow,
-  ExtractorFiring,
-  FiringFile,
-  FiringPhase,
-  GraphSnapshot,
-  GraphSnapshotFile,
-  MainAgentMessage,
-  MainTurn,
-  SftRowBase,
-  TrajectoryRow,
-  VerdictRow,
+import {
+  type AuditorFiring,
+  type CaseBundle,
+  type CaseMeta,
+  type CaseSummary,
+  type DroppedRow,
+  type ExtractorFiring,
+  type FiringFile,
+  type FiringPhase,
+  type GraphSnapshot,
+  type GraphSnapshotFile,
+  type MainAgentMessage,
+  type MainTurn,
+  type SftRowBase,
+  type TrajectoryRow,
+  type VerdictRow,
+  computeCaseLinks,
 } from './schemas';
-import { computeCaseLinks } from './schemas';
 
 export interface CaseRepo {
   /** Cosmetic label shown in headers; not load-bearing. */

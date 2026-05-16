@@ -9,41 +9,26 @@
  * Setting any one triggers cascading defaults so panes never need to
  * replicate the lookup (e.g. selecting an eventId auto-resolves the
  * extractorSeq that produced it via `links.eventOrigin`).
+ *
+ * The hook + Context object live in selection.ts.
  */
 
 import {
-  createContext,
   type ReactElement,
   type ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 
 import type { CaseLinks } from './schemas';
-
-export interface CaseSelection {
-  turn: number | null;
-  extractorSeq: number | null;
-  auditorSeq: number | null;
-  eventId: number | null;
-  findingId: { auditorSeq: number; index: number } | null;
-}
-
-export interface CaseSelectionApi {
-  selection: CaseSelection;
-  set(patch: Partial<CaseSelection>): void;
-}
-
-const EMPTY: CaseSelection = {
-  turn: null,
-  extractorSeq: null,
-  auditorSeq: null,
-  eventId: null,
-  findingId: null,
-};
+import {
+  CaseSelectionContext,
+  type CaseSelection,
+  type CaseSelectionApi,
+  EMPTY_SELECTION,
+} from './selection';
 
 function readNum(params: URLSearchParams, key: string): number | null {
   const v = params.get(key);
@@ -143,8 +128,6 @@ function applyCascade(
   return next;
 }
 
-const Ctx = createContext<CaseSelectionApi | null>(null);
-
 interface ProviderProps {
   links: CaseLinks;
   urlSync?: boolean;
@@ -158,9 +141,9 @@ export function CaseSelectionProvider({
 }: ProviderProps): ReactElement {
   const [selection, setState] = useState<CaseSelection>(() => {
     if (typeof window === 'undefined' || !urlSync) {
-      return EMPTY;
+      return EMPTY_SELECTION;
     }
-    return { ...EMPTY, ...parseHash(window.location.hash) };
+    return { ...EMPTY_SELECTION, ...parseHash(window.location.hash) };
   });
 
   useEffect(() => {
@@ -168,7 +151,11 @@ export function CaseSelectionProvider({
       return undefined;
     }
     const onHash = (): void => {
-      setState((cur) => ({ ...EMPTY, ...cur, ...parseHash(window.location.hash) }));
+      setState((cur) => ({
+        ...EMPTY_SELECTION,
+        ...cur,
+        ...parseHash(window.location.hash),
+      }));
     };
     window.addEventListener('hashchange', onHash);
     return () => {
@@ -199,13 +186,9 @@ export function CaseSelectionProvider({
     [selection, set],
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
-
-export function useCaseSelection(): CaseSelectionApi {
-  const v = useContext(Ctx);
-  if (!v) {
-    throw new Error('useCaseSelection must be used inside <CaseSelectionProvider>');
-  }
-  return v;
+  return (
+    <CaseSelectionContext.Provider value={value}>
+      {children}
+    </CaseSelectionContext.Provider>
+  );
 }
