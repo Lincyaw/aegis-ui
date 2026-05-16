@@ -105,8 +105,8 @@ function applyCascade(
   if (patch.eventId !== undefined && patch.eventId !== null) {
     if (patch.extractorSeq === undefined) {
       const origin = links.eventOrigin.get(patch.eventId);
-      if (origin) {
-        next.extractorSeq = origin.extractorSeq;
+      if (origin !== undefined) {
+        next.extractorSeq = origin;
       }
     }
   }

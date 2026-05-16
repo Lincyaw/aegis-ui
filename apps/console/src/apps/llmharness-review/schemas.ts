@@ -189,7 +189,7 @@ export interface CaseSummary {
 export interface CaseLinks {
   turnToExtractor: Map<number, number[]>;
   turnToAuditor: Map<number, number[]>;
-  eventOrigin: Map<number, { extractorSeq: number; localId: number }>;
+  eventOrigin: Map<number, number>;
   eventToAuditor: Map<number, number[]>;
   reminderInjection: Map<number, number>;
 }
@@ -237,7 +237,7 @@ export function computeCaseLinks(
 ): CaseLinks {
   const turnToExtractor = new Map<number, number[]>();
   const turnToAuditor = new Map<number, number[]>();
-  const eventOrigin = new Map<number, { extractorSeq: number; localId: number }>();
+  const eventOrigin = new Map<number, number>();
   const eventToAuditor = new Map<number, number[]>();
   const reminderInjection = new Map<number, number>();
 
@@ -253,7 +253,7 @@ export function computeCaseLinks(
   for (const [seq, snap] of bundle.graphs) {
     for (const ev of snap.events) {
       if (!eventOrigin.has(ev.id)) {
-        eventOrigin.set(ev.id, { extractorSeq: seq, localId: ev.id });
+        eventOrigin.set(ev.id, seq);
       }
     }
   }
@@ -263,7 +263,7 @@ export function computeCaseLinks(
     }
     for (const ev of f.output.events) {
       if (!eventOrigin.has(ev.id)) {
-        eventOrigin.set(ev.id, { extractorSeq: f.sequence, localId: ev.id });
+        eventOrigin.set(ev.id, f.sequence);
       }
     }
   }
