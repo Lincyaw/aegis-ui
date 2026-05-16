@@ -1,0 +1,204 @@
+.aegis-timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.aegis-timeline__axis {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  background: var(--bg-panel);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  height: var(--space-6);
+  flex: 0 0 auto;
+}
+
+.aegis-timeline__axis-label-gutter {
+  border-right: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-timeline__axis-ticks {
+  position: relative;
+  height: 100%;
+}
+
+.aegis-timeline__tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--size-hairline);
+  background: var(--border-hairline);
+}
+
+.aegis-timeline__tick-label {
+  position: absolute;
+  bottom: var(--space-1);
+  left: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.aegis-timeline__body {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.aegis-timeline__virtual {
+  position: relative;
+  width: 100%;
+}
+
+.aegis-timeline__row {
+  display: grid;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  cursor: pointer;
+  outline: none;
+  transition: background var(--motion-fast);
+}
+
+.aegis-timeline__row:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-timeline__row:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--bg-inverted);
+}
+
+.aegis-timeline__row--selected,
+.aegis-timeline__row--selected:hover {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-timeline__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  min-width: 0;
+  border-right: var(--size-hairline) solid var(--border-hairline);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aegis-timeline__label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aegis-timeline__track {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.aegis-timeline__bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 60%;
+  min-width: var(--size-hairline);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--text-on-inverted);
+  background: var(--bg-inverted);
+  overflow: hidden;
+}
+
+.aegis-timeline__bar--error {
+  border: var(--size-hairline) solid var(--accent-warning);
+}
+
+.aegis-timeline__bar-badge {
+  margin-left: var(--space-1);
+  flex: 0 0 auto;
+}
+
+.aegis-timeline__guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--size-hairline);
+  background: var(--border-emphasis);
+  pointer-events: none;
+  display: none;
+  z-index: 1;
+}
+
+.aegis-timeline__guide-label {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  padding: var(--space-px) var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--text-on-inverted);
+  background: var(--bg-inverted);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.aegis-timeline__empty {
+  padding: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aegis-timeline__skeleton-row {
+  display: grid;
+  align-items: center;
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-timeline__skeleton {
+  height: var(--space-3);
+  margin: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--bg-muted) 25%,
+    var(--bg-page) 50%,
+    var(--bg-muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: aegis-timeline-shimmer 1.5s infinite;
+}
+
+@keyframes aegis-timeline-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
