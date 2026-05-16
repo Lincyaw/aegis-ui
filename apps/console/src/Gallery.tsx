@@ -47,8 +47,13 @@ import {
   MetadataList,
   ObjectBrowser,
   ObjectInspector,
+  QueryAutocomplete,
+  type QueryAutocompleteFieldSuggestion,
+  type QueryAutocompleteValueSuggestion,
   SearchInput,
   ShareLinkDialog,
+  compileLuceneToSql,
+  type FieldMapping,
   UploadQueue,
   ForgotPasswordForm,
   FormRow,
@@ -3276,6 +3281,11 @@ function App() {
           </Specimen>
         </div>
 
+        <SectionDivider extra={<MetricLabel>LuceneQL field:value</MetricLabel>}>
+          QueryAutocomplete
+        </SectionDivider>
+        <QueryAutocompleteSpecimen />
+
         <SectionDivider extra={<MetricLabel>key/value metadata</MetricLabel>}>
           MetadataList
         </SectionDivider>
@@ -3861,6 +3871,104 @@ function App() {
 export default App;
 
 /* ── EnvironmentSwitcher specimen ──────────────────────────────────── */
+
+const QUERY_AC_FIELDS: QueryAutocompleteFieldSuggestion[] = [
+  { value: 'service.name', hint: 'string' },
+  { value: 'service.version', hint: 'string' },
+  { value: 'http.status', hint: 'number' },
+  { value: 'http.method', hint: 'string' },
+  { value: 'duration', hint: 'number (µs)' },
+  { value: 'error', hint: 'bool' },
+];
+
+const QUERY_AC_FIELD_MAPPINGS: FieldMapping[] = [
+  { field: 'service.name', sqlExpr: 'ServiceName' },
+  { field: 'service.version', sqlExpr: "SpanAttributes['service.version']" },
+  { field: 'http.status', sqlExpr: 'HttpStatus', kind: 'number' },
+  { field: 'http.method', sqlExpr: "SpanAttributes['http.method']" },
+  { field: 'duration', sqlExpr: 'Duration', kind: 'number' },
+  { field: 'error', sqlExpr: 'IsError', kind: 'bool' },
+];
+
+const QUERY_AC_VALUE_POOL: Record<string, QueryAutocompleteValueSuggestion[]> = {
+  'service.name': [
+    { value: 'frontend', hint: '4.1k events' },
+    { value: 'checkout', hint: '912 events' },
+    { value: 'auth', hint: '410 events' },
+    { value: 'foo', hint: 'sample' },
+  ],
+  'http.status': [
+    { value: '200', hint: 'OK' },
+    { value: '404', hint: 'Not Found' },
+    { value: '500', hint: 'Internal Error' },
+  ],
+  'http.method': [
+    { value: 'GET' },
+    { value: 'POST' },
+    { value: 'PUT' },
+    { value: 'DELETE' },
+  ],
+  error: [{ value: 'true' }, { value: 'false' }],
+};
+
+function QueryAutocompleteSpecimen(): ReactNode {
+  const [empty, setEmpty] = useState('');
+  const [prefilled, setPrefilled] = useState(
+    'service.name:foo AND duration:>1000',
+  );
+  const valueSuggestions = useCallback(
+    (field: string, _prefix: string): QueryAutocompleteValueSuggestion[] =>
+      QUERY_AC_VALUE_POOL[field] ?? [],
+    [],
+  );
+  const compiled = useMemo(
+    () =>
+      compileLuceneToSql(prefilled, {
+        fields: QUERY_AC_FIELD_MAPPINGS,
+      }),
+    [prefilled],
+  );
+  return (
+    <div className='gallery__row gallery__row--wide'>
+      <Specimen caption='empty · field-name suggestions on focus' span={2}>
+        <QueryAutocomplete
+          value={empty}
+          onChange={setEmpty}
+          fieldSuggestions={QUERY_AC_FIELDS}
+          valueSuggestions={valueSuggestions}
+        />
+      </Specimen>
+      <Specimen caption='pre-filled · compiled WHERE updates live' span={2}>
+        <QueryAutocomplete
+          value={prefilled}
+          onChange={setPrefilled}
+          fieldSuggestions={QUERY_AC_FIELDS}
+          valueSuggestions={valueSuggestions}
+        />
+        <pre
+          style={{
+            marginTop: 'var(--space-2)',
+            padding: 'var(--space-2) var(--space-3)',
+            background: 'var(--bg-muted)',
+            border: 'var(--size-hairline) solid var(--border-hairline)',
+            borderRadius: 'var(--radius-sm)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--fs-12)',
+            color: 'var(--text-main)',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          }}
+        >
+          {`WHERE ${compiled.sql || '(no filter)'}\n\nparams = ${JSON.stringify(
+            compiled.params,
+            null,
+            2,
+          )}\nreferencedFields = ${JSON.stringify(compiled.referencedFields)}`}
+        </pre>
+      </Specimen>
+    </div>
+  );
+}
 
 function EnvironmentSwitcherSpecimen(): ReactNode {
   const options: EnvironmentSwitcherOption[] = [
