@@ -10,10 +10,9 @@ import {
   PanelTitle,
 } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../../mocks';
+import { useInjectBatch } from '../../state/inject-batch';
 
 interface Props {
-  projectId: string;
   mode: 'submit' | 'stage';
   setMode: (m: 'submit' | 'stage') => void;
 }
@@ -27,10 +26,10 @@ interface StagedRow {
   durationSec: number;
 }
 
-export function Step5Stage({ projectId, mode, setMode }: Props) {
-  const staged = useMockStore((s) => s.stagedInjections.filter((it) => it.projectId === projectId));
-  const removeStaged = useMockStore((s) => s.removeStaged);
-  const clearBatch = useMockStore((s) => s.clearBatch);
+export function Step5Stage({ mode, setMode }: Props) {
+  const staged = useInjectBatch((s) => s.staged);
+  const remove = useInjectBatch((s) => s.remove);
+  const clear = useInjectBatch((s) => s.clear);
 
   const rows: StagedRow[] = staged.map((it, i) => ({
     index: i,
@@ -61,7 +60,7 @@ export function Step5Stage({ projectId, mode, setMode }: Props) {
         <div style={{ marginTop: 'var(--space-4)' }}>
           <div className='page-action-row' style={{ marginBottom: 'var(--space-3)' }}>
             <Chip tone='ink'>{rows.length} staged</Chip>
-            <Button tone='ghost' onClick={() => clearBatch()}>
+            <Button tone='ghost' onClick={() => clear()}>
               Clear batch
             </Button>
           </div>
@@ -87,7 +86,7 @@ export function Step5Stage({ projectId, mode, setMode }: Props) {
                 key: 'rm',
                 header: '',
                 render: (r) => (
-                  <Button tone='ghost' onClick={() => removeStaged(r.index)}>
+                  <Button tone='ghost' onClick={() => remove(r.index)}>
                     Remove
                   </Button>
                 ),

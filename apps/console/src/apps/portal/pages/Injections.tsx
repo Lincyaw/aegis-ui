@@ -1,79 +1,55 @@
-import { App as AntdApp, Modal, Radio, Select } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { App as AntdApp } from 'antd';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
   Button,
   DataTable,
+  EmptyState,
   MonoValue,
   PageHeader,
   Panel,
-  TextField,
   TimeDisplay,
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
+import { useActiveProjectIdNum, useInjectionsList } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
-import { useActiveProjectId, useMockStore } from '../mocks';
+import { useInjectBatch } from '../state/inject-batch';
 
 interface InjectionRow {
-  id: string;
+  id: number;
   name: string;
-  systemCode: string;
-  contractId: string;
+  faultType: string;
   status: string;
   createdAt: string;
 }
 
 export default function Injections() {
-  const projectId = useActiveProjectId();
-  const [params] = useSearchParams();
+  const projectId = useActiveProjectIdNum();
   const navigate = useAppNavigate();
   const href = useAppHref();
   const { message: msg } = AntdApp.useApp();
 
-  const injections = useMockStore((s) => s.injections);
-  const datasets = useMockStore((s) => s.datasets);
-  const addInjectionsToDataset = useMockStore((s) => s.addInjectionsToDataset);
-  const stagedCount = useMockStore(
-    (s) => s.stagedInjections.filter((it) => it.projectId === projectId).length,
-  );
+  const { data, isLoading, isError, error } = useInjectionsList(projectId);
+  const stagedCount = useInjectBatch((s) => s.staged.length);
 
-  const filtered = useMemo<InjectionRow[]>(
+  const rows = useMemo<InjectionRow[]>(
     () =>
-      injections
-        .filter((i) => i.projectId === projectId)
-        .map((i) => ({
-          id: i.id,
-          name: i.name,
-          systemCode: i.systemCode,
-          contractId: i.contractId,
-          status: i.status,
-          createdAt: i.createdAt,
-        })),
-    [injections, projectId],
+      (data ?? []).map((i) => ({
+        id: i.id ?? 0,
+        name: i.name ?? '',
+        faultType: i.fault_type ?? '',
+        status: i.status ?? i.state ?? 'unknown',
+        createdAt: i.created_at ?? '',
+      })),
+    [data],
   );
 
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [datasetModalOpen, setDatasetModalOpen] = useState(false);
-  const [mode, setMode] = useState<'new' | 'existing'>('new');
-  const [datasetName, setDatasetName] = useState('');
-  const [datasetDesc, setDatasetDesc] = useState('');
-  const [datasetId, setDatasetId] = useState<string | undefined>(undefined);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    const sel = params.get('select');
-    if (sel) {
-      setSelected((s) => {
-        const next = new Set(s);
-        next.add(sel);
-        return next;
-      });
-    }
-  }, [params]);
-
-  const toggle = (id: string): void => {
+  const toggle = (id: number): void => {
     setSelected((s) => {
       const next = new Set(s);
       if (next.has(id)) {
@@ -85,33 +61,6 @@ export default function Injections() {
     });
   };
 
-  const submitDataset = (): void => {
-    if (selected.size === 0) {
-      return;
-    }
-    if (mode === 'new' && !datasetName.trim()) {
-      void msg.error('dataset name is required');
-      return;
-    }
-    if (mode === 'existing' && !datasetId) {
-      void msg.error('select a dataset');
-      return;
-    }
-    const created = addInjectionsToDataset(Array.from(selected), {
-      datasetId: mode === 'existing' ? datasetId : undefined,
-      newName: mode === 'new' ? datasetName : undefined,
-      description: datasetDesc,
-    });
-    void msg.success(
-      `${selected.size} injection${selected.size === 1 ? '' : 's'} added to ${created.name}`,
-    );
-    setDatasetModalOpen(false);
-    setSelected(new Set());
-    setDatasetName('');
-    setDatasetDesc('');
-    navigate(`datasets/${created.id}`);
-  };
-
   return (
     <div className='page-wrapper'>
       <PageHeader
@@ -120,17 +69,11 @@ export default function Injections() {
         action={
           <div className='page-action-row'>
             {stagedCount > 0 && (
-              <Button
-                tone='secondary'
-                onClick={() => navigate('injections/batch')}
-              >
+              <Button tone='secondary' onClick={() => navigate('injections/batch')}>
                 Batch ({stagedCount})
               </Button>
             )}
-            <Button
-              tone='primary'
-              onClick={() => navigate('injections/new')}
-            >
+            <Button tone='primary' onClick={() => navigate('injections/new')}>
               + Inject
             </Button>
           </div>
@@ -139,31 +82,15 @@ export default function Injections() {
 
       {selected.size > 0 && (
         <div className='page-bulk-bar'>
-          <span>
-            {selected.size} selected
-          </span>
+          <span>{selected.size} selected</span>
           <div className='page-bulk-bar__actions'>
             <Button
-              tone='primary'
-              onClick={() => setDatasetModalOpen(true)}
+              tone='ghost'
+              onClick={() => {
+                void msg.info('Dataset attach not yet wired to portal API');
+              }}
             >
               Add to dataset
-            </Button>
-            <Button
-              tone='ghost'
-              onClick={() => {
-                void msg.info('Tag flow not wired in prototype');
-              }}
-            >
-              Tag
-            </Button>
-            <Button
-              tone='ghost'
-              onClick={() => {
-                void msg.success('Export queued');
-              }}
-            >
-              Export
             </Button>
             <Button tone='ghost' onClick={() => setSelected(new Set())}>
               Clear
@@ -173,96 +100,61 @@ export default function Injections() {
       )}
 
       <Panel>
-        <DataTable<InjectionRow>
-          data={filtered}
-          rowKey={(r) => r.id}
-          emptyTitle='No injections'
-          emptyDescription='Click + Inject to create one.'
-          columns={[
-            {
-              key: 'sel',
-              header: '',
-              render: (r) => (
-                <input
-                  type='checkbox'
-                  checked={selected.has(r.id)}
-                  onChange={() => toggle(r.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label={`select ${r.id}`}
-                />
-              ),
-            },
-            {
-              key: 'id',
-              header: 'Injection',
-              render: (r) => (
-                <Link
-                  to={href(`injections/${r.id}`)}
-                >
-                  <MonoValue size='sm'>{r.id}</MonoValue>
-                </Link>
-              ),
-            },
-            { key: 'name', header: 'Name', render: (r) => r.name },
-            {
-              key: 'sys',
-              header: 'System',
-              render: (r) => <MonoValue size='sm'>{r.systemCode}</MonoValue>,
-            },
-            {
-              key: 'status',
-              header: 'Status',
-              render: (r) => <StatusChip status={r.status} />,
-            },
-            {
-              key: 'created',
-              header: 'Created',
-              render: (r) => <TimeDisplay value={r.createdAt} />,
-            },
-          ]}
-        />
-      </Panel>
-
-      <Modal
-        title='Add to dataset'
-        open={datasetModalOpen}
-        onCancel={() => setDatasetModalOpen(false)}
-        onOk={submitDataset}
-        okText='Add'
-      >
-        <Radio.Group
-          value={mode}
-          onChange={(e) => setMode(e.target.value as 'new' | 'existing')}
-          style={{ marginBottom: 12 }}
-        >
-          <Radio value='new'>Create new</Radio>
-          <Radio value='existing'>Append to existing</Radio>
-        </Radio.Group>
-        {mode === 'new' ? (
-          <div>
-            <TextField
-              value={datasetName}
-              onChange={(e) => setDatasetName(e.target.value)}
-              placeholder='dataset name'
-            />
-            <div style={{ marginTop: 8 }}>
-              <TextField
-                value={datasetDesc}
-                onChange={(e) => setDatasetDesc(e.target.value)}
-                placeholder='description (optional)'
-              />
-            </div>
-          </div>
+        {isError ? (
+          <EmptyState
+            title='Failed to load injections'
+            description={error instanceof Error ? error.message : 'Unknown error'}
+          />
         ) : (
-          <Select
-            style={{ width: '100%' }}
-            value={datasetId}
-            onChange={setDatasetId}
-            placeholder='select dataset'
-            options={datasets.map((d) => ({ value: d.id, label: d.name }))}
+          <DataTable<InjectionRow>
+            data={rows}
+            rowKey={(r) => String(r.id)}
+            loading={isLoading}
+            emptyTitle='No injections'
+            emptyDescription='Click + Inject to create one.'
+            columns={[
+              {
+                key: 'sel',
+                header: '',
+                render: (r) => (
+                  <input
+                    type='checkbox'
+                    checked={selected.has(r.id)}
+                    onChange={() => toggle(r.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`select ${r.id}`}
+                  />
+                ),
+              },
+              {
+                key: 'id',
+                header: 'Injection',
+                render: (r) => (
+                  <Link to={href(`injections/${r.id}`)}>
+                    <MonoValue size='sm'>{r.id}</MonoValue>
+                  </Link>
+                ),
+              },
+              { key: 'name', header: 'Name', render: (r) => r.name },
+              {
+                key: 'fault',
+                header: 'Fault',
+                render: (r) => <MonoValue size='sm'>{r.faultType}</MonoValue>,
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (r) => <StatusChip status={r.status} />,
+              },
+              {
+                key: 'created',
+                header: 'Created',
+                render: (r) => <TimeDisplay value={r.createdAt} />,
+              },
+            ]}
           />
         )}
-      </Modal>
+      </Panel>
     </div>
   );
 }

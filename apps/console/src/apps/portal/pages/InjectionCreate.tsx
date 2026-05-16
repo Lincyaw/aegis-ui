@@ -4,52 +4,45 @@ import { useSearchParams } from 'react-router-dom';
 
 import { Button, Chip, PageHeader, useAppNavigate } from '@lincyaw/aegis-ui';
 
+import { useActiveProjectIdNum, useSubmitInjection } from '../api/injections';
 import { LivePreview } from '../components/inject/LivePreview';
-import {
-  CHAOS_BY_NAME,
-  defaultSpec,
-  isStepValid,
-} from '../components/inject/paramSchema';
+import { defaultSpec, isStepValid } from '../components/inject/paramSchema';
 import { Step1Target } from '../components/inject/Step1Target';
 import { Step2ChaosType } from '../components/inject/Step2ChaosType';
 import { Step3Params } from '../components/inject/Step3Params';
 import { Step4Lifecycle } from '../components/inject/Step4Lifecycle';
 import { Step5Stage } from '../components/inject/Step5Stage';
 import { Step6Review } from '../components/inject/Step6Review';
-import { useActiveProjectId, useMockStore } from '../mocks';
 import type { GuidedInjectionSpec } from '../mocks/types';
+import { useInjectBatch } from '../state/inject-batch';
 
 const STEPS = ['Target', 'Chaos type', 'Parameters', 'Lifecycle', 'Stage', 'Review'];
 
-function draftKey(projectId: string): string {
+function draftKey(projectId: number): string {
   return `inject-guided-draft:${projectId}`;
 }
 
 export default function InjectionCreate() {
-  const pid = useActiveProjectId();
+  const pid = useActiveProjectIdNum();
   const [params] = useSearchParams();
   const navigate = useAppNavigate();
   const { message: msg, modal } = AntdApp.useApp();
 
-  const systems = useMockStore((s) => s.systems);
-  const createInjection = useMockStore((s) => s.createInjection);
-  const stageInjection = useMockStore((s) => s.stageInjection);
-  const submitBatch = useMockStore((s) => s.submitBatch);
-  const stagedForProject = useMockStore((s) =>
-    s.stagedInjections.filter((it) => it.projectId === pid),
-  );
-  const saveTemplate = useMockStore((s) => s.saveTemplate);
+  const stage = useInjectBatch((s) => s.stage);
+  const staged = useInjectBatch((s) => s.staged);
+  const clear = useInjectBatch((s) => s.clear);
+  const saveTemplate = useInjectBatch((s) => s.saveTemplate);
+
+  const submitMutation = useSubmitInjection();
 
   const initialSpec = useMemo<GuidedInjectionSpec>(() => {
     const sys = params.get('system') ?? '';
     const chaos = params.get('chaosType') ?? '';
-    const sysObj = systems.find((s) => s.code === sys);
     return {
       ...defaultSpec(sys),
-      systemType: sysObj?.systemType ?? '',
       chaosType: chaos,
     };
-  }, [params, systems]);
+  }, [params]);
 
   const [step, setStep] = useState(0);
   const [spec, setSpec] = useState<GuidedInjectionSpec>(initialSpec);
@@ -63,14 +56,14 @@ export default function InjectionCreate() {
     setSpec((s) => ({ ...s, ...patch }));
   };
 
-  // Persist draft to sessionStorage
   useEffect(() => {
     sessionStorage.setItem(draftKey(pid), JSON.stringify(spec));
   }, [spec, pid]);
 
-  // Offer to resume
   useEffect(() => {
-    if (resumeAsked) return;
+    if (resumeAsked) {
+      return;
+    }
     const raw = sessionStorage.getItem(draftKey(pid));
     if (!raw) {
       setResumeAsked(true);
@@ -81,7 +74,7 @@ export default function InjectionCreate() {
       if (parsed.systemCode || parsed.chaosType) {
         modal.confirm({
           title: 'Resume previous draft?',
-          content: `A previous fault-injection draft for ${pid} was found.`,
+          content: `A previous fault-injection draft for project ${pid} was found.`,
           okText: 'Resume',
           cancelText: 'Start fresh',
           onOk: () => {
@@ -109,35 +102,55 @@ export default function InjectionCreate() {
 
   const submit = (): void => {
     if (submitMode === 'stage') {
-      stageInjection(pid, spec);
+      stage(spec);
       void msg.success('Draft added to batch');
       setSpec(defaultSpec(spec.systemCode));
       setStep(0);
       return;
     }
-    const def = CHAOS_BY_NAME[spec.chaosType];
-    const created = createInjection({
-      projectId: pid,
-      systemCode: spec.systemCode,
-      blastRadius: def?.blastHint ?? 'service',
-      durationSec: spec.durationSec,
-      intensity: 50,
-      spec,
-      name: `${spec.chaosType}-${spec.app}`,
-    });
-    void msg.success(`Injection ${created.id} queued`);
-    sessionStorage.removeItem(draftKey(pid));
-    navigate(`injections/${created.id}`);
+    submitMutation.mutate(
+      {
+        projectId: pid,
+        specs: [spec],
+        autoAllocate: spec.namespaceMode !== 'specific',
+        allowBootstrap: spec.namespaceMode === 'auto-bootstrap',
+        skipRestartPedestal: spec.skipRestartPedestal,
+      },
+      {
+        onSuccess: () => {
+          void msg.success('Injection submitted');
+          sessionStorage.removeItem(draftKey(pid));
+          navigate('injections');
+        },
+        onError: (err) => {
+          void msg.error(`Submit failed: ${err.message}`);
+        },
+      },
+    );
   };
 
   const submitBatchNow = (): void => {
-    const created = submitBatch(pid);
-    if (created.length === 0) {
+    if (staged.length === 0) {
       void msg.info('No staged drafts');
       return;
     }
-    void msg.success(`${created.length} injection${created.length === 1 ? '' : 's'} queued`);
-    navigate('injections');
+    submitMutation.mutate(
+      {
+        projectId: pid,
+        specs: staged.map((s) => s.spec),
+        autoAllocate: true,
+      },
+      {
+        onSuccess: () => {
+          void msg.success(`${staged.length} injection${staged.length === 1 ? '' : 's'} queued`);
+          clear();
+          navigate('injections');
+        },
+        onError: (err) => {
+          void msg.error(`Batch submit failed: ${err.message}`);
+        },
+      },
+    );
   };
 
   return (
@@ -147,8 +160,12 @@ export default function InjectionCreate() {
         description={`Guided fault-injection wizard for project ${pid}.`}
         action={
           <div className='page-action-row'>
-            <Chip tone='ghost'>step {step + 1} / {STEPS.length}</Chip>
-            <Button tone='ghost' onClick={reset}>Reset</Button>
+            <Chip tone='ghost'>
+              step {step + 1} / {STEPS.length}
+            </Chip>
+            <Button tone='ghost' onClick={reset}>
+              Reset
+            </Button>
             <Button tone='secondary' onClick={() => navigate('injections')}>
               Cancel
             </Button>
@@ -185,7 +202,7 @@ export default function InjectionCreate() {
           {step === 1 && <Step2ChaosType spec={spec} update={update} />}
           {step === 2 && <Step3Params spec={spec} update={update} />}
           {step === 3 && <Step4Lifecycle spec={spec} update={update} />}
-          {step === 4 && <Step5Stage projectId={pid} mode={submitMode} setMode={setSubmitMode} />}
+          {step === 4 && <Step5Stage mode={submitMode} setMode={setSubmitMode} />}
           {step === 5 && <Step6Review spec={spec} />}
         </div>
         <aside className='inject-layout__side'>
@@ -194,12 +211,16 @@ export default function InjectionCreate() {
       </div>
 
       <div className='wizard-actions'>
-        {stagedForProject.length > 0 && (
-          <Button tone='secondary' onClick={submitBatchNow}>
-            Submit batch ({stagedForProject.length})
+        {staged.length > 0 && (
+          <Button tone='secondary' onClick={submitBatchNow} disabled={submitMutation.isPending}>
+            Submit batch ({staged.length})
           </Button>
         )}
-        <Button tone='ghost' onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
+        <Button
+          tone='ghost'
+          onClick={() => setStep((s) => Math.max(0, s - 1))}
+          disabled={step === 0}
+        >
           Back
         </Button>
         {!isLast ? (
@@ -211,7 +232,11 @@ export default function InjectionCreate() {
             <Button tone='ghost' onClick={() => setTemplateModalOpen(true)}>
               Save as template
             </Button>
-            <Button tone='primary' onClick={submit} disabled={!canNext}>
+            <Button
+              tone='primary'
+              onClick={submit}
+              disabled={!canNext || submitMutation.isPending}
+            >
               {submitMode === 'stage' ? 'Add to batch' : 'Inject now'}
             </Button>
           </>
