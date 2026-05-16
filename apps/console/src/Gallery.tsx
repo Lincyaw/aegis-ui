@@ -38,6 +38,8 @@ import {
   DiffViewer,
   DropdownMenu,
   EmptyState,
+  Skeleton,
+  SkeletonText,
   EnvironmentSwitcher,
   type EnvironmentSwitcherOption,
   ErrorState,
@@ -1871,6 +1873,44 @@ function App() {
               description='Projects group experiments and their results.'
               action={<Chip tone='ink'>+ New project</Chip>}
             />
+          </Specimen>
+        </div>
+
+        <SectionDivider>Skeleton</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='block bars'>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2)',
+                width: 240,
+              }}
+            >
+              <Skeleton block height={24} />
+              <Skeleton block height={16} />
+              <Skeleton block height={16} style={{ width: '60%' }} />
+            </div>
+          </Specimen>
+          <Specimen caption='circle + text'>
+            <div
+              style={{
+                display: 'flex',
+                gap: 'var(--space-3)',
+                alignItems: 'center',
+                width: 240,
+              }}
+            >
+              <Skeleton width={32} height={32} radius='circle' />
+              <div style={{ flex: 1 }}>
+                <SkeletonText lines={2} />
+              </div>
+            </div>
+          </Specimen>
+          <Specimen caption='SkeletonText 4 lines'>
+            <div style={{ width: 240 }}>
+              <SkeletonText lines={4} />
+            </div>
           </Specimen>
         </div>
 

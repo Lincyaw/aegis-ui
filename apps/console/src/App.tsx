@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { AegisShell, InboxPage } from '@lincyaw/aegis-ui';
@@ -16,10 +17,21 @@ import { NotFound } from './pages/errors/NotFound';
 import { ServerError } from './pages/errors/ServerError';
 import { registeredApps } from './registry';
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
 export function ConsoleApp(): ReactElement {
   return (
     <BrowserRouter>
-      <SsoAuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <SsoAuthProvider>
         <Routes>
           <Route path='/auth/login' element={<Login />} />
           <Route path='/auth/register' element={<Register />} />
@@ -64,6 +76,7 @@ export function ConsoleApp(): ReactElement {
           />
         </Routes>
       </SsoAuthProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   );
 }

@@ -143,6 +143,7 @@
   /* ── Motion ──────────────────────────────────────────────────────── */
   --motion-fast: 200ms ease;
   --motion-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-skeleton: 1400ms;
 
   /* ── Aegis highlight (agent "look here" cue) ─────────────────────── */
   --aegis-highlight-ring: rgba(99, 102, 241, 0.55);
