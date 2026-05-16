@@ -135,3 +135,11 @@ export type {
 } from './EnvironmentSwitcher';
 export { TimeRangePicker } from './TimeRangePicker';
 export type { TimeRangePickerProps } from './TimeRangePicker';
+export { ServiceMap } from './ServiceMap';
+export type {
+  ServiceMapDirection,
+  ServiceMapEdge,
+  ServiceMapNode,
+  ServiceMapProps,
+  ServiceMapStatus,
+} from './ServiceMap';

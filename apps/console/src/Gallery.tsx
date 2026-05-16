@@ -83,6 +83,9 @@ import {
   ProjectSelector,
   RegisterForm,
   ResizableSidePanel,
+  ServiceMap,
+  type ServiceMapEdge,
+  type ServiceMapNode,
   Tabs as RosettaTabs,
   SectionDivider,
   SettingsSection,
@@ -3671,6 +3674,21 @@ function App() {
           </Specimen>
         </div>
 
+        <SectionDivider extra={<MetricLabel>dagre · xyflow</MetricLabel>}>
+          ServiceMap
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen caption='microservice topology · LR · status mix' span={3}>
+            <ServiceMapMicroSpecimen />
+          </Specimen>
+          <Specimen caption='AgentM session DAG · TB · root → turns → tools' span={3}>
+            <ServiceMapAgentSpecimen />
+          </Specimen>
+          <Specimen caption='single-node degenerate case' span={3}>
+            <ServiceMapSingleSpecimen />
+          </Specimen>
+        </div>
+
         <SectionDivider extra={<MetricLabel>drag · keyboard · persist</MetricLabel>}>
           ResizableSidePanel
         </SectionDivider>
@@ -4389,6 +4407,100 @@ function TraceTreeSpecimen(): ReactNode {
           })),
         }),
       }}
+    />
+  );
+}
+
+const SERVICE_MAP_MICRO_NODES: ServiceMapNode[] = [
+  { id: 'gateway', label: 'gateway', sublabel: 'edge · 4 pods', status: 'ok' },
+  { id: 'auth', label: 'auth-service', sublabel: 'p99 142ms', status: 'ok' },
+  {
+    id: 'orders',
+    label: 'orders-service',
+    sublabel: 'p99 980ms',
+    status: 'warn',
+    badge: 12,
+  },
+  {
+    id: 'inventory',
+    label: 'inventory-service',
+    sublabel: '5xx 4.2%',
+    status: 'error',
+    badge: 87,
+  },
+  { id: 'cache', label: 'redis', sublabel: 'cache', status: 'muted' },
+  { id: 'db', label: 'postgres', sublabel: 'primary', status: 'ok' },
+];
+
+const SERVICE_MAP_MICRO_EDGES: ServiceMapEdge[] = [
+  { id: 'e1', source: 'gateway', target: 'auth', label: '1.2k/s', status: 'ok' },
+  { id: 'e2', source: 'gateway', target: 'orders', label: '820/s', status: 'warn' },
+  { id: 'e3', source: 'gateway', target: 'inventory', label: '610/s', status: 'error' },
+  { id: 'e4', source: 'orders', target: 'inventory', label: '410/s', status: 'error' },
+  { id: 'e5', source: 'orders', target: 'cache', label: '2.4k/s', status: 'muted' },
+  { id: 'e6', source: 'inventory', target: 'db', label: '610/s', status: 'ok' },
+  { id: 'e7', source: 'auth', target: 'db', label: '200/s', status: 'ok' },
+];
+
+function ServiceMapMicroSpecimen(): ReactNode {
+  return (
+    <ServiceMap
+      nodes={SERVICE_MAP_MICRO_NODES}
+      edges={SERVICE_MAP_MICRO_EDGES}
+      height={420}
+      selectedNodeId='inventory'
+    />
+  );
+}
+
+function buildAgentDag(): { nodes: ServiceMapNode[]; edges: ServiceMapEdge[] } {
+  const nodes: ServiceMapNode[] = [
+    { id: 'root', label: 'agent · root', sublabel: 'session#42', status: 'ok' },
+  ];
+  const edges: ServiceMapEdge[] = [];
+  for (let t = 1; t <= 4; t += 1) {
+    const turnId = `turn-${String(t)}`;
+    const turnStatus: ServiceMapNode['status'] = t === 3 ? 'warn' : 'ok';
+    nodes.push({
+      id: turnId,
+      label: `turn ${String(t)}`,
+      sublabel: t === 3 ? 'retry · throttled' : 'tool plan',
+      status: turnStatus,
+    });
+    edges.push({ id: `r-${turnId}`, source: 'root', target: turnId, status: turnStatus });
+    const toolCount = t === 4 ? 1 : t === 1 ? 3 : 2;
+    for (let i = 0; i < toolCount; i += 1) {
+      const toolId = `${turnId}-tool-${String(i)}`;
+      const isErr = t === 3 && i === 0;
+      nodes.push({
+        id: toolId,
+        label: isErr ? 'fs.write' : 'bash.exec',
+        sublabel: isErr ? 'EACCES' : `tool#${String(i + 1)}`,
+        status: isErr ? 'error' : 'ok',
+        badge: isErr ? 'fail' : undefined,
+      });
+      edges.push({
+        id: `${turnId}-e-${String(i)}`,
+        source: turnId,
+        target: toolId,
+        status: isErr ? 'error' : 'ok',
+      });
+    }
+  }
+  return { nodes, edges };
+}
+
+function ServiceMapAgentSpecimen(): ReactNode {
+  const { nodes, edges } = buildAgentDag();
+  return <ServiceMap nodes={nodes} edges={edges} direction='TB' height={460} />;
+}
+
+function ServiceMapSingleSpecimen(): ReactNode {
+  return (
+    <ServiceMap
+      nodes={[{ id: 'only', label: 'orphan-service', sublabel: 'no callers', status: 'muted' }]}
+      edges={[]}
+      height={300}
     />
   );
 }
