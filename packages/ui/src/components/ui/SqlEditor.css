@@ -1,0 +1,33 @@
+.aegis-sql-editor {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.aegis-sql-editor:focus-within {
+  border-color: var(--border-strong);
+}
+
+.aegis-sql-editor .cm-editor {
+  height: 100%;
+  background: transparent;
+}
+
+.aegis-sql-editor .cm-scroller {
+  font-family: var(--font-mono);
+}
+
+.aegis-sql-editor .cm-tooltip {
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+}
+
+.aegis-sql-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}

@@ -112,6 +112,8 @@ export { FilePreview } from './FilePreview';
 export type { FilePreviewSurface } from './FilePreview';
 export { CodeEditor } from './CodeEditor';
 export type { CodeEditorLanguage, CodeEditorSurface } from './CodeEditor';
+export { SqlEditor } from './SqlEditor';
+export type { SqlEditorProps, SqlField } from './SqlEditor';
 export { DiffViewer } from './DiffViewer';
 export type { DiffViewerSurface } from './DiffViewer';
 export { Timeline } from './Timeline';
