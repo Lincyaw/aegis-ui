@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 
 import {
+  Button,
   EmptyState,
   ErrorState,
   KeyValueList,
@@ -11,13 +12,42 @@ import {
   Terminal,
   type TerminalLine,
 } from '@lincyaw/aegis-ui';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { App as AntdApp } from 'antd';
 
+import { tasksApi } from '../api/portal-client';
 import { StatusChip } from '../components/StatusChip';
 import { useTaskDetail } from '../hooks/useTasks';
+
+const CANCELLABLE_STATES = new Set([
+  'Pending',
+  'Rescheduled',
+  'Running',
+  'pending',
+  'rescheduled',
+  'running',
+]);
 
 export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
   const { data, isLoading, isError, error } = useTaskDetail(taskId);
+  const { message: msg } = AntdApp.useApp();
+  const qc = useQueryClient();
+
+  const cancel = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await tasksApi.cancelTask({ taskId: id });
+      return res.data.data;
+    },
+    onSuccess: () => {
+      void msg.success('Task cancelled');
+      void qc.invalidateQueries({ queryKey: ['portal', 'task'] });
+      void qc.invalidateQueries({ queryKey: ['portal', 'tasks'] });
+    },
+    onError: (e: unknown) => {
+      void msg.error(e instanceof Error ? e.message : 'Cancel failed');
+    },
+  });
 
   if (isLoading) {
     return (
@@ -52,12 +82,34 @@ export default function TaskDetail() {
     body,
   }));
 
+  const cancellable =
+    typeof data.id === 'string' &&
+    data.id.length > 0 &&
+    CANCELLABLE_STATES.has(data.state ?? data.status ?? '');
+
   return (
     <div className='page-wrapper'>
       <PageHeader
         title={`Task ${data.id ?? ''}`}
         description={`${data.type ?? 'task'} · project ${data.project_name ?? String(data.project_id ?? '')}`}
-        action={<StatusChip status={data.state ?? data.status ?? 'pending'} />}
+        action={
+          <div className='page-action-row'>
+            <StatusChip status={data.state ?? data.status ?? 'pending'} />
+            {cancellable && (
+              <Button
+                tone='secondary'
+                disabled={cancel.isPending}
+                onClick={() => {
+                  if (typeof data.id === 'string') {
+                    cancel.mutate(data.id);
+                  }
+                }}
+              >
+                {cancel.isPending ? 'Cancelling…' : 'Cancel task'}
+              </Button>
+            )}
+          </div>
+        }
       />
 
       <Panel title={<PanelTitle size='base'>Origin</PanelTitle>}>

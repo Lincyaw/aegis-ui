@@ -38,7 +38,7 @@ export default function EvalCaseDetail() {
       <Panel>
         <EmptyState
           title='Case-level drill-down unavailable'
-          description='@lincyaw/portal 1.4.0 does not expose per-case evaluation results. See run detail for aggregate metrics and the result_json payload.'
+          description='@lincyaw/portal 1.5.0 does not expose per-case evaluation results. See run detail for aggregate metrics and the result_json payload.'
         />
       </Panel>
     </div>

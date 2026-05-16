@@ -67,10 +67,10 @@ export default function EvalRunDetail() {
       />
 
       <div className='page-overview-grid'>
-        <MetricCard label='Precision' value={run.precision.toFixed(3)} />
-        <MetricCard label='Recall' value={run.recall.toFixed(3)} />
-        <MetricCard label='F1' value={run.f1_score.toFixed(3)} />
-        <MetricCard label='Accuracy' value={run.accuracy.toFixed(3)} />
+        <MetricCard label='Precision' value={(run.precision ?? 0).toFixed(3)} />
+        <MetricCard label='Recall' value={(run.recall ?? 0).toFixed(3)} />
+        <MetricCard label='F1' value={(run.f1_score ?? 0).toFixed(3)} />
+        <MetricCard label='Accuracy' value={(run.accuracy ?? 0).toFixed(3)} />
       </div>
 
       <SectionDivider>Run</SectionDivider>
@@ -102,8 +102,14 @@ export default function EvalRunDetail() {
               k: 'eval type',
               v: <MonoValue size='sm'>{run.eval_type}</MonoValue>,
             },
-            { k: 'created', v: <TimeDisplay value={run.created_at} /> },
-            { k: 'updated', v: <TimeDisplay value={run.updated_at} /> },
+            {
+              k: 'created',
+              v: run.created_at ? <TimeDisplay value={run.created_at} /> : '—',
+            },
+            {
+              k: 'updated',
+              v: run.updated_at ? <TimeDisplay value={run.updated_at} /> : '—',
+            },
           ]}
         />
       </Panel>

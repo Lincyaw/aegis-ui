@@ -21,13 +21,13 @@ import {
   TrajectoryTimeline,
 } from '@lincyaw/aegis-ui';
 import type {
+  ExecutionExecutionResp,
   InjectionInjectionResp,
-  TaskResp,
   TraceTraceResp,
 } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
-import { projectsApi, tasksApi, tracesApi } from '../api/portal-client';
+import { projectsApi } from '../api/portal-client';
 
 import './Dashboard.css';
 
@@ -78,8 +78,6 @@ const DEMO_TERMINAL_LINES: TerminalLine[] = [
   },
 ];
 
-const PAGE_SIZE = 10;
-
 function errMsg(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
@@ -93,59 +91,38 @@ export default function Dashboard(): ReactElement {
     },
   });
 
-  const activeProject = projectsQuery.data?.[0];
-  const projectId = activeProject?.id;
+  const firstProject = projectsQuery.data?.[0];
+  const projectId = firstProject?.id;
 
-  const injectionsQuery = useQuery({
-    queryKey: ['portal', 'project-injections', projectId],
+  const dashboardQuery = useQuery({
+    queryKey: ['portal', 'dashboard', projectId],
     enabled: typeof projectId === 'number',
     queryFn: async () => {
-      const res = await projectsApi.listProjectInjections({
+      const res = await projectsApi.getProjectDashboard({
         projectId: projectId as number,
-        page: 1,
-        size: PAGE_SIZE,
       });
-      return res.data.data?.items ?? [];
+      return res.data.data;
     },
   });
 
-  const tracesQuery = useQuery({
-    queryKey: ['portal', 'traces', projectId],
-    enabled: typeof projectId === 'number',
-    queryFn: async () => {
-      const res = await tracesApi.listTraces({
-        projectId: projectId as number,
-        page: 1,
-        size: PAGE_SIZE,
-      });
-      return res.data.data?.items ?? [];
-    },
-  });
+  const dash = dashboardQuery.data;
+  const activeProject = dash?.project ?? firstProject;
+  const injections: InjectionInjectionResp[] = dash?.recent_injections ?? [];
+  const traces: TraceTraceResp[] = dash?.recent_traces ?? [];
+  const executions: ExecutionExecutionResp[] = dash?.recent_executions ?? [];
 
-  const tasksQuery = useQuery({
-    queryKey: ['portal', 'tasks', projectId],
-    enabled: typeof projectId === 'number',
-    queryFn: async () => {
-      const res = await tasksApi.listTasks({
-        projectId: projectId as number,
-        page: 1,
-        size: PAGE_SIZE,
-      });
-      return res.data.data?.items ?? [];
-    },
-  });
-
-  const injections: InjectionInjectionResp[] = injectionsQuery.data ?? [];
-  const traces: TraceTraceResp[] = tracesQuery.data ?? [];
-  const tasks: TaskResp[] = tasksQuery.data ?? [];
-
-  const runningTasks = tasks.filter((t) => t.status === 'running').length;
-  const injectionCount = activeProject?.injection_count ?? injections.length;
-  const executionCount = activeProject?.execution_count ?? 0;
+  const runningTasks = dash?.counts?.tasks_running ?? 0;
+  const injectionCount =
+    dash?.counts?.injections_total ?? activeProject?.injection_count ?? 0;
+  const executionCount =
+    dash?.counts?.executions_total ?? activeProject?.execution_count ?? 0;
+  const tracesTotal = dash?.counts?.traces_total ?? traces.length;
 
   const projectsLoading = projectsQuery.isLoading;
   const projectsError = projectsQuery.error;
   const noProject = !projectsLoading && projectId === undefined;
+  const dashLoading = dashboardQuery.isLoading;
+  const dashError = dashboardQuery.error;
 
   return (
     <div className='page-wrapper dashboard'>
@@ -186,17 +163,13 @@ export default function Dashboard(): ReactElement {
       <section className='dashboard__kpi-row'>
         <KpiCard
           label='Injections'
-          loading={projectsLoading || injectionsQuery.isLoading}
+          loading={dashLoading || projectsLoading}
           value={injectionCount}
         />
-        <KpiCard
-          label='Traces'
-          loading={tracesQuery.isLoading}
-          value={traces.length}
-        />
+        <KpiCard label='Traces' loading={dashLoading} value={tracesTotal} />
         <KpiCard
           label='Running tasks'
-          loading={tasksQuery.isLoading}
+          loading={dashLoading}
           value={runningTasks}
           unit={
             <span className='dashboard__kpi-live'>
@@ -207,7 +180,7 @@ export default function Dashboard(): ReactElement {
         />
         <KpiCard
           label='Executions'
-          loading={projectsLoading}
+          loading={dashLoading || projectsLoading}
           value={executionCount}
         />
       </section>
@@ -218,12 +191,12 @@ export default function Dashboard(): ReactElement {
           extra={<MetricLabel>{injectionCount} total</MetricLabel>}
           className='dashboard__panel'
         >
-          {injectionsQuery.isLoading ? (
+          {dashLoading ? (
             <SkeletonText lines={5} />
-          ) : injectionsQuery.error ? (
+          ) : dashError ? (
             <ErrorState
               title='Failed to load injections'
-              description={errMsg(injectionsQuery.error)}
+              description={errMsg(dashError)}
             />
           ) : (
             <DataTable<InjectionInjectionResp>
@@ -273,15 +246,15 @@ export default function Dashboard(): ReactElement {
 
         <Panel
           title={<PanelTitle size='base'>Recent traces</PanelTitle>}
-          extra={<MetricLabel>{traces.length} total</MetricLabel>}
+          extra={<MetricLabel>{tracesTotal} total</MetricLabel>}
           className='dashboard__panel'
         >
-          {tracesQuery.isLoading ? (
+          {dashLoading ? (
             <SkeletonText lines={5} />
-          ) : tracesQuery.error ? (
+          ) : dashError ? (
             <ErrorState
               title='Failed to load traces'
-              description={errMsg(tracesQuery.error)}
+              description={errMsg(dashError)}
             />
           ) : (
             <DataTable<TraceTraceResp>
@@ -317,36 +290,40 @@ export default function Dashboard(): ReactElement {
       </section>
 
       <section>
-        <SectionDivider>Recent tasks</SectionDivider>
-        {tasksQuery.isLoading ? (
+        <SectionDivider>Recent executions</SectionDivider>
+        {dashLoading ? (
           <SkeletonText lines={5} />
-        ) : tasksQuery.error ? (
+        ) : dashError ? (
           <ErrorState
-            title='Failed to load tasks'
-            description={errMsg(tasksQuery.error)}
+            title='Failed to load executions'
+            description={errMsg(dashError)}
           />
-        ) : tasks.length === 0 ? (
-          <EmptyState title='No tasks yet' />
+        ) : executions.length === 0 ? (
+          <EmptyState title='No executions yet' />
         ) : (
-          <DataTable<TaskResp>
-            data={tasks.slice(0, 6)}
-            rowKey={(t) => String(t.id ?? '')}
+          <DataTable<ExecutionExecutionResp>
+            data={executions.slice(0, 6)}
+            rowKey={(e) => String(e.id ?? '')}
             columns={[
               {
                 key: 'id',
-                header: 'Task',
-                render: (t) => (
-                  <MonoValue size='sm'>{String(t.id ?? '—')}</MonoValue>
+                header: 'Execution',
+                render: (e) => (
+                  <MonoValue size='sm'>{String(e.id ?? '—')}</MonoValue>
                 ),
               },
-              { key: 'type', header: 'Type', render: (t) => t.type ?? '—' },
-              { key: 'state', header: 'State', render: (t) => t.state ?? '—' },
+              {
+                key: 'algorithm',
+                header: 'Algorithm',
+                render: (e) => e.algorithm_name ?? '—',
+              },
+              { key: 'state', header: 'State', render: (e) => e.state ?? '—' },
               {
                 key: 'status',
                 header: 'Status',
                 align: 'right',
-                render: (t) => (
-                  <MonoValue size='sm'>{t.status ?? '—'}</MonoValue>
+                render: (e) => (
+                  <MonoValue size='sm'>{e.status ?? '—'}</MonoValue>
                 ),
               },
             ]}

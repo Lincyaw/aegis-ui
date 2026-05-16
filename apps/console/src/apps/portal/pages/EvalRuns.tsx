@@ -107,13 +107,16 @@ export default function EvalRuns() {
                 key: 'f1',
                 header: 'F1',
                 render: (r) => (
-                  <MonoValue size='sm'>{r.f1_score.toFixed(3)}</MonoValue>
+                  <MonoValue size='sm'>
+                    {(r.f1_score ?? 0).toFixed(3)}
+                  </MonoValue>
                 ),
               },
               {
                 key: 'created',
                 header: 'Created',
-                render: (r) => <TimeDisplay value={r.created_at} />,
+                render: (r) =>
+                  r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
               },
               {
                 key: 'actions',
@@ -121,7 +124,11 @@ export default function EvalRuns() {
                 render: (r) => (
                   <Button
                     tone='secondary'
+                    disabled={r.id === undefined}
                     onClick={() => {
+                      if (r.id === undefined) {
+                        return;
+                      }
                       del.mutate(r.id, {
                         onSuccess: () =>
                           void msg.success(`Deleted ${String(r.id)}`),

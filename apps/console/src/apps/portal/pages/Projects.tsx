@@ -75,6 +75,14 @@ export default function Projects() {
                 ),
               },
               {
+                key: 'description',
+                header: 'Description',
+                render: (r) =>
+                  r.description !== undefined && r.description.length > 0
+                    ? r.description
+                    : '—',
+              },
+              {
                 key: 'visibility',
                 header: 'Visibility',
                 render: (r) => (r.is_public ? 'public' : 'private'),

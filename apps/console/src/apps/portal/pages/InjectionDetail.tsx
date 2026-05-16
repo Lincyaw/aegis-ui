@@ -15,13 +15,27 @@ import {
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { App as AntdApp } from 'antd';
 
 import { useInjectionDetail } from '../api/injections';
+import { injectionsApi } from '../api/portal-client';
 import { StatusChip } from '../components/StatusChip';
+
+const CANCELLABLE_STATES = new Set([
+  'Pending',
+  'Rescheduled',
+  'Running',
+  'pending',
+  'rescheduled',
+  'running',
+]);
 
 export default function InjectionDetail() {
   const { injectionId } = useParams<{ injectionId: string }>();
   const navigate = useAppNavigate();
+  const { message: msg } = AntdApp.useApp();
+  const qc = useQueryClient();
 
   const idNum = injectionId ? Number.parseInt(injectionId, 10) : Number.NaN;
   const {
@@ -30,6 +44,21 @@ export default function InjectionDetail() {
     isError,
     error,
   } = useInjectionDetail(Number.isNaN(idNum) ? null : idNum);
+
+  const cancel = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await injectionsApi.cancelInjection({ id });
+      return res.data.data;
+    },
+    onSuccess: () => {
+      void msg.success('Injection cancelled');
+      void qc.invalidateQueries({ queryKey: ['portal', 'injection'] });
+      void qc.invalidateQueries({ queryKey: ['portal', 'injections'] });
+    },
+    onError: (e: unknown) => {
+      void msg.error(e instanceof Error ? e.message : 'Cancel failed');
+    },
+  });
 
   if (Number.isNaN(idNum)) {
     return (
@@ -73,6 +102,7 @@ export default function InjectionDetail() {
 
   const status = injection.status ?? injection.state ?? 'unknown';
   const traceReady = status === 'running' || status === 'completed';
+  const cancellable = CANCELLABLE_STATES.has(status) && injection.task_id;
 
   return (
     <div className='page-wrapper'>
@@ -169,6 +199,19 @@ export default function InjectionDetail() {
         <Button tone='secondary' onClick={() => navigate('observations')}>
           View observations
         </Button>
+        {cancellable && (
+          <Button
+            tone='secondary'
+            disabled={cancel.isPending}
+            onClick={() => {
+              if (typeof injection.id === 'number') {
+                cancel.mutate(injection.id);
+              }
+            }}
+          >
+            {cancel.isPending ? 'Cancelling…' : 'Cancel injection'}
+          </Button>
+        )}
       </div>
 
       <Panel>
