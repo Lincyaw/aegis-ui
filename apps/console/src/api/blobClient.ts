@@ -266,9 +266,14 @@ export async function driverList(
     u.set('max_keys', params.max_keys.toString());
   }
   const q = u.toString();
-  return apiJson<DriverListResult>(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`
+  const raw = await apiJson<DriverListResult>(
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`,
   );
+  return {
+    ...raw,
+    items: raw.items ?? [],
+    common_prefixes: raw.common_prefixes ?? [],
+  };
 }
 
 /* ── Local share registry ────────────────────────────────────────────
