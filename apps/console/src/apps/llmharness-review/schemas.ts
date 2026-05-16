@@ -241,11 +241,13 @@ export function computeCaseLinks(
   const eventToAuditor = new Map<number, number[]>();
   const reminderInjection = new Map<number, number>();
 
+  // `firing.turn_index` is 1-based; `main_agent[k].index` is 0-based.
+  // Key by main index for direct lookup from the main column.
   for (const f of bundle.extractor) {
-    pushToMap(turnToExtractor, f.turn_index, f.sequence);
+    pushToMap(turnToExtractor, f.turn_index - 1, f.sequence);
   }
   for (const f of bundle.auditor) {
-    pushToMap(turnToAuditor, f.turn_index, f.sequence);
+    pushToMap(turnToAuditor, f.turn_index - 1, f.sequence);
   }
 
   for (const [seq, snap] of bundle.graphs) {

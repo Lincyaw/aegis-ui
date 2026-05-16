@@ -92,8 +92,8 @@ function MainColumn({ bundle }: MainColumnProps): ReactElement {
     <div className='llmh-cdp__col-body' ref={containerRef}>
       {bundle.main.map((turn) => {
         const idx = turn.index;
-        const ext = bundle.links.turnToExtractor.get(idx + 1) ?? [];
-        const aud = bundle.links.turnToAuditor.get(idx + 1) ?? [];
+        const ext = bundle.links.turnToExtractor.get(idx) ?? [];
+        const aud = bundle.links.turnToAuditor.get(idx) ?? [];
         const reminderFrom = reminderForTurn.get(idx);
         const selected = selection.turn === idx;
         const cited = citedTurns.has(idx);
