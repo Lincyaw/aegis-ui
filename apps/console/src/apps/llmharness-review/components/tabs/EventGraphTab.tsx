@@ -1,6 +1,11 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 
-import { Chip, EmptyState, MetricLabel, SectionDivider } from '@lincyaw/aegis-ui';
+import {
+  Chip,
+  EmptyState,
+  MetricLabel,
+  SectionDivider,
+} from '@lincyaw/aegis-ui';
 
 import type { CaseRepo } from '../../repo';
 import type { GraphEdge, GraphEvent, GraphSnapshotFile } from '../../types';
@@ -25,17 +30,19 @@ interface Delta {
 
 function diffSnapshots(
   current: GraphSnapshotFile,
-  prev: GraphSnapshotFile | null,
+  prev: GraphSnapshotFile | null
 ): Delta {
   if (!prev) {
     return { events: current.events, edges: current.edges };
   }
   const prevEventIds = new Set(prev.events.map((e) => e.id));
-  const prevEdgeKeys = new Set(prev.edges.map((e) => `${e.src}->${e.dst}:${String(e.kind)}`));
+  const prevEdgeKeys = new Set(
+    prev.edges.map((e) => `${e.src}->${e.dst}:${String(e.kind)}`)
+  );
   return {
     events: current.events.filter((e) => !prevEventIds.has(e.id)),
     edges: current.edges.filter(
-      (e) => !prevEdgeKeys.has(`${e.src}->${e.dst}:${String(e.kind)}`),
+      (e) => !prevEdgeKeys.has(`${e.src}->${e.dst}:${String(e.kind)}`)
     ),
   };
 }
@@ -104,11 +111,13 @@ export function EventGraphTab({
 }: EventGraphTabProps) {
   const okFirings = useMemo(
     () => extractorFirings.filter((f) => f.status === 'ok'),
-    [extractorFirings],
+    [extractorFirings]
   );
 
   const [current, setCurrent] = useState<GraphSnapshotFile | null>(null);
-  const [prev, setPrev] = useState<GraphSnapshotFile | null | undefined>(undefined);
+  const [prev, setPrev] = useState<GraphSnapshotFile | null | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     if (!repo || selectedStep === null) {
@@ -127,7 +136,9 @@ export function EventGraphTab({
     }
     void Promise.all([
       repo.readSnapshot(caseId, selectedStep),
-      prevSeq === null ? Promise.resolve(null) : repo.readSnapshot(caseId, prevSeq),
+      prevSeq === null
+        ? Promise.resolve(null)
+        : repo.readSnapshot(caseId, prevSeq),
     ]).then(([cur, p]) => {
       if (cancelled) {
         return;
@@ -143,7 +154,12 @@ export function EventGraphTab({
   }, [repo, caseId, selectedStep, okFirings]);
 
   if (okFirings.length === 0) {
-    return <EmptyState title='No graph snapshots' description='No successful extractor firings.' />;
+    return (
+      <EmptyState
+        title='No graph snapshots'
+        description='No successful extractor firings.'
+      />
+    );
   }
 
   return (

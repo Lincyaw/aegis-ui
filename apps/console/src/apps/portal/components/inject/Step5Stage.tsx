@@ -1,5 +1,3 @@
-import { Radio } from 'antd';
-
 import {
   Button,
   Chip,
@@ -9,11 +7,11 @@ import {
   Panel,
   PanelTitle,
 } from '@lincyaw/aegis-ui';
+import { Radio } from 'antd';
 
-import { useMockStore } from '../../mocks';
+import { useInjectBatch } from '../../state/inject-batch';
 
 interface Props {
-  projectId: string;
   mode: 'submit' | 'stage';
   setMode: (m: 'submit' | 'stage') => void;
 }
@@ -27,10 +25,10 @@ interface StagedRow {
   durationSec: number;
 }
 
-export function Step5Stage({ projectId, mode, setMode }: Props) {
-  const staged = useMockStore((s) => s.stagedInjections.filter((it) => it.projectId === projectId));
-  const removeStaged = useMockStore((s) => s.removeStaged);
-  const clearBatch = useMockStore((s) => s.clearBatch);
+export function Step5Stage({ mode, setMode }: Props) {
+  const staged = useInjectBatch((s) => s.staged);
+  const remove = useInjectBatch((s) => s.remove);
+  const clear = useInjectBatch((s) => s.clear);
 
   const rows: StagedRow[] = staged.map((it, i) => ({
     index: i,
@@ -59,9 +57,12 @@ export function Step5Stage({ projectId, mode, setMode }: Props) {
 
       {rows.length > 0 && (
         <div style={{ marginTop: 'var(--space-4)' }}>
-          <div className='page-action-row' style={{ marginBottom: 'var(--space-3)' }}>
+          <div
+            className='page-action-row'
+            style={{ marginBottom: 'var(--space-3)' }}
+          >
             <Chip tone='ink'>{rows.length} staged</Chip>
-            <Button tone='ghost' onClick={() => clearBatch()}>
+            <Button tone='ghost' onClick={() => clear()}>
               Clear batch
             </Button>
           </div>
@@ -82,12 +83,16 @@ export function Step5Stage({ projectId, mode, setMode }: Props) {
                 header: 'Chaos type',
                 render: (r) => <MonoValue size='sm'>{r.chaosType}</MonoValue>,
               },
-              { key: 'dur', header: 'Duration', render: (r) => `${r.durationSec}s` },
+              {
+                key: 'dur',
+                header: 'Duration',
+                render: (r) => `${r.durationSec}s`,
+              },
               {
                 key: 'rm',
                 header: '',
                 render: (r) => (
-                  <Button tone='ghost' onClick={() => removeStaged(r.index)}>
+                  <Button tone='ghost' onClick={() => remove(r.index)}>
                     Remove
                   </Button>
                 ),

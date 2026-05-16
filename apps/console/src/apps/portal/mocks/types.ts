@@ -146,7 +146,11 @@ export interface MockTask {
   status: EntityStatus;
   startedAt: string;
   durationMs: number;
-  logs: Array<{ ts: string; level: 'info' | 'warn' | 'error' | 'debug'; body: string }>;
+  logs: Array<{
+    ts: string;
+    level: 'info' | 'warn' | 'error' | 'debug';
+    body: string;
+  }>;
 }
 
 export interface MockTrace {

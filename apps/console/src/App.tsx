@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
-import { NuqsAdapter } from 'nuqs/adapters/react-router/v6';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { AegisShell, InboxPage } from '@lincyaw/aegis-ui';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v6';
 
 import { AiDockHost } from './ai/AiDockHost';
 import { SsoAuthProvider } from './auth/SsoAuthProvider';
@@ -11,10 +11,11 @@ import { Callback } from './pages/auth/Callback';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
-import { Landing } from './pages/Landing';
 import { Forbidden } from './pages/errors/Forbidden';
 import { NotFound } from './pages/errors/NotFound';
 import { ServerError } from './pages/errors/ServerError';
+import { Landing } from './pages/Landing';
+
 import { registeredApps } from './registry';
 
 export function ConsoleApp(): ReactElement {

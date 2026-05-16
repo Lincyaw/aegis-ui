@@ -1,4 +1,3 @@
-import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
 
 import {
@@ -8,38 +7,66 @@ import {
   Panel,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Select } from 'antd';
 
-import { useActiveProjectId, useMockStore } from '../mocks';
+import { useActiveProjectNumericId } from '../hooks/useActiveProjectNumericId';
+import {
+  useContainersList,
+  useDatasetsList,
+} from '../hooks/useContainersAndDatasets';
+import { useRunAlgorithm } from '../hooks/useExecutions';
+import { useActiveProjectId } from '../mocks';
 
 export default function ExecutionCreate() {
-  const projectId = useActiveProjectId();
+  const projectId = useActiveProjectNumericId();
+  const projectName = useActiveProjectId();
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
 
-  const containers = useMockStore((s) => s.containers);
-  const datasets = useMockStore((s) => s.datasets);
+  const containersQ = useContainersList();
+  const datasetsQ = useDatasetsList();
+  const runAlgorithm = useRunAlgorithm();
 
-  const [containerId, setContainerId] = useState(containers[0]?.id ?? '');
-  const [datasetId, setDatasetId] = useState(datasets[0]?.id ?? '');
+  const [containerName, setContainerName] = useState<string | undefined>(
+    undefined
+  );
+  const [datasetName, setDatasetName] = useState<string | undefined>(undefined);
 
   const submit = (): void => {
-    if (!containerId || !datasetId) {
-      void msg.error('container and dataset are required');
+    if (!containerName) {
+      void msg.error('container is required');
       return;
     }
-    void msg.success('Algorithm execution queued (mocked)');
-    navigate('executions');
+    runAlgorithm.mutate(
+      {
+        projectId,
+        projectName,
+        algorithmName: containerName,
+        datasetName: datasetName ?? undefined,
+      },
+      {
+        onSuccess: () => {
+          void msg.success('Algorithm execution submitted');
+          navigate('executions');
+        },
+        onError: (err) => {
+          void msg.error(err instanceof Error ? err.message : 'Submit failed');
+        },
+      }
+    );
   };
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='Run algorithm'
-        description={`Submit an algorithm execution for project ${projectId}.`}
+        description={`Submit an algorithm execution for project ${projectName}.`}
         action={
           <Button
             tone='secondary'
-            onClick={() => navigate('executions')}
+            onClick={() => {
+              navigate('executions');
+            }}
           >
             Cancel
           </Button>
@@ -49,22 +76,33 @@ export default function ExecutionCreate() {
         <FormRow label='Algorithm container'>
           <Select
             style={{ width: '100%' }}
-            value={containerId}
-            onChange={setContainerId}
-            options={containers.map((c) => ({ value: c.id, label: `${c.name} (${c.algorithm})` }))}
+            value={containerName}
+            onChange={setContainerName}
+            loading={containersQ.isLoading}
+            placeholder='Select an algorithm container'
+            options={(containersQ.data ?? []).map((c) => ({
+              value: c.name ?? '',
+              label: c.name ?? `#${String(c.id ?? '')}`,
+            }))}
           />
         </FormRow>
         <FormRow label='Dataset'>
           <Select
             style={{ width: '100%' }}
-            value={datasetId}
-            onChange={setDatasetId}
-            options={datasets.map((d) => ({ value: d.id, label: d.name }))}
+            value={datasetName}
+            onChange={setDatasetName}
+            loading={datasetsQ.isLoading}
+            allowClear
+            placeholder='Optional — select a dataset'
+            options={(datasetsQ.data ?? []).map((d) => ({
+              value: d.name ?? '',
+              label: d.name ?? `#${String(d.id ?? '')}`,
+            }))}
           />
         </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit}>
-        Run
+      <Button tone='primary' onClick={submit} disabled={runAlgorithm.isPending}>
+        {runAlgorithm.isPending ? 'Submitting…' : 'Run'}
       </Button>
     </div>
   );

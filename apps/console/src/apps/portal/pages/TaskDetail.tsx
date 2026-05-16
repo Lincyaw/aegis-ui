@@ -1,9 +1,9 @@
-import { App as AntdApp } from 'antd';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
   Button,
   EmptyState,
+  ErrorState,
   KeyValueList,
   MonoValue,
   PageHeader,
@@ -11,69 +11,102 @@ import {
   PanelTitle,
   Terminal,
   type TerminalLine,
-  useAppHref,
 } from '@lincyaw/aegis-ui';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { App as AntdApp } from 'antd';
 
+import { tasksApi } from '../api/portal-client';
 import { StatusChip } from '../components/StatusChip';
-import { useMockStore } from '../mocks';
+import { useTaskDetail } from '../hooks/useTasks';
+
+const CANCELLABLE_STATES = new Set([
+  'Pending',
+  'Rescheduled',
+  'Running',
+  'pending',
+  'rescheduled',
+  'running',
+]);
 
 export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
-  const href = useAppHref();
+  const { data, isLoading, isError, error } = useTaskDetail(taskId);
   const { message: msg } = AntdApp.useApp();
+  const qc = useQueryClient();
 
-  const task = useMockStore((s) => s.tasks.find((t) => t.id === taskId));
-  const cancelTask = useMockStore((s) => s.cancelTask);
-  const expediteTask = useMockStore((s) => s.expediteTask);
+  const cancel = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await tasksApi.cancelTask({ taskId: id });
+      return res.data.data;
+    },
+    onSuccess: () => {
+      void msg.success('Task cancelled');
+      void qc.invalidateQueries({ queryKey: ['portal', 'task'] });
+      void qc.invalidateQueries({ queryKey: ['portal', 'tasks'] });
+    },
+    onError: (e: unknown) => {
+      void msg.error(e instanceof Error ? e.message : 'Cancel failed');
+    },
+  });
 
-  if (!task) {
+  if (isLoading) {
     return (
       <div className='page-wrapper'>
         <PageHeader title={`Task ${taskId ?? ''}`} />
         <Panel>
-          <EmptyState title='Not found' description='No such task.' />
+          <EmptyState title='Loading…' description='Fetching task.' />
         </Panel>
       </div>
     );
   }
 
-  const cancellable = task.status === 'pending' || task.status === 'running';
+  if (isError || !data) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title={`Task ${taskId ?? ''}`} />
+        <Panel>
+          <ErrorState
+            title='Not found'
+            description={
+              error instanceof Error ? error.message : 'Unknown task.'
+            }
+          />
+        </Panel>
+      </div>
+    );
+  }
 
-  const lines: TerminalLine[] = task.logs.map((l) => ({
-    ts: l.ts,
-    level: l.level,
-    body: l.body,
+  const lines: TerminalLine[] = (data.logs ?? []).map((body, i) => ({
+    ts: String(i),
+    level: 'info',
+    body,
   }));
+
+  const cancellable =
+    typeof data.id === 'string' &&
+    data.id.length > 0 &&
+    CANCELLABLE_STATES.has(data.state ?? data.status ?? '');
 
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={`Task ${task.id}`}
-        description={`${task.kind} · parent ${task.parentLabel}`}
+        title={`Task ${data.id ?? ''}`}
+        description={`${data.type ?? 'task'} · project ${data.project_name ?? String(data.project_id ?? '')}`}
         action={
           <div className='page-action-row'>
-            <StatusChip status={task.status} />
+            <StatusChip status={data.state ?? data.status ?? 'pending'} />
             {cancellable && (
-              <>
-                <Button
-                  tone='secondary'
-                  onClick={() => {
-                    expediteTask(task.id);
-                    void msg.success('Task marked complete');
-                  }}
-                >
-                  Expedite
-                </Button>
-                <Button
-                  tone='ghost'
-                  onClick={() => {
-                    cancelTask(task.id);
-                    void msg.success('Task cancelled');
-                  }}
-                >
-                  Cancel
-                </Button>
-              </>
+              <Button
+                tone='secondary'
+                disabled={cancel.isPending}
+                onClick={() => {
+                  if (typeof data.id === 'string') {
+                    cancel.mutate(data.id);
+                  }
+                }}
+              >
+                {cancel.isPending ? 'Cancelling…' : 'Cancel task'}
+              </Button>
             )}
           </div>
         }
@@ -82,32 +115,30 @@ export default function TaskDetail() {
       <Panel title={<PanelTitle size='base'>Origin</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'kind', v: task.kind },
+            { k: 'type', v: data.type ?? '—' },
             {
-              k: 'parent',
-              v: task.parentId ? (
-                <Link
-                  to={
-                    task.kind === 'injection'
-                      ? href(`injections/${task.parentId}`)
-                      : task.kind === 'regression'
-                        ? href(`regression/${task.parentLabel}`)
-                        : href(`eval/${task.parentId}`)
-                  }
-                >
-                  <MonoValue size='sm'>{task.parentId}</MonoValue>
-                </Link>
-              ) : (
-                '—'
-              ),
+              k: 'trace',
+              v: <MonoValue size='sm'>{data.trace_id ?? '—'}</MonoValue>,
             },
-            { k: 'duration', v: `${(task.durationMs / 1000).toFixed(1)}s` },
+            {
+              k: 'group',
+              v: <MonoValue size='sm'>{data.group_id ?? '—'}</MonoValue>,
+            },
+            { k: 'state', v: data.state ?? '—' },
+            { k: 'status', v: data.status ?? '—' },
           ]}
         />
       </Panel>
 
       <Panel title={<PanelTitle size='base'>Logs</PanelTitle>}>
-        <Terminal lines={lines} />
+        {lines.length > 0 ? (
+          <Terminal lines={lines} />
+        ) : (
+          <EmptyState
+            title='No logs yet'
+            description='Logs will appear as the task progresses.'
+          />
+        )}
       </Panel>
     </div>
   );

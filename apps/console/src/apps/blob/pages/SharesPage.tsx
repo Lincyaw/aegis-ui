@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-
 import { Link } from 'react-router-dom';
 
 import { CopyOutlined, DeleteOutlined } from '@ant-design/icons';
-import { App as AntdApp, Button } from 'antd';
-
 import {
   Chip,
   DataTable,
@@ -16,6 +13,7 @@ import {
   Panel,
   useActiveApp,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Button } from 'antd';
 
 import {
   forgetShare,
@@ -72,7 +70,7 @@ export default function SharesPage() {
         void msg.error('Clipboard unavailable');
       }
     },
-    [msg],
+    [msg]
   );
 
   const revoke = useCallback(
@@ -80,10 +78,10 @@ export default function SharesPage() {
       forgetShare(id);
       setShares(readShares());
       void msg.info(
-        'Removed from your registry (link itself stays valid until TTL).',
+        'Removed from your registry (link itself stays valid until TTL).'
       );
     },
-    [msg],
+    [msg]
   );
 
   const columns = useMemo<Array<DataTableColumn<ShareRecord>>>(
@@ -92,8 +90,14 @@ export default function SharesPage() {
         key: 'object',
         header: 'Object',
         render: (row) => (
-          <span style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-px)' }}>
-            <MonoValue size="sm">{lastSegment(row.key)}</MonoValue>
+          <span
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-px)',
+            }}
+          >
+            <MonoValue size='sm'>{lastSegment(row.key)}</MonoValue>
             <Link
               to={`${basePath}/${encodeURIComponent(row.bucket)}`}
               style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-11)' }}
@@ -108,7 +112,7 @@ export default function SharesPage() {
         header: 'Mode',
         width: 120,
         render: (row) => (
-          <Chip tone="ghost">{row.asAttachment ? 'download' : 'inline'}</Chip>
+          <Chip tone='ghost'>{row.asAttachment ? 'download' : 'inline'}</Chip>
         ),
       },
       {
@@ -127,7 +131,9 @@ export default function SharesPage() {
         header: 'Created',
         width: 180,
         render: (row) => (
-          <MonoValue size="sm">{new Date(row.createdAt).toLocaleString()}</MonoValue>
+          <MonoValue size='sm'>
+            {new Date(row.createdAt).toLocaleString()}
+          </MonoValue>
         ),
       },
       {
@@ -137,60 +143,63 @@ export default function SharesPage() {
         truncate: false,
         width: 140,
         render: (row) => (
-          <span style={{ display: 'flex', gap: 'var(--space-1)', justifyContent: 'flex-end' }}>
+          <span
+            style={{
+              display: 'flex',
+              gap: 'var(--space-1)',
+              justifyContent: 'flex-end',
+            }}
+          >
             <Button
-              size="small"
-              type="text"
+              size='small'
+              type='text'
               icon={<CopyOutlined />}
               onClick={() => {
                 void copy(row.url);
               }}
-              title="Copy link"
+              title='Copy link'
             />
             <Button
-              size="small"
-              type="text"
+              size='small'
+              type='text'
               danger
               icon={<DeleteOutlined />}
               onClick={() => {
                 revoke(row.id);
               }}
-              title="Forget"
+              title='Forget'
             />
           </span>
         ),
       },
     ],
-    [basePath, copy, now, revoke],
+    [basePath, copy, now, revoke]
   );
 
   return (
     <>
       <PageHeader
-        title="My shares"
+        title='My shares'
         description="Presigned links you've generated from this browser. Stored locally — clearing browser data drops the list, but live URLs keep working until they expire."
       />
 
       <Panel>
         <MetricLabel>
-          Local browser history — not synced. Links keep working until their TTL expires; revoke only removes the row here.
+          Local browser history — not synced. Links keep working until their TTL
+          expires; revoke only removes the row here.
         </MetricLabel>
       </Panel>
 
       {shares.length === 0 ? (
         <Panel>
           <EmptyState
-            title="No share links yet"
+            title='No share links yet'
             description="Generate a share link from any object's preview action and it will land here."
           />
         </Panel>
       ) : (
         <Panel padded={false}>
-          <DataTable
-            columns={columns}
-            data={shares}
-            rowKey={(row) => row.id}
-          />
+          <DataTable columns={columns} data={shares} rowKey={(row) => row.id} />
         </Panel>
       )}
     </>

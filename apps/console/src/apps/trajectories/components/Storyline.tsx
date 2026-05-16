@@ -1,10 +1,4 @@
-import {
-  type ReactElement,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Chip, MetricLabel, MonoValue } from '@lincyaw/aegis-ui';
 
@@ -12,6 +6,7 @@ import type { SpanRow } from '../api/clickhouse';
 import { formatDurationMs, formatTokens } from '../conversation';
 import type { CustomSpanRule } from '../prefs';
 import { classifyWithRules, type SpanKind } from '../spanKind';
+
 import './Storyline.css';
 
 interface StorylineProps {
@@ -42,7 +37,8 @@ const KIND_TONE: Record<SpanKind, 'ink' | 'warning' | 'ghost'> = {
 function hasBody(span: SpanRow, kind: SpanKind): boolean {
   if (kind === 'tool') {
     return Boolean(
-      span.attributes['agentm.tool.args'] ?? span.attributes['agentm.tool.result'],
+      span.attributes['agentm.tool.args'] ??
+      span.attributes['agentm.tool.result']
     );
   }
   if (kind === 'llm' || kind === 'turn') {
@@ -68,14 +64,17 @@ export function Storyline({
   }, [spans, customRules]);
 
   const [manuallyExpanded, setManuallyExpanded] = useState<Set<string>>(
-    () => new Set(),
+    () => new Set()
   );
 
   // Auto-scroll the selected card into view.
   const selectedRef = useRef<HTMLLIElement | null>(null);
   useEffect(() => {
     if (selectedRef.current) {
-      selectedRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      selectedRef.current.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      });
     }
   }, [selectedSpanId]);
 
@@ -199,9 +198,8 @@ function EventBody({
     }
     return (
       <div className='aegis-storyline__llm-stats'>
-        in <MonoValue size='sm'>{formatTokens(Number(inTok ?? 0))}</MonoValue>{' '}
-        · out{' '}
-        <MonoValue size='sm'>{formatTokens(Number(outTok ?? 0))}</MonoValue>
+        in <MonoValue size='sm'>{formatTokens(Number(inTok ?? 0))}</MonoValue> ·
+        out <MonoValue size='sm'>{formatTokens(Number(outTok ?? 0))}</MonoValue>
       </div>
     );
   }

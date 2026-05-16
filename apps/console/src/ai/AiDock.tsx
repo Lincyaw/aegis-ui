@@ -11,8 +11,9 @@ import {
   useAgent,
 } from '@lincyaw/aegis-ui';
 
-import { ChatSwitcher } from './ChatSwitcher';
 import { useChatStore } from './chatStore';
+import { ChatSwitcher } from './ChatSwitcher';
+
 import './AiDock.css';
 
 const SAVE_DEBOUNCE_MS = 500;
@@ -31,7 +32,7 @@ export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
   // SAVE_DEBOUNCE_MS; flush on unmount / chat-switch so nothing is lost.
   const lastSavedRef = useRef<string>('');
   const pendingRef = useRef<{ id: string; messages: typeof messages } | null>(
-    null,
+    null
   );
   useEffect(() => {
     const serialized = JSON.stringify(messages);
@@ -90,7 +91,7 @@ export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
         onClose();
       }
     },
-    [onClose],
+    [onClose]
   );
 
   useEffect(() => {

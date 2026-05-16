@@ -3,7 +3,6 @@
  * secret rotation). Goes through the vite proxy (`/v1/*` is forwarded
  * to the gateway / sso upstream; configure VITE_API_TARGET).
  */
-
 import { apiFetch, apiJson } from './apiClient';
 
 export interface OidcClient {
@@ -52,7 +51,7 @@ export async function listClients(service?: string): Promise<OidcClient[]> {
 }
 
 export async function createClient(
-  req: CreateClientReq,
+  req: CreateClientReq
 ): Promise<CreateClientResp> {
   const env = await apiJson<Envelope<CreateClientResp>>('/v1/clients', {
     method: 'POST',
@@ -64,7 +63,7 @@ export async function createClient(
 export async function rotateSecret(id: number): Promise<RotateResp> {
   const env = await apiJson<Envelope<RotateResp>>(
     `/v1/clients/${id.toString()}/rotate`,
-    { method: 'POST' },
+    { method: 'POST' }
   );
   return env.data;
 }

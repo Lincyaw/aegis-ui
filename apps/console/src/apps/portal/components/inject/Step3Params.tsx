@@ -1,9 +1,9 @@
+import { EmptyState, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
 import { Form, Input, InputNumber, Radio, Select, Slider } from 'antd';
 
-import { EmptyState, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
-
 import type { GuidedInjectionSpec } from '../../mocks/types';
-import { CHAOS_BY_NAME, REQUIRED_FIELDS, type FieldKey } from './paramSchema';
+
+import { CHAOS_BY_NAME, type FieldKey, REQUIRED_FIELDS } from './paramSchema';
 
 interface Props {
   spec: GuidedInjectionSpec;
@@ -28,7 +28,10 @@ function FieldRow({
     case 'container':
       return (
         <Form.Item label='Container' {...itemProps}>
-          <Input value={spec.container} onChange={(e) => update({ container: e.target.value })} />
+          <Input
+            value={spec.container}
+            onChange={(e) => update({ container: e.target.value })}
+          />
         </Form.Item>
       );
     case 'memType':
@@ -360,7 +363,10 @@ function FieldRow({
     case 'table':
       return (
         <Form.Item label='MySQL table'>
-          <Input value={spec.table} onChange={(e) => update({ table: e.target.value })} />
+          <Input
+            value={spec.table}
+            onChange={(e) => update({ table: e.target.value })}
+          />
         </Form.Item>
       );
     case 'operation':
@@ -446,11 +452,7 @@ export function Step3Params({ spec, update }: Props) {
 
   return (
     <Panel
-      title={
-        <PanelTitle size='base'>
-          3. Parameters · {def.name}
-        </PanelTitle>
-      }
+      title={<PanelTitle size='base'>3. Parameters · {def.name}</PanelTitle>}
     >
       <MetricLabel>{def.description}</MetricLabel>
       <Form layout='vertical' style={{ marginTop: 'var(--space-3)' }}>

@@ -41,7 +41,7 @@ const TAB_ITEMS: TabItem[] = [
 ];
 
 function parseFiringFileName(
-  name: string,
+  name: string
 ): { seq: number; turn: number } | null {
   const m = /^(\d+)_turn_(\d+)\.json$/.exec(name);
   if (!m) {
@@ -54,7 +54,7 @@ async function indexFiles(
   repo: CaseRepo,
   caseId: string,
   phase: FiringPhase,
-  files: string[],
+  files: string[]
 ): Promise<FiringEntry[]> {
   const parsed = files
     .map((fileName) => {
@@ -63,7 +63,7 @@ async function indexFiles(
     })
     .filter(
       (x): x is { fileName: string; sequence: number; turnIndex: number } =>
-        x !== null,
+        x !== null
     );
 
   const enriched = await Promise.all(
@@ -88,7 +88,7 @@ async function indexFiles(
           latencyMs: 0,
         };
       }
-    }),
+    })
   );
   return enriched.sort((a, b) => a.sequence - b.sequence);
 }
@@ -140,7 +140,7 @@ export function CaseDetailPage(): ReactElement {
         }
         if (!r) {
           setError(
-            'No backend connected. Configure a `llmharness serve` URL in Connection settings, or open a local cases root from the Cases list first.',
+            'No backend connected. Configure a `llmharness serve` URL in Connection settings, or open a local cases root from the Cases list first.'
           );
           return;
         }
@@ -194,7 +194,10 @@ export function CaseDetailPage(): ReactElement {
     if (okExtractors.length === 0) {
       return null;
     }
-    if (snapshotParam !== null && okExtractors.some((f) => f.sequence === snapshotParam)) {
+    if (
+      snapshotParam !== null &&
+      okExtractors.some((f) => f.sequence === snapshotParam)
+    ) {
       return snapshotParam;
     }
     return okExtractors[okExtractors.length - 1].sequence;

@@ -12,7 +12,7 @@ import {
   TextField,
 } from '@lincyaw/aegis-ui';
 
-import { listBuckets, type BucketSummary } from '../../../api/blobClient';
+import { type BucketSummary, listBuckets } from '../../../api/blobClient';
 import {
   clearBackendUrl,
   clearBlobRoot,
@@ -45,7 +45,10 @@ export function SettingsPage(): ReactElement {
   const [probe, setProbe] = useState<ProbeState>({ kind: 'idle' });
   const [blobBucket, setBlobBucket] = useState<string>('');
   const [blobPrefix, setBlobPrefix] = useState<string>('');
-  const [savedBlob, setSavedBlob] = useState<{ bucket: string; prefix: string } | null>(null);
+  const [savedBlob, setSavedBlob] = useState<{
+    bucket: string;
+    prefix: string;
+  } | null>(null);
   const [blobProbe, setBlobProbe] = useState<BlobProbeState>({ kind: 'idle' });
   const [buckets, setBuckets] = useState<BucketSummary[]>([]);
 
@@ -123,7 +126,7 @@ export function SettingsPage(): ReactElement {
         });
       }
     },
-    [],
+    []
   );
 
   const handleBlobSave = useCallback(async (): Promise<void> => {
@@ -208,14 +211,28 @@ export function SettingsPage(): ReactElement {
               autoComplete='off'
             />
           </div>
-          <Button tone='ghost' onClick={() => void handleTest()} disabled={!draft.trim()}>
+          <Button
+            tone='ghost'
+            onClick={() => void handleTest()}
+            disabled={!draft.trim()}
+          >
             Test
           </Button>
-          <Button onClick={() => void handleSave()} disabled={!draft.trim() || !dirty}>
+          <Button
+            onClick={() => void handleSave()}
+            disabled={!draft.trim() || !dirty}
+          >
             Save
           </Button>
         </div>
-        <div style={{ marginTop: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div
+          style={{
+            marginTop: 12,
+            display: 'flex',
+            gap: 12,
+            alignItems: 'center',
+          }}
+        >
           {statusChip}
           {probe.kind === 'ok' && (
             <MetricLabel size='xs'>
@@ -230,12 +247,22 @@ export function SettingsPage(): ReactElement {
           <div style={{ marginTop: 16 }}>
             <KeyValueList
               items={[
-                { k: 'root', v: <MonoValue size='sm'>{probe.info.root}</MonoValue> },
+                {
+                  k: 'root',
+                  v: <MonoValue size='sm'>{probe.info.root}</MonoValue>,
+                },
                 {
                   k: 'cases',
-                  v: <MonoValue size='sm'>{String(probe.info.caseCount)}</MonoValue>,
+                  v: (
+                    <MonoValue size='sm'>
+                      {String(probe.info.caseCount)}
+                    </MonoValue>
+                  ),
                 },
-                { k: 'version', v: <MonoValue size='sm'>{probe.info.version}</MonoValue> },
+                {
+                  k: 'version',
+                  v: <MonoValue size='sm'>{probe.info.version}</MonoValue>,
+                },
               ]}
             />
           </div>
@@ -245,7 +272,14 @@ export function SettingsPage(): ReactElement {
         title='Blob source'
         description='Point at a path inside platform blob storage (aegis-blob). The viewer enumerates case directories under this prefix and reads files directly — no external llmharness backend needed.'
       >
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            alignItems: 'flex-end',
+            flexWrap: 'wrap',
+          }}
+        >
           <div style={{ flex: 1, minWidth: 200 }}>
             <TextField
               label='Bucket'
@@ -302,7 +336,14 @@ export function SettingsPage(): ReactElement {
             ))}
           </div>
         )}
-        <div style={{ marginTop: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div
+          style={{
+            marginTop: 12,
+            display: 'flex',
+            gap: 12,
+            alignItems: 'center',
+          }}
+        >
           {blobStatusChip}
           {blobProbe.kind === 'ok' && (
             <MetricLabel size='xs'>
@@ -317,14 +358,25 @@ export function SettingsPage(): ReactElement {
           <div style={{ marginTop: 16 }}>
             <KeyValueList
               items={[
-                { k: 'bucket', v: <MonoValue size='sm'>{blobProbe.info.bucket}</MonoValue> },
+                {
+                  k: 'bucket',
+                  v: <MonoValue size='sm'>{blobProbe.info.bucket}</MonoValue>,
+                },
                 {
                   k: 'prefix',
-                  v: <MonoValue size='sm'>{blobProbe.info.prefix || '(bucket root)'}</MonoValue>,
+                  v: (
+                    <MonoValue size='sm'>
+                      {blobProbe.info.prefix || '(bucket root)'}
+                    </MonoValue>
+                  ),
                 },
                 {
                   k: 'sub-dirs',
-                  v: <MonoValue size='sm'>{String(blobProbe.info.caseCount)}</MonoValue>,
+                  v: (
+                    <MonoValue size='sm'>
+                      {String(blobProbe.info.caseCount)}
+                    </MonoValue>
+                  ),
                 },
               ]}
             />

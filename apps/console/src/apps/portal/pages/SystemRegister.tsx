@@ -1,4 +1,3 @@
-import { App as AntdApp } from 'antd';
 import { useState } from 'react';
 
 import {
@@ -12,8 +11,10 @@ import {
   TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
 import { WizardSteps } from '../components/WizardSteps';
+// TODO(portal-wire): no SystemsApi in @lincyaw/portal 1.3.0/1.4.0 — pages stay on mocks until backend exposes /system/chaossystem CRUD.
 import { useMockStore } from '../mocks';
 
 const STEPS = ['Identity', 'Helm chart', 'Prereqs', 'Confirm'];
@@ -118,7 +119,10 @@ export default function SystemRegister() {
             />
           </FormRow>
           <FormRow label='Version'>
-            <TextField value={version} onChange={(e) => setVersion(e.target.value)} />
+            <TextField
+              value={version}
+              onChange={(e) => setVersion(e.target.value)}
+            />
           </FormRow>
           <FormRow label='OTel sink URL'>
             <TextField value={otel} onChange={(e) => setOtel(e.target.value)} />

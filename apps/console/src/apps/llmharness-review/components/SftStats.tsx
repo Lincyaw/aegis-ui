@@ -23,7 +23,8 @@ function surfacedCount(rows: SftRowBase[]): number {
   for (const r of rows) {
     const call = r.target.tool_calls[0];
     if (!call) continue;
-    const v = (call.arguments as { verdict?: { surface_reminder?: boolean } }).verdict;
+    const v = (call.arguments as { verdict?: { surface_reminder?: boolean } })
+      .verdict;
     if (v?.surface_reminder) n += 1;
   }
   return n;

@@ -1,4 +1,3 @@
-import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -9,7 +8,9 @@ import {
   Panel,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Select } from 'antd';
 
+// TODO(portal-wire): no RegressionsApi in @lincyaw/portal 1.3.0/1.4.0 — regression cases/runs have no backend surface yet; stays on mocks.
 import { useMockStore } from '../mocks';
 
 export default function RegressionRun() {
@@ -22,7 +23,9 @@ export default function RegressionRun() {
   const datasets = useMockStore((s) => s.datasets);
   const runRegression = useMockStore((s) => s.runRegression);
 
-  const [caseId, setCaseId] = useState(params.get('case') ?? cases[0]?.id ?? '');
+  const [caseId, setCaseId] = useState(
+    params.get('case') ?? cases[0]?.id ?? ''
+  );
   const [systemCode, setSystemCode] = useState(systems[0]?.code ?? '');
   const [datasetId, setDatasetId] = useState(datasets[0]?.id ?? '');
   const [concurrency, setConcurrency] = useState(4);
@@ -32,7 +35,12 @@ export default function RegressionRun() {
       void msg.error('all fields required');
       return;
     }
-    const created = runRegression({ caseId, systemCode, datasetId, concurrency });
+    const created = runRegression({
+      caseId,
+      systemCode,
+      datasetId,
+      concurrency,
+    });
     const caseName = cases.find((c) => c.id === caseId)?.name ?? caseId;
     void msg.success(`Regression run ${created.id} queued`);
     navigate(`regression/${caseName}`);

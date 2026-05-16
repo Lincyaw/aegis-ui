@@ -8,8 +8,8 @@ import {
   KeyValueList,
   MetricLabel,
   SectionDivider,
-  Tabs,
   type TabItem,
+  Tabs,
 } from '@lincyaw/aegis-ui';
 
 import type { CaseRepo } from '../../repo';
@@ -23,7 +23,7 @@ import type {
 import { EventGraphView } from '../EventGraphView';
 import { MessageBlocks } from '../MessageBlocks';
 
-import { FiringList, type FiringEntry } from './FiringList';
+import { type FiringEntry, FiringList } from './FiringList';
 
 import './ExtractorTab.css';
 
@@ -73,7 +73,9 @@ function EdgeList({ edges }: { edges: GraphEdge[] }): ReactNode {
         v: (
           <span className='llmh-extractor__edge-v'>
             <Chip tone='ghost'>{String(e.kind)}</Chip>
-            {e.reason && <span className='llmh-extractor__edge-reason'>{e.reason}</span>}
+            {e.reason && (
+              <span className='llmh-extractor__edge-reason'>{e.reason}</span>
+            )}
           </span>
         ),
       }))}
@@ -89,12 +91,16 @@ function InputPanel({
   mode: 'pretty' | 'raw';
 }): ReactNode {
   if (mode === 'raw') {
-    return <CodeBlock language='json' code={JSON.stringify(firing.input, null, 2)} />;
+    return (
+      <CodeBlock language='json' code={JSON.stringify(firing.input, null, 2)} />
+    );
   }
   const input = firing.input as ExtractorInput;
   const payload = input.payload ?? {};
   const newTurns = Array.isArray(payload.new_turns) ? payload.new_turns : [];
-  const recent = Array.isArray(payload.recent_graph) ? payload.recent_graph : [];
+  const recent = Array.isArray(payload.recent_graph)
+    ? payload.recent_graph
+    : [];
   return (
     <div className='llmh-extractor__input'>
       <div className='llmh-extractor__section'>
@@ -136,7 +142,9 @@ function EventNodeCard({ event }: { event: GraphEvent }): ReactNode {
         <Chip tone='ghost'>{String(event.kind)}</Chip>
         <span className='llmh-extractor__event-id'>#{event.id}</span>
         {event.source_turns.length > 0 && (
-          <MetricLabel size='xs'>turn {event.source_turns.join(',')}</MetricLabel>
+          <MetricLabel size='xs'>
+            turn {event.source_turns.join(',')}
+          </MetricLabel>
         )}
       </div>
       <div className='llmh-extractor__event-summary'>{event.summary}</div>
@@ -158,7 +166,12 @@ function OutputPanel({
   onSelectEvent: (id: number) => void;
 }): ReactNode {
   if (mode === 'raw') {
-    return <CodeBlock language='json' code={JSON.stringify(firing.output, null, 2)} />;
+    return (
+      <CodeBlock
+        language='json'
+        code={JSON.stringify(firing.output, null, 2)}
+      />
+    );
   }
   const out = (firing.output as ExtractorOutput | null) ?? {};
   const events = Array.isArray(out.events) ? out.events : [];
@@ -224,11 +237,20 @@ export function ExtractorTab({
   onSelectEvent,
 }: ExtractorTabProps) {
   const [inputMode, setInputMode] = useState<'pretty' | 'raw'>('pretty');
-  const [outputMode, setOutputMode] = useState<'pretty' | 'graph' | 'raw'>('graph');
-  const [snapshot, setSnapshot] = useState<GraphSnapshotFile | null | undefined>(undefined);
+  const [outputMode, setOutputMode] = useState<'pretty' | 'graph' | 'raw'>(
+    'graph'
+  );
+  const [snapshot, setSnapshot] = useState<
+    GraphSnapshotFile | null | undefined
+  >(undefined);
 
   useEffect(() => {
-    if (!repo || !firing || firing.phase !== 'extractor' || firing.status !== 'ok') {
+    if (
+      !repo ||
+      !firing ||
+      firing.phase !== 'extractor' ||
+      firing.status !== 'ok'
+    ) {
       setSnapshot(undefined);
       return;
     }
@@ -275,9 +297,14 @@ export function ExtractorTab({
       </aside>
       <section className='llmh-extractor__detail'>
         {!firing && !firingError && (
-          <EmptyState title='No firing selected' description='Pick a firing from the rail.' />
+          <EmptyState
+            title='No firing selected'
+            description='Pick a firing from the rail.'
+          />
         )}
-        {firingError && <ErrorState title='Failed to load firing' description={firingError} />}
+        {firingError && (
+          <ErrorState title='Failed to load firing' description={firingError} />
+        )}
         {firing && (
           <>
             <KeyValueList

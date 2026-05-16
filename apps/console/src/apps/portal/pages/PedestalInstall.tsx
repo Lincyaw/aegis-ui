@@ -1,4 +1,3 @@
-import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -11,6 +10,7 @@ import {
   TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Select } from 'antd';
 
 import { useMockStore } from '../mocks';
 
@@ -35,7 +35,12 @@ export default function PedestalInstall() {
       void msg.error('system + namespace are required');
       return;
     }
-    const created = installPedestal({ systemCode, version, namespace, helmValues });
+    const created = installPedestal({
+      systemCode,
+      version,
+      namespace,
+      helmValues,
+    });
     void msg.success(`Pedestal ${created.id} installing`);
     navigate(`pedestals/${created.id}`);
   };
@@ -58,11 +63,17 @@ export default function PedestalInstall() {
             value={systemCode || undefined}
             onChange={setSystemCode}
             placeholder='select system'
-            options={systems.map((s) => ({ value: s.code, label: `${s.code} — ${s.name}` }))}
+            options={systems.map((s) => ({
+              value: s.code,
+              label: `${s.code} — ${s.name}`,
+            }))}
           />
         </FormRow>
         <FormRow label='Version'>
-          <TextField value={version} onChange={(e) => setVersion(e.target.value)} />
+          <TextField
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
+          />
         </FormRow>
         <FormRow label='Namespace'>
           <TextField

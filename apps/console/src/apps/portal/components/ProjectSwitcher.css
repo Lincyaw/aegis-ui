@@ -28,7 +28,9 @@
   font-size: var(--fs-13);
   font-weight: var(--fw-medium);
   color: var(--text-primary);
-  transition: background var(--motion-fast), border-color var(--motion-fast);
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
 }
 
 .project-switcher__trigger:hover {

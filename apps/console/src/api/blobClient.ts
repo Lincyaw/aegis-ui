@@ -8,8 +8,7 @@
  * the typed surface here matches that convention so we don't silently
  * read undefined.
  */
-
-import { apiFetch, apiJson, type ApiFetchOptions } from './apiClient';
+import { apiFetch, type ApiFetchOptions, apiJson } from './apiClient';
 
 const ROOT = '/api/v2/blob';
 
@@ -105,30 +104,30 @@ function buildQuery(p: ListParams): string {
 
 export async function listObjects(
   bucket: string,
-  params: ListParams = {},
+  params: ListParams = {}
 ): Promise<ListResp> {
   return apiJson<ListResp>(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects${buildQuery(params)}`,
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects${buildQuery(params)}`
   );
 }
 
 export async function presignPut(
   bucket: string,
-  req: PresignPutReq,
+  req: PresignPutReq
 ): Promise<PresignPutResp> {
   return apiJson<PresignPutResp>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/presign-put`,
-    { method: 'POST', body: JSON.stringify(req) },
+    { method: 'POST', body: JSON.stringify(req) }
   );
 }
 
 export async function presignGet(
   bucket: string,
-  req: PresignGetReq,
+  req: PresignGetReq
 ): Promise<PresignedRequest> {
   return apiJson<PresignedRequest>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/presign-get`,
-    { method: 'POST', body: JSON.stringify(req) },
+    { method: 'POST', body: JSON.stringify(req) }
   );
 }
 
@@ -141,7 +140,7 @@ function encodeKeyPath(key: string): string {
 export async function deleteObject(bucket: string, key: string): Promise<void> {
   await apiFetch(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects/${encodeKeyPath(key)}`,
-    { method: 'DELETE' },
+    { method: 'DELETE' }
   );
 }
 
@@ -158,12 +157,12 @@ export interface CopyObjectReq {
 
 export async function copyObject(
   bucket: string,
-  req: CopyObjectReq,
+  req: CopyObjectReq
 ): Promise<void> {
-  await apiJson<unknown>(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/copy`,
-    { method: 'POST', body: JSON.stringify(req) },
-  );
+  await apiJson<unknown>(`${ROOT}/buckets/${encodeURIComponent(bucket)}/copy`, {
+    method: 'POST',
+    body: JSON.stringify(req),
+  });
 }
 
 export interface BatchDeleteResult {
@@ -173,11 +172,11 @@ export interface BatchDeleteResult {
 
 export async function batchDelete(
   bucket: string,
-  keys: string[],
+  keys: string[]
 ): Promise<BatchDeleteResult> {
   return apiJson<BatchDeleteResult>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/delete-batch`,
-    { method: 'POST', body: JSON.stringify({ keys }) },
+    { method: 'POST', body: JSON.stringify({ keys }) }
   );
 }
 
@@ -187,7 +186,7 @@ export async function batchDelete(
 export async function downloadZip(
   bucket: string,
   keys: string[],
-  archiveName?: string,
+  archiveName?: string
 ): Promise<void> {
   const res = await apiFetch(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/zip`,
@@ -195,7 +194,7 @@ export async function downloadZip(
       method: 'POST',
       body: JSON.stringify({ keys, archive_name: archiveName }),
       headers: { 'content-type': 'application/json' },
-    },
+    }
   );
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
@@ -216,7 +215,9 @@ export interface CreateBucketReq {
   public_read?: boolean;
 }
 
-export async function createBucket(req: CreateBucketReq): Promise<BucketSummary> {
+export async function createBucket(
+  req: CreateBucketReq
+): Promise<BucketSummary> {
   return apiJson<BucketSummary>(`${ROOT}/buckets`, {
     method: 'POST',
     body: JSON.stringify(req),
@@ -249,7 +250,7 @@ export interface DriverListParams {
 
 export async function driverList(
   bucket: string,
-  params: DriverListParams = {},
+  params: DriverListParams = {}
 ): Promise<DriverListResult> {
   const u = new URLSearchParams();
   if (params.prefix) {
@@ -266,7 +267,7 @@ export async function driverList(
   }
   const q = u.toString();
   return apiJson<DriverListResult>(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`,
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`
   );
 }
 
@@ -330,7 +331,7 @@ export function forgetShare(id: string): void {
 export function pruneExpiredShares(): void {
   const now = Date.now();
   writeShares(
-    readShares().filter((r) => new Date(r.expiresAt).getTime() > now),
+    readShares().filter((r) => new Date(r.expiresAt).getTime() > now)
   );
 }
 
@@ -342,7 +343,7 @@ export function pruneExpiredShares(): void {
 export async function uploadWithPresign(
   presigned: PresignedRequest,
   file: File | Blob,
-  init: ApiFetchOptions = {},
+  init: ApiFetchOptions = {}
 ): Promise<void> {
   const headers = new Headers(presigned.headers ?? {});
   headers.set('content-type', file.type || 'application/octet-stream');
@@ -354,7 +355,7 @@ export async function uploadWithPresign(
   });
   if (!res.ok) {
     throw new Error(
-      `Upload failed: ${res.status.toString()} ${res.statusText}`,
+      `Upload failed: ${res.status.toString()} ${res.statusText}`
     );
   }
 }

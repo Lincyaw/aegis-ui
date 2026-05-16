@@ -1,8 +1,10 @@
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import {
   Chip,
   EmptyState,
+  ErrorState,
   KeyValueList,
   MetricCard,
   MonoValue,
@@ -10,45 +12,147 @@ import {
   Panel,
   PanelTitle,
   SectionDivider,
-  TimeDisplay,
-  TraceTree,
   type TraceSpan,
-  useAppHref,
+  TraceTree,
 } from '@lincyaw/aegis-ui';
+import type { ObservationSpanNode } from '@lincyaw/portal';
 
-import { useMockStore } from '../mocks';
+import { useSpanTree } from '../hooks/observability';
 
-function buildSpans(traceId: string, root: string): TraceSpan[] {
-  return [
-    { id: `${traceId}-root`, name: root, startMs: 0, durationMs: 2840, status: 'error', kind: 'http' },
-    { id: `${traceId}-svc`, parentId: `${traceId}-root`, name: 'service.handler', startMs: 8, durationMs: 2820, status: 'ok', kind: 'rpc' },
-    { id: `${traceId}-db`, parentId: `${traceId}-svc`, name: 'db.query', startMs: 14, durationMs: 2612, status: 'error', kind: 'db' },
-    { id: `${traceId}-cache`, parentId: `${traceId}-svc`, name: 'redis.GET', startMs: 2628, durationMs: 12, status: 'ok', kind: 'cache' },
-  ];
+function statusOf(raw: string | undefined): TraceSpan['status'] {
+  if (raw === undefined) {
+    return 'unset';
+  }
+  const v = raw.toLowerCase();
+  if (v === 'ok') {
+    return 'ok';
+  }
+  if (v === 'error' || v === 'err') {
+    return 'error';
+  }
+  return 'unset';
+}
+
+function kindFromOp(op: string | undefined): TraceSpan['kind'] {
+  if (op === undefined) {
+    return undefined;
+  }
+  const v = op.toLowerCase();
+  if (v.startsWith('db') || v.startsWith('sql')) {
+    return 'db';
+  }
+  if (v.startsWith('http') || v.startsWith('get ') || v.startsWith('post ')) {
+    return 'http';
+  }
+  if (v.includes('redis') || v.includes('cache')) {
+    return 'cache';
+  }
+  if (v.startsWith('rpc') || v.startsWith('grpc')) {
+    return 'rpc';
+  }
+  return undefined;
+}
+
+function toTraceSpans(nodes: ObservationSpanNode[]): TraceSpan[] {
+  if (nodes.length === 0) {
+    return [];
+  }
+  const startTimes = nodes
+    .map((n) => (n.start_ts !== undefined ? Date.parse(n.start_ts) : NaN))
+    .filter((t) => Number.isFinite(t));
+  const traceStart = startTimes.length > 0 ? Math.min(...startTimes) : 0;
+  return nodes.map((n) => {
+    const start =
+      n.start_ts !== undefined ? Date.parse(n.start_ts) : traceStart;
+    const end = n.end_ts !== undefined ? Date.parse(n.end_ts) : start;
+    return {
+      id: n.span_id ?? '',
+      parentId:
+        n.parent_id !== undefined && n.parent_id.length > 0
+          ? n.parent_id
+          : undefined,
+      name:
+        n.op !== undefined && n.op.length > 0
+          ? n.service !== undefined
+            ? `${n.service} · ${n.op}`
+            : n.op
+          : (n.service ?? 'span'),
+      startMs: Math.max(0, start - traceStart),
+      durationMs: Math.max(0, end - start),
+      status: statusOf(n.status),
+      kind: kindFromOp(n.op),
+      attrs: n.attrs,
+    };
+  });
 }
 
 export default function TraceDetail() {
   const { traceId } = useParams<{ traceId: string }>();
   const [params] = useSearchParams();
-  const href = useAppHref();
+  const injectionParam = params.get('injection');
+  const injectionId =
+    injectionParam !== null && /^\d+$/.test(injectionParam)
+      ? Number(injectionParam)
+      : null;
 
-  const trace = useMockStore((s) => s.traces.find((t) => t.id === traceId));
-  const injection = useMockStore((s) =>
-    s.injections.find((i) => i.id === trace?.injectionId),
+  const query = useSpanTree(injectionId, traceId ?? null);
+
+  const spans = useMemo<TraceSpan[]>(
+    () => toTraceSpans(query.data?.spans ?? []),
+    [query.data]
   );
 
-  const fromCtx = params.get('from');
-  const fromRunId = params.get('runId');
-  const fromCaseId = params.get('caseId');
+  const rootSpan = spans.find((s) => s.parentId === undefined) ?? spans[0];
+  const errorCount = spans.filter((s) => s.status === 'error').length;
+  const totalDuration = rootSpan?.durationMs ?? 0;
 
-  if (!trace) {
+  if (injectionId === null) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title={`Trace ${traceId ?? ''}`} />
+        <Panel>
+          <EmptyState
+            title='Missing injection scope'
+            description='Append ?injection=<id> — span trees are stored per-injection.'
+          />
+        </Panel>
+      </div>
+    );
+  }
+
+  if (query.isError) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title={`Trace ${traceId ?? ''}`} />
+        <Panel>
+          <ErrorState
+            title='Failed to load span tree'
+            description={String(query.error ?? '')}
+          />
+        </Panel>
+      </div>
+    );
+  }
+
+  if (query.isLoading) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title={`Trace ${traceId ?? ''}`} />
+        <Panel>
+          <EmptyState title='Loading…' />
+        </Panel>
+      </div>
+    );
+  }
+
+  if (spans.length === 0) {
     return (
       <div className='page-wrapper'>
         <PageHeader title={`Trace ${traceId ?? ''}`} />
         <Panel>
           <EmptyState
             title='Trace not found'
-            description='It may have been removed or never landed.'
+            description='No spans in this datapack for the given trace id.'
           />
         </Panel>
       </div>
@@ -58,58 +162,52 @@ export default function TraceDetail() {
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={`Trace ${trace.id}`}
-        description={trace.rootOperation}
-        action={<Chip tone='ghost'>{trace.spanCount} spans</Chip>}
+        title={`Trace ${traceId ?? ''}`}
+        description={rootSpan?.name}
+        action={<Chip tone='ghost'>{spans.length} spans</Chip>}
       />
-
-      {fromCtx === 'eval' && fromRunId && fromCaseId && (
-        <Panel>
-          <Link to={href(`eval/${fromRunId}/cases/${fromCaseId}`)}>
-            ← Eval run {fromRunId} / case {fromCaseId}
-          </Link>
-        </Panel>
-      )}
-      {fromCtx === 'regression' && fromRunId && (
-        <Panel>
-          <Link to={href(`regression/${fromRunId}`)}>
-            ← Regression run {fromRunId}
-          </Link>
-        </Panel>
-      )}
 
       <Panel title={<PanelTitle size='base'>Provenance</PanelTitle>}>
         <KeyValueList
           items={[
             {
-              k: 'project',
-              v: <MonoValue size='sm'>{trace.projectId}</MonoValue>,
+              k: 'injection',
+              v: <MonoValue size='sm'>{String(injectionId)}</MonoValue>,
             },
             {
-              k: 'originating injection',
-              v: injection ? (
-                <Link to={href(`injections/${injection.id}`)}>
-                  {injection.id}
-                </Link>
-              ) : (
-                '—'
-              ),
+              k: 'trace id',
+              v: <MonoValue size='sm'>{traceId ?? '—'}</MonoValue>,
             },
-            { k: 'started', v: <TimeDisplay value={trace.startedAt} /> },
+            {
+              k: 'root',
+              v: <MonoValue size='sm'>{rootSpan?.name ?? '—'}</MonoValue>,
+            },
           ]}
         />
       </Panel>
 
       <div className='page-overview-grid'>
-        <MetricCard label='Duration' value={`${trace.durationMs} ms`} />
-        <MetricCard label='Spans' value={trace.spanCount} />
-        <MetricCard label='Status' value={<Chip tone='warning'>contains error</Chip>} />
-        <MetricCard label='Root op' value={<MonoValue size='sm'>{trace.rootOperation}</MonoValue>} />
+        <MetricCard label='Duration' value={`${totalDuration.toFixed(0)} ms`} />
+        <MetricCard label='Spans' value={spans.length} />
+        <MetricCard
+          label='Status'
+          value={
+            errorCount > 0 ? (
+              <Chip tone='warning'>{errorCount} errors</Chip>
+            ) : (
+              <Chip tone='ink'>OK</Chip>
+            )
+          }
+        />
+        <MetricCard
+          label='Root op'
+          value={<MonoValue size='sm'>{rootSpan?.name ?? '—'}</MonoValue>}
+        />
       </div>
 
       <SectionDivider>Span tree</SectionDivider>
       <Panel>
-        <TraceTree spans={buildSpans(trace.id, trace.rootOperation)} />
+        <TraceTree spans={spans} defaultCollapsedDepth={3} />
       </Panel>
     </div>
   );

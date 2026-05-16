@@ -1,4 +1,10 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import {
   LogoutOutlined,
@@ -8,79 +14,73 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import {
+  type AegisAction,
+  Button as AegisButton,
+  type AegisNotification,
+  type AegisSearchResult,
   type AgentCommandInvocation,
   type AgentContextValue,
   type AgentMessage,
   AgentPanel,
   AgentProvider,
   AuthLayout,
-  type AegisAction,
   Avatar,
   BlastRadiusBar,
   Breadcrumb,
-  Button as AegisButton,
+  BucketCard,
   ChatComposer,
   ChatMessage,
   ChatMessageList,
   ChatSessionList,
   Chip,
-  type Command,
+  CodeBlock,
   CodeEditor,
+  type Command,
   CommandInvocationCard,
   CommandPalette,
   CommandProvider,
-  CodeBlock,
+  compileLuceneToSql,
   ControlListItem,
   DangerZone,
   DataList,
   type DataListColumn,
   DataTable,
-  EventTable,
-  type EventTableColumn,
   DiffViewer,
   DropdownMenu,
   EmptyState,
   EnvironmentSwitcher,
   type EnvironmentSwitcherOption,
   ErrorState,
-  BucketCard,
+  EventTable,
+  type EventTableColumn,
+  type FieldMapping,
   FileDropzone,
   FilePreview,
-  MetadataList,
-  ObjectBrowser,
-  ObjectInspector,
-  QueryAutocomplete,
-  type QueryAutocompleteFieldSuggestion,
-  type QueryAutocompleteValueSuggestion,
-  SearchInput,
-  ShareLinkDialog,
-  compileLuceneToSql,
-  type FieldMapping,
-  UploadQueue,
   ForgotPasswordForm,
   FormRow,
   InboxPage,
-  LoginForm,
-  type AegisNotification,
-  type NotificationContextValue,
-  NotificationBell,
-  NotificationProvider,
-  useCommands,
-  useRegisterCommands,
   type KeyValueItem,
   KeyValueList,
-  MetricCard,
+  LoginForm,
   Markdown,
+  MetadataList,
+  MetricCard,
   MetricLabel,
   MonoValue,
+  NotificationBell,
+  type NotificationContextValue,
+  NotificationProvider,
+  ObjectBrowser,
+  ObjectInspector,
   PageHeader,
   Panel,
   PanelTitle,
   ParquetViewer,
-  TraceTree,
-  type TraceSpan,
   PasswordField,
   ProjectSelector,
+  QueryAutocomplete,
+  type QueryAutocompleteFieldSuggestion,
+  type QueryAutocompleteValueSuggestion,
   RegisterForm,
   ResizableSidePanel,
   ServiceMap,
@@ -89,33 +89,41 @@ import {
   Tabs as RosettaTabs,
   SavedQueryBar,
   type SavedQuery,
+  SearchInput,
+  type SearchProvider,
   SectionDivider,
   SettingsSection,
+  ShareLinkDialog,
+  Skeleton,
+  SkeletonText,
   SparkLine,
   type CodeEditorField,
   StatBlock,
   StatusDot,
   Terminal,
-  ThemeToggle,
   type TerminalLine,
-  Timeline,
   TextField,
+  ThemeToggle,
   TimeDisplay,
+  Timeline,
+  TimelineChart,
+  type TimelineSpan,
   TimeRangePicker,
   type TimeRangePickerProps,
   Toolbar,
   ToolCallCard,
   type ToolCallData,
-  TimelineChart,
-  type TimelineSpan,
+  type TraceSpan,
+  TraceTree,
   TrajectoryStep,
   type TrajectoryStepData,
   TrajectoryTimeline,
+  UploadQueue,
   useAegisAction,
   useAegisSearchProvider,
   useAegisSurface,
-  type AegisSearchResult,
-  type SearchProvider,
+  useCommands,
+  useRegisterCommands,
 } from '@lincyaw/aegis-ui';
 import {
   Button,
@@ -1580,7 +1588,9 @@ function App() {
                 label: 'Demo numeric value',
                 askSuggestions: ['What does this number mean?'],
                 project: (children) => ({
-                  fields: [{ name: 'value', type: 'number', value: String(children) }],
+                  fields: [
+                    { name: 'value', type: 'number', value: String(children) },
+                  ],
                 }),
               }}
             >
@@ -1607,7 +1617,9 @@ function App() {
               </div>
             </Panel>
           </Specimen>
-          <Specimen caption="as='div'"><MetricLabel as='div'>block label</MetricLabel></Specimen>
+          <Specimen caption="as='div'">
+            <MetricLabel as='div'>block label</MetricLabel>
+          </Specimen>
         </div>
 
         <SectionDivider>Markdown</SectionDivider>
@@ -1651,7 +1663,11 @@ function App() {
               askSuggestions: ['What is this panel?', 'Summarize this panel'],
               project: () => ({
                 fields: [
-                  { name: 'shape', type: 'string', value: 'hairline border, 16px radius' },
+                  {
+                    name: 'shape',
+                    type: 'string',
+                    value: 'hairline border, 16px radius',
+                  },
                 ],
               }),
             }}
@@ -1716,7 +1732,9 @@ function App() {
                 label: 'Status chip · running',
                 askSuggestions: ['What does this status mean?'],
                 project: (children) => ({
-                  fields: [{ name: 'status', type: 'string', value: String(children) }],
+                  fields: [
+                    { name: 'status', type: 'string', value: String(children) },
+                  ],
                 }),
               }}
             >
@@ -1747,7 +1765,11 @@ function App() {
               project: (data) => ({
                 fields: [
                   { name: 'value', type: 'number', value: data.value },
-                  { name: 'centerLabel', type: 'string', value: data.centerLabel ?? '' },
+                  {
+                    name: 'centerLabel',
+                    type: 'string',
+                    value: data.centerLabel ?? '',
+                  },
                 ],
               }),
             }}
@@ -1774,9 +1796,21 @@ function App() {
                 askSuggestions: ['Is this latency normal?'],
                 project: (data) => ({
                   fields: [
-                    { name: 'metric', type: 'string', value: String(data.label) },
-                    { name: 'value', type: 'string', value: String(data.value) },
-                    { name: 'unit', type: 'string', value: String(data.unit ?? '') },
+                    {
+                      name: 'metric',
+                      type: 'string',
+                      value: String(data.label),
+                    },
+                    {
+                      name: 'value',
+                      type: 'string',
+                      value: String(data.value),
+                    },
+                    {
+                      name: 'unit',
+                      type: 'string',
+                      value: String(data.unit ?? ''),
+                    },
                   ],
                 }),
               }}
@@ -1837,7 +1871,11 @@ function App() {
                   project: (points) => ({
                     fields: [
                       { name: 'count', type: 'number', value: points.length },
-                      { name: 'last', type: 'number', value: points[points.length - 1] ?? 0 },
+                      {
+                        name: 'last',
+                        type: 'number',
+                        value: points[points.length - 1] ?? 0,
+                      },
                     ],
                   }),
                 }}
@@ -1882,9 +1920,21 @@ function App() {
                 askSuggestions: ['Is throughput trending up?'],
                 project: (data) => ({
                   fields: [
-                    { name: 'metric', type: 'string', value: String(data.label) },
-                    { name: 'value', type: 'string', value: String(data.value) },
-                    { name: 'unit', type: 'string', value: String(data.unit ?? '') },
+                    {
+                      name: 'metric',
+                      type: 'string',
+                      value: String(data.label),
+                    },
+                    {
+                      name: 'value',
+                      type: 'string',
+                      value: String(data.value),
+                    },
+                    {
+                      name: 'unit',
+                      type: 'string',
+                      value: String(data.unit ?? ''),
+                    },
                   ],
                 }),
               }}
@@ -1915,6 +1965,44 @@ function App() {
               description='Projects group experiments and their results.'
               action={<Chip tone='ink'>+ New project</Chip>}
             />
+          </Specimen>
+        </div>
+
+        <SectionDivider>Skeleton</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='block bars'>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2)',
+                width: 240,
+              }}
+            >
+              <Skeleton block height={24} />
+              <Skeleton block height={16} />
+              <Skeleton block height={16} style={{ width: '60%' }} />
+            </div>
+          </Specimen>
+          <Specimen caption='circle + text'>
+            <div
+              style={{
+                display: 'flex',
+                gap: 'var(--space-3)',
+                alignItems: 'center',
+                width: 240,
+              }}
+            >
+              <Skeleton width={32} height={32} radius='circle' />
+              <div style={{ flex: 1 }}>
+                <SkeletonText lines={2} />
+              </div>
+            </div>
+          </Specimen>
+          <Specimen caption='SkeletonText 4 lines'>
+            <div style={{ width: 240 }}>
+              <SkeletonText lines={4} />
+            </div>
           </Specimen>
         </div>
 
@@ -2218,8 +2306,16 @@ function App() {
                 project: (data) => ({
                   fields: [
                     { name: 'tool', type: 'string', value: data.name },
-                    { name: 'arguments', type: 'string', value: data.arguments ?? '' },
-                    { name: 'result', type: 'string', value: data.result ?? '' },
+                    {
+                      name: 'arguments',
+                      type: 'string',
+                      value: data.arguments ?? '',
+                    },
+                    {
+                      name: 'result',
+                      type: 'string',
+                      value: data.result ?? '',
+                    },
                   ],
                 }),
               }}
@@ -2283,8 +2379,16 @@ function App() {
                 project: (data) => ({
                   fields: [
                     { name: 'step', type: 'number', value: data.step },
-                    { name: 'actionType', type: 'string', value: data.actionType ?? '' },
-                    { name: 'durationMs', type: 'number', value: data.durationMs ?? 0 },
+                    {
+                      name: 'actionType',
+                      type: 'string',
+                      value: data.actionType ?? '',
+                    },
+                    {
+                      name: 'durationMs',
+                      type: 'number',
+                      value: data.durationMs ?? 0,
+                    },
                   ],
                 }),
               }}
@@ -2328,7 +2432,11 @@ function App() {
             project: (lines) => ({
               fields: [
                 { name: 'lineCount', type: 'number', value: lines.length },
-                { name: 'lastLine', type: 'string', value: lines[lines.length - 1]?.body ?? '' },
+                {
+                  name: 'lastLine',
+                  type: 'string',
+                  value: lines[lines.length - 1]?.body ?? '',
+                },
               ],
             }),
           }}
@@ -2378,7 +2486,11 @@ function App() {
                 project: (data) => ({
                   fields: [
                     { name: 'language', type: 'string', value: data.language },
-                    { name: 'lines', type: 'number', value: data.code.split('\n').length },
+                    {
+                      name: 'lines',
+                      type: 'number',
+                      value: data.code.split('\n').length,
+                    },
                   ],
                 }),
               }}
@@ -2398,7 +2510,11 @@ function App() {
         <SectionDivider>Tabs</SectionDivider>
         <RosettaTabs
           items={[
-            { key: 'overview', label: 'Overview', action: GALLERY_ACTIONS.tabOverview },
+            {
+              key: 'overview',
+              label: 'Overview',
+              action: GALLERY_ACTIONS.tabOverview,
+            },
             { key: 'params', label: 'Parameters' },
             { key: 'logs', label: 'Logs' },
           ]}
@@ -2539,8 +2655,7 @@ function App() {
                 description='Use your AegisLab credentials to continue.'
                 footer={
                   <>
-                    Don&apos;t have an account?{' '}
-                    <a href='#signup'>Create one</a>
+                    Don&apos;t have an account? <a href='#signup'>Create one</a>
                   </>
                 }
               >
@@ -2635,7 +2750,11 @@ function App() {
             <DropdownMenu
               trigger={<Chip tone='ink'>Open menu</Chip>}
               items={[
-                { key: 'view', label: 'View details', action: GALLERY_ACTIONS.dropdownView },
+                {
+                  key: 'view',
+                  label: 'View details',
+                  action: GALLERY_ACTIONS.dropdownView,
+                },
                 { key: 'edit', label: 'Edit' },
                 { key: 'del', label: 'Delete', danger: true },
               ]}
@@ -2670,7 +2789,11 @@ function App() {
           <Specimen caption='with projects' span={2}>
             <ProjectSelector
               projects={[
-                { id: '1', name: 'catalog-service', action: GALLERY_ACTIONS.projectSelect },
+                {
+                  id: '1',
+                  name: 'catalog-service',
+                  action: GALLERY_ACTIONS.projectSelect,
+                },
                 { id: '2', name: 'order-platform' },
                 { id: '3', name: 'inventory-v2' },
               ]}
@@ -2716,7 +2839,10 @@ function App() {
 
         <SectionDivider>FormRow</SectionDivider>
         <div className='gallery__stack'>
-          <FormRow label='Display name' description='Shown across the platform.'>
+          <FormRow
+            label='Display name'
+            description='Shown across the platform.'
+          >
             <input
               type='text'
               defaultValue='Ada Lovelace'
@@ -2812,7 +2938,10 @@ function App() {
           <div className='gallery__row'>
             <Specimen caption='trigger · click to open'>
               <div className='gallery__notif-bell-host'>
-                <NotificationBell inboxPath='/inbox' action={GALLERY_ACTIONS.notifOpen} />
+                <NotificationBell
+                  inboxPath='/inbox'
+                  action={GALLERY_ACTIONS.notifOpen}
+                />
               </div>
             </Specimen>
           </div>
@@ -2869,7 +2998,11 @@ function App() {
                 project: (data) => ({
                   fields: [
                     { name: 'role', type: 'string', value: data.role },
-                    { name: 'content', type: 'string', value: String(data.content) },
+                    {
+                      name: 'content',
+                      type: 'string',
+                      value: String(data.content),
+                    },
                   ],
                 }),
               }}
@@ -2907,8 +3040,16 @@ function App() {
                 askSuggestions: ['What is this command doing?'],
                 project: (data) => ({
                   fields: [
-                    { name: 'commandId', type: 'string', value: data.commandId },
-                    { name: 'status', type: 'string', value: String(data.status ?? '') },
+                    {
+                      name: 'commandId',
+                      type: 'string',
+                      value: data.commandId,
+                    },
+                    {
+                      name: 'status',
+                      type: 'string',
+                      value: String(data.status ?? ''),
+                    },
                   ],
                 }),
               }}
@@ -2950,12 +3091,17 @@ function App() {
 
         <SectionDivider>ChatMessageList</SectionDivider>
         <div className='gallery__row gallery__row--wide'>
-          <Specimen caption='multi-role · with footer typing indicator' span={3}>
+          <Specimen
+            caption='multi-role · with footer typing indicator'
+            span={3}
+          >
             <div className='gallery__agent-frame'>
               <ChatMessageList
                 autoScroll={false}
                 footer={
-                  <MetricLabel size='xs'>Aegis Assistant is typing…</MetricLabel>
+                  <MetricLabel size='xs'>
+                    Aegis Assistant is typing…
+                  </MetricLabel>
                 }
                 surface={{
                   id: 'gallery.chatlist.demo',
@@ -2963,7 +3109,9 @@ function App() {
                   label: 'Chat transcript',
                   askSuggestions: ['Summarize the conversation'],
                   project: (count) => ({
-                    fields: [{ name: 'messageCount', type: 'number', value: count }],
+                    fields: [
+                      { name: 'messageCount', type: 'number', value: count },
+                    ],
                   }),
                 }}
               >
@@ -3022,7 +3170,10 @@ function App() {
               />
             </div>
           </Specimen>
-          <Specimen caption='comfortable · long titles · first selected' span={2}>
+          <Specimen
+            caption='comfortable · long titles · first selected'
+            span={2}
+          >
             <div style={{ maxWidth: 320 }}>
               <ChatSessionList
                 density='comfortable'
@@ -3082,16 +3233,16 @@ function App() {
           <div className='gallery__agent-frame'>
             <AgentPanel
               title='Aegis Assistant'
-              footer={
-                <ChatComposer onSend={() => undefined} sending={false} />
-              }
+              footer={<ChatComposer onSend={() => undefined} sending={false} />}
               surface={{
                 id: 'gallery.agentpanel',
                 kind: 'panel',
                 label: 'Agent panel',
                 askSuggestions: ['What is this agent doing?'],
                 project: () => ({
-                  fields: [{ name: 'agent', type: 'string', value: 'Aegis Assistant' }],
+                  fields: [
+                    { name: 'agent', type: 'string', value: 'Aegis Assistant' },
+                  ],
                 }),
               }}
             >
@@ -3141,7 +3292,7 @@ function App() {
               onDrop={(files) =>
                 console.warn(
                   '[demo] dropped',
-                  files.map((f) => f.name),
+                  files.map((f) => f.name)
                 )
               }
               accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] }}
@@ -3181,22 +3332,45 @@ function App() {
               onDrop={() => undefined}
               directory
               hint={
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 'var(--fs-14)' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-ui)',
+                    fontSize: 'var(--fs-14)',
+                  }}
+                >
                   Drop a folder or click to select one
                 </span>
               }
             />
           </Specimen>
           <Specimen caption='overlay variant (contained)' span={2}>
-            <div style={{ position: 'relative', height: 200, border: 'var(--size-hairline) dashed var(--border-emphasis)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ padding: 'var(--space-4)', color: 'var(--text-muted)' }}>
+            <div
+              style={{
+                position: 'relative',
+                height: 200,
+                border: 'var(--size-hairline) dashed var(--border-emphasis)',
+                borderRadius: 'var(--radius-md)',
+              }}
+            >
+              <div
+                style={{
+                  padding: 'var(--space-4)',
+                  color: 'var(--text-muted)',
+                }}
+              >
                 <MetricLabel>underlying content</MetricLabel>
               </div>
               <FileDropzone
                 onDrop={() => undefined}
                 variant='overlay'
                 hint={
-                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 'var(--fw-medium)', fontSize: 'var(--fs-14)' }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-ui)',
+                      fontWeight: 'var(--fw-medium)',
+                      fontSize: 'var(--fs-14)',
+                    }}
+                  >
                     Drop files to upload
                   </span>
                 }
@@ -3219,7 +3393,10 @@ function App() {
                 },
                 {
                   id: 'u1',
-                  file: new File(new Array(50 * 1024 * 1024).fill(0), 'corpus-2026-04.tar.gz'),
+                  file: new File(
+                    new Array(50 * 1024 * 1024).fill(0),
+                    'corpus-2026-04.tar.gz'
+                  ),
                   status: 'uploading',
                   progress: 0.5,
                   bytesUploaded: 25 * 1024 * 1024,
@@ -3294,13 +3471,22 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>3-slot generic toolbar</MetricLabel>}>
+        <SectionDivider
+          extra={<MetricLabel>3-slot generic toolbar</MetricLabel>}
+        >
           Toolbar
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
           <Specimen caption='left + right' span={2}>
             <Toolbar
-              left={<SearchInput value='' onChange={() => undefined} placeholder='Search objects…' kbd='⌘K' />}
+              left={
+                <SearchInput
+                  value=''
+                  onChange={() => undefined}
+                  placeholder='Search objects…'
+                  kbd='⌘K'
+                />
+              }
               right={
                 <>
                   <Chip tone='ghost'>Upload</Chip>
@@ -3339,13 +3525,26 @@ function App() {
         </SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='empty with kbd hint'>
-            <SearchInput value='' onChange={() => undefined} placeholder='Search…' kbd='⌘K' />
+            <SearchInput
+              value=''
+              onChange={() => undefined}
+              placeholder='Search…'
+              kbd='⌘K'
+            />
           </Specimen>
           <Specimen caption='populated with clear'>
-            <SearchInput value='trace-snapshot.json' onChange={() => undefined} onClear={() => undefined} />
+            <SearchInput
+              value='trace-snapshot.json'
+              onChange={() => undefined}
+              onClear={() => undefined}
+            />
           </Specimen>
           <Specimen caption='no kbd, no value'>
-            <SearchInput value='' onChange={() => undefined} placeholder='Filter by prefix…' />
+            <SearchInput
+              value=''
+              onChange={() => undefined}
+              placeholder='Filter by prefix…'
+            />
           </Specimen>
         </div>
 
@@ -3366,11 +3565,26 @@ function App() {
           <Specimen caption='mixed entries' span={2}>
             <MetadataList
               entries={[
-                { label: 'Key', value: 'datasets/2026-05/trace.json', mono: true, copyable: true },
+                {
+                  label: 'Key',
+                  value: 'datasets/2026-05/trace.json',
+                  mono: true,
+                  copyable: true,
+                },
                 { label: 'Size', value: '4.2 MB', mono: true },
-                { label: 'Content-Type', value: 'application/json', mono: true, copyable: true },
+                {
+                  label: 'Content-Type',
+                  value: 'application/json',
+                  mono: true,
+                  copyable: true,
+                },
                 { label: 'Last modified', value: '2026-05-14 08:21 UTC' },
-                { label: 'ETag', value: '"a3f29c8d0e11b7ce2a4f1d6e90b5a823"', mono: true, copyable: true },
+                {
+                  label: 'ETag',
+                  value: '"a3f29c8d0e11b7ce2a4f1d6e90b5a823"',
+                  mono: true,
+                  copyable: true,
+                },
                 { label: 'Storage class', value: 'STANDARD' },
               ]}
             />
@@ -3382,13 +3596,19 @@ function App() {
         </SectionDivider>
         <ObjectInspectorSpecimen />
 
-        <SectionDivider extra={<MetricLabel>prefix tree + table shell</MetricLabel>}>
+        <SectionDivider
+          extra={<MetricLabel>prefix tree + table shell</MetricLabel>}
+        >
           ObjectBrowser
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
           <Specimen caption='browse a prefix · 2 selected' span={3}>
             <ObjectBrowser
-              prefixes={['datasets/2026-04/', 'datasets/2026-05/', 'datasets/archive/']}
+              prefixes={[
+                'datasets/2026-04/',
+                'datasets/2026-05/',
+                'datasets/archive/',
+              ]}
               currentPrefix='datasets/'
               onPrefixChange={() => undefined}
               selectionCount={2}
@@ -3418,7 +3638,13 @@ function App() {
               prefixes={['models/', 'experiments/']}
               currentPrefix=''
               onPrefixChange={() => undefined}
-              searchSlot={<SearchInput value='' onChange={() => undefined} placeholder='Filter objects…' />}
+              searchSlot={
+                <SearchInput
+                  value=''
+                  onChange={() => undefined}
+                  placeholder='Filter objects…'
+                />
+              }
               viewModeSlot={
                 <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
                   <Chip tone='ghost'>≡</Chip>
@@ -3459,7 +3685,16 @@ function App() {
                 <FileDropzone
                   onDrop={() => undefined}
                   variant='overlay'
-                  hint={<span style={{ fontFamily: 'var(--font-ui)', fontWeight: 'var(--fw-medium)' }}>Drop files to upload</span>}
+                  hint={
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-ui)',
+                        fontWeight: 'var(--fw-medium)',
+                      }}
+                    >
+                      Drop files to upload
+                    </span>
+                  }
                 />
               }
             >
@@ -3533,7 +3768,11 @@ function App() {
                 project: (data) => ({
                   fields: [
                     { name: 'src', type: 'string', value: data.src },
-                    { name: 'mimeType', type: 'string', value: data.mimeType ?? '' },
+                    {
+                      name: 'mimeType',
+                      type: 'string',
+                      value: data.mimeType ?? '',
+                    },
                   ],
                 }),
               }}
@@ -3568,7 +3807,11 @@ function App() {
                 project: (data) => ({
                   fields: [
                     { name: 'language', type: 'string', value: data.language },
-                    { name: 'lines', type: 'number', value: data.value.split('\n').length },
+                    {
+                      name: 'lines',
+                      type: 'number',
+                      value: data.value.split('\n').length,
+                    },
                   ],
                 }),
               }}
@@ -3576,7 +3819,9 @@ function App() {
           </Specimen>
           <Specimen caption='yaml · read-only' span={2}>
             <CodeEditor
-              value={'service: aegis-configcenter\nport: 8087\netcd:\n  endpoints:\n    - localhost:2379\n'}
+              value={
+                'service: aegis-configcenter\nport: 8087\netcd:\n  endpoints:\n    - localhost:2379\n'
+              }
               language='yaml'
               readOnly
               height={160}
@@ -3590,14 +3835,18 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>react-diff-viewer-continued</MetricLabel>}>
+        <SectionDivider
+          extra={<MetricLabel>react-diff-viewer-continued</MetricLabel>}
+        >
           DiffViewer
         </SectionDivider>
         <div className='gallery__stack'>
           <Specimen caption='split · json revision' span={3}>
             <DiffViewer
               oldValue={'{\n  "max_qps": 100,\n  "burst": 200\n}'}
-              newValue={'{\n  "max_qps": 250,\n  "burst": 500,\n  "shadow": true\n}'}
+              newValue={
+                '{\n  "max_qps": 250,\n  "burst": 500,\n  "shadow": true\n}'
+              }
               splitView
               leftTitle='revision 41'
               rightTitle='revision 42'
@@ -3608,8 +3857,16 @@ function App() {
                 askSuggestions: ['What changed between revisions?'],
                 project: (data) => ({
                   fields: [
-                    { name: 'oldLines', type: 'number', value: data.oldValue.split('\n').length },
-                    { name: 'newLines', type: 'number', value: data.newValue.split('\n').length },
+                    {
+                      name: 'oldLines',
+                      type: 'number',
+                      value: data.oldValue.split('\n').length,
+                    },
+                    {
+                      name: 'newLines',
+                      type: 'number',
+                      value: data.newValue.split('\n').length,
+                    },
                   ],
                 }),
               }}
@@ -3617,8 +3874,12 @@ function App() {
           </Specimen>
           <Specimen caption='unified · diff-only' span={3}>
             <DiffViewer
-              oldValue={'service: aegis-blob\nport: 8085\nbuckets:\n  - name: scratch\n    driver: localfs\n'}
-              newValue={'service: aegis-blob\nport: 8085\nbuckets:\n  - name: scratch\n    driver: localfs\n  - name: artifacts\n    driver: s3\n'}
+              oldValue={
+                'service: aegis-blob\nport: 8085\nbuckets:\n  - name: scratch\n    driver: localfs\n'
+              }
+              newValue={
+                'service: aegis-blob\nport: 8085\nbuckets:\n  - name: scratch\n    driver: localfs\n  - name: artifacts\n    driver: s3\n'
+              }
               splitView={false}
               showDiffOnly
             />
@@ -3690,7 +3951,7 @@ function App() {
           </Specimen>
         </div>
 
-<SectionDivider extra={<MetricLabel>flame / waterfall</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>flame / waterfall</MetricLabel>}>
           TimelineChart
         </SectionDivider>
         <div className='gallery__stack'>
@@ -3712,7 +3973,10 @@ function App() {
           <Specimen caption='microservice topology · LR · status mix' span={3}>
             <ServiceMapMicroSpecimen />
           </Specimen>
-          <Specimen caption='AgentM session DAG · TB · root → turns → tools' span={3}>
+          <Specimen
+            caption='AgentM session DAG · TB · root → turns → tools'
+            span={3}
+          >
             <ServiceMapAgentSpecimen />
           </Specimen>
           <Specimen caption='single-node degenerate case' span={3}>
@@ -3720,11 +3984,16 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>drag · keyboard · persist</MetricLabel>}>
+        <SectionDivider
+          extra={<MetricLabel>drag · keyboard · persist</MetricLabel>}
+        >
           ResizableSidePanel
         </SectionDivider>
         <div className='gallery__stack'>
-          <Specimen caption='left + right · collapsible · persist · keyboard' span={3}>
+          <Specimen
+            caption='left + right · collapsible · persist · keyboard'
+            span={3}
+          >
             <ResizableSidePanelSpecimen />
           </Specimen>
         </div>
@@ -3930,9 +4199,8 @@ function App() {
         <p className='gallery__panel-body'>
           A command registry + searchable palette. Mount{' '}
           <code>&lt;CommandProvider&gt;</code> once, then register commands per
-          app via <code>useRegisterCommands</code>. Press{' '}
-          <code>⌘K</code> / <code>Ctrl+K</code> to toggle, or click the button
-          below.
+          app via <code>useRegisterCommands</code>. Press <code>⌘K</code> /{' '}
+          <code>Ctrl+K</code> to toggle, or click the button below.
         </p>
         <SectionDivider>CommandPalette</SectionDivider>
         <CommandProvider>
@@ -3948,7 +4216,9 @@ function App() {
       >
         <SectionDivider>Button · action</SectionDivider>
         <AgentIntegrationSpecimen />
-        <SectionDivider extra={<MetricLabel>right-click · Cmd/Ctrl + .</MetricLabel>}>
+        <SectionDivider
+          extra={<MetricLabel>right-click · Cmd/Ctrl + .</MetricLabel>}
+        >
           AskOverlay · AskPanel
         </SectionDivider>
         <AskAffordanceSpecimen />
@@ -4008,43 +4278,44 @@ const QUERY_AC_FIELD_MAPPINGS: FieldMapping[] = [
   { field: 'error', sqlExpr: 'IsError', kind: 'bool' },
 ];
 
-const QUERY_AC_VALUE_POOL: Record<string, QueryAutocompleteValueSuggestion[]> = {
-  'service.name': [
-    { value: 'frontend', hint: '4.1k events' },
-    { value: 'checkout', hint: '912 events' },
-    { value: 'auth', hint: '410 events' },
-    { value: 'foo', hint: 'sample' },
-  ],
-  'http.status': [
-    { value: '200', hint: 'OK' },
-    { value: '404', hint: 'Not Found' },
-    { value: '500', hint: 'Internal Error' },
-  ],
-  'http.method': [
-    { value: 'GET' },
-    { value: 'POST' },
-    { value: 'PUT' },
-    { value: 'DELETE' },
-  ],
-  error: [{ value: 'true' }, { value: 'false' }],
-};
+const QUERY_AC_VALUE_POOL: Record<string, QueryAutocompleteValueSuggestion[]> =
+  {
+    'service.name': [
+      { value: 'frontend', hint: '4.1k events' },
+      { value: 'checkout', hint: '912 events' },
+      { value: 'auth', hint: '410 events' },
+      { value: 'foo', hint: 'sample' },
+    ],
+    'http.status': [
+      { value: '200', hint: 'OK' },
+      { value: '404', hint: 'Not Found' },
+      { value: '500', hint: 'Internal Error' },
+    ],
+    'http.method': [
+      { value: 'GET' },
+      { value: 'POST' },
+      { value: 'PUT' },
+      { value: 'DELETE' },
+    ],
+    error: [{ value: 'true' }, { value: 'false' }],
+  };
 
 function QueryAutocompleteSpecimen(): ReactNode {
   const [empty, setEmpty] = useState('');
   const [prefilled, setPrefilled] = useState(
-    'service.name:foo AND duration:>1000',
+    'service.name:foo AND duration:>1000'
   );
   const valueSuggestions = useCallback(
     (field: string, _prefix: string): QueryAutocompleteValueSuggestion[] =>
       QUERY_AC_VALUE_POOL[field] ?? [],
-    [],
+    []
   );
   const compiled = useMemo(
     () =>
       compileLuceneToSql(prefilled, {
         fields: QUERY_AC_FIELD_MAPPINGS,
       }),
-    [prefilled],
+    [prefilled]
   );
   return (
     <div className='gallery__row gallery__row--wide'>
@@ -4080,7 +4351,7 @@ function QueryAutocompleteSpecimen(): ReactNode {
           {`WHERE ${compiled.sql || '(no filter)'}\n\nparams = ${JSON.stringify(
             compiled.params,
             null,
-            2,
+            2
           )}\nreferencedFields = ${JSON.stringify(compiled.referencedFields)}`}
         </pre>
       </Specimen>
@@ -4405,7 +4676,9 @@ function ObjectInspectorSpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen caption='toggle to open inspector'>
-        <AegisButton onClick={() => setOpen(true)}>Open ObjectInspector</AegisButton>
+        <AegisButton onClick={() => setOpen(true)}>
+          Open ObjectInspector
+        </AegisButton>
         <ObjectInspector
           open={open}
           onClose={() => setOpen(false)}
@@ -4427,11 +4700,25 @@ function ObjectInspectorSpecimen(): ReactNode {
               content: (
                 <MetadataList
                   entries={[
-                    { label: 'Key', value: 'datasets/2026-05/trace-snapshot.json', mono: true, copyable: true },
+                    {
+                      label: 'Key',
+                      value: 'datasets/2026-05/trace-snapshot.json',
+                      mono: true,
+                      copyable: true,
+                    },
                     { label: 'Size', value: '4.2 MB', mono: true },
-                    { label: 'Content-Type', value: 'application/json', mono: true },
+                    {
+                      label: 'Content-Type',
+                      value: 'application/json',
+                      mono: true,
+                    },
                     { label: 'Last modified', value: '2026-05-14 08:21 UTC' },
-                    { label: 'ETag', value: '"a3f29c8d0e11b7ce2a4f1d6e90b5a823"', mono: true, copyable: true },
+                    {
+                      label: 'ETag',
+                      value: '"a3f29c8d0e11b7ce2a4f1d6e90b5a823"',
+                      mono: true,
+                      copyable: true,
+                    },
                   ]}
                 />
               ),
@@ -4440,7 +4727,13 @@ function ObjectInspectorSpecimen(): ReactNode {
               id: 'preview',
               label: 'Preview',
               content: (
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-13)', color: 'var(--text-muted)' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--fs-13)',
+                    color: 'var(--text-muted)',
+                  }}
+                >
                   Preview placeholder — host renders FilePreview here.
                 </div>
               ),
@@ -4449,7 +4742,13 @@ function ObjectInspectorSpecimen(): ReactNode {
               id: 'parquet',
               label: 'Parquet',
               content: (
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-13)', color: 'var(--text-muted)' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--fs-13)',
+                    color: 'var(--text-muted)',
+                  }}
+                >
                   Parquet viewer placeholder — host renders ParquetViewer here.
                 </div>
               ),
@@ -4493,7 +4792,11 @@ function ParquetViewerSpecimen(): ReactNode {
           project: (data) => ({
             fields: [
               { name: 'totalRows', type: 'number', value: data.totalRows },
-              { name: 'columnCount', type: 'number', value: data.columns.length },
+              {
+                name: 'columnCount',
+                type: 'number',
+                value: data.columns.length,
+              },
             ],
           }),
         }}
@@ -4838,7 +5141,11 @@ function ResizableSidePanelSpecimen(): ReactNode {
         </div>
       </ResizableSidePanel>
 
-      <ResizableSidePanel side='left' defaultWidth={240} persistKey='gallery.resizable.persist'>
+      <ResizableSidePanel
+        side='left'
+        defaultWidth={240}
+        persistKey='gallery.resizable.persist'
+      >
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
             left · persistKey
@@ -4862,8 +5169,8 @@ function ResizableSidePanelSpecimen(): ReactNode {
         </MetricLabel>
         <p>
           Tab onto either handle (focus ring appears) and press ←/→ to adjust
-          width in 16 px steps. Shrinking the right panel below its min collapses
-          it.
+          width in 16 px steps. Shrinking the right panel below its min
+          collapses it.
         </p>
       </div>
 
@@ -4878,7 +5185,9 @@ function ResizableSidePanelSpecimen(): ReactNode {
           <MetricLabel as='div' size='xs'>
             right · 360px · collapsible
           </MetricLabel>
-          <p>Drag handle past min-width to collapse. Click thin bar to expand.</p>
+          <p>
+            Drag handle past min-width to collapse. Click thin bar to expand.
+          </p>
         </div>
       </ResizableSidePanel>
     </div>
@@ -4955,9 +5264,7 @@ function AgentIntegrationSpecimen(): ReactNode {
         ];
         const q = query.toLowerCase();
         const hits: AegisSearchResult[] = candidates
-          .filter(
-            (c) => c.id.includes(q) || c.label.toLowerCase().includes(q),
-          )
+          .filter((c) => c.id.includes(q) || c.label.toLowerCase().includes(q))
           .map((c) => ({
             ref: { kind: 'entity', entityId: c.id },
             kind: 'entity',
@@ -4968,7 +5275,7 @@ function AgentIntegrationSpecimen(): ReactNode {
         return Promise.resolve(hits);
       },
     }),
-    [],
+    []
   );
   useAegisSearchProvider(deepDatasets);
 
@@ -4983,9 +5290,7 @@ function AgentIntegrationSpecimen(): ReactNode {
     if (!rt) {
       return;
     }
-    rt._setSelection(
-      selectedId ? [{ id: selectedId, type: 'dataset' }] : [],
-    );
+    rt._setSelection(selectedId ? [{ id: selectedId, type: 'dataset' }] : []);
   }, [selectedId]);
 
   const columns: Array<DataListColumn<DemoDataset>> = [
@@ -5010,15 +5315,15 @@ function AgentIntegrationSpecimen(): ReactNode {
         JSON.stringify(
           rt.inspect({ kind: 'surface', surfaceId: 'gallery.demo.datasets' }),
           null,
-          2,
-        ),
+          2
+        )
       );
       setInspectEntityText(
         JSON.stringify(
           rt.inspect({ kind: 'entity', entityId: 'ds-001' }),
           null,
-          2,
-        ),
+          2
+        )
       );
       void rt.search('imagenet').then((hits) => {
         setSearchText(JSON.stringify(hits, null, 2));
@@ -5175,7 +5480,7 @@ interface AskWindow extends Window {
       entityId?: string;
       actionId?: string;
     },
-    anchorEl?: HTMLElement | null,
+    anchorEl?: HTMLElement | null
   ) => void;
 }
 
@@ -5187,11 +5492,11 @@ function AskAffordanceSpecimen(): ReactNode {
       { id: 'ask-row-1', label: 'imagenet-mini' },
       { id: 'ask-row-2', label: 'wikitext-v3' },
     ],
-    [],
+    []
   );
   const askOptOutRows = useMemo(
     () => [{ id: 'ask-optout-1', label: 'opt-out · ask disabled' }],
-    [],
+    []
   );
 
   useAegisSurface({
@@ -5230,11 +5535,15 @@ function AskAffordanceSpecimen(): ReactNode {
   const onTriggerJs = useCallback(() => {
     const w = window as AskWindow;
     const anchor = document.querySelector<HTMLElement>(
-      '[data-ask-demo-row="ask-row-1"]',
+      '[data-ask-demo-row="ask-row-1"]'
     );
     w.__aegisOpenAskPanel?.(
-      { origin: 'entity', surfaceId: 'gallery.ask.demo', entityId: 'ask-row-1' },
-      anchor,
+      {
+        origin: 'entity',
+        surfaceId: 'gallery.ask.demo',
+        entityId: 'ask-row-1',
+      },
+      anchor
     );
   }, []);
 
@@ -5416,17 +5725,23 @@ const LARGE_EVENTS = makeEvents(10_000);
 
 function EventTableSpecimen(): ReactNode {
   const [selectedKey, setSelectedKey] = useState<string | undefined>(
-    SMALL_EVENTS[2]?.id,
+    SMALL_EVENTS[2]?.id
   );
   const [paginated, setPaginated] = useState<SampleEvent[]>(() =>
-    makeEvents(200),
+    makeEvents(200)
   );
   const handleLoadMore = useCallback(() => {
     setPaginated((prev) => prev.concat(makeEvents(1000, prev.length)));
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--space-4)',
+      }}
+    >
       <div>
         <MetricLabel as='div' size='xs'>
           50 rows · sticky header · row selection

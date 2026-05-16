@@ -4,7 +4,6 @@
 // src/config/runtime.ts) — no compile-time env. Empty origin means
 // same-origin paths handled by vite's proxy in dev (and the gateway
 // in same-host production).
-
 import { getRuntimeConfig, ssoUrlFor } from '../config/runtime';
 
 export interface SsoConfig {

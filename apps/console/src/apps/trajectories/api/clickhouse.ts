@@ -6,7 +6,6 @@
  * Returns rows in JSON form so we don't pay the column-name tax for
  * every row.
  */
-
 import { apiFetch } from '../../../api/apiClient';
 import { clickhouseBase, getRuntimeConfig } from '../../../config/runtime';
 
@@ -19,7 +18,7 @@ interface ChJsonResponse<T> {
 
 async function chQuery<TRow = unknown>(
   sql: string,
-  params: Record<string, string | number | boolean> = {},
+  params: Record<string, string | number | boolean> = {}
 ): Promise<TRow[]> {
   const cfg = getRuntimeConfig();
   const search = new URLSearchParams();
@@ -152,7 +151,7 @@ export interface ListSessionsOpts {
 }
 
 export async function listSessions(
-  opts: ListSessionsOpts = {},
+  opts: ListSessionsOpts = {}
 ): Promise<SessionSummary[]> {
   const limit = opts.limit ?? 100;
   const sinceHours = opts.sinceHours ?? 168;
@@ -235,7 +234,7 @@ FORMAT JSON`;
 
 export async function listSpansByRootSession(
   rootSessionId: string,
-  opts: { sinceHours?: number } = {},
+  opts: { sinceHours?: number } = {}
 ): Promise<SpanRow[]> {
   const sinceHours = opts.sinceHours ?? 720; // 30d window for detail
   const tbl = getRuntimeConfig().clickhouseTracesTable;

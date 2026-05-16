@@ -12,7 +12,10 @@ export function WizardSteps({ steps, activeIndex }: WizardStepsProps) {
         const state =
           idx < activeIndex ? 'done' : idx === activeIndex ? 'active' : 'todo';
         return (
-          <li key={label} className={`wizard-steps__item wizard-steps__item--${state}`}>
+          <li
+            key={label}
+            className={`wizard-steps__item wizard-steps__item--${state}`}
+          >
             <span className='wizard-steps__num'>{idx + 1}</span>
             <span className='wizard-steps__label'>{label}</span>
           </li>

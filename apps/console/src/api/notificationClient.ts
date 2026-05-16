@@ -6,7 +6,6 @@
  * `AegisNotification` (the backend was designed to make zero adapter
  * code necessary on this side), so we cast the response shape directly.
  */
-
 import type { AegisNotification } from '@lincyaw/aegis-ui';
 
 import { apiFetch, apiJson } from './apiClient';
@@ -51,7 +50,7 @@ function qs(params: InboxListParams): string {
 }
 
 export async function listInbox(
-  params: InboxListParams = {},
+  params: InboxListParams = {}
 ): Promise<ListInboxResp> {
   return apiJson<ListInboxResp>(`/api/v2/inbox${qs(params)}`);
 }
@@ -85,9 +84,9 @@ export interface SubscriptionRow {
 export async function listSubscriptions(): Promise<SubscriptionRow[]> {
   // Server returns either `{subscriptions: [...]}` or a plain array
   // depending on serializer; tolerate both.
-  const res = await apiJson<SubscriptionRow[] | { subscriptions: SubscriptionRow[] }>(
-    '/api/v2/inbox/subscriptions',
-  );
+  const res = await apiJson<
+    SubscriptionRow[] | { subscriptions: SubscriptionRow[] }
+  >('/api/v2/inbox/subscriptions');
   if (Array.isArray(res)) {
     return res;
   }

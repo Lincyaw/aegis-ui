@@ -15,7 +15,7 @@ import type { CaseRepo } from '../../repo';
 import type { FiringFile, GraphSnapshotFile, VerdictRow } from '../../types';
 import { EventGraphView } from '../EventGraphView';
 
-import { FiringList, type FiringEntry } from './FiringList';
+import { type FiringEntry, FiringList } from './FiringList';
 
 import './AuditorTab.css';
 
@@ -42,7 +42,7 @@ interface AuditorOutput {
 
 function pickReviewedSnapshot(
   auditor: FiringFile,
-  extractors: FiringEntry[],
+  extractors: FiringEntry[]
 ): FiringEntry | null {
   // Pick the latest extractor with turn_index <= auditor.turn_index.
   const candidates = extractors
@@ -120,7 +120,10 @@ function VerdictPanel({
       )}
       <details className='llmh-auditor__raw'>
         <summary>Raw input</summary>
-        <CodeBlock language='json' code={JSON.stringify(firing.input, null, 2)} />
+        <CodeBlock
+          language='json'
+          code={JSON.stringify(firing.input, null, 2)}
+        />
       </details>
     </div>
   );
@@ -139,7 +142,9 @@ export function AuditorTab({
   selectedEventId,
   onSelectEvent,
 }: AuditorTabProps) {
-  const [snapshot, setSnapshot] = useState<GraphSnapshotFile | null | undefined>(undefined);
+  const [snapshot, setSnapshot] = useState<
+    GraphSnapshotFile | null | undefined
+  >(undefined);
   const [snapshotMeta, setSnapshotMeta] = useState<FiringEntry | null>(null);
 
   useEffect(() => {
@@ -176,7 +181,9 @@ export function AuditorTab({
   return (
     <div className='llmh-auditor'>
       <aside className='llmh-auditor__rail'>
-        <SectionDivider>Auditor firings ({auditorFirings.length})</SectionDivider>
+        <SectionDivider>
+          Auditor firings ({auditorFirings.length})
+        </SectionDivider>
         <FiringList
           firings={auditorFirings}
           selectedSequence={selectedSequence}
@@ -195,9 +202,14 @@ export function AuditorTab({
       </aside>
       <section className='llmh-auditor__detail'>
         {!firing && !firingError && (
-          <EmptyState title='No firing selected' description='Pick a firing from the rail.' />
+          <EmptyState
+            title='No firing selected'
+            description='Pick a firing from the rail.'
+          />
         )}
-        {firingError && <ErrorState title='Failed to load firing' description={firingError} />}
+        {firingError && (
+          <ErrorState title='Failed to load firing' description={firingError} />
+        )}
         {firing && (
           <div className='llmh-auditor__cols'>
             <div className='llmh-auditor__graph-col'>
@@ -206,7 +218,9 @@ export function AuditorTab({
                   ? `Snapshot at turn ${snapshotMeta.turnIndex} (after extractor #${snapshotMeta.sequence})`
                   : 'No snapshot available before this audit'}
               </SectionDivider>
-              {snapshot === null && <MetricLabel size='xs'>Loading snapshot…</MetricLabel>}
+              {snapshot === null && (
+                <MetricLabel size='xs'>Loading snapshot…</MetricLabel>
+              )}
               {snapshot === undefined && !snapshotMeta && (
                 <EmptyState
                   title='No snapshot available'

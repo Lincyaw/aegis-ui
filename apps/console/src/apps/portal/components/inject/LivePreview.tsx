@@ -1,6 +1,13 @@
-import { CodeBlock, KeyValueList, MonoValue, Panel, PanelTitle } from '@lincyaw/aegis-ui';
+import {
+  CodeBlock,
+  KeyValueList,
+  MonoValue,
+  Panel,
+  PanelTitle,
+} from '@lincyaw/aegis-ui';
 
 import type { GuidedInjectionSpec } from '../../mocks/types';
+
 import { specToYaml } from './paramSchema';
 
 interface Props {
@@ -12,10 +19,22 @@ export function LivePreview({ spec }: Props) {
     <Panel title={<PanelTitle size='base'>Live preview</PanelTitle>}>
       <KeyValueList
         items={[
-          { k: 'namespace', v: spec.namespaceMode === 'specific' ? spec.namespace || '—' : `<auto:${spec.namespaceMode}>` },
-          { k: 'system', v: <MonoValue size='sm'>{spec.systemCode || '—'}</MonoValue> },
+          {
+            k: 'namespace',
+            v:
+              spec.namespaceMode === 'specific'
+                ? spec.namespace || '—'
+                : `<auto:${spec.namespaceMode}>`,
+          },
+          {
+            k: 'system',
+            v: <MonoValue size='sm'>{spec.systemCode || '—'}</MonoValue>,
+          },
           { k: 'app', v: <MonoValue size='sm'>{spec.app || '—'}</MonoValue> },
-          { k: 'chaos_type', v: <MonoValue size='sm'>{spec.chaosType || '—'}</MonoValue> },
+          {
+            k: 'chaos_type',
+            v: <MonoValue size='sm'>{spec.chaosType || '—'}</MonoValue>,
+          },
           { k: 'duration', v: `${spec.durationSec}s` },
         ]}
       />

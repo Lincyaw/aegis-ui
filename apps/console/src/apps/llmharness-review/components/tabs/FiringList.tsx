@@ -71,10 +71,14 @@ export function FiringList({
               {renderTrailing ? (
                 renderTrailing(f)
               ) : (
-                <Chip tone={f.status === 'ok' ? 'ghost' : 'warning'}>{f.status}</Chip>
+                <Chip tone={f.status === 'ok' ? 'ghost' : 'warning'}>
+                  {f.status}
+                </Chip>
               )}
             </div>
-            {renderStats && <div className='llmh-firing-list__stats'>{renderStats(f)}</div>}
+            {renderStats && (
+              <div className='llmh-firing-list__stats'>{renderStats(f)}</div>
+            )}
           </div>
         );
       })}

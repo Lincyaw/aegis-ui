@@ -143,7 +143,7 @@ function ResizeHandle({
       onResize(e.clientX - startX.current);
       startX.current = e.clientX;
     },
-    [onResize],
+    [onResize]
   );
 
   const handleUp = useCallback(() => {
@@ -165,7 +165,9 @@ function ResizeHandle({
   }, [dragging, handleMove, handleUp]);
 
   if (disabled) {
-    return <div className='aegis-three-pane__handle aegis-three-pane__handle--disabled' />;
+    return (
+      <div className='aegis-three-pane__handle aegis-three-pane__handle--disabled' />
+    );
   }
   return (
     <div

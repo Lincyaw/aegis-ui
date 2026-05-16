@@ -1,5 +1,3 @@
-import { App as AntdApp } from 'antd';
-import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -7,6 +5,7 @@ import {
   Chip,
   DangerZone,
   EmptyState,
+  ErrorState,
   KeyValueList,
   MetricCard,
   MonoValue,
@@ -16,27 +15,42 @@ import {
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
-import { useMockStore } from '../mocks';
+import { useActiveProjectStore } from '../hooks/useActiveProject';
+import { useDeleteProject, useProject } from '../hooks/useProjects';
 
 export default function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useAppNavigate();
   const { message: msg, modal } = AntdApp.useApp();
+  const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
+  const deleteProject = useDeleteProject();
 
-  const project = useMockStore((s) => s.projects.find((p) => p.id === projectId));
-  const setActiveProject = useMockStore((s) => s.setActiveProject);
-  const injections = useMockStore((s) =>
-    s.injections.filter((i) => i.projectId === projectId),
-  );
-  const traces = useMockStore((s) =>
-    s.traces.filter((t) => t.projectId === projectId),
-  );
+  const numericId = projectId ? Number(projectId) : undefined;
+  const { data: project, isLoading, isError, error } = useProject(numericId);
 
-  const running = useMemo(
-    () => injections.filter((i) => i.status === 'running').length,
-    [injections],
-  );
+  if (isLoading) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title='Loading project…' />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title='Project not found' />
+        <Panel>
+          <ErrorState
+            title='Failed to load project'
+            description={error.message}
+          />
+        </Panel>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
@@ -53,19 +67,20 @@ export default function ProjectOverview() {
   }
 
   const switchAndGo = (to: string): void => {
-    setActiveProject(project.id);
+    if (project.id !== undefined) {
+      setActiveProject(project.id);
+    }
     navigate(to);
   };
 
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={project.name}
-        description={project.description}
+        title={project.name ?? `Project #${String(project.id ?? '')}`}
         action={
           <div className='page-action-row'>
             <Chip tone={project.status === 'active' ? 'ink' : 'ghost'}>
-              {project.status}
+              {project.status ?? 'unknown'}
             </Chip>
             <Button tone='primary' onClick={() => switchAndGo('inject')}>
               Switch & inject
@@ -77,38 +92,58 @@ export default function ProjectOverview() {
       <div className='page-overview-grid'>
         <MetricCard
           label='Injections'
-          value={injections.length}
+          value={project.injection_count ?? 0}
           onClick={() => switchAndGo('injections')}
         />
-        <MetricCard label='Running' value={running} />
+        <MetricCard label='Executions' value={project.execution_count ?? 0} />
+        <MetricCard label='Datasets' value={project.datasets?.length ?? 0} />
         <MetricCard
-          label='Traces'
-          value={traces.length}
-          onClick={() => switchAndGo('traces')}
+          label='Containers'
+          value={project.containers?.length ?? 0}
         />
-        <MetricCard label='Status' value={project.status} />
       </div>
 
       <Panel title={<PanelTitle size='base'>Settings</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'project id', v: <MonoValue size='sm'>{project.id}</MonoValue> },
-            { k: 'name', v: project.name },
-            { k: 'description', v: project.description || '—' },
-            { k: 'status', v: project.status },
-            { k: 'created', v: <TimeDisplay value={project.createdAt} /> },
-            { k: 'default namespace', v: <MonoValue size='sm'>aegis-default</MonoValue> },
+            {
+              k: 'project id',
+              v: <MonoValue size='sm'>{String(project.id ?? '—')}</MonoValue>,
+            },
+            { k: 'name', v: project.name ?? '—' },
+            { k: 'visibility', v: project.is_public ? 'public' : 'private' },
+            { k: 'status', v: project.status ?? '—' },
+            {
+              k: 'created',
+              v: project.created_at ? (
+                <TimeDisplay value={project.created_at} />
+              ) : (
+                '—'
+              ),
+            },
+            {
+              k: 'last injection',
+              v: project.last_injection_at ? (
+                <TimeDisplay value={project.last_injection_at} />
+              ) : (
+                '—'
+              ),
+            },
           ]}
         />
       </Panel>
 
-      <Panel title={<PanelTitle size='base'>Members</PanelTitle>}>
-        <KeyValueList
-          items={[
-            { k: 'lincyaw', v: 'owner' },
-            { k: 'boxiyu', v: 'maintainer' },
-          ]}
-        />
+      <Panel title={<PanelTitle size='base'>Labels</PanelTitle>}>
+        {project.labels && project.labels.length > 0 ? (
+          <KeyValueList
+            items={project.labels.map((l) => ({
+              k: l.key ?? '—',
+              v: l.value ?? '—',
+            }))}
+          />
+        ) : (
+          <EmptyState title='No labels' description='Add labels via API.' />
+        )}
       </Panel>
 
       <DangerZone
@@ -117,15 +152,31 @@ export default function ProjectOverview() {
       >
         <Button
           tone='secondary'
+          disabled={deleteProject.isPending}
           onClick={() =>
             modal.confirm({
-              title: `Delete ${project.name}?`,
-              content: 'This action cannot be undone (mock — no-op).',
+              title: `Delete ${project.name ?? 'project'}?`,
+              content: 'This action cannot be undone.',
               okText: 'Delete',
               okButtonProps: { danger: true },
-              onOk: () => {
-                void msg.info('Delete is mocked — no change applied.');
-              },
+              onOk: () =>
+                new Promise<void>((resolve) => {
+                  if (project.id === undefined) {
+                    resolve();
+                    return;
+                  }
+                  deleteProject.mutate(project.id, {
+                    onSuccess: () => {
+                      void msg.success(`Deleted ${project.name ?? 'project'}`);
+                      navigate('projects');
+                      resolve();
+                    },
+                    onError: (err) => {
+                      void msg.error(`Delete failed: ${err.message}`);
+                      resolve();
+                    },
+                  });
+                }),
             })
           }
         >

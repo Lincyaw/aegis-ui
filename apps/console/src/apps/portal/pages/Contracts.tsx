@@ -10,6 +10,7 @@ import {
   useAppHref,
 } from '@lincyaw/aegis-ui';
 
+// TODO(portal-wire): no ContractsApi in @lincyaw/portal 1.3.0/1.4.0 — chaos contract specs are fixture-only; stays on mocks.
 import { useMockStore } from '../mocks';
 import type { MockContract } from '../mocks/types';
 
@@ -37,7 +38,11 @@ export default function Contracts() {
                 </Link>
               ),
             },
-            { key: 'fault', header: 'Fault type', render: (r) => <Chip tone='ghost'>{r.faultType}</Chip> },
+            {
+              key: 'fault',
+              header: 'Fault type',
+              render: (r) => <Chip tone='ghost'>{r.faultType}</Chip>,
+            },
             { key: 'family', header: 'Family', render: (r) => r.family },
             { key: 'target', header: 'Target', render: (r) => r.targetKind },
             {

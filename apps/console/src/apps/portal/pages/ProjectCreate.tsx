@@ -1,4 +1,3 @@
-import { App as AntdApp } from 'antd';
 import { useState } from 'react';
 
 import {
@@ -9,27 +8,45 @@ import {
   TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
-import { useMockStore } from '../mocks';
+import { useActiveProjectStore } from '../hooks/useActiveProject';
+import { useCreateProject } from '../hooks/useProjects';
 
 export default function ProjectCreate() {
   const navigate = useAppNavigate();
-  const createProject = useMockStore((s) => s.createProject);
-  const setActiveProject = useMockStore((s) => s.setActiveProject);
+  const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
   const { message: msg } = AntdApp.useApp();
+  const createProject = useCreateProject();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
 
   const submit = (): void => {
     if (!name.trim()) {
       void msg.error('name is required');
       return;
     }
-    const created = createProject({ name, description });
-    setActiveProject(created.id);
-    void msg.success(`Project ${created.name} created`);
-    navigate('');
+    createProject.mutate(
+      {
+        name: name.trim(),
+        description: description.trim() || undefined,
+        is_public: isPublic,
+      },
+      {
+        onSuccess: (created) => {
+          if (created.id !== undefined) {
+            setActiveProject(created.id);
+          }
+          void msg.success(`Project ${created.name ?? name} created`);
+          navigate('projects');
+        },
+        onError: (err) => {
+          void msg.error(`Failed to create project: ${err.message}`);
+        },
+      }
+    );
   };
 
   return (
@@ -58,9 +75,23 @@ export default function ProjectCreate() {
             placeholder='Optional description'
           />
         </FormRow>
+        <FormRow label='Visibility'>
+          <label>
+            <input
+              type='checkbox'
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+            />{' '}
+            Public
+          </label>
+        </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit}>
-        Create
+      <Button
+        tone='primary'
+        onClick={submit}
+        disabled={createProject.isPending}
+      >
+        {createProject.isPending ? 'Creating…' : 'Create'}
       </Button>
     </div>
   );

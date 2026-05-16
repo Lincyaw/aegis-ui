@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
-import { App as AntdApp, Button, Form, Modal, Select } from 'antd';
-
 import {
   Chip,
   CodeBlock,
@@ -15,6 +13,7 @@ import {
   Panel,
   TextField,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Button, Form, Modal, Select } from 'antd';
 
 import { ApiError } from '../../../api/apiClient';
 import {
@@ -206,7 +205,9 @@ export default function OidcClients() {
         key: 'grants',
         header: 'Grants',
         render: (row) => (
-          <span style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}>
+          <span
+            style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}
+          >
             {row.grants.map((g) => (
               <Chip key={g} tone='ghost'>
                 {g}
@@ -252,7 +253,7 @@ export default function OidcClients() {
     // handlers are stable for the lifetime of the component; deps array
     // would also pull modal/message which are stable from AntdApp.useApp.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    []
   );
 
   return (

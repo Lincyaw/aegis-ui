@@ -1,4 +1,3 @@
-import { App as AntdApp, Modal } from 'antd';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -19,6 +18,7 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Modal } from 'antd';
 
 import { StatusChip } from '../components/StatusChip';
 import { useMockStore } from '../mocks';
@@ -32,7 +32,9 @@ export default function PedestalDetail() {
 
   const pedestal = useMockStore((s) => s.pedestals.find((p) => p.id === id));
   const recent = useMockStore((s) =>
-    s.injections.filter((i) => i.systemCode === pedestal?.systemCode).slice(0, 6),
+    s.injections
+      .filter((i) => i.systemCode === pedestal?.systemCode)
+      .slice(0, 6)
   );
   const restartPedestal = useMockStore((s) => s.restartPedestal);
   const uninstallPedestal = useMockStore((s) => s.uninstallPedestal);
@@ -46,7 +48,10 @@ export default function PedestalDetail() {
       <div className='page-wrapper'>
         <PageHeader title='Pedestal not found' />
         <Panel>
-          <EmptyState title='Not found' description='Pedestal may have been uninstalled.' />
+          <EmptyState
+            title='Not found'
+            description='Pedestal may have been uninstalled.'
+          />
         </Panel>
       </div>
     );
@@ -90,12 +95,20 @@ export default function PedestalDetail() {
         action={
           <div className='page-action-row'>
             <StatusChip status={pedestal.status} />
-            <Button tone='primary'
-              onClick={() => navigate(`injections/new?system=${pedestal.systemCode}`)}>
+            <Button
+              tone='primary'
+              onClick={() =>
+                navigate(`injections/new?system=${pedestal.systemCode}`)
+              }
+            >
               Inject first fault
             </Button>
-            <Button tone='secondary' onClick={onRestart}>Restart</Button>
-            <Button tone='secondary' onClick={openOverrides}>Apply overrides</Button>
+            <Button tone='secondary' onClick={onRestart}>
+              Restart
+            </Button>
+            <Button tone='secondary' onClick={openOverrides}>
+              Apply overrides
+            </Button>
           </div>
         }
       />
@@ -103,9 +116,22 @@ export default function PedestalDetail() {
       <Panel title={<PanelTitle size='base'>Summary</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'system', v: <Link to={href(`systems/${pedestal.systemCode}`)}>{pedestal.systemCode}</Link> },
-            { k: 'namespace', v: <MonoValue size='sm'>{pedestal.namespace}</MonoValue> },
-            { k: 'version', v: <MonoValue size='sm'>{pedestal.version}</MonoValue> },
+            {
+              k: 'system',
+              v: (
+                <Link to={href(`systems/${pedestal.systemCode}`)}>
+                  {pedestal.systemCode}
+                </Link>
+              ),
+            },
+            {
+              k: 'namespace',
+              v: <MonoValue size='sm'>{pedestal.namespace}</MonoValue>,
+            },
+            {
+              k: 'version',
+              v: <MonoValue size='sm'>{pedestal.version}</MonoValue>,
+            },
             { k: 'status', v: <StatusChip status={pedestal.status} /> },
             { k: 'age', v: pedestal.age },
           ]}
@@ -120,7 +146,10 @@ export default function PedestalDetail() {
       <SectionDivider>Recent injections</SectionDivider>
       <Panel>
         {recent.length === 0 ? (
-          <EmptyState title='No injections yet' description='Inject a fault to populate.' />
+          <EmptyState
+            title='No injections yet'
+            description='Inject a fault to populate.'
+          />
         ) : (
           <DataList<MockInjection>
             items={recent}
@@ -133,7 +162,11 @@ export default function PedestalDetail() {
                 ),
               },
               { key: 'name', label: 'Fault', render: (r) => r.name },
-              { key: 'status', label: 'Status', render: (r) => <StatusChip status={r.status} /> },
+              {
+                key: 'status',
+                label: 'Status',
+                render: (r) => <StatusChip status={r.status} />,
+              },
             ]}
           />
         )}
@@ -143,7 +176,9 @@ export default function PedestalDetail() {
         title='Danger zone'
         description='Uninstall removes all release resources from the cluster.'
       >
-        <Button tone='secondary' onClick={onUninstall}>Uninstall</Button>
+        <Button tone='secondary' onClick={onUninstall}>
+          Uninstall
+        </Button>
       </DangerZone>
 
       <Modal
@@ -162,7 +197,9 @@ export default function PedestalDetail() {
             height={220}
           />
         </div>
-        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>Diff vs current:</div>
+        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>
+          Diff vs current:
+        </div>
         <DiffViewer
           oldValue={pedestal.helmValues}
           newValue={draftValues}

@@ -43,6 +43,7 @@ export type {
 export { ToolCallCard } from './ToolCallCard';
 export type { ToolCallData, ToolCallCardSurface } from './ToolCallCard';
 export { EmptyState } from './EmptyState';
+export { Skeleton, SkeletonText } from './Skeleton';
 export { TimeDisplay } from './TimeDisplay';
 export { CodeBlock } from './CodeBlock';
 export type { CodeBlockSurface } from './CodeBlock';

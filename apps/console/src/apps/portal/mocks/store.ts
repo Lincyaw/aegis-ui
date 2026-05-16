@@ -40,14 +40,18 @@ interface StoreActions {
   removeStaged: (index: number) => void;
   clearBatch: () => void;
   submitBatch: (projectId: string) => MockInjection[];
-  saveTemplate: (name: string, description: string, spec: GuidedInjectionSpec) => MockInjectionTemplate;
+  saveTemplate: (
+    name: string,
+    description: string,
+    spec: GuidedInjectionSpec
+  ) => MockInjectionTemplate;
   deleteTemplate: (id: string) => void;
   cancelTask: (id: string) => void;
   expediteTask: (id: string) => void;
   cancelInjection: (id: string) => void;
   addInjectionsToDataset: (
     injectionIds: string[],
-    opts: { datasetId?: string; newName?: string; description?: string },
+    opts: { datasetId?: string; newName?: string; description?: string }
   ) => MockDataset;
 
   installPedestal: (input: {
@@ -60,7 +64,9 @@ interface StoreActions {
   uninstallPedestal: (id: string) => void;
   applyPedestalOverrides: (id: string, helmValues: string) => void;
 
-  registerSystem: (input: Omit<MockSystem, 'pedestalCount' | 'lastInjectionAt'>) => MockSystem;
+  registerSystem: (
+    input: Omit<MockSystem, 'pedestalCount' | 'lastInjectionAt'>
+  ) => MockSystem;
   enableSystem: (code: string) => void;
   disableSystem: (code: string) => void;
 
@@ -91,10 +97,17 @@ interface StoreActions {
   setPedestalStatus: (id: string, status: MockPedestal['status']) => void;
 
   runPreflight: () => void;
-  setClusterCheckStatus: (id: string, status: MockClusterCheck['status'], detail?: string) => void;
+  setClusterCheckStatus: (
+    id: string,
+    status: MockClusterCheck['status'],
+    detail?: string
+  ) => void;
   appendClusterEvent: (level: 'info' | 'warn' | 'error', body: string) => void;
   setEvalRunStatus: (id: string, status: MockEvalRun['status']) => void;
-  setRegressionRunStatus: (id: string, status: MockRegressionRun['status']) => void;
+  setRegressionRunStatus: (
+    id: string,
+    status: MockRegressionRun['status']
+  ) => void;
 
   setActiveProject: (id: string) => void;
 }
@@ -125,7 +138,10 @@ export const useMockStore = create<MockStore>((set, get) => ({
       intensity: input.intensity,
       status: 'pending',
       createdAt: nowIso(),
-      name: input.name ?? labelFromSpec ?? `${contract?.name ?? 'fault'}-${input.systemCode}`,
+      name:
+        input.name ??
+        labelFromSpec ??
+        `${contract?.name ?? 'fault'}-${input.systemCode}`,
       spec: input.spec,
     };
     const task: MockTask = {
@@ -147,15 +163,20 @@ export const useMockStore = create<MockStore>((set, get) => ({
         },
       ],
     };
-    set((s) => ({ injections: [created, ...s.injections], tasks: [task, ...s.tasks] }));
+    set((s) => ({
+      injections: [created, ...s.injections],
+      tasks: [task, ...s.tasks],
+    }));
 
     setTimeout(() => {
       const traceId = rand('trace');
       set((s) => ({
         injections: s.injections.map((i) =>
-          i.id === id ? { ...i, status: 'running', traceId } : i,
+          i.id === id ? { ...i, status: 'running', traceId } : i
         ),
-        tasks: s.tasks.map((t) => (t.id === taskId ? { ...t, status: 'running' } : t)),
+        tasks: s.tasks.map((t) =>
+          t.id === taskId ? { ...t, status: 'running' } : t
+        ),
         traces: [
           {
             id: traceId,
@@ -173,13 +194,18 @@ export const useMockStore = create<MockStore>((set, get) => ({
 
     setTimeout(() => {
       const current = get().injections.find((i) => i.id === id);
-      if (current && (current.status === 'cancelled' || current.status === 'failed')) {
+      if (
+        current &&
+        (current.status === 'cancelled' || current.status === 'failed')
+      ) {
         return;
       }
       set((s) => ({
-        injections: s.injections.map((i) => (i.id === id ? { ...i, status: 'completed' } : i)),
+        injections: s.injections.map((i) =>
+          i.id === id ? { ...i, status: 'completed' } : i
+        ),
         tasks: s.tasks.map((t) =>
-          t.id === taskId ? { ...t, status: 'completed', durationMs: 4000 } : t,
+          t.id === taskId ? { ...t, status: 'completed', durationMs: 4000 } : t
         ),
       }));
     }, 4000);
@@ -200,7 +226,9 @@ export const useMockStore = create<MockStore>((set, get) => ({
     set(() => ({ stagedInjections: [] }));
   },
   submitBatch: (projectId) => {
-    const items = get().stagedInjections.filter((it) => it.projectId === projectId);
+    const items = get().stagedInjections.filter(
+      (it) => it.projectId === projectId
+    );
     const created: MockInjection[] = [];
     for (const it of items) {
       created.push(
@@ -211,38 +239,53 @@ export const useMockStore = create<MockStore>((set, get) => ({
           durationSec: it.spec.durationSec,
           intensity: 50,
           spec: it.spec,
-        }),
+        })
       );
     }
     set((s) => ({
-      stagedInjections: s.stagedInjections.filter((it) => it.projectId !== projectId),
+      stagedInjections: s.stagedInjections.filter(
+        (it) => it.projectId !== projectId
+      ),
     }));
     return created;
   },
   saveTemplate: (name, description, spec) => {
-    const tpl: MockInjectionTemplate = { id: rand('tpl'), name, description, spec };
+    const tpl: MockInjectionTemplate = {
+      id: rand('tpl'),
+      name,
+      description,
+      spec,
+    };
     set((s) => ({ injectionTemplates: [tpl, ...s.injectionTemplates] }));
     return tpl;
   },
   deleteTemplate: (id) => {
-    set((s) => ({ injectionTemplates: s.injectionTemplates.filter((t) => t.id !== id) }));
+    set((s) => ({
+      injectionTemplates: s.injectionTemplates.filter((t) => t.id !== id),
+    }));
   },
 
   cancelTask: (id) => {
     set((s) => ({
-      tasks: s.tasks.map((t) => (t.id === id ? { ...t, status: 'cancelled' } : t)),
+      tasks: s.tasks.map((t) =>
+        t.id === id ? { ...t, status: 'cancelled' } : t
+      ),
     }));
   },
   expediteTask: (id) => {
     set((s) => ({
-      tasks: s.tasks.map((t) => (t.id === id ? { ...t, status: 'completed' } : t)),
+      tasks: s.tasks.map((t) =>
+        t.id === id ? { ...t, status: 'completed' } : t
+      ),
     }));
   },
   cancelInjection: (id) => {
     set((s) => ({
-      injections: s.injections.map((i) => (i.id === id ? { ...i, status: 'cancelled' } : i)),
+      injections: s.injections.map((i) =>
+        i.id === id ? { ...i, status: 'cancelled' } : i
+      ),
       tasks: s.tasks.map((t) =>
-        t.parentId === id ? { ...t, status: 'cancelled' } : t,
+        t.parentId === id ? { ...t, status: 'cancelled' } : t
       ),
     }));
   },
@@ -254,7 +297,9 @@ export const useMockStore = create<MockStore>((set, get) => ({
     if (existing) {
       const merged: MockDataset = {
         ...existing,
-        injectionIds: Array.from(new Set([...existing.injectionIds, ...injectionIds])),
+        injectionIds: Array.from(
+          new Set([...existing.injectionIds, ...injectionIds])
+        ),
         fileCount: existing.fileCount + injectionIds.length,
         sizeMb: existing.sizeMb + injectionIds.length * 8,
       };
@@ -293,24 +338,30 @@ export const useMockStore = create<MockStore>((set, get) => ({
       systems: s.systems.map((sys) =>
         sys.code === input.systemCode
           ? { ...sys, pedestalCount: sys.pedestalCount + 1 }
-          : sys,
+          : sys
       ),
     }));
     setTimeout(() => {
       set((s) => ({
-        pedestals: s.pedestals.map((p) => (p.id === id ? { ...p, status: 'running' } : p)),
+        pedestals: s.pedestals.map((p) =>
+          p.id === id ? { ...p, status: 'running' } : p
+        ),
       }));
     }, 3000);
     return created;
   },
   restartPedestal: (id) => {
     set((s) => ({
-      pedestals: s.pedestals.map((p) => (p.id === id ? { ...p, status: 'restarting' } : p)),
+      pedestals: s.pedestals.map((p) =>
+        p.id === id ? { ...p, status: 'restarting' } : p
+      ),
     }));
     setTimeout(() => {
       set((s) => ({
         pedestals: s.pedestals.map((p) =>
-          p.id === id ? { ...p, status: 'running', lastRestartAt: nowIso(), age: '0m' } : p,
+          p.id === id
+            ? { ...p, status: 'running', lastRestartAt: nowIso(), age: '0m' }
+            : p
         ),
       }));
     }, 3000);
@@ -323,7 +374,7 @@ export const useMockStore = create<MockStore>((set, get) => ({
         ? s.systems.map((sys) =>
             sys.code === ped.systemCode
               ? { ...sys, pedestalCount: Math.max(0, sys.pedestalCount - 1) }
-              : sys,
+              : sys
           )
         : s.systems,
     }));
@@ -331,13 +382,13 @@ export const useMockStore = create<MockStore>((set, get) => ({
   applyPedestalOverrides: (id, helmValues) => {
     set((s) => ({
       pedestals: s.pedestals.map((p) =>
-        p.id === id ? { ...p, status: 'restarting', helmValues } : p,
+        p.id === id ? { ...p, status: 'restarting', helmValues } : p
       ),
     }));
     setTimeout(() => {
       set((s) => ({
         pedestals: s.pedestals.map((p) =>
-          p.id === id ? { ...p, status: 'running', lastRestartAt: nowIso() } : p,
+          p.id === id ? { ...p, status: 'running', lastRestartAt: nowIso() } : p
         ),
       }));
     }, 2500);
@@ -354,12 +405,16 @@ export const useMockStore = create<MockStore>((set, get) => ({
   },
   enableSystem: (code) => {
     set((s) => ({
-      systems: s.systems.map((sys) => (sys.code === code ? { ...sys, enabled: true } : sys)),
+      systems: s.systems.map((sys) =>
+        sys.code === code ? { ...sys, enabled: true } : sys
+      ),
     }));
   },
   disableSystem: (code) => {
     set((s) => ({
-      systems: s.systems.map((sys) => (sys.code === code ? { ...sys, enabled: false } : sys)),
+      systems: s.systems.map((sys) =>
+        sys.code === code ? { ...sys, enabled: false } : sys
+      ),
     }));
   },
 
@@ -378,7 +433,9 @@ export const useMockStore = create<MockStore>((set, get) => ({
         status: 'pending',
         startedAt: nowIso(),
         durationMs: 0,
-        logs: [{ ts: '00:00:00', level: 'info', body: `regression child ${i}` }],
+        logs: [
+          { ts: '00:00:00', level: 'info', body: `regression child ${i}` },
+        ],
       });
     }
     const created: MockRegressionRun = {
@@ -400,10 +457,10 @@ export const useMockStore = create<MockStore>((set, get) => ({
     setTimeout(() => {
       set((s) => ({
         regressionRuns: s.regressionRuns.map((r) =>
-          r.id === id ? { ...r, status: 'running' } : r,
+          r.id === id ? { ...r, status: 'running' } : r
         ),
         tasks: s.tasks.map((t) =>
-          childTaskIds.includes(t.id) ? { ...t, status: 'running' } : t,
+          childTaskIds.includes(t.id) ? { ...t, status: 'running' } : t
         ),
       }));
     }, 1500);
@@ -411,11 +468,19 @@ export const useMockStore = create<MockStore>((set, get) => ({
       set((s) => ({
         regressionRuns: s.regressionRuns.map((r) =>
           r.id === id
-            ? { ...r, status: 'completed', passes: input.concurrency, fails: 0, durationMs: 4000 }
-            : r,
+            ? {
+                ...r,
+                status: 'completed',
+                passes: input.concurrency,
+                fails: 0,
+                durationMs: 4000,
+              }
+            : r
         ),
         tasks: s.tasks.map((t) =>
-          childTaskIds.includes(t.id) ? { ...t, status: 'completed', durationMs: 4000 } : t,
+          childTaskIds.includes(t.id)
+            ? { ...t, status: 'completed', durationMs: 4000 }
+            : t
         ),
       }));
     }, 4000);
@@ -457,7 +522,9 @@ export const useMockStore = create<MockStore>((set, get) => ({
             timestamp: '00:00:03',
             actionType: 'message',
             action: 'Conclude root cause',
-            observation: passed ? '**Root cause** identified.' : '**Inconclusive**.',
+            observation: passed
+              ? '**Root cause** identified.'
+              : '**Inconclusive**.',
           },
         ],
       });
@@ -481,7 +548,9 @@ export const useMockStore = create<MockStore>((set, get) => ({
     }));
     setTimeout(() => {
       set((s) => ({
-        evalRuns: s.evalRuns.map((r) => (r.id === id ? { ...r, status: 'running' } : r)),
+        evalRuns: s.evalRuns.map((r) =>
+          r.id === id ? { ...r, status: 'running' } : r
+        ),
       }));
     }, 1500);
     setTimeout(() => {
@@ -496,7 +565,7 @@ export const useMockStore = create<MockStore>((set, get) => ({
                 pathReachability: 0.7,
                 completionRate: 0.95,
               }
-            : r,
+            : r
         ),
       }));
     }, 4500);
@@ -544,7 +613,9 @@ export const useMockStore = create<MockStore>((set, get) => ({
   },
 
   setTaskStatus: (id, status) => {
-    set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, status } : t)) }));
+    set((s) => ({
+      tasks: s.tasks.map((t) => (t.id === id ? { ...t, status } : t)),
+    }));
   },
   setInjectionStatus: (id, status) => {
     set((s) => ({
@@ -552,7 +623,9 @@ export const useMockStore = create<MockStore>((set, get) => ({
     }));
   },
   setPedestalStatus: (id, status) => {
-    set((s) => ({ pedestals: s.pedestals.map((p) => (p.id === id ? { ...p, status } : p)) }));
+    set((s) => ({
+      pedestals: s.pedestals.map((p) => (p.id === id ? { ...p, status } : p)),
+    }));
   },
 
   runPreflight: () => {
@@ -561,27 +634,38 @@ export const useMockStore = create<MockStore>((set, get) => ({
       clusterChecks: s.clusterChecks.map((c) => ({ ...c, status: 'checking' })),
     }));
     checks.forEach((c, idx) => {
-      setTimeout(() => {
-        set((s) => ({
-          clusterChecks: s.clusterChecks.map((x) =>
-            x.id === c.id ? { ...x, status: c.id === 'chk-otel' || c.id === 'chk-pedestals' ? 'warn' : 'ok' } : x,
-          ),
-          clusterEvents: [
-            {
-              ts: new Date().toISOString().slice(11, 19),
-              level: 'info' as const,
-              body: `${c.name} → re-checked`,
-            },
-            ...s.clusterEvents,
-          ].slice(0, 12),
-        }));
-      }, 600 + idx * 250);
+      setTimeout(
+        () => {
+          set((s) => ({
+            clusterChecks: s.clusterChecks.map((x) =>
+              x.id === c.id
+                ? {
+                    ...x,
+                    status:
+                      c.id === 'chk-otel' || c.id === 'chk-pedestals'
+                        ? 'warn'
+                        : 'ok',
+                  }
+                : x
+            ),
+            clusterEvents: [
+              {
+                ts: new Date().toISOString().slice(11, 19),
+                level: 'info' as const,
+                body: `${c.name} → re-checked`,
+              },
+              ...s.clusterEvents,
+            ].slice(0, 12),
+          }));
+        },
+        600 + idx * 250
+      );
     });
   },
   setClusterCheckStatus: (id, status, detail) => {
     set((s) => ({
       clusterChecks: s.clusterChecks.map((c) =>
-        c.id === id ? { ...c, status, detail: detail ?? c.detail } : c,
+        c.id === id ? { ...c, status, detail: detail ?? c.detail } : c
       ),
     }));
   },
@@ -600,7 +684,9 @@ export const useMockStore = create<MockStore>((set, get) => ({
   },
   setRegressionRunStatus: (id, status) => {
     set((s) => ({
-      regressionRuns: s.regressionRuns.map((r) => (r.id === id ? { ...r, status } : r)),
+      regressionRuns: s.regressionRuns.map((r) =>
+        r.id === id ? { ...r, status } : r
+      ),
     }));
   },
 

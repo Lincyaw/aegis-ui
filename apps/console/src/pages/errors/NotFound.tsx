@@ -1,9 +1,8 @@
 import type { ReactElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button } from 'antd';
-
 import { ErrorState } from '@lincyaw/aegis-ui';
+import { Button } from 'antd';
 
 export function NotFound(): ReactElement {
   const navigate = useNavigate();

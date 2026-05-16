@@ -10,9 +10,9 @@
  *   - Each list/read returns plain data so consumers can treat the repo as a
  *     pure source. UI state lives in the page hooks, not here.
  */
-
-import { apiFetch, ApiError } from '../../api/apiClient';
+import { ApiError, apiFetch } from '../../api/apiClient';
 import { driverList, inlineUrl } from '../../api/blobClient';
+
 import {
   type BlobRoot,
   fetchHealth,
@@ -39,12 +39,19 @@ export interface CaseRepo {
   readMeta(caseId: string): Promise<CaseMeta>;
   readMainAgent(caseId: string): Promise<MainAgentMessage[]>;
   listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]>;
-  readFiring(caseId: string, phase: FiringPhase, fileName: string): Promise<FiringFile>;
+  readFiring(
+    caseId: string,
+    phase: FiringPhase,
+    fileName: string
+  ): Promise<FiringFile>;
   readVerdicts(caseId: string): Promise<VerdictRow[]>;
   readTrajectory(caseId: string): Promise<TrajectoryRow[]>;
   /** Cumulative graph state after an extractor firing succeeded.
    * Returns null if the snapshot file is missing (firing didn't advance). */
-  readSnapshot(caseId: string, extractorSequence: number): Promise<GraphSnapshotFile | null>;
+  readSnapshot(
+    caseId: string,
+    extractorSequence: number
+  ): Promise<GraphSnapshotFile | null>;
 }
 
 // --------------------------------------------------------------------------
@@ -54,7 +61,9 @@ export interface CaseRepo {
 interface FileSystemDirectoryHandleLike {
   kind: 'directory';
   name: string;
-  values(): AsyncIterable<FileSystemDirectoryHandleLike | FileSystemFileHandleLike>;
+  values(): AsyncIterable<
+    FileSystemDirectoryHandleLike | FileSystemFileHandleLike
+  >;
   getDirectoryHandle(name: string): Promise<FileSystemDirectoryHandleLike>;
   getFileHandle(name: string): Promise<FileSystemFileHandleLike>;
 }
@@ -66,7 +75,7 @@ interface FileSystemFileHandleLike {
 
 async function readTextFile(
   dir: FileSystemDirectoryHandleLike,
-  name: string,
+  name: string
 ): Promise<string> {
   const fh = await dir.getFileHandle(name);
   const file = await fh.getFile();
@@ -85,7 +94,7 @@ function parseJsonl<T>(text: string): T[] {
 
 async function readJsonlOrEmpty<T>(
   dir: FileSystemDirectoryHandleLike,
-  name: string,
+  name: string
 ): Promise<T[]> {
   try {
     return parseJsonl<T>(await readTextFile(dir, name));
@@ -103,7 +112,9 @@ export class FSAccessCaseRepo implements CaseRepo {
     this.label = root.name;
   }
 
-  private async caseDir(caseId: string): Promise<FileSystemDirectoryHandleLike> {
+  private async caseDir(
+    caseId: string
+  ): Promise<FileSystemDirectoryHandleLike> {
     return this.root.getDirectoryHandle(caseId);
   }
 
@@ -131,7 +142,9 @@ export class FSAccessCaseRepo implements CaseRepo {
 
   async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
     const dir = await this.caseDir(caseId);
-    return parseJsonl<MainAgentMessage>(await readTextFile(dir, 'main_agent.jsonl'));
+    return parseJsonl<MainAgentMessage>(
+      await readTextFile(dir, 'main_agent.jsonl')
+    );
   }
 
   async listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]> {
@@ -150,7 +163,7 @@ export class FSAccessCaseRepo implements CaseRepo {
   async readFiring(
     caseId: string,
     phase: FiringPhase,
-    fileName: string,
+    fileName: string
   ): Promise<FiringFile> {
     const dir = await this.caseDir(caseId);
     const phaseDir = await dir.getDirectoryHandle(phase);
@@ -159,22 +172,31 @@ export class FSAccessCaseRepo implements CaseRepo {
   }
 
   async readVerdicts(caseId: string): Promise<VerdictRow[]> {
-    return readJsonlOrEmpty<VerdictRow>(await this.caseDir(caseId), 'verdicts.jsonl');
+    return readJsonlOrEmpty<VerdictRow>(
+      await this.caseDir(caseId),
+      'verdicts.jsonl'
+    );
   }
 
   async readTrajectory(caseId: string): Promise<TrajectoryRow[]> {
-    return readJsonlOrEmpty<TrajectoryRow>(await this.caseDir(caseId), 'trajectory.jsonl');
+    return readJsonlOrEmpty<TrajectoryRow>(
+      await this.caseDir(caseId),
+      'trajectory.jsonl'
+    );
   }
 
   async readSnapshot(
     caseId: string,
-    extractorSequence: number,
+    extractorSequence: number
   ): Promise<GraphSnapshotFile | null> {
     const dir = await this.caseDir(caseId);
     try {
       const snapDir = await dir.getDirectoryHandle('event_graph');
       const padded = String(extractorSequence).padStart(3, '0');
-      const text = await readTextFile(snapDir, `after_extractor_${padded}.json`);
+      const text = await readTextFile(
+        snapDir,
+        `after_extractor_${padded}.json`
+      );
       return JSON.parse(text) as GraphSnapshotFile;
     } catch {
       return null;
@@ -187,9 +209,10 @@ export class FSAccessCaseRepo implements CaseRepo {
 // --------------------------------------------------------------------------
 
 interface ShowDirectoryPickerFn {
-  (options?: { id?: string; mode?: 'read' | 'readwrite' }): Promise<
-    FileSystemDirectoryHandleLike
-  >;
+  (options?: {
+    id?: string;
+    mode?: 'read' | 'readwrite';
+  }): Promise<FileSystemDirectoryHandleLike>;
 }
 
 declare global {
@@ -243,7 +266,10 @@ async function idbDelete(key: string): Promise<void> {
 }
 
 export function isFsAccessSupported(): boolean {
-  return typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.showDirectoryPicker === 'function'
+  );
 }
 
 interface PersistedRootHelpers<R> {
@@ -255,13 +281,17 @@ interface PersistedRootHelpers<R> {
 function createPersistedRoot<R>(
   pickerId: string,
   idbKey: string,
-  wrap: (handle: FileSystemDirectoryHandleLike) => R,
+  wrap: (handle: FileSystemDirectoryHandleLike) => R
 ): PersistedRootHelpers<R> {
-  const fsUnavailable = new Error('File System Access API is not available in this browser.');
+  const fsUnavailable = new Error(
+    'File System Access API is not available in this browser.'
+  );
 
   return {
     async pick() {
-      const picker = isFsAccessSupported() ? window.showDirectoryPicker : undefined;
+      const picker = isFsAccessSupported()
+        ? window.showDirectoryPicker
+        : undefined;
       if (!picker) throw fsUnavailable;
       const handle = await picker({ id: pickerId, mode: 'read' });
       await idbSet(idbKey, handle);
@@ -273,7 +303,9 @@ function createPersistedRoot<R>(
       if (!handle) return null;
       const queryable = handle as unknown as {
         queryPermission?: (opts: { mode: 'read' }) => Promise<PermissionState>;
-        requestPermission?: (opts: { mode: 'read' }) => Promise<PermissionState>;
+        requestPermission?: (opts: {
+          mode: 'read';
+        }) => Promise<PermissionState>;
       };
       if (queryable.queryPermission) {
         const state = await queryable.queryPermission({ mode: 'read' });
@@ -295,7 +327,7 @@ function createPersistedRoot<R>(
 const casesRoot = createPersistedRoot(
   'aegis-cases-root',
   IDB_KEY,
-  (h) => new FSAccessCaseRepo(h),
+  (h) => new FSAccessCaseRepo(h)
 );
 
 export const pickCasesRoot = casesRoot.pick;
@@ -326,7 +358,7 @@ export class FSAccessSftRepo {
 const sftRoot = createPersistedRoot(
   'aegis-sft-root',
   IDB_KEY_SFT,
-  (h) => new FSAccessSftRepo(h),
+  (h) => new FSAccessSftRepo(h)
 );
 
 export const pickSftRoot = sftRoot.pick;
@@ -371,18 +403,20 @@ export class HttpCaseRepo implements CaseRepo {
   }
 
   readMeta(caseId: string): Promise<CaseMeta> {
-    return this.getJson<CaseMeta>(`/api/cases/${encodeURIComponent(caseId)}/meta`);
+    return this.getJson<CaseMeta>(
+      `/api/cases/${encodeURIComponent(caseId)}/meta`
+    );
   }
 
   async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
     return parseJsonl<MainAgentMessage>(
-      await this.getText(`/api/cases/${encodeURIComponent(caseId)}/main_agent`),
+      await this.getText(`/api/cases/${encodeURIComponent(caseId)}/main_agent`)
     );
   }
 
   async listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]> {
     const payload = await this.getJson<{ files: string[] }>(
-      `/api/cases/${encodeURIComponent(caseId)}/firings/${phase}`,
+      `/api/cases/${encodeURIComponent(caseId)}/firings/${phase}`
     );
     return payload.files;
   }
@@ -390,17 +424,17 @@ export class HttpCaseRepo implements CaseRepo {
   readFiring(
     caseId: string,
     phase: FiringPhase,
-    fileName: string,
+    fileName: string
   ): Promise<FiringFile> {
     return this.getJson<FiringFile>(
-      `/api/cases/${encodeURIComponent(caseId)}/firings/${phase}/${encodeURIComponent(fileName)}`,
+      `/api/cases/${encodeURIComponent(caseId)}/firings/${phase}/${encodeURIComponent(fileName)}`
     );
   }
 
   async readVerdicts(caseId: string): Promise<VerdictRow[]> {
     try {
       return parseJsonl<VerdictRow>(
-        await this.getText(`/api/cases/${encodeURIComponent(caseId)}/verdicts`),
+        await this.getText(`/api/cases/${encodeURIComponent(caseId)}/verdicts`)
       );
     } catch {
       return [];
@@ -410,7 +444,9 @@ export class HttpCaseRepo implements CaseRepo {
   async readTrajectory(caseId: string): Promise<TrajectoryRow[]> {
     try {
       return parseJsonl<TrajectoryRow>(
-        await this.getText(`/api/cases/${encodeURIComponent(caseId)}/trajectory`),
+        await this.getText(
+          `/api/cases/${encodeURIComponent(caseId)}/trajectory`
+        )
       );
     } catch {
       return [];
@@ -419,11 +455,11 @@ export class HttpCaseRepo implements CaseRepo {
 
   async readSnapshot(
     caseId: string,
-    sequence: number,
+    sequence: number
   ): Promise<GraphSnapshotFile | null> {
     try {
       return await this.getJson<GraphSnapshotFile>(
-        `/api/cases/${encodeURIComponent(caseId)}/snapshots/${sequence}`,
+        `/api/cases/${encodeURIComponent(caseId)}/snapshots/${sequence}`
       );
     } catch {
       return null;
@@ -525,7 +561,7 @@ export class BlobCaseRepo implements CaseRepo {
       dirs.map(async (caseId) => ({
         caseId,
         meta: await this.getJson<CaseMeta>(this.keyFor(caseId, 'meta.json')),
-      })),
+      }))
     );
     for (const r of settled) {
       if (r.status === 'fulfilled') {
@@ -542,13 +578,13 @@ export class BlobCaseRepo implements CaseRepo {
 
   async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
     return parseJsonl<MainAgentMessage>(
-      await this.getText(this.keyFor(caseId, 'main_agent.jsonl')),
+      await this.getText(this.keyFor(caseId, 'main_agent.jsonl'))
     );
   }
 
   async listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]> {
     const names = await this.listChildFiles(
-      `${this.prefix}${caseId}/${phase}/`,
+      `${this.prefix}${caseId}/${phase}/`
     );
     return names.filter((n) => n.endsWith('.json')).sort();
   }
@@ -556,29 +592,33 @@ export class BlobCaseRepo implements CaseRepo {
   readFiring(
     caseId: string,
     phase: FiringPhase,
-    fileName: string,
+    fileName: string
   ): Promise<FiringFile> {
-    return this.getJson<FiringFile>(`${this.prefix}${caseId}/${phase}/${fileName}`);
+    return this.getJson<FiringFile>(
+      `${this.prefix}${caseId}/${phase}/${fileName}`
+    );
   }
 
   readVerdicts(caseId: string): Promise<VerdictRow[]> {
-    return this.getJsonlOrEmpty<VerdictRow>(this.keyFor(caseId, 'verdicts.jsonl'));
+    return this.getJsonlOrEmpty<VerdictRow>(
+      this.keyFor(caseId, 'verdicts.jsonl')
+    );
   }
 
   readTrajectory(caseId: string): Promise<TrajectoryRow[]> {
     return this.getJsonlOrEmpty<TrajectoryRow>(
-      this.keyFor(caseId, 'trajectory.jsonl'),
+      this.keyFor(caseId, 'trajectory.jsonl')
     );
   }
 
   async readSnapshot(
     caseId: string,
-    sequence: number,
+    sequence: number
   ): Promise<GraphSnapshotFile | null> {
     const padded = String(sequence).padStart(3, '0');
     try {
       return await this.getJson<GraphSnapshotFile>(
-        `${this.prefix}${caseId}/event_graph/after_extractor_${padded}.json`,
+        `${this.prefix}${caseId}/event_graph/after_extractor_${padded}.json`
       );
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
@@ -597,16 +637,14 @@ export interface BlobProbeInfo {
 
 /** Probe a (bucket, prefix) by listing one page of common-prefixes. Used by
  *  the Settings page to confirm the path before saving. */
-export async function probeBlobRoot(
-  root: BlobRoot,
-): Promise<BlobProbeInfo> {
+export async function probeBlobRoot(root: BlobRoot): Promise<BlobProbeInfo> {
   const page = await driverList(root.bucket, {
     prefix: root.prefix,
     delimiter: '/',
     max_keys: 1000,
   });
   const count = (page.common_prefixes ?? []).filter(
-    (p) => p !== root.prefix,
+    (p) => p !== root.prefix
   ).length;
   return { bucket: root.bucket, prefix: root.prefix, caseCount: count };
 }

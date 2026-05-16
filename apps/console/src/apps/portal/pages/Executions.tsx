@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import {
   Button,
   DataTable,
+  EmptyState,
+  ErrorState,
   MonoValue,
   PageHeader,
   Panel,
@@ -10,65 +12,103 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import type { ExecutionExecutionResp } from '@lincyaw/portal';
 
 import { StatusChip } from '../components/StatusChip';
-import { useActiveProjectId, useMockStore } from '../mocks';
-import type { MockTask } from '../mocks/types';
+import { useActiveProjectNumericId } from '../hooks/useActiveProjectNumericId';
+import { useExecutionsList } from '../hooks/useExecutions';
 
 export default function Executions() {
-  const projectId = useActiveProjectId();
+  const projectId = useActiveProjectNumericId();
   const navigate = useAppNavigate();
   const href = useAppHref();
-  const tasks = useMockStore((s) =>
-    s.tasks.filter((t) => t.kind === 'regression' || t.kind === 'eval'),
-  );
+  const { data, isLoading, isError, error, refetch } =
+    useExecutionsList(projectId);
+  const items: ExecutionExecutionResp[] = data?.items ?? [];
 
   return (
     <div className='page-wrapper'>
       <PageHeader
         title='Executions'
-        description={`Algorithm + eval executions for project ${projectId}.`}
+        description={`Algorithm + eval executions for project ${String(projectId)}.`}
         action={
           <Button
             tone='primary'
-            onClick={() => navigate('executions/new')}
+            onClick={() => {
+              navigate('executions/new');
+            }}
           >
             + Run algorithm
           </Button>
         }
       />
       <Panel>
-        <DataTable<MockTask>
-          data={tasks.slice(0, 30)}
-          rowKey={(r) => r.id}
-          columns={[
-            {
-              key: 'id',
-              header: 'Execution',
-              render: (r) => (
-                <Link to={href(`executions/${r.id}`)}>
-                  <MonoValue size='sm'>{r.id}</MonoValue>
-                </Link>
-              ),
-            },
-            { key: 'kind', header: 'Kind', render: (r) => r.kind },
-            {
-              key: 'parent',
-              header: 'Parent',
-              render: (r) => <MonoValue size='sm'>{r.parentLabel}</MonoValue>,
-            },
-            {
-              key: 'status',
-              header: 'Status',
-              render: (r) => <StatusChip status={r.status} />,
-            },
-            {
-              key: 'started',
-              header: 'Started',
-              render: (r) => <TimeDisplay value={r.startedAt} />,
-            },
-          ]}
-        />
+        {isError ? (
+          <ErrorState
+            title='Failed to load executions'
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
+            action={
+              <Button
+                tone='secondary'
+                onClick={() => {
+                  void refetch();
+                }}
+              >
+                Retry
+              </Button>
+            }
+          />
+        ) : isLoading ? (
+          <EmptyState title='Loading…' description='Fetching executions.' />
+        ) : items.length === 0 ? (
+          <EmptyState
+            title='No executions'
+            description='Run an algorithm to see results here.'
+          />
+        ) : (
+          <DataTable<ExecutionExecutionResp>
+            data={items}
+            rowKey={(r) => String(r.id ?? '')}
+            columns={[
+              {
+                key: 'id',
+                header: 'Execution',
+                render: (r) => (
+                  <Link to={href(`executions/${String(r.id ?? '')}`)}>
+                    <MonoValue size='sm'>{String(r.id ?? '—')}</MonoValue>
+                  </Link>
+                ),
+              },
+              {
+                key: 'algorithm',
+                header: 'Algorithm',
+                render: (r) =>
+                  `${r.algorithm_name ?? '—'}${r.algorithm_version ? ` @ ${r.algorithm_version}` : ''}`,
+              },
+              {
+                key: 'datapack',
+                header: 'Datapack',
+                render: (r) => (
+                  <MonoValue size='sm'>{r.datapack_name ?? '—'}</MonoValue>
+                ),
+              },
+              {
+                key: 'state',
+                header: 'State',
+                render: (r) => (
+                  <StatusChip status={r.state ?? r.status ?? 'pending'} />
+                ),
+              },
+              {
+                key: 'started',
+                header: 'Created',
+                render: (r) => <TimeDisplay value={r.created_at ?? ''} />,
+              },
+            ]}
+          />
+        )}
       </Panel>
     </div>
   );

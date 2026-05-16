@@ -6,16 +6,14 @@
  * Good enough for the case sizes we deal with (< 100 nodes); replace with
  * dagre/elk if cases grow.
  */
-
 import { useMemo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
+  type NodeTypes,
   type Edge as RFEdge,
   type Node as RFNode,
-  type NodeTypes,
 } from 'reactflow';
-
 import 'reactflow/dist/style.css';
 
 import { EmptyState } from '@lincyaw/aegis-ui';
@@ -63,7 +61,8 @@ function colOf(event: GraphEvent): number {
  * (and edge endpoint) by composing `${min(source_turns)}-${id}`.
  */
 function nodeKeyOf(event: GraphEvent): string {
-  const t = event.source_turns.length > 0 ? Math.min(...event.source_turns) : -1;
+  const t =
+    event.source_turns.length > 0 ? Math.min(...event.source_turns) : -1;
   return `${t}-${event.id}`;
 }
 
@@ -72,7 +71,9 @@ function endpointKey(id: number, turns: number[] | undefined): string {
   return `${t}-${id}`;
 }
 
-function positionEvents(events: GraphEvent[]): Map<string, { x: number; y: number }> {
+function positionEvents(
+  events: GraphEvent[]
+): Map<string, { x: number; y: number }> {
   const byCol = new Map<number, GraphEvent[]>();
   for (const e of events) {
     const c = colOf(e);
@@ -141,7 +142,8 @@ export function EventGraphView({
             selectedEventId !== null &&
             (ed.src === selectedEventId || ed.dst === selectedEventId),
           style: {
-            stroke: ed.kind === 'ref' ? 'var(--accent-info)' : 'var(--text-muted)',
+            stroke:
+              ed.kind === 'ref' ? 'var(--accent-info)' : 'var(--text-muted)',
           },
           labelStyle: {
             fontFamily: 'var(--font-mono)',
@@ -150,11 +152,16 @@ export function EventGraphView({
           },
         };
       }),
-    [edges, selectedEventId],
+    [edges, selectedEventId]
   );
 
   if (events.length === 0) {
-    return <EmptyState title='Empty graph' description='No events in this snapshot.' />;
+    return (
+      <EmptyState
+        title='Empty graph'
+        description='No events in this snapshot.'
+      />
+    );
   }
 
   return (

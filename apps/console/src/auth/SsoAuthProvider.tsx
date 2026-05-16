@@ -10,13 +10,13 @@ import {
 
 import {
   type AegisAuthUser,
-  AuthProvider,
   type AuthContextValue,
+  AuthProvider,
   type AuthStatus,
 } from '@lincyaw/aegis-ui';
 
 import { randomUrlSafe, s256Challenge } from './pkce';
-import { loadSsoConfig, ssoUrl } from './ssoConfig';
+import { type SsoAuthHandle, SsoCallbackContext } from './ssoCallbackContext';
 import {
   exchangeCode,
   fetchUserInfo,
@@ -24,17 +24,14 @@ import {
   refreshTokens,
   type UserInfo,
 } from './ssoClient';
+import { loadSsoConfig, ssoUrl } from './ssoConfig';
 import {
-  SsoCallbackContext,
-  type SsoAuthHandle,
-} from './ssoCallbackContext';
-import {
+  type PendingAuth,
   readPending,
   readTokens,
+  type TokenSet,
   writePending,
   writeTokens,
-  type PendingAuth,
-  type TokenSet,
 } from './tokenStore';
 
 interface SignInArgs {
@@ -129,9 +126,11 @@ export function SsoAuthProvider({
         code_challenge: challenge,
         code_challenge_method: 'S256',
       });
-      window.location.assign(`${ssoUrl('/authorize', cfg)}?${params.toString()}`);
+      window.location.assign(
+        `${ssoUrl('/authorize', cfg)}?${params.toString()}`
+      );
     },
-    [cfg],
+    [cfg]
   );
 
   const signOut = useCallback(async (): Promise<void> => {
@@ -165,7 +164,7 @@ export function SsoAuthProvider({
       setStatus('authenticated');
       return pending.redirectAfter;
     },
-    [cfg, setTokens],
+    [cfg, setTokens]
   );
 
   const value = useMemo<AuthContextValue<AegisAuthUser>>(
@@ -175,11 +174,11 @@ export function SsoAuthProvider({
       signIn,
       signOut,
     }),
-    [status, user, signIn, signOut],
+    [status, user, signIn, signOut]
   );
   const callbackHandle = useMemo<SsoAuthHandle>(
     () => ({ complete: completeCallback }),
-    [completeCallback],
+    [completeCallback]
   );
 
   return (

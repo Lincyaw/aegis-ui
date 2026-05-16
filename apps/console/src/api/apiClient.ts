@@ -6,9 +6,8 @@
  * Each surface routes through its own vite proxy prefix (see
  * vite.config.ts), so callers stay on relative paths.
  */
-
-import { gatewayUrlFor } from '../config/runtime';
 import { readTokens } from '../auth/tokenStore';
+import { gatewayUrlFor } from '../config/runtime';
 
 export interface ApiFetchOptions extends RequestInit {
   /** Skip Authorization header (e.g. for the SSO token endpoint). */
@@ -28,7 +27,9 @@ export class ApiError extends Error {
   }
 }
 
-async function readError(res: Response): Promise<{ body: unknown; msg: string }> {
+async function readError(
+  res: Response
+): Promise<{ body: unknown; msg: string }> {
   const text = await res.text().catch(() => '');
   let body: unknown = text;
   try {
@@ -45,7 +46,7 @@ async function readError(res: Response): Promise<{ body: unknown; msg: string }>
 
 export async function apiFetch(
   path: string,
-  init: ApiFetchOptions = {},
+  init: ApiFetchOptions = {}
 ): Promise<Response> {
   const { anonymous, tolerateMissing, headers, ...rest } = init;
   const merged = new Headers(headers ?? undefined);
@@ -77,7 +78,7 @@ export async function apiFetch(
 
 export async function apiJson<T>(
   path: string,
-  init: ApiFetchOptions = {},
+  init: ApiFetchOptions = {}
 ): Promise<T> {
   const res = await apiFetch(path, init);
   return (await res.json()) as T;

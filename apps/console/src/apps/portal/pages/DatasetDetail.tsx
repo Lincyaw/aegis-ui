@@ -1,10 +1,10 @@
-import { App as AntdApp } from 'antd';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
   Button,
-  DataList,
+  Chip,
   EmptyState,
+  ErrorState,
   KeyValueList,
   MetricCard,
   MonoValue,
@@ -13,108 +13,194 @@ import {
   PanelTitle,
   SectionDivider,
   TimeDisplay,
-  useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { App as AntdApp, Spin } from 'antd';
 
-import { useMockStore } from '../mocks';
-import type { MockInjection } from '../mocks/types';
+import { useDataset, useDeleteDataset } from '../api/datasets';
 
 export default function DatasetDetail() {
-  const { datasetId } = useParams<{ datasetId: string }>();
-  const href = useAppHref();
+  const { datasetId: rawId } = useParams<{ datasetId: string }>();
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
+  const datasetId = rawId !== undefined ? Number(rawId) : undefined;
+  const { data: dataset, isLoading, isError, error } = useDataset(datasetId);
+  const del = useDeleteDataset();
 
-  const dataset = useMockStore((s) => s.datasets.find((d) => d.id === datasetId));
-  const allInjections = useMockStore((s) => s.injections);
-
-  if (!dataset) {
+  if (isLoading) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title='Dataset not found' />
+        <PageHeader title='Loading…' />
         <Panel>
-          <EmptyState title='Not found' description='This dataset no longer exists.' />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--space-6)',
+            }}
+          >
+            <Spin />
+          </div>
         </Panel>
       </div>
     );
   }
 
-  const contribs = allInjections.filter((i) => dataset.injectionIds.includes(i.id));
+  if (isError) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title='Dataset' />
+        <Panel>
+          <ErrorState
+            title='Failed to load dataset'
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
+          />
+        </Panel>
+      </div>
+    );
+  }
+
+  if (!dataset || dataset.id === undefined) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title='Dataset not found' />
+        <Panel>
+          <EmptyState
+            title='Not found'
+            description='This dataset no longer exists.'
+          />
+        </Panel>
+      </div>
+    );
+  }
+
+  const versions = dataset.versions ?? [];
+  const totalFiles = versions.reduce((acc, v) => acc + (v.file_count ?? 0), 0);
+  const labelEntries = dataset.labels ?? [];
 
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={dataset.name}
+        title={dataset.name ?? `Dataset #${String(dataset.id)}`}
         description={dataset.description}
         action={
           <div className='page-action-row'>
             <Button
               tone='primary'
-              onClick={() => navigate(`eval/new?dataset=${dataset.id}`)}
+              onClick={() =>
+                navigate(`eval/new?dataset=${String(dataset.id ?? '')}`)
+              }
             >
               Use in eval
             </Button>
             <Button
-              tone='secondary'
-              onClick={() => {
-                void msg.success('Download started (mocked)');
-              }}
-            >
-              Download
-            </Button>
-            <Button
               tone='ghost'
               onClick={() => {
-                void msg.info('Regeneration queued (mocked)');
+                if (dataset.id === undefined) {
+                  return;
+                }
+                del.mutate(dataset.id, {
+                  onSuccess: () => {
+                    void msg.success('Dataset deleted');
+                    navigate('datasets');
+                  },
+                  onError: (err) => {
+                    void msg.error(
+                      err instanceof Error
+                        ? err.message
+                        : 'Failed to delete dataset'
+                    );
+                  },
+                });
               }}
+              disabled={del.isPending}
             >
-              Regenerate
+              Delete
             </Button>
           </div>
         }
       />
 
       <div className='page-overview-grid'>
-        <MetricCard label='Injections' value={dataset.injectionIds.length} />
-        <MetricCard label='Files' value={dataset.fileCount} />
-        <MetricCard label='Size' value={`${dataset.sizeMb} MB`} />
-        <MetricCard label='Created' value={<TimeDisplay value={dataset.createdAt} />} />
+        <MetricCard label='Versions' value={versions.length} />
+        <MetricCard label='Files' value={totalFiles} />
+        <MetricCard label='Type' value={dataset.type ?? '—'} />
+        <MetricCard
+          label='Created'
+          value={
+            dataset.created_at ? (
+              <TimeDisplay value={dataset.created_at} />
+            ) : (
+              '—'
+            )
+          }
+        />
       </div>
 
       <Panel title={<PanelTitle size='base'>Summary</PanelTitle>}>
         <KeyValueList
           items={[
-            { k: 'id', v: <MonoValue size='sm'>{dataset.id}</MonoValue> },
-            { k: 'description', v: dataset.description || '—' },
+            {
+              k: 'id',
+              v: <MonoValue size='sm'>{String(dataset.id)}</MonoValue>,
+            },
+            { k: 'name', v: dataset.name ?? '—' },
+            { k: 'description', v: dataset.description ?? '—' },
+            { k: 'visibility', v: dataset.is_public ? 'public' : 'private' },
+            { k: 'status', v: dataset.status ?? '—' },
+            {
+              k: 'labels',
+              v:
+                labelEntries.length === 0 ? (
+                  '—'
+                ) : (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 'var(--space-2)',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {labelEntries.map((l, idx) => (
+                      <Chip
+                        key={`${l.key ?? ''}-${l.value ?? ''}-${String(idx)}`}
+                        tone='ghost'
+                      >
+                        {l.key}={l.value}
+                      </Chip>
+                    ))}
+                  </div>
+                ),
+            },
           ]}
         />
       </Panel>
 
-      <SectionDivider>Contributing injections</SectionDivider>
+      <SectionDivider>Versions</SectionDivider>
       <Panel>
-        {contribs.length === 0 ? (
+        {versions.length === 0 ? (
           <EmptyState
-            title='Empty dataset'
-            description='Add injections from the Injections list.'
+            title='No versions'
+            description='Add a dataset version to populate datapacks.'
           />
         ) : (
-          <DataList<MockInjection>
-            items={contribs}
-            columns={[
-              {
-                key: 'id',
-                label: 'Injection',
-                render: (r) => (
-                  <Link to={href(`injections/${r.id}`)}>
-                    {r.id}
-                  </Link>
-                ),
-              },
-              { key: 'name', label: 'Name', render: (r) => r.name },
-              { key: 'sys', label: 'System', render: (r) => r.systemCode },
-              { key: 'status', label: 'Status', render: (r) => r.status },
-            ]}
+          <KeyValueList
+            items={versions.map((v) => ({
+              k: (
+                <MonoValue size='sm'>
+                  {v.name ?? `#${String(v.id ?? '')}`}
+                </MonoValue>
+              ),
+              v: (
+                <span>
+                  files: {v.file_count ?? 0}
+                  {v.updated_at ? ' · updated ' : ''}
+                  {v.updated_at ? <TimeDisplay value={v.updated_at} /> : null}
+                </span>
+              ),
+            }))}
           />
         )}
       </Panel>

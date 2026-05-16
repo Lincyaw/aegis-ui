@@ -2,11 +2,9 @@ import type { ReactElement } from 'react';
 
 import { Chip, MetricLabel } from '@lincyaw/aegis-ui';
 
-import {
-  FILTERABLE_SPAN_KINDS,
-  type TrajectoriesPrefs,
-} from '../prefs';
+import { FILTERABLE_SPAN_KINDS, type TrajectoriesPrefs } from '../prefs';
 import type { SpanKind } from '../spanKind';
+
 import './FilterToolbar.css';
 
 interface FilterToolbarProps {

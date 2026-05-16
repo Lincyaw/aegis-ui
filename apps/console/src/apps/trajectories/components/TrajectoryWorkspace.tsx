@@ -4,23 +4,24 @@ import {
   Chip,
   EmptyState,
   ErrorState,
-  KeyValueList,
   type KeyValueItem,
+  KeyValueList,
   MetricLabel,
   MonoValue,
   TimelineChart,
   type TimelineSpan,
-  TraceTree,
   type TraceSpan,
+  TraceTree,
 } from '@lincyaw/aegis-ui';
 
 import { listSpansByRootSession, type SpanRow } from '../api/clickhouse';
 import { formatDurationMs } from '../conversation';
-import { useTrajectoriesPrefs, type PrimaryView } from '../prefs';
+import { type PrimaryView, useTrajectoriesPrefs } from '../prefs';
 import { useSelection } from '../selection';
 import { applySpanFilter } from '../spanFilter';
 import { classifyWithRules, spanDisplayName } from '../spanKind';
 import { useKeyboardNav } from '../useKeyboardNav';
+
 import { FilterToolbar } from './FilterToolbar';
 import { SessionsTree } from './SessionsTree';
 import { ShortcutsHelp } from './ShortcutsHelp';
@@ -141,7 +142,7 @@ export function TrajectoryWorkspace({
 
   const filteredSpans = useMemo(
     () => applySpanFilter(spans, prefs, selection.sessionId),
-    [spans, prefs, selection.sessionId],
+    [spans, prefs, selection.sessionId]
   );
   const treeSpans = useMemo(() => toTraceSpans(filteredSpans), [filteredSpans]);
   const timelineSpans = useMemo(
@@ -150,7 +151,7 @@ export function TrajectoryWorkspace({
   );
   const selectedSpan = useMemo(
     () => spans.find((s) => s.spanId === selection.spanId),
-    [spans, selection.spanId],
+    [spans, selection.spanId]
   );
   const sessionIds = useMemo(() => {
     const list: string[] = [''];
@@ -274,7 +275,9 @@ function CenterPane({
   timelineSpans: TimelineSpan[];
   selectedSpanId: string;
   onSelectSpan: (id: string) => void;
-  customRules: ReturnType<typeof useTrajectoriesPrefs>['prefs']['customSpanRules'];
+  customRules: ReturnType<
+    typeof useTrajectoriesPrefs
+  >['prefs']['customSpanRules'];
 }): ReactElement {
   return (
     <>
@@ -356,7 +359,7 @@ function SpanInspector({ span }: { span: SpanRow }): ReactElement {
   }
 
   const attrEntries = Object.entries(span.attributes).sort(([a], [b]) =>
-    a.localeCompare(b),
+    a.localeCompare(b)
   );
 
   return (

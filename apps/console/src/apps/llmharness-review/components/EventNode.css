@@ -39,12 +39,24 @@
   color: var(--text-main);
 }
 
-.llmh-evt-node--task    .llmh-evt-node__kind { background: #dbeafe; }
-.llmh-evt-node--hyp     .llmh-evt-node__kind { background: #fef3c7; }
-.llmh-evt-node--evid    .llmh-evt-node__kind { background: #d1fae5; }
-.llmh-evt-node--act     .llmh-evt-node__kind { background: #ede9fe; }
-.llmh-evt-node--dec     .llmh-evt-node__kind { background: #fce7f3; }
-.llmh-evt-node--concl   .llmh-evt-node__kind { background: #ffedd5; }
+.llmh-evt-node--task .llmh-evt-node__kind {
+  background: #dbeafe;
+}
+.llmh-evt-node--hyp .llmh-evt-node__kind {
+  background: #fef3c7;
+}
+.llmh-evt-node--evid .llmh-evt-node__kind {
+  background: #d1fae5;
+}
+.llmh-evt-node--act .llmh-evt-node__kind {
+  background: #ede9fe;
+}
+.llmh-evt-node--dec .llmh-evt-node__kind {
+  background: #fce7f3;
+}
+.llmh-evt-node--concl .llmh-evt-node__kind {
+  background: #ffedd5;
+}
 
 .llmh-evt-node__id {
   font-family: var(--font-mono);

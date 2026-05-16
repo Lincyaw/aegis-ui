@@ -12,6 +12,7 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
+// TODO(portal-wire): no RegressionsApi in @lincyaw/portal 1.3.0/1.4.0 — regression cases/runs have no backend surface yet; stays on mocks.
 import { useMockStore } from '../mocks';
 import type { MockRegressionCase } from '../mocks/types';
 
@@ -45,7 +46,11 @@ export default function Regressions() {
                 </Link>
               ),
             },
-            { key: 'desc', header: 'Description', render: (r) => r.description },
+            {
+              key: 'desc',
+              header: 'Description',
+              render: (r) => r.description,
+            },
             {
               key: 'status',
               header: 'Last status',
@@ -67,7 +72,9 @@ export default function Regressions() {
               key: 'rate',
               header: 'Pass rate',
               render: (r) => (
-                <MonoValue size='sm'>{(r.passRate * 100).toFixed(1)}%</MonoValue>
+                <MonoValue size='sm'>
+                  {(r.passRate * 100).toFixed(1)}%
+                </MonoValue>
               ),
             },
             {

@@ -1,8 +1,7 @@
 import type { ReactElement } from 'react';
 
-import { Button } from 'antd';
-
 import { ErrorState } from '@lincyaw/aegis-ui';
+import { Button } from 'antd';
 
 export function ServerError(): ReactElement {
   return (

@@ -14,6 +14,7 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
+// TODO(portal-wire): no ContractsApi in @lincyaw/portal 1.3.0/1.4.0 — chaos contract specs are fixture-only; stays on mocks.
 import { useMockStore } from '../mocks';
 
 export default function ContractDetail() {
@@ -21,7 +22,7 @@ export default function ContractDetail() {
   const navigate = useAppNavigate();
   const contract = useMockStore((s) => s.contracts.find((c) => c.id === id));
   const injections = useMockStore((s) =>
-    s.injections.filter((i) => i.contractId === id),
+    s.injections.filter((i) => i.contractId === id)
   );
 
   const contractToChaosType: Record<string, string> = {

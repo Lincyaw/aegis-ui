@@ -10,8 +10,9 @@ import {
   PanelTitle,
 } from '@lincyaw/aegis-ui';
 
-import { TrajectoryWorkspace } from '../components/TrajectoryWorkspace';
 import { useCompareList } from '../compareList';
+import { TrajectoryWorkspace } from '../components/TrajectoryWorkspace';
+
 import './Compare.css';
 
 export function Compare(): ReactElement {

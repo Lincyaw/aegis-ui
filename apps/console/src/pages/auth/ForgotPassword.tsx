@@ -20,7 +20,7 @@ export function ForgotPassword(): ReactElement {
     try {
       await requestPasswordReset(values.email);
       setSuccess(
-        `If an account exists for ${values.email}, we've sent a reset link.`,
+        `If an account exists for ${values.email}, we've sent a reset link.`
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
@@ -33,7 +33,7 @@ export function ForgotPassword(): ReactElement {
     <AuthLayout
       brand='AegisLab'
       title='Reset your password'
-      description='Enter your email and we&apos;ll send you a reset link.'
+      description="Enter your email and we'll send you a reset link."
       footer={<Link to='/auth/login'>Back to sign in</Link>}
     >
       <ForgotPasswordForm

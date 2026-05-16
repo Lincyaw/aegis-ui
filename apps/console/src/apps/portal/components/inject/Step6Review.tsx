@@ -1,9 +1,10 @@
-import { Radio } from 'antd';
 import { useState } from 'react';
 
 import { CodeBlock, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
+import { Radio } from 'antd';
 
 import type { GuidedInjectionSpec } from '../../mocks/types';
+
 import { specToYaml } from './paramSchema';
 
 interface Props {
@@ -15,7 +16,8 @@ export function Step6Review({ spec }: Props) {
   return (
     <Panel title={<PanelTitle size='base'>6. Review</PanelTitle>}>
       <MetricLabel>
-        Resolved session config — equivalent to ~/.aegisctl/inject-guided/session.yaml.
+        Resolved session config — equivalent to
+        ~/.aegisctl/inject-guided/session.yaml.
       </MetricLabel>
       <Radio.Group
         value={format}

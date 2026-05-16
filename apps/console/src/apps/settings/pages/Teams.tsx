@@ -1,5 +1,3 @@
-import { Button } from 'antd';
-
 import {
   Avatar,
   Chip,
@@ -8,6 +6,7 @@ import {
   Panel,
   PanelTitle,
 } from '@lincyaw/aegis-ui';
+import { Button } from 'antd';
 
 import './Teams.css';
 

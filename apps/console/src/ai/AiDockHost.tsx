@@ -28,7 +28,7 @@ function writeOpen(value: boolean): void {
 
 export function AiDockHost(): ReactElement {
   const [open, setOpen] = useState<boolean>(() =>
-    typeof window === 'undefined' ? false : readOpen(),
+    typeof window === 'undefined' ? false : readOpen()
   );
 
   const toggle = useCallback((): void => {

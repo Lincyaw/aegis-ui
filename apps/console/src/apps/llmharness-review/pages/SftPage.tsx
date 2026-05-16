@@ -1,6 +1,12 @@
-import { FolderOpenOutlined } from '@ant-design/icons';
-import { type ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
+import { FolderOpenOutlined } from '@ant-design/icons';
 import {
   Button,
   Chip,
@@ -18,8 +24,8 @@ import {
 
 import { SftRowDetail, SftStats } from '../components';
 import {
-  type FSAccessSftRepo,
   clearStoredSftRoot,
+  type FSAccessSftRepo,
   isFsAccessSupported,
   pickSftRoot,
   restoreSftRoot,
@@ -38,7 +44,8 @@ interface LoadedSft {
 
 function auditorSurfaced(row: SftRowBase): boolean {
   const call = row.target.tool_calls[0];
-  const v = (call?.arguments as { verdict?: { surface_reminder?: boolean } })?.verdict;
+  const v = (call?.arguments as { verdict?: { surface_reminder?: boolean } })
+    ?.verdict;
   return Boolean(v?.surface_reminder);
 }
 
@@ -119,7 +126,8 @@ export function SftPage(): ReactElement {
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
-      if (phase === 'auditor' && onlySurfaced && !auditorSurfaced(r)) return false;
+      if (phase === 'auditor' && onlySurfaced && !auditorSurfaced(r))
+        return false;
       if (q) {
         const hay = [r.sample_id, r.root_session_id, String(r.turn_index)]
           .join(' ')
@@ -231,7 +239,9 @@ export function SftPage(): ReactElement {
         </div>
       }
     >
-      {error && <ErrorState title='Failed to read SFT root' description={error} />}
+      {error && (
+        <ErrorState title='Failed to read SFT root' description={error} />
+      )}
       {data && (
         <>
           <SftStats

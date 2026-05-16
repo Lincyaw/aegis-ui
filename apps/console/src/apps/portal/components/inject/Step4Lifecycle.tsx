@@ -1,8 +1,13 @@
+import {
+  BlastRadiusBar,
+  MetricLabel,
+  Panel,
+  PanelTitle,
+} from '@lincyaw/aegis-ui';
 import { Form, Slider, Switch } from 'antd';
 
-import { BlastRadiusBar, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
-
 import type { GuidedInjectionSpec } from '../../mocks/types';
+
 import { CHAOS_BY_NAME } from './paramSchema';
 
 interface Props {
@@ -28,7 +33,9 @@ function blastFor(spec: GuidedInjectionSpec): number {
 
 export function Step4Lifecycle({ spec, update }: Props) {
   return (
-    <Panel title={<PanelTitle size='base'>4. Lifecycle &amp; scope</PanelTitle>}>
+    <Panel
+      title={<PanelTitle size='base'>4. Lifecycle &amp; scope</PanelTitle>}
+    >
       <Form layout='vertical'>
         <Form.Item label={`Duration · ${spec.durationSec}s`}>
           <Slider

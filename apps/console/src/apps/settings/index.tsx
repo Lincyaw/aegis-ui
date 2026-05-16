@@ -1,3 +1,5 @@
+import { Navigate } from 'react-router-dom';
+
 import {
   ApiOutlined,
   BellOutlined,
@@ -7,14 +9,11 @@ import {
   SafetyOutlined,
   SettingOutlined,
   TeamOutlined,
-  UserOutlined,
   UsergroupAddOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
-import { Navigate } from 'react-router-dom';
-
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
-import { Setup } from '../../pages/Setup';
 import ApiKeys from './pages/ApiKeys';
 import AuditLogs from './pages/AuditLogs';
 import Notifications from './pages/Notifications';
@@ -23,6 +22,8 @@ import Profile from './pages/Profile';
 import Roles from './pages/Roles';
 import Teams from './pages/Teams';
 import Users from './pages/Users';
+
+import { Setup } from '../../pages/Setup';
 
 export const settingsApp: AegisApp = {
   id: 'settings',

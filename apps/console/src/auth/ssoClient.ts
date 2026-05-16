@@ -18,7 +18,7 @@ export interface UserInfo {
 async function form(
   cfg: SsoConfig,
   path: string,
-  body: Record<string, string>,
+  body: Record<string, string>
 ): Promise<Response> {
   const params = new URLSearchParams(body);
   return fetch(ssoUrl(path, cfg), {
@@ -31,7 +31,7 @@ async function form(
 export async function exchangeCode(
   cfg: SsoConfig,
   code: string,
-  codeVerifier: string,
+  codeVerifier: string
 ): Promise<TokenResponse> {
   const res = await form(cfg, '/token', {
     grant_type: 'authorization_code',
@@ -48,7 +48,7 @@ export async function exchangeCode(
 
 export async function refreshTokens(
   cfg: SsoConfig,
-  refreshToken: string,
+  refreshToken: string
 ): Promise<TokenResponse> {
   const res = await form(cfg, '/token', {
     grant_type: 'refresh_token',
@@ -63,7 +63,7 @@ export async function refreshTokens(
 
 export async function fetchUserInfo(
   cfg: SsoConfig,
-  accessToken: string,
+  accessToken: string
 ): Promise<UserInfo> {
   const res = await fetch(ssoUrl('/userinfo', cfg), {
     headers: { authorization: `Bearer ${accessToken}` },
@@ -76,9 +76,13 @@ export async function fetchUserInfo(
 
 export async function logoutSso(
   cfg: SsoConfig,
-  refreshToken?: string,
+  refreshToken?: string
 ): Promise<void> {
-  await form(cfg, '/v1/logout', refreshToken ? { refresh_token: refreshToken } : {});
+  await form(
+    cfg,
+    '/v1/logout',
+    refreshToken ? { refresh_token: refreshToken } : {}
+  );
 }
 
 interface RegisterReq {
@@ -90,7 +94,7 @@ interface RegisterReq {
 
 export async function registerUser(
   cfg: SsoConfig,
-  req: RegisterReq,
+  req: RegisterReq
 ): Promise<void> {
   const res = await fetch(ssoUrl('/api/v2/auth/register', cfg), {
     method: 'POST',
