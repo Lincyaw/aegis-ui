@@ -1,4 +1,5 @@
-import { App as AntdApp } from 'antd';
+import { ContainerType } from '@lincyaw/portal';
+import { App as AntdApp, Select } from 'antd';
 import { useState } from 'react';
 
 import {
@@ -10,25 +11,54 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
-import { useMockStore } from '../mocks';
+import { useCreateContainer } from '../hooks/useContainers';
 
 export default function ContainerCreate() {
   const navigate = useAppNavigate();
-  const createContainer = useMockStore((s) => s.createContainer);
   const { message: msg } = AntdApp.useApp();
+  const createContainer = useCreateContainer();
 
   const [name, setName] = useState('');
-  const [image, setImage] = useState('');
-  const [algorithm, setAlgorithm] = useState('');
+  const [type, setType] = useState<ContainerType>(ContainerType.Algorithm);
+  const [isPublic, setIsPublic] = useState(false);
+  const [readme, setReadme] = useState('');
+  const [versionName, setVersionName] = useState('v1');
+  const [imageRef, setImageRef] = useState('');
 
   const submit = (): void => {
-    if (!name.trim() || !image.trim()) {
-      void msg.error('name and image are required');
+    if (!name.trim()) {
+      void msg.error('name is required');
       return;
     }
-    const created = createContainer({ name, image, algorithm });
-    void msg.success(`Registered ${created.name}`);
-    navigate(`containers/${created.id}`);
+    if (!imageRef.trim() || !versionName.trim()) {
+      void msg.error('image and version name are required');
+      return;
+    }
+    createContainer.mutate(
+      {
+        name: name.trim(),
+        type,
+        is_public: isPublic,
+        readme: readme.trim() || undefined,
+        version: {
+          name: versionName.trim(),
+          image_ref: imageRef.trim(),
+        },
+      },
+      {
+        onSuccess: (created) => {
+          void msg.success(`Registered ${created?.name ?? name}`);
+          if (created?.id !== undefined) {
+            navigate(`containers/${String(created.id)}`);
+          } else {
+            navigate('containers');
+          }
+        },
+        onError: (err) => {
+          void msg.error(err instanceof Error ? err.message : 'Create failed');
+        },
+      },
+    );
   };
 
   return (
@@ -46,23 +76,57 @@ export default function ContainerCreate() {
         <FormRow label='Name'>
           <TextField value={name} onChange={(e) => setName(e.target.value)} />
         </FormRow>
-        <FormRow label='Image'>
+        <FormRow label='Type'>
+          <Select
+            value={type}
+            onChange={setType}
+            style={{ width: 240 }}
+            options={[
+              { value: ContainerType.Algorithm, label: 'Algorithm' },
+              { value: ContainerType.Benchmark, label: 'Benchmark' },
+              { value: ContainerType.Pedestal, label: 'Pedestal' },
+            ]}
+          />
+        </FormRow>
+        <FormRow label='Visibility'>
+          <Select
+            value={isPublic}
+            onChange={setIsPublic}
+            style={{ width: 240 }}
+            options={[
+              { value: false, label: 'Private' },
+              { value: true, label: 'Public' },
+            ]}
+          />
+        </FormRow>
+        <FormRow label='Version name'>
           <TextField
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
+            value={versionName}
+            onChange={(e) => setVersionName(e.target.value)}
+            placeholder='v1'
+          />
+        </FormRow>
+        <FormRow label='Image ref'>
+          <TextField
+            value={imageRef}
+            onChange={(e) => setImageRef(e.target.value)}
             placeholder='opspai/rcabench-algo:r1'
           />
         </FormRow>
-        <FormRow label='Algorithm'>
+        <FormRow label='Readme'>
           <TextField
-            value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value)}
-            placeholder='microRCA'
+            value={readme}
+            onChange={(e) => setReadme(e.target.value)}
+            placeholder='Optional notes'
           />
         </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit}>
-        Register
+      <Button
+        tone='primary'
+        onClick={submit}
+        disabled={createContainer.isPending}
+      >
+        {createContainer.isPending ? 'Registering…' : 'Register'}
       </Button>
     </div>
   );
