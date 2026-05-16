@@ -18,7 +18,12 @@ import {
   PanelTitle,
 } from '@lincyaw/aegis-ui';
 
-import { CaseMetaBar, MessageBlocks, SftRowDetail } from '../components';
+import {
+  CaseMetaBar,
+  EventGraphView,
+  MessageBlocks,
+  SftRowDetail,
+} from '../components';
 import {
   type CaseRepo,
   type CaseSftBundle,
@@ -302,66 +307,72 @@ function ExtractorDetail({
         <>
           <div className='llmh-cdp__detail-block'>
             <div className='llmh-cdp__detail-head'>
-              output.events
-              <MetricLabel size='xs'>{output.events.length}</MetricLabel>
+              output.graph
+              <MetricLabel size='xs'>
+                {output.events.length} events · {output.edges.length} edges
+              </MetricLabel>
             </div>
-            {output.events.length === 0 ? (
-              <EmptyState title='No events' />
-            ) : (
-              output.events.map((ev) => (
+            <EventGraphView
+              events={output.events}
+              edges={output.edges}
+              selectedEventId={selection.eventId}
+              onSelectEvent={(id) => {
+                set({ eventId: id });
+              }}
+              onSelectTurn={(turnIndex) => {
+                set({ turn: turnIndex });
+              }}
+            />
+          </div>
+
+          <details className='llmh-cdp__detail-block'>
+            <summary>
+              <span className='llmh-cdp__detail-head'>
+                events &amp; edges (list)
+                <MetricLabel size='xs'>
+                  {output.events.length} / {output.edges.length}
+                </MetricLabel>
+              </span>
+            </summary>
+            <div style={{ marginTop: 'var(--space-2)' }}>
+              {output.events.map((ev) => (
                 <ExtractorEventRow
                   key={ev.id}
                   event={ev}
                   cited={citedByFinding.has(ev.id)}
                 />
-              ))
-            )}
-          </div>
-
-          <div className='llmh-cdp__detail-block'>
-            <div className='llmh-cdp__detail-head'>
-              output.edges
-              <MetricLabel size='xs'>{output.edges.length}</MetricLabel>
+              ))}
+              {output.edges.map((edge, i) => (
+                <div key={`edge-${i.toString()}`} className='llmh-cdp__event-row'>
+                  <MonoValue size='sm'>
+                    #{edge.src} → #{edge.dst}
+                  </MonoValue>
+                  <Chip tone='default'>{edge.kind}</Chip>
+                  {edge.reason && <span>{edge.reason}</span>}
+                </div>
+              ))}
             </div>
-            {output.edges.map((edge, i) => (
-              <div key={i} className='llmh-cdp__event-row'>
-                <MonoValue size='sm'>
-                  #{edge.src} → #{edge.dst}
-                </MonoValue>
-                <Chip tone='default'>{edge.kind}</Chip>
-                {edge.reason && <span>{edge.reason}</span>}
-              </div>
-            ))}
-          </div>
+          </details>
 
-          <div
-            className={[
-              'llmh-cdp__detail-block',
-              output.dropped_edges.length > 0 ? 'llmh-cdp__dropped' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            <div className='llmh-cdp__detail-head'>
-              output.dropped_edges
-              <Chip
-                tone={output.dropped_edges.length > 0 ? 'warning' : 'ghost'}
-              >
-                {output.dropped_edges.length}
-              </Chip>
-            </div>
-            {output.dropped_edges.map((d, i) => (
-              <div key={i} className='llmh-cdp__pre'>
-                <strong>{d.reason}</strong>
-                {d.raw !== undefined && (
-                  <>
-                    {'\n'}
-                    {JSON.stringify(d.raw, null, 2)}
-                  </>
-                )}
+          {output.dropped_edges.length > 0 && (
+            <div className='llmh-cdp__detail-block llmh-cdp__dropped'>
+              <div className='llmh-cdp__detail-head'>
+                output.dropped_edges
+                <Chip tone='warning'>{output.dropped_edges.length}</Chip>
               </div>
-            ))}
-          </div>
+              {output.dropped_edges.map((d, i) => (
+                <div key={i} className='llmh-cdp__pre'>
+                  <strong>{d.reason}</strong>
+                  {d.raw !== undefined && (
+                    <>
+                      {'\n'}
+                      {JSON.stringify(d.raw, null, 2)}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </>
       ) : (
         <EmptyState

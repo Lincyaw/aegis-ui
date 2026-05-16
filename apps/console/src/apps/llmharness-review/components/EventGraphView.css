@@ -1,0 +1,8 @@
+.llmh-graph {
+  height: 480px;
+  width: 100%;
+  background: var(--bg-page);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
