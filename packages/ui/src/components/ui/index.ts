@@ -145,3 +145,5 @@ export type {
   ServiceMapProps,
   ServiceMapStatus,
 } from './ServiceMap';
+export { SavedQueryBar } from './SavedQueryBar';
+export type { SavedQueryBarProps } from './SavedQueryBar';

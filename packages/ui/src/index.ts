@@ -10,8 +10,14 @@ import './index.css';
 export * from './components/ui';
 
 // Hooks
-export { useResizable } from './hooks';
-export type { UseResizableOptions, UseResizableReturn } from './hooks';
+export { useResizable, useSavedQueries } from './hooks';
+export type {
+  SavedQuery,
+  UseResizableOptions,
+  UseResizableReturn,
+  UseSavedQueriesOptions,
+  UseSavedQueriesReturn,
+} from './hooks';
 
 // Headless time-range parsing (consumers can use it without the picker).
 export {
