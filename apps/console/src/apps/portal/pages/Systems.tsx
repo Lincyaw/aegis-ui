@@ -13,6 +13,7 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
+// TODO(portal-wire): no SystemsApi in @lincyaw/portal 1.3.0/1.4.0 — pages stay on mocks until backend exposes /system/chaossystem CRUD.
 import { useMockStore } from '../mocks';
 import type { MockSystem } from '../mocks/types';
 

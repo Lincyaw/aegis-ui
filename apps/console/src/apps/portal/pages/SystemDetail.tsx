@@ -20,6 +20,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { StatusChip } from '../components/StatusChip';
+// TODO(portal-wire): no SystemsApi in @lincyaw/portal 1.3.0/1.4.0 — pages stay on mocks until backend exposes /system/chaossystem CRUD.
 import { useMockStore } from '../mocks';
 import type { MockInjection, MockPedestal } from '../mocks/types';
 

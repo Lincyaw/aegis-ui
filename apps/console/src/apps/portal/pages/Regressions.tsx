@@ -12,6 +12,7 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 
+// TODO(portal-wire): no RegressionsApi in @lincyaw/portal 1.3.0/1.4.0 — regression cases/runs have no backend surface yet; stays on mocks.
 import { useMockStore } from '../mocks';
 import type { MockRegressionCase } from '../mocks/types';
 
