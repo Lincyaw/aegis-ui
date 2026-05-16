@@ -538,7 +538,20 @@ function AuditorDetail({ firing }: { firing: AuditorFiring }): ReactElement {
         <div className='llmh-cdp__detail-head'>
           context
           <MetricLabel size='xs'>
-            graph_snapshot_ref={input.graph_snapshot_ref} · profile=
+            graph_snapshot_ref=
+            <Chip
+              tone={
+                selection.extractorSeq === input.graph_snapshot_ref
+                  ? 'ink'
+                  : 'default'
+              }
+              onClick={() => {
+                set({ extractorSeq: input.graph_snapshot_ref });
+              }}
+            >
+              E#{input.graph_snapshot_ref}
+            </Chip>{' '}
+            · profile=
             {input.tools_profile} · traj={input.trajectory_snapshot_len}
           </MetricLabel>
         </div>
