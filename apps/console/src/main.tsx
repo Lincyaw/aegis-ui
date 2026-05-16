@@ -11,6 +11,7 @@ import {
   useTheme,
 } from '@lincyaw/aegis-ui';
 import '@lincyaw/aegis-ui/style.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App as AntdApp, ConfigProvider } from 'antd';
 
 import { useChatStore } from './ai/chatStore';
@@ -18,6 +19,12 @@ import { ConsoleApp } from './App';
 import './main.css';
 
 const DEFAULT_AGENTM_GATEWAY_URL = 'ws://127.0.0.1:7777/agentm';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 30_000, refetchOnWindowFocus: false },
+  },
+});
 
 const agentmGatewayUrl =
   import.meta.env.VITE_AGENTM_GATEWAY_URL ?? DEFAULT_AGENTM_GATEWAY_URL;
@@ -48,9 +55,11 @@ function ThemedRoot(): React.ReactElement {
   return (
     <ConfigProvider theme={getAegisTheme(resolved)}>
       <AntdApp component={false}>
-        <MaybeAgentm>
-          <ConsoleApp />
-        </MaybeAgentm>
+        <QueryClientProvider client={queryClient}>
+          <MaybeAgentm>
+            <ConsoleApp />
+          </MaybeAgentm>
+        </QueryClientProvider>
       </AntdApp>
     </ConfigProvider>
   );
