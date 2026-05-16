@@ -1,0 +1,47 @@
+.aegis-skeleton {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--bg-muted) 0%,
+    var(--bg-panel) 50%,
+    var(--bg-muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: aegis-skeleton-shimmer var(--motion-skeleton) linear infinite;
+}
+
+.aegis-skeleton--block {
+  display: block;
+}
+
+.aegis-skeleton--r-sm {
+  border-radius: var(--radius-sm);
+}
+
+.aegis-skeleton--r-md {
+  border-radius: var(--radius-md);
+}
+
+.aegis-skeleton--r-pill {
+  border-radius: var(--radius-pill);
+}
+
+.aegis-skeleton--r-circle {
+  border-radius: var(--radius-circle);
+}
+
+.aegis-skeleton-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@keyframes aegis-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
