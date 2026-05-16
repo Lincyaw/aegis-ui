@@ -15,6 +15,7 @@ export interface EventNodeData {
   summary: string;
   source_turns: number[];
   highlighted: boolean;
+  isNew?: boolean;
   onSelect?: (id: number) => void;
   onSelectTurn?: (turnIndex: number) => void;
 }
@@ -24,6 +25,7 @@ function EventNodeImpl({ data }: NodeProps<EventNodeData>) {
     'llmh-evt-node',
     `llmh-evt-node--${data.kind}`,
     data.highlighted ? 'llmh-evt-node--active' : '',
+    data.isNew ? 'llmh-evt-node--new' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -37,7 +39,7 @@ function EventNodeImpl({ data }: NodeProps<EventNodeData>) {
     >
       <Handle
         type='target'
-        position={Position.Left}
+        position={Position.Top}
         className='llmh-evt-node__handle'
       />
       <div className='llmh-evt-node__head'>
@@ -65,7 +67,7 @@ function EventNodeImpl({ data }: NodeProps<EventNodeData>) {
       <div className='llmh-evt-node__summary'>{data.summary}</div>
       <Handle
         type='source'
-        position={Position.Right}
+        position={Position.Bottom}
         className='llmh-evt-node__handle'
       />
     </div>

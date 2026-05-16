@@ -1,5 +1,6 @@
 import {
   type ReactElement,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -12,11 +13,18 @@ import {
   EmptyState,
   ErrorState,
   MetricLabel,
+  MonoValue,
   Panel,
   PanelTitle,
+  ResizableSidePanel,
 } from '@lincyaw/aegis-ui';
 
-import { CaseMetaBar, MessageBlocks, SftRowDetail } from '../components';
+import {
+  CaseMetaBar,
+  EventGraphView,
+  MessageBlocks,
+  SftRowDetail,
+} from '../components';
 import {
   type CaseRepo,
   type CaseSftBundle,
@@ -24,7 +32,15 @@ import {
   probeHttpCaseRepo,
   restoreCasesRoot,
 } from '../repo';
-import type { CaseBundle, SftRow } from '../schemas';
+import type {
+  AuditorFiring,
+  CaseBundle,
+  ExtractorEvent,
+  ExtractorFiring,
+  Finding,
+  MainTurn,
+  SftRow,
+} from '../schemas';
 import { CaseSelectionProvider } from '../CaseSelection';
 import { useCaseSelection } from '../selection';
 
@@ -34,17 +50,62 @@ import { AuditorInspector } from './inspectors/AuditorInspector';
 
 import './CaseDetailPage.css';
 
-// --- Main column (chat) -------------------------------------------------
+const EXCERPT_LIMIT = 80;
 
-interface MainColumnProps {
+function firstTextExcerpt(turn: MainTurn): string {
+  for (const block of turn.content) {
+    if (
+      block.type === 'text' &&
+      typeof (block as { text?: unknown }).text === 'string'
+    ) {
+      const text = (block as { text: string }).text.trim();
+      if (text) {
+        return text.length > EXCERPT_LIMIT
+          ? `${text.slice(0, EXCERPT_LIMIT)}…`
+          : text;
+      }
+    }
+    if (block.type === 'tool_call') {
+      const name = (block as { name?: unknown }).name;
+      if (typeof name === 'string' && name) {
+        return `→ ${name}`;
+      }
+    }
+    if (block.type === 'tool_use') {
+      const name = (block as { name?: unknown }).name;
+      if (typeof name === 'string' && name) {
+        return `→ ${name}`;
+      }
+    }
+    if (block.type === 'tool_result') {
+      const content = (block as { content?: unknown }).content;
+      if (typeof content === 'string' && content.trim()) {
+        const text = content.trim();
+        return text.length > EXCERPT_LIMIT
+          ? `${text.slice(0, EXCERPT_LIMIT)}…`
+          : text;
+      }
+    }
+    if (block.type === 'thinking') {
+      const text = (block as { thinking?: unknown }).thinking;
+      if (typeof text === 'string' && text.trim()) {
+        return `(thinking)`;
+      }
+    }
+  }
+  return '';
+}
+
+// --- Turn rail (left) ---------------------------------------------------
+
+interface TurnRailProps {
   bundle: CaseBundle;
 }
 
-function MainColumn({ bundle }: MainColumnProps): ReactElement {
+function TurnRail({ bundle }: TurnRailProps): ReactElement {
   const { selection, set } = useCaseSelection();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Highlight every turn cited by the currently selected event.
   const citedTurns = useMemo<Set<number>>(() => {
     if (selection.eventId === null) {
       return new Set();
@@ -58,7 +119,6 @@ function MainColumn({ bundle }: MainColumnProps): ReactElement {
     return new Set();
   }, [selection.eventId, bundle.extractor]);
 
-  // Highlight the input window of the currently selected firing.
   const firingWindow = useMemo<Set<number>>(() => {
     if (selection.mode === 'extractor' && selection.extractorSeq !== null) {
       const f = bundle.extractor.find(
@@ -83,21 +143,6 @@ function MainColumn({ bundle }: MainColumnProps): ReactElement {
     bundle.auditor,
   ]);
 
-  // Auto-scroll Main when selection.turn changes (chip click on a gutter
-  // or a Timeline chip writing turn). Don't scroll on every event-id pick
-  // — that would jitter the list while the user is comparing.
-  useEffect(() => {
-    if (selection.turn === null) {
-      return;
-    }
-    const el = containerRef.current?.querySelector(
-      `[data-turn="${selection.turn.toString()}"]`,
-    );
-    if (el) {
-      el.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
-  }, [selection.turn]);
-
   const reminderForTurn = useMemo<Map<number, number>>(() => {
     const m = new Map<number, number>();
     for (const [auditorSeq, turnIndex] of bundle.links.reminderInjection) {
@@ -106,133 +151,631 @@ function MainColumn({ bundle }: MainColumnProps): ReactElement {
     return m;
   }, [bundle.links.reminderInjection]);
 
+  useEffect(() => {
+    if (selection.turn === null) {
+      return;
+    }
+    const el = containerRef.current?.querySelector(
+      `[data-turn="${selection.turn.toString()}"]`,
+    );
+    if (el) {
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [selection.turn]);
+
   return (
-    <div className='llmh-cdp__main' ref={containerRef}>
-      {bundle.main.map((turn) => {
-        const idx = turn.index;
-        const ext = bundle.links.turnToExtractor.get(idx) ?? [];
-        const aud = bundle.links.turnToAuditor.get(idx) ?? [];
-        const reminderFrom = reminderForTurn.get(idx);
-        const selected = selection.turn === idx;
-        const cited = citedTurns.has(idx);
-        const inWindow = firingWindow.has(idx);
-        const cls = [
-          'llmh-cdp__main-row',
-          `llmh-cdp__main-row--${turn.role}`,
-          selected ? 'llmh-cdp__main-row--selected' : '',
-          cited ? 'llmh-cdp__main-row--cited' : '',
-          inWindow ? 'llmh-cdp__main-row--window' : '',
-        ]
-          .filter(Boolean)
-          .join(' ');
-        return (
-          <div
-            key={idx}
-            data-turn={idx}
-            className={cls}
-            role='button'
-            tabIndex={0}
-            onClick={() => {
-              set({ turn: idx });
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
+    <div className='llmh-cdp__rail' ref={containerRef}>
+      <header className='llmh-cdp__rail-head'>
+        Main agent
+        <MetricLabel size='xs'>{bundle.main.length}</MetricLabel>
+      </header>
+      <div className='llmh-cdp__rail-list'>
+        {bundle.main.map((turn) => {
+          const idx = turn.index;
+          const selected = selection.turn === idx;
+          const cited = citedTurns.has(idx);
+          const inWindow = firingWindow.has(idx);
+          const hasReminder = reminderForTurn.has(idx);
+          const cls = [
+            'llmh-cdp__rail-row',
+            `llmh-cdp__rail-row--${turn.role}`,
+            selected ? 'llmh-cdp__rail-row--selected' : '',
+            cited ? 'llmh-cdp__rail-row--cited' : '',
+            inWindow ? 'llmh-cdp__rail-row--window' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          return (
+            <div
+              key={idx}
+              data-turn={idx}
+              className={cls}
+              role='button'
+              tabIndex={0}
+              onClick={() => {
                 set({ turn: idx });
-              }
-            }}
-          >
-            <div className='llmh-cdp__main-meta'>
-              <span className='llmh-cdp__main-meta-idx'>#{idx}</span>
-              <span className='llmh-cdp__main-meta-role'>{turn.role}</span>
-              {reminderFrom !== undefined && (
-                <button
-                  type='button'
-                  className='llmh-cdp__reminder'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    set({ mode: 'auditor', auditorSeq: reminderFrom });
-                  }}
-                >
-                  ★ REMINDER (A#{reminderFrom})
-                </button>
-              )}
-              <div className='llmh-cdp__main-gutter'>
-                {ext.map((s) => (
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  set({ turn: idx });
+                }
+              }}
+            >
+              <div className='llmh-cdp__rail-row-meta'>
+                <MonoValue size='sm'>#{idx}</MonoValue>
+                <span className='llmh-cdp__rail-row-role'>{turn.role}</span>
+                {hasReminder && (
                   <span
-                    key={`e${s.toString()}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                    }}
-                    role='presentation'
+                    className='llmh-cdp__rail-row-mark'
+                    aria-label='reminder injected'
                   >
-                    <Chip
-                      tone={
-                        selection.mode === 'extractor' &&
-                        selection.extractorSeq === s
-                          ? 'ink'
-                          : 'default'
-                      }
-                      onClick={() => {
-                        set({
-                          mode: 'extractor',
-                          extractorSeq: s,
-                          auditorSeq: null,
-                        });
-                      }}
-                    >
-                      E#{s}
-                    </Chip>
+                    ●
                   </span>
-                ))}
-                {aud.map((s) => (
-                  <span
-                    key={`a${s.toString()}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                    }}
-                    role='presentation'
-                  >
-                    <Chip
-                      tone={
-                        selection.mode === 'auditor' &&
-                        selection.auditorSeq === s
-                          ? 'ink'
-                          : 'warning'
-                      }
-                      onClick={() => {
-                        set({
-                          mode: 'auditor',
-                          auditorSeq: s,
-                          extractorSeq: null,
-                        });
-                      }}
-                    >
-                      A#{s}
-                    </Chip>
-                  </span>
-                ))}
+                )}
+              </div>
+              <div className='llmh-cdp__rail-row-text'>
+                {firstTextExcerpt(turn)}
               </div>
             </div>
-            <MessageBlocks turn={turn} />
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-// --- Inspector pane ------------------------------------------------------
+// --- Graph viewport (center) -------------------------------------------
 
-function InspectorPane({ bundle }: { bundle: CaseBundle }): ReactElement {
-  const { selection } = useCaseSelection();
+interface GraphViewportProps {
+  bundle: CaseBundle;
+}
 
+function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
+  const { selection, set } = useCaseSelection();
+
+  const orderedExtractors = useMemo<ExtractorFiring[]>(
+    () => [...bundle.extractor].sort((a, b) => a.sequence - b.sequence),
+    [bundle.extractor],
+  );
+  const orderedAuditors = useMemo<AuditorFiring[]>(
+    () => [...bundle.auditor].sort((a, b) => a.sequence - b.sequence),
+    [bundle.auditor],
+  );
+
+  const extractorFiring =
+    selection.mode === 'extractor' && selection.extractorSeq !== null
+      ? orderedExtractors.find((f) => f.sequence === selection.extractorSeq)
+      : undefined;
+  const auditorFiring =
+    selection.mode === 'auditor' && selection.auditorSeq !== null
+      ? orderedAuditors.find((f) => f.sequence === selection.auditorSeq)
+      : undefined;
+
+  const onSelectEvent = useCallback(
+    (id: number) => {
+      set({ eventId: id });
+    },
+    [set],
+  );
+  const onSelectTurn = useCallback(
+    (turnIndex: number) => {
+      set({ turn: turnIndex });
+    },
+    [set],
+  );
+
+  if (extractorFiring) {
+    const output = extractorFiring.output;
+    const snapshot = bundle.graphs.get(extractorFiring.sequence);
+    const outEvents = output?.events ?? [];
+    const outEdges = output?.edges ?? [];
+    const graphEvents = snapshot?.events ?? outEvents;
+    const graphEdges = snapshot?.edges ?? outEdges;
+    const newEventIds = snapshot
+      ? new Set(outEvents.map((e) => e.id))
+      : null;
+    const droppedCount = output?.dropped_edges.length ?? 0;
+    const idx = orderedExtractors.findIndex(
+      (f) => f.sequence === extractorFiring.sequence,
+    );
+    const prev = idx > 0 ? orderedExtractors[idx - 1] : undefined;
+    const next =
+      idx >= 0 && idx < orderedExtractors.length - 1
+        ? orderedExtractors[idx + 1]
+        : undefined;
+    return (
+      <div className='llmh-cdp__viewport'>
+        <header className='llmh-cdp__viewport-bar'>
+          <MonoValue size='sm'>
+            E#{extractorFiring.sequence} / {orderedExtractors.length}
+          </MonoValue>
+          <MetricLabel size='xs'>
+            {graphEvents.length} events · {graphEdges.length} edges
+            {snapshot ? ` · +${outEvents.length.toString()} new` : ''}
+          </MetricLabel>
+          <div className='llmh-cdp__viewport-spacer' />
+          {prev && (
+            <Chip
+              tone='default'
+              onClick={() => {
+                set({ extractorSeq: prev.sequence, eventId: null });
+              }}
+            >
+              ← E#{prev.sequence}
+            </Chip>
+          )}
+          {next && (
+            <Chip
+              tone='default'
+              onClick={() => {
+                set({ extractorSeq: next.sequence, eventId: null });
+              }}
+            >
+              E#{next.sequence} →
+            </Chip>
+          )}
+          {droppedCount > 0 && (
+            <Chip
+              tone='warning'
+              onClick={() => {
+                const el = document.getElementById('llmh-insp__dropped');
+                if (el) {
+                  el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                }
+              }}
+            >
+              {droppedCount} dropped
+            </Chip>
+          )}
+        </header>
+        <div className='llmh-cdp__viewport-graph'>
+          <EventGraphView
+            events={graphEvents}
+            edges={graphEdges}
+            selectedEventId={selection.eventId}
+            newEventIds={newEventIds}
+            onSelectEvent={onSelectEvent}
+            onSelectTurn={onSelectTurn}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (auditorFiring) {
+    const snapshotRef = auditorFiring.input.graph_snapshot_ref;
+    const snapshot = bundle.graphs.get(snapshotRef);
+    const idx = orderedAuditors.findIndex(
+      (f) => f.sequence === auditorFiring.sequence,
+    );
+    const prev = idx > 0 ? orderedAuditors[idx - 1] : undefined;
+    const next =
+      idx >= 0 && idx < orderedAuditors.length - 1
+        ? orderedAuditors[idx + 1]
+        : undefined;
+    return (
+      <div className='llmh-cdp__viewport'>
+        <header className='llmh-cdp__viewport-bar'>
+          <MonoValue size='sm'>
+            A#{auditorFiring.sequence} / {orderedAuditors.length}
+          </MonoValue>
+          <MetricLabel size='xs'>
+            {snapshot
+              ? `${snapshot.events.length.toString()} events · ${snapshot.edges.length.toString()} edges (E#${snapshotRef.toString()})`
+              : `snapshot E#${snapshotRef.toString()} missing`}
+          </MetricLabel>
+          <div className='llmh-cdp__viewport-spacer' />
+          {prev && (
+            <Chip
+              tone='default'
+              onClick={() => {
+                set({ auditorSeq: prev.sequence, eventId: null });
+              }}
+            >
+              ← A#{prev.sequence}
+            </Chip>
+          )}
+          {next && (
+            <Chip
+              tone='default'
+              onClick={() => {
+                set({ auditorSeq: next.sequence, eventId: null });
+              }}
+            >
+              A#{next.sequence} →
+            </Chip>
+          )}
+        </header>
+        <div className='llmh-cdp__viewport-graph'>
+          {snapshot ? (
+            <EventGraphView
+              events={snapshot.events}
+              edges={snapshot.edges}
+              selectedEventId={selection.eventId}
+              newEventIds={null}
+              onSelectEvent={onSelectEvent}
+              onSelectTurn={onSelectTurn}
+            />
+          ) : (
+            <EmptyState
+              title='No graph snapshot'
+              description={`bundle.graphs has no entry for E#${snapshotRef.toString()}`}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className='llmh-cdp__viewport'>
+      <div className='llmh-cdp__viewport-graph'>
+        <EmptyState
+          title='Pick a firing'
+          description='Click E#n or A#n in the timeline above to view its event graph.'
+        />
+      </div>
+    </div>
+  );
+}
+
+// --- Detail rail (right) ------------------------------------------------
+
+interface DetailRailProps {
+  bundle: CaseBundle;
+}
+
+function findEventById(
+  bundle: CaseBundle,
+  id: number,
+): { event: ExtractorEvent; firing: ExtractorFiring } | null {
+  for (const f of bundle.extractor) {
+    const ev = f.output?.events.find((e) => e.id === id);
+    if (ev) {
+      return { event: ev, firing: f };
+    }
+  }
+  for (const snap of bundle.graphs.values()) {
+    const ev = snap.events.find((e) => e.id === id);
+    if (ev) {
+      const firing = bundle.extractor.find(
+        (x) => x.sequence === snap.after_extractor_firing,
+      );
+      if (firing) {
+        return { event: ev, firing };
+      }
+    }
+  }
+  return null;
+}
+
+function findingsCitingEvent(
+  bundle: CaseBundle,
+  eventId: number,
+): Array<{ auditorSeq: number; finding: Finding }> {
+  const out: Array<{ auditorSeq: number; finding: Finding }> = [];
+  for (const a of bundle.auditor) {
+    for (const f of a.input.findings) {
+      if (f.related_event_ids.includes(eventId)) {
+        out.push({ auditorSeq: a.sequence, finding: f });
+      }
+    }
+  }
+  return out;
+}
+
+function DetailRail({ bundle }: DetailRailProps): ReactElement {
+  const { selection, set } = useCaseSelection();
+
+  // --- Event detail
+  if (selection.eventId !== null) {
+    const hit = findEventById(bundle, selection.eventId);
+    if (!hit) {
+      return (
+        <div className='llmh-insp'>
+          <EmptyState
+            title={`Event #${selection.eventId.toString()} not found`}
+            description='This id is not present in any firing output or snapshot.'
+          />
+          <div className='llmh-insp__chip-row'>
+            <Chip
+              tone='ghost'
+              onClick={() => {
+                set({ eventId: null });
+              }}
+            >
+              clear event
+            </Chip>
+          </div>
+        </div>
+      );
+    }
+    const { event, firing } = hit;
+    const citing = findingsCitingEvent(bundle, event.id);
+    const refs = (event.refs ?? []) as Array<{
+      dst: number;
+      kind: string;
+      cited_quote?: string;
+    }>;
+    const externalRefs = (event as { external_refs?: unknown }).external_refs;
+    return (
+      <div className='llmh-insp'>
+        <section className='llmh-insp__section'>
+          <header className='llmh-insp__sec-head'>
+            <span>event</span>
+            <MetricLabel size='xs'>
+              #{event.id} · origin E#{firing.sequence}
+            </MetricLabel>
+          </header>
+          <div className='llmh-insp__chip-row'>
+            <Chip tone='default'>{event.kind}</Chip>
+          </div>
+          <div className='llmh-cdp__detail-summary'>{event.summary}</div>
+          {event.source_turns.length > 0 && (
+            <div className='llmh-insp__chip-row'>
+              <span>source_turns:</span>
+              {event.source_turns.map((t) => (
+                <Chip
+                  key={t}
+                  tone={selection.turn === t ? 'ink' : 'default'}
+                  onClick={() => {
+                    set({ turn: t });
+                  }}
+                >
+                  #{t}
+                </Chip>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {refs.length > 0 && (
+          <section className='llmh-insp__section'>
+            <header className='llmh-insp__sec-head'>
+              <span>refs</span>
+              <MetricLabel size='xs'>{refs.length}</MetricLabel>
+            </header>
+            {refs.map((r, i) => (
+              <div key={i} className='llmh-cdp__detail-ref'>
+                <div className='llmh-insp__chip-row'>
+                  <MonoValue size='sm'>→ #{r.dst}</MonoValue>
+                  <Chip tone='default'>{r.kind}</Chip>
+                  <Chip
+                    tone='ghost'
+                    onClick={() => {
+                      set({ eventId: r.dst });
+                    }}
+                  >
+                    open
+                  </Chip>
+                </div>
+                {r.cited_quote && (
+                  <div className='llmh-insp__pre'>{r.cited_quote}</div>
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+
+        {externalRefs !== undefined && (
+          <details className='llmh-insp__details'>
+            <summary>external_refs</summary>
+            <pre className='llmh-insp__pre'>
+              {JSON.stringify(externalRefs, null, 2)}
+            </pre>
+          </details>
+        )}
+
+        {citing.length > 0 && (
+          <section className='llmh-insp__section'>
+            <header className='llmh-insp__sec-head'>
+              <span>cited by findings</span>
+              <MetricLabel size='xs'>{citing.length}</MetricLabel>
+            </header>
+            <div className='llmh-insp__chip-row'>
+              {citing.map((c) => (
+                <Chip
+                  key={`${c.auditorSeq.toString()}.${c.finding.index.toString()}`}
+                  tone={
+                    selection.findingId?.auditorSeq === c.auditorSeq &&
+                    selection.findingId.index === c.finding.index
+                      ? 'ink'
+                      : 'default'
+                  }
+                  onClick={() => {
+                    set({
+                      findingId: {
+                        auditorSeq: c.auditorSeq,
+                        index: c.finding.index,
+                      },
+                    });
+                  }}
+                >
+                  A#{c.auditorSeq} · F#{c.finding.index}
+                </Chip>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <div className='llmh-insp__chip-row'>
+          <Chip
+            tone='ghost'
+            onClick={() => {
+              set({ eventId: null });
+            }}
+          >
+            clear event
+          </Chip>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Finding detail
+  if (selection.findingId !== null) {
+    const aud = bundle.auditor.find(
+      (a) => a.sequence === selection.findingId?.auditorSeq,
+    );
+    const finding = aud?.input.findings.find(
+      (f) => f.index === selection.findingId?.index,
+    );
+    if (!aud || !finding) {
+      return (
+        <div className='llmh-insp'>
+          <EmptyState title='Finding not found' />
+          <div className='llmh-insp__chip-row'>
+            <Chip
+              tone='ghost'
+              onClick={() => {
+                set({ findingId: null });
+              }}
+            >
+              clear finding
+            </Chip>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className='llmh-insp'>
+        <section className='llmh-insp__section'>
+          <header className='llmh-insp__sec-head'>
+            <span>finding</span>
+            <MetricLabel size='xs'>
+              A#{aud.sequence} · F#{finding.index}
+            </MetricLabel>
+          </header>
+          <div className='llmh-insp__chip-row'>
+            <Chip tone='default'>{finding.kind}</Chip>
+          </div>
+          <div className='llmh-cdp__detail-summary'>{finding.summary}</div>
+          {finding.related_event_ids.length > 0 && (
+            <div className='llmh-insp__chip-row'>
+              <span>related events:</span>
+              {finding.related_event_ids.map((id) => (
+                <Chip
+                  key={id}
+                  tone={selection.eventId === id ? 'ink' : 'default'}
+                  onClick={() => {
+                    set({ eventId: id });
+                  }}
+                >
+                  #{id}
+                </Chip>
+              ))}
+            </div>
+          )}
+        </section>
+        <div className='llmh-insp__chip-row'>
+          <Chip
+            tone='ghost'
+            onClick={() => {
+              set({ findingId: null });
+            }}
+          >
+            clear finding
+          </Chip>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Turn detail
+  if (selection.turn !== null) {
+    const turn = bundle.main.find((t) => t.index === selection.turn);
+    if (!turn) {
+      return (
+        <div className='llmh-insp'>
+          <EmptyState title={`Turn #${selection.turn.toString()} not found`} />
+          <div className='llmh-insp__chip-row'>
+            <Chip
+              tone='ghost'
+              onClick={() => {
+                set({ turn: null });
+              }}
+            >
+              clear turn
+            </Chip>
+          </div>
+        </div>
+      );
+    }
+    const ext = bundle.links.turnToExtractor.get(turn.index) ?? [];
+    const aud = bundle.links.turnToAuditor.get(turn.index) ?? [];
+    return (
+      <div className='llmh-insp'>
+        <section className='llmh-insp__section'>
+          <header className='llmh-insp__sec-head'>
+            <span>turn</span>
+            <MetricLabel size='xs'>
+              #{turn.index} · {turn.role}
+            </MetricLabel>
+          </header>
+          {(ext.length > 0 || aud.length > 0) && (
+            <div className='llmh-insp__chip-row'>
+              <span>cited by:</span>
+              {ext.map((s) => (
+                <Chip
+                  key={`e${s.toString()}`}
+                  tone={
+                    selection.mode === 'extractor' &&
+                    selection.extractorSeq === s
+                      ? 'ink'
+                      : 'default'
+                  }
+                  onClick={() => {
+                    set({
+                      mode: 'extractor',
+                      extractorSeq: s,
+                      auditorSeq: null,
+                    });
+                  }}
+                >
+                  E#{s}
+                </Chip>
+              ))}
+              {aud.map((s) => (
+                <Chip
+                  key={`a${s.toString()}`}
+                  tone={
+                    selection.mode === 'auditor' && selection.auditorSeq === s
+                      ? 'ink'
+                      : 'default'
+                  }
+                  onClick={() => {
+                    set({
+                      mode: 'auditor',
+                      auditorSeq: s,
+                      extractorSeq: null,
+                    });
+                  }}
+                >
+                  A#{s}
+                </Chip>
+              ))}
+            </div>
+          )}
+        </section>
+        <section className='llmh-insp__section'>
+          <MessageBlocks turn={turn} />
+        </section>
+        <div className='llmh-insp__chip-row'>
+          <Chip
+            tone='ghost'
+            onClick={() => {
+              set({ turn: null });
+            }}
+          >
+            clear turn
+          </Chip>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Firing meta fallback
   if (selection.mode === 'extractor' && selection.extractorSeq !== null) {
     const firing = bundle.extractor.find(
       (f) => f.sequence === selection.extractorSeq,
@@ -249,15 +792,18 @@ function InspectorPane({ bundle }: { bundle: CaseBundle }): ReactElement {
       return <AuditorInspector firing={firing} bundle={bundle} />;
     }
   }
+
   return (
-    <EmptyState
-      title='Pick a firing'
-      description='Click E#n or A#n in the timeline above to inspect that firing.'
-    />
+    <div className='llmh-insp'>
+      <EmptyState
+        title='Nothing selected'
+        description='Pick a firing in the timeline above, or click a graph node / turn.'
+      />
+    </div>
   );
 }
 
-// --- SFT drawer ----------------------------------------------------------
+// --- SFT drawer ---------------------------------------------------------
 
 type SftLoadState =
   | { kind: 'idle' }
@@ -433,7 +979,7 @@ function SftDrawer({
   );
 }
 
-// --- Page root -----------------------------------------------------------
+// --- Page root ----------------------------------------------------------
 
 interface LoadedCase {
   repo: CaseRepo;
@@ -444,7 +990,7 @@ interface LoadedCase {
 function CaseDetailBody({ data }: { data: LoadedCase }): ReactElement {
   const { selection, set } = useCaseSelection();
 
-  // Default to the first extractor firing on first paint so the inspector
+  // Default to the first extractor firing on first paint so the viewport
   // is never empty.
   useEffect(() => {
     if (selection.mode !== null) {
@@ -470,33 +1016,19 @@ function CaseDetailBody({ data }: { data: LoadedCase }): ReactElement {
   return (
     <div className='llmh-cdp'>
       <FiringsTimeline bundle={data.bundle} />
-      <div className='llmh-cdp__split'>
-        <div className='llmh-cdp__col llmh-cdp__col--main'>
-          <header className='llmh-cdp__col-head'>
-            Main agent
-            <MetricLabel size='xs'>
-              {data.bundle.main.length} turns
-            </MetricLabel>
-          </header>
-          <MainColumn bundle={data.bundle} />
-        </div>
-        <div className='llmh-cdp__col llmh-cdp__col--insp'>
-          <header className='llmh-cdp__col-head'>
-            Inspector
-            <MetricLabel size='xs'>
-              {selection.mode
-                ? `${selection.mode} · ${
-                    selection.mode === 'extractor'
-                      ? `E#${selection.extractorSeq?.toString() ?? '?'}`
-                      : `A#${selection.auditorSeq?.toString() ?? '?'}`
-                  }`
-                : 'idle'}
-            </MetricLabel>
-          </header>
-          <div className='llmh-cdp__insp-body'>
-            <InspectorPane bundle={data.bundle} />
-          </div>
-        </div>
+      <div className='llmh-cdp__layout'>
+        <TurnRail bundle={data.bundle} />
+        <GraphViewport bundle={data.bundle} />
+        <ResizableSidePanel
+          side='right'
+          defaultWidth={360}
+          minWidth={260}
+          maxWidth={640}
+          collapsible
+          persistKey='llmh-cdp-detail-w'
+        >
+          <DetailRail bundle={data.bundle} />
+        </ResizableSidePanel>
       </div>
       <SftDrawer
         repo={data.repo}

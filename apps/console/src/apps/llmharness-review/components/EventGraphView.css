@@ -1,8 +1,15 @@
 .llmh-graph {
-  height: 480px;
+  height: clamp(480px, 72vh, 1000px);
   width: 100%;
   background: var(--bg-page);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-sm);
   overflow: hidden;
+  resize: vertical;
+}
+
+@media (max-width: 768px) {
+  .llmh-graph {
+    height: clamp(360px, 60vh, 720px);
+  }
 }

@@ -1,27 +1,18 @@
 /**
- * Inspector pane shown when selection.mode === 'auditor'. The point of
- * this view is auditing whether the auditor's verdict was reasonable
- * GIVEN the event graph it actually saw — so we render that graph
- * snapshot first (bundle.graphs.get(firing.input.graph_snapshot_ref)),
- * then the findings + output. The Main column still scrolls / highlights
- * the auditor's turn, so the reviewer can triangulate.
+ * Right-rail meta view for the currently selected auditor firing.
+ *
+ * The graph snapshot the auditor saw is hosted by CaseDetailPage's main
+ * viewport, so this component only renders the surrounding context:
+ * input meta, findings, continuation_notes, check_errors, and the
+ * verdict output. The previous inline list of snapshot events has moved
+ * out — clicking nodes in the graph viewport is the new entry point.
  */
 
 import { type ReactElement } from 'react';
 
-import {
-  Chip,
-  EmptyState,
-  MetricLabel,
-  MonoValue,
-} from '@lincyaw/aegis-ui';
+import { Chip, EmptyState, MetricLabel, MonoValue } from '@lincyaw/aegis-ui';
 
-import type {
-  AuditorFiring,
-  CaseBundle,
-  ExtractorEvent,
-  Finding,
-} from '../../schemas';
+import type { AuditorFiring, CaseBundle, Finding } from '../../schemas';
 import { useCaseSelection } from '../../selection';
 
 import './Inspector.css';
@@ -29,40 +20,6 @@ import './Inspector.css';
 interface Props {
   firing: AuditorFiring;
   bundle: CaseBundle;
-}
-
-function GraphEventRow({ event }: { event: ExtractorEvent }): ReactElement {
-  const { selection, set } = useCaseSelection();
-  const selected = selection.eventId === event.id;
-  const cls = [
-    'llmh-insp__row',
-    selected ? 'llmh-insp__row--selected' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  return (
-    <div
-      className={cls}
-      role='button'
-      tabIndex={0}
-      onClick={() => {
-        set({ eventId: event.id });
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          set({ eventId: event.id });
-        }
-      }}
-    >
-      <MonoValue size='sm'>#{event.id}</MonoValue>
-      <Chip tone='default'>{event.kind}</Chip>
-      <span className='llmh-insp__row-summary'>{event.summary}</span>
-      {event.source_turns.length > 0 && (
-        <MetricLabel size='xs'>src=[{event.source_turns.join(',')}]</MetricLabel>
-      )}
-    </div>
-  );
 }
 
 function FindingRow({
@@ -135,24 +92,27 @@ function FindingRow({
   );
 }
 
-export function AuditorInspector({ firing, bundle }: Props): ReactElement {
+export function AuditorInspector({ firing }: Props): ReactElement {
   const { selection, set } = useCaseSelection();
   const input = firing.input;
   const output = firing.output;
   const checkErrorKeys = Object.keys(input.check_errors);
-  const snapshot = bundle.graphs.get(input.graph_snapshot_ref);
   const surfaced = Boolean(output?.surface_reminder);
 
   return (
     <div className='llmh-insp'>
       <section className='llmh-insp__section'>
         <header className='llmh-insp__sec-head'>
-          <span>context</span>
+          <span>firing</span>
           <MetricLabel size='xs'>
-            profile={input.tools_profile} · traj=
-            {input.trajectory_snapshot_len.toString()}
+            A#{firing.sequence} · turn={firing.turn_index} · status=
+            {firing.status}
           </MetricLabel>
         </header>
+        <MetricLabel size='xs'>
+          profile={input.tools_profile} · traj=
+          {input.trajectory_snapshot_len.toString()}
+        </MetricLabel>
         <div className='llmh-insp__chip-row'>
           <span>graph snapshot:</span>
           <Chip
@@ -169,27 +129,6 @@ export function AuditorInspector({ firing, bundle }: Props): ReactElement {
             E#{input.graph_snapshot_ref} →
           </Chip>
         </div>
-      </section>
-
-      <section className='llmh-insp__section'>
-        <header className='llmh-insp__sec-head'>
-          <span>graph (auditor&apos;s view)</span>
-          <MetricLabel size='xs'>
-            {snapshot
-              ? `${snapshot.events.length.toString()} events · ${snapshot.edges.length.toString()} edges`
-              : 'snapshot missing'}
-          </MetricLabel>
-        </header>
-        {!snapshot ? (
-          <EmptyState
-            title='No graph snapshot'
-            description={`bundle.graphs has no entry for E#${input.graph_snapshot_ref.toString()}`}
-          />
-        ) : snapshot.events.length === 0 ? (
-          <EmptyState title='No events at this snapshot' />
-        ) : (
-          snapshot.events.map((ev) => <GraphEventRow key={ev.id} event={ev} />)
-        )}
       </section>
 
       <section className='llmh-insp__section'>
@@ -240,7 +179,7 @@ export function AuditorInspector({ firing, bundle }: Props): ReactElement {
           <span>output</span>
           {output && (
             <Chip tone={surfaced ? 'warning' : 'ghost'}>
-              {surfaced ? '★ surfaced' : 'silent'}
+              {surfaced ? 'surfaced' : 'silent'}
             </Chip>
           )}
         </header>

@@ -3,7 +3,9 @@
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-sm);
   padding: var(--space-2);
-  width: 220px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-ui);
   font-size: var(--fs-11);
   color: var(--text-main);
@@ -19,6 +21,15 @@
   background: var(--bg-warning-soft);
   border-color: var(--accent-warning);
   box-shadow: 0 0 0 2px var(--accent-warning);
+}
+
+.llmh-evt-node--new {
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 2px var(--text-main);
+}
+
+.llmh-evt-node--new.llmh-evt-node--active {
+  box-shadow: 0 0 0 2px var(--accent-warning), 0 0 0 4px var(--text-main);
 }
 
 .llmh-evt-node__head {
@@ -92,11 +103,9 @@
 }
 
 .llmh-evt-node__summary {
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .llmh-evt-node__handle {

@@ -7,7 +7,7 @@
   height: 100%;
 }
 
-.llmh-cdp__split {
+.llmh-cdp__layout {
   display: flex;
   flex-direction: row;
   gap: var(--space-3);
@@ -15,10 +15,13 @@
   flex: 1 1 auto;
 }
 
-.llmh-cdp__col {
+/* --- Turn rail (left) --------------------------------------------- */
+
+.llmh-cdp__rail {
+  flex: 0 0 var(--llmh-rail-w);
+  width: var(--llmh-rail-w);
   display: flex;
   flex-direction: column;
-  min-width: 0;
   min-height: 0;
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
@@ -26,15 +29,7 @@
   overflow: hidden;
 }
 
-.llmh-cdp__col--main {
-  flex: 3 1 0;
-}
-
-.llmh-cdp__col--insp {
-  flex: 2 1 0;
-}
-
-.llmh-cdp__col-head {
+.llmh-cdp__rail-head {
   padding: var(--space-2) var(--space-3);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   background: var(--bg-muted);
@@ -45,51 +40,46 @@
   font-weight: 600;
 }
 
-.llmh-cdp__main {
+.llmh-cdp__rail-list {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding: var(--space-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.llmh-cdp__insp-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-}
-
-.llmh-cdp__main-row {
+  padding: var(--space-1);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
+}
+
+.llmh-cdp__rail-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   border: var(--size-hairline) solid transparent;
   cursor: pointer;
+  background: transparent;
 }
 
-.llmh-cdp__main-row:hover {
+.llmh-cdp__rail-row:hover {
   background: var(--bg-muted);
 }
 
-.llmh-cdp__main-row--selected {
-  outline: var(--size-hairline) solid var(--text-main);
-  outline-offset: -1px;
-}
-
-.llmh-cdp__main-row--cited {
+.llmh-cdp__rail-row--cited {
   background: var(--bg-muted);
 }
 
-.llmh-cdp__main-row--window {
-  border-color: var(--text-main);
-  background: var(--bg-muted);
+.llmh-cdp__rail-row--window {
+  border-color: var(--accent-warning);
 }
 
-.llmh-cdp__main-meta {
+.llmh-cdp__rail-row--selected,
+.llmh-cdp__rail-row--selected:hover {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.llmh-cdp__rail-row-meta {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -98,37 +88,95 @@
   color: var(--text-muted);
 }
 
-.llmh-cdp__main-meta-idx {
-  font-weight: 600;
+.llmh-cdp__rail-row--selected .llmh-cdp__rail-row-meta {
+  color: var(--text-on-inverted);
 }
 
-.llmh-cdp__main-meta-role {
+.llmh-cdp__rail-row-role {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: var(--fs-9);
 }
 
-.llmh-cdp__main-gutter {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  margin-left: auto;
+.llmh-cdp__rail-row-mark {
+  color: var(--accent-warning);
+  font-size: var(--fs-12);
+  line-height: 1;
 }
 
-.llmh-cdp__reminder {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  background: var(--accent-warning);
+.llmh-cdp__rail-row--selected .llmh-cdp__rail-row-mark {
   color: var(--text-on-inverted);
-  border-radius: var(--radius-pill);
-  padding: var(--space-px) var(--space-2);
-  font-family: var(--font-mono);
-  font-size: var(--fs-9);
-  font-weight: 600;
-  cursor: pointer;
-  border: 0;
 }
+
+.llmh-cdp__rail-row-text {
+  font-size: var(--fs-11);
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+/* --- Graph viewport (center) -------------------------------------- */
+
+.llmh-cdp__viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.llmh-cdp__viewport-bar {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  background: var(--bg-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-brand);
+  font-weight: 600;
+}
+
+.llmh-cdp__viewport-spacer {
+  flex: 1 1 auto;
+}
+
+.llmh-cdp__viewport-graph {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.llmh-cdp__viewport-graph > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* --- Detail rail body (router-rendered) --------------------------- */
+
+.llmh-cdp__detail-summary {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-size: var(--fs-12);
+  line-height: 1.5;
+}
+
+.llmh-cdp__detail-ref {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-1) 0;
+}
+
+/* --- SFT drawer --------------------------------------------------- */
 
 .llmh-cdp__sft {
   border: var(--size-hairline) solid var(--border-hairline);
@@ -208,13 +256,30 @@
   overflow: auto;
 }
 
+/* --- Layout tokens ------------------------------------------------- */
+
+/*
+ * The turn rail is 13.75rem wide. theme.css has --space-* tokens topping
+ * out at 6rem; a dedicated layout var keeps the value out of component
+ * code without forcing a new token in @lincyaw/aegis-ui for one consumer.
+ */
+.llmh-cdp {
+  --llmh-rail-w: 13.75rem;
+}
+
 @media (max-width: 768px) {
-  .llmh-cdp__split {
+  .llmh-cdp__layout {
     flex-direction: column;
+    gap: var(--space-3);
   }
-  .llmh-cdp__col--main,
-  .llmh-cdp__col--insp {
+  .llmh-cdp__rail {
+    flex: 0 0 auto;
+    width: 100%;
+    max-height: 14rem;
+  }
+  .llmh-cdp__viewport {
     flex: 1 1 auto;
+    min-height: 24rem;
   }
   .llmh-cdp__sft-rows {
     grid-template-columns: 1fr;

@@ -1,8 +1,10 @@
+import { CaretDownOutlined, FolderOutlined } from '@ant-design/icons';
 import { type ReactElement, useCallback, useEffect, useState } from 'react';
 
 import {
   Button,
   Chip,
+  DropdownMenu,
   KeyValueList,
   MetricLabel,
   MonoValue,
@@ -12,7 +14,11 @@ import {
   TextField,
 } from '@lincyaw/aegis-ui';
 
-import { type BucketSummary, listBuckets } from '../../../api/blobClient';
+import {
+  type BucketSummary,
+  driverList,
+  listBuckets,
+} from '../../../api/blobClient';
 import {
   clearBackendUrl,
   clearBlobRoot,
@@ -23,7 +29,6 @@ import {
   setBackendUrl,
   setBlobRoot,
 } from '../connection';
-import { type BlobProbeInfo, probeBlobRoot } from '../repo';
 
 type ProbeState =
   | { kind: 'idle' }
@@ -33,24 +38,27 @@ type ProbeState =
 
 const PLACEHOLDER = 'http://host:8765';
 
-type BlobProbeState =
+type BrowseState =
   | { kind: 'idle' }
-  | { kind: 'probing' }
-  | { kind: 'ok'; info: BlobProbeInfo }
+  | { kind: 'loading' }
+  | { kind: 'ok'; subdirs: string[]; truncated: boolean }
   | { kind: 'error'; message: string };
 
 export function SettingsPage(): ReactElement {
   const [draft, setDraft] = useState<string>('');
   const [saved, setSaved] = useState<string | null>(null);
   const [probe, setProbe] = useState<ProbeState>({ kind: 'idle' });
+
+  // Blob settings — bucket is chosen from a dropdown, prefix is built by
+  // drilling into the hierarchy. Manual typing not supported.
   const [blobBucket, setBlobBucket] = useState<string>('');
   const [blobPrefix, setBlobPrefix] = useState<string>('');
   const [savedBlob, setSavedBlob] = useState<{
     bucket: string;
     prefix: string;
   } | null>(null);
-  const [blobProbe, setBlobProbe] = useState<BlobProbeState>({ kind: 'idle' });
   const [buckets, setBuckets] = useState<BucketSummary[]>([]);
+  const [browse, setBrowse] = useState<BrowseState>({ kind: 'idle' });
 
   useEffect(() => {
     const current = getBackendUrl();
@@ -64,16 +72,56 @@ export function SettingsPage(): ReactElement {
       setSavedBlob({ bucket: blob.bucket, prefix: blob.prefix });
       setBlobBucket(blob.bucket);
       setBlobPrefix(blob.prefix);
-      void probeBlob(blob.bucket, blob.prefix);
     }
     listBuckets()
       .then(setBuckets)
       .catch(() => {
-        // Buckets are a hint only — silent failure is fine.
+        // Buckets dropdown stays empty — surfaced via empty-state below.
       });
     // probeUrl identity is stable below; this effect only runs once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Whenever the chosen (bucket, prefix) changes, refresh the sub-directory
+  // listing that drives the path browser.
+  useEffect(() => {
+    if (!blobBucket) {
+      setBrowse({ kind: 'idle' });
+      return;
+    }
+    let cancelled = false;
+    setBrowse({ kind: 'loading' });
+    driverList(blobBucket, {
+      prefix: blobPrefix,
+      delimiter: '/',
+      max_keys: 1000,
+    })
+      .then((page) => {
+        if (cancelled) {
+          return;
+        }
+        const subdirs = (page.common_prefixes ?? []).filter(
+          (p) => p !== blobPrefix
+        );
+        setBrowse({
+          kind: 'ok',
+          subdirs,
+          truncated: Boolean(page.is_truncated),
+        });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        setBrowse({
+          kind: 'error',
+          message: err instanceof Error ? err.message : String(err),
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [blobBucket, blobPrefix]);
 
   const probeUrl = useCallback(async (url: string): Promise<void> => {
     setProbe({ kind: 'probing' });
@@ -113,23 +161,22 @@ export function SettingsPage(): ReactElement {
     setProbe({ kind: 'idle' });
   }, []);
 
-  const probeBlob = useCallback(
-    async (bucket: string, prefix: string): Promise<void> => {
-      setBlobProbe({ kind: 'probing' });
-      try {
-        const info = await probeBlobRoot({ bucket, prefix });
-        setBlobProbe({ kind: 'ok', info });
-      } catch (err) {
-        setBlobProbe({
-          kind: 'error',
-          message: err instanceof Error ? err.message : String(err),
-        });
-      }
-    },
-    []
-  );
+  const handlePickBucket = useCallback((name: string): void => {
+    setBlobBucket(name);
+    setBlobPrefix('');
+  }, []);
 
-  const handleBlobSave = useCallback(async (): Promise<void> => {
+  const handleDrillInto = useCallback((subdir: string): void => {
+    // common_prefixes already includes the trailing slash and is relative to
+    // the bucket root, so we can use it directly as the next browse prefix.
+    setBlobPrefix(subdir);
+  }, []);
+
+  const handleJumpToSegment = useCallback((nextPrefix: string): void => {
+    setBlobPrefix(nextPrefix);
+  }, []);
+
+  const handleBlobSave = useCallback((): void => {
     const bucket = blobBucket.trim();
     if (!bucket) {
       return;
@@ -139,24 +186,15 @@ export function SettingsPage(): ReactElement {
     if (stored) {
       setSavedBlob({ bucket: stored.bucket, prefix: stored.prefix });
       setBlobPrefix(stored.prefix);
-      await probeBlob(stored.bucket, stored.prefix);
     }
-  }, [blobBucket, blobPrefix, probeBlob]);
-
-  const handleBlobTest = useCallback(async (): Promise<void> => {
-    const bucket = blobBucket.trim();
-    if (!bucket) {
-      return;
-    }
-    await probeBlob(bucket, blobPrefix);
-  }, [blobBucket, blobPrefix, probeBlob]);
+  }, [blobBucket, blobPrefix]);
 
   const handleBlobForget = useCallback((): void => {
     clearBlobRoot();
     setSavedBlob(null);
     setBlobBucket('');
     setBlobPrefix('');
-    setBlobProbe({ kind: 'idle' });
+    setBrowse({ kind: 'idle' });
   }, []);
 
   const statusChip = (() => {
@@ -175,11 +213,14 @@ export function SettingsPage(): ReactElement {
   const dirty = draft.trim() !== (saved ?? '');
 
   const blobStatusChip = (() => {
-    switch (blobProbe.kind) {
+    if (!blobBucket) {
+      return <Chip tone='default'>no bucket selected</Chip>;
+    }
+    switch (browse.kind) {
       case 'idle':
-        return <Chip tone='default'>not connected</Chip>;
-      case 'probing':
-        return <Chip tone='default'>checking…</Chip>;
+        return <Chip tone='default'>idle</Chip>;
+      case 'loading':
+        return <Chip tone='default'>browsing…</Chip>;
       case 'ok':
         return <Chip tone='ink'>connected</Chip>;
       case 'error':
@@ -190,6 +231,15 @@ export function SettingsPage(): ReactElement {
   const blobDirty =
     blobBucket.trim() !== (savedBlob?.bucket ?? '') ||
     blobPrefix.trim() !== (savedBlob?.prefix ?? '');
+
+  // Breadcrumb segments derived from the current prefix.
+  const segments = blobPrefix
+    .split('/')
+    .filter((s) => s.length > 0)
+    .map((seg, idx, arr) => ({
+      label: seg,
+      target: `${arr.slice(0, idx + 1).join('/')}/`,
+    }));
 
   return (
     <Panel
@@ -270,123 +320,169 @@ export function SettingsPage(): ReactElement {
       </SettingsSection>
       <SettingsSection
         title='Blob source'
-        description='Point at a path inside platform blob storage (aegis-blob). The viewer enumerates case directories under this prefix and reads files directly — no external llmharness backend needed.'
+        description='Point at a path inside platform blob storage (aegis-blob). Pick a bucket, then drill into the directory tree — the viewer enumerates case directories under the chosen prefix.'
       >
+        {/* Bucket picker */}
         <div
           style={{
-            display: 'flex',
-            gap: 8,
-            alignItems: 'flex-end',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <TextField
-              label='Bucket'
-              placeholder='my-bucket'
-              value={blobBucket}
-              onChange={(e) => setBlobBucket(e.target.value)}
-              spellCheck={false}
-              autoComplete='off'
-            />
-          </div>
-          <div style={{ flex: 2, minWidth: 240 }}>
-            <TextField
-              label='Prefix'
-              placeholder='runs/2024-05-15/cases/'
-              value={blobPrefix}
-              onChange={(e) => setBlobPrefix(e.target.value)}
-              spellCheck={false}
-              autoComplete='off'
-            />
-          </div>
-          <Button
-            tone='ghost'
-            onClick={() => void handleBlobTest()}
-            disabled={!blobBucket.trim()}
-          >
-            Test
-          </Button>
-          <Button
-            onClick={() => void handleBlobSave()}
-            disabled={!blobBucket.trim() || !blobDirty}
-          >
-            Save
-          </Button>
-        </div>
-        {buckets.length > 0 && (
-          <div
-            style={{
-              marginTop: 12,
-              display: 'flex',
-              gap: 6,
-              flexWrap: 'wrap',
-              alignItems: 'center',
-            }}
-          >
-            <MetricLabel size='xs'>buckets</MetricLabel>
-            {buckets.map((b) => (
-              <Chip
-                key={b.name}
-                tone={blobBucket === b.name ? 'ink' : 'default'}
-                onClick={() => setBlobBucket(b.name)}
-              >
-                {b.name}
-              </Chip>
-            ))}
-          </div>
-        )}
-        <div
-          style={{
-            marginTop: 12,
             display: 'flex',
             gap: 12,
             alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <MetricLabel size='xs'>bucket</MetricLabel>
+          <DropdownMenu
+            align='left'
+            trigger={
+              <Button tone='ghost'>
+                {blobBucket || 'Choose a bucket…'} <CaretDownOutlined />
+              </Button>
+            }
+            items={
+              buckets.length > 0
+                ? buckets.map((b) => ({
+                    key: b.name,
+                    label: b.name,
+                    onClick: () => handlePickBucket(b.name),
+                  }))
+                : [
+                    {
+                      key: 'empty',
+                      label: 'No buckets available',
+                      disabled: true,
+                    },
+                  ]
+            }
+          />
+          {blobBucket && (
+            <MetricLabel size='xs'>
+              {browse.kind === 'ok'
+                ? `${String(browse.subdirs.length)} sub-dir${
+                    browse.subdirs.length === 1 ? '' : 's'
+                  } here`
+                : ''}
+            </MetricLabel>
+          )}
+        </div>
+
+        {/* Path breadcrumb + browser */}
+        {blobBucket && (
+          <div style={{ marginTop: 16 }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                marginBottom: 8,
+              }}
+            >
+              <MetricLabel size='xs'>path</MetricLabel>
+              <Chip
+                tone={blobPrefix === '' ? 'ink' : 'default'}
+                onClick={() => handleJumpToSegment('')}
+              >
+                {blobBucket}
+              </Chip>
+              {segments.map((seg, idx) => (
+                <Chip
+                  key={seg.target}
+                  tone={idx === segments.length - 1 ? 'ink' : 'default'}
+                  onClick={() => handleJumpToSegment(seg.target)}
+                >
+                  {seg.label}
+                </Chip>
+              ))}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                minHeight: 32,
+              }}
+            >
+              {browse.kind === 'loading' && (
+                <MetricLabel size='xs'>browsing…</MetricLabel>
+              )}
+              {browse.kind === 'error' && (
+                <MetricLabel size='xs'>{browse.message}</MetricLabel>
+              )}
+              {browse.kind === 'ok' && browse.subdirs.length === 0 && (
+                <MetricLabel size='xs'>
+                  no sub-directories here — saving this prefix will scan its
+                  contents as cases
+                </MetricLabel>
+              )}
+              {browse.kind === 'ok' &&
+                browse.subdirs.map((sub) => {
+                  // Display the leaf segment only.
+                  const rel = sub.startsWith(blobPrefix)
+                    ? sub.slice(blobPrefix.length)
+                    : sub;
+                  const label = rel.replace(/\/$/, '');
+                  return (
+                    <Chip
+                      key={sub}
+                      tone='default'
+                      onClick={() => handleDrillInto(sub)}
+                    >
+                      <FolderOutlined style={{ marginRight: 4 }} />
+                      {label}
+                    </Chip>
+                  );
+                })}
+              {browse.kind === 'ok' && browse.truncated && (
+                <MetricLabel size='xs'>
+                  …list truncated at 1000 entries
+                </MetricLabel>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Save / status */}
+        <div
+          style={{
+            marginTop: 16,
+            display: 'flex',
+            gap: 8,
+            alignItems: 'center',
+            flexWrap: 'wrap',
           }}
         >
           {blobStatusChip}
-          {blobProbe.kind === 'ok' && (
-            <MetricLabel size='xs'>
-              {blobProbe.info.caseCount} sub-directories at this prefix
-            </MetricLabel>
-          )}
-          {blobProbe.kind === 'error' && (
-            <MetricLabel size='xs'>{blobProbe.message}</MetricLabel>
-          )}
+          <div style={{ flex: 1 }} />
+          <Button onClick={handleBlobSave} disabled={!blobBucket || !blobDirty}>
+            Save
+          </Button>
         </div>
-        {blobProbe.kind === 'ok' && (
+
+        {savedBlob && (
           <div style={{ marginTop: 16 }}>
             <KeyValueList
               items={[
                 {
-                  k: 'bucket',
-                  v: <MonoValue size='sm'>{blobProbe.info.bucket}</MonoValue>,
+                  k: 'saved bucket',
+                  v: <MonoValue size='sm'>{savedBlob.bucket}</MonoValue>,
                 },
                 {
-                  k: 'prefix',
+                  k: 'saved prefix',
                   v: (
                     <MonoValue size='sm'>
-                      {blobProbe.info.prefix || '(bucket root)'}
-                    </MonoValue>
-                  ),
-                },
-                {
-                  k: 'sub-dirs',
-                  v: (
-                    <MonoValue size='sm'>
-                      {String(blobProbe.info.caseCount)}
+                      {savedBlob.prefix || '(bucket root)'}
                     </MonoValue>
                   ),
                 },
               ]}
             />
-          </div>
-        )}
-        {savedBlob && (
-          <div style={{ marginTop: 16 }}>
-            <Button tone='ghost' onClick={handleBlobForget}>
-              Forget blob source
-            </Button>
+            <div style={{ marginTop: 12 }}>
+              <Button tone='ghost' onClick={handleBlobForget}>
+                Forget blob source
+              </Button>
+            </div>
           </div>
         )}
       </SettingsSection>
