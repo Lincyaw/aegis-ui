@@ -9,6 +9,18 @@ import './index.css';
 // Primitives
 export * from './components/ui';
 
+// Hooks
+export { useResizable } from './hooks';
+export type { UseResizableOptions, UseResizableReturn } from './hooks';
+
+// Headless time-range parsing (consumers can use it without the picker).
+export {
+  RELATIVE_TIME_PRESETS,
+  parseRelativeTime,
+  parseTimeRangeInput,
+} from './lib/timeRange';
+export type { RelativeTimePreset, TimeRange } from './lib/timeRange';
+
 // Layouts
 export { PageWrapper } from './layouts/PageWrapper';
 export type { PageWrapperProps } from './layouts/PageWrapper';

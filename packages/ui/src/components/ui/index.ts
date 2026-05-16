@@ -117,9 +117,13 @@ export { ObjectBrowser } from './ObjectBrowser';
 export { ShareLinkDialog } from './ShareLinkDialog';
 export type { ShareLinkOptions, ShareLinkResult } from './ShareLinkDialog';
 export { UploadQueue } from './UploadQueue';
+export { ResizableSidePanel } from './ResizableSidePanel';
+export type { ResizableSidePanelProps } from './ResizableSidePanel';
 export { EnvironmentSwitcher } from './EnvironmentSwitcher';
 export type {
   EnvironmentSwitcherBadge,
   EnvironmentSwitcherOption,
   EnvironmentSwitcherProps,
 } from './EnvironmentSwitcher';
+export { TimeRangePicker } from './TimeRangePicker';
+export type { TimeRangePickerProps } from './TimeRangePicker';

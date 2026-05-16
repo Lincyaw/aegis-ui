@@ -276,12 +276,18 @@ importers:
       '@uiw/react-codemirror':
         specifier: ^4.25.9
         version: 4.25.9(@babel/runtime@7.29.2)(@codemirror/autocomplete@6.20.2)(@codemirror/language@6.12.3)(@codemirror/lint@6.9.6)(@codemirror/search@6.7.0)(@codemirror/state@6.6.0)(@codemirror/theme-one-dark@6.1.3)(@codemirror/view@6.42.1)(codemirror@6.0.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      chrono-node:
+        specifier: ^2.7.7
+        version: 2.9.1
       hyparquet:
         specifier: ^1.25.8
         version: 1.25.8
       hyparquet-compressors:
         specifier: ^1.1.1
         version: 1.1.1
+      ms:
+        specifier: ^2.1.3
+        version: 2.1.3
       react-diff-viewer-continued:
         specifier: ^4.2.2
         version: 4.2.2(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -295,6 +301,9 @@ importers:
       '@ant-design/icons':
         specifier: ^5.3.0
         version: 5.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@types/ms':
+        specifier: ^2.1.0
+        version: 2.1.0
       '@types/react':
         specifier: ^18.3.0
         version: 18.3.28
@@ -2264,6 +2273,10 @@ packages:
 
   chroma-js@3.2.0:
     resolution: {integrity: sha512-os/OippSlX1RlWWr+QDPcGUZs0uoqr32urfxESG9U93lhUfbnlyckte84Q8P1UQY/qth983AS1JONKmLS4T0nw==}
+
+  chrono-node@2.9.1:
+    resolution: {integrity: sha512-nqP8Zp11efCYQIESXPxeDM8ikzN5BDb3Zzou+a66fZq+X2hzKFdsNLQE2/uBAh//BZEMbaMo1eTnagK7hOenAg==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   classcat@5.0.5:
     resolution: {integrity: sha512-JhZUT7JFcQy/EzW605k/ktHtncoo9vnyW/2GspNYwFlN1C/WmjuV/xtS04e9SOkL2sTdw0VAZ2UGCcQ9lR6p6w==}
@@ -7577,6 +7590,8 @@ snapshots:
   chroma-js@1.4.1: {}
 
   chroma-js@3.2.0: {}
+
+  chrono-node@2.9.1: {}
 
   classcat@5.0.5: {}
 

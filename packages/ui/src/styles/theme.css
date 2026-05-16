@@ -167,6 +167,8 @@
   --size-avatar-base: 32px;
   --size-avatar-lg: 40px;
   --size-hairline: 1px;
+  --size-resize-handle: 6px;
+  --size-resize-collapsed: 8px;
 
   /* ── Breakpoints (Tailwind-aligned, for documentation + JS) ──────── */
   /* CSS @media rules can't reference custom properties, so these are  */

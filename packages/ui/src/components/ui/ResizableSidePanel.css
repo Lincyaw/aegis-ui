@@ -1,0 +1,80 @@
+.aegis-resizable-panel {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex: 0 0 auto;
+  min-width: 0;
+  height: 100%;
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--motion-fast);
+}
+
+.aegis-resizable-panel--dragging {
+  border-color: var(--border-emphasis);
+  user-select: none;
+}
+
+.aegis-resizable-panel__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+}
+
+.aegis-resizable-handle {
+  flex: 0 0 auto;
+  width: var(--size-resize-handle);
+  cursor: col-resize;
+  background: transparent;
+  transition: background var(--motion-fast);
+  align-self: stretch;
+  touch-action: none;
+}
+
+.aegis-resizable-handle:hover,
+.aegis-resizable-panel--dragging .aegis-resizable-handle {
+  background: var(--border-emphasis);
+}
+
+.aegis-resizable-handle:focus-visible {
+  outline: var(--size-hairline) solid var(--border-strong);
+  outline-offset: calc(-1 * var(--size-hairline));
+  background: var(--border-emphasis);
+}
+
+.aegis-resizable-panel--left .aegis-resizable-handle {
+  border-left: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-resizable-panel--right .aegis-resizable-handle {
+  border-right: var(--size-hairline) solid var(--border-hairline);
+}
+
+/* Collapsed state: a thin click-to-expand bar. */
+.aegis-resizable-panel--collapsed {
+  flex: 0 0 var(--size-resize-collapsed);
+  width: var(--size-resize-collapsed);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  cursor: pointer;
+  border: var(--size-hairline) solid var(--border-hairline);
+  font: inherit;
+}
+
+.aegis-resizable-panel--collapsed:hover {
+  background: var(--border-hairline);
+  color: var(--text-main);
+}
+
+.aegis-resizable-panel__collapse-icon {
+  display: inline-flex;
+  font-size: var(--fs-10);
+  line-height: 1;
+}

@@ -1,0 +1,117 @@
+.aegis-trp__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  cursor: pointer;
+  min-width: 0;
+  transition:
+    border-color var(--motion-fast),
+    background var(--motion-fast);
+}
+
+.aegis-trp__trigger:hover:not(:disabled) {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-trp__trigger:focus-visible {
+  outline: var(--size-hairline) solid var(--text-main);
+  outline-offset: var(--space-px);
+}
+
+.aegis-trp__trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.aegis-trp__trigger-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aegis-trp__trigger-caret {
+  color: var(--text-muted);
+  font-size: var(--fs-10);
+  line-height: 1;
+}
+
+.aegis-trp__pop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 22rem;
+  max-width: 100%;
+}
+
+.aegis-trp__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-trp__row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.aegis-trp__hint {
+  font-family: var(--font-ui);
+  font-size: var(--fs-10);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+}
+
+.aegis-trp__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.aegis-trp__abs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-trp__abs-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.aegis-trp__abs-label {
+  font-family: var(--font-ui);
+  font-size: var(--fs-10);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+}
+
+.aegis-trp__abs-input {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+  background: var(--bg-page);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  outline: none;
+  transition: border-color var(--motion-fast);
+}
+
+.aegis-trp__abs-input:focus {
+  border-color: var(--text-main);
+}

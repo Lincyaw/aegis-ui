@@ -75,6 +75,7 @@ import {
   PasswordField,
   ProjectSelector,
   RegisterForm,
+  ResizableSidePanel,
   Tabs as RosettaTabs,
   SectionDivider,
   SettingsSection,
@@ -87,6 +88,8 @@ import {
   Timeline,
   TextField,
   TimeDisplay,
+  TimeRangePicker,
+  type TimeRangePickerProps,
   Toolbar,
   ToolCallCard,
   type ToolCallData,
@@ -527,6 +530,32 @@ function Specimen({ caption, children, span = 1 }: SpecimenProps) {
         {caption}
       </MetricLabel>
     </div>
+  );
+}
+
+interface TimeRangePickerSpecimenProps {
+  initial: string;
+  presets?: TimeRangePickerProps['presets'];
+  logToConsole?: boolean;
+}
+
+function TimeRangePickerSpecimen({
+  initial,
+  presets,
+  logToConsole = false,
+}: TimeRangePickerSpecimenProps) {
+  const [value, setValue] = useState(initial);
+  return (
+    <TimeRangePicker
+      value={value}
+      presets={presets}
+      onChange={(next) => {
+        setValue(next);
+        if (logToConsole) {
+          console.warn('TimeRangePicker change:', next);
+        }
+      }}
+    />
   );
 }
 
@@ -1884,6 +1913,27 @@ function App() {
           </Specimen>
           <Specimen caption='duration'>
             <TimeDisplay value={2840} mode='duration' />
+          </Specimen>
+        </div>
+
+        <SectionDivider>TimeRangePicker</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='default · now-1h'>
+            <TimeRangePickerSpecimen initial='now-1h' />
+          </Specimen>
+          <Specimen caption='custom presets incl. 30d'>
+            <TimeRangePickerSpecimen
+              initial='now-30d'
+              presets={[
+                { label: '1h', value: 'now-1h' },
+                { label: '24h', value: 'now-24h' },
+                { label: '7d', value: 'now-7d' },
+                { label: '30d', value: 'now-30d' },
+              ]}
+            />
+          </Specimen>
+          <Specimen caption='controlled · logs to console'>
+            <TimeRangePickerSpecimen initial='now-15m' logToConsole />
           </Specimen>
         </div>
       </Panel>
@@ -3600,6 +3650,15 @@ function App() {
             <TraceTreeSpecimen />
           </Specimen>
         </div>
+
+        <SectionDivider extra={<MetricLabel>drag · keyboard · persist</MetricLabel>}>
+          ResizableSidePanel
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen caption='left + right · collapsible · persist · keyboard' span={3}>
+            <ResizableSidePanelSpecimen />
+          </Specimen>
+        </div>
       </Panel>
 
       {/* ── AntD widgets under our theme ───────────────────────────── */}
@@ -4213,6 +4272,75 @@ function TraceTreeSpecimen(): ReactNode {
         }),
       }}
     />
+  );
+}
+
+function ResizableSidePanelSpecimen(): ReactNode {
+  const [rightCollapsed, setRightCollapsed] = useState(false);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 'var(--space-2)',
+        width: '100%',
+        height: 320,
+        alignItems: 'stretch',
+      }}
+    >
+      <ResizableSidePanel side='left' defaultWidth={280}>
+        <div style={{ padding: 'var(--space-4)' }}>
+          <MetricLabel as='div' size='xs'>
+            left · 280px · non-collapsible
+          </MetricLabel>
+          <p>Drag the right edge to resize. Hard min/max enforced.</p>
+        </div>
+      </ResizableSidePanel>
+
+      <ResizableSidePanel side='left' defaultWidth={240} persistKey='gallery.resizable.persist'>
+        <div style={{ padding: 'var(--space-4)' }}>
+          <MetricLabel as='div' size='xs'>
+            left · persistKey
+          </MetricLabel>
+          <p>Resize then reload — width survives via localStorage.</p>
+        </div>
+      </ResizableSidePanel>
+
+      <div
+        style={{
+          flex: '1 1 auto',
+          minWidth: 0,
+          padding: 'var(--space-4)',
+          border: 'var(--size-hairline) dashed var(--border-hairline)',
+          borderRadius: 'var(--radius-md)',
+          background: 'var(--bg-page)',
+        }}
+      >
+        <MetricLabel as='div' size='xs'>
+          keyboard-only resize demo
+        </MetricLabel>
+        <p>
+          Tab onto either handle (focus ring appears) and press ←/→ to adjust
+          width in 16 px steps. Shrinking the right panel below its min collapses
+          it.
+        </p>
+      </div>
+
+      <ResizableSidePanel
+        side='right'
+        defaultWidth={360}
+        collapsible
+        collapsed={rightCollapsed}
+        onCollapsedChange={setRightCollapsed}
+      >
+        <div style={{ padding: 'var(--space-4)' }}>
+          <MetricLabel as='div' size='xs'>
+            right · 360px · collapsible
+          </MetricLabel>
+          <p>Drag handle past min-width to collapse. Click thin bar to expand.</p>
+        </div>
+      </ResizableSidePanel>
+    </div>
   );
 }
 
