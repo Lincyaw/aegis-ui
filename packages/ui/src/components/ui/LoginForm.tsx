@@ -11,11 +11,19 @@ interface LoginFormValues {
 }
 
 interface LoginFormProps {
-  onSubmit: (values: LoginFormValues) => void | Promise<void>;
+  onSubmit?: (values: LoginFormValues) => void | Promise<void>;
   submitting?: boolean;
   error?: string;
   onForgotPassword?: () => void;
   showRememberMe?: boolean;
+  // When set, the form submits natively to this URL so the browser's
+  // password manager can detect the credential submission. onSubmit is
+  // still invoked (without preventDefault) for caller-side bookkeeping.
+  action?: string;
+  method?: 'GET' | 'POST';
+  // Extra hidden inputs co-submitted with username/password — e.g. PKCE
+  // params for an SSO authorization endpoint.
+  hiddenFields?: Record<string, string>;
 }
 
 export function LoginForm({
@@ -24,27 +32,43 @@ export function LoginForm({
   error,
   onForgotPassword,
   showRememberMe = true,
+  action,
+  method = 'POST',
+  hiddenFields,
 }: LoginFormProps): ReactElement {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    void onSubmit({ email, password, remember });
+    if (!action) {
+      e.preventDefault();
+    }
+    void onSubmit?.({ email, password, remember });
   };
 
   return (
-    <form className="aegis-loginform" onSubmit={handleSubmit} noValidate>
+    <form
+      className="aegis-loginform"
+      onSubmit={handleSubmit}
+      action={action}
+      method={action ? method : undefined}
+      noValidate
+    >
       {error && (
         <div className="aegis-loginform__error" role="alert">
           {error}
         </div>
       )}
+      {hiddenFields &&
+        Object.entries(hiddenFields).map(([k, v]) => (
+          <input key={k} type="hidden" name={k} value={v} />
+        ))}
       <TextField
         label="Email"
         type="email"
-        autoComplete="email"
+        name="username"
+        autoComplete="username"
         placeholder="you@example.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -53,6 +77,7 @@ export function LoginForm({
       />
       <PasswordField
         label="Password"
+        name="password"
         autoComplete="current-password"
         placeholder="••••••••"
         value={password}

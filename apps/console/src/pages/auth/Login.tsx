@@ -5,6 +5,12 @@ import { AuthLayout, LoginForm, useAuth } from '@lincyaw/aegis-ui';
 
 import { loadSsoConfig, ssoUrl } from '../../auth/ssoConfig';
 
+interface LoginFormValues {
+  email: string;
+  password: string;
+  remember: boolean;
+}
+
 interface LocationState {
   from?: { pathname?: string };
 }
@@ -113,38 +119,14 @@ export function Login(): ReactElement {
     );
   }
 
-  const handleSubmit = (values: {
-    email: string;
-    password: string;
-  }): Promise<void> => {
+  const handleSubmit = (_values: LoginFormValues): void => {
+    // Native form POST handles the redirect; just flip UI state so the
+    // button shows "Signing in…" until the browser navigates away.
     setError(undefined);
     setSubmitting(true);
-    const form = new URLSearchParams({
-      client_id: handoff.clientId,
-      redirect_uri: handoff.redirectUri,
-      state: handoff.state,
-      scope: handoff.scope,
-      code_challenge: handoff.codeChallenge,
-      code_challenge_method: handoff.codeChallengeMethod,
-      username: values.email,
-      password: values.password,
-    });
-    const action = ssoUrl('/login', loadSsoConfig());
-    const el = document.createElement('form');
-    el.method = 'POST';
-    el.action = action;
-    el.style.display = 'none';
-    for (const [k, v] of form.entries()) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = k;
-      input.value = v;
-      el.appendChild(input);
-    }
-    document.body.appendChild(el);
-    el.submit();
-    return Promise.resolve();
   };
+
+  const action = ssoUrl('/login', loadSsoConfig());
 
   return (
     <AuthLayout
@@ -161,6 +143,16 @@ export function Login(): ReactElement {
         onSubmit={handleSubmit}
         submitting={submitting}
         error={error}
+        action={action}
+        method='POST'
+        hiddenFields={{
+          client_id: handoff.clientId,
+          redirect_uri: handoff.redirectUri,
+          state: handoff.state,
+          scope: handoff.scope,
+          code_challenge: handoff.codeChallenge,
+          code_challenge_method: handoff.codeChallengeMethod,
+        }}
       />
     </AuthLayout>
   );
