@@ -20,17 +20,23 @@ import {
   getBlobRoot,
 } from './connection';
 import type {
+  AuditorFiring,
+  CaseBundle,
   CaseMeta,
   CaseSummary,
   DroppedRow,
+  ExtractorFiring,
   FiringFile,
   FiringPhase,
+  GraphSnapshot,
   GraphSnapshotFile,
   MainAgentMessage,
+  MainTurn,
   SftRowBase,
   TrajectoryRow,
   VerdictRow,
 } from './schemas';
+import { computeCaseLinks } from './schemas';
 
 export interface CaseRepo {
   /** Cosmetic label shown in headers; not load-bearing. */
@@ -48,10 +54,89 @@ export interface CaseRepo {
   readTrajectory(caseId: string): Promise<TrajectoryRow[]>;
   /** Cumulative graph state after an extractor firing succeeded.
    * Returns null if the snapshot file is missing (firing didn't advance). */
-  readSnapshot(
-    caseId: string,
-    extractorSequence: number
-  ): Promise<GraphSnapshotFile | null>;
+  readSnapshot(caseId: string, extractorSequence: number): Promise<GraphSnapshotFile | null>;
+  /** Compose meta + main + extractor[] + auditor[] + graph snapshots into a
+   *  CaseBundle, computing the cross-pane link index in one place. SFT is
+   *  excluded (different backends source it differently); pages load it lazily. */
+  loadBundle(caseId: string): Promise<CaseBundle>;
+}
+
+function parseFiringFileName(
+  name: string,
+): { seq: number; turn: number } | null {
+  const m = /^(\d+)_turn_(\d+)\.json$/.exec(name);
+  if (!m) {
+    return null;
+  }
+  return { seq: Number(m[1]), turn: Number(m[2]) };
+}
+
+/** Shared loadBundle body — every CaseRepo implementation parallel-reads
+ *  all the files for a case via the interface methods. */
+async function loadBundleViaRepo(
+  repo: CaseRepo,
+  caseId: string,
+): Promise<CaseBundle> {
+  const [meta, mainRaw, extractorFiles, auditorFiles] = await Promise.all([
+    repo.readMeta(caseId),
+    repo.readMainAgent(caseId),
+    repo.listFiringFiles(caseId, 'extractor'),
+    repo.listFiringFiles(caseId, 'auditor'),
+  ]);
+
+  const extractorMeta = extractorFiles
+    .map((f) => ({ file: f, parsed: parseFiringFileName(f) }))
+    .filter(
+      (x): x is { file: string; parsed: { seq: number; turn: number } } =>
+        x.parsed !== null,
+    );
+  const auditorMeta = auditorFiles
+    .map((f) => ({ file: f, parsed: parseFiringFileName(f) }))
+    .filter(
+      (x): x is { file: string; parsed: { seq: number; turn: number } } =>
+        x.parsed !== null,
+    );
+
+  const [extractor, auditor, snapshots] = await Promise.all([
+    Promise.all(
+      extractorMeta.map(async ({ file }) => {
+        const raw = await repo.readFiring(caseId, 'extractor', file);
+        return raw as unknown as ExtractorFiring;
+      }),
+    ),
+    Promise.all(
+      auditorMeta.map(async ({ file }) => {
+        const raw = await repo.readFiring(caseId, 'auditor', file);
+        return raw as unknown as AuditorFiring;
+      }),
+    ),
+    Promise.all(
+      extractorMeta.map(async ({ parsed }) => ({
+        seq: parsed.seq,
+        snap: await repo.readSnapshot(caseId, parsed.seq).catch(() => null),
+      })),
+    ),
+  ]);
+
+  extractor.sort((a, b) => a.sequence - b.sequence);
+  auditor.sort((a, b) => a.sequence - b.sequence);
+  const graphs = new Map<number, GraphSnapshot>();
+  for (const { seq, snap } of snapshots) {
+    if (snap) {
+      graphs.set(seq, snap as GraphSnapshot);
+    }
+  }
+
+  const main = mainRaw as unknown as MainTurn[];
+
+  const partial: Omit<CaseBundle, 'links'> = {
+    meta,
+    main,
+    extractor,
+    auditor,
+    graphs,
+  };
+  return { ...partial, links: computeCaseLinks(partial) };
 }
 
 // --------------------------------------------------------------------------
@@ -201,6 +286,10 @@ export class FSAccessCaseRepo implements CaseRepo {
     } catch {
       return null;
     }
+  }
+
+  loadBundle(caseId: string): Promise<CaseBundle> {
+    return loadBundleViaRepo(this, caseId);
   }
 }
 
@@ -465,6 +554,10 @@ export class HttpCaseRepo implements CaseRepo {
       return null;
     }
   }
+
+  loadBundle(caseId: string): Promise<CaseBundle> {
+    return loadBundleViaRepo(this, caseId);
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -626,6 +719,10 @@ export class BlobCaseRepo implements CaseRepo {
       }
       throw err;
     }
+  }
+
+  loadBundle(caseId: string): Promise<CaseBundle> {
+    return loadBundleViaRepo(this, caseId);
   }
 }
 
