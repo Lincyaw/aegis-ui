@@ -13,3 +13,4 @@ dist
 .claude/
 apps/console/server/aegis-console
 apps/console/server/server
+.playwright-mcp/
