@@ -1,26 +1,31 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
-  Chip,
   EmptyState,
   KeyValueList,
   MonoValue,
   Panel,
   PanelTitle,
-  Tabs,
+  Terminal,
+  type TerminalLine,
   TimeDisplay,
-  Timeline,
-  type TimelineItem,
   TimelineChart,
   type TimelineSpan,
-  useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import type { TaskResp, TraceTraceDetailResp } from '@lincyaw/portal';
+import type {
+  InjectionInjectionLogEntry,
+  InjectionInjectionTimelineEvent,
+  InjectionInjectionTimelineResp,
+  InjectionInjectionTimelineWindow,
+  TraceTraceDetailResp,
+} from '@lincyaw/portal';
 
 import {
   isActiveTraceState,
   useInjectionDetail,
+  useInjectionLogs,
+  useInjectionTimeline,
   useProcessTrace,
 } from '../api/injections';
 import { RefreshControl } from '../components/RefreshControl';
@@ -60,118 +65,137 @@ function formatDuration(startIso?: string, endIso?: string): string {
   return `${String(h)}h ${String(rm)}m`;
 }
 
-type TaskView = 'gantt' | 'list';
-
-const TERMINAL_STATES = new Set(['completed', 'failed', 'cancelled', 'done']);
-const FAILED_STATES = new Set(['failed', 'error']);
-
-function statusOf(t: TaskResp): 'ok' | 'error' | 'warn' | undefined {
-  const s = (t.state ?? t.status ?? '').toLowerCase();
-  if (FAILED_STATES.has(s)) {
-    return 'error';
+function formatMs(ms: number): string {
+  if (ms < 1) {
+    return `${(ms * 1000).toFixed(0)}µs`;
   }
-  if (s === 'completed' || s === 'done') {
-    return 'ok';
+  if (ms < 1000) {
+    return `${ms.toFixed(0)}ms`;
   }
-  return undefined;
+  if (ms < 60_000) {
+    return `${(ms / 1000).toFixed(2)}s`;
+  }
+  const s = ms / 1000;
+  const m = Math.floor(s / 60);
+  const rs = Math.round(s - m * 60);
+  return `${String(m)}m${String(rs)}s`;
 }
 
-interface GanttData {
+const PHASE_ORDER: Array<keyof InjectionInjectionTimelineResp> = [
+  'pre',
+  'fault',
+  'post',
+  'recover',
+];
+
+interface PhaseGantt {
   spans: TimelineSpan[];
   minNs: number;
   maxNs: number;
+  totalMs: number;
 }
 
-function taskGanttSpans(
-  trace: TraceTraceDetailResp,
-  tasks: TaskResp[]
-): GanttData | null {
-  if (tasks.length === 0) {
-    return null;
-  }
-  const traceStartMs = trace.start_time ? Date.parse(trace.start_time) : NaN;
-  if (Number.isNaN(traceStartMs)) {
-    return null;
-  }
-  const traceEndMs = trace.end_time ? Date.parse(trace.end_time) : Date.now();
-  const nowMs = Date.now();
-  const spans: TimelineSpan[] = [];
-  for (const [i, t] of tasks.entries()) {
-    if (!t.created_at) {
-      continue;
+function buildPhaseGantt(
+  timeline: InjectionInjectionTimelineResp
+): PhaseGantt | null {
+  const phases: Array<{
+    key: string;
+    window: InjectionInjectionTimelineWindow;
+  }> = [];
+  for (const key of PHASE_ORDER) {
+    const w = timeline[key];
+    if (
+      w &&
+      typeof w === 'object' &&
+      'start' in w &&
+      (w as InjectionInjectionTimelineWindow).start
+    ) {
+      phases.push({
+        key: String(key),
+        window: w as InjectionInjectionTimelineWindow,
+      });
     }
-    const startMs = Date.parse(t.created_at);
-    if (Number.isNaN(startMs)) {
-      continue;
-    }
-    const stateLower = (t.state ?? t.status ?? '').toLowerCase();
-    const isTerminal = TERMINAL_STATES.has(stateLower);
-    const endMs =
-      isTerminal && t.updated_at ? Date.parse(t.updated_at) : nowMs;
-    const safeEnd = Number.isNaN(endMs) ? nowMs : Math.max(endMs, startMs);
-    spans.push({
-      id: t.id ?? `task-${String(i)}`,
-      label: t.type ?? 'task',
-      startNs: (startMs - traceStartMs) * 1_000_000,
-      durationNs: (safeEnd - startMs) * 1_000_000,
-      kind: t.type,
-      status: statusOf(t),
-    });
   }
-  if (spans.length === 0) {
+  if (phases.length === 0) {
     return null;
   }
+  const startsMs = phases
+    .map((p) => Date.parse(p.window.start ?? ''))
+    .filter((n) => !Number.isNaN(n));
+  if (startsMs.length === 0) {
+    return null;
+  }
+  const traceStartMs = Math.min(...startsMs);
+  let traceEndMs = traceStartMs;
+  const spans: TimelineSpan[] = phases.map((p, i) => {
+    const startMs = Date.parse(p.window.start ?? '');
+    const endStr = p.window.end ?? '';
+    const endMs = endStr ? Date.parse(endStr) : Date.now();
+    const safeStart = Number.isNaN(startMs) ? traceStartMs : startMs;
+    const safeEnd = Number.isNaN(endMs)
+      ? safeStart
+      : Math.max(endMs, safeStart);
+    if (safeEnd > traceEndMs) {
+      traceEndMs = safeEnd;
+    }
+    return {
+      id: `phase-${p.key}-${String(i)}`,
+      label: p.key,
+      startNs: (safeStart - traceStartMs) * 1_000_000,
+      durationNs: Math.max(1, safeEnd - safeStart) * 1_000_000,
+      kind: p.key,
+    };
+  });
+  const totalMs = traceEndMs - traceStartMs;
   return {
     spans,
     minNs: 0,
-    maxNs: (Math.max(traceEndMs, nowMs) - traceStartMs) * 1_000_000,
+    maxNs: Math.max(totalMs, 1) * 1_000_000,
+    totalMs,
   };
 }
 
-function taskTimelineItems(
-  tasks: TaskResp[] | undefined,
-  onTaskClick: (taskId: string) => void
-): TimelineItem[] {
-  if (!tasks || tasks.length === 0) {
+function eventLines(
+  events: InjectionInjectionTimelineEvent[] | undefined
+): TerminalLine[] {
+  if (!events || events.length === 0) {
     return [];
   }
-  return [...tasks]
-    .sort((a, b) => {
-      const ax = a.created_at ?? '';
-      const bx = b.created_at ?? '';
-      return ax.localeCompare(bx);
-    })
-    .map((t, i) => {
-      const id = t.id ?? `task-${String(i)}`;
-      const state = t.state ?? t.status ?? 'pending';
-      return {
-        id,
-        title: (
-          <button
-            type='button'
-            className='injection-process__task-link'
-            onClick={() => {
-              if (t.id) {
-                onTaskClick(t.id);
-              }
-            }}
-          >
-            {t.type ?? 'task'}
-          </button>
-        ),
-        description: (
-          <span className='injection-process__task-row'>
-            <StatusChip status={state} />
-            <MonoValue size='sm'>{t.id ?? '—'}</MonoValue>
-            {t.created_at && (
-              <span className='injection-process__task-time'>
-                <TimeDisplay value={t.created_at} />
-              </span>
-            )}
-          </span>
-        ),
-      };
-    });
+  return [...events]
+    .sort((a, b) => (a.ts ?? '').localeCompare(b.ts ?? ''))
+    .map((e, i) => ({
+      ts: e.ts ?? String(i),
+      prefix: e.kind ?? 'event',
+      body: e.label ?? '',
+    }));
+}
+
+function logLevelClass(level: string | undefined): TerminalLine['level'] {
+  const l = (level ?? '').toLowerCase();
+  if (l === 'error' || l === 'fatal') {
+    return 'error';
+  }
+  if (l === 'warn' || l === 'warning') {
+    return 'warn';
+  }
+  if (l === 'debug' || l === 'trace') {
+    return 'debug';
+  }
+  return 'info';
+}
+
+function logLines(
+  entries: InjectionInjectionLogEntry[] | undefined
+): TerminalLine[] {
+  if (!entries || entries.length === 0) {
+    return [];
+  }
+  return entries.map((e, i) => ({
+    ts: e.ts ?? String(i),
+    prefix: e.service ?? e.level ?? 'log',
+    level: logLevelClass(e.level),
+    body: e.msg ?? '',
+  }));
 }
 
 function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
@@ -190,10 +214,6 @@ function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
           v: <MonoValue size='sm'>{trace.id ?? '—'}</MonoValue>,
         },
         {
-          k: 'group',
-          v: <MonoValue size='sm'>{trace.group_id ?? '—'}</MonoValue>,
-        },
-        {
           k: 'started',
           v: <TimeDisplay value={trace.start_time ?? ''} />,
         },
@@ -202,10 +222,6 @@ function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
           k: 'duration',
           v: formatDuration(trace.start_time, trace.end_time),
         },
-        {
-          k: 'leaf tasks',
-          v: String(trace.leaf_num ?? trace.tasks?.length ?? 0),
-        },
       ]}
     />
   );
@@ -213,24 +229,42 @@ function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
 
 export default function InjectionProcess() {
   const { injectionId } = useParams<{ injectionId: string }>();
-  const navigate = useAppNavigate();
 
   const idNum = injectionId ? Number.parseInt(injectionId, 10) : Number.NaN;
-  const { data: injection } = useInjectionDetail(
-    Number.isNaN(idNum) ? null : idNum,
-  );
+  const validId = Number.isNaN(idNum) ? null : idNum;
+  const { data: injection } = useInjectionDetail(validId);
 
   const traceId = injection?.trace_id ?? null;
   const [refresh, setRefresh] = useState<RefreshInterval>(5);
-  const [view, setView] = useState<TaskView>('gantt');
+  const intervalMs = intervalToMs(refresh);
+
   const {
     data: trace,
     isLoading,
     isError,
     error,
-    isFetching,
-    refetch,
-  } = useProcessTrace(traceId, intervalToMs(refresh));
+    isFetching: traceFetching,
+    refetch: refetchTrace,
+  } = useProcessTrace(traceId, intervalMs);
+
+  const {
+    data: timeline,
+    isFetching: timelineFetching,
+    refetch: refetchTimeline,
+  } = useInjectionTimeline(validId, intervalMs);
+
+  const {
+    data: logsResp,
+    isFetching: logsFetching,
+    refetch: refetchLogs,
+  } = useInjectionLogs(validId, { limit: 200 }, intervalMs);
+
+  const phaseGantt = useMemo(
+    () => (timeline ? buildPhaseGantt(timeline) : null),
+    [timeline],
+  );
+  const events = useMemo(() => eventLines(timeline?.events), [timeline?.events]);
+  const logs = useMemo(() => logLines(logsResp?.entries), [logsResp?.entries]);
 
   if (!injection) {
     return (
@@ -274,12 +308,8 @@ export default function InjectionProcess() {
     );
   }
 
-  const tasks = trace.tasks ?? [];
-  const items = taskTimelineItems(tasks, (taskId) => {
-    navigate(`tasks/${taskId}`);
-  });
-  const gantt = taskGanttSpans(trace, tasks);
   const live = isActiveTraceState(trace.state);
+  const anyFetching = traceFetching || timelineFetching || logsFetching;
 
   return (
     <>
@@ -290,9 +320,11 @@ export default function InjectionProcess() {
             value={refresh}
             onChange={setRefresh}
             onRefresh={() => {
-              void refetch();
+              void refetchTrace();
+              void refetchTimeline();
+              void refetchLogs();
             }}
-            isFetching={isFetching}
+            isFetching={anyFetching}
             isLive={live}
           />
         }
@@ -309,44 +341,57 @@ export default function InjectionProcess() {
       </Panel>
 
       <Panel
-        title={<PanelTitle size='base'>Tasks</PanelTitle>}
-        extra={<Chip tone='ghost'>{`${String(tasks.length)} total`}</Chip>}
+        title={<PanelTitle size='base'>Phases</PanelTitle>}
+        extra={
+          phaseGantt ? (
+            <span className='injection-process__last-event-label'>
+              {`${String(phaseGantt.spans.length)} phases · ${formatMs(phaseGantt.totalMs)}`}
+            </span>
+          ) : undefined
+        }
       >
-        {tasks.length === 0 ? (
-          <EmptyState
-            title='No tasks yet'
-            description='Tasks will appear here as the orchestrator schedules them.'
+        {phaseGantt ? (
+          <TimelineChart
+            spans={phaseGantt.spans}
+            minNs={phaseGantt.minNs}
+            maxNs={phaseGantt.maxNs}
           />
         ) : (
-          <>
-            <Tabs
-              activeKey={view}
-              onChange={(k) => {
-                setView(k as TaskView);
-              }}
-              items={[
-                { key: 'gantt', label: 'Gantt' },
-                { key: 'list', label: 'List' },
-              ]}
-            />
-            {view === 'gantt' && gantt ? (
-              <TimelineChart
-                spans={gantt.spans}
-                minNs={gantt.minNs}
-                maxNs={gantt.maxNs}
-                onSpanClick={(span) => {
-                  navigate(`tasks/${span.id}`);
-                }}
-              />
-            ) : view === 'gantt' ? (
-              <EmptyState
-                title='Gantt unavailable'
-                description='Trace start time is missing; falling back to list view.'
-              />
-            ) : (
-              <Timeline items={items} />
-            )}
-          </>
+          <EmptyState
+            title='No phase timeline yet'
+            description='Pre / fault / post / recover windows will appear once the orchestrator records them.'
+          />
+        )}
+      </Panel>
+
+      <Panel title={<PanelTitle size='base'>Events</PanelTitle>}>
+        {events.length > 0 ? (
+          <Terminal lines={events} />
+        ) : (
+          <EmptyState
+            title='No events yet'
+            description='Discrete state transitions emitted by the orchestrator will appear here.'
+          />
+        )}
+      </Panel>
+
+      <Panel
+        title={<PanelTitle size='base'>Logs</PanelTitle>}
+        extra={
+          logsResp?.total_estimate != null ? (
+            <span className='injection-process__last-event-label'>
+              {`~${String(logsResp.total_estimate)} total`}
+            </span>
+          ) : undefined
+        }
+      >
+        {logs.length > 0 ? (
+          <Terminal lines={logs} />
+        ) : (
+          <EmptyState
+            title='No logs yet'
+            description='Per-service injection logs will stream here as the run progresses.'
+          />
         )}
       </Panel>
     </>

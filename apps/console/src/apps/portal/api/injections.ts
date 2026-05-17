@@ -1,7 +1,9 @@
 import {
   type InjectionGuidedSpec,
   type InjectionInjectionDetailResp,
+  type InjectionInjectionLogsFilteredResp,
   type InjectionInjectionResp,
+  type InjectionInjectionTimelineResp,
   type InjectionSubmitInjectionReq,
   type TraceTraceDetailResp,
 } from '@lincyaw/portal';
@@ -167,6 +169,58 @@ export function useProcessTrace(
       const detail = query.state.data as TraceTraceDetailResp | undefined;
       return isActiveTraceState(detail?.state) ? 3_000 : false;
     },
+  });
+}
+
+export function useInjectionTimeline(
+  injectionId: number | null | undefined,
+  refetchMs?: number | false
+): UseQueryResult<InjectionInjectionTimelineResp | undefined> {
+  return useQuery({
+    queryKey: ['portal', 'injection-timeline', injectionId ?? null],
+    queryFn: async () => {
+      if (injectionId == null) {
+        return undefined;
+      }
+      const resp = await injectionsApi.getInjectionTimeline({
+        id: injectionId,
+      });
+      return resp.data.data;
+    },
+    enabled: injectionId != null && injectionId > 0,
+    refetchInterval: refetchMs ?? false,
+  });
+}
+
+export function useInjectionLogs(
+  injectionId: number | null | undefined,
+  opts?: { limit?: number; level?: string; q?: string },
+  refetchMs?: number | false
+): UseQueryResult<InjectionInjectionLogsFilteredResp | undefined> {
+  const { limit = 200, level, q } = opts ?? {};
+  return useQuery({
+    queryKey: [
+      'portal',
+      'injection-logs',
+      injectionId ?? null,
+      limit,
+      level ?? null,
+      q ?? null,
+    ],
+    queryFn: async () => {
+      if (injectionId == null) {
+        return undefined;
+      }
+      const resp = await injectionsApi.getInjectionLogs({
+        id: injectionId,
+        limit,
+        level,
+        q,
+      });
+      return resp.data.data;
+    },
+    enabled: injectionId != null && injectionId > 0,
+    refetchInterval: refetchMs ?? false,
   });
 }
 
