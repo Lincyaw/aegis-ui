@@ -34,6 +34,7 @@ interface TabSpec {
 
 const TAB_SPECS: TabSpec[] = [
   { key: 'overview', label: 'Overview', path: '' },
+  { key: 'process', label: 'Process', path: 'process' },
   { key: 'data', label: 'Data', path: 'data' },
 ];
 

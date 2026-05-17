@@ -236,6 +236,38 @@
   flex-wrap: wrap;
 }
 
+.injection-process__task-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--text-main);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--border-hairline);
+  text-underline-offset: var(--space-1);
+}
+
+.injection-process__task-link:hover {
+  text-decoration-color: var(--border-emphasis);
+}
+
+.injection-process__last-event {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-hairline);
+}
+
+.injection-process__last-event-label {
+  color: var(--text-muted);
+  font-size: var(--fs-11);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 /* ── Inject wizard layout ────────────────────────────────────────── */
 
 .wizard-steps__btn {

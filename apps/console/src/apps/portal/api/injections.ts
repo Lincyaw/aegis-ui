@@ -3,6 +3,7 @@ import {
   type InjectionInjectionDetailResp,
   type InjectionInjectionResp,
   type InjectionSubmitInjectionReq,
+  type TraceTraceDetailResp,
 } from '@lincyaw/portal';
 import {
   useMutation,
@@ -14,7 +15,17 @@ import {
 
 import type { GuidedInjectionSpec } from '../mocks/types';
 
-import { injectionsApi, projectsApi } from './portal-client';
+import { injectionsApi, projectsApi, tracesApi } from './portal-client';
+
+const TRACE_ACTIVE_STATES = new Set([
+  'initial',
+  'pending',
+  'queued',
+  'running',
+  'restarting',
+  'installing',
+  'rescheduled',
+]);
 
 const STATUS_ACTIVE = new Set([
   'pending',
@@ -122,6 +133,27 @@ export function useInjectionDetail(
         | InjectionInjectionDetailResp
         | undefined;
       return isActiveStatus(detail?.status) ? 3_000 : false;
+    },
+  });
+}
+
+export function useProcessTrace(
+  traceId: string | null | undefined
+): UseQueryResult<TraceTraceDetailResp | undefined> {
+  return useQuery({
+    queryKey: ['portal', 'trace', traceId ?? null],
+    queryFn: async () => {
+      if (!traceId) {
+        return undefined;
+      }
+      const resp = await tracesApi.getTraceById({ traceId });
+      return resp.data.data;
+    },
+    enabled: Boolean(traceId),
+    refetchInterval: (query) => {
+      const detail = query.state.data as TraceTraceDetailResp | undefined;
+      const state = detail?.state?.toLowerCase();
+      return state && TRACE_ACTIVE_STATES.has(state) ? 3_000 : false;
     },
   });
 }

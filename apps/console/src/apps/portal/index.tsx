@@ -40,6 +40,7 @@ import InjectionCreate from './pages/InjectionCreate';
 import InjectionData from './pages/InjectionData';
 import InjectionDetailLayout from './pages/InjectionDetailLayout';
 import InjectionDetailOverview from './pages/InjectionDetailOverview';
+import InjectionProcess from './pages/InjectionProcess';
 import Injections from './pages/Injections';
 import LabelCreate from './pages/LabelCreate';
 import LabelDetail from './pages/LabelDetail';
@@ -117,6 +118,7 @@ export const portalApp: AegisApp = {
       element: <InjectionDetailLayout />,
       children: [
         { index: true, element: <InjectionDetailOverview /> },
+        { path: 'process', element: <InjectionProcess /> },
         { path: 'data', element: <InjectionData /> },
       ],
     },
