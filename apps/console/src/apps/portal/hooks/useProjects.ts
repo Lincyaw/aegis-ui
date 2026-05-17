@@ -24,7 +24,7 @@ export function useProjectsList(): UseQueryResult<ProjectProjectResp[]> {
   return useQuery({
     queryKey: projectKeys.list(),
     queryFn: async () => {
-      const res = await projectsApi.listProjects({ size: 200 });
+      const res = await projectsApi.listProjects({ size: 100 });
       return res.data.data?.items ?? [];
     },
   });

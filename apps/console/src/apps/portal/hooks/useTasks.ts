@@ -14,7 +14,7 @@ export function useTasksList(params: TasksListParams = {}) {
     queryFn: async () => {
       const res = await tasksApi.listTasks({
         page: params.page ?? 1,
-        size: params.size ?? 60,
+        size: params.size ?? 50,
         projectId: params.projectId,
       });
       return res.data.data;
