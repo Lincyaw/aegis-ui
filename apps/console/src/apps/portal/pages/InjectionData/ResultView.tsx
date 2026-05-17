@@ -107,25 +107,50 @@ function detectTraceMapping(columns: ArrowColumnInfo[]): TraceMapping | undefine
   };
   const traceId = pick('trace_id', 'traceid');
   const spanId = pick('span_id', 'spanid');
-  const start = pick('start_time', 'start_ts', 'start_ms', 'startms');
-  const durationNs = pick('duration_ns', 'durationns');
-  const durationMs = pick('duration_ms', 'durationms', 'duration');
-  if (!traceId || !spanId || !start || (!durationNs && !durationMs)) {
+  const start = pick(
+    'start_time',
+    'start_ts',
+    'start_ms',
+    'startms',
+    'timestamp',
+    'starttime',
+  );
+  const durationMillis = pick('duration_ms', 'durationms');
+  // OTel's `Duration` (bare) is u64 nanoseconds — treat the same as
+  // `duration_ns` rather than as already-ms.
+  const durationNanos = pick(
+    'duration_ns',
+    'durationns',
+    'duration',
+    'durationnanos',
+  );
+  if (!traceId || !spanId || !start || (!durationMillis && !durationNanos)) {
     return undefined;
   }
-  const durationCol = durationMs ?? durationNs;
+  const durationCol = durationMillis ?? durationNanos;
   if (!durationCol) {
     return undefined;
   }
   return {
     traceId,
     spanId,
-    parentId: pick('parent_span_id', 'parent_id', 'parentid'),
-    name: pick('name', 'op', 'operation', 'span_name'),
+    parentId: pick(
+      'parent_span_id',
+      'parent_id',
+      'parentid',
+      'parentspanid',
+    ),
+    name: pick(
+      'name',
+      'op',
+      'operation',
+      'span_name',
+      'spanname',
+    ),
     startMs: start,
     durationMs: durationCol,
-    durationDivisor: durationMs ? 1 : 1_000_000,
-    status: pick('status', 'status_code'),
+    durationDivisor: durationMillis ? 1 : 1_000_000,
+    status: pick('status', 'status_code', 'statuscode'),
   };
 }
 
