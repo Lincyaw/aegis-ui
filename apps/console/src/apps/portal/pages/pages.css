@@ -252,6 +252,20 @@
   text-decoration-color: var(--border-emphasis);
 }
 
+.injection-process__task-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.injection-process__task-time {
+  color: var(--text-muted);
+  font-size: var(--fs-11);
+  margin-inline-start: auto;
+}
+
 .injection-process__last-event {
   display: flex;
   align-items: center;

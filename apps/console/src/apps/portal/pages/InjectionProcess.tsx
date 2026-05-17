@@ -159,11 +159,17 @@ function taskTimelineItems(
             {t.type ?? 'task'}
           </button>
         ),
-        description: <MonoValue size='sm'>{t.id ?? '—'}</MonoValue>,
-        meta: <StatusChip status={state} />,
-        timestamp: t.created_at ? (
-          <TimeDisplay value={t.created_at} />
-        ) : undefined,
+        description: (
+          <span className='injection-process__task-row'>
+            <StatusChip status={state} />
+            <MonoValue size='sm'>{t.id ?? '—'}</MonoValue>
+            {t.created_at && (
+              <span className='injection-process__task-time'>
+                <TimeDisplay value={t.created_at} />
+              </span>
+            )}
+          </span>
+        ),
       };
     });
 }
