@@ -23,6 +23,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
+          scope: '@lincyaw'
           cache: pnpm
 
       - name: Install
@@ -48,7 +49,6 @@ jobs:
 
       - name: Publish to npmjs.com
         working-directory: packages/ui
-        run: pnpm publish --no-git-checks
+        run: pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
