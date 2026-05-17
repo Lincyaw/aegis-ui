@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -16,8 +17,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App as AntdApp } from 'antd';
 
 import { tasksApi } from '../api/portal-client';
+import { RefreshControl } from '../components/RefreshControl';
+import {
+  intervalToMs,
+  type RefreshInterval,
+} from '../components/refresh-interval';
 import { StatusChip } from '../components/StatusChip';
-import { useTaskDetail } from '../hooks/useTasks';
+import { isActiveTaskState, useTaskDetail } from '../hooks/useTasks';
 
 const CANCELLABLE_STATES = new Set([
   'Pending',
@@ -30,7 +36,9 @@ const CANCELLABLE_STATES = new Set([
 
 export default function TaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
-  const { data, isLoading, isError, error } = useTaskDetail(taskId);
+  const [refresh, setRefresh] = useState<RefreshInterval>(5);
+  const { data, isLoading, isError, error, isFetching, refetch } =
+    useTaskDetail(taskId, intervalToMs(refresh));
   const { message: msg } = AntdApp.useApp();
   const qc = useQueryClient();
 
@@ -130,7 +138,20 @@ export default function TaskDetail() {
         />
       </Panel>
 
-      <Panel title={<PanelTitle size='base'>Logs</PanelTitle>}>
+      <Panel
+        title={<PanelTitle size='base'>Logs</PanelTitle>}
+        extra={
+          <RefreshControl
+            value={refresh}
+            onChange={setRefresh}
+            onRefresh={() => {
+              void refetch();
+            }}
+            isFetching={isFetching}
+            isLive={isActiveTaskState(data.state)}
+          />
+        }
+      >
         {lines.length > 0 ? (
           <Terminal lines={lines} />
         ) : (

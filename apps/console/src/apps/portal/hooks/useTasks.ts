@@ -25,7 +25,14 @@ export function useTasksList(params: TasksListParams = {}) {
 
 const ACTIVE_STATES = new Set(['initial', 'running', 'pending', 'queued']);
 
-export function useTaskDetail(taskId: string | undefined) {
+export function isActiveTaskState(state: string | undefined): boolean {
+  return state ? ACTIVE_STATES.has(state.toLowerCase()) : false;
+}
+
+export function useTaskDetail(
+  taskId: string | undefined,
+  refetchMs?: number | false
+) {
   return useQuery({
     queryKey: ['portal', 'task', taskId],
     enabled: Boolean(taskId),
@@ -34,6 +41,9 @@ export function useTaskDetail(taskId: string | undefined) {
       return res.data.data;
     },
     refetchInterval: (query) => {
+      if (refetchMs !== undefined) {
+        return refetchMs;
+      }
       const state = query.state.data?.state?.toLowerCase();
       return state && ACTIVE_STATES.has(state) ? 2_000 : false;
     },

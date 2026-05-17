@@ -137,8 +137,18 @@ export function useInjectionDetail(
   });
 }
 
+export function isActiveTraceState(state: string | undefined): boolean {
+  return state ? TRACE_ACTIVE_STATES.has(state.toLowerCase()) : false;
+}
+
 export function useProcessTrace(
-  traceId: string | null | undefined
+  traceId: string | null | undefined,
+  /**
+   * Polling override. `undefined` keeps the default (3s while active, off
+   * after terminal). `false` disables polling entirely. A number forces that
+   * interval (ms) regardless of state.
+   */
+  refetchMs?: number | false
 ): UseQueryResult<TraceTraceDetailResp | undefined> {
   return useQuery({
     queryKey: ['portal', 'trace', traceId ?? null],
@@ -151,9 +161,11 @@ export function useProcessTrace(
     },
     enabled: Boolean(traceId),
     refetchInterval: (query) => {
+      if (refetchMs !== undefined) {
+        return refetchMs;
+      }
       const detail = query.state.data as TraceTraceDetailResp | undefined;
-      const state = detail?.state?.toLowerCase();
-      return state && TRACE_ACTIVE_STATES.has(state) ? 3_000 : false;
+      return isActiveTraceState(detail?.state) ? 3_000 : false;
     },
   });
 }

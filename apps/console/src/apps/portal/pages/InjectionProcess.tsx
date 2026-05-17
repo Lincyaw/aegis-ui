@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -14,7 +15,16 @@ import {
 } from '@lincyaw/aegis-ui';
 import type { TaskResp, TraceTraceDetailResp } from '@lincyaw/portal';
 
-import { useInjectionDetail, useProcessTrace } from '../api/injections';
+import {
+  isActiveTraceState,
+  useInjectionDetail,
+  useProcessTrace,
+} from '../api/injections';
+import { RefreshControl } from '../components/RefreshControl';
+import {
+  intervalToMs,
+  type RefreshInterval,
+} from '../components/refresh-interval';
 import { StatusChip } from '../components/StatusChip';
 
 function formatDuration(startIso?: string, endIso?: string): string {
@@ -134,12 +144,15 @@ export default function InjectionProcess() {
   );
 
   const traceId = injection?.trace_id ?? null;
+  const [refresh, setRefresh] = useState<RefreshInterval>(5);
   const {
     data: trace,
     isLoading,
     isError,
     error,
-  } = useProcessTrace(traceId);
+    isFetching,
+    refetch,
+  } = useProcessTrace(traceId, intervalToMs(refresh));
 
   if (!injection) {
     return (
@@ -187,10 +200,24 @@ export default function InjectionProcess() {
   const items = taskTimelineItems(tasks, (taskId) => {
     navigate(`tasks/${taskId}`);
   });
+  const live = isActiveTraceState(trace.state);
 
   return (
     <>
-      <Panel title={<PanelTitle size='base'>Process trace</PanelTitle>}>
+      <Panel
+        title={<PanelTitle size='base'>Process trace</PanelTitle>}
+        extra={
+          <RefreshControl
+            value={refresh}
+            onChange={setRefresh}
+            onRefresh={() => {
+              void refetch();
+            }}
+            isFetching={isFetching}
+            isLive={live}
+          />
+        }
+      >
         <ProcessSummary trace={trace} />
         {trace.last_event && (
           <div className='injection-process__last-event'>
