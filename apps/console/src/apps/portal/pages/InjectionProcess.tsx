@@ -8,9 +8,12 @@ import {
   MonoValue,
   Panel,
   PanelTitle,
+  Tabs,
   TimeDisplay,
   Timeline,
   type TimelineItem,
+  TimelineChart,
+  type TimelineSpan,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import type { TaskResp, TraceTraceDetailResp } from '@lincyaw/portal';
@@ -55,6 +58,74 @@ function formatDuration(startIso?: string, endIso?: string): string {
   const h = Math.floor(m / 60);
   const rm = m - h * 60;
   return `${String(h)}h ${String(rm)}m`;
+}
+
+type TaskView = 'gantt' | 'list';
+
+const TERMINAL_STATES = new Set(['completed', 'failed', 'cancelled', 'done']);
+const FAILED_STATES = new Set(['failed', 'error']);
+
+function statusOf(t: TaskResp): 'ok' | 'error' | 'warn' | undefined {
+  const s = (t.state ?? t.status ?? '').toLowerCase();
+  if (FAILED_STATES.has(s)) {
+    return 'error';
+  }
+  if (s === 'completed' || s === 'done') {
+    return 'ok';
+  }
+  return undefined;
+}
+
+interface GanttData {
+  spans: TimelineSpan[];
+  minNs: number;
+  maxNs: number;
+}
+
+function taskGanttSpans(
+  trace: TraceTraceDetailResp,
+  tasks: TaskResp[]
+): GanttData | null {
+  if (tasks.length === 0) {
+    return null;
+  }
+  const traceStartMs = trace.start_time ? Date.parse(trace.start_time) : NaN;
+  if (Number.isNaN(traceStartMs)) {
+    return null;
+  }
+  const traceEndMs = trace.end_time ? Date.parse(trace.end_time) : Date.now();
+  const nowMs = Date.now();
+  const spans: TimelineSpan[] = [];
+  for (const [i, t] of tasks.entries()) {
+    if (!t.created_at) {
+      continue;
+    }
+    const startMs = Date.parse(t.created_at);
+    if (Number.isNaN(startMs)) {
+      continue;
+    }
+    const stateLower = (t.state ?? t.status ?? '').toLowerCase();
+    const isTerminal = TERMINAL_STATES.has(stateLower);
+    const endMs =
+      isTerminal && t.updated_at ? Date.parse(t.updated_at) : nowMs;
+    const safeEnd = Number.isNaN(endMs) ? nowMs : Math.max(endMs, startMs);
+    spans.push({
+      id: t.id ?? `task-${String(i)}`,
+      label: t.type ?? 'task',
+      startNs: (startMs - traceStartMs) * 1_000_000,
+      durationNs: (safeEnd - startMs) * 1_000_000,
+      kind: t.type,
+      status: statusOf(t),
+    });
+  }
+  if (spans.length === 0) {
+    return null;
+  }
+  return {
+    spans,
+    minNs: 0,
+    maxNs: (Math.max(traceEndMs, nowMs) - traceStartMs) * 1_000_000,
+  };
 }
 
 function taskTimelineItems(
@@ -145,6 +216,7 @@ export default function InjectionProcess() {
 
   const traceId = injection?.trace_id ?? null;
   const [refresh, setRefresh] = useState<RefreshInterval>(5);
+  const [view, setView] = useState<TaskView>('gantt');
   const {
     data: trace,
     isLoading,
@@ -200,6 +272,7 @@ export default function InjectionProcess() {
   const items = taskTimelineItems(tasks, (taskId) => {
     navigate(`tasks/${taskId}`);
   });
+  const gantt = taskGanttSpans(trace, tasks);
   const live = isActiveTraceState(trace.state);
 
   return (
@@ -233,13 +306,41 @@ export default function InjectionProcess() {
         title={<PanelTitle size='base'>Tasks</PanelTitle>}
         extra={<Chip tone='ghost'>{`${String(tasks.length)} total`}</Chip>}
       >
-        {items.length > 0 ? (
-          <Timeline items={items} />
-        ) : (
+        {tasks.length === 0 ? (
           <EmptyState
             title='No tasks yet'
             description='Tasks will appear here as the orchestrator schedules them.'
           />
+        ) : (
+          <>
+            <Tabs
+              activeKey={view}
+              onChange={(k) => {
+                setView(k as TaskView);
+              }}
+              items={[
+                { key: 'gantt', label: 'Gantt' },
+                { key: 'list', label: 'List' },
+              ]}
+            />
+            {view === 'gantt' && gantt ? (
+              <TimelineChart
+                spans={gantt.spans}
+                minNs={gantt.minNs}
+                maxNs={gantt.maxNs}
+                onSpanClick={(span) => {
+                  navigate(`tasks/${span.id}`);
+                }}
+              />
+            ) : view === 'gantt' ? (
+              <EmptyState
+                title='Gantt unavailable'
+                description='Trace start time is missing; falling back to list view.'
+              />
+            ) : (
+              <Timeline items={items} />
+            )}
+          </>
         )}
       </Panel>
     </>
