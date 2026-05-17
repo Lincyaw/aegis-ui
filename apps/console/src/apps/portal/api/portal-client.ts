@@ -24,7 +24,7 @@ import {
 import axios from 'axios';
 
 import { readTokens } from '../../../auth/tokenStore';
-import { gatewayUrlFor } from '../../../config/runtime';
+import { getRuntimeConfig } from '../../../config/runtime';
 
 const portalAxios = axios.create();
 
@@ -38,7 +38,10 @@ portalAxios.interceptors.request.use((req) => {
   return req;
 });
 
-const basePath = gatewayUrlFor('/api');
+// SDK paths already include `/api/v2/...`, so basePath is just the gateway
+// origin. Empty string keeps requests same-origin (vite proxy in dev,
+// co-located gateway in prod).
+const basePath = getRuntimeConfig().gatewayUrl;
 
 const config = new Configuration({
   basePath,
