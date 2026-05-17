@@ -5,6 +5,7 @@ import {
   type InjectionInjectionResp,
   type InjectionInjectionTimelineResp,
   type InjectionSubmitInjectionReq,
+  type TraceSpansResp,
   type TraceTraceDetailResp,
 } from '@lincyaw/portal';
 import {
@@ -169,6 +170,24 @@ export function useProcessTrace(
       const detail = query.state.data as TraceTraceDetailResp | undefined;
       return isActiveTraceState(detail?.state) ? 3_000 : false;
     },
+  });
+}
+
+export function useTraceSpans(
+  traceId: string | null | undefined,
+  refetchMs?: number | false
+): UseQueryResult<TraceSpansResp | undefined> {
+  return useQuery({
+    queryKey: ['portal', 'trace-spans', traceId ?? null],
+    queryFn: async () => {
+      if (!traceId) {
+        return undefined;
+      }
+      const resp = await tracesApi.getTraceSpans({ traceId });
+      return resp.data.data;
+    },
+    enabled: Boolean(traceId),
+    refetchInterval: refetchMs ?? false,
   });
 }
 

@@ -12,12 +12,15 @@ import {
   TimeDisplay,
   TimelineChart,
   type TimelineSpan,
+  TraceTree,
+  type TraceSpan,
 } from '@lincyaw/aegis-ui';
 import type {
   InjectionInjectionLogEntry,
   InjectionInjectionTimelineEvent,
   InjectionInjectionTimelineResp,
   InjectionInjectionTimelineWindow,
+  TraceSpanNode,
   TraceTraceDetailResp,
 } from '@lincyaw/portal';
 
@@ -27,6 +30,7 @@ import {
   useInjectionLogs,
   useInjectionTimeline,
   useProcessTrace,
+  useTraceSpans,
 } from '../api/injections';
 import { RefreshControl } from '../components/RefreshControl';
 import {
@@ -198,6 +202,87 @@ function logLines(
   }));
 }
 
+function spanStatus(s: string | undefined): TraceSpan['status'] {
+  const lower = (s ?? '').toLowerCase();
+  if (lower === 'error' || lower === 'status_code_error') {
+    return 'error';
+  }
+  if (lower === 'ok' || lower === 'status_code_ok') {
+    return 'ok';
+  }
+  return 'unset';
+}
+
+interface SpanGroup {
+  otelTraceId: string;
+  spans: TraceSpan[];
+  startMs: number;
+  durationMs: number;
+}
+
+function groupSpansByOTelTrace(nodes: TraceSpanNode[] | undefined): SpanGroup[] {
+  if (!nodes || nodes.length === 0) {
+    return [];
+  }
+  const byOTel = new Map<string, TraceSpanNode[]>();
+  for (const n of nodes) {
+    const key = n.otel_trace_id ?? '';
+    const existing = byOTel.get(key) ?? [];
+    existing.push(n);
+    byOTel.set(key, existing);
+  }
+  const groups: SpanGroup[] = [];
+  for (const [otelTraceId, members] of byOTel) {
+    if (members.length === 0) {
+      continue;
+    }
+    const localIds = new Set<string>();
+    for (const m of members) {
+      if (m.span_id) {
+        localIds.add(m.span_id);
+      }
+    }
+    const starts = members
+      .map((m) => Date.parse(m.start_ts ?? ''))
+      .filter((n) => !Number.isNaN(n));
+    if (starts.length === 0) {
+      continue;
+    }
+    const traceStartMs = Math.min(...starts);
+    let traceEndMs = traceStartMs;
+    const spans: TraceSpan[] = members.map((m, i) => {
+      const startMs = Date.parse(m.start_ts ?? '');
+      const endMs = Date.parse(m.end_ts ?? '');
+      const safeStart = Number.isNaN(startMs) ? traceStartMs : startMs;
+      const safeEnd = Number.isNaN(endMs)
+        ? safeStart
+        : Math.max(endMs, safeStart);
+      if (safeEnd > traceEndMs) {
+        traceEndMs = safeEnd;
+      }
+      const parentInTrace =
+        m.parent_id && localIds.has(m.parent_id) ? m.parent_id : null;
+      const name = [m.service, m.op].filter(Boolean).join(' · ') || 'span';
+      return {
+        id: m.span_id ?? `span-${otelTraceId}-${String(i)}`,
+        parentId: parentInTrace,
+        name,
+        startMs: safeStart - traceStartMs,
+        durationMs: safeEnd - safeStart,
+        status: spanStatus(m.status),
+        kind: m.service,
+      };
+    });
+    groups.push({
+      otelTraceId,
+      spans,
+      startMs: traceStartMs,
+      durationMs: traceEndMs - traceStartMs,
+    });
+  }
+  return groups.sort((a, b) => a.startMs - b.startMs);
+}
+
 function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
   const state = trace.state ?? trace.status ?? 'unknown';
   return (
@@ -259,6 +344,16 @@ export default function InjectionProcess() {
     refetch: refetchLogs,
   } = useInjectionLogs(validId, { limit: 200 }, intervalMs);
 
+  const {
+    data: spansResp,
+    isFetching: spansFetching,
+    refetch: refetchSpans,
+  } = useTraceSpans(traceId, intervalMs);
+  const spanGroups = useMemo(
+    () => groupSpansByOTelTrace(spansResp?.spans),
+    [spansResp?.spans],
+  );
+
   const phaseGantt = useMemo(
     () => (timeline ? buildPhaseGantt(timeline) : null),
     [timeline],
@@ -309,7 +404,8 @@ export default function InjectionProcess() {
   }
 
   const live = isActiveTraceState(trace.state);
-  const anyFetching = traceFetching || timelineFetching || logsFetching;
+  const anyFetching =
+    traceFetching || timelineFetching || logsFetching || spansFetching;
 
   return (
     <>
@@ -323,6 +419,7 @@ export default function InjectionProcess() {
               void refetchTrace();
               void refetchTimeline();
               void refetchLogs();
+              void refetchSpans();
             }}
             isFetching={anyFetching}
             isLive={live}
@@ -360,6 +457,38 @@ export default function InjectionProcess() {
           <EmptyState
             title='No phase timeline yet'
             description='Pre / fault / post / recover windows will appear once the orchestrator records them.'
+          />
+        )}
+      </Panel>
+
+      <Panel
+        title={<PanelTitle size='base'>Spans</PanelTitle>}
+        extra={
+          spanGroups.length > 0 ? (
+            <span className='injection-process__last-event-label'>
+              {`${String(spanGroups.length)} OTel traces · ${String(spansResp?.spans?.length ?? 0)} spans`}
+            </span>
+          ) : undefined
+        }
+      >
+        {spanGroups.length > 0 ? (
+          <div className='injection-process__span-groups'>
+            {spanGroups.map((g) => (
+              <div key={g.otelTraceId} className='injection-process__span-group'>
+                <div className='injection-process__span-group-head'>
+                  <MonoValue size='sm'>{g.otelTraceId}</MonoValue>
+                  <span className='injection-process__last-event-label'>
+                    {`${String(g.spans.length)} spans · ${formatMs(g.durationMs)}`}
+                  </span>
+                </div>
+                <TraceTree spans={g.spans} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title='No spans ingested yet'
+            description='OTel spans from the orchestrator land in ClickHouse via the otel-collector. If this stays empty after the trace completes, check the collector pipeline.'
           />
         )}
       </Panel>
