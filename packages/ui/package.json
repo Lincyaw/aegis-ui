@@ -1,6 +1,6 @@
 {
   "name": "@lincyaw/aegis-ui",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "AegisLab shared design system: tokens, primitives, layout, AntD theme.",
   "type": "module",
   "files": [
