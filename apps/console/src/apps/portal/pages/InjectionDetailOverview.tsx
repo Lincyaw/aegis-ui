@@ -110,16 +110,14 @@ export default function InjectionDetailOverview() {
       <div className='page-action-row'>
         <Button
           tone='primary'
-          disabled={!traceReady || !injection.trace_id}
+          disabled={!traceReady}
           onClick={() => {
-            if (injection.trace_id && typeof injection.id === 'number') {
-              navigate(
-                `traces/${injection.trace_id}?injection=${String(injection.id)}`,
-              );
+            if (typeof injection.id === 'number') {
+              navigate(`injections/${String(injection.id)}/data`);
             }
           }}
         >
-          View trace
+          Browse data
         </Button>
       </div>
 
