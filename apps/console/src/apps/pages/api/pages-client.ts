@@ -38,13 +38,15 @@ export const PAGES_LIMITS = {
   slugPattern: /^[a-z0-9][a-z0-9-]{0,62}$/,
 } as const;
 
+// Sub-app name is the scope: keys are `['pages', …]` rather than
+// `['console', 'pages', …]` because the 'pages' sub-app owns the namespace.
 export const pagesKeys = {
   all: ['pages'] as const,
   myList: (params: ListPagesParams) =>
     ['pages', 'my', 'list', params] as const,
   publicList: (params: ListPagesParams) =>
     ['pages', 'public', 'list', params] as const,
-  detail: (id: number) => ['pages', 'detail', id] as const,
+  detail: (id: number | undefined) => ['pages', 'detail', id] as const,
 };
 
 function fileRelPath(f: File): string {
@@ -96,7 +98,7 @@ export function usePagesPublic(params: ListPagesParams = {}) {
 
 export function usePageDetail(id: number | undefined) {
   return useQuery({
-    queryKey: pagesKeys.detail(id ?? -1),
+    queryKey: pagesKeys.detail(id),
     enabled: id !== undefined && Number.isFinite(id),
     queryFn: async (): Promise<PagesPageSiteResponse> => {
       if (id === undefined) {

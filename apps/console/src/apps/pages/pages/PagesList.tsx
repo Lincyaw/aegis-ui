@@ -33,15 +33,19 @@ import { humanBytes, visibilityTone } from './helpers';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
-export default function PagesList() {
-  const navigate = useNavigate();
-  const { basePath } = useActiveApp();
+function RowActions({ row }: { row: PagesPageSiteResponse }) {
   const { message: msg, modal } = AntdApp.useApp();
-  const { size, setSize } = usePageSize('pages:mine', 20);
-  const { data, isLoading, error, refetch } = usePagesList({ limit: size });
   const del = useDeletePage();
 
-  const handleDelete = (row: PagesPageSiteResponse): void => {
+  const onOpen = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    if (row.slug !== undefined && row.slug !== '') {
+      window.open(shareUrlForSlug(row.slug), '_blank', 'noopener');
+    }
+  };
+
+  const onDelete = (e: React.MouseEvent): void => {
+    e.stopPropagation();
     const id = row.id;
     if (id === undefined) {
       return;
@@ -64,6 +68,33 @@ export default function PagesList() {
       },
     });
   };
+
+  return (
+    <span className='pages-app__row-actions'>
+      <Button
+        size='small'
+        type='text'
+        icon={<ExportOutlined />}
+        title='Open share link'
+        onClick={onOpen}
+      />
+      <Button
+        size='small'
+        type='text'
+        danger
+        icon={<DeleteOutlined />}
+        title='Delete'
+        onClick={onDelete}
+      />
+    </span>
+  );
+}
+
+export default function PagesList() {
+  const navigate = useNavigate();
+  const { basePath } = useActiveApp();
+  const { size, setSize } = usePageSize('pages:mine', 20);
+  const { data, isLoading, error, refetch } = usePagesList({ limit: size });
 
   const columns = useMemo<Array<DataTableColumn<PagesPageSiteResponse>>>(
     () => [
@@ -132,36 +163,9 @@ export default function PagesList() {
         align: 'right',
         truncate: false,
         width: 160,
-        render: (row) => (
-          <span className='pages-app__row-actions'>
-            <Button
-              size='small'
-              type='text'
-              icon={<ExportOutlined />}
-              title='Open share link'
-              onClick={(e) => {
-                e.stopPropagation();
-                if (row.slug !== undefined && row.slug !== '') {
-                  window.open(shareUrlForSlug(row.slug), '_blank', 'noopener');
-                }
-              }}
-            />
-            <Button
-              size='small'
-              type='text'
-              danger
-              icon={<DeleteOutlined />}
-              title='Delete'
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(row);
-              }}
-            />
-          </span>
-        ),
+        render: (row) => <RowActions row={row} />,
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- basePath is the only external dep and is stable per app
     [basePath],
   );
 

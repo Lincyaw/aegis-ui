@@ -75,8 +75,9 @@ export default function PageDetail() {
       return;
     }
     try {
+      const trimmedSlug = slug.trim();
       await update.mutateAsync({
-        slug: slug.trim(),
+        ...(trimmedSlug !== '' ? { slug: trimmedSlug } : {}),
         title: title.trim(),
         visibility,
       });

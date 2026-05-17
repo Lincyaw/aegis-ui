@@ -16,7 +16,12 @@ import {
   useCreatePage,
 } from '../api/pages-client';
 import '../pages-app.css';
-import { fileRelPath, humanBytes, validateUpload } from './helpers';
+import {
+  fileRelPath,
+  humanBytes,
+  pagesUploadHelperText,
+  validateUpload,
+} from './helpers';
 
 export default function PagesNew() {
   const navigate = useNavigate();
@@ -99,7 +104,7 @@ export default function PagesNew() {
               maxFileBytes={PAGES_LIMITS.maxFileBytes}
               maxTotalBytes={PAGES_LIMITS.maxTotalBytes}
               maxFiles={PAGES_LIMITS.maxFiles}
-              helperText='10 MiB per file · 50 MiB total · 200 files max'
+              helperText={pagesUploadHelperText()}
               validationError={blockingError}
               summary={summary}
             />

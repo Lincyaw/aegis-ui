@@ -61,11 +61,15 @@ export function validateUpload(
   for (const f of files) {
     total += f.size;
     if (f.size > PAGES_LIMITS.maxFileBytes) {
-      errors.push(`"${f.name}" exceeds 10 MiB.`);
+      errors.push(
+        `"${f.name}" exceeds ${humanBytes(PAGES_LIMITS.maxFileBytes)}.`,
+      );
     }
   }
   if (total > PAGES_LIMITS.maxTotalBytes) {
-    errors.push(`Total size ${humanBytes(total)} exceeds 50 MiB.`);
+    errors.push(
+      `Total size ${humanBytes(total)} exceeds ${humanBytes(PAGES_LIMITS.maxTotalBytes)}.`,
+    );
   }
   if (
     slug !== undefined &&
@@ -81,4 +85,8 @@ export function validateUpload(
 
 export function fileRelPath(f: File): string {
   return f.webkitRelativePath !== '' ? f.webkitRelativePath : f.name;
+}
+
+export function pagesUploadHelperText(): string {
+  return `${humanBytes(PAGES_LIMITS.maxFileBytes)} per file · ${humanBytes(PAGES_LIMITS.maxTotalBytes)} total · ${PAGES_LIMITS.maxFiles.toString()} files max`;
 }
