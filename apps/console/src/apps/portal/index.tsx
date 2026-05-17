@@ -4,9 +4,7 @@ import {
   DashboardOutlined,
   DeploymentUnitOutlined,
   ExperimentOutlined,
-  EyeOutlined,
   FileProtectOutlined,
-  FundOutlined,
   HddOutlined,
   NodeIndexOutlined,
   PlayCircleOutlined,
@@ -17,6 +15,7 @@ import {
 } from '@ant-design/icons';
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
+import { InjectionDrillRedirect } from './components/InjectionDrillRedirect';
 import { LegacyProjectRedirect } from './components/LegacyProjectRedirect';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
 import BatchInjections from './pages/BatchInjections';
@@ -38,7 +37,8 @@ import ExecutionCreate from './pages/ExecutionCreate';
 import ExecutionDetail from './pages/ExecutionDetail';
 import Executions from './pages/Executions';
 import InjectionCreate from './pages/InjectionCreate';
-import InjectionDetail from './pages/InjectionDetail';
+import InjectionDetailLayout from './pages/InjectionDetailLayout';
+import InjectionDetailOverview from './pages/InjectionDetailOverview';
 import Injections from './pages/Injections';
 import LabelCreate from './pages/LabelCreate';
 import LabelDetail from './pages/LabelDetail';
@@ -79,9 +79,6 @@ export const portalApp: AegisApp = {
         { to: '', label: 'Dashboard', icon: <DashboardOutlined />, end: true },
         { to: 'injections', label: 'Injections', icon: <PlayCircleOutlined /> },
         { to: 'tasks', label: 'Tasks', icon: <NodeIndexOutlined /> },
-        { to: 'traces', label: 'Traces', icon: <FundOutlined /> },
-        { to: 'observations', label: 'Observations', icon: <EyeOutlined /> },
-        { to: 'metrics', label: 'Metrics', icon: <FundOutlined /> },
         { to: 'executions', label: 'Executions', icon: <PlayCircleOutlined /> },
       ],
     },
@@ -118,16 +115,30 @@ export const portalApp: AegisApp = {
     { path: 'injections', element: <Injections /> },
     { path: 'injections/new', element: <InjectionCreate /> },
     { path: 'injections/batch', element: <BatchInjections /> },
-    { path: 'injections/:injectionId', element: <InjectionDetail /> },
+    {
+      path: 'injections/:injectionId',
+      element: <InjectionDetailLayout />,
+      children: [
+        { index: true, element: <InjectionDetailOverview /> },
+        { path: 'traces', element: <Traces /> },
+        { path: 'observations', element: <Observations /> },
+        { path: 'metrics', element: <MetricsPage /> },
+      ],
+    },
     { path: 'executions', element: <Executions /> },
     { path: 'executions/new', element: <ExecutionCreate /> },
     { path: 'executions/:executionId', element: <ExecutionDetail /> },
-    { path: 'traces', element: <Traces /> },
     { path: 'traces/:traceId', element: <TraceDetail /> },
     { path: 'tasks', element: <Tasks /> },
     { path: 'tasks/:taskId', element: <TaskDetail /> },
-    { path: 'observations', element: <Observations /> },
-    { path: 'metrics', element: <MetricsPage /> },
+
+    // Legacy injection-drill flat routes — redirect to the nested layout.
+    { path: 'traces', element: <InjectionDrillRedirect target='traces' /> },
+    {
+      path: 'observations',
+      element: <InjectionDrillRedirect target='observations' />,
+    },
+    { path: 'metrics', element: <InjectionDrillRedirect target='metrics' /> },
 
     // Project management surfaces (still reachable via header dropdown)
     { path: 'projects', element: <Projects /> },

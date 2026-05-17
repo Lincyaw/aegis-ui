@@ -8,114 +8,37 @@ import {
   KeyValueList,
   MetricLabel,
   MonoValue,
-  PageHeader,
   Panel,
   PanelTitle,
   SectionDivider,
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { App as AntdApp } from 'antd';
 
 import { useInjectionDetail } from '../api/injections';
-import { injectionsApi } from '../api/portal-client';
-import { StatusChip } from '../components/StatusChip';
 
-const CANCELLABLE_STATES = new Set([
-  'Pending',
-  'Rescheduled',
-  'Running',
-  'pending',
-  'rescheduled',
-  'running',
-]);
-
-export default function InjectionDetail() {
+export default function InjectionDetailOverview() {
   const { injectionId } = useParams<{ injectionId: string }>();
   const navigate = useAppNavigate();
-  const { message: msg } = AntdApp.useApp();
-  const qc = useQueryClient();
 
   const idNum = injectionId ? Number.parseInt(injectionId, 10) : Number.NaN;
-  const {
-    data: injection,
-    isLoading,
-    isError,
-    error,
-  } = useInjectionDetail(Number.isNaN(idNum) ? null : idNum);
+  const { data: injection } = useInjectionDetail(
+    Number.isNaN(idNum) ? null : idNum,
+  );
 
-  const cancel = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await injectionsApi.cancelInjection({ id });
-      return res.data.data;
-    },
-    onSuccess: () => {
-      void msg.success('Injection cancelled');
-      void qc.invalidateQueries({ queryKey: ['portal', 'injection'] });
-      void qc.invalidateQueries({ queryKey: ['portal', 'injections'] });
-    },
-    onError: (e: unknown) => {
-      void msg.error(e instanceof Error ? e.message : 'Cancel failed');
-    },
-  });
-
-  if (Number.isNaN(idNum)) {
+  if (!injection) {
     return (
-      <div className='page-wrapper'>
-        <PageHeader title={`Injection ${injectionId ?? ''}`} />
-        <Panel>
-          <EmptyState
-            title='Invalid injection id'
-            description={injectionId ?? ''}
-          />
-        </Panel>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className='page-wrapper'>
-        <PageHeader title={`Injection ${idNum}`} description='Loading…' />
-      </div>
-    );
-  }
-
-  if (isError || !injection) {
-    return (
-      <div className='page-wrapper'>
-        <PageHeader title={`Injection ${idNum}`} />
-        <Panel>
-          <EmptyState
-            title='Injection not found'
-            description={
-              error instanceof Error
-                ? error.message
-                : 'It may have been removed or never existed.'
-            }
-          />
-        </Panel>
-      </div>
+      <Panel>
+        <EmptyState title='Loading…' />
+      </Panel>
     );
   }
 
   const status = injection.status ?? injection.state ?? 'unknown';
   const traceReady = status === 'running' || status === 'completed';
-  const cancellable = CANCELLABLE_STATES.has(status) && injection.task_id;
 
   return (
-    <div className='page-wrapper'>
-      <PageHeader
-        title={`Injection ${injection.id ?? idNum}`}
-        description={injection.name}
-        action={
-          <div className='page-action-row'>
-            <StatusChip status={status} />
-          </div>
-        }
-      />
-
+    <>
       <Panel title={<PanelTitle size='base'>Provenance</PanelTitle>}>
         <KeyValueList
           items={[
@@ -189,29 +112,15 @@ export default function InjectionDetail() {
           tone='primary'
           disabled={!traceReady || !injection.trace_id}
           onClick={() => {
-            if (injection.trace_id) {
-              navigate(`traces/${injection.trace_id}`);
+            if (injection.trace_id && typeof injection.id === 'number') {
+              navigate(
+                `traces/${injection.trace_id}?injection=${String(injection.id)}`,
+              );
             }
           }}
         >
           View trace
         </Button>
-        <Button tone='secondary' onClick={() => navigate('observations')}>
-          View observations
-        </Button>
-        {cancellable && (
-          <Button
-            tone='secondary'
-            disabled={cancel.isPending}
-            onClick={() => {
-              if (typeof injection.id === 'number') {
-                cancel.mutate(injection.id);
-              }
-            }}
-          >
-            {cancel.isPending ? 'Cancelling…' : 'Cancel injection'}
-          </Button>
-        )}
       </div>
 
       <Panel>
@@ -219,6 +128,6 @@ export default function InjectionDetail() {
           live status — refetches every 3s while pending/running
         </MetricLabel>
       </Panel>
-    </div>
+    </>
   );
 }
