@@ -12,8 +12,9 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
-import { useActiveProjectIdNum, useSubmitInjection } from '../api/injections';
+import { useSubmitInjection } from '../api/injections';
 import { specToYaml } from '../components/inject/paramSchema';
+import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import { useInjectBatch } from '../state/inject-batch';
 
 interface BatchRow {

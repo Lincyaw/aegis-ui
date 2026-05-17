@@ -14,12 +14,12 @@ import {
 import type { TaskResp } from '@lincyaw/portal';
 
 import { StatusChip } from '../components/StatusChip';
-import { useActiveProjectNumericId } from '../hooks/useActiveProjectNumericId';
+import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import { useTasksList } from '../hooks/useTasks';
 
 export default function Tasks() {
   const href = useAppHref();
-  const projectId = useActiveProjectNumericId();
+  const projectId = useActiveProjectIdNum();
   const { data, isLoading, isError, error, refetch } = useTasksList({
     projectId,
   });

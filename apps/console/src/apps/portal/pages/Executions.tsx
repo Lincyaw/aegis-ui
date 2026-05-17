@@ -15,11 +15,11 @@ import {
 import type { ExecutionExecutionResp } from '@lincyaw/portal';
 
 import { StatusChip } from '../components/StatusChip';
-import { useActiveProjectNumericId } from '../hooks/useActiveProjectNumericId';
+import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import { useExecutionsList } from '../hooks/useExecutions';
 
 export default function Executions() {
-  const projectId = useActiveProjectNumericId();
+  const projectId = useActiveProjectIdNum();
   const navigate = useAppNavigate();
   const href = useAppHref();
   const { data, isLoading, isError, error, refetch } =

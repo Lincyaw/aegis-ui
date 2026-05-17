@@ -74,23 +74,6 @@ export function toGuidedSpec(spec: GuidedInjectionSpec): InjectionGuidedSpec {
   };
 }
 
-const PROJECT_ID_KEY = 'portal.activeProjectId';
-
-export function useActiveProjectIdNum(): number {
-  const url = new URLSearchParams(globalThis.location?.search ?? '');
-  const fromUrl = url.get('project');
-  if (fromUrl) {
-    const n = Number.parseInt(fromUrl, 10);
-    if (!Number.isNaN(n)) return n;
-  }
-  const fromStorage = globalThis.localStorage?.getItem(PROJECT_ID_KEY);
-  if (fromStorage) {
-    const n = Number.parseInt(fromStorage, 10);
-    if (!Number.isNaN(n)) return n;
-  }
-  return 1;
-}
-
 export function injectionsKey(
   projectId: number,
   page = 1,

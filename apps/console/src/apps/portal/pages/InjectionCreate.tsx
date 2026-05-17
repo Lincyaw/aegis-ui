@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Button, Chip, PageHeader, useAppNavigate } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Input, Modal } from 'antd';
 
-import { useActiveProjectIdNum, useSubmitInjection } from '../api/injections';
+import { useSubmitInjection } from '../api/injections';
 import { LivePreview } from '../components/inject/LivePreview';
 import { defaultSpec, isStepValid } from '../components/inject/paramSchema';
 import { Step1Target } from '../components/inject/Step1Target';
@@ -13,6 +13,7 @@ import { Step3Params } from '../components/inject/Step3Params';
 import { Step4Lifecycle } from '../components/inject/Step4Lifecycle';
 import { Step5Stage } from '../components/inject/Step5Stage';
 import { Step6Review } from '../components/inject/Step6Review';
+import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import type { GuidedInjectionSpec } from '../mocks/types';
 import { useInjectBatch } from '../state/inject-batch';
 

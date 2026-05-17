@@ -19,6 +19,7 @@ export function useTasksList(params: TasksListParams = {}) {
       });
       return res.data.data;
     },
+    enabled: params.projectId === undefined || params.projectId > 0,
   });
 }
 

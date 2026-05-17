@@ -9,17 +9,18 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Select } from 'antd';
 
-import { useActiveProjectNumericId } from '../hooks/useActiveProjectNumericId';
+import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import {
   useContainersList,
   useDatasetsList,
 } from '../hooks/useContainersAndDatasets';
 import { useRunAlgorithm } from '../hooks/useExecutions';
-import { useActiveProjectId } from '../mocks';
+import { useProject } from '../hooks/useProjects';
 
 export default function ExecutionCreate() {
-  const projectId = useActiveProjectNumericId();
-  const projectName = useActiveProjectId();
+  const projectId = useActiveProjectIdNum();
+  const projectQ = useProject(projectId > 0 ? projectId : undefined);
+  const projectName = projectQ.data?.name ?? '';
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
 

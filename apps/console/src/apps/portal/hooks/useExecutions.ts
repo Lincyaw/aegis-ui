@@ -27,6 +27,7 @@ export function useExecutionsList(
       });
       return res.data.data;
     },
+    enabled: projectId > 0,
   });
 }
 
