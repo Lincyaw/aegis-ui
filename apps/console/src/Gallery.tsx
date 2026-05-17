@@ -56,6 +56,7 @@ import {
   type FieldMapping,
   FileDropzone,
   FilePreview,
+  FolderDropzone,
   ForgotPasswordForm,
   FormRow,
   InboxPage,
@@ -3380,6 +3381,60 @@ function App() {
                 }
               />
             </div>
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>directory upload</MetricLabel>}>
+          FolderDropzone
+        </SectionDivider>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen caption='empty · default' span={2}>
+            <FolderDropzone
+              value={[]}
+              onFilesChange={(files) =>
+                console.warn(
+                  '[demo] folder picked',
+                  files.map((f) => f.name)
+                )
+              }
+              helperText='10 MiB per file · 50 MiB total · 200 files max'
+              maxFileBytes={10 * 1024 * 1024}
+              maxTotalBytes={50 * 1024 * 1024}
+              maxFiles={200}
+            />
+          </Specimen>
+          <Specimen caption='with files · summary slot' span={2}>
+            <FolderDropzone
+              value={[
+                new File([new Uint8Array(2048)], 'README.md'),
+                new File([new Uint8Array(512)], 'docs/intro.md'),
+                new File([new Uint8Array(128 * 1024)], 'assets/cover.png'),
+              ]}
+              onFilesChange={() => undefined}
+              helperText='10 MiB per file · 50 MiB total · 200 files max'
+              summary={
+                <>
+                  <div>README.md · 2.0 KB</div>
+                  <div>docs/intro.md · 512 B</div>
+                  <div>assets/cover.png · 128 KB</div>
+                </>
+              }
+            />
+          </Specimen>
+          <Specimen caption='disabled'>
+            <FolderDropzone
+              value={[]}
+              onFilesChange={() => undefined}
+              disabled
+              helperText='Upload disabled'
+            />
+          </Specimen>
+          <Specimen caption='validation error'>
+            <FolderDropzone
+              value={[new File([new Uint8Array(20)], 'oops.bin')]}
+              onFilesChange={() => undefined}
+              validationError='At least one .md file is required.'
+            />
           </Specimen>
         </div>
 

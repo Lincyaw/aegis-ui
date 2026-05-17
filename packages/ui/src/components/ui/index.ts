@@ -111,6 +111,8 @@ export { AgentPanel } from './AgentPanel';
 export type { AgentPanelSurface } from './AgentPanel';
 export { FileDropzone } from './FileDropzone';
 export type { FileDropzoneItem } from './FileDropzone';
+export { FolderDropzone } from './FolderDropzone';
+export type { FolderDropzoneProps } from './FolderDropzone';
 export { FilePreview } from './FilePreview';
 export type { FilePreviewSurface } from './FilePreview';
 export { CodeEditor } from './CodeEditor';
