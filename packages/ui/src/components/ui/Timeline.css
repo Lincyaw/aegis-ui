@@ -4,7 +4,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-6);
 }
 
 .aegis-timeline__item {
@@ -19,8 +19,8 @@
   content: '';
   position: absolute;
   left: calc(var(--space-2) + var(--space-px));
-  top: var(--space-4);
-  bottom: calc(-1 * var(--space-4));
+  top: var(--space-5);
+  bottom: calc(-1 * var(--space-6));
   width: var(--size-hairline);
   background: var(--border-hairline);
 }
@@ -42,8 +42,9 @@
 .aegis-timeline__body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
   min-width: 0;
+  padding-block: var(--space-1);
 }
 
 .aegis-timeline__row {
