@@ -3,8 +3,8 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAppHref } from '@lincyaw/aegis-ui';
 
 interface InjectionDrillRedirectProps {
-  /** Tab path under the new nested layout — '', 'traces', 'observations', or 'metrics'. */
-  target: '' | 'traces' | 'observations' | 'metrics';
+  /** Tab path under the nested injection layout. */
+  target: '' | 'data';
 }
 
 /**

@@ -34,9 +34,7 @@ interface TabSpec {
 
 const TAB_SPECS: TabSpec[] = [
   { key: 'overview', label: 'Overview', path: '' },
-  { key: 'traces', label: 'Traces', path: 'traces' },
-  { key: 'observations', label: 'Observations', path: 'observations' },
-  { key: 'metrics', label: 'Metrics', path: 'metrics' },
+  { key: 'data', label: 'Data', path: 'data' },
 ];
 
 export default function InjectionDetailLayout() {

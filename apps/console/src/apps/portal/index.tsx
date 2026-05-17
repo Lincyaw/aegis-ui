@@ -37,14 +37,13 @@ import ExecutionCreate from './pages/ExecutionCreate';
 import ExecutionDetail from './pages/ExecutionDetail';
 import Executions from './pages/Executions';
 import InjectionCreate from './pages/InjectionCreate';
+import InjectionData from './pages/InjectionData';
 import InjectionDetailLayout from './pages/InjectionDetailLayout';
 import InjectionDetailOverview from './pages/InjectionDetailOverview';
 import Injections from './pages/Injections';
 import LabelCreate from './pages/LabelCreate';
 import LabelDetail from './pages/LabelDetail';
 import Labels from './pages/Labels';
-import MetricsPage from './pages/MetricsPage';
-import Observations from './pages/Observations';
 import PedestalDetail from './pages/PedestalDetail';
 import PedestalInstall from './pages/PedestalInstall';
 import Pedestals from './pages/Pedestals';
@@ -59,8 +58,6 @@ import SystemRegister from './pages/SystemRegister';
 import Systems from './pages/Systems';
 import TaskDetail from './pages/TaskDetail';
 import Tasks from './pages/Tasks';
-import TraceDetail from './pages/TraceDetail';
-import Traces from './pages/Traces';
 
 import './pages/pages.css';
 
@@ -120,25 +117,23 @@ export const portalApp: AegisApp = {
       element: <InjectionDetailLayout />,
       children: [
         { index: true, element: <InjectionDetailOverview /> },
-        { path: 'traces', element: <Traces /> },
-        { path: 'observations', element: <Observations /> },
-        { path: 'metrics', element: <MetricsPage /> },
+        { path: 'data', element: <InjectionData /> },
       ],
     },
     { path: 'executions', element: <Executions /> },
     { path: 'executions/new', element: <ExecutionCreate /> },
     { path: 'executions/:executionId', element: <ExecutionDetail /> },
-    { path: 'traces/:traceId', element: <TraceDetail /> },
     { path: 'tasks', element: <Tasks /> },
     { path: 'tasks/:taskId', element: <TaskDetail /> },
 
-    // Legacy injection-drill flat routes — redirect to the nested layout.
-    { path: 'traces', element: <InjectionDrillRedirect target='traces' /> },
+    // Legacy injection-drill flat routes — redirect to the new Data tab.
+    { path: 'traces', element: <InjectionDrillRedirect target='data' /> },
+    { path: 'traces/:traceId', element: <InjectionDrillRedirect target='data' /> },
     {
       path: 'observations',
-      element: <InjectionDrillRedirect target='observations' />,
+      element: <InjectionDrillRedirect target='data' />,
     },
-    { path: 'metrics', element: <InjectionDrillRedirect target='metrics' /> },
+    { path: 'metrics', element: <InjectionDrillRedirect target='data' /> },
 
     // Project management surfaces (still reachable via header dropdown)
     { path: 'projects', element: <Projects /> },
