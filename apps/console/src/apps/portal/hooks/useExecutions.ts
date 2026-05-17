@@ -17,13 +17,13 @@ export function useExecutionsList(
       'executions',
       projectId,
       page.page ?? 1,
-      page.size ?? 30,
+      page.size ?? 20,
     ],
     queryFn: async () => {
       const res = await projectsApi.listProjectExecutions({
         projectId,
         page: page.page ?? 1,
-        size: page.size ?? 30,
+        size: page.size ?? 20,
       });
       return res.data.data;
     },
