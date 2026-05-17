@@ -8,6 +8,7 @@ import {
   ErrorState,
   MonoValue,
   PageHeader,
+  PageSizeSelect,
   Panel,
   TimeDisplay,
   useAppHref,
@@ -17,13 +18,17 @@ import type { LabelLabelResp } from '@lincyaw/portal';
 import { Spin } from 'antd';
 
 import { useLabelsList } from '../api/labels';
+import { usePageSize } from '../hooks/usePageSize';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function Labels() {
   const navigate = useAppNavigate();
   const href = useAppHref();
+  const { size, setSize } = usePageSize('labels', 50);
   const { data, isLoading, isError, error } = useLabelsList({
     page: 1,
-    size: 50,
+    size,
   });
   const labels = data?.items ?? [];
 
@@ -62,6 +67,7 @@ export default function Labels() {
             description='Create your first label.'
           />
         ) : (
+          <>
           <DataTable<LabelLabelResp>
             data={labels}
             rowKey={(r) => String(r.id ?? '')}
@@ -105,6 +111,14 @@ export default function Labels() {
               },
             ]}
           />
+          <div className='page-table-footer'>
+            <PageSizeSelect
+              value={size}
+              onChange={setSize}
+              options={PAGE_SIZE_OPTIONS}
+            />
+          </div>
+          </>
         )}
       </Panel>
     </div>

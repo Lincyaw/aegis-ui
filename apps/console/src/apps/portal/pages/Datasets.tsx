@@ -7,6 +7,7 @@ import {
   ErrorState,
   MonoValue,
   PageHeader,
+  PageSizeSelect,
   Panel,
   TimeDisplay,
   useAppHref,
@@ -16,13 +17,17 @@ import type { DatasetDatasetResp } from '@lincyaw/portal';
 import { Spin } from 'antd';
 
 import { useDatasetsList } from '../api/datasets';
+import { usePageSize } from '../hooks/usePageSize';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function Datasets() {
   const navigate = useAppNavigate();
   const href = useAppHref();
+  const { size, setSize } = usePageSize('datasets', 50);
   const { data, isLoading, isError, error } = useDatasetsList({
     page: 1,
-    size: 50,
+    size,
   });
   const datasets = data?.items ?? [];
 
@@ -61,6 +66,7 @@ export default function Datasets() {
             description='Build a dataset from the Injections list.'
           />
         ) : (
+          <>
           <DataTable<DatasetDatasetResp>
             data={datasets}
             rowKey={(r) => String(r.id ?? '')}
@@ -93,6 +99,14 @@ export default function Datasets() {
               },
             ]}
           />
+          <div className='page-table-footer'>
+            <PageSizeSelect
+              value={size}
+              onChange={setSize}
+              options={PAGE_SIZE_OPTIONS}
+            />
+          </div>
+          </>
         )}
       </Panel>
     </div>

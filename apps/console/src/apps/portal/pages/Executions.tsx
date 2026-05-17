@@ -7,6 +7,7 @@ import {
   ErrorState,
   MonoValue,
   PageHeader,
+  PageSizeSelect,
   Panel,
   TimeDisplay,
   useAppHref,
@@ -17,13 +18,19 @@ import type { ExecutionExecutionResp } from '@lincyaw/portal';
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import { useExecutionsList } from '../hooks/useExecutions';
+import { usePageSize } from '../hooks/usePageSize';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function Executions() {
   const projectId = useActiveProjectIdNum();
   const navigate = useAppNavigate();
   const href = useAppHref();
-  const { data, isLoading, isError, error, refetch } =
-    useExecutionsList(projectId);
+  const { size, setSize } = usePageSize('executions', 20);
+  const { data, isLoading, isError, error, refetch } = useExecutionsList(
+    projectId,
+    { size }
+  );
   const items: ExecutionExecutionResp[] = data?.items ?? [];
 
   return (
@@ -68,6 +75,7 @@ export default function Executions() {
             description='Run an algorithm to see results here.'
           />
         ) : (
+          <>
           <DataTable<ExecutionExecutionResp>
             data={items}
             rowKey={(r) => String(r.id ?? '')}
@@ -108,6 +116,14 @@ export default function Executions() {
               },
             ]}
           />
+          <div className='page-table-footer'>
+            <PageSizeSelect
+              value={size}
+              onChange={setSize}
+              options={PAGE_SIZE_OPTIONS}
+            />
+          </div>
+          </>
         )}
       </Panel>
     </div>

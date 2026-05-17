@@ -7,6 +7,7 @@ import {
   EmptyState,
   MonoValue,
   PageHeader,
+  PageSizeSelect,
   Panel,
   TimeDisplay,
   useAppHref,
@@ -17,7 +18,10 @@ import { App as AntdApp } from 'antd';
 import { useInjectionsList } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
+import { usePageSize } from '../hooks/usePageSize';
 import { useInjectBatch } from '../state/inject-batch';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 interface InjectionRow {
   id: number;
@@ -33,7 +37,10 @@ export default function Injections() {
   const href = useAppHref();
   const { message: msg } = AntdApp.useApp();
 
-  const { data, isLoading, isError, error } = useInjectionsList(projectId);
+  const { size, setSize } = usePageSize('injections', 50);
+  const { data, isLoading, isError, error } = useInjectionsList(projectId, {
+    size,
+  });
   const stagedCount = useInjectBatch((s) => s.staged.length);
 
   const rows = useMemo<InjectionRow[]>(
@@ -112,6 +119,7 @@ export default function Injections() {
             }
           />
         ) : (
+          <>
           <DataTable<InjectionRow>
             data={rows}
             rowKey={(r) => String(r.id)}
@@ -159,6 +167,14 @@ export default function Injections() {
               },
             ]}
           />
+          <div className='page-table-footer'>
+            <PageSizeSelect
+              value={size}
+              onChange={setSize}
+              options={PAGE_SIZE_OPTIONS}
+            />
+          </div>
+          </>
         )}
       </Panel>
     </div>

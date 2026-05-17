@@ -73,6 +73,7 @@ import {
   ObjectBrowser,
   ObjectInspector,
   PageHeader,
+  PageSizeSelect,
   Panel,
   PanelTitle,
   ParquetViewer,
@@ -2781,6 +2782,9 @@ function App() {
           </Specimen>
         </div>
 
+        <SectionDivider>PageSizeSelect</SectionDivider>
+        <PageSizeSelectSpecimen />
+
         <SectionDivider>EnvironmentSwitcher</SectionDivider>
         <EnvironmentSwitcherSpecimen />
 
@@ -4506,6 +4510,35 @@ function SqlCodeEditorSpecimen(): ReactNode {
           : `submitted → ${submitted}`}
       </pre>
     </>
+  );
+}
+
+function PageSizeSelectSpecimen(): ReactNode {
+  const [size, setSize] = useState(20);
+  const [customSize, setCustomSize] = useState(25);
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='default · [10, 20, 50, 100]'>
+        <PageSizeSelect value={size} onChange={setSize} />
+      </Specimen>
+      <Specimen caption='disabled'>
+        <PageSizeSelect
+          value={50}
+          onChange={() => {
+            /* no-op */
+          }}
+          disabled
+        />
+      </Specimen>
+      <Specimen caption='custom options · [5, 25, 100]'>
+        <PageSizeSelect
+          value={customSize}
+          onChange={setCustomSize}
+          options={[5, 25, 100]}
+          label='Page size'
+        />
+      </Specimen>
+    </div>
   );
 }
 

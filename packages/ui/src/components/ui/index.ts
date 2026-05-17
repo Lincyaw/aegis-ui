@@ -78,6 +78,8 @@ export { Avatar } from './Avatar';
 export type { AvatarSurface } from './Avatar';
 export { DropdownMenu } from './DropdownMenu';
 export type { DropdownItem } from './DropdownMenu';
+export { PageSizeSelect } from './PageSizeSelect';
+export type { PageSizeSelectProps } from './PageSizeSelect';
 export { ProjectSelector } from './ProjectSelector';
 export type { ProjectOption } from './ProjectSelector';
 export { PageHeader } from './PageHeader';
