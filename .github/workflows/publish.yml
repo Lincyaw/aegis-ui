@@ -50,5 +50,5 @@ jobs:
         working-directory: packages/ui
         run: pnpm publish --no-git-checks
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_NPMJS }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_NPMJS }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
