@@ -64,6 +64,11 @@ export function LoginForm({
         Object.entries(hiddenFields).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
+      {/* readOnly (not disabled) while submitting: disabled inputs are excluded
+          from native form submission per the HTML spec, which breaks the
+          action-URL path (SSO/PKCE) since React flushes setSubmitting(true)
+          synchronously inside the submit handler — the browser would then
+          serialize the form with username/password missing. */}
       <TextField
         label="Email"
         type="email"
@@ -72,7 +77,7 @@ export function LoginForm({
         placeholder="you@example.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        disabled={submitting}
+        readOnly={submitting}
         required
       />
       <PasswordField
@@ -82,7 +87,7 @@ export function LoginForm({
         placeholder="••••••••"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        disabled={submitting}
+        readOnly={submitting}
         required
       />
       {(showRememberMe || onForgotPassword) && (
