@@ -13,6 +13,7 @@ import {
   MetricsApi,
   NotificationApi,
   ObservationApi,
+  PagesApi,
   ProjectsApi,
   ShareApi,
   SSOAdminApi,
@@ -73,6 +74,7 @@ export const notificationsApi = new NotificationApi(
   portalAxios
 );
 export const observationApi = new ObservationApi(config, basePath, portalAxios);
+export const pagesApi = new PagesApi(config, basePath, portalAxios);
 export const projectsApi = new ProjectsApi(config, basePath, portalAxios);
 export const shareApi = new ShareApi(config, basePath, portalAxios);
 export const ssoAdminApi = new SSOAdminApi(config, basePath, portalAxios);

@@ -1,0 +1,111 @@
+.pages-app__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pages-app__row--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pages-app__row-actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
+}
+
+.pages-app__header-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.pages-app__label {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--fs-11);
+}
+
+.pages-app__hint {
+  color: var(--text-muted);
+  font-size: var(--fs-11);
+}
+
+.pages-app__hint--inline {
+  margin-top: var(--space-1);
+}
+
+.pages-app__muted {
+  color: var(--text-muted);
+}
+
+.pages-app__share {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  background: var(--bg-muted);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.pages-app__share-url {
+  flex: 1 1 auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  word-break: break-all;
+}
+
+.pages-app__file-tree {
+  max-height: calc(var(--space-12) * 5);
+  overflow: auto;
+  background: var(--bg-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px);
+}
+
+.pages-app__file-tree-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--text-muted);
+}
+
+.pages-app__file-tree-row--invalid {
+  color: var(--accent-warning);
+}
+
+.pages-app__file-tree-row--strong {
+  color: var(--text-main);
+}
+
+.pages-app__file-link {
+  color: inherit;
+}
+
+.pages-app__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pages-app__radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pages-app__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
