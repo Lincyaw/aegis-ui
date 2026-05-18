@@ -62,7 +62,7 @@ export default function ExecutionDetail() {
               v: <MonoValue size='sm'>{data.datapack_name ?? '—'}</MonoValue>,
             },
             {
-              k: 'task',
+              k: 'run id',
               v: <MonoValue size='sm'>{data.task_id ?? '—'}</MonoValue>,
             },
             {

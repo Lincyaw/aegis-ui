@@ -59,7 +59,7 @@ export default function InjectionDetailOverview() {
             },
             { k: 'category', v: injection.category ?? '—' },
             {
-              k: 'task',
+              k: 'run id',
               v: injection.task_id ? (
                 <MonoValue size='sm'>{injection.task_id}</MonoValue>
               ) : (

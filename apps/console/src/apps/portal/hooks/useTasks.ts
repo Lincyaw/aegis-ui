@@ -2,7 +2,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { tasksApi } from '../api/portal-client';
 
-const ACTIVE_STATES = new Set(['initial', 'running', 'pending', 'queued']);
+const ACTIVE_STATES = new Set([
+  'initial',
+  'running',
+  'pending',
+  'queued',
+  'rescheduled',
+]);
 
 export function isActiveTaskState(state: string | undefined): boolean {
   return state ? ACTIVE_STATES.has(state.toLowerCase()) : false;

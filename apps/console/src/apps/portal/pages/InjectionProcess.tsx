@@ -45,7 +45,7 @@ import {
   type RefreshInterval,
 } from '../components/refresh-interval';
 import { StatusChip } from '../components/StatusChip';
-import { useCancelTask } from '../hooks/useTasks';
+import { isActiveTaskState, useCancelTask } from '../hooks/useTasks';
 
 const STAGE_LABELS: Record<string, string> = {
   RestartPedestal: 'Restart pedestal',
@@ -63,17 +63,6 @@ function stageLabel(type: string | undefined): string {
   return STAGE_LABELS[type] ?? type;
 }
 
-const CANCELLABLE_STAGE_STATES = new Set([
-  'pending',
-  'rescheduled',
-  'running',
-  'initial',
-  'queued',
-]);
-
-function isCancellableStage(state: string | undefined): boolean {
-  return state ? CANCELLABLE_STAGE_STATES.has(state.toLowerCase()) : false;
-}
 
 function formatDuration(startIso?: string, endIso?: string): string {
   if (!startIso) {
@@ -330,7 +319,7 @@ function StageCard({ task, onCancel, cancelPending }: StageCardProps) {
   const cancellable =
     typeof task.id === 'string' &&
     task.id.length > 0 &&
-    isCancellableStage(state);
+    isActiveTaskState(state);
   return (
     <div className='injection-process__stage'>
       <div className='injection-process__stage-head'>
@@ -599,7 +588,7 @@ export default function InjectionProcess() {
         ) : (
           <EmptyState
             title='No phase timeline yet'
-            description='Pre / fault / recover / post windows on the system under test. Pinned by the backend; not the orchestrator pipeline stages (those are in the Spans panel).'
+            description='Pre / fault / recover / post windows on the system under test. Pinned by the backend; not the orchestrator pipeline stages (those are in the Stages panel).'
           />
         )}
       </Panel>
