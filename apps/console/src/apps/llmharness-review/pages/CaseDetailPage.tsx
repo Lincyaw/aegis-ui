@@ -193,12 +193,26 @@ function TurnRail({ bundle }: TurnRailProps): ReactElement {
               role='button'
               tabIndex={0}
               onClick={() => {
-                set({ turn: idx });
+                set({
+                  turn: idx,
+                  mode: null,
+                  extractorSeq: null,
+                  auditorSeq: null,
+                  eventId: null,
+                  findingId: null,
+                });
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  set({ turn: idx });
+                  set({
+                    turn: idx,
+                    mode: null,
+                    extractorSeq: null,
+                    auditorSeq: null,
+                    eventId: null,
+                    findingId: null,
+                  });
                 }
               }}
             >
@@ -260,7 +274,17 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
   );
   const onSelectTurn = useCallback(
     (turnIndex: number) => {
-      set({ turn: turnIndex });
+      // Jumping to a turn from inside a firing inspector / event chip is
+      // an explicit move of focus to the message rail — clear the firing
+      // mode so the dispatcher reaches the turn branch.
+      set({
+        turn: turnIndex,
+        mode: null,
+        extractorSeq: null,
+        auditorSeq: null,
+        eventId: null,
+        findingId: null,
+      });
     },
     [set],
   );
@@ -520,7 +544,14 @@ function DetailRail({ bundle }: DetailRailProps): ReactElement {
                   key={t}
                   tone={selection.turn === t ? 'ink' : 'default'}
                   onClick={() => {
-                    set({ turn: t });
+                    set({
+                      turn: t,
+                      mode: null,
+                      extractorSeq: null,
+                      auditorSeq: null,
+                      eventId: null,
+                      findingId: null,
+                    });
                   }}
                 >
                   #{t}
@@ -682,6 +713,29 @@ function DetailRail({ bundle }: DetailRailProps): ReactElement {
     );
   }
 
+  // --- Firing inspector (mode-driven). Must run BEFORE the turn check
+  // because the timeline click handler sets turn together with mode/seq
+  // (the turn is for scroll-sync into the messages rail) — if turn wins
+  // here, clicking a firing chip would always land in TurnInspector.
+  // Sibling inspectors that move focus to a message clear mode/seq, so
+  // a deliberate "show me the message" still reaches the turn branch.
+  if (selection.mode === 'extractor' && selection.extractorSeq !== null) {
+    const f = bundle.extractor.find(
+      (x) => x.sequence === selection.extractorSeq,
+    );
+    if (f) {
+      return <ExtractorInspector firing={f} bundle={bundle} />;
+    }
+  }
+  if (selection.mode === 'auditor' && selection.auditorSeq !== null) {
+    const f = bundle.auditor.find(
+      (x) => x.sequence === selection.auditorSeq,
+    );
+    if (f) {
+      return <AuditorInspector firing={f} bundle={bundle} />;
+    }
+  }
+
   // --- Turn detail
   if (selection.turn !== null) {
     const turn = bundle.main.find((t) => t.index === selection.turn);
@@ -773,24 +827,6 @@ function DetailRail({ bundle }: DetailRailProps): ReactElement {
         </div>
       </div>
     );
-  }
-
-  // --- Firing meta fallback
-  if (selection.mode === 'extractor' && selection.extractorSeq !== null) {
-    const firing = bundle.extractor.find(
-      (f) => f.sequence === selection.extractorSeq,
-    );
-    if (firing) {
-      return <ExtractorInspector firing={firing} bundle={bundle} />;
-    }
-  }
-  if (selection.mode === 'auditor' && selection.auditorSeq !== null) {
-    const firing = bundle.auditor.find(
-      (f) => f.sequence === selection.auditorSeq,
-    );
-    if (firing) {
-      return <AuditorInspector firing={firing} bundle={bundle} />;
-    }
   }
 
   return (
