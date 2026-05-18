@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
   Button,
+  Chip,
   CodeBlock,
-  CodeEditor,
   DangerZone,
-  DataList,
-  DiffViewer,
   EmptyState,
   KeyValueList,
   MonoValue,
@@ -15,35 +13,50 @@ import {
   Panel,
   PanelTitle,
   SectionDivider,
-  useAppHref,
+  TextField,
+  TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Modal } from 'antd';
+import { App as AntdApp, Modal, Spin } from 'antd';
 
-import { StatusChip } from '../components/StatusChip';
-import { useMockStore } from '../mocks';
-import type { MockInjection } from '../mocks/types';
+import {
+  usePedestal,
+  useRestartPedestal,
+  useUninstallPedestal,
+} from '../api/pedestals';
+
+function stringifyValues(values: Record<string, unknown> | undefined): string {
+  if (!values || Object.keys(values).length === 0) {
+    return '';
+  }
+  return JSON.stringify(values, null, 2);
+}
 
 export default function PedestalDetail() {
   const { id } = useParams<{ id: string }>();
-  const href = useAppHref();
+  const release = id ?? '';
   const navigate = useAppNavigate();
   const { message: msg, modal } = AntdApp.useApp();
 
-  const pedestal = useMockStore((s) => s.pedestals.find((p) => p.id === id));
-  const recent = useMockStore((s) =>
-    s.injections
-      .filter((i) => i.systemCode === pedestal?.systemCode)
-      .slice(0, 6)
-  );
-  const restartPedestal = useMockStore((s) => s.restartPedestal);
-  const uninstallPedestal = useMockStore((s) => s.uninstallPedestal);
-  const applyPedestalOverrides = useMockStore((s) => s.applyPedestalOverrides);
+  const { data, isLoading } = usePedestal(release);
+  const restartMutation = useRestartPedestal();
+  const uninstallMutation = useUninstallPedestal();
 
-  const [overridesOpen, setOverridesOpen] = useState(false);
-  const [draftValues, setDraftValues] = useState('');
+  const [uninstallOpen, setUninstallOpen] = useState(false);
+  const [confirmName, setConfirmName] = useState('');
 
-  if (!pedestal) {
+  if (isLoading && !data) {
+    return (
+      <div className='page-wrapper'>
+        <PageHeader title={`Pedestal ${release}`} />
+        <Panel>
+          <Spin />
+        </Panel>
+      </div>
+    );
+  }
+
+  if (!data || !data.release) {
     return (
       <div className='page-wrapper'>
         <PageHeader title='Pedestal not found' />
@@ -58,117 +71,122 @@ export default function PedestalDetail() {
   }
 
   const onRestart = (): void => {
-    restartPedestal(pedestal.id);
-    void msg.success(`Restarting ${pedestal.namespace}`);
-  };
-
-  const onUninstall = (): void => {
     modal.confirm({
-      title: `Uninstall ${pedestal.namespace}?`,
-      content: 'This removes all release resources from the cluster.',
-      okText: 'Uninstall',
-      okButtonProps: { danger: true },
-      onOk: () => {
-        uninstallPedestal(pedestal.id);
-        void msg.success(`Uninstalled ${pedestal.namespace}`);
-        navigate('pedestals');
+      title: `Restart ${data.release ?? ''}?`,
+      content:
+        'Redeploys the release in-place with the previously-applied values.',
+      okText: 'Restart',
+      onOk: async () => {
+        try {
+          await restartMutation.mutateAsync({ release: data.release ?? '' });
+          void msg.success(`Restarted ${data.release ?? ''}`);
+        } catch {
+          void msg.error('Restart failed');
+        }
       },
     });
   };
 
-  const openOverrides = (): void => {
-    setDraftValues(pedestal.helmValues);
-    setOverridesOpen(true);
+  const openUninstall = (): void => {
+    setConfirmName('');
+    setUninstallOpen(true);
   };
 
-  const applyOverrides = (): void => {
-    applyPedestalOverrides(pedestal.id, draftValues);
-    void msg.success('Overrides applied; pedestal restarting');
-    setOverridesOpen(false);
+  const confirmUninstall = async (): Promise<void> => {
+    if (confirmName !== data.release) {
+      void msg.error('Release name does not match');
+      return;
+    }
+    try {
+      await uninstallMutation.mutateAsync({
+        release: data.release ?? '',
+        namespace: data.namespace,
+      });
+      void msg.success(`Uninstalled ${data.release ?? ''}`);
+      setUninstallOpen(false);
+      navigate('pedestals');
+    } catch {
+      void msg.error('Uninstall failed');
+    }
   };
+
+  const valuesYaml = stringifyValues(data.values);
+  const managedLabel =
+    data.managed === true
+      ? 'managed'
+      : (data.system ?? '').length > 0
+        ? 'name-only'
+        : 'unknown';
+  const managedTone: 'ink' | 'warning' | 'ghost' =
+    managedLabel === 'managed'
+      ? 'ink'
+      : managedLabel === 'name-only'
+        ? 'warning'
+        : 'ghost';
 
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title={`Pedestal ${pedestal.namespace}`}
-        description={`Helm release for ${pedestal.systemCode}.`}
+        title={`Pedestal ${data.release ?? ''}`}
+        description={
+          data.system
+            ? `Helm release for ${data.system}.`
+            : 'Helm release detail.'
+        }
         action={
           <div className='page-action-row'>
-            <StatusChip status={pedestal.status} />
+            <Chip tone={managedTone}>{managedLabel}</Chip>
             <Button
-              tone='primary'
-              onClick={() =>
-                navigate(`injections/new?system=${pedestal.systemCode}`)
-              }
+              tone='secondary'
+              onClick={onRestart}
+              disabled={restartMutation.isPending}
             >
-              Inject first fault
-            </Button>
-            <Button tone='secondary' onClick={onRestart}>
-              Restart
-            </Button>
-            <Button tone='secondary' onClick={openOverrides}>
-              Apply overrides
+              {restartMutation.isPending ? 'Restarting…' : 'Restart'}
             </Button>
           </div>
         }
       />
 
-      <Panel title={<PanelTitle size='base'>Summary</PanelTitle>}>
+      <Panel title={<PanelTitle size='base'>Chart info</PanelTitle>}>
         <KeyValueList
           items={[
             {
-              k: 'system',
-              v: (
-                <Link to={href(`systems/${pedestal.systemCode}`)}>
-                  {pedestal.systemCode}
-                </Link>
-              ),
+              k: 'release',
+              v: <MonoValue size='sm'>{data.release}</MonoValue>,
             },
+            { k: 'system', v: data.system ?? '—' },
             {
               k: 'namespace',
-              v: <MonoValue size='sm'>{pedestal.namespace}</MonoValue>,
+              v: <MonoValue size='sm'>{data.namespace ?? '—'}</MonoValue>,
             },
+            { k: 'chart', v: data.chart ?? '—' },
             {
-              k: 'version',
-              v: <MonoValue size='sm'>{pedestal.version}</MonoValue>,
+              k: 'chart_version',
+              v: <MonoValue size='sm'>{data.chart_version ?? '—'}</MonoValue>,
             },
-            { k: 'status', v: <StatusChip status={pedestal.status} /> },
-            { k: 'age', v: pedestal.age },
+            { k: 'status', v: data.status ?? '—' },
+            { k: 'managed', v: <Chip tone={managedTone}>{managedLabel}</Chip> },
+            {
+              k: 'deployed_at',
+              v: data.deployed_at ? (
+                <TimeDisplay value={data.deployed_at} />
+              ) : (
+                '—'
+              ),
+            },
           ]}
         />
       </Panel>
 
-      <SectionDivider>Helm values</SectionDivider>
+      <SectionDivider>Applied helm values</SectionDivider>
       <Panel>
-        <CodeBlock language='yaml' code={pedestal.helmValues} />
-      </Panel>
-
-      <SectionDivider>Recent injections</SectionDivider>
-      <Panel>
-        {recent.length === 0 ? (
+        {valuesYaml.length === 0 ? (
           <EmptyState
-            title='No injections yet'
-            description='Inject a fault to populate.'
+            title='No user-supplied values'
+            description='Chart was installed with defaults only.'
           />
         ) : (
-          <DataList<MockInjection>
-            items={recent}
-            columns={[
-              {
-                key: 'id',
-                label: 'Injection',
-                render: (r) => (
-                  <Link to={href(`injections/${r.id}`)}>{r.id}</Link>
-                ),
-              },
-              { key: 'name', label: 'Fault', render: (r) => r.name },
-              {
-                key: 'status',
-                label: 'Status',
-                render: (r) => <StatusChip status={r.status} />,
-              },
-            ]}
-          />
+          <CodeBlock language='json' code={valuesYaml} />
         )}
       </Panel>
 
@@ -176,35 +194,34 @@ export default function PedestalDetail() {
         title='Danger zone'
         description='Uninstall removes all release resources from the cluster.'
       >
-        <Button tone='secondary' onClick={onUninstall}>
+        <Button tone='secondary' onClick={openUninstall}>
           Uninstall
         </Button>
       </DangerZone>
 
       <Modal
-        title='Apply helm overrides'
-        open={overridesOpen}
-        onCancel={() => setOverridesOpen(false)}
-        onOk={applyOverrides}
-        okText='Apply'
-        width={720}
+        title={`Uninstall ${data.release ?? ''}?`}
+        open={uninstallOpen}
+        onCancel={() => setUninstallOpen(false)}
+        onOk={() => {
+          void confirmUninstall();
+        }}
+        okText='Uninstall'
+        okButtonProps={{
+          danger: true,
+          disabled: confirmName !== data.release || uninstallMutation.isPending,
+          loading: uninstallMutation.isPending,
+        }}
+        width={520}
       >
-        <div style={{ marginBottom: 12 }}>
-          <CodeEditor
-            value={draftValues}
-            onChange={setDraftValues}
-            language='yaml'
-            height={220}
-          />
-        </div>
-        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>
-          Diff vs current:
-        </div>
-        <DiffViewer
-          oldValue={pedestal.helmValues}
-          newValue={draftValues}
-          leftTitle='current'
-          rightTitle='draft'
+        <p>
+          This removes all release resources from the cluster. Type the release
+          name <strong>{data.release}</strong> to confirm.
+        </p>
+        <TextField
+          value={confirmName}
+          onChange={(e) => setConfirmName(e.target.value)}
+          placeholder={data.release}
         />
       </Modal>
     </div>

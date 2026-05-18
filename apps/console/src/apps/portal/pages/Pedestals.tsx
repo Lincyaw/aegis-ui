@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import {
   Button,
+  Chip,
   DataTable,
   MonoValue,
   PageHeader,
@@ -10,15 +11,36 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import type { PedestalPedestalRelease } from '@lincyaw/portal';
+import { Spin } from 'antd';
 
-import { StatusChip } from '../components/StatusChip';
-import { useMockStore } from '../mocks';
-import type { MockPedestal } from '../mocks/types';
+import { usePedestals } from '../api/pedestals';
+
+type ManagedTone = 'ink' | 'warning' | 'ghost';
+
+function managedBadge(rel: PedestalPedestalRelease) {
+  const managed = rel.managed === true;
+  const system = rel.system ?? '';
+  let label: string;
+  let tone: ManagedTone;
+  if (managed) {
+    label = 'managed';
+    tone = 'ink';
+  } else if (system.length > 0) {
+    label = 'name-only';
+    tone = 'warning';
+  } else {
+    label = 'unknown';
+    tone = 'ghost';
+  }
+  return <Chip tone={tone}>{label}</Chip>;
+}
 
 export default function Pedestals() {
   const navigate = useAppNavigate();
   const href = useAppHref();
-  const pedestals = useMockStore((s) => s.pedestals);
+  const { data, isLoading } = usePedestals(200);
+  const releases = data ?? [];
 
   return (
     <div className='page-wrapper'>
@@ -32,46 +54,57 @@ export default function Pedestals() {
         }
       />
       <Panel>
-        <DataTable<MockPedestal>
-          data={pedestals}
-          rowKey={(r) => r.id}
-          emptyTitle='No pedestals'
-          emptyDescription='Install one to begin injecting faults.'
-          columns={[
-            {
-              key: 'ns',
-              header: 'Namespace',
-              render: (r) => (
-                <Link to={href(`pedestals/${r.id}`)}>
-                  <MonoValue size='sm'>{r.namespace}</MonoValue>
-                </Link>
-              ),
-            },
-            {
-              key: 'system',
-              header: 'System',
-              render: (r) => (
-                <Link to={href(`systems/${r.systemCode}`)}>{r.systemCode}</Link>
-              ),
-            },
-            {
-              key: 'version',
-              header: 'Version',
-              render: (r) => <MonoValue size='sm'>{r.version}</MonoValue>,
-            },
-            {
-              key: 'status',
-              header: 'Status',
-              render: (r) => <StatusChip status={r.status} />,
-            },
-            { key: 'age', header: 'Age', render: (r) => r.age },
-            {
-              key: 'last',
-              header: 'Last restart',
-              render: (r) => <TimeDisplay value={r.lastRestartAt} />,
-            },
-          ]}
-        />
+        {isLoading && releases.length === 0 ? (
+          <Spin />
+        ) : (
+          <DataTable<PedestalPedestalRelease>
+            data={releases}
+            rowKey={(r) => `${r.namespace ?? ''}/${r.release ?? ''}`}
+            emptyTitle='No pedestals'
+            emptyDescription='Install one to begin injecting faults.'
+            columns={[
+              {
+                key: 'release',
+                header: 'Name',
+                render: (r) => (
+                  <Link to={href(`pedestals/${r.release ?? ''}`)}>
+                    <MonoValue size='sm'>{r.release ?? '—'}</MonoValue>
+                  </Link>
+                ),
+              },
+              {
+                key: 'namespace',
+                header: 'Namespace',
+                render: (r) => (
+                  <MonoValue size='sm'>{r.namespace ?? '—'}</MonoValue>
+                ),
+              },
+              {
+                key: 'chart',
+                header: 'Chart',
+                render: (r) => r.chart ?? '—',
+              },
+              {
+                key: 'version',
+                header: 'Version',
+                render: (r) => (
+                  <MonoValue size='sm'>{r.chart_version ?? '—'}</MonoValue>
+                ),
+              },
+              {
+                key: 'managed',
+                header: 'Status',
+                render: managedBadge,
+              },
+              {
+                key: 'deployed_at',
+                header: 'Deployed at',
+                render: (r) =>
+                  r.deployed_at ? <TimeDisplay value={r.deployed_at} /> : '—',
+              },
+            ]}
+          />
+        )}
       </Panel>
     </div>
   );

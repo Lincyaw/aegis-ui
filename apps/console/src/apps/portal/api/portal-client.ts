@@ -1,6 +1,7 @@
 import {
   AuthenticationApi,
   BlobApi,
+  ClusterApi,
   ConfigCenterApi,
   Configuration,
   ContainersApi,
@@ -13,6 +14,7 @@ import {
   MetricsApi,
   NotificationApi,
   PagesApi,
+  PedestalApi,
   ProjectsApi,
   ShareApi,
   SSOAdminApi,
@@ -55,6 +57,7 @@ export const authenticationApi = new AuthenticationApi(
   portalAxios
 );
 export const blobApi = new BlobApi(config, basePath, portalAxios);
+export const clusterApi = new ClusterApi(config, basePath, portalAxios);
 export const configCenterApi = new ConfigCenterApi(
   config,
   basePath,
@@ -74,6 +77,7 @@ export const notificationsApi = new NotificationApi(
   portalAxios
 );
 export const pagesApi = new PagesApi(config, basePath, portalAxios);
+export const pedestalApi = new PedestalApi(config, basePath, portalAxios);
 export const projectsApi = new ProjectsApi(config, basePath, portalAxios);
 export const shareApi = new ShareApi(config, basePath, portalAxios);
 export const ssoAdminApi = new SSOAdminApi(config, basePath, portalAxios);
