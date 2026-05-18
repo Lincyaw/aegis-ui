@@ -449,11 +449,11 @@ export default function InjectionProcess() {
       </Panel>
 
       <Panel
-        title={<PanelTitle size='base'>Phases</PanelTitle>}
+        title={<PanelTitle size='base'>Fault windows on SUT</PanelTitle>}
         extra={
           phaseGantt ? (
             <span className='injection-process__last-event-label'>
-              {`${String(phaseGantt.spans.length)} phases · ${formatMs(phaseGantt.totalMs)}`}
+              {`${String(phaseGantt.spans.length)} windows · ${formatMs(phaseGantt.totalMs)}`}
             </span>
           ) : undefined
         }
@@ -467,7 +467,7 @@ export default function InjectionProcess() {
         ) : (
           <EmptyState
             title='No phase timeline yet'
-            description='Pre / fault / post / recover windows will appear once the orchestrator records them.'
+            description='Pre / fault / recover / post windows on the system under test. Pinned by the backend; not the orchestrator pipeline stages (those are in the Spans panel).'
           />
         )}
       </Panel>
