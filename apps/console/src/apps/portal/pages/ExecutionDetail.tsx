@@ -1,22 +1,191 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
+  Button,
+  Chip,
+  DataTable,
+  type DataTableColumn,
   EmptyState,
   ErrorState,
   KeyValueList,
   MonoValue,
   PageHeader,
+  PageSizeSelect,
   Panel,
   PanelTitle,
+  SearchInput,
+  Terminal,
+  type TerminalLine,
+  TimeDisplay,
 } from '@lincyaw/aegis-ui';
+import type {
+  ExecutionDetectorResultItem,
+  TaskResp,
+} from '@lincyaw/portal';
+import { App as AntdApp } from 'antd';
 
+import { useProcessTrace } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
 import { useExecutionDetail } from '../hooks/useExecutions';
+import { isActiveTaskState, useCancelTask } from '../hooks/useTasks';
+
+type LogLevelFilter = 'all' | 'error' | 'warn' | 'info';
+
+const LOG_LEVEL_OPTIONS: ReadonlyArray<{ key: LogLevelFilter; label: string }> =
+  [
+    { key: 'all', label: 'All' },
+    { key: 'error', label: 'Error' },
+    { key: 'warn', label: 'Warn' },
+    { key: 'info', label: 'Info' },
+  ];
+
+const LOG_LIMIT_OPTIONS: readonly number[] = [100, 200, 500, 1000];
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebounced(value);
+    }, delayMs);
+    return () => {
+      clearTimeout(handle);
+    };
+  }, [value, delayMs]);
+  return debounced;
+}
+
+function taskLevel(state: string | undefined): TerminalLine['level'] {
+  const lower = (state ?? '').toLowerCase();
+  if (lower === 'failed' || lower === 'error' || lower === 'cancelled') {
+    return 'error';
+  }
+  if (lower === 'restarting' || lower === 'rescheduled') {
+    return 'warn';
+  }
+  if (lower === 'success' || lower === 'completed') {
+    return 'info';
+  }
+  return 'info';
+}
+
+interface TaskLogLine {
+  ts: string;
+  prefix: string;
+  level: TerminalLine['level'];
+  body: string;
+}
+
+function taskLogLines(tasks: TaskResp[] | undefined): TaskLogLine[] {
+  if (!tasks || tasks.length === 0) {
+    return [];
+  }
+  return [...tasks]
+    .sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))
+    .map((t, i) => ({
+      ts: t.updated_at ?? t.created_at ?? String(i),
+      prefix: t.type ?? 'task',
+      level: taskLevel(t.state ?? t.status),
+      body: `${t.state ?? t.status ?? 'unknown'} · trace ${t.trace_id ?? '—'}`,
+    }));
+}
+
+function fmtNum(n: number | undefined, digits = 2): string {
+  if (n == null || !Number.isFinite(n)) {
+    return '—';
+  }
+  return n.toFixed(digits);
+}
+
+const DETECTOR_COLUMNS: Array<DataTableColumn<ExecutionDetectorResultItem>> = [
+  {
+    key: 'span_name',
+    header: 'Span',
+    render: (row) => <MonoValue size='sm'>{row.span_name}</MonoValue>,
+    resizable: true,
+  },
+  {
+    key: 'issues',
+    header: 'Issues',
+    render: (row) => row.issues,
+    resizable: true,
+  },
+  {
+    key: 'abnormal_succ_rate',
+    header: 'Abnormal succ',
+    align: 'right',
+    render: (row) => (
+      <MonoValue size='sm'>{fmtNum(row.abnormal_succ_rate, 3)}</MonoValue>
+    ),
+  },
+  {
+    key: 'normal_succ_rate',
+    header: 'Normal succ',
+    align: 'right',
+    render: (row) => (
+      <MonoValue size='sm'>{fmtNum(row.normal_succ_rate, 3)}</MonoValue>
+    ),
+  },
+  {
+    key: 'abnormal_p95',
+    header: 'Abn p95',
+    align: 'right',
+    render: (row) => (
+      <MonoValue size='sm'>{fmtNum(row.abnormal_p95, 1)}</MonoValue>
+    ),
+  },
+  {
+    key: 'normal_p95',
+    header: 'Norm p95',
+    align: 'right',
+    render: (row) => (
+      <MonoValue size='sm'>{fmtNum(row.normal_p95, 1)}</MonoValue>
+    ),
+  },
+];
 
 export default function ExecutionDetail() {
   const { executionId } = useParams<{ executionId: string }>();
   const numericId = executionId ? Number(executionId) : undefined;
   const { data, isLoading, isError, error } = useExecutionDetail(numericId);
+
+  const traceId = data?.task_id ?? null;
+  const state = data?.state ?? data?.status ?? 'pending';
+  const live = isActiveTaskState(state);
+
+  const { data: trace } = useProcessTrace(traceId, live ? 3_000 : false);
+
+  const { message: msg } = AntdApp.useApp();
+  const cancelTask = useCancelTask(() => {
+    void msg.success('Run cancelled');
+  });
+
+  const [logLevel, setLogLevel] = useState<LogLevelFilter>('all');
+  const [logSearchInput, setLogSearchInput] = useState('');
+  const [logLimit, setLogLimit] = useState<number>(200);
+  const debouncedLogSearch = useDebouncedValue(logSearchInput.trim(), 300);
+
+  const allLogLines = useMemo(
+    () => taskLogLines(trace?.tasks),
+    [trace?.tasks],
+  );
+  const filteredLogLines = useMemo<TerminalLine[]>(() => {
+    const needle = debouncedLogSearch.toLowerCase();
+    return allLogLines
+      .filter((line) => {
+        if (logLevel !== 'all' && line.level !== logLevel) {
+          return false;
+        }
+        if (needle.length === 0) {
+          return true;
+        }
+        return (
+          line.body.toLowerCase().includes(needle) ||
+          line.prefix.toLowerCase().includes(needle)
+        );
+      })
+      .slice(-logLimit);
+  }, [allLogLines, logLevel, debouncedLogSearch, logLimit]);
 
   if (isLoading) {
     return (
@@ -45,12 +214,15 @@ export default function ExecutionDetail() {
     );
   }
 
+  const cancellable = typeof traceId === 'string' && traceId.length > 0 && live;
+  const detectorResults = data.detector_results ?? [];
+
   return (
     <div className='page-wrapper'>
       <PageHeader
         title={`Execution ${String(data.id ?? '')}`}
         description={`${data.algorithm_name ?? 'algorithm'} · ${data.datapack_name ?? 'datapack'}`}
-        action={<StatusChip status={data.state ?? data.status ?? 'pending'} />}
+        action={<StatusChip status={state} />}
       />
       <Panel title={<PanelTitle size='base'>Origin</PanelTitle>}>
         <KeyValueList
@@ -91,6 +263,130 @@ export default function ExecutionDetail() {
           />
         </Panel>
       )}
+      <Panel title={<PanelTitle size='base'>Run state</PanelTitle>}>
+        <KeyValueList
+          items={[
+            { k: 'state', v: <StatusChip status={state} /> },
+            {
+              k: 'started',
+              v: <TimeDisplay value={data.created_at ?? ''} />,
+            },
+            {
+              k: 'finished',
+              v: live ? (
+                '—'
+              ) : (
+                <TimeDisplay value={data.updated_at ?? ''} />
+              ),
+            },
+            {
+              k: 'trace id',
+              v: <MonoValue size='sm'>{traceId ?? '—'}</MonoValue>,
+            },
+          ]}
+        />
+        {cancellable && (
+          <div className='injection-process__stage-actions'>
+            <Button
+              tone='secondary'
+              disabled={cancelTask.isPending}
+              onClick={() => {
+                if (typeof traceId === 'string') {
+                  cancelTask.mutate(traceId);
+                }
+              }}
+            >
+              {cancelTask.isPending ? 'Cancelling…' : 'Cancel'}
+            </Button>
+          </div>
+        )}
+      </Panel>
+      <Panel
+        title={<PanelTitle size='base'>Logs</PanelTitle>}
+        extra={
+          allLogLines.length > 0 ? (
+            <span className='injection-process__last-event-label'>
+              {`tail ${String(logLimit)} · ${String(filteredLogLines.length)} / ${String(allLogLines.length)}`}
+            </span>
+          ) : undefined
+        }
+      >
+        <div className='injection-process__logs-toolbar'>
+          <div
+            className='injection-process__logs-levels'
+            role='group'
+            aria-label='Log level filter'
+          >
+            {LOG_LEVEL_OPTIONS.map((opt) => (
+              <Chip
+                key={opt.key}
+                tone={logLevel === opt.key ? 'ink' : 'ghost'}
+                onClick={() => {
+                  setLogLevel(opt.key);
+                }}
+              >
+                {opt.label}
+              </Chip>
+            ))}
+          </div>
+          <SearchInput
+            value={logSearchInput}
+            onChange={setLogSearchInput}
+            onClear={() => {
+              setLogSearchInput('');
+            }}
+            placeholder='Filter log lines…'
+            className='injection-process__logs-search'
+          />
+          <PageSizeSelect
+            value={logLimit}
+            onChange={setLogLimit}
+            options={LOG_LIMIT_OPTIONS as number[]}
+            label='Tail'
+            placement='bottom'
+          />
+        </div>
+        {filteredLogLines.length > 0 ? (
+          <Terminal lines={filteredLogLines} />
+        ) : (
+          <EmptyState
+            title={
+              traceId ? 'No log entries match' : 'No orchestrator trace yet'
+            }
+            description={
+              traceId
+                ? debouncedLogSearch.length > 0 || logLevel !== 'all'
+                  ? 'No entries match the current filters. Try clearing the search or selecting "All" level.'
+                  : 'Stage transitions from the orchestrator will appear here as the run progresses.'
+                : 'The execution has not been dispatched to the orchestrator.'
+            }
+          />
+        )}
+      </Panel>
+      <Panel
+        title={<PanelTitle size='base'>Detector results</PanelTitle>}
+        extra={
+          detectorResults.length > 0 ? (
+            <span className='injection-process__last-event-label'>
+              {`${String(detectorResults.length)} spans`}
+            </span>
+          ) : undefined
+        }
+      >
+        {detectorResults.length > 0 ? (
+          <DataTable
+            columns={DETECTOR_COLUMNS}
+            data={detectorResults}
+            rowKey={(row, i) => `${row.span_name}-${String(i)}`}
+            persistKey='execution-detail-detector'
+          />
+        ) : (
+          <EmptyState
+            title='No detector results uploaded yet'
+            description='Detector results land here once the algorithm reports anomaly windows for the run.'
+          />
+        )}
+      </Panel>
     </div>
   );
 }
