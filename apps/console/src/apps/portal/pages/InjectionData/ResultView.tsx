@@ -9,6 +9,7 @@ import {
   StatusDot,
   Tabs,
   type TraceSpan,
+  TraceSpanInspector,
   TraceTree,
 } from '@lincyaw/aegis-ui';
 
@@ -288,6 +289,7 @@ function TraceMultiView({ traces }: { traces: TraceBundle[] }) {
   const [selectedId, setSelectedId] = useState<string>(
     traces[0]?.traceId ?? ''
   );
+  const [selectedSpan, setSelectedSpan] = useState<TraceSpan | null>(null);
   // If the result set changes (new query), reset selection to the top trace.
   useEffect(() => {
     if (traces.length > 0 && !traces.some((t) => t.traceId === selectedId)) {
@@ -296,6 +298,16 @@ function TraceMultiView({ traces }: { traces: TraceBundle[] }) {
   }, [traces, selectedId]);
 
   const selected = traces.find((t) => t.traceId === selectedId) ?? traces[0];
+  const spanLookup = useMemo(() => {
+    const map = new Map<string, TraceSpan>();
+    if (selected) {
+      selected.spans.forEach((s) => {
+        map.set(s.id, s);
+      });
+    }
+    return (id: string): TraceSpan | undefined => map.get(id);
+  }, [selected]);
+
   if (!selected) {
     return (
       <EmptyState
@@ -315,7 +327,18 @@ function TraceMultiView({ traces }: { traces: TraceBundle[] }) {
         />
       ) : null}
       <TraceCaption trace={selected} singleton={traces.length === 1} />
-      <TraceTree spans={selected.spans} />
+      <TraceTree
+        spans={selected.spans}
+        selectedId={selectedSpan?.id}
+        onSelect={setSelectedSpan}
+        persistKey='injection-data-spans'
+      />
+      <TraceSpanInspector
+        span={selectedSpan}
+        onClose={() => setSelectedSpan(null)}
+        spanLookup={spanLookup}
+        onSelectRelated={setSelectedSpan}
+      />
     </div>
   );
 }

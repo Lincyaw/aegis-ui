@@ -2,13 +2,17 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
 
+import { Tooltip } from 'antd';
+
 import { useAegisSurface } from '../../agent/hooks';
 import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import { useResizable } from '../../hooks/useResizable';
 import { Chip } from './Chip';
 import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
@@ -46,6 +50,11 @@ interface TraceTreeProps {
   className?: string;
   style?: CSSProperties;
   surface?: TraceTreeSurface;
+  nameColumnWidth?: number;
+  defaultNameColumnWidth?: number;
+  onNameColumnWidthChange?: (w: number) => void;
+  persistKey?: string;
+  wrapName?: boolean;
 }
 
 interface Node {
@@ -53,6 +62,10 @@ interface Node {
   children: Node[];
   depth: number;
 }
+
+const NAME_COL_MIN = 180;
+const NAME_COL_MAX = 700;
+const NAME_COL_DEFAULT = 320;
 
 function buildForest(spans: TraceSpan[]): Node[] {
   const byId = new Map<string, Node>();
@@ -111,6 +124,11 @@ export function TraceTree({
   className,
   style,
   surface,
+  nameColumnWidth,
+  defaultNameColumnWidth = NAME_COL_DEFAULT,
+  onNameColumnWidthChange,
+  persistKey,
+  wrapName = false,
 }: TraceTreeProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   useAegisSurface<TraceSpan[]>({
@@ -150,6 +168,31 @@ export function TraceTree({
 
   const visible = useMemo(() => flatten(roots, collapsed), [roots, collapsed]);
 
+  const resizePersistKey =
+    persistKey !== undefined
+      ? `aegis-trace-tree-name-w:${persistKey}`
+      : undefined;
+
+  const {
+    width: internalWidth,
+    handleProps,
+    isDragging,
+  } = useResizable({
+    initialWidth: defaultNameColumnWidth,
+    minWidth: NAME_COL_MIN,
+    maxWidth: NAME_COL_MAX,
+    side: 'left',
+    persistKey: resizePersistKey,
+  });
+
+  const effectiveWidth = nameColumnWidth ?? internalWidth;
+
+  useEffect(() => {
+    if (nameColumnWidth === undefined) {
+      onNameColumnWidthChange?.(internalWidth);
+    }
+  }, [internalWidth, nameColumnWidth, onNameColumnWidthChange]);
+
   const toggle = (id: string): void => {
     setCollapsed((prev) => {
       const next = new Set(prev);
@@ -162,7 +205,18 @@ export function TraceTree({
     });
   };
 
-  const cls = ['aegis-trace-tree', className ?? ''].filter(Boolean).join(' ');
+  const cls = [
+    'aegis-trace-tree',
+    isDragging ? 'aegis-trace-tree--dragging' : '',
+    wrapName ? 'aegis-trace-tree--wrap' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const rowStyle = {
+    '--aegis-trace-tree-name-w': `${String(effectiveWidth)}px`,
+  } as CSSProperties;
 
   return (
     <div
@@ -197,6 +251,16 @@ export function TraceTree({
           .filter(Boolean)
           .join(' ');
 
+        const tooltipContent = (
+          <div className="aegis-trace-tree__tooltip">
+            <div className="aegis-trace-tree__tooltip-name">{n.span.name}</div>
+            <div className="aegis-trace-tree__tooltip-meta">
+              {`start +${formatDuration(n.span.startMs - traceStart)} · dur ${formatDuration(n.span.durationMs)}`}
+              {n.span.kind ? ` · ${nodeToString(n.span.kind)}` : ''}
+            </div>
+          </div>
+        );
+
         return (
           <div
             key={n.span.id}
@@ -207,6 +271,7 @@ export function TraceTree({
             tabIndex={0}
             onClick={handleClick}
             onKeyDown={handleKey}
+            style={rowStyle}
           >
             <div
               className="aegis-trace-tree__label"
@@ -237,10 +302,20 @@ export function TraceTree({
                   {n.span.kind}
                 </Chip>
               ) : null}
-              <span className="aegis-trace-tree__name" title={n.span.name}>
-                {n.span.name}
-              </span>
+              <Tooltip
+                placement="topLeft"
+                mouseEnterDelay={0.3}
+                overlayStyle={{ maxWidth: 480 }}
+                title={tooltipContent}
+              >
+                <span className="aegis-trace-tree__name">{n.span.name}</span>
+              </Tooltip>
             </div>
+            <div
+              {...handleProps}
+              className="aegis-trace-tree__handle"
+              aria-label="Resize name column"
+            />
             <div className="aegis-trace-tree__bar-track" aria-hidden="true">
               <span
                 className="aegis-trace-tree__bar"
@@ -260,6 +335,13 @@ export function TraceTree({
       })}
     </div>
   );
+}
+
+function nodeToString(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') {
+    return String(node);
+  }
+  return '';
 }
 
 function formatDuration(ms: number): string {

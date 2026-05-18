@@ -116,6 +116,7 @@ import {
   ToolCallCard,
   type ToolCallData,
   type TraceSpan,
+  TraceSpanInspector,
   TraceTree,
   TrajectoryStep,
   type TrajectoryStepData,
@@ -4005,8 +4006,20 @@ function App() {
           TraceTree
         </SectionDivider>
         <div className='gallery__stack'>
-          <Specimen caption='span hierarchy + inline gantt' span={3}>
+          <Specimen
+            caption='drag the divider between name + bar; click a row → inspector'
+            span={3}
+          >
             <TraceTreeSpecimen />
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>OTel agent traces</MetricLabel>}>
+          TraceSpanInspector
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen caption='Overview · Attributes · Raw tabs' span={3}>
+            <TraceSpanInspectorSpecimen />
           </Specimen>
         </div>
 
@@ -4959,27 +4972,71 @@ const traceTreeDemoSpans: TraceSpan[] = [
 ];
 
 function TraceTreeSpecimen(): ReactNode {
-  const [selected, setSelected] = useState<string>('t1-tool');
+  const [selected, setSelected] = useState<TraceSpan | null>(
+    traceTreeDemoSpans.find((s) => s.id === 't1-tool') ?? null
+  );
+  const lookup = (id: string): TraceSpan | undefined =>
+    traceTreeDemoSpans.find((s) => s.id === id);
   return (
-    <TraceTree
-      spans={traceTreeDemoSpans}
-      selectedId={selected}
-      onSelect={(s) => setSelected(s.id)}
-      surface={{
-        id: 'gallery.trace.tree',
-        kind: 'tree',
-        label: 'OTel trace tree',
-        askSuggestions: ['Which span is failing?'],
-        project: (spans) => ({
-          entities: spans.map((sp) => ({
-            id: sp.id,
-            type: 'span',
-            label: sp.name,
-            data: { status: sp.status, durationMs: sp.durationMs },
-          })),
-        }),
-      }}
-    />
+    <>
+      <TraceTree
+        spans={traceTreeDemoSpans}
+        selectedId={selected?.id}
+        onSelect={setSelected}
+        persistKey='gallery-trace-tree'
+        surface={{
+          id: 'gallery.trace.tree',
+          kind: 'tree',
+          label: 'OTel trace tree',
+          askSuggestions: ['Which span is failing?'],
+          project: (spans) => ({
+            entities: spans.map((sp) => ({
+              id: sp.id,
+              type: 'span',
+              label: sp.name,
+              data: { status: sp.status, durationMs: sp.durationMs },
+            })),
+          }),
+        }}
+      />
+      <TraceSpanInspector
+        span={selected}
+        onClose={() => setSelected(null)}
+        spanLookup={lookup}
+        onSelectRelated={setSelected}
+      />
+    </>
+  );
+}
+
+function TraceSpanInspectorSpecimen(): ReactNode {
+  const sample: TraceSpan = {
+    id: 'sample',
+    parentId: null,
+    name: 'POST /api/v2/projects/19/injections/inject',
+    startMs: 0,
+    durationMs: 184.2,
+    status: 'ok',
+    kind: 'http',
+    attrs: {
+      'http.method': 'POST',
+      'http.status_code': 200,
+      'net.peer.name': 'orchestrator.internal',
+      'rpc.service': 'aegislab.OrchestratorService',
+    },
+  };
+  const [open, setOpen] = useState<TraceSpan | null>(sample);
+  return (
+    <div>
+      <button
+        type='button'
+        onClick={() => setOpen(sample)}
+        style={{ marginBottom: 'var(--space-3)' }}
+      >
+        reopen
+      </button>
+      <TraceSpanInspector span={open} onClose={() => setOpen(null)} />
+    </div>
   );
 }
 

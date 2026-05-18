@@ -129,6 +129,8 @@ export { ParquetViewer } from './ParquetViewer';
 export type { ParquetViewerSurface } from './ParquetViewer';
 export { TraceTree } from './TraceTree';
 export type { TraceSpan, TraceTreeSurface } from './TraceTree';
+export { TraceSpanInspector } from './TraceSpanInspector';
+export type { TraceSpanInspectorProps } from './TraceSpanInspector';
 export { TimelineChart } from './TimelineChart';
 export type { TimelineChartProps, TimelineSpan } from './TimelineChart';
 export { BucketCard } from './BucketCard';

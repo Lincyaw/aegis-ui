@@ -12,6 +12,7 @@ import {
   TimeDisplay,
   TimelineChart,
   type TimelineSpan,
+  TraceSpanInspector,
   TraceTree,
   type TraceSpan,
 } from '@lincyaw/aegis-ui';
@@ -353,6 +354,16 @@ export default function InjectionProcess() {
     () => groupSpansByOTelTrace(spansResp?.spans),
     [spansResp?.spans],
   );
+  const [selectedSpan, setSelectedSpan] = useState<TraceSpan | null>(null);
+  const spanLookup = useMemo(() => {
+    const map = new Map<string, TraceSpan>();
+    spanGroups.forEach((g) => {
+      g.spans.forEach((s) => {
+        map.set(s.id, s);
+      });
+    });
+    return (id: string): TraceSpan | undefined => map.get(id);
+  }, [spanGroups]);
 
   const phaseGantt = useMemo(
     () => (timeline ? buildPhaseGantt(timeline) : null),
@@ -481,9 +492,20 @@ export default function InjectionProcess() {
                     {`${String(g.spans.length)} spans · ${formatMs(g.durationMs)}`}
                   </span>
                 </div>
-                <TraceTree spans={g.spans} />
+                <TraceTree
+                  spans={g.spans}
+                  selectedId={selectedSpan?.id}
+                  onSelect={setSelectedSpan}
+                  persistKey='injection-process-spans'
+                />
               </div>
             ))}
+            <TraceSpanInspector
+              span={selectedSpan}
+              onClose={() => setSelectedSpan(null)}
+              spanLookup={spanLookup}
+              onSelectRelated={setSelectedSpan}
+            />
           </div>
         ) : (
           <EmptyState
