@@ -1,12 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
+  Chip,
   EmptyState,
   KeyValueList,
   MonoValue,
+  PageSizeSelect,
   Panel,
   PanelTitle,
+  SearchInput,
   Terminal,
   type TerminalLine,
   TimeDisplay,
@@ -313,6 +316,31 @@ function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
   );
 }
 
+type LogLevelFilter = 'all' | 'error' | 'warn' | 'info';
+
+const LOG_LEVEL_OPTIONS: ReadonlyArray<{ key: LogLevelFilter; label: string }> =
+  [
+    { key: 'all', label: 'All' },
+    { key: 'error', label: 'Error' },
+    { key: 'warn', label: 'Warn' },
+    { key: 'info', label: 'Info' },
+  ];
+
+const LOG_LIMIT_OPTIONS: readonly number[] = [100, 200, 500, 1000];
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebounced(value);
+    }, delayMs);
+    return () => {
+      clearTimeout(handle);
+    };
+  }, [value, delayMs]);
+  return debounced;
+}
+
 export default function InjectionProcess() {
   const { injectionId } = useParams<{ injectionId: string }>();
 
@@ -339,11 +367,23 @@ export default function InjectionProcess() {
     refetch: refetchTimeline,
   } = useInjectionTimeline(validId, intervalMs);
 
+  const [logLevel, setLogLevel] = useState<LogLevelFilter>('all');
+  const [logSearchInput, setLogSearchInput] = useState('');
+  const [logLimit, setLogLimit] = useState<number>(200);
+  const debouncedLogSearch = useDebouncedValue(logSearchInput.trim(), 300);
   const {
     data: logsResp,
     isFetching: logsFetching,
     refetch: refetchLogs,
-  } = useInjectionLogs(validId, { limit: 200 }, intervalMs);
+  } = useInjectionLogs(
+    validId,
+    {
+      limit: logLimit,
+      level: logLevel === 'all' ? undefined : logLevel,
+      q: debouncedLogSearch.length > 0 ? debouncedLogSearch : undefined,
+    },
+    intervalMs,
+  );
 
   const {
     data: spansResp,
@@ -531,17 +571,51 @@ export default function InjectionProcess() {
         extra={
           logsResp?.total_estimate != null ? (
             <span className='injection-process__last-event-label'>
-              {`~${String(logsResp.total_estimate)} total`}
+              {`tail ${String(logLimit)} · ~${String(logsResp.total_estimate)} matched`}
             </span>
           ) : undefined
         }
       >
+        <div className='injection-process__logs-toolbar'>
+          <div className='injection-process__logs-levels' role='group' aria-label='Log level filter'>
+            {LOG_LEVEL_OPTIONS.map((opt) => (
+              <Chip
+                key={opt.key}
+                tone={logLevel === opt.key ? 'ink' : 'ghost'}
+                onClick={() => {
+                  setLogLevel(opt.key);
+                }}
+              >
+                {opt.label}
+              </Chip>
+            ))}
+          </div>
+          <SearchInput
+            value={logSearchInput}
+            onChange={setLogSearchInput}
+            onClear={() => {
+              setLogSearchInput('');
+            }}
+            placeholder='Filter log lines…'
+            className='injection-process__logs-search'
+          />
+          <PageSizeSelect
+            value={logLimit}
+            onChange={setLogLimit}
+            options={LOG_LIMIT_OPTIONS as number[]}
+            label='Tail'
+          />
+        </div>
         {logs.length > 0 ? (
           <Terminal lines={logs} />
         ) : (
           <EmptyState
-            title='No logs yet'
-            description='Per-service injection logs will stream here as the run progresses.'
+            title='No logs match'
+            description={
+              debouncedLogSearch.length > 0 || logLevel !== 'all'
+                ? 'No log entries match the current filters. Try clearing the search or selecting "All" level.'
+                : 'Per-service injection logs will stream here as the run progresses.'
+            }
           />
         )}
       </Panel>
