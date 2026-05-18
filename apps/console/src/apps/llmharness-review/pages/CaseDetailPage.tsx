@@ -1053,7 +1053,16 @@ function CaseDetailBody({ data }: { data: LoadedCase }): ReactElement {
     <div className='llmh-cdp'>
       <FiringsTimeline bundle={data.bundle} />
       <div className='llmh-cdp__layout'>
-        <TurnRail bundle={data.bundle} />
+        <ResizableSidePanel
+          side='left'
+          defaultWidth={220}
+          minWidth={160}
+          maxWidth={480}
+          collapsible
+          persistKey='llmh-cdp-turn-w'
+        >
+          <TurnRail bundle={data.bundle} />
+        </ResizableSidePanel>
         <GraphViewport bundle={data.bundle} />
         <ResizableSidePanel
           side='right'

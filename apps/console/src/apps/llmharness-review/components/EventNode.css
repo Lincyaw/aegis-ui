@@ -34,6 +34,7 @@
 
 .llmh-evt-node__head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1);
   margin-bottom: var(--space-1);
@@ -86,6 +87,10 @@
   font-family: var(--font-mono);
   font-size: var(--fs-9);
   color: var(--text-muted);
+  max-width: 100%;
+  word-break: break-all;
+  line-height: 1.35;
+  text-align: right;
 }
 
 .llmh-evt-node__turns--btn {

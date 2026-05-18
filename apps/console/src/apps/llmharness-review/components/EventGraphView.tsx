@@ -9,17 +9,22 @@
  * timeline. Reads top-down so the orientation matches the chat
  * transcript on the left.
  */
-import { useMemo } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import {
   graphlib as dagreGraphlib,
   layout as dagreLayout,
   type GraphLabel as DagreGraphLabel,
 } from '@dagrejs/dagre';
 import ReactFlow, {
+  BaseEdge,
   Background,
   Controls,
+  EdgeLabelRenderer,
+  getSmoothStepPath,
   Position,
   type Edge as RFEdge,
+  type EdgeProps,
+  type EdgeTypes,
   type Node as RFNode,
   type NodeTypes,
 } from 'reactflow';
@@ -50,6 +55,48 @@ interface EventGraphViewProps {
 }
 
 const NODE_TYPES: NodeTypes = { event: EventNode };
+
+function WrappingEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  label,
+  style,
+  markerEnd,
+}: EdgeProps): ReactElement {
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} style={style} markerEnd={markerEnd} />
+      {label && (
+        <EdgeLabelRenderer>
+          <div
+            className='llmh-graph__edge-label'
+            style={{
+              transform: `translate(-50%, -50%) translate(${labelX.toString()}px, ${labelY.toString()}px)`,
+            }}
+          >
+            {label}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
+  );
+}
+
+const EDGE_TYPES: EdgeTypes = { wrap: WrappingEdge };
 
 // Dagre needs concrete per-node box sizes to space rows without
 // overlap. We let nodes grow to fit their summary text, so we estimate
@@ -181,18 +228,14 @@ export function EventGraphView({
           id: `e-${i.toString()}-${source}-${target}`,
           source,
           target,
-          label: ed.reason ? ed.reason.slice(0, 32) : ed.kind,
+          type: 'wrap',
+          label: ed.reason ? ed.reason : ed.kind,
           animated:
             selectedEventId !== null &&
             (ed.src === selectedEventId || ed.dst === selectedEventId),
           style: {
             stroke:
               ed.kind === 'ref' ? 'var(--accent-warning)' : 'var(--text-muted)',
-          },
-          labelStyle: {
-            fontFamily: 'var(--font-mono)',
-            fontSize: 10,
-            fill: 'var(--text-muted)',
           },
         };
       }),
@@ -216,6 +259,7 @@ export function EventGraphView({
         nodes={nodes}
         edges={rfEdges}
         nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         minZoom={0.2}

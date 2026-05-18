@@ -18,14 +18,11 @@
 /* --- Turn rail (left) --------------------------------------------- */
 
 .llmh-cdp__rail {
-  flex: 0 0 var(--llmh-rail-w);
-  width: var(--llmh-rail-w);
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-md);
-  background: var(--bg-panel);
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -258,23 +255,19 @@
 
 /* --- Layout tokens ------------------------------------------------- */
 
-/*
- * The turn rail is 13.75rem wide. theme.css has --space-* tokens topping
- * out at 6rem; a dedicated layout var keeps the value out of component
- * code without forcing a new token in @lincyaw/aegis-ui for one consumer.
- */
-.llmh-cdp {
-  --llmh-rail-w: 13.75rem;
-}
-
 @media (max-width: 768px) {
   .llmh-cdp__layout {
     flex-direction: column;
     gap: var(--space-3);
   }
-  .llmh-cdp__rail {
-    flex: 0 0 auto;
-    width: 100%;
+  /*
+   * The resizable side panels set width inline (px) on the aside; on
+   * mobile we want them stacked full-width with bounded height. The
+   * !important wins over inline only here, scoped to the layout.
+   */
+  .llmh-cdp__layout > .aegis-resizable-panel {
+    width: 100% !important;
+    height: auto;
     max-height: 14rem;
   }
   .llmh-cdp__viewport {
