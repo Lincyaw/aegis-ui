@@ -1,6 +1,7 @@
-import { Panel, PanelTitle, SectionDivider } from '@lincyaw/aegis-ui';
+import { Chip, Panel, PanelTitle, SectionDivider } from '@lincyaw/aegis-ui';
 import { Form, Input, InputNumber, Radio, Select, Switch } from 'antd';
 
+import { useInjectCandidates, useSystems } from '../../api/systems';
 import type { GuidedInjectionSpec, NamespaceMode } from '../../mocks/types';
 import { useInjectBatch } from '../../state/inject-batch';
 
@@ -11,6 +12,32 @@ interface Props {
 
 export function Step1Target({ spec, update }: Props) {
   const templates = useInjectBatch((s) => s.templates);
+  const systemsQuery = useSystems();
+  const candidatesQuery = useInjectCandidates(
+    spec.systemCode,
+    spec.namespace
+  );
+
+  const systemOptions = (systemsQuery.data ?? []).map((sys) => ({
+    value: sys.name ?? '',
+    label:
+      sys.display_name && sys.name
+        ? `${sys.display_name} (${sys.name})`
+        : (sys.display_name ?? sys.name ?? ''),
+  }));
+
+  const appOptions = Array.from(
+    new Set(
+      (candidatesQuery.data ?? [])
+        .map((c) => c.app)
+        .filter((a): a is string => Boolean(a))
+    )
+  ).map((a) => ({ value: a, label: a }));
+
+  const systemsFailed = systemsQuery.isError;
+  const candidatesFailed = candidatesQuery.isError;
+  const candidatesReady =
+    spec.systemCode.length > 0 && spec.namespace.length > 0;
 
   return (
     <Panel title={<PanelTitle size='base'>1. Target</PanelTitle>}>
@@ -60,15 +87,39 @@ export function Step1Target({ spec, update }: Props) {
         )}
 
         <Form.Item
-          label='System short_code'
+          label='System'
           required
-          extra='e.g. ts, otel-demo, sn.'
+          extra={
+            systemsFailed ? (
+              <Chip tone='warning'>
+                Failed to load systems — using manual entry
+              </Chip>
+            ) : (
+              'Loaded from the chaos systems registry.'
+            )
+          }
         >
-          <Input
-            value={spec.systemCode}
-            onChange={(e) => update({ systemCode: e.target.value, app: '' })}
-            placeholder='system short_code'
-          />
+          {systemsFailed ? (
+            <Input
+              value={spec.systemCode}
+              onChange={(e) =>
+                update({ systemCode: e.target.value, app: '' })
+              }
+              placeholder='system short_code'
+            />
+          ) : (
+            <Select
+              value={spec.systemCode || undefined}
+              loading={systemsQuery.isLoading}
+              showSearch
+              optionFilterProp='label'
+              placeholder='select a system'
+              options={systemOptions}
+              onChange={(value: string) =>
+                update({ systemCode: value, app: '' })
+              }
+            />
+          )}
         </Form.Item>
 
         <Form.Item label='System type' extra='free-form chaos.system_type tag.'>
@@ -80,12 +131,38 @@ export function Step1Target({ spec, update }: Props) {
         </Form.Item>
 
         <SectionDivider>App</SectionDivider>
-        <Form.Item label='App / Deployment' required>
-          <Input
-            value={spec.app}
-            onChange={(e) => update({ app: e.target.value })}
-            placeholder='deployment label'
-          />
+        <Form.Item
+          label='App / Deployment'
+          required
+          extra={
+            candidatesFailed ? (
+              <Chip tone='warning'>
+                Failed to load candidates — using manual entry
+              </Chip>
+            ) : !candidatesReady ? (
+              'Pick a system and namespace first to load candidates.'
+            ) : (
+              'Candidates discovered for this system + namespace.'
+            )
+          }
+        >
+          {candidatesFailed || !candidatesReady ? (
+            <Input
+              value={spec.app}
+              onChange={(e) => update({ app: e.target.value })}
+              placeholder='deployment label'
+            />
+          ) : (
+            <Select
+              value={spec.app || undefined}
+              loading={candidatesQuery.isLoading}
+              showSearch
+              optionFilterProp='label'
+              placeholder='select an app / deployment'
+              options={appOptions}
+              onChange={(value: string) => update({ app: value })}
+            />
+          )}
         </Form.Item>
 
         <Form.Item

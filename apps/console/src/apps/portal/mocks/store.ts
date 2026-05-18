@@ -14,7 +14,6 @@ import type {
   MockPedestal,
   MockProject,
   MockStoreState,
-  MockSystem,
   MockTask,
 } from './types';
 
@@ -61,12 +60,6 @@ interface StoreActions {
   restartPedestal: (id: string) => void;
   uninstallPedestal: (id: string) => void;
   applyPedestalOverrides: (id: string, helmValues: string) => void;
-
-  registerSystem: (
-    input: Omit<MockSystem, 'pedestalCount' | 'lastInjectionAt'>
-  ) => MockSystem;
-  enableSystem: (code: string) => void;
-  disableSystem: (code: string) => void;
 
   createEvalRun: (input: {
     model: string;
@@ -372,30 +365,6 @@ export const useMockStore = create<MockStore>((set, get) => ({
         ),
       }));
     }, 2500);
-  },
-
-  registerSystem: (input) => {
-    const created: MockSystem = {
-      ...input,
-      pedestalCount: 0,
-      lastInjectionAt: nowIso(),
-    };
-    set((s) => ({ systems: [created, ...s.systems] }));
-    return created;
-  },
-  enableSystem: (code) => {
-    set((s) => ({
-      systems: s.systems.map((sys) =>
-        sys.code === code ? { ...sys, enabled: true } : sys
-      ),
-    }));
-  },
-  disableSystem: (code) => {
-    set((s) => ({
-      systems: s.systems.map((sys) =>
-        sys.code === code ? { ...sys, enabled: false } : sys
-      ),
-    }));
   },
 
   createEvalRun: (input) => {

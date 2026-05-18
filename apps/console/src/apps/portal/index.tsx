@@ -2,7 +2,6 @@ import {
   AppstoreOutlined,
   ClusterOutlined,
   DashboardOutlined,
-  DeploymentUnitOutlined,
   ExperimentOutlined,
   PlayCircleOutlined,
   ProfileOutlined,
@@ -48,10 +47,6 @@ import Pedestals from './pages/Pedestals';
 import ProjectCreate from './pages/ProjectCreate';
 import ProjectOverview from './pages/ProjectOverview';
 import Projects from './pages/Projects';
-import SystemDetail from './pages/SystemDetail';
-import SystemRegister from './pages/SystemRegister';
-import Systems from './pages/Systems';
-
 import './pages/pages.css';
 
 export const portalApp: AegisApp = {
@@ -95,7 +90,6 @@ export const portalApp: AegisApp = {
     {
       label: 'Platform',
       items: [
-        { to: 'systems', label: 'Systems', icon: <DeploymentUnitOutlined /> },
         { to: 'pedestals', label: 'Pedestals', icon: <SafetyOutlined /> },
         { to: 'cluster', label: 'Cluster', icon: <ClusterOutlined /> },
       ],
@@ -216,9 +210,6 @@ export const portalApp: AegisApp = {
     { path: 'labels/:labelId', element: <LabelDetail /> },
 
     // Platform
-    { path: 'systems', element: <Systems /> },
-    { path: 'systems/new', element: <SystemRegister /> },
-    { path: 'systems/:code', element: <SystemDetail /> },
     { path: 'pedestals', element: <Pedestals /> },
     { path: 'pedestals/new', element: <PedestalInstall /> },
     { path: 'pedestals/:id', element: <PedestalDetail /> },

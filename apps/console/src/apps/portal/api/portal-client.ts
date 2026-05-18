@@ -17,6 +17,7 @@ import {
   ShareApi,
   SSOAdminApi,
   SSOClientsApi,
+  SystemsApi,
   TasksApi,
   TeamsApi,
   TracesApi,
@@ -77,6 +78,7 @@ export const projectsApi = new ProjectsApi(config, basePath, portalAxios);
 export const shareApi = new ShareApi(config, basePath, portalAxios);
 export const ssoAdminApi = new SSOAdminApi(config, basePath, portalAxios);
 export const ssoClientsApi = new SSOClientsApi(config, basePath, portalAxios);
+export const systemsApi = new SystemsApi(config, basePath, portalAxios);
 export const tasksApi = new TasksApi(config, basePath, portalAxios);
 export const teamsApi = new TeamsApi(config, basePath, portalAxios);
 export const tracesApi = new TracesApi(config, basePath, portalAxios);
