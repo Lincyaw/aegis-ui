@@ -168,7 +168,7 @@ export default function Dashboard(): ReactElement {
         />
         <KpiCard label='Traces' loading={dashLoading} value={tracesTotal} />
         <KpiCard
-          label='Running tasks'
+          label='Active stages'
           loading={dashLoading}
           value={runningTasks}
           unit={

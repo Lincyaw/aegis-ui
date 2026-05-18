@@ -4,7 +4,6 @@ import {
   DashboardOutlined,
   DeploymentUnitOutlined,
   HddOutlined,
-  NodeIndexOutlined,
   PlayCircleOutlined,
   ProfileOutlined,
   RobotOutlined,
@@ -50,8 +49,6 @@ import Projects from './pages/Projects';
 import SystemDetail from './pages/SystemDetail';
 import SystemRegister from './pages/SystemRegister';
 import Systems from './pages/Systems';
-import TaskDetail from './pages/TaskDetail';
-import Tasks from './pages/Tasks';
 
 import './pages/pages.css';
 
@@ -69,7 +66,6 @@ export const portalApp: AegisApp = {
       items: [
         { to: '', label: 'Dashboard', icon: <DashboardOutlined />, end: true },
         { to: 'injections', label: 'Injections', icon: <PlayCircleOutlined /> },
-        { to: 'tasks', label: 'Tasks', icon: <NodeIndexOutlined /> },
         { to: 'executions', label: 'Executions', icon: <PlayCircleOutlined /> },
       ],
     },
@@ -114,8 +110,6 @@ export const portalApp: AegisApp = {
     { path: 'executions', element: <Executions /> },
     { path: 'executions/new', element: <ExecutionCreate /> },
     { path: 'executions/:executionId', element: <ExecutionDetail /> },
-    { path: 'tasks', element: <Tasks /> },
-    { path: 'tasks/:taskId', element: <TaskDetail /> },
 
     // Legacy injection-drill flat routes — redirect to the new Data tab.
     { path: 'traces', element: <InjectionDrillRedirect target='data' /> },

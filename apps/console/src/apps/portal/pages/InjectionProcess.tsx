@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
+  Button,
   Chip,
   EmptyState,
   KeyValueList,
@@ -24,9 +25,11 @@ import type {
   InjectionInjectionTimelineEvent,
   InjectionInjectionTimelineResp,
   InjectionInjectionTimelineWindow,
+  TaskResp,
   TraceSpanNode,
   TraceTraceDetailResp,
 } from '@lincyaw/portal';
+import { App as AntdApp } from 'antd';
 
 import {
   isActiveTraceState,
@@ -42,6 +45,35 @@ import {
   type RefreshInterval,
 } from '../components/refresh-interval';
 import { StatusChip } from '../components/StatusChip';
+import { useCancelTask } from '../hooks/useTasks';
+
+const STAGE_LABELS: Record<string, string> = {
+  RestartPedestal: 'Restart pedestal',
+  FaultInjection: 'Fault injection',
+  BuildDataset: 'Build datapack',
+  BuildDatapack: 'Build datapack',
+  RunAlgorithm: 'Run algorithm',
+  CollectResult: 'Collect result',
+};
+
+function stageLabel(type: string | undefined): string {
+  if (!type) {
+    return 'Stage';
+  }
+  return STAGE_LABELS[type] ?? type;
+}
+
+const CANCELLABLE_STAGE_STATES = new Set([
+  'pending',
+  'rescheduled',
+  'running',
+  'initial',
+  'queued',
+]);
+
+function isCancellableStage(state: string | undefined): boolean {
+  return state ? CANCELLABLE_STAGE_STATES.has(state.toLowerCase()) : false;
+}
 
 function formatDuration(startIso?: string, endIso?: string): string {
   if (!startIso) {
@@ -287,6 +319,61 @@ function groupSpansByOTelTrace(nodes: TraceSpanNode[] | undefined): SpanGroup[] 
   return groups.sort((a, b) => a.startMs - b.startMs);
 }
 
+interface StageCardProps {
+  task: TaskResp;
+  onCancel: (taskId: string) => void;
+  cancelPending: boolean;
+}
+
+function StageCard({ task, onCancel, cancelPending }: StageCardProps) {
+  const state = task.state ?? task.status ?? 'pending';
+  const cancellable =
+    typeof task.id === 'string' &&
+    task.id.length > 0 &&
+    isCancellableStage(state);
+  return (
+    <div className='injection-process__stage'>
+      <div className='injection-process__stage-head'>
+        <PanelTitle size='sm' as='span'>
+          {stageLabel(task.type)}
+        </PanelTitle>
+        <StatusChip status={state} />
+      </div>
+      <KeyValueList
+        items={[
+          {
+            k: 'started at',
+            v: <TimeDisplay value={task.created_at ?? ''} />,
+          },
+          {
+            k: 'updated at',
+            v: <TimeDisplay value={task.updated_at ?? ''} />,
+          },
+          {
+            k: 'trace id',
+            v: <MonoValue size='sm'>{task.trace_id ?? '—'}</MonoValue>,
+          },
+        ]}
+      />
+      {cancellable && (
+        <div className='injection-process__stage-actions'>
+          <Button
+            tone='secondary'
+            disabled={cancelPending}
+            onClick={() => {
+              if (typeof task.id === 'string') {
+                onCancel(task.id);
+              }
+            }}
+          >
+            {cancelPending ? 'Cancelling…' : 'Cancel'}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
   const state = trace.state ?? trace.status ?? 'unknown';
   return (
@@ -405,6 +492,11 @@ export default function InjectionProcess() {
     return (id: string): TraceSpan | undefined => map.get(id);
   }, [spanGroups]);
 
+  const { message: msg } = AntdApp.useApp();
+  const cancelTask = useCancelTask(() => {
+    void msg.success('Stage cancelled');
+  });
+
   const phaseGantt = useMemo(
     () => (timeline ? buildPhaseGantt(timeline) : null),
     [timeline],
@@ -508,6 +600,30 @@ export default function InjectionProcess() {
           <EmptyState
             title='No phase timeline yet'
             description='Pre / fault / recover / post windows on the system under test. Pinned by the backend; not the orchestrator pipeline stages (those are in the Spans panel).'
+          />
+        )}
+      </Panel>
+
+      <Panel title={<PanelTitle size='base'>Stages</PanelTitle>}>
+        {trace.tasks && trace.tasks.length > 0 ? (
+          <div className='injection-process__stages'>
+            {trace.tasks.map((task, i) => (
+              <StageCard
+                key={task.id ?? `stage-${String(i)}`}
+                task={task}
+                onCancel={(id) => {
+                  cancelTask.mutate(id);
+                }}
+                cancelPending={
+                  cancelTask.isPending && cancelTask.variables === task.id
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title='No stages yet'
+            description='Orchestrator stages will appear here as the run progresses.'
           />
         )}
       </Panel>
