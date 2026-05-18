@@ -3,7 +3,6 @@ import {
   type ContainerContainerResp,
   type ContainerCreateContainerReq,
   type ContainersApiListContainersRequest,
-  ContainerType,
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -57,9 +56,3 @@ export function useCreateContainer() {
     },
   });
 }
-
-export const containerTypeLabel: Record<ContainerType, string> = {
-  [ContainerType.Algorithm]: 'Algorithm',
-  [ContainerType.Benchmark]: 'Benchmark',
-  [ContainerType.Pedestal]: 'Pedestal',
-};

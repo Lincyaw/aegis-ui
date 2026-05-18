@@ -3,14 +3,16 @@ import {
   ClusterOutlined,
   DashboardOutlined,
   DeploymentUnitOutlined,
-  HddOutlined,
+  ExperimentOutlined,
   PlayCircleOutlined,
   ProfileOutlined,
   RobotOutlined,
   SafetyOutlined,
   TagsOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import type { AegisApp } from '@lincyaw/aegis-ui';
+import { ContainerType } from '@lincyaw/portal';
 
 import { InjectionDrillRedirect } from './components/InjectionDrillRedirect';
 import { LegacyProjectRedirect } from './components/LegacyProjectRedirect';
@@ -56,7 +58,7 @@ export const portalApp: AegisApp = {
   id: 'portal',
   label: 'AegisLab',
   description:
-    'Root scenarios — projects, containers, datasets, experiments, observability.',
+    'Root scenarios — projects, algorithms, datasets, experiments, observability.',
   icon: <AppstoreOutlined />,
   basePath: '/portal',
   header: <ProjectSwitcher />,
@@ -72,7 +74,16 @@ export const portalApp: AegisApp = {
     {
       label: 'Assets',
       items: [
-        { to: 'containers', label: 'Containers', icon: <HddOutlined /> },
+        {
+          to: 'algorithms',
+          label: 'Algorithms',
+          icon: <ThunderboltOutlined />,
+        },
+        {
+          to: 'benchmarks',
+          label: 'Benchmarks',
+          icon: <ExperimentOutlined />,
+        },
         { to: 'datasets', label: 'Datasets', icon: <ProfileOutlined /> },
         { to: 'labels', label: 'Labels', icon: <TagsOutlined /> },
       ],
@@ -173,9 +184,30 @@ export const portalApp: AegisApp = {
     },
 
     // Assets
-    { path: 'containers', element: <Containers /> },
-    { path: 'containers/new', element: <ContainerCreate /> },
-    { path: 'containers/:containerId', element: <ContainerDetail /> },
+    {
+      path: 'algorithms',
+      element: <Containers containerType={ContainerType.Algorithm} />,
+    },
+    {
+      path: 'algorithms/new',
+      element: <ContainerCreate containerType={ContainerType.Algorithm} />,
+    },
+    {
+      path: 'algorithms/:containerId',
+      element: <ContainerDetail containerType={ContainerType.Algorithm} />,
+    },
+    {
+      path: 'benchmarks',
+      element: <Containers containerType={ContainerType.Benchmark} />,
+    },
+    {
+      path: 'benchmarks/new',
+      element: <ContainerCreate containerType={ContainerType.Benchmark} />,
+    },
+    {
+      path: 'benchmarks/:containerId',
+      element: <ContainerDetail containerType={ContainerType.Benchmark} />,
+    },
     { path: 'datasets', element: <Datasets /> },
     { path: 'datasets/new', element: <DatasetCreate /> },
     { path: 'datasets/:datasetId', element: <DatasetDetail /> },

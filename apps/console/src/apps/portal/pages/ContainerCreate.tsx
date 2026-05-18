@@ -13,13 +13,55 @@ import { App as AntdApp, Select } from 'antd';
 
 import { useCreateContainer } from '../hooks/useContainers';
 
-export default function ContainerCreate() {
+interface Copy {
+  basePath: string;
+  noun: string;
+  title: string;
+  description: string;
+  submitLabel: string;
+  imagePlaceholder: string;
+}
+
+const COPY: Record<ContainerType, Copy> = {
+  [ContainerType.Algorithm]: {
+    basePath: 'algorithms',
+    noun: 'algorithm',
+    title: 'Register algorithm',
+    description: 'Register a new RCA algorithm image.',
+    submitLabel: 'Register',
+    imagePlaceholder: 'opspai/rcabench-algo:r1',
+  },
+  [ContainerType.Benchmark]: {
+    basePath: 'benchmarks',
+    noun: 'benchmark',
+    title: 'Register benchmark',
+    description: 'Register a new benchmark datapack image.',
+    submitLabel: 'Register',
+    imagePlaceholder: 'opspai/rcabench-bench:r1',
+  },
+  [ContainerType.Pedestal]: {
+    basePath: 'pedestal-charts',
+    noun: 'pedestal chart',
+    title: 'Register pedestal chart',
+    description: 'Register a new pedestal helm chart.',
+    submitLabel: 'Register',
+    imagePlaceholder: 'opspai/rcabench-pedestal:r1',
+  },
+};
+
+interface ContainerCreateProps {
+  containerType: ContainerType;
+}
+
+export default function ContainerCreate({
+  containerType,
+}: ContainerCreateProps) {
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
   const createContainer = useCreateContainer();
+  const copy = COPY[containerType];
 
   const [name, setName] = useState('');
-  const [type, setType] = useState<ContainerType>(ContainerType.Algorithm);
   const [isPublic, setIsPublic] = useState(false);
   const [readme, setReadme] = useState('');
   const [versionName, setVersionName] = useState('v1');
@@ -37,7 +79,7 @@ export default function ContainerCreate() {
     createContainer.mutate(
       {
         name: name.trim(),
-        type,
+        type: containerType,
         is_public: isPublic,
         readme: readme.trim() || undefined,
         version: {
@@ -49,9 +91,9 @@ export default function ContainerCreate() {
         onSuccess: (created) => {
           void msg.success(`Registered ${created?.name ?? name}`);
           if (created?.id !== undefined) {
-            navigate(`containers/${String(created.id)}`);
+            navigate(`${copy.basePath}/${String(created.id)}`);
           } else {
-            navigate('containers');
+            navigate(copy.basePath);
           }
         },
         onError: (err) => {
@@ -64,10 +106,10 @@ export default function ContainerCreate() {
   return (
     <div className='page-wrapper'>
       <PageHeader
-        title='Register container'
-        description='Register a new container image + algorithm binding.'
+        title={copy.title}
+        description={copy.description}
         action={
-          <Button tone='secondary' onClick={() => navigate('containers')}>
+          <Button tone='secondary' onClick={() => navigate(copy.basePath)}>
             Cancel
           </Button>
         }
@@ -75,18 +117,6 @@ export default function ContainerCreate() {
       <Panel>
         <FormRow label='Name'>
           <TextField value={name} onChange={(e) => setName(e.target.value)} />
-        </FormRow>
-        <FormRow label='Type'>
-          <Select
-            value={type}
-            onChange={setType}
-            style={{ width: 240 }}
-            options={[
-              { value: ContainerType.Algorithm, label: 'Algorithm' },
-              { value: ContainerType.Benchmark, label: 'Benchmark' },
-              { value: ContainerType.Pedestal, label: 'Pedestal' },
-            ]}
-          />
         </FormRow>
         <FormRow label='Visibility'>
           <Select
@@ -110,7 +140,7 @@ export default function ContainerCreate() {
           <TextField
             value={imageRef}
             onChange={(e) => setImageRef(e.target.value)}
-            placeholder='opspai/rcabench-algo:r1'
+            placeholder={copy.imagePlaceholder}
           />
         </FormRow>
         <FormRow label='Readme'>
@@ -126,7 +156,7 @@ export default function ContainerCreate() {
         onClick={submit}
         disabled={createContainer.isPending}
       >
-        {createContainer.isPending ? 'Registering…' : 'Register'}
+        {createContainer.isPending ? 'Registering…' : copy.submitLabel}
       </Button>
     </div>
   );

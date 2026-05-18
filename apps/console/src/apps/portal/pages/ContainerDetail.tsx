@@ -11,20 +11,59 @@ import {
   PanelTitle,
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
+import { ContainerType } from '@lincyaw/portal';
 
-import { containerTypeLabel, useContainer } from '../hooks/useContainers';
+import { useContainer } from '../hooks/useContainers';
 
-export default function ContainerDetail() {
+interface Copy {
+  notFoundTitle: string;
+  loadingTitle: string;
+  loadingDescription: string;
+  description: string;
+}
+
+const COPY: Record<ContainerType, Copy> = {
+  [ContainerType.Algorithm]: {
+    notFoundTitle: 'Algorithm not found',
+    loadingTitle: 'Loading…',
+    loadingDescription: 'Loading algorithm',
+    description: 'Algorithm',
+  },
+  [ContainerType.Benchmark]: {
+    notFoundTitle: 'Benchmark not found',
+    loadingTitle: 'Loading…',
+    loadingDescription: 'Loading benchmark',
+    description: 'Benchmark',
+  },
+  [ContainerType.Pedestal]: {
+    notFoundTitle: 'Pedestal chart not found',
+    loadingTitle: 'Loading…',
+    loadingDescription: 'Loading pedestal chart',
+    description: 'Pedestal chart',
+  },
+};
+
+interface ContainerDetailProps {
+  containerType: ContainerType;
+}
+
+export default function ContainerDetail({
+  containerType,
+}: ContainerDetailProps) {
   const { containerId } = useParams<{ containerId: string }>();
   const idNum = containerId ? Number(containerId) : undefined;
   const { data: container, isLoading, isError, error } = useContainer(idNum);
+  const copy = COPY[containerType];
 
   if (isLoading) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title='Loading…' />
+        <PageHeader title={copy.loadingTitle} />
         <Panel>
-          <EmptyState title='Loading container' description='Please wait.' />
+          <EmptyState
+            title={copy.loadingDescription}
+            description='Please wait.'
+          />
         </Panel>
       </div>
     );
@@ -33,14 +72,14 @@ export default function ContainerDetail() {
   if (isError || !container) {
     return (
       <div className='page-wrapper'>
-        <PageHeader title='Container not found' />
+        <PageHeader title={copy.notFoundTitle} />
         <Panel>
           <EmptyState
             title='Not found'
             description={
               isError && error instanceof Error
                 ? error.message
-                : 'Unknown container.'
+                : copy.notFoundTitle
             }
           />
         </Panel>
@@ -48,15 +87,9 @@ export default function ContainerDetail() {
     );
   }
 
-  const typeLabel =
-    container.type !== undefined
-      ? (containerTypeLabel[container.type as unknown as 0 | 1 | 2] ??
-        String(container.type))
-      : '—';
-
   return (
     <div className='page-wrapper'>
-      <PageHeader title={container.name ?? '—'} description={typeLabel} />
+      <PageHeader title={container.name ?? '—'} description={copy.description} />
       <Panel title={<PanelTitle size='base'>Summary</PanelTitle>}>
         <KeyValueList
           items={[
@@ -64,7 +97,6 @@ export default function ContainerDetail() {
               k: 'id',
               v: <MonoValue size='sm'>{String(container.id ?? '—')}</MonoValue>,
             },
-            { k: 'type', v: typeLabel },
             {
               k: 'status',
               v: container.status ? <Chip>{container.status}</Chip> : '—',
