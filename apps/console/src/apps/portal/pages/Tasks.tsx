@@ -35,7 +35,7 @@ export default function Tasks() {
     <div className='page-wrapper'>
       <PageHeader
         title='Tasks'
-        description='Background jobs across injections, regressions, and evals.'
+        description='Background jobs across injections and evals.'
       />
       <Panel>
         {isError ? (

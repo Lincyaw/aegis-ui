@@ -42,18 +42,6 @@ export interface MockPedestal {
   helmValues: string;
 }
 
-export interface MockContract {
-  id: string;
-  name: string;
-  faultType: 'pod' | 'network' | 'http' | 'jvm' | 'stress' | 'dns' | 'time';
-  family: string;
-  targetKind: string;
-  paramCount: number;
-  lastUsedAt: string;
-  spec: string;
-  description: string;
-}
-
 export type NamespaceMode = 'specific' | 'auto' | 'auto-bootstrap';
 
 export interface GuidedInjectionSpec {
@@ -112,7 +100,6 @@ export interface MockInjection {
   id: string;
   projectId: string;
   systemCode: string;
-  contractId: string;
   taskId: string;
   traceId: string | null;
   blastRadius: 'pod' | 'service' | 'namespace';
@@ -140,7 +127,7 @@ export interface MockStagedInjection {
 
 export interface MockTask {
   id: string;
-  kind: 'injection' | 'regression' | 'eval' | 'datapack';
+  kind: 'injection' | 'eval' | 'datapack';
   parentId: string | null;
   parentLabel: string;
   status: EntityStatus;
@@ -186,29 +173,6 @@ export interface MockContainer {
   image: string;
   algorithm: string;
   createdAt: string;
-}
-
-export interface MockRegressionCase {
-  id: string;
-  name: string;
-  description: string;
-  owner: string;
-  passRate: number;
-  lastStatus: 'pass' | 'fail' | 'running';
-  lastRunAt: string;
-}
-
-export interface MockRegressionRun {
-  id: string;
-  caseId: string;
-  systemCode: string;
-  datasetId: string;
-  status: EntityStatus;
-  startedAt: string;
-  durationMs: number;
-  childTaskIds: string[];
-  passes: number;
-  fails: number;
 }
 
 export interface MockEvalCase {
@@ -262,15 +226,12 @@ export interface MockStoreState {
   projects: MockProject[];
   systems: MockSystem[];
   pedestals: MockPedestal[];
-  contracts: MockContract[];
   injections: MockInjection[];
   tasks: MockTask[];
   traces: MockTrace[];
   datasets: MockDataset[];
   labels: MockLabel[];
   containers: MockContainer[];
-  regressionCases: MockRegressionCase[];
-  regressionRuns: MockRegressionRun[];
   evalRuns: MockEvalRun[];
   evalCases: MockEvalCase[];
   clusterChecks: MockClusterCheck[];

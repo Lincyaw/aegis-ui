@@ -3,8 +3,6 @@ import {
   ClusterOutlined,
   DashboardOutlined,
   DeploymentUnitOutlined,
-  ExperimentOutlined,
-  FileProtectOutlined,
   HddOutlined,
   NodeIndexOutlined,
   PlayCircleOutlined,
@@ -23,8 +21,6 @@ import ClusterStatus from './pages/ClusterStatus';
 import ContainerCreate from './pages/ContainerCreate';
 import ContainerDetail from './pages/ContainerDetail';
 import Containers from './pages/Containers';
-import ContractDetail from './pages/ContractDetail';
-import Contracts from './pages/Contracts';
 import Dashboard from './pages/Dashboard';
 import DatasetCreate from './pages/DatasetCreate';
 import DatasetDetail from './pages/DatasetDetail';
@@ -51,9 +47,6 @@ import Pedestals from './pages/Pedestals';
 import ProjectCreate from './pages/ProjectCreate';
 import ProjectOverview from './pages/ProjectOverview';
 import Projects from './pages/Projects';
-import RegressionDetail from './pages/RegressionDetail';
-import RegressionRun from './pages/RegressionRun';
-import Regressions from './pages/Regressions';
 import SystemDetail from './pages/SystemDetail';
 import SystemRegister from './pages/SystemRegister';
 import Systems from './pages/Systems';
@@ -90,17 +83,13 @@ export const portalApp: AegisApp = {
     },
     {
       label: 'Execution & Eval',
-      items: [
-        { to: 'regression', label: 'Regression', icon: <ExperimentOutlined /> },
-        { to: 'eval', label: 'LLM Eval', icon: <RobotOutlined /> },
-      ],
+      items: [{ to: 'eval', label: 'LLM Eval', icon: <RobotOutlined /> }],
     },
     {
       label: 'Platform',
       items: [
         { to: 'systems', label: 'Systems', icon: <DeploymentUnitOutlined /> },
         { to: 'pedestals', label: 'Pedestals', icon: <SafetyOutlined /> },
-        { to: 'contracts', label: 'Contracts', icon: <FileProtectOutlined /> },
         { to: 'cluster', label: 'Cluster', icon: <ClusterOutlined /> },
       ],
     },
@@ -207,11 +196,6 @@ export const portalApp: AegisApp = {
     { path: 'pedestals', element: <Pedestals /> },
     { path: 'pedestals/new', element: <PedestalInstall /> },
     { path: 'pedestals/:id', element: <PedestalDetail /> },
-    { path: 'contracts', element: <Contracts /> },
-    { path: 'contracts/:id', element: <ContractDetail /> },
-    { path: 'regression', element: <Regressions /> },
-    { path: 'regression/new', element: <RegressionRun /> },
-    { path: 'regression/:caseName', element: <RegressionDetail /> },
     { path: 'eval', element: <EvalRuns /> },
     { path: 'eval/new', element: <EvalRunCreate /> },
     { path: 'eval/:runId', element: <EvalRunDetail /> },

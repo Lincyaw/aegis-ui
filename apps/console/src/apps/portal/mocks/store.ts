@@ -13,7 +13,6 @@ import type {
   MockLabel,
   MockPedestal,
   MockProject,
-  MockRegressionRun,
   MockStoreState,
   MockSystem,
   MockTask,
@@ -26,7 +25,6 @@ const rand = (prefix: string): string =>
 export interface CreateInjectionInput {
   projectId: string;
   systemCode: string;
-  contractId?: string;
   blastRadius: MockInjection['blastRadius'];
   durationSec: number;
   intensity: number;
@@ -70,13 +68,6 @@ interface StoreActions {
   enableSystem: (code: string) => void;
   disableSystem: (code: string) => void;
 
-  runRegression: (input: {
-    caseId: string;
-    systemCode: string;
-    datasetId: string;
-    concurrency: number;
-  }) => MockRegressionRun;
-
   createEvalRun: (input: {
     model: string;
     datasetId: string;
@@ -104,10 +95,6 @@ interface StoreActions {
   ) => void;
   appendClusterEvent: (level: 'info' | 'warn' | 'error', body: string) => void;
   setEvalRunStatus: (id: string, status: MockEvalRun['status']) => void;
-  setRegressionRunStatus: (
-    id: string,
-    status: MockRegressionRun['status']
-  ) => void;
 
   setActiveProject: (id: string) => void;
 }
@@ -120,9 +107,6 @@ export const useMockStore = create<MockStore>((set, get) => ({
   createInjection: (input) => {
     const id = rand('inj');
     const taskId = rand('task');
-    const contract = input.contractId
-      ? get().contracts.find((c) => c.id === input.contractId)
-      : undefined;
     const labelFromSpec = input.spec
       ? `${input.spec.chaosType}-${input.spec.app || input.systemCode}`
       : undefined;
@@ -130,7 +114,6 @@ export const useMockStore = create<MockStore>((set, get) => ({
       id,
       projectId: input.projectId,
       systemCode: input.systemCode,
-      contractId: input.contractId ?? '',
       taskId,
       traceId: null,
       blastRadius: input.blastRadius,
@@ -138,10 +121,7 @@ export const useMockStore = create<MockStore>((set, get) => ({
       intensity: input.intensity,
       status: 'pending',
       createdAt: nowIso(),
-      name:
-        input.name ??
-        labelFromSpec ??
-        `${contract?.name ?? 'fault'}-${input.systemCode}`,
+      name: input.name ?? labelFromSpec ?? `fault-${input.systemCode}`,
       spec: input.spec,
     };
     const task: MockTask = {
@@ -159,7 +139,7 @@ export const useMockStore = create<MockStore>((set, get) => ({
           level: 'info',
           body: input.spec
             ? `chaos=${input.spec.chaosType} target=${input.spec.app || input.systemCode}`
-            : `contract=${contract?.name ?? input.contractId ?? 'n/a'} target=${input.systemCode}`,
+            : `target=${input.systemCode}`,
         },
       ],
     };
@@ -418,75 +398,6 @@ export const useMockStore = create<MockStore>((set, get) => ({
     }));
   },
 
-  runRegression: (input) => {
-    const id = rand('regrun');
-    const childTaskIds: string[] = [];
-    const tasksToAdd: MockTask[] = [];
-    for (let i = 0; i < input.concurrency; i++) {
-      const tid = rand('task');
-      childTaskIds.push(tid);
-      tasksToAdd.push({
-        id: tid,
-        kind: 'regression',
-        parentId: id,
-        parentLabel: input.caseId,
-        status: 'pending',
-        startedAt: nowIso(),
-        durationMs: 0,
-        logs: [
-          { ts: '00:00:00', level: 'info', body: `regression child ${i}` },
-        ],
-      });
-    }
-    const created: MockRegressionRun = {
-      id,
-      caseId: input.caseId,
-      systemCode: input.systemCode,
-      datasetId: input.datasetId,
-      status: 'pending',
-      startedAt: nowIso(),
-      durationMs: 0,
-      childTaskIds,
-      passes: 0,
-      fails: 0,
-    };
-    set((s) => ({
-      regressionRuns: [created, ...s.regressionRuns],
-      tasks: [...tasksToAdd, ...s.tasks],
-    }));
-    setTimeout(() => {
-      set((s) => ({
-        regressionRuns: s.regressionRuns.map((r) =>
-          r.id === id ? { ...r, status: 'running' } : r
-        ),
-        tasks: s.tasks.map((t) =>
-          childTaskIds.includes(t.id) ? { ...t, status: 'running' } : t
-        ),
-      }));
-    }, 1500);
-    setTimeout(() => {
-      set((s) => ({
-        regressionRuns: s.regressionRuns.map((r) =>
-          r.id === id
-            ? {
-                ...r,
-                status: 'completed',
-                passes: input.concurrency,
-                fails: 0,
-                durationMs: 4000,
-              }
-            : r
-        ),
-        tasks: s.tasks.map((t) =>
-          childTaskIds.includes(t.id)
-            ? { ...t, status: 'completed', durationMs: 4000 }
-            : t
-        ),
-      }));
-    }, 4000);
-    return created;
-  },
-
   createEvalRun: (input) => {
     const id = rand('eval');
     const caseIds: string[] = [];
@@ -680,13 +591,6 @@ export const useMockStore = create<MockStore>((set, get) => ({
   setEvalRunStatus: (id, status) => {
     set((s) => ({
       evalRuns: s.evalRuns.map((r) => (r.id === id ? { ...r, status } : r)),
-    }));
-  },
-  setRegressionRunStatus: (id, status) => {
-    set((s) => ({
-      regressionRuns: s.regressionRuns.map((r) =>
-        r.id === id ? { ...r, status } : r
-      ),
     }));
   },
 

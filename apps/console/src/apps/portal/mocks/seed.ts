@@ -2,7 +2,6 @@ import type {
   MockClusterCheck,
   MockClusterEvent,
   MockContainer,
-  MockContract,
   MockDataset,
   MockEvalCase,
   MockEvalRun,
@@ -11,8 +10,6 @@ import type {
   MockLabel,
   MockPedestal,
   MockProject,
-  MockRegressionCase,
-  MockRegressionRun,
   MockStagedInjection,
   MockStoreState,
   MockSystem,
@@ -343,218 +340,6 @@ const pedestals: MockPedestal[] = [
   },
 ];
 
-const buildContract = (
-  id: string,
-  name: string,
-  faultType: MockContract['faultType'],
-  family: string,
-  targetKind: string,
-  paramCount: number,
-  description: string
-): MockContract => ({
-  id,
-  name,
-  faultType,
-  family,
-  targetKind,
-  paramCount,
-  lastUsedAt: iso(Math.floor(Math.random() * 60 * 24 * 3)),
-  spec: JSON.stringify(
-    {
-      fault_type: faultType,
-      action: name,
-      params: { duration: '60s' },
-      selector: { namespaces: ['<SYSTEM_NS>'], labels: { app: '<TARGET>' } },
-    },
-    null,
-    2
-  ),
-  description,
-});
-
-const contracts: MockContract[] = [
-  buildContract(
-    'ctr-pod-kill',
-    'pod-kill',
-    'pod',
-    'pod',
-    'Pod',
-    2,
-    'Hard pod kill.'
-  ),
-  buildContract(
-    'ctr-pod-failure',
-    'pod-failure',
-    'pod',
-    'pod',
-    'Pod',
-    3,
-    'Mark pod unready for N seconds.'
-  ),
-  buildContract(
-    'ctr-container-kill',
-    'container-kill',
-    'pod',
-    'pod',
-    'Container',
-    2,
-    'Kill a specific container in a pod.'
-  ),
-  buildContract(
-    'ctr-net-delay',
-    'network-delay',
-    'network',
-    'network',
-    'Service',
-    5,
-    'Inject latency on egress.'
-  ),
-  buildContract(
-    'ctr-net-loss',
-    'network-loss',
-    'network',
-    'network',
-    'Service',
-    4,
-    'Drop packets at egress.'
-  ),
-  buildContract(
-    'ctr-net-corrupt',
-    'network-corrupt',
-    'network',
-    'network',
-    'Service',
-    4,
-    'Corrupt packets.'
-  ),
-  buildContract(
-    'ctr-net-partition',
-    'network-partition',
-    'network',
-    'network',
-    'Service',
-    3,
-    'Sever traffic between two services.'
-  ),
-  buildContract(
-    'ctr-dns',
-    'dns-error',
-    'dns',
-    'network',
-    'Service',
-    2,
-    'Return NXDOMAIN for selected hosts.'
-  ),
-  buildContract(
-    'ctr-http-abort',
-    'http-abort',
-    'http',
-    'http',
-    'Ingress',
-    4,
-    'Abort HTTP requests at proxy.'
-  ),
-  buildContract(
-    'ctr-http-500',
-    'http-500',
-    'http',
-    'http',
-    'Ingress',
-    3,
-    'Return synthetic 500.'
-  ),
-  buildContract(
-    'ctr-http-delay',
-    'http-delay',
-    'http',
-    'http',
-    'Ingress',
-    3,
-    'Delay HTTP responses.'
-  ),
-  buildContract(
-    'ctr-jvm-cpu',
-    'jvm-cpu-burn',
-    'jvm',
-    'jvm',
-    'Pod',
-    2,
-    'Burn CPU inside JVM via attach.'
-  ),
-  buildContract(
-    'ctr-jvm-mem',
-    'jvm-mem-pressure',
-    'jvm',
-    'jvm',
-    'Pod',
-    2,
-    'Allocate to fill heap.'
-  ),
-  buildContract(
-    'ctr-jvm-throw',
-    'jvm-throw',
-    'jvm',
-    'jvm',
-    'Pod',
-    3,
-    'Throw exception from method.'
-  ),
-  buildContract(
-    'ctr-stress-cpu',
-    'stress-cpu',
-    'stress',
-    'stress',
-    'Pod',
-    2,
-    'CPU stress with stress-ng.'
-  ),
-  buildContract(
-    'ctr-stress-mem',
-    'stress-memory',
-    'stress',
-    'stress',
-    'Pod',
-    2,
-    'Memory stress.'
-  ),
-  buildContract(
-    'ctr-stress-io',
-    'stress-io',
-    'stress',
-    'stress',
-    'Pod',
-    3,
-    'Disk IO stress.'
-  ),
-  buildContract(
-    'ctr-time-shift',
-    'time-shift',
-    'time',
-    'time',
-    'Pod',
-    2,
-    'Skew clock inside container.'
-  ),
-  buildContract(
-    'ctr-jvm-gc',
-    'jvm-gc-pressure',
-    'jvm',
-    'jvm',
-    'Pod',
-    2,
-    'Trigger frequent GC.'
-  ),
-  buildContract(
-    'ctr-dns-delay',
-    'dns-delay',
-    'dns',
-    'network',
-    'Service',
-    2,
-    'Slow DNS responses.'
-  ),
-];
-
 const STATUS_CYCLE: Array<MockInjection['status']> = [
   'completed',
   'completed',
@@ -596,10 +381,6 @@ for (let i = 0; i < 50; i++) {
   if (!sys) {
     continue;
   }
-  const contract = contracts[i % contracts.length];
-  if (!contract) {
-    continue;
-  }
   const targets = SYS_TARGETS[sys.code] ?? ['default-target'];
   const target = targets[i % targets.length] ?? 'default-target';
   const id = `inj-${injCounter++}`;
@@ -614,7 +395,6 @@ for (let i = 0; i < 50; i++) {
     id,
     projectId,
     systemCode: sys.code,
-    contractId: contract.id,
     taskId,
     traceId,
     blastRadius: i % 3 === 0 ? 'service' : i % 3 === 1 ? 'pod' : 'namespace',
@@ -622,7 +402,7 @@ for (let i = 0; i < 50; i++) {
     intensity: 50 + (i % 5) * 10,
     status,
     createdAt,
-    name: `${contract.name}-${target}`,
+    name: `fault-${target}`,
   });
   tasks.push({
     id: taskId,
@@ -637,7 +417,7 @@ for (let i = 0; i < 50; i++) {
       {
         ts: '00:00:01',
         level: 'info',
-        body: `inject contract=${contract.name} target=${target}`,
+        body: `inject target=${target}`,
       },
       { ts: '00:00:02', level: 'info', body: 'chaos resource applied' },
     ],
@@ -724,96 +504,6 @@ const containers: MockContainer[] = [
   },
 ];
 
-const regressionCases: MockRegressionCase[] = [
-  {
-    id: 'reg-ts-baseline',
-    name: 'ts-baseline',
-    description: 'Train-Ticket happy-path inject→collect smoke.',
-    owner: 'lincyaw',
-    passRate: 0.986,
-    lastStatus: 'pass',
-    lastRunAt: iso(60 * 3),
-  },
-  {
-    id: 'reg-otel-cart',
-    name: 'otel-cart-failure',
-    description: 'otel-demo cart-service podfailure end-to-end.',
-    owner: 'boxiyu',
-    passRate: 1.0,
-    lastStatus: 'pass',
-    lastRunAt: iso(60 * 4),
-  },
-  {
-    id: 'reg-hs-net',
-    name: 'hs-network-jitter',
-    description: 'Hotel-Reservation network jitter survival.',
-    owner: 'lincyaw',
-    passRate: 0.824,
-    lastStatus: 'fail',
-    lastRunAt: iso(60 * 12),
-  },
-  {
-    id: 'reg-sn-cpu',
-    name: 'sn-cpu-burn',
-    description: 'Social-Network CPU stress survival.',
-    owner: 'boxiyu',
-    passRate: 0.91,
-    lastStatus: 'running',
-    lastRunAt: iso(60),
-  },
-  {
-    id: 'reg-sockshop',
-    name: 'sockshop-orders-loss',
-    description: 'Sock-Shop orders-service network-loss.',
-    owner: 'lincyaw',
-    passRate: 0.95,
-    lastStatus: 'pass',
-    lastRunAt: iso(60 * 22),
-  },
-];
-
-const regressionRuns: MockRegressionRun[] = [];
-let runCounter = 500;
-for (const c of regressionCases) {
-  for (let i = 0; i < 3; i++) {
-    const id = `regrun-${runCounter++}`;
-    const childTaskIds: string[] = [];
-    for (let j = 0; j < 4; j++) {
-      const tid = `task-${taskCounter++}`;
-      childTaskIds.push(tid);
-      tasks.push({
-        id: tid,
-        kind: 'regression',
-        parentId: id,
-        parentLabel: c.name,
-        status:
-          i === 0
-            ? 'running'
-            : j === 0 && c.lastStatus === 'fail'
-              ? 'failed'
-              : 'completed',
-        startedAt: iso(60 * 24 * (i + 1)),
-        durationMs: 90000 + j * 5000,
-        logs: [
-          { ts: '00:00:00', level: 'info', body: `regression child ${j}` },
-        ],
-      });
-    }
-    const fails = c.lastStatus === 'fail' && i === 2 ? 1 : 0;
-    regressionRuns.push({
-      id,
-      caseId: c.id,
-      systemCode: 'ts',
-      datasetId: 'ds-ts-2026-04-25',
-      status: i === 0 ? 'running' : 'completed',
-      startedAt: iso(60 * 24 * (i + 1)),
-      durationMs: 380000 + i * 10000,
-      childTaskIds,
-      passes: 4 - fails,
-      fails,
-    });
-  }
-}
 
 const evalRuns: MockEvalRun[] = [];
 const evalCases: MockEvalCase[] = [];
@@ -1037,15 +727,12 @@ export const seedState: MockStoreState = {
   projects,
   systems,
   pedestals,
-  contracts,
   injections,
   tasks,
   traces,
   datasets,
   labels,
   containers,
-  regressionCases,
-  regressionRuns,
   evalRuns,
   evalCases,
   clusterChecks,
