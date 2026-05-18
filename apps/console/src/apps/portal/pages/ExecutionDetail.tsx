@@ -21,11 +21,11 @@ import {
 } from '@lincyaw/aegis-ui';
 import type {
   ExecutionDetectorResultItem,
-  TaskResp,
+  TraceTraceLogEntry,
 } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
-import { useProcessTrace } from '../api/injections';
+import { useTraceLogs } from '../api/traces';
 import { StatusChip } from '../components/StatusChip';
 import { useExecutionDetail } from '../hooks/useExecutions';
 import { isActiveTaskState, useCancelTask } from '../hooks/useTasks';
@@ -55,39 +55,32 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
   return debounced;
 }
 
-function taskLevel(state: string | undefined): TerminalLine['level'] {
-  const lower = (state ?? '').toLowerCase();
-  if (lower === 'failed' || lower === 'error' || lower === 'cancelled') {
+function logLevelClass(level: string | undefined): TerminalLine['level'] {
+  const lower = (level ?? '').toLowerCase();
+  if (lower === 'error' || lower === 'fatal') {
     return 'error';
   }
-  if (lower === 'restarting' || lower === 'rescheduled') {
+  if (lower === 'warn' || lower === 'warning') {
     return 'warn';
   }
-  if (lower === 'success' || lower === 'completed') {
-    return 'info';
+  if (lower === 'debug' || lower === 'trace') {
+    return 'debug';
   }
   return 'info';
 }
 
-interface TaskLogLine {
-  ts: string;
-  prefix: string;
-  level: TerminalLine['level'];
-  body: string;
-}
-
-function taskLogLines(tasks: TaskResp[] | undefined): TaskLogLine[] {
-  if (!tasks || tasks.length === 0) {
+function logLines(
+  entries: TraceTraceLogEntry[] | undefined,
+): TerminalLine[] {
+  if (!entries || entries.length === 0) {
     return [];
   }
-  return [...tasks]
-    .sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))
-    .map((t, i) => ({
-      ts: t.updated_at ?? t.created_at ?? String(i),
-      prefix: t.type ?? 'task',
-      level: taskLevel(t.state ?? t.status),
-      body: `${t.state ?? t.status ?? 'unknown'} · trace ${t.trace_id ?? '—'}`,
-    }));
+  return entries.map((e, i) => ({
+    ts: e.ts ?? String(i),
+    prefix: e.service ?? e.level ?? 'log',
+    level: logLevelClass(e.level),
+    body: e.msg ?? '',
+  }));
 }
 
 function fmtNum(n: number | undefined, digits = 2): string {
@@ -153,8 +146,6 @@ export default function ExecutionDetail() {
   const state = data?.state ?? data?.status ?? 'pending';
   const live = isActiveTaskState(state);
 
-  const { data: trace } = useProcessTrace(traceId, live ? 3_000 : false);
-
   const { message: msg } = AntdApp.useApp();
   const cancelTask = useCancelTask(() => {
     void msg.success('Run cancelled');
@@ -165,27 +156,23 @@ export default function ExecutionDetail() {
   const [logLimit, setLogLimit] = useState<number>(200);
   const debouncedLogSearch = useDebouncedValue(logSearchInput.trim(), 300);
 
-  const allLogLines = useMemo(
-    () => taskLogLines(trace?.tasks),
-    [trace?.tasks],
+  const { data: logsResp } = useTraceLogs(
+    traceId,
+    {
+      limit: logLimit,
+      level: logLevel === 'all' ? undefined : logLevel,
+      q: debouncedLogSearch.length > 0 ? debouncedLogSearch : undefined,
+    },
+    live ? 3_000 : false,
   );
-  const filteredLogLines = useMemo<TerminalLine[]>(() => {
-    const needle = debouncedLogSearch.toLowerCase();
-    return allLogLines
-      .filter((line) => {
-        if (logLevel !== 'all' && line.level !== logLevel) {
-          return false;
-        }
-        if (needle.length === 0) {
-          return true;
-        }
-        return (
-          line.body.toLowerCase().includes(needle) ||
-          line.prefix.toLowerCase().includes(needle)
-        );
-      })
-      .slice(-logLimit);
-  }, [allLogLines, logLevel, debouncedLogSearch, logLimit]);
+  const allLogLines = useMemo(
+    () => logLines(logsResp?.entries),
+    [logsResp?.entries],
+  );
+  const filteredLogLines = useMemo<TerminalLine[]>(
+    () => allLogLines.slice(-logLimit),
+    [allLogLines, logLimit],
+  );
 
   if (isLoading) {
     return (
@@ -357,7 +344,7 @@ export default function ExecutionDetail() {
               traceId
                 ? debouncedLogSearch.length > 0 || logLevel !== 'all'
                   ? 'No entries match the current filters. Try clearing the search or selecting "All" level.'
-                  : 'Stage transitions from the orchestrator will appear here as the run progresses.'
+                  : 'Log entries from the orchestrator will appear here as the run progresses.'
                 : 'The execution has not been dispatched to the orchestrator.'
             }
           />

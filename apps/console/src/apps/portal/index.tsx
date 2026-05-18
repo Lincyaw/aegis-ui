@@ -212,7 +212,7 @@ export const portalApp: AegisApp = {
     // Platform
     { path: 'pedestals', element: <Pedestals /> },
     { path: 'pedestals/new', element: <PedestalInstall /> },
-    { path: 'pedestals/:id', element: <PedestalDetail /> },
+    { path: 'pedestals/:release', element: <PedestalDetail /> },
     { path: 'eval', element: <EvalRuns /> },
     { path: 'eval/new', element: <EvalRunCreate /> },
     { path: 'eval/:runId', element: <EvalRunDetail /> },

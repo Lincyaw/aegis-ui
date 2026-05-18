@@ -13,9 +13,11 @@ interface Props {
 export function Step1Target({ spec, update }: Props) {
   const templates = useInjectBatch((s) => s.templates);
   const systemsQuery = useSystems();
+  const candidatesNamespace =
+    spec.namespaceMode === 'specific' ? spec.namespace : undefined;
   const candidatesQuery = useInjectCandidates(
     spec.systemCode,
-    spec.namespace
+    candidatesNamespace
   );
 
   const systemOptions = (systemsQuery.data ?? []).map((sys) => ({
@@ -37,7 +39,8 @@ export function Step1Target({ spec, update }: Props) {
   const systemsFailed = systemsQuery.isError;
   const candidatesFailed = candidatesQuery.isError;
   const candidatesReady =
-    spec.systemCode.length > 0 && spec.namespace.length > 0;
+    spec.systemCode.length > 0 &&
+    (spec.namespaceMode !== 'specific' || spec.namespace.length > 0);
 
   return (
     <Panel title={<PanelTitle size='base'>1. Target</PanelTitle>}>
@@ -140,9 +143,13 @@ export function Step1Target({ spec, update }: Props) {
                 Failed to load candidates — using manual entry
               </Chip>
             ) : !candidatesReady ? (
-              'Pick a system and namespace first to load candidates.'
-            ) : (
+              spec.namespaceMode === 'specific'
+                ? 'Pick a system and namespace first to load candidates.'
+                : 'Pick a system first to load candidates.'
+            ) : spec.namespaceMode === 'specific' ? (
               'Candidates discovered for this system + namespace.'
+            ) : (
+              'Candidates discovered for this system across all namespaces.'
             )
           }
         >

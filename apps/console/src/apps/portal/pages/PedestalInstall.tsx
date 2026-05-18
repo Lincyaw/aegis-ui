@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import {
   Button,
+  Chip,
   CodeEditor,
   EmptyState,
   FormRow,
@@ -21,6 +22,7 @@ import {
 } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 import { App as AntdApp, Select, Spin } from 'antd';
+import yaml from 'js-yaml';
 
 import { useInstallPedestal, usePedestalHelmConfig } from '../api/pedestals';
 import { containersApi } from '../api/portal-client';
@@ -55,20 +57,31 @@ function useContainerVersions(containerId: number | undefined) {
   });
 }
 
-function parseHelmYaml(text: string): Record<string, unknown> | undefined {
+type HelmParseResult =
+  | { ok: true; value: Record<string, unknown> | undefined }
+  | { ok: false; error: string };
+
+function parseHelmYaml(text: string): HelmParseResult {
   const trimmed = text.trim();
   if (trimmed.length === 0) {
-    return undefined;
+    return { ok: true, value: undefined };
   }
+  let parsed: unknown;
   try {
-    const parsed: unknown = JSON.parse(trimmed);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-  } catch {
-    // fall through — backend tolerates raw yaml when wrapped server-side
+    parsed = yaml.load(trimmed);
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Invalid YAML',
+    };
   }
-  return undefined;
+  if (parsed == null) {
+    return { ok: true, value: undefined };
+  }
+  if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return { ok: false, error: 'Helm values must be a YAML mapping' };
+  }
+  return { ok: true, value: parsed as Record<string, unknown> };
 }
 
 export default function PedestalInstall() {
@@ -107,9 +120,11 @@ export default function PedestalInstall() {
     }
     const cfg = helmConfigQuery.data;
     if (cfg && Object.keys(cfg).length > 0) {
-      setHelmValues(JSON.stringify(cfg, null, 2));
+      setHelmValues(yaml.dump(cfg));
     }
   }, [helmConfigQuery.data, helmTouched]);
+
+  const helmParse = useMemo(() => parseHelmYaml(helmValues), [helmValues]);
 
   const onNext = (): void => {
     if (step === 0 && !systemCode) {
@@ -118,6 +133,10 @@ export default function PedestalInstall() {
     }
     if (step === 1 && (containerId === undefined || versionId === undefined)) {
       void msg.error('Pick a container version to continue');
+      return;
+    }
+    if (step === 2 && !helmParse.ok) {
+      void msg.error(`Helm values: ${helmParse.error}`);
       return;
     }
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -139,9 +158,12 @@ export default function PedestalInstall() {
     if (namespace.trim().length > 0) {
       body.namespace = namespace.trim();
     }
-    const parsedValues = parseHelmYaml(helmValues);
-    if (parsedValues) {
-      body.helm_values = parsedValues;
+    if (!helmParse.ok) {
+      void msg.error(`Helm values: ${helmParse.error}`);
+      return;
+    }
+    if (helmParse.value) {
+      body.helm_values = helmParse.value;
     }
     try {
       const result = await installMutation.mutateAsync(body);
@@ -256,15 +278,20 @@ export default function PedestalInstall() {
             {helmConfigQuery.isLoading ? (
               <Spin />
             ) : (
-              <CodeEditor
-                value={helmValues}
-                onChange={(value) => {
-                  setHelmTouched(true);
-                  setHelmValues(value);
-                }}
-                language='yaml'
-                height={240}
-              />
+              <>
+                <CodeEditor
+                  value={helmValues}
+                  onChange={(value) => {
+                    setHelmTouched(true);
+                    setHelmValues(value);
+                  }}
+                  language='yaml'
+                  height={240}
+                />
+                {!helmParse.ok && (
+                  <Chip tone='warning'>YAML error: {helmParse.error}</Chip>
+                )}
+              </>
             )}
           </FormRow>
         </Panel>
@@ -331,7 +358,7 @@ export default function PedestalInstall() {
             onClick={() => {
               void onSubmit();
             }}
-            disabled={installMutation.isPending}
+            disabled={installMutation.isPending || !helmParse.ok}
           >
             {installMutation.isPending ? 'Installing…' : 'Install'}
           </Button>

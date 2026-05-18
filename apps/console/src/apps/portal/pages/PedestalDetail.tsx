@@ -33,8 +33,8 @@ function stringifyValues(values: Record<string, unknown> | undefined): string {
 }
 
 export default function PedestalDetail() {
-  const { id } = useParams<{ id: string }>();
-  const release = id ?? '';
+  const { release: releaseParam } = useParams<{ release: string }>();
+  const release = releaseParam ?? '';
   const navigate = useAppNavigate();
   const { message: msg, modal } = AntdApp.useApp();
 

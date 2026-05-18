@@ -21,24 +21,24 @@ import {
   type TraceSpan,
 } from '@lincyaw/aegis-ui';
 import type {
-  InjectionInjectionLogEntry,
   InjectionInjectionTimelineEvent,
   InjectionInjectionTimelineResp,
   InjectionInjectionTimelineWindow,
   TaskResp,
   TraceSpanNode,
   TraceTraceDetailResp,
+  TraceTraceLogEntry,
 } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
 import {
   isActiveTraceState,
   useInjectionDetail,
-  useInjectionLogs,
   useInjectionTimeline,
   useProcessTrace,
   useTraceSpans,
 } from '../api/injections';
+import { useTraceLogs } from '../api/traces';
 import { RefreshControl } from '../components/RefreshControl';
 import {
   intervalToMs,
@@ -214,7 +214,7 @@ function logLevelClass(level: string | undefined): TerminalLine['level'] {
 }
 
 function logLines(
-  entries: InjectionInjectionLogEntry[] | undefined
+  entries: TraceTraceLogEntry[] | undefined
 ): TerminalLine[] {
   if (!entries || entries.length === 0) {
     return [];
@@ -451,8 +451,8 @@ export default function InjectionProcess() {
     data: logsResp,
     isFetching: logsFetching,
     refetch: refetchLogs,
-  } = useInjectionLogs(
-    validId,
+  } = useTraceLogs(
+    traceId,
     {
       limit: logLimit,
       level: logLevel === 'all' ? undefined : logLevel,

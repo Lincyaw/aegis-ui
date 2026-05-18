@@ -10,8 +10,8 @@ export const systemsKeys = {
   all: ['systems'] as const,
   list: (page?: number, size?: number) =>
     ['systems', 'list', { page, size }] as const,
-  candidates: (name: string, namespace: string) =>
-    ['systems', 'candidates', name, namespace] as const,
+  candidates: (name: string, namespace: string | undefined) =>
+    ['systems', 'candidates', name, namespace ?? null] as const,
 };
 
 export function useSystems(params: { page?: number; size?: number } = {}) {
@@ -24,14 +24,15 @@ export function useSystems(params: { page?: number; size?: number } = {}) {
   });
 }
 
-export function useInjectCandidates(name: string, namespace: string) {
+export function useInjectCandidates(name: string, namespace?: string) {
+  const ns = namespace && namespace.length > 0 ? namespace : undefined;
   return useQuery<ChaossystemInjectCandidateResp[]>({
-    queryKey: systemsKeys.candidates(name, namespace),
-    enabled: name.length > 0 && namespace.length > 0,
+    queryKey: systemsKeys.candidates(name, ns),
+    enabled: name.length > 0,
     queryFn: async () => {
       const res = await systemsApi.listSystemInjectCandidates({
         name,
-        namespace,
+        namespace: ns,
       });
       return res.data.data?.candidates ?? [];
     },

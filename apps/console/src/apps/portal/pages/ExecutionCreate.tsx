@@ -35,7 +35,7 @@ export default function ExecutionCreate() {
 
   const submit = (): void => {
     if (!containerName) {
-      void msg.error('container is required');
+      void msg.error('Algorithm is required');
       return;
     }
     runAlgorithm.mutate(
@@ -74,13 +74,13 @@ export default function ExecutionCreate() {
         }
       />
       <Panel>
-        <FormRow label='Algorithm container'>
+        <FormRow label='Algorithm'>
           <Select
             style={{ width: '100%' }}
             value={containerName}
             onChange={setContainerName}
             loading={containersQ.isLoading}
-            placeholder='Select an algorithm container'
+            placeholder='Select an algorithm'
             options={(containersQ.data ?? []).map((c) => ({
               value: c.name ?? '',
               label: c.name ?? `#${String(c.id ?? '')}`,

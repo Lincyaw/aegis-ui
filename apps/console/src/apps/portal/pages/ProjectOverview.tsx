@@ -98,7 +98,7 @@ export default function ProjectOverview() {
         <MetricCard label='Executions' value={project.execution_count ?? 0} />
         <MetricCard label='Datasets' value={project.datasets?.length ?? 0} />
         <MetricCard
-          label='Containers'
+          label='Artifacts'
           value={project.containers?.length ?? 0}
         />
       </div>
