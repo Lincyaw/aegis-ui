@@ -11,7 +11,6 @@ import {
   TimelineChart,
   type TimelineSpan,
   type TraceSpan,
-  TraceSpanInspector,
   TraceTree,
 } from '@lincyaw/aegis-ui';
 
@@ -280,7 +279,6 @@ function CenterPane({
     typeof useTrajectoriesPrefs
   >['prefs']['customSpanRules'];
 }): ReactElement {
-  const [drawerSpan, setDrawerSpan] = useState<TraceSpan | null>(null);
   return (
     <>
       <div className='trajectories-detail__view-tabs'>
@@ -314,20 +312,8 @@ function CenterPane({
             <TraceTree
               spans={treeSpans}
               selectedId={selectedSpanId}
-              onSelect={(s) => {
-                onSelectSpan(s.id);
-                setDrawerSpan(s);
-              }}
+              onSelect={(s) => onSelectSpan(s.id)}
               persistKey='trajectory-spans'
-            />
-            <TraceSpanInspector
-              span={drawerSpan}
-              onClose={() => setDrawerSpan(null)}
-              spanLookup={(id) => treeSpans.find((sp) => sp.id === id)}
-              onSelectRelated={(s) => {
-                onSelectSpan(s.id);
-                setDrawerSpan(s);
-              }}
             />
           </div>
         )}

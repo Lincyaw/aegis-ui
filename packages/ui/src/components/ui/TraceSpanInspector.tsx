@@ -7,6 +7,7 @@ import { type KeyValueItem, KeyValueList } from './KeyValueList';
 import { MonoValue } from './MonoValue';
 import { ObjectInspector, type ObjectInspectorTab } from './ObjectInspector';
 import { StatusDot } from './StatusDot';
+import './TraceSpanInspector.css';
 import type { TraceSpan } from './TraceTree';
 
 export interface TraceSpanInspectorProps {
@@ -95,18 +96,12 @@ export function TraceSpanInspector({
   const overviewItems: KeyValueItem[] = [
     {
       k: 'name',
-      v: <span style={{ fontFamily: 'var(--font-mono)' }}>{span.name}</span>,
+      v: <span className="aegis-trace-span-inspector__name">{span.name}</span>,
     },
     {
       k: 'status',
       v: (
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-          }}
-        >
+        <span className="aegis-trace-span-inspector__status">
           <StatusDot tone={statusTone(span.status)} size={6} />
           {span.status ?? 'unset'}
         </span>
@@ -146,15 +141,7 @@ export function TraceSpanInspector({
           onClick={() => {
             onSelectRelated(parentSpan);
           }}
-          style={{
-            background: 'transparent',
-            border: 0,
-            padding: 0,
-            color: 'var(--text-link, var(--text-main))',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-mono)',
-            textDecoration: 'underline',
-          }}
+          className="aegis-trace-span-inspector__parent-link"
         >
           {parent.name}
         </button>
