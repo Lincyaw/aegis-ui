@@ -142,7 +142,7 @@ export default function ExecutionDetail() {
   const numericId = executionId ? Number(executionId) : undefined;
   const { data, isLoading, isError, error } = useExecutionDetail(numericId);
 
-  const traceId = data?.task_id ?? null;
+  const traceId = data?.trace_id ?? null;
   const state = data?.state ?? data?.status ?? 'pending';
   const live = isActiveTaskState(state);
 
@@ -201,7 +201,8 @@ export default function ExecutionDetail() {
     );
   }
 
-  const cancellable = typeof traceId === 'string' && traceId.length > 0 && live;
+  const taskId = data?.task_id ?? null;
+  const cancellable = typeof taskId === 'string' && taskId.length > 0 && live;
   const detectorResults = data.detector_results ?? [];
 
   return (
@@ -278,8 +279,8 @@ export default function ExecutionDetail() {
               tone='secondary'
               disabled={cancelTask.isPending}
               onClick={() => {
-                if (typeof traceId === 'string') {
-                  cancelTask.mutate(traceId);
+                if (typeof taskId === 'string') {
+                  cancelTask.mutate(taskId);
                 }
               }}
             >

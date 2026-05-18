@@ -120,8 +120,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@lincyaw/portal':
-        specifier: ^2.4.0
-        version: 2.4.0
+        specifier: ^2.5.0
+        version: 2.5.0
       '@tanstack/react-query':
         specifier: ^5.28.0
         version: 5.100.9(react@18.3.1)
@@ -1145,8 +1145,8 @@ packages:
   '@lezer/yaml@1.0.4':
     resolution: {integrity: sha512-2lrrHqxalACEbxIbsjhqGpSW8kWpUKuY6RHgnSAFZa6qK62wvnPxA8hGOwOoDbwHcOFs5M4o27mjGu+P7TvBmw==}
 
-  '@lincyaw/portal@2.4.0':
-    resolution: {integrity: sha512-0vJRcyq43ZkmFtql/rzLTvmNooJ/ZcUlhct86voZRs9w/MQ+76ufYuKKQpJEgUY5FNnAegdQzyuuArBFfl/asQ==}
+  '@lincyaw/portal@2.5.0':
+    resolution: {integrity: sha512-TNuba7HUJ8LNVLf7kPsaXfXXRp0nw0UpHfRLvKYCje8iG8cZWGZnC4uGZpjcywNEuZUknFbEpFKgJiU9hk+hKw==}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -6430,7 +6430,7 @@ snapshots:
       '@lezer/highlight': 1.2.3
       '@lezer/lr': 1.4.10
 
-  '@lincyaw/portal@2.4.0':
+  '@lincyaw/portal@2.5.0':
     dependencies:
       axios: 1.16.0
     transitivePeerDependencies:
