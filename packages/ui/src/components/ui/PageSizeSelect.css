@@ -58,7 +58,6 @@
 
 .aegis-page-size-select__panel {
   position: absolute;
-  bottom: calc(100% + var(--space-1));
   right: 0;
   z-index: var(--z-dropdown);
   display: flex;
@@ -71,6 +70,14 @@
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-popover);
+}
+
+.aegis-page-size-select--placement-top .aegis-page-size-select__panel {
+  bottom: calc(100% + var(--space-1));
+}
+
+.aegis-page-size-select--placement-bottom .aegis-page-size-select__panel {
+  top: calc(100% + var(--space-1));
 }
 
 .aegis-page-size-select__item {

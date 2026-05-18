@@ -604,6 +604,7 @@ export default function InjectionProcess() {
             onChange={setLogLimit}
             options={LOG_LIMIT_OPTIONS as number[]}
             label='Tail'
+            placement='bottom'
           />
         </div>
         {logs.length > 0 ? (

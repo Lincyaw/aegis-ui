@@ -9,6 +9,15 @@ export interface PageSizeSelectProps {
   disabled?: boolean;
   label?: string;
   className?: string;
+  /**
+   * Where the options panel opens relative to the trigger. Default is
+   * 'top' because the primitive was originally used as a pagination
+   * footer where the table content is above. Use 'bottom' when the
+   * trigger sits at the top of a section (e.g. a filter row above a
+   * scrolling log terminal) — otherwise the panel pops upward and
+   * clips against the section header.
+   */
+  placement?: 'top' | 'bottom';
 }
 
 const DEFAULT_OPTIONS: readonly number[] = [10, 20, 50, 100];
@@ -20,6 +29,7 @@ export function PageSizeSelect({
   disabled = false,
   label = 'Rows per page',
   className,
+  placement = 'top',
 }: PageSizeSelectProps): ReactElement {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -50,7 +60,11 @@ export function PageSizeSelect({
     target?.focus();
   }, [open, options, value]);
 
-  const cls = ['aegis-page-size-select', className ?? '']
+  const cls = [
+    'aegis-page-size-select',
+    `aegis-page-size-select--placement-${placement}`,
+    className ?? '',
+  ]
     .filter(Boolean)
     .join(' ');
 
