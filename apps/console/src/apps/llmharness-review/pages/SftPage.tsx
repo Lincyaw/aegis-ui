@@ -25,10 +25,11 @@ import {
 import { SftRowDetail, SftStats } from '../components';
 import {
   clearStoredSftRoot,
-  type FSAccessSftRepo,
   isFsAccessSupported,
   pickSftRoot,
+  probeBlobSftRepo,
   restoreSftRoot,
+  type SftRepo,
 } from '../repo';
 import type { DroppedRow, SftRowBase } from '../schemas';
 
@@ -49,8 +50,11 @@ function auditorSurfaced(row: SftRowBase): boolean {
   return Boolean(v?.surface_reminder);
 }
 
+type RepoSource = 'blob' | 'fs';
+
 export function SftPage(): ReactElement {
-  const [repo, setRepo] = useState<FSAccessSftRepo | null>(null);
+  const [repo, setRepo] = useState<SftRepo | null>(null);
+  const [repoSource, setRepoSource] = useState<RepoSource | null>(null);
   const [data, setData] = useState<LoadedSft | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +64,7 @@ export function SftPage(): ReactElement {
   const [onlySurfaced, setOnlySurfaced] = useState(false);
   const [selected, setSelected] = useState<SftRowBase | null>(null);
 
-  const refresh = useCallback(async (r: FSAccessSftRepo) => {
+  const refresh = useCallback(async (r: SftRepo) => {
     setLoading(true);
     setError(null);
     try {
@@ -79,11 +83,19 @@ export function SftPage(): ReactElement {
 
   useEffect(() => {
     let cancelled = false;
+    const blob = probeBlobSftRepo();
+    if (blob) {
+      setRepo(blob);
+      setRepoSource('blob');
+      void refresh(blob);
+      return;
+    }
     restoreSftRoot()
       .then((r) => {
         if (cancelled) return;
         if (r) {
           setRepo(r);
+          setRepoSource('fs');
           void refresh(r);
         } else {
           setLoading(false);
@@ -104,6 +116,7 @@ export function SftPage(): ReactElement {
     try {
       const r = await pickSftRoot();
       setRepo(r);
+      setRepoSource('fs');
       await refresh(r);
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
@@ -112,11 +125,14 @@ export function SftPage(): ReactElement {
   }, [refresh]);
 
   const handleClear = useCallback(async () => {
-    await clearStoredSftRoot();
+    if (repoSource === 'fs') {
+      await clearStoredSftRoot();
+    }
     setRepo(null);
+    setRepoSource(null);
     setData(null);
     setSelected(null);
-  }, []);
+  }, [repoSource]);
 
   const rows: SftRowBase[] = useMemo(() => {
     if (!data) return [];
@@ -138,30 +154,26 @@ export function SftPage(): ReactElement {
     });
   }, [rows, search, phase, onlySurfaced]);
 
-  if (!isFsAccessSupported()) {
-    return (
-      <Panel title={<PanelTitle size='lg'>SFT preview</PanelTitle>}>
-        <ErrorState
-          title='Browser not supported'
-          description='This viewer needs the File System Access API.'
-        />
-      </Panel>
-    );
-  }
-
   if (!repo) {
+    const fsSupported = isFsAccessSupported();
     return (
       <Panel
         title={<PanelTitle size='lg'>SFT preview</PanelTitle>}
         extra={<MetricLabel>llmharness · sft</MetricLabel>}
       >
         <EmptyState
-          title='Pick an SFT directory'
-          description='Choose the directory containing extractor.jsonl / auditor.jsonl / dropped.jsonl (usually a sibling of the cases root).'
+          title='No SFT source configured'
+          description={
+            fsSupported
+              ? 'Configure a Blob SFT source on the Connection page, or pick a local directory containing extractor.jsonl / auditor.jsonl / dropped.jsonl.'
+              : 'Configure a Blob SFT source on the Connection page. (Local-directory picking is not available in this browser.)'
+          }
           action={
-            <Button onClick={handlePick}>
-              <FolderOpenOutlined /> Open directory
-            </Button>
+            fsSupported ? (
+              <Button onClick={handlePick}>
+                <FolderOpenOutlined /> Open local directory
+              </Button>
+            ) : null
           }
         />
       </Panel>
@@ -229,12 +241,14 @@ export function SftPage(): ReactElement {
       title={<PanelTitle size='lg'>SFT preview</PanelTitle>}
       extra={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <MetricLabel>{repo.label}</MetricLabel>
+          <MetricLabel>
+            {repoSource === 'blob' ? `blob · ${repo.label}` : repo.label}
+          </MetricLabel>
           <Button tone='ghost' onClick={() => void refresh(repo)}>
             Refresh
           </Button>
           <Button tone='ghost' onClick={() => void handleClear()}>
-            Change root
+            {repoSource === 'blob' ? 'Detach' : 'Change root'}
           </Button>
         </div>
       }

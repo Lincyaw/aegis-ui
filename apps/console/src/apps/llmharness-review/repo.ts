@@ -18,6 +18,7 @@ import {
   fetchHealth,
   getBackendUrl,
   getBlobRoot,
+  getBlobSftRoot,
 } from './connection';
 import {
   type AuditorFiring,
@@ -460,7 +461,14 @@ export const clearStoredRoot = casesRoot.clear;
 // SftRepo — sibling 'sft/' directory holding extractor/auditor/dropped JSONL.
 // --------------------------------------------------------------------------
 
-export class FSAccessSftRepo {
+export interface SftRepo {
+  readonly label: string;
+  readExtractor(): Promise<SftRowBase[]>;
+  readAuditor(): Promise<SftRowBase[]>;
+  readDropped(): Promise<DroppedRow[]>;
+}
+
+export class FSAccessSftRepo implements SftRepo {
   readonly label: string;
   private root: FileSystemDirectoryHandleLike;
 
@@ -475,6 +483,45 @@ export class FSAccessSftRepo {
     readJsonlOrEmpty<SftRowBase>(this.root, 'auditor.jsonl');
   readDropped = (): Promise<DroppedRow[]> =>
     readJsonlOrEmpty<DroppedRow>(this.root, 'dropped.jsonl');
+}
+
+export class BlobSftRepo implements SftRepo {
+  readonly label: string;
+  readonly bucket: string;
+  readonly prefix: string;
+
+  constructor(bucket: string, prefix: string) {
+    this.bucket = bucket;
+    this.prefix = prefix;
+    this.label = prefix ? `${bucket}/${prefix.replace(/\/$/, '')}` : bucket;
+  }
+
+  private async getJsonlOrEmpty<T>(name: string): Promise<T[]> {
+    try {
+      const res = await apiFetch(inlineUrl(this.bucket, `${this.prefix}${name}`));
+      return parseJsonl<T>(await res.text());
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        return [];
+      }
+      throw err;
+    }
+  }
+
+  readExtractor = (): Promise<SftRowBase[]> =>
+    this.getJsonlOrEmpty<SftRowBase>('extractor.jsonl');
+  readAuditor = (): Promise<SftRowBase[]> =>
+    this.getJsonlOrEmpty<SftRowBase>('auditor.jsonl');
+  readDropped = (): Promise<DroppedRow[]> =>
+    this.getJsonlOrEmpty<DroppedRow>('dropped.jsonl');
+}
+
+export function probeBlobSftRepo(): BlobSftRepo | null {
+  const root = getBlobSftRoot();
+  if (!root) {
+    return null;
+  }
+  return new BlobSftRepo(root.bucket, root.prefix);
 }
 
 const sftRoot = createPersistedRoot(

@@ -127,3 +127,53 @@ export function clearBlobRoot(): void {
   }
   window.localStorage.removeItem(BLOB_STORAGE_KEY);
 }
+
+/* ── Blob-backed SFT root ────────────────────────────────────────────
+ *
+ * Separate from `BlobRoot` (which points at the cases directory tree)
+ * because SFT bundles are produced independently and typically live in
+ * a sibling prefix (e.g. `shared/sft-10case-2026-05-18/`). Same wire
+ * shape, separate storage key so users can configure both.
+ */
+
+const BLOB_SFT_STORAGE_KEY = 'aegis.llmharness.blob.sft';
+
+export function getBlobSftRoot(): BlobRoot | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const raw = window.localStorage.getItem(BLOB_SFT_STORAGE_KEY);
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw) as Partial<BlobRoot>;
+    if (typeof parsed.bucket !== 'string' || !parsed.bucket.trim()) {
+      return null;
+    }
+    return {
+      bucket: parsed.bucket.trim(),
+      prefix: normaliseBlobPrefix(parsed.prefix ?? ''),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function setBlobSftRoot(root: BlobRoot): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const value: BlobRoot = {
+    bucket: root.bucket.trim(),
+    prefix: normaliseBlobPrefix(root.prefix),
+  };
+  window.localStorage.setItem(BLOB_SFT_STORAGE_KEY, JSON.stringify(value));
+}
+
+export function clearBlobSftRoot(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.localStorage.removeItem(BLOB_SFT_STORAGE_KEY);
+}

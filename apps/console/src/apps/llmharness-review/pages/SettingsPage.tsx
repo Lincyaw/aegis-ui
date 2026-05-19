@@ -22,12 +22,15 @@ import {
 import {
   clearBackendUrl,
   clearBlobRoot,
+  clearBlobSftRoot,
   fetchHealth,
   getBackendUrl,
   getBlobRoot,
+  getBlobSftRoot,
   type HealthInfo,
   setBackendUrl,
   setBlobRoot,
+  setBlobSftRoot,
 } from '../connection';
 
 type ProbeState =
@@ -60,6 +63,16 @@ export function SettingsPage(): ReactElement {
   const [buckets, setBuckets] = useState<BucketSummary[]>([]);
   const [browse, setBrowse] = useState<BrowseState>({ kind: 'idle' });
 
+  // Blob SFT source — separate prefix (and optionally bucket) from the
+  // cases blob root, since SFT bundles typically live in a sibling
+  // directory. Bucket defaults to the cases bucket if unset.
+  const [sftBucket, setSftBucket] = useState<string>('');
+  const [sftPrefix, setSftPrefix] = useState<string>('');
+  const [savedSftBlob, setSavedSftBlob] = useState<{
+    bucket: string;
+    prefix: string;
+  } | null>(null);
+
   useEffect(() => {
     const current = getBackendUrl();
     setSaved(current);
@@ -72,6 +85,12 @@ export function SettingsPage(): ReactElement {
       setSavedBlob({ bucket: blob.bucket, prefix: blob.prefix });
       setBlobBucket(blob.bucket);
       setBlobPrefix(blob.prefix);
+    }
+    const sftBlob = getBlobSftRoot();
+    if (sftBlob) {
+      setSavedSftBlob({ bucket: sftBlob.bucket, prefix: sftBlob.prefix });
+      setSftBucket(sftBlob.bucket);
+      setSftPrefix(sftBlob.prefix);
     }
     listBuckets()
       .then(setBuckets)
@@ -195,6 +214,26 @@ export function SettingsPage(): ReactElement {
     setBlobBucket('');
     setBlobPrefix('');
     setBrowse({ kind: 'idle' });
+  }, []);
+
+  const handleSftSave = useCallback((): void => {
+    const bucket = sftBucket.trim();
+    if (!bucket) {
+      return;
+    }
+    setBlobSftRoot({ bucket, prefix: sftPrefix });
+    const stored = getBlobSftRoot();
+    if (stored) {
+      setSavedSftBlob({ bucket: stored.bucket, prefix: stored.prefix });
+      setSftPrefix(stored.prefix);
+    }
+  }, [sftBucket, sftPrefix]);
+
+  const handleSftForget = useCallback((): void => {
+    clearBlobSftRoot();
+    setSavedSftBlob(null);
+    setSftBucket('');
+    setSftPrefix('');
   }, []);
 
   const statusChip = (() => {
@@ -481,6 +520,105 @@ export function SettingsPage(): ReactElement {
             <div style={{ marginTop: 12 }}>
               <Button tone='ghost' onClick={handleBlobForget}>
                 Forget blob source
+              </Button>
+            </div>
+          </div>
+        )}
+      </SettingsSection>
+      <SettingsSection
+        title='Blob SFT source'
+        description='Point the SFT preview at a blob prefix containing extractor.jsonl / auditor.jsonl / dropped.jsonl. Pick a bucket; type the prefix (or paste from the cases section above).'
+      >
+        <div
+          style={{
+            display: 'flex',
+            gap: 12,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <MetricLabel size='xs'>bucket</MetricLabel>
+          <DropdownMenu
+            align='left'
+            trigger={
+              <Button tone='ghost'>
+                {sftBucket || 'Choose a bucket…'} <CaretDownOutlined />
+              </Button>
+            }
+            items={
+              buckets.length > 0
+                ? buckets.map((b) => ({
+                    key: b.name,
+                    label: b.name,
+                    onClick: () => setSftBucket(b.name),
+                  }))
+                : [
+                    {
+                      key: 'empty',
+                      label: 'No buckets available',
+                      disabled: true,
+                    },
+                  ]
+            }
+          />
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <TextField
+            label='prefix'
+            placeholder='sft-10case-2026-05-18/'
+            value={sftPrefix}
+            onChange={(e) => setSftPrefix(e.target.value)}
+            spellCheck={false}
+            autoComplete='off'
+          />
+        </div>
+        <div
+          style={{
+            marginTop: 16,
+            display: 'flex',
+            gap: 8,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          {savedSftBlob ? (
+            <Chip tone='ink'>saved</Chip>
+          ) : (
+            <Chip tone='default'>not saved</Chip>
+          )}
+          <div style={{ flex: 1 }} />
+          <Button
+            onClick={handleSftSave}
+            disabled={
+              !sftBucket ||
+              (sftBucket === (savedSftBlob?.bucket ?? '') &&
+                sftPrefix === (savedSftBlob?.prefix ?? ''))
+            }
+          >
+            Save
+          </Button>
+        </div>
+        {savedSftBlob && (
+          <div style={{ marginTop: 16 }}>
+            <KeyValueList
+              items={[
+                {
+                  k: 'saved bucket',
+                  v: <MonoValue size='sm'>{savedSftBlob.bucket}</MonoValue>,
+                },
+                {
+                  k: 'saved prefix',
+                  v: (
+                    <MonoValue size='sm'>
+                      {savedSftBlob.prefix || '(bucket root)'}
+                    </MonoValue>
+                  ),
+                },
+              ]}
+            />
+            <div style={{ marginTop: 12 }}>
+              <Button tone='ghost' onClick={handleSftForget}>
+                Forget SFT source
               </Button>
             </div>
           </div>
