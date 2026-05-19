@@ -1,5 +1,10 @@
 import { CaretDownOutlined, FolderOutlined } from '@ant-design/icons';
-import { type ReactElement, useCallback, useEffect, useState } from 'react';
+import {
+  type ReactElement,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   Button,
@@ -47,71 +52,49 @@ type BrowseState =
   | { kind: 'ok'; subdirs: string[]; truncated: boolean }
   | { kind: 'error'; message: string };
 
-export function SettingsPage(): ReactElement {
-  const [draft, setDraft] = useState<string>('');
-  const [saved, setSaved] = useState<string | null>(null);
-  const [probe, setProbe] = useState<ProbeState>({ kind: 'idle' });
+interface SavedBlob {
+  bucket: string;
+  prefix: string;
+}
 
-  // Blob settings — bucket is chosen from a dropdown, prefix is built by
-  // drilling into the hierarchy. Manual typing not supported.
-  const [blobBucket, setBlobBucket] = useState<string>('');
-  const [blobPrefix, setBlobPrefix] = useState<string>('');
-  const [savedBlob, setSavedBlob] = useState<{
-    bucket: string;
-    prefix: string;
-  } | null>(null);
-  const [buckets, setBuckets] = useState<BucketSummary[]>([]);
+interface BlobPathPickerProps {
+  buckets: BucketSummary[];
+  saved: SavedBlob | null;
+  onSave: (bucket: string, prefix: string) => void;
+  onForget: () => void;
+  saveLabel: string;
+  forgetLabel: string;
+  emptyHint: string;
+}
+
+function BlobPathPicker({
+  buckets,
+  saved,
+  onSave,
+  onForget,
+  saveLabel,
+  forgetLabel,
+  emptyHint,
+}: BlobPathPickerProps): ReactElement {
+  const [bucket, setBucket] = useState<string>(saved?.bucket ?? '');
+  const [prefix, setPrefix] = useState<string>(saved?.prefix ?? '');
   const [browse, setBrowse] = useState<BrowseState>({ kind: 'idle' });
 
-  // Blob SFT source — separate prefix (and optionally bucket) from the
-  // cases blob root, since SFT bundles typically live in a sibling
-  // directory. Bucket defaults to the cases bucket if unset.
-  const [sftBucket, setSftBucket] = useState<string>('');
-  const [sftPrefix, setSftPrefix] = useState<string>('');
-  const [savedSftBlob, setSavedSftBlob] = useState<{
-    bucket: string;
-    prefix: string;
-  } | null>(null);
+  // Re-hydrate when the parent's saved value changes (e.g. on forget).
+  useEffect(() => {
+    setBucket(saved?.bucket ?? '');
+    setPrefix(saved?.prefix ?? '');
+  }, [saved?.bucket, saved?.prefix]);
 
   useEffect(() => {
-    const current = getBackendUrl();
-    setSaved(current);
-    setDraft(current ?? '');
-    if (current) {
-      void probeUrl(current);
-    }
-    const blob = getBlobRoot();
-    if (blob) {
-      setSavedBlob({ bucket: blob.bucket, prefix: blob.prefix });
-      setBlobBucket(blob.bucket);
-      setBlobPrefix(blob.prefix);
-    }
-    const sftBlob = getBlobSftRoot();
-    if (sftBlob) {
-      setSavedSftBlob({ bucket: sftBlob.bucket, prefix: sftBlob.prefix });
-      setSftBucket(sftBlob.bucket);
-      setSftPrefix(sftBlob.prefix);
-    }
-    listBuckets()
-      .then(setBuckets)
-      .catch(() => {
-        // Buckets dropdown stays empty — surfaced via empty-state below.
-      });
-    // probeUrl identity is stable below; this effect only runs once.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Whenever the chosen (bucket, prefix) changes, refresh the sub-directory
-  // listing that drives the path browser.
-  useEffect(() => {
-    if (!blobBucket) {
+    if (!bucket) {
       setBrowse({ kind: 'idle' });
       return;
     }
     let cancelled = false;
     setBrowse({ kind: 'loading' });
-    driverList(blobBucket, {
-      prefix: blobPrefix,
+    driverList(bucket, {
+      prefix,
       delimiter: '/',
       max_keys: 1000,
     })
@@ -119,9 +102,7 @@ export function SettingsPage(): ReactElement {
         if (cancelled) {
           return;
         }
-        const subdirs = (page.common_prefixes ?? []).filter(
-          (p) => p !== blobPrefix
-        );
+        const subdirs = (page.common_prefixes ?? []).filter((p) => p !== prefix);
         setBrowse({
           kind: 'ok',
           subdirs,
@@ -140,7 +121,208 @@ export function SettingsPage(): ReactElement {
     return () => {
       cancelled = true;
     };
-  }, [blobBucket, blobPrefix]);
+  }, [bucket, prefix]);
+
+  const dirty =
+    bucket.trim() !== (saved?.bucket ?? '') ||
+    prefix.trim() !== (saved?.prefix ?? '');
+
+  const statusChip = (() => {
+    if (!bucket) {
+      return <Chip tone='default'>no bucket selected</Chip>;
+    }
+    switch (browse.kind) {
+      case 'idle':
+        return <Chip tone='default'>idle</Chip>;
+      case 'loading':
+        return <Chip tone='default'>browsing…</Chip>;
+      case 'ok':
+        return <Chip tone='ink'>connected</Chip>;
+      case 'error':
+        return <Chip tone='warning'>unreachable</Chip>;
+    }
+  })();
+
+  const segments = prefix
+    .split('/')
+    .filter((s) => s.length > 0)
+    .map((seg, idx, arr) => ({
+      label: seg,
+      target: `${arr.slice(0, idx + 1).join('/')}/`,
+    }));
+
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          gap: 12,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
+        <MetricLabel size='xs'>bucket</MetricLabel>
+        <DropdownMenu
+          align='left'
+          trigger={
+            <Button tone='ghost'>
+              {bucket || 'Choose a bucket…'} <CaretDownOutlined />
+            </Button>
+          }
+          items={
+            buckets.length > 0
+              ? buckets.map((b) => ({
+                  key: b.name,
+                  label: b.name,
+                  onClick: () => {
+                    setBucket(b.name);
+                    setPrefix('');
+                  },
+                }))
+              : [
+                  {
+                    key: 'empty',
+                    label: 'No buckets available',
+                    disabled: true,
+                  },
+                ]
+          }
+        />
+        {bucket && (
+          <MetricLabel size='xs'>
+            {browse.kind === 'ok'
+              ? `${String(browse.subdirs.length)} sub-dir${
+                  browse.subdirs.length === 1 ? '' : 's'
+                } here`
+              : ''}
+          </MetricLabel>
+        )}
+      </div>
+
+      {bucket && (
+        <div style={{ marginTop: 16 }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 6,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              marginBottom: 8,
+            }}
+          >
+            <MetricLabel size='xs'>path</MetricLabel>
+            <Chip
+              tone={prefix === '' ? 'ink' : 'default'}
+              onClick={() => setPrefix('')}
+            >
+              {bucket}
+            </Chip>
+            {segments.map((seg, idx) => (
+              <Chip
+                key={seg.target}
+                tone={idx === segments.length - 1 ? 'ink' : 'default'}
+                onClick={() => setPrefix(seg.target)}
+              >
+                {seg.label}
+              </Chip>
+            ))}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: 6,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              minHeight: 32,
+            }}
+          >
+            {browse.kind === 'loading' && (
+              <MetricLabel size='xs'>browsing…</MetricLabel>
+            )}
+            {browse.kind === 'error' && (
+              <MetricLabel size='xs'>{browse.message}</MetricLabel>
+            )}
+            {browse.kind === 'ok' && browse.subdirs.length === 0 && (
+              <MetricLabel size='xs'>{emptyHint}</MetricLabel>
+            )}
+            {browse.kind === 'ok' &&
+              browse.subdirs.map((sub) => {
+                const rel = sub.startsWith(prefix) ? sub.slice(prefix.length) : sub;
+                const label = rel.replace(/\/$/, '');
+                return (
+                  <Chip
+                    key={sub}
+                    tone='default'
+                    onClick={() => setPrefix(sub)}
+                  >
+                    <FolderOutlined style={{ marginRight: 4 }} />
+                    {label}
+                  </Chip>
+                );
+              })}
+            {browse.kind === 'ok' && browse.truncated && (
+              <MetricLabel size='xs'>…list truncated at 1000 entries</MetricLabel>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          marginTop: 16,
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
+        {statusChip}
+        <div style={{ flex: 1 }} />
+        <Button
+          onClick={() => onSave(bucket.trim(), prefix)}
+          disabled={!bucket || !dirty}
+        >
+          {saveLabel}
+        </Button>
+      </div>
+
+      {saved && (
+        <div style={{ marginTop: 16 }}>
+          <KeyValueList
+            items={[
+              {
+                k: 'saved bucket',
+                v: <MonoValue size='sm'>{saved.bucket}</MonoValue>,
+              },
+              {
+                k: 'saved prefix',
+                v: (
+                  <MonoValue size='sm'>
+                    {saved.prefix || '(bucket root)'}
+                  </MonoValue>
+                ),
+              },
+            ]}
+          />
+          <div style={{ marginTop: 12 }}>
+            <Button tone='ghost' onClick={onForget}>
+              {forgetLabel}
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export function SettingsPage(): ReactElement {
+  const [draft, setDraft] = useState<string>('');
+  const [saved, setSaved] = useState<string | null>(null);
+  const [probe, setProbe] = useState<ProbeState>({ kind: 'idle' });
+
+  const [buckets, setBuckets] = useState<BucketSummary[]>([]);
+  const [savedBlob, setSavedBlob] = useState<SavedBlob | null>(null);
+  const [savedSftBlob, setSavedSftBlob] = useState<SavedBlob | null>(null);
 
   const probeUrl = useCallback(async (url: string): Promise<void> => {
     setProbe({ kind: 'probing' });
@@ -154,6 +336,28 @@ export function SettingsPage(): ReactElement {
       });
     }
   }, []);
+
+  useEffect(() => {
+    const current = getBackendUrl();
+    setSaved(current);
+    setDraft(current ?? '');
+    if (current) {
+      void probeUrl(current);
+    }
+    const blob = getBlobRoot();
+    if (blob) {
+      setSavedBlob({ bucket: blob.bucket, prefix: blob.prefix });
+    }
+    const sftBlob = getBlobSftRoot();
+    if (sftBlob) {
+      setSavedSftBlob({ bucket: sftBlob.bucket, prefix: sftBlob.prefix });
+    }
+    listBuckets()
+      .then(setBuckets)
+      .catch(() => {
+        // Buckets dropdown stays empty — surfaced via empty-state below.
+      });
+  }, [probeUrl]);
 
   const handleSave = useCallback(async (): Promise<void> => {
     const trimmed = draft.trim();
@@ -180,60 +384,36 @@ export function SettingsPage(): ReactElement {
     setProbe({ kind: 'idle' });
   }, []);
 
-  const handlePickBucket = useCallback((name: string): void => {
-    setBlobBucket(name);
-    setBlobPrefix('');
-  }, []);
-
-  const handleDrillInto = useCallback((subdir: string): void => {
-    // common_prefixes already includes the trailing slash and is relative to
-    // the bucket root, so we can use it directly as the next browse prefix.
-    setBlobPrefix(subdir);
-  }, []);
-
-  const handleJumpToSegment = useCallback((nextPrefix: string): void => {
-    setBlobPrefix(nextPrefix);
-  }, []);
-
-  const handleBlobSave = useCallback((): void => {
-    const bucket = blobBucket.trim();
+  const handleBlobSave = useCallback((bucket: string, prefix: string): void => {
     if (!bucket) {
       return;
     }
-    setBlobRoot({ bucket, prefix: blobPrefix });
+    setBlobRoot({ bucket, prefix });
     const stored = getBlobRoot();
     if (stored) {
       setSavedBlob({ bucket: stored.bucket, prefix: stored.prefix });
-      setBlobPrefix(stored.prefix);
     }
-  }, [blobBucket, blobPrefix]);
+  }, []);
 
   const handleBlobForget = useCallback((): void => {
     clearBlobRoot();
     setSavedBlob(null);
-    setBlobBucket('');
-    setBlobPrefix('');
-    setBrowse({ kind: 'idle' });
   }, []);
 
-  const handleSftSave = useCallback((): void => {
-    const bucket = sftBucket.trim();
+  const handleSftSave = useCallback((bucket: string, prefix: string): void => {
     if (!bucket) {
       return;
     }
-    setBlobSftRoot({ bucket, prefix: sftPrefix });
+    setBlobSftRoot({ bucket, prefix });
     const stored = getBlobSftRoot();
     if (stored) {
       setSavedSftBlob({ bucket: stored.bucket, prefix: stored.prefix });
-      setSftPrefix(stored.prefix);
     }
-  }, [sftBucket, sftPrefix]);
+  }, []);
 
   const handleSftForget = useCallback((): void => {
     clearBlobSftRoot();
     setSavedSftBlob(null);
-    setSftBucket('');
-    setSftPrefix('');
   }, []);
 
   const statusChip = (() => {
@@ -250,35 +430,6 @@ export function SettingsPage(): ReactElement {
   })();
 
   const dirty = draft.trim() !== (saved ?? '');
-
-  const blobStatusChip = (() => {
-    if (!blobBucket) {
-      return <Chip tone='default'>no bucket selected</Chip>;
-    }
-    switch (browse.kind) {
-      case 'idle':
-        return <Chip tone='default'>idle</Chip>;
-      case 'loading':
-        return <Chip tone='default'>browsing…</Chip>;
-      case 'ok':
-        return <Chip tone='ink'>connected</Chip>;
-      case 'error':
-        return <Chip tone='warning'>unreachable</Chip>;
-    }
-  })();
-
-  const blobDirty =
-    blobBucket.trim() !== (savedBlob?.bucket ?? '') ||
-    blobPrefix.trim() !== (savedBlob?.prefix ?? '');
-
-  // Breadcrumb segments derived from the current prefix.
-  const segments = blobPrefix
-    .split('/')
-    .filter((s) => s.length > 0)
-    .map((seg, idx, arr) => ({
-      label: seg,
-      target: `${arr.slice(0, idx + 1).join('/')}/`,
-    }));
 
   return (
     <Panel
@@ -361,268 +512,29 @@ export function SettingsPage(): ReactElement {
         title='Blob source'
         description='Point at a path inside platform blob storage (aegis-blob). Pick a bucket, then drill into the directory tree — the viewer enumerates case directories under the chosen prefix.'
       >
-        {/* Bucket picker */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <MetricLabel size='xs'>bucket</MetricLabel>
-          <DropdownMenu
-            align='left'
-            trigger={
-              <Button tone='ghost'>
-                {blobBucket || 'Choose a bucket…'} <CaretDownOutlined />
-              </Button>
-            }
-            items={
-              buckets.length > 0
-                ? buckets.map((b) => ({
-                    key: b.name,
-                    label: b.name,
-                    onClick: () => handlePickBucket(b.name),
-                  }))
-                : [
-                    {
-                      key: 'empty',
-                      label: 'No buckets available',
-                      disabled: true,
-                    },
-                  ]
-            }
-          />
-          {blobBucket && (
-            <MetricLabel size='xs'>
-              {browse.kind === 'ok'
-                ? `${String(browse.subdirs.length)} sub-dir${
-                    browse.subdirs.length === 1 ? '' : 's'
-                  } here`
-                : ''}
-            </MetricLabel>
-          )}
-        </div>
-
-        {/* Path breadcrumb + browser */}
-        {blobBucket && (
-          <div style={{ marginTop: 16 }}>
-            <div
-              style={{
-                display: 'flex',
-                gap: 6,
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                marginBottom: 8,
-              }}
-            >
-              <MetricLabel size='xs'>path</MetricLabel>
-              <Chip
-                tone={blobPrefix === '' ? 'ink' : 'default'}
-                onClick={() => handleJumpToSegment('')}
-              >
-                {blobBucket}
-              </Chip>
-              {segments.map((seg, idx) => (
-                <Chip
-                  key={seg.target}
-                  tone={idx === segments.length - 1 ? 'ink' : 'default'}
-                  onClick={() => handleJumpToSegment(seg.target)}
-                >
-                  {seg.label}
-                </Chip>
-              ))}
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                gap: 6,
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                minHeight: 32,
-              }}
-            >
-              {browse.kind === 'loading' && (
-                <MetricLabel size='xs'>browsing…</MetricLabel>
-              )}
-              {browse.kind === 'error' && (
-                <MetricLabel size='xs'>{browse.message}</MetricLabel>
-              )}
-              {browse.kind === 'ok' && browse.subdirs.length === 0 && (
-                <MetricLabel size='xs'>
-                  no sub-directories here — saving this prefix will scan its
-                  contents as cases
-                </MetricLabel>
-              )}
-              {browse.kind === 'ok' &&
-                browse.subdirs.map((sub) => {
-                  // Display the leaf segment only.
-                  const rel = sub.startsWith(blobPrefix)
-                    ? sub.slice(blobPrefix.length)
-                    : sub;
-                  const label = rel.replace(/\/$/, '');
-                  return (
-                    <Chip
-                      key={sub}
-                      tone='default'
-                      onClick={() => handleDrillInto(sub)}
-                    >
-                      <FolderOutlined style={{ marginRight: 4 }} />
-                      {label}
-                    </Chip>
-                  );
-                })}
-              {browse.kind === 'ok' && browse.truncated && (
-                <MetricLabel size='xs'>
-                  …list truncated at 1000 entries
-                </MetricLabel>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Save / status */}
-        <div
-          style={{
-            marginTop: 16,
-            display: 'flex',
-            gap: 8,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          {blobStatusChip}
-          <div style={{ flex: 1 }} />
-          <Button onClick={handleBlobSave} disabled={!blobBucket || !blobDirty}>
-            Save
-          </Button>
-        </div>
-
-        {savedBlob && (
-          <div style={{ marginTop: 16 }}>
-            <KeyValueList
-              items={[
-                {
-                  k: 'saved bucket',
-                  v: <MonoValue size='sm'>{savedBlob.bucket}</MonoValue>,
-                },
-                {
-                  k: 'saved prefix',
-                  v: (
-                    <MonoValue size='sm'>
-                      {savedBlob.prefix || '(bucket root)'}
-                    </MonoValue>
-                  ),
-                },
-              ]}
-            />
-            <div style={{ marginTop: 12 }}>
-              <Button tone='ghost' onClick={handleBlobForget}>
-                Forget blob source
-              </Button>
-            </div>
-          </div>
-        )}
+        <BlobPathPicker
+          buckets={buckets}
+          saved={savedBlob}
+          onSave={handleBlobSave}
+          onForget={handleBlobForget}
+          saveLabel='Save'
+          forgetLabel='Forget blob source'
+          emptyHint='no sub-directories here — saving this prefix will scan its contents as cases'
+        />
       </SettingsSection>
       <SettingsSection
         title='Blob SFT source'
-        description='Point the SFT preview at a blob prefix containing extractor.jsonl / auditor.jsonl / dropped.jsonl. Pick a bucket; type the prefix (or paste from the cases section above).'
+        description='Point the SFT preview at a blob prefix containing extractor.jsonl / auditor.jsonl / dropped.jsonl. Pick a bucket and drill into the directory tree.'
       >
-        <div
-          style={{
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <MetricLabel size='xs'>bucket</MetricLabel>
-          <DropdownMenu
-            align='left'
-            trigger={
-              <Button tone='ghost'>
-                {sftBucket || 'Choose a bucket…'} <CaretDownOutlined />
-              </Button>
-            }
-            items={
-              buckets.length > 0
-                ? buckets.map((b) => ({
-                    key: b.name,
-                    label: b.name,
-                    onClick: () => setSftBucket(b.name),
-                  }))
-                : [
-                    {
-                      key: 'empty',
-                      label: 'No buckets available',
-                      disabled: true,
-                    },
-                  ]
-            }
-          />
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <TextField
-            label='prefix'
-            placeholder='sft-10case-2026-05-18/'
-            value={sftPrefix}
-            onChange={(e) => setSftPrefix(e.target.value)}
-            spellCheck={false}
-            autoComplete='off'
-          />
-        </div>
-        <div
-          style={{
-            marginTop: 16,
-            display: 'flex',
-            gap: 8,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          {savedSftBlob ? (
-            <Chip tone='ink'>saved</Chip>
-          ) : (
-            <Chip tone='default'>not saved</Chip>
-          )}
-          <div style={{ flex: 1 }} />
-          <Button
-            onClick={handleSftSave}
-            disabled={
-              !sftBucket ||
-              (sftBucket === (savedSftBlob?.bucket ?? '') &&
-                sftPrefix === (savedSftBlob?.prefix ?? ''))
-            }
-          >
-            Save
-          </Button>
-        </div>
-        {savedSftBlob && (
-          <div style={{ marginTop: 16 }}>
-            <KeyValueList
-              items={[
-                {
-                  k: 'saved bucket',
-                  v: <MonoValue size='sm'>{savedSftBlob.bucket}</MonoValue>,
-                },
-                {
-                  k: 'saved prefix',
-                  v: (
-                    <MonoValue size='sm'>
-                      {savedSftBlob.prefix || '(bucket root)'}
-                    </MonoValue>
-                  ),
-                },
-              ]}
-            />
-            <div style={{ marginTop: 12 }}>
-              <Button tone='ghost' onClick={handleSftForget}>
-                Forget SFT source
-              </Button>
-            </div>
-          </div>
-        )}
+        <BlobPathPicker
+          buckets={buckets}
+          saved={savedSftBlob}
+          onSave={handleSftSave}
+          onForget={handleSftForget}
+          saveLabel='Save'
+          forgetLabel='Forget SFT source'
+          emptyHint='no sub-directories here — saving this prefix will read extractor.jsonl / auditor.jsonl / dropped.jsonl from it'
+        />
       </SettingsSection>
       {saved && (
         <SettingsSection
