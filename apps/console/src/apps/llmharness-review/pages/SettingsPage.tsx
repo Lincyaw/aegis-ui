@@ -12,6 +12,7 @@ import {
   PanelTitle,
   SettingsSection,
   TextField,
+  useAuth,
 } from '@lincyaw/aegis-ui';
 
 import {
@@ -61,7 +62,9 @@ export function SettingsPage(): ReactElement {
     prefix: string;
   } | null>(null);
   const [buckets, setBuckets] = useState<BucketSummary[]>([]);
+  const [bucketsError, setBucketsError] = useState<string | null>(null);
   const [browse, setBrowse] = useState<BrowseState>({ kind: 'idle' });
+  const auth = useAuth();
 
   // Blob SFT source — separate prefix (and optionally bucket) from the
   // cases blob root, since SFT bundles typically live in a sibling
@@ -92,14 +95,37 @@ export function SettingsPage(): ReactElement {
       setSftBucket(sftBlob.bucket);
       setSftPrefix(sftBlob.prefix);
     }
-    listBuckets()
-      .then(setBuckets)
-      .catch(() => {
-        // Buckets dropdown stays empty — surfaced via empty-state below.
-      });
     // probeUrl identity is stable below; this effect only runs once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Bucket enumeration needs an authenticated session: /api/v2/blob/buckets
+  // returns 401 without a Bearer. Re-run when the session arrives so the
+  // dropdown populates after sign-in, and surface failures instead of
+  // silently rendering "No buckets available".
+  useEffect(() => {
+    if (auth.status !== 'authenticated') {
+      setBuckets([]);
+      setBucketsError(null);
+      return;
+    }
+    let cancelled = false;
+    setBucketsError(null);
+    listBuckets()
+      .then((bs) => {
+        if (!cancelled) {
+          setBuckets(bs);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setBucketsError(err instanceof Error ? err.message : String(err));
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [auth.status]);
 
   // Whenever the chosen (bucket, prefix) changes, refresh the sub-directory
   // listing that drives the path browser.
@@ -361,6 +387,46 @@ export function SettingsPage(): ReactElement {
         title='Blob source'
         description='Point at a path inside platform blob storage (aegis-blob). Pick a bucket, then drill into the directory tree — the viewer enumerates case directories under the chosen prefix.'
       >
+        {auth.status !== 'authenticated' && (
+          <div
+            style={{
+              marginBottom: 12,
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Chip tone='warning'>not signed in</Chip>
+            <MetricLabel size='xs'>
+              Blob listing requires an authenticated session.
+            </MetricLabel>
+            {auth.signIn && (
+              <Button
+                tone='ghost'
+                onClick={() => {
+                  void auth.signIn?.({});
+                }}
+              >
+                Sign in
+              </Button>
+            )}
+          </div>
+        )}
+        {auth.status === 'authenticated' && bucketsError && (
+          <div
+            style={{
+              marginBottom: 12,
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Chip tone='warning'>buckets unavailable</Chip>
+            <MetricLabel size='xs'>{bucketsError}</MetricLabel>
+          </div>
+        )}
         {/* Bucket picker */}
         <div
           style={{
@@ -529,6 +595,46 @@ export function SettingsPage(): ReactElement {
         title='Blob SFT source'
         description='Point the SFT preview at a blob prefix containing extractor.jsonl / auditor.jsonl / dropped.jsonl. Pick a bucket; type the prefix (or paste from the cases section above).'
       >
+        {auth.status !== 'authenticated' && (
+          <div
+            style={{
+              marginBottom: 12,
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Chip tone='warning'>not signed in</Chip>
+            <MetricLabel size='xs'>
+              Blob listing requires an authenticated session.
+            </MetricLabel>
+            {auth.signIn && (
+              <Button
+                tone='ghost'
+                onClick={() => {
+                  void auth.signIn?.({});
+                }}
+              >
+                Sign in
+              </Button>
+            )}
+          </div>
+        )}
+        {auth.status === 'authenticated' && bucketsError && (
+          <div
+            style={{
+              marginBottom: 12,
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Chip tone='warning'>buckets unavailable</Chip>
+            <MetricLabel size='xs'>{bucketsError}</MetricLabel>
+          </div>
+        )}
         <div
           style={{
             display: 'flex',
