@@ -12,6 +12,21 @@ import { apiFetch, type ApiFetchOptions, apiJson } from './apiClient';
 
 const ROOT = '/api/v2/blob';
 
+interface Envelope<T> {
+  code: number;
+  message: string;
+  data: T;
+  timestamp?: number;
+}
+
+async function unwrap<T>(
+  path: string,
+  init: ApiFetchOptions = {},
+): Promise<T> {
+  const env = await apiJson<Envelope<T>>(path, init);
+  return env.data;
+}
+
 export interface PresignedRequest {
   method: string;
   url: string;
@@ -73,8 +88,8 @@ export interface BucketSummary {
 }
 
 export async function listBuckets(): Promise<BucketSummary[]> {
-  const res = await apiJson<{ items: BucketSummary[] }>(`${ROOT}/buckets`);
-  return res.items;
+  const res = await unwrap<{ items: BucketSummary[] }>(`${ROOT}/buckets`);
+  return res.items ?? [];
 }
 
 export interface ListParams {
@@ -106,7 +121,7 @@ export async function listObjects(
   bucket: string,
   params: ListParams = {}
 ): Promise<ListResp> {
-  return apiJson<ListResp>(
+  return unwrap<ListResp>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects${buildQuery(params)}`
   );
 }
@@ -115,7 +130,7 @@ export async function presignPut(
   bucket: string,
   req: PresignPutReq
 ): Promise<PresignPutResp> {
-  return apiJson<PresignPutResp>(
+  return unwrap<PresignPutResp>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/presign-put`,
     { method: 'POST', body: JSON.stringify(req) }
   );
@@ -125,7 +140,7 @@ export async function presignGet(
   bucket: string,
   req: PresignGetReq
 ): Promise<PresignedRequest> {
-  return apiJson<PresignedRequest>(
+  return unwrap<PresignedRequest>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/presign-get`,
     { method: 'POST', body: JSON.stringify(req) }
   );
@@ -174,7 +189,7 @@ export async function batchDelete(
   bucket: string,
   keys: string[]
 ): Promise<BatchDeleteResult> {
-  return apiJson<BatchDeleteResult>(
+  return unwrap<BatchDeleteResult>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/delete-batch`,
     { method: 'POST', body: JSON.stringify({ keys }) }
   );
@@ -218,7 +233,7 @@ export interface CreateBucketReq {
 export async function createBucket(
   req: CreateBucketReq
 ): Promise<BucketSummary> {
-  return apiJson<BucketSummary>(`${ROOT}/buckets`, {
+  return unwrap<BucketSummary>(`${ROOT}/buckets`, {
     method: 'POST',
     body: JSON.stringify(req),
   });
@@ -266,7 +281,7 @@ export async function driverList(
     u.set('max_keys', params.max_keys.toString());
   }
   const q = u.toString();
-  const raw = await apiJson<DriverListResult>(
+  const raw = await unwrap<DriverListResult>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`,
   );
   return {
