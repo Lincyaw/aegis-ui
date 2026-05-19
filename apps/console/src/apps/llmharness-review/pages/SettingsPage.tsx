@@ -527,50 +527,29 @@ export function SettingsPage(): ReactElement {
       </SettingsSection>
       <SettingsSection
         title='Blob SFT source'
-        description='Point the SFT preview at a blob prefix containing extractor.jsonl / auditor.jsonl / dropped.jsonl. Pick a bucket; type the prefix (or paste from the cases section above).'
+        description='Point the SFT preview at a blob prefix containing extractor.jsonl / auditor.jsonl / dropped.jsonl. Type the bucket and prefix directly.'
       >
-        <div
-          style={{
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <MetricLabel size='xs'>bucket</MetricLabel>
-          <DropdownMenu
-            align='left'
-            trigger={
-              <Button tone='ghost'>
-                {sftBucket || 'Choose a bucket…'} <CaretDownOutlined />
-              </Button>
-            }
-            items={
-              buckets.length > 0
-                ? buckets.map((b) => ({
-                    key: b.name,
-                    label: b.name,
-                    onClick: () => setSftBucket(b.name),
-                  }))
-                : [
-                    {
-                      key: 'empty',
-                      label: 'No buckets available',
-                      disabled: true,
-                    },
-                  ]
-            }
-          />
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <TextField
-            label='prefix'
-            placeholder='sft-10case-2026-05-18/'
-            value={sftPrefix}
-            onChange={(e) => setSftPrefix(e.target.value)}
-            spellCheck={false}
-            autoComplete='off'
-          />
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ flex: '0 0 240px', minWidth: 200 }}>
+            <TextField
+              label='bucket'
+              placeholder='shared'
+              value={sftBucket}
+              onChange={(e) => setSftBucket(e.target.value)}
+              spellCheck={false}
+              autoComplete='off'
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <TextField
+              label='prefix'
+              placeholder='sft-10case-2026-05-18/'
+              value={sftPrefix}
+              onChange={(e) => setSftPrefix(e.target.value)}
+              spellCheck={false}
+              autoComplete='off'
+            />
+          </div>
         </div>
         <div
           style={{
