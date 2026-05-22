@@ -1,6 +1,7 @@
-// In-tab token + flow state. sessionStorage means the user re-auths
-// when the tab is closed; we trade UX for not leaking long-lived tokens
-// into localStorage where any XSS can grab them.
+// Tokens live in localStorage so login persists across tabs and survives
+// tab close. PendingAuth (PKCE state) stays in sessionStorage because the
+// OAuth round-trip is always single-tab and stale state from another tab
+// would only cause callback mismatches.
 
 export interface TokenSet {
   accessToken: string;
@@ -18,23 +19,23 @@ export interface PendingAuth {
 }
 
 export function readTokens(): TokenSet | null {
-  const raw = window.sessionStorage.getItem(TOKEN_KEY);
+  const raw = window.localStorage.getItem(TOKEN_KEY);
   if (!raw) {
     return null;
   }
   try {
     return JSON.parse(raw) as TokenSet;
   } catch {
-    window.sessionStorage.removeItem(TOKEN_KEY);
+    window.localStorage.removeItem(TOKEN_KEY);
     return null;
   }
 }
 
 export function writeTokens(tokens: TokenSet | null): void {
   if (tokens) {
-    window.sessionStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+    window.localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
   } else {
-    window.sessionStorage.removeItem(TOKEN_KEY);
+    window.localStorage.removeItem(TOKEN_KEY);
   }
 }
 
