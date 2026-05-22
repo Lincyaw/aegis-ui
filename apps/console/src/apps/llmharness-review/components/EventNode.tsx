@@ -17,7 +17,13 @@ export interface EventNodeData {
   highlighted: boolean;
   isNew?: boolean;
   onSelect?: (id: number) => void;
-  onSelectTurn?: (turnIndex: number) => void;
+  /**
+   * Open a scrollable list of source-turn messages in a modal. Receives
+   * the full source_turns array — letting the host show every cited turn
+   * at once is much friendlier than jumping the selection (which used to
+   * unmount the graph viewport when the user just wanted a peek).
+   */
+  onOpenTurns?: (turns: number[]) => void;
 }
 
 function EventNodeImpl({ data }: NodeProps<EventNodeData>) {
@@ -46,15 +52,15 @@ function EventNodeImpl({ data }: NodeProps<EventNodeData>) {
         <span className='llmh-evt-node__kind'>{data.kind}</span>
         <span className='llmh-evt-node__id'>#{data.id}</span>
         {data.source_turns.length > 0 &&
-          (data.onSelectTurn ? (
+          (data.onOpenTurns ? (
             <button
               type='button'
               className='llmh-evt-node__turns llmh-evt-node__turns--btn'
               onClick={(e) => {
                 e.stopPropagation();
-                data.onSelectTurn?.(data.source_turns[0]);
+                data.onOpenTurns?.(data.source_turns);
               }}
-              title='Jump to first source turn in trajectory'
+              title='Show source turn messages in a popup'
             >
               ↗ turn {data.source_turns.join(',')}
             </button>
