@@ -1,12 +1,15 @@
 import {
+  createContext,
   type ReactElement,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Modal } from 'antd';
 
 import {
   Chip,
@@ -45,12 +48,33 @@ import { CaseSelectionProvider } from '../CaseSelection';
 import { useCaseSelection } from '../selection';
 
 import { FiringsTimeline } from './FiringsTimeline';
-import { ExtractorInspector } from './inspectors/ExtractorInspector';
-import { AuditorInspector } from './inspectors/AuditorInspector';
 
 import './CaseDetailPage.css';
 
 const EXCERPT_LIMIT = 80;
+
+// --- Detail modal context ----------------------------------------------
+//
+// The right-rail DetailRail used to take ~360px of permanent screen real
+// estate but only mattered when the user explicitly drilled into a node /
+// turn / finding. We now open it on demand as a Modal: single-click still
+// drives cross-pane highlight (same selection state), but a *double*
+// click on a graph node, a turn row, or a firing chip pops the detail
+// over the graph.
+
+interface DetailModalApi {
+  openDetail: () => void;
+  openTurnsList: (turns: number[]) => void;
+}
+
+const DetailModalContext = createContext<DetailModalApi>({
+  openDetail: () => undefined,
+  openTurnsList: () => undefined,
+});
+
+function useDetailModal(): DetailModalApi {
+  return useContext(DetailModalContext);
+}
 
 function firstTextExcerpt(turn: MainTurn): string {
   for (const block of turn.content) {
@@ -104,6 +128,7 @@ interface TurnRailProps {
 
 function TurnRail({ bundle }: TurnRailProps): ReactElement {
   const { selection, set } = useCaseSelection();
+  const { openDetail } = useDetailModal();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const citedTurns = useMemo<Set<number>>(() => {
@@ -193,23 +218,28 @@ function TurnRail({ bundle }: TurnRailProps): ReactElement {
               role='button'
               tabIndex={0}
               onClick={() => {
+                // Keep mode/extractorSeq/auditorSeq intact so the center
+                // graph viewport stays on its current firing — single
+                // click on a turn is just focus, not navigation.
                 set({
                   turn: idx,
-                  mode: null,
-                  extractorSeq: null,
-                  auditorSeq: null,
                   eventId: null,
                   findingId: null,
                 });
+              }}
+              onDoubleClick={() => {
+                set({
+                  turn: idx,
+                  eventId: null,
+                  findingId: null,
+                });
+                openDetail();
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   set({
                     turn: idx,
-                    mode: null,
-                    extractorSeq: null,
-                    auditorSeq: null,
                     eventId: null,
                     findingId: null,
                   });
@@ -247,6 +277,7 @@ interface GraphViewportProps {
 
 function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
   const { selection, set } = useCaseSelection();
+  const { openDetail, openTurnsList } = useDetailModal();
 
   const orderedExtractors = useMemo<ExtractorFiring[]>(
     () => [...bundle.extractor].sort((a, b) => a.sequence - b.sequence),
@@ -272,21 +303,12 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
     },
     [set],
   );
-  const onSelectTurn = useCallback(
-    (turnIndex: number) => {
-      // Jumping to a turn from inside a firing inspector / event chip is
-      // an explicit move of focus to the message rail — clear the firing
-      // mode so the dispatcher reaches the turn branch.
-      set({
-        turn: turnIndex,
-        mode: null,
-        extractorSeq: null,
-        auditorSeq: null,
-        eventId: null,
-        findingId: null,
-      });
+  const onOpenEventDetail = useCallback(
+    (id: number) => {
+      set({ eventId: id });
+      openDetail();
     },
-    [set],
+    [set, openDetail],
   );
 
   if (extractorFiring) {
@@ -360,7 +382,8 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
             selectedEventId={selection.eventId}
             newEventIds={newEventIds}
             onSelectEvent={onSelectEvent}
-            onSelectTurn={onSelectTurn}
+            onOpenTurns={openTurnsList}
+            onOpenDetail={onOpenEventDetail}
           />
         </div>
       </div>
@@ -419,7 +442,8 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
               selectedEventId={selection.eventId}
               newEventIds={null}
               onSelectEvent={onSelectEvent}
-              onSelectTurn={onSelectTurn}
+              onOpenTurns={openTurnsList}
+              onOpenDetail={onOpenEventDetail}
             />
           ) : (
             <EmptyState
@@ -713,30 +737,13 @@ function DetailRail({ bundle }: DetailRailProps): ReactElement {
     );
   }
 
-  // --- Firing inspector (mode-driven). Must run BEFORE the turn check
-  // because the timeline click handler sets turn together with mode/seq
-  // (the turn is for scroll-sync into the messages rail) — if turn wins
-  // here, clicking a firing chip would always land in TurnInspector.
-  // Sibling inspectors that move focus to a message clear mode/seq, so
-  // a deliberate "show me the message" still reaches the turn branch.
-  if (selection.mode === 'extractor' && selection.extractorSeq !== null) {
-    const f = bundle.extractor.find(
-      (x) => x.sequence === selection.extractorSeq,
-    );
-    if (f) {
-      return <ExtractorInspector firing={f} bundle={bundle} />;
-    }
-  }
-  if (selection.mode === 'auditor' && selection.auditorSeq !== null) {
-    const f = bundle.auditor.find(
-      (x) => x.sequence === selection.auditorSeq,
-    );
-    if (f) {
-      return <AuditorInspector firing={f} bundle={bundle} />;
-    }
-  }
-
   // --- Turn detail
+  //
+  // Turn must be checked BEFORE the firing-mode branch: the center graph
+  // viewport stays alive even when the user picks a turn (single-click
+  // on a row no longer clears mode/extractorSeq), so the firing inspector
+  // would otherwise win and the modal would show firing meta instead of
+  // the turn message the user just double-clicked.
   if (selection.turn !== null) {
     const turn = bundle.main.find((t) => t.index === selection.turn);
     if (!turn) {
@@ -758,8 +765,60 @@ function DetailRail({ bundle }: DetailRailProps): ReactElement {
     }
     const ext = bundle.links.turnToExtractor.get(turn.index) ?? [];
     const aud = bundle.links.turnToAuditor.get(turn.index) ?? [];
+    const turnIdx = bundle.main.findIndex((t) => t.index === turn.index);
+    const prevTurn = turnIdx > 0 ? bundle.main[turnIdx - 1] : undefined;
+    const nextTurn =
+      turnIdx >= 0 && turnIdx < bundle.main.length - 1
+        ? bundle.main[turnIdx + 1]
+        : undefined;
     return (
       <div className='llmh-insp'>
+        <div className='llmh-insp__sticky-head'>
+          <div className='llmh-insp__sticky-title'>
+            <MetricLabel size='xs'>turn</MetricLabel>
+            <MonoValue size='sm'>#{turn.index}</MonoValue>
+            <span className='llmh-cdp__rail-row-role'>{turn.role}</span>
+            <MetricLabel size='xs'>
+              {turnIdx + 1} / {bundle.main.length}
+            </MetricLabel>
+          </div>
+          <div className='llmh-insp__sticky-nav'>
+            <Chip
+              tone='default'
+              onClick={() => {
+                if (prevTurn) {
+                  set({
+                    turn: prevTurn.index,
+                    mode: null,
+                    extractorSeq: null,
+                    auditorSeq: null,
+                    eventId: null,
+                    findingId: null,
+                  });
+                }
+              }}
+            >
+              ← {prevTurn ? `#${prevTurn.index.toString()}` : 'prev'}
+            </Chip>
+            <Chip
+              tone='default'
+              onClick={() => {
+                if (nextTurn) {
+                  set({
+                    turn: nextTurn.index,
+                    mode: null,
+                    extractorSeq: null,
+                    auditorSeq: null,
+                    eventId: null,
+                    findingId: null,
+                  });
+                }
+              }}
+            >
+              {nextTurn ? `#${nextTurn.index.toString()}` : 'next'} →
+            </Chip>
+          </div>
+        </div>
         <section className='llmh-insp__section'>
           <header className='llmh-insp__sec-head'>
             <span>turn</span>
@@ -1025,6 +1084,8 @@ interface LoadedCase {
 
 function CaseDetailBody({ data }: { data: LoadedCase }): ReactElement {
   const { selection, set } = useCaseSelection();
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [turnsList, setTurnsList] = useState<number[] | null>(null);
 
   // Default to the first extractor firing on first paint so the viewport
   // is never empty.
@@ -1049,38 +1110,137 @@ function CaseDetailBody({ data }: { data: LoadedCase }): ReactElement {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.caseId]);
 
+  const detailApi = useMemo<DetailModalApi>(
+    () => ({
+      openDetail: () => {
+        setDetailOpen(true);
+      },
+      openTurnsList: (turns: number[]) => {
+        setTurnsList(turns);
+      },
+    }),
+    [],
+  );
+
+  const modalTitle = useMemo(() => {
+    if (selection.eventId !== null) {
+      return `Event #${selection.eventId.toString()}`;
+    }
+    if (selection.findingId !== null) {
+      return `Finding A#${selection.findingId.auditorSeq.toString()} · F#${selection.findingId.index.toString()}`;
+    }
+    if (selection.turn !== null) {
+      return `Turn #${selection.turn.toString()}`;
+    }
+    return 'Detail';
+  }, [selection]);
+
   return (
-    <div className='llmh-cdp'>
-      <FiringsTimeline bundle={data.bundle} />
-      <div className='llmh-cdp__layout'>
-        <ResizableSidePanel
-          side='left'
-          defaultWidth={220}
-          minWidth={160}
-          maxWidth={480}
-          collapsible
-          persistKey='llmh-cdp-turn-w'
-        >
-          <TurnRail bundle={data.bundle} />
-        </ResizableSidePanel>
-        <GraphViewport bundle={data.bundle} />
-        <ResizableSidePanel
-          side='right'
-          defaultWidth={360}
-          minWidth={260}
-          maxWidth={640}
-          collapsible
-          persistKey='llmh-cdp-detail-w'
-        >
-          <DetailRail bundle={data.bundle} />
-        </ResizableSidePanel>
+    <DetailModalContext.Provider value={detailApi}>
+      <div className='llmh-cdp'>
+        <FiringsTimeline bundle={data.bundle} />
+        <div className='llmh-cdp__layout'>
+          <ResizableSidePanel
+            side='left'
+            defaultWidth={220}
+            minWidth={160}
+            maxWidth={480}
+            collapsible
+            persistKey='llmh-cdp-turn-w'
+          >
+            <TurnRail bundle={data.bundle} />
+          </ResizableSidePanel>
+          <GraphViewport bundle={data.bundle} />
+        </div>
+        <SftDrawer
+          repo={data.repo}
+          caseId={data.caseId}
+          rootSessionId={data.bundle.meta.root_session_id}
+        />
       </div>
-      <SftDrawer
-        repo={data.repo}
-        caseId={data.caseId}
-        rootSessionId={data.bundle.meta.root_session_id}
+      <Modal
+        title={modalTitle}
+        open={detailOpen}
+        onCancel={() => {
+          setDetailOpen(false);
+        }}
+        footer={null}
+        width={720}
+        destroyOnClose
+        styles={{
+          body: { maxHeight: '70vh', overflow: 'auto', padding: 0 },
+        }}
+      >
+        <DetailRail bundle={data.bundle} />
+      </Modal>
+      <TurnsListModal
+        open={turnsList !== null}
+        turns={turnsList ?? []}
+        bundle={data.bundle}
+        onClose={() => {
+          setTurnsList(null);
+        }}
       />
-    </div>
+    </DetailModalContext.Provider>
+  );
+}
+
+interface TurnsListModalProps {
+  open: boolean;
+  turns: number[];
+  bundle: CaseBundle;
+  onClose: () => void;
+}
+
+function TurnsListModal({
+  open,
+  turns,
+  bundle,
+  onClose,
+}: TurnsListModalProps): ReactElement {
+  const resolved = useMemo(
+    () =>
+      turns
+        .map((idx) => bundle.main.find((t) => t.index === idx))
+        .filter((t): t is MainTurn => t !== undefined),
+    [turns, bundle.main],
+  );
+  const title =
+    turns.length === 1
+      ? `Source turn #${turns[0].toString()}`
+      : `Source turns (${turns.length.toString()})`;
+  return (
+    <Modal
+      title={title}
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      width={720}
+      destroyOnClose
+      styles={{
+        body: { maxHeight: '70vh', overflow: 'auto', padding: 0 },
+      }}
+    >
+      <div className='llmh-cdp__turns-list'>
+        {resolved.length === 0 ? (
+          <EmptyState
+            title='No turns to show'
+            description='The cited source_turns are not present in main_agent.jsonl.'
+          />
+        ) : (
+          resolved.map((turn) => (
+            <section key={turn.index} className='llmh-cdp__turns-list-item'>
+              <header className='llmh-cdp__turns-list-head'>
+                <MetricLabel size='xs'>turn</MetricLabel>
+                <MonoValue size='sm'>#{turn.index}</MonoValue>
+                <span className='llmh-cdp__rail-row-role'>{turn.role}</span>
+              </header>
+              <MessageBlocks turn={turn} />
+            </section>
+          ))
+        )}
+      </div>
+    </Modal>
   );
 }
 
