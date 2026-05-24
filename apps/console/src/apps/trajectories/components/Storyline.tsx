@@ -37,8 +37,8 @@ const KIND_TONE: Record<SpanKind, 'ink' | 'warning' | 'ghost'> = {
 function hasBody(span: SpanRow, kind: SpanKind): boolean {
   if (kind === 'tool') {
     return Boolean(
-      span.attributes['agentm.tool.args'] ??
-      span.attributes['agentm.tool.result']
+      span.attributes['gen_ai.tool.call.arguments'] ??
+      span.attributes['gen_ai.tool.call.result']
     );
   }
   if (kind === 'llm' || kind === 'turn') {
@@ -151,18 +151,18 @@ export function Storyline({
 
 function storylineTitle(span: SpanRow, kind: SpanKind): string {
   if (kind === 'session') {
-    const purpose = span.attributes['agentm.purpose'];
-    const sid = span.attributes['agentm.session_id'] ?? '';
-    return `session · ${purpose ?? (span.attributes['agentm.parent_session_id'] ? 'child' : 'orchestrator')} · ${sid.slice(0, 12)}`;
+    const purpose = span.attributes['agentm.session.purpose'];
+    const sid = span.attributes['agentm.session.id'] ?? '';
+    return `session · ${purpose ?? (span.attributes['agentm.session.parent_id'] ? 'child' : 'orchestrator')} · ${sid.slice(0, 12)}`;
   }
   if (kind === 'turn') {
-    return `turn ${span.attributes['agentm.turn_index'] ?? '?'}`;
+    return `turn ${span.attributes['agentm.turn.index'] ?? '?'}`;
   }
   if (kind === 'llm') {
     return `llm · ${span.attributes['gen_ai.request.model'] ?? 'unknown'}`;
   }
   if (kind === 'tool') {
-    return `tool · ${span.attributes['agentm.tool.name'] ?? 'unknown'}`;
+    return `tool · ${span.attributes['gen_ai.tool.name'] ?? 'unknown'}`;
   }
   if (kind === 'event' || kind === 'handler') {
     return span.name.split(':', 2)[1] ?? span.name;
@@ -178,8 +178,8 @@ function EventBody({
   kind: SpanKind;
 }): ReactElement | null {
   if (kind === 'tool') {
-    const args = span.attributes['agentm.tool.args'];
-    const result = span.attributes['agentm.tool.result'];
+    const args = span.attributes['gen_ai.tool.call.arguments'];
+    const result = span.attributes['gen_ai.tool.call.result'];
     if (!args && !result) {
       return null;
     }

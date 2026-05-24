@@ -43,16 +43,18 @@ export function classifyWithRules(
 }
 
 export function classifySpan(name: string): SpanKind {
-  if (name === 'agentm.session') {
+  // AgentM emits OTel GenAI-semconv span names: the discriminator
+  // (scenario / model / tool) is appended after a space.
+  if (name === 'invoke_agent' || name.startsWith('invoke_agent ')) {
     return 'session';
   }
   if (name === 'agentm.turn') {
     return 'turn';
   }
-  if (name === 'agentm.llm.request') {
+  if (name === 'chat' || name.startsWith('chat ')) {
     return 'llm';
   }
-  if (name === 'agentm.tool.execute') {
+  if (name === 'execute_tool' || name.startsWith('execute_tool ')) {
     return 'tool';
   }
   if (name.startsWith('agentm.event:')) {
@@ -60,14 +62,6 @@ export function classifySpan(name: string): SpanKind {
   }
   if (name.startsWith('agentm.handler:')) {
     return 'handler';
-  }
-  if (
-    name.startsWith('agentm.extension.install') ||
-    name.startsWith('agentm.api.register') ||
-    name.startsWith('agentm.atom.reload') ||
-    name === 'agentm.api.send_user_message'
-  ) {
-    return 'bootstrap';
   }
   if (name.startsWith('agentm.diagnostic')) {
     return 'diagnostic';
@@ -83,17 +77,14 @@ export function classifySpan(name: string): SpanKind {
 export function spanDisplayName(span: SpanRow): string {
   const kind = classifySpan(span.name);
   if (kind === 'tool') {
-    return `tool · ${span.attributes['agentm.tool.name'] ?? 'unknown'}`;
+    return `tool · ${span.attributes['gen_ai.tool.name'] ?? 'unknown'}`;
   }
   if (kind === 'turn') {
-    return `turn ${span.attributes['agentm.turn_index'] ?? '?'}`;
+    return `turn ${span.attributes['agentm.turn.index'] ?? '?'}`;
   }
   if (kind === 'event' || kind === 'handler') {
     // Strip the prefix; the channel name is what's interesting.
     return span.name.split(':', 2)[1] ?? span.name;
-  }
-  if (kind === 'bootstrap') {
-    return span.name.replace('agentm.', '');
   }
   return span.name;
 }

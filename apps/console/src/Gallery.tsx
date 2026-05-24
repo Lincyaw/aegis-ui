@@ -4909,7 +4909,7 @@ function ParquetViewerSpecimen(): ReactNode {
 const traceTreeDemoSpans: TraceSpan[] = [
   {
     id: 's',
-    name: 'agentm.session',
+    name: 'invoke_agent general_purpose',
     startMs: 0,
     durationMs: 1840,
     status: 'ok',
@@ -4927,7 +4927,7 @@ const traceTreeDemoSpans: TraceSpan[] = [
   {
     id: 't0-llm',
     parentId: 't0',
-    name: 'agentm.llm.request',
+    name: 'chat claude-opus-4-7',
     startMs: 18,
     durationMs: 642,
     status: 'ok',
@@ -4936,7 +4936,7 @@ const traceTreeDemoSpans: TraceSpan[] = [
   {
     id: 't0-tool',
     parentId: 't0',
-    name: 'agentm.tool.execute · bash',
+    name: 'execute_tool bash',
     startMs: 670,
     durationMs: 230,
     status: 'ok',
@@ -4954,7 +4954,7 @@ const traceTreeDemoSpans: TraceSpan[] = [
   {
     id: 't1-llm',
     parentId: 't1',
-    name: 'agentm.llm.request',
+    name: 'chat claude-opus-4-7',
     startMs: 945,
     durationMs: 410,
     status: 'ok',
@@ -4963,7 +4963,7 @@ const traceTreeDemoSpans: TraceSpan[] = [
   {
     id: 't1-tool',
     parentId: 't1',
-    name: 'agentm.tool.execute · http_get',
+    name: 'execute_tool http_get',
     startMs: 1360,
     durationMs: 455,
     status: 'error',

@@ -21,20 +21,22 @@ interface SessionsTreeProps {
 }
 
 function buildSessionForest(spans: SpanRow[]): SessionNode[] {
-  const sessionSpans = spans.filter((s) => s.name === 'agentm.session');
+  const sessionSpans = spans.filter(
+    (s) => s.name === 'invoke_agent' || s.name.startsWith('invoke_agent ')
+  );
   if (sessionSpans.length === 0) {
     return [];
   }
   const bySid = new Map<string, SessionNode>();
   for (const s of sessionSpans) {
-    const sid = s.attributes['agentm.session_id'] ?? '';
+    const sid = s.attributes['agentm.session.id'] ?? '';
     if (sid) {
       bySid.set(sid, { span: s, sid, children: [], depth: 0 });
     }
   }
   const roots: SessionNode[] = [];
   bySid.forEach((node) => {
-    const pid = node.span.attributes['agentm.parent_session_id'] ?? '';
+    const pid = node.span.attributes['agentm.session.parent_id'] ?? '';
     const parent = pid ? bySid.get(pid) : undefined;
     if (parent) {
       node.depth = parent.depth + 1;
@@ -73,11 +75,11 @@ function flatten(roots: SessionNode[], collapsed: Set<string>): SessionNode[] {
 }
 
 function rolePill(span: SpanRow): string {
-  const purpose = span.attributes['agentm.purpose'];
+  const purpose = span.attributes['agentm.session.purpose'];
   if (purpose) {
     return purpose;
   }
-  const pid = span.attributes['agentm.parent_session_id'] ?? '';
+  const pid = span.attributes['agentm.session.parent_id'] ?? '';
   return pid ? 'child' : 'orchestrator';
 }
 
@@ -110,7 +112,10 @@ export function SessionsTree({
 
   const visible = useMemo(() => flatten(roots, collapsed), [roots, collapsed]);
   const allCount = useMemo(
-    () => spans.filter((s) => s.name === 'agentm.session').length,
+    () =>
+      spans.filter(
+        (s) => s.name === 'invoke_agent' || s.name.startsWith('invoke_agent ')
+      ).length,
     [spans]
   );
 

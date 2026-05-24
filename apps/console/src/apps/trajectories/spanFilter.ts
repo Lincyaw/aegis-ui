@@ -22,8 +22,8 @@ export function applySpanFilter(
   if (scopeSessionId) {
     const sessionSpan = spans.find(
       (s) =>
-        s.name === 'agentm.session' &&
-        s.attributes['agentm.session_id'] === scopeSessionId
+        (s.name === 'invoke_agent' || s.name.startsWith('invoke_agent ')) &&
+        s.attributes['agentm.session.id'] === scopeSessionId
     );
     if (sessionSpan) {
       allowedSpanIds = new Set<string>([sessionSpan.spanId]);
