@@ -55,7 +55,7 @@ async function chQuery<TRow = unknown>(
 /* ── Domain models ───────────────────────────────────────────────────── */
 
 /**
- * One row per agent tree (grouped by `agentm.root_session_id`). For an
+ * One row per agent tree (grouped by `agentm.session.root_id`). For an
  * in-process tree this matches one OTel TraceId; for a cross-process
  * tree linked via W3C TraceContext it also typically matches one
  * TraceId (children inherit parent's trace_id), but we group on the
@@ -157,11 +157,11 @@ export async function listSessions(
   const sinceHours = opts.sinceHours ?? 168;
   const whereSql = opts.whereSql?.trim() ?? '';
   const whereParams = opts.whereParams ?? {};
-  // Group by `agentm.root_session_id` so each row represents one whole
+  // Group by `agentm.session.root_id` so each row represents one whole
   // agent tree (orchestrator + all in-process / cross-process children).
-  // Reading from arbitrary spans (not just SpanName='agentm.session') means
-  // in-flight trees show up immediately, before the orchestrator's session
-  // span has ended.
+  // Reading from arbitrary spans (not just SpanName='invoke_agent ...')
+  // means in-flight trees show up immediately, before the orchestrator's
+  // session span has ended.
   const tbl = getRuntimeConfig().clickhouseTracesTable;
   const searchClause = whereSql ? `AND (${whereSql})` : '';
   // Group by TraceId. With standard W3C propagation, every span in one
@@ -174,28 +174,28 @@ export async function listSessions(
   const sql = `
 SELECT
   TraceId,
-  anyIf(SpanAttributes['agentm.root_session_id'],
-        SpanAttributes['agentm.root_session_id'] != '') AS root_session_id,
-  -- Prefer the root agentm.session span_id (parent_session_id == ''),
-  -- falling back to whatever children claim as parent for the
-  -- in-flight case where the root span hasn't ended yet.
+  anyIf(SpanAttributes['agentm.session.root_id'],
+        SpanAttributes['agentm.session.root_id'] != '') AS root_session_id,
+  -- Prefer the root invoke_agent span_id (parent_id == ''), falling back
+  -- to whatever children claim as parent for the in-flight case where
+  -- the root span hasn't ended yet.
   coalesce(
-    nullIf(anyIf(SpanAttributes['agentm.session_id'],
-                 SpanName = 'agentm.session'
-                 AND SpanAttributes['agentm.parent_session_id'] = ''), ''),
-    nullIf(anyIf(SpanAttributes['agentm.parent_session_id'],
-                 SpanAttributes['agentm.parent_session_id'] != ''), ''),
-    anyIf(SpanAttributes['agentm.session_id'],
-          SpanName = 'agentm.session')
+    nullIf(anyIf(SpanAttributes['agentm.session.id'],
+                 startsWith(SpanName, 'invoke_agent')
+                 AND SpanAttributes['agentm.session.parent_id'] = ''), ''),
+    nullIf(anyIf(SpanAttributes['agentm.session.parent_id'],
+                 SpanAttributes['agentm.session.parent_id'] != ''), ''),
+    anyIf(SpanAttributes['agentm.session.id'],
+          startsWith(SpanName, 'invoke_agent'))
   )                                                      AS session_id,
   any(ServiceName)                                       AS ServiceName,
   formatDateTime(min(Timestamp), '%Y-%m-%dT%H:%i:%S.%fZ', 'UTC')                AS started_at,
   formatDateTime(max(Timestamp + toIntervalNanosecond(Duration)), '%Y-%m-%dT%H:%i:%S.%fZ', 'UTC') AS ended_at,
   dateDiff('nanosecond', min(Timestamp), max(Timestamp + toIntervalNanosecond(Duration))) AS duration_ns,
   countIf(SpanName = 'agentm.turn')                      AS turn_count,
-  countIf(SpanName = 'agentm.tool.execute')              AS tool_count,
+  countIf(startsWith(SpanName, 'execute_tool'))          AS tool_count,
   countIf(StatusCode = 'STATUS_CODE_ERROR')              AS error_count,
-  countIf(SpanName = 'agentm.session')                   AS session_count,
+  countIf(startsWith(SpanName, 'invoke_agent'))          AS session_count,
   sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens']))  AS input_tokens,
   sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])) AS output_tokens,
   anyIf(SpanAttributes['gen_ai.request.model'],
@@ -254,7 +254,7 @@ SELECT
 FROM ${tbl}
 WHERE TraceId IN (
   SELECT DISTINCT TraceId FROM ${tbl}
-  WHERE SpanAttributes['agentm.root_session_id'] = {rootSessionId:String}
+  WHERE SpanAttributes['agentm.session.root_id'] = {rootSessionId:String}
     AND Timestamp >= now() - toIntervalHour({sinceHours:UInt32})
 )
 ORDER BY Timestamp ASC

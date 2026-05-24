@@ -8,7 +8,7 @@ export interface TurnSlice {
 }
 
 /**
- * Group spans by `agentm.turn_index` so the conversation view can render
+ * Group spans by `agentm.turn.index` so the conversation view can render
  * one card per turn (LLM request → tool calls). Spans without a turn
  * attribute (session-level events) are returned separately.
  */
@@ -16,17 +16,26 @@ export function groupByTurn(spans: SpanRow[]): {
   turns: TurnSlice[];
   sessionSpan?: SpanRow;
 } {
-  const sessionSpan = spans.find((s) => s.name === 'agentm.session');
+  const sessionSpan = spans.find(
+    (s) => s.name === 'invoke_agent' || s.name.startsWith('invoke_agent ')
+  );
   const turnSpans = spans.filter((s) => s.name === 'agentm.turn');
   const turns = turnSpans
     .map<TurnSlice>((turnSpan) => {
-      const turnIndex = Number(turnSpan.attributes['agentm.turn_index'] ?? '0');
+      const turnIndex = Number(
+        turnSpan.attributes['agentm.turn.index'] ?? '0'
+      );
       const children = spans.filter((s) => s.parentSpanId === turnSpan.spanId);
       return {
         turnIndex,
         turnSpan,
-        llm: children.find((s) => s.name === 'agentm.llm.request'),
-        tools: children.filter((s) => s.name === 'agentm.tool.execute'),
+        llm: children.find(
+          (s) => s.name === 'chat' || s.name.startsWith('chat ')
+        ),
+        tools: children.filter(
+          (s) =>
+            s.name === 'execute_tool' || s.name.startsWith('execute_tool ')
+        ),
       };
     })
     .sort((a, b) => a.turnIndex - b.turnIndex);

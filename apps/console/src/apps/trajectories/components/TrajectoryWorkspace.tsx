@@ -156,8 +156,8 @@ export function TrajectoryWorkspace({
   const sessionIds = useMemo(() => {
     const list: string[] = [''];
     for (const s of spans) {
-      if (s.name === 'agentm.session') {
-        const sid = s.attributes['agentm.session_id'] ?? '';
+      if (s.name === 'invoke_agent' || s.name.startsWith('invoke_agent ')) {
+        const sid = s.attributes['agentm.session.id'] ?? '';
         if (sid && !list.includes(sid)) {
           list.push(sid);
         }

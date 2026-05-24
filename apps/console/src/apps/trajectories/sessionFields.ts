@@ -18,16 +18,16 @@ export const SESSION_FIELD_MAPPINGS: FieldMapping[] = [
   { field: 'span_kind', sqlExpr: 'SpanKind' },
   { field: 'status', sqlExpr: 'StatusCode' },
   {
-    field: 'agentm.root_session_id',
-    sqlExpr: "SpanAttributes['agentm.root_session_id']",
+    field: 'agentm.session.root_id',
+    sqlExpr: "SpanAttributes['agentm.session.root_id']",
   },
   {
-    field: 'agentm.session_id',
-    sqlExpr: "SpanAttributes['agentm.session_id']",
+    field: 'agentm.session.id',
+    sqlExpr: "SpanAttributes['agentm.session.id']",
   },
   {
-    field: 'agentm.parent_session_id',
-    sqlExpr: "SpanAttributes['agentm.parent_session_id']",
+    field: 'agentm.session.parent_id',
+    sqlExpr: "SpanAttributes['agentm.session.parent_id']",
   },
   { field: 'model', sqlExpr: "SpanAttributes['gen_ai.request.model']" },
   { field: 'duration', sqlExpr: 'Duration', kind: 'number' },
@@ -60,9 +60,10 @@ export function suggestSessionFieldValues(
       ];
     case 'span_name':
       return [
-        { value: 'agentm.session' },
+        { value: 'invoke_agent' },
         { value: 'agentm.turn' },
-        { value: 'agentm.tool.execute' },
+        { value: 'chat' },
+        { value: 'execute_tool' },
       ];
     default:
       return [];
