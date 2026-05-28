@@ -8,6 +8,12 @@
  * visually the way they actually are — not zigzagged across a turn-axis
  * timeline. Reads top-down so the orientation matches the chat
  * transcript on the left.
+ *
+ * Schema-vs-render contract: the underlying edge schema is depends-on
+ * (`src = dependent / later`, `dst = dependency / earlier`, like a
+ * Makefile `target: dep`). This component flips edges at render time so
+ * the visual arrow follows reasoning flow (earlier → later: task → act
+ * → hyp → concl). Do not "fix" this flip back — the schema is canonical.
  */
 import { type ReactElement, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
@@ -183,7 +189,9 @@ function layoutNodes(
   for (const ed of edges) {
     const srcTurns = (ed as { src_turns?: number[] }).src_turns;
     const dstTurns = (ed as { dst_turns?: number[] }).dst_turns;
-    g.setEdge(endpointKey(ed.src, srcTurns), endpointKey(ed.dst, dstTurns));
+    // Flip: schema is depends-on (src depends on dst), so dst is the
+    // earlier node and must be the layout parent under TB rankdir.
+    g.setEdge(endpointKey(ed.dst, dstTurns), endpointKey(ed.src, srcTurns));
   }
 
   dagreLayout(g);
@@ -353,8 +361,12 @@ function buildEdges(
   return edges.map((ed, i) => {
     const srcTurns = (ed as { src_turns?: number[] }).src_turns;
     const dstTurns = (ed as { dst_turns?: number[] }).dst_turns;
-    const source = endpointKey(ed.src, srcTurns);
-    const target = endpointKey(ed.dst, dstTurns);
+    // Flip: schema is depends-on (src depends on dst), but we want the
+    // arrow to follow reasoning flow earlier → later, so the ReactFlow
+    // source is the earlier dependency (dst) and target is the later
+    // dependent (src). See module doc comment.
+    const source = endpointKey(ed.dst, dstTurns);
+    const target = endpointKey(ed.src, srcTurns);
     return {
       id: `e-${i.toString()}-${source}-${target}`,
       source,
