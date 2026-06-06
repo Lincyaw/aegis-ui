@@ -12,14 +12,18 @@ import {
   Panel,
   StatusDot,
 } from '@lincyaw/aegis-ui';
-import { App, Button, Form, Input, Modal, Pagination, Select } from 'antd';
+import { App, Button, Checkbox, Form, Input, Modal, Pagination, Select } from 'antd';
 
 import { ApiError } from '../../../api/apiClient';
 import {
+  assignUserRole,
   createUser,
   deleteUser,
+  type IamRole,
   type IamUser,
+  listRoles,
   listUsers,
+  removeUserRole,
   updateUser,
 } from '../../../api/iamClient';
 
@@ -93,6 +97,11 @@ export default function Users() {
   const [editTarget, setEditTarget] = useState<IamUser | null>(null);
   const [editForm] = Form.useForm<EditForm>();
   const [submitting, setSubmitting] = useState(false);
+
+  const [rolesTarget, setRolesTarget] = useState<IamUser | null>(null);
+  const [allRoles, setAllRoles] = useState<IamRole[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [selectedRoleIds, setSelectedRoleIds] = useState<number[]>([]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -238,6 +247,53 @@ export default function Users() {
       });
   };
 
+  const openRoles = (u: IamUser): void => {
+    setRolesTarget(u);
+    setSelectedRoleIds((u.roles ?? []).map((r) => r.id));
+    setRolesLoading(true);
+    void (async () => {
+      try {
+        const res = await listRoles({ size: 100 });
+        setAllRoles(res.items);
+      } catch (e) {
+        void msg.error(`Could not load roles: ${errMsg(e)}`);
+      } finally {
+        setRolesLoading(false);
+      }
+    })();
+  };
+
+  const handleSaveRoles = (): void => {
+    if (rolesTarget === null) {
+      return;
+    }
+    const target = rolesTarget;
+    const before = new Set((target.roles ?? []).map((r) => r.id));
+    const after = new Set(selectedRoleIds);
+    const toAdd = selectedRoleIds.filter((id) => !before.has(id));
+    const toRemove = [...before].filter((id) => !after.has(id));
+    if (toAdd.length === 0 && toRemove.length === 0) {
+      setRolesTarget(null);
+      return;
+    }
+    setSubmitting(true);
+    void (async () => {
+      try {
+        await Promise.all([
+          ...toAdd.map((id) => assignUserRole(target.id, id)),
+          ...toRemove.map((id) => removeUserRole(target.id, id)),
+        ]);
+        void msg.success('Roles updated');
+        setRolesTarget(null);
+        await refresh();
+      } catch (e) {
+        void msg.error(`Update failed: ${errMsg(e)}`);
+      } finally {
+        setSubmitting(false);
+      }
+    })();
+  };
+
   const columns: Array<DataTableColumn<IamUser>> = [
     {
       key: 'user',
@@ -306,7 +362,7 @@ export default function Users() {
       key: 'actions',
       header: '',
       align: 'right',
-      width: 220,
+      width: 280,
       truncate: false,
       render: (u) => (
         <div className='users-page__actions'>
@@ -322,6 +378,15 @@ export default function Users() {
             }}
           >
             Edit
+          </Button>
+          <Button
+            type='text'
+            size='small'
+            onClick={() => {
+              openRoles(u);
+            }}
+          >
+            Roles
           </Button>
           <Button
             type='text'
@@ -521,6 +586,41 @@ export default function Users() {
             </Form.Item>
           </FormRow>
         </Form>
+      </Modal>
+
+      <Modal
+        title={
+          rolesTarget ? `Manage roles for ${displayName(rolesTarget)}` : 'Manage roles'
+        }
+        open={rolesTarget !== null}
+        onCancel={() => {
+          setRolesTarget(null);
+        }}
+        onOk={handleSaveRoles}
+        okText='Save'
+        confirmLoading={submitting}
+        destroyOnClose
+      >
+        {rolesLoading ? (
+          <p style={{ margin: 0 }}>Loading roles…</p>
+        ) : (
+          <Checkbox.Group
+            value={selectedRoleIds}
+            onChange={(v) => {
+              setSelectedRoleIds(v as number[]);
+            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}
+          >
+            {allRoles.map((r) => (
+              <Checkbox key={r.id} value={r.id}>
+                {r.name}
+                {r.description ? (
+                  <span style={{ color: 'var(--text-muted)' }}> — {r.description}</span>
+                ) : null}
+              </Checkbox>
+            ))}
+          </Checkbox.Group>
+        )}
       </Modal>
     </>
   );

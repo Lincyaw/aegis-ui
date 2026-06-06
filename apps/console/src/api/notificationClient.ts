@@ -82,15 +82,16 @@ export interface SubscriptionRow {
 }
 
 export async function listSubscriptions(): Promise<SubscriptionRow[]> {
-  // Server returns either `{subscriptions: [...]}` or a plain array
-  // depending on serializer; tolerate both.
+  // Server returns a bare `{items: [...]}`, a `{subscriptions: [...]}`, or a
+  // plain array depending on serializer; tolerate all three.
   const res = await apiJson<
-    SubscriptionRow[] | { subscriptions: SubscriptionRow[] }
+    | SubscriptionRow[]
+    | { items?: SubscriptionRow[] | null; subscriptions?: SubscriptionRow[] | null }
   >('/api/v2/inbox/subscriptions');
   if (Array.isArray(res)) {
     return res;
   }
-  return res.subscriptions;
+  return res.items ?? res.subscriptions ?? [];
 }
 
 export async function setSubscription(row: SubscriptionRow): Promise<void> {
