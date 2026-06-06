@@ -83,3 +83,48 @@ export async function apiJson<T>(
   const res = await apiFetch(path, init);
   return (await res.json()) as T;
 }
+
+/** Human-readable message for a caught error from this transport. */
+export function errMsg(e: unknown): string {
+  if (e instanceof Error) {
+    return e.message;
+  }
+  return 'unknown error';
+}
+
+/** Standard aegis `{code,message,data}` response envelope. */
+export interface Envelope<T> {
+  code: number;
+  message: string;
+  data: T;
+}
+
+/** Paginated `data` payload: `{items, pagination:{total}}`. */
+export interface Paginated<T> {
+  items: T[] | null;
+  pagination?: { total?: number };
+}
+
+export interface PageReq {
+  page?: number;
+  size?: number;
+}
+
+// The v2 list endpoints reject size < 10.
+const MIN_PAGE_SIZE = 10;
+
+export function pageQs(p: PageReq): string {
+  const u = new URLSearchParams();
+  u.set('page', String(p.page ?? 1));
+  u.set('size', String(Math.max(p.size ?? MIN_PAGE_SIZE, MIN_PAGE_SIZE)));
+  return `?${u.toString()}`;
+}
+
+/** Unwrap a paginated `data` payload to `{items,total}`, tolerating null. */
+export function normalizeList<T>(data: Paginated<T> | null): {
+  items: T[];
+  total: number;
+} {
+  const items = data?.items ?? [];
+  return { items, total: data?.pagination?.total ?? items.length };
+}

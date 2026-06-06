@@ -16,7 +16,7 @@ import {
 import { App as AntdApp, Button, DatePicker, Form, Modal, Pagination } from 'antd';
 import type { Dayjs } from 'dayjs';
 
-import { ApiError } from '../../../api/apiClient';
+import { errMsg } from '../../../api/apiClient';
 import {
   type ApiKey,
   createApiKey,
@@ -44,12 +44,6 @@ const actionsCellStyle = {
   flexWrap: 'wrap' as const,
 };
 
-function errMsg(e: unknown): string {
-  if (e instanceof ApiError || e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
-}
 
 function statusChip(key: ApiKey) {
   if (key.revoked_at) {

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { EmptyState, ErrorState, MonoValue, PageHeader, Panel } from '@lincyaw/aegis-ui';
 import { App, Button, Checkbox, Form, Input, Modal, Spin } from 'antd';
 
-import { ApiError } from '../../../api/apiClient';
+import { errMsg } from '../../../api/apiClient';
 import {
   assignRolePermissions,
   createRole,
@@ -17,12 +17,6 @@ import {
 
 import './Roles.css';
 
-function errMsg(e: unknown): string {
-  if (e instanceof ApiError || e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
-}
 
 function permLabel(p: IamPermission): string {
   return p.description?.trim() || p.name;

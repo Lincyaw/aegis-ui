@@ -6,18 +6,15 @@
  * List endpoints reject `size < 10` with a 400, so callers must page with
  * `size >= 10`.
  */
-import { apiFetch, apiJson } from './apiClient';
-
-interface Envelope<T> {
-  code: number;
-  message: string;
-  data: T;
-}
-
-interface Paginated<T> {
-  items: T[] | null;
-  pagination?: { total?: number };
-}
+import {
+  apiFetch,
+  apiJson,
+  type Envelope,
+  type Paginated,
+  normalizeList,
+  type PageReq,
+  pageQs,
+} from './apiClient';
 
 /** 1 = enabled, 0 = disabled, -1 = deleted/revoked. */
 export type ApiKeyStatus = 1 | 0 | -1;
@@ -47,28 +44,13 @@ export interface CreateApiKeyReq {
   expires_at?: string;
 }
 
-export interface PageReq {
-  page?: number;
-  size?: number;
-}
-
-const MIN_SIZE = 10;
-
-function pageQs(p: PageReq): string {
-  const u = new URLSearchParams();
-  u.set('page', String(p.page ?? 1));
-  u.set('size', String(Math.max(p.size ?? MIN_SIZE, MIN_SIZE)));
-  return `?${u.toString()}`;
-}
-
 export async function listApiKeys(
   p: PageReq = {}
 ): Promise<{ items: ApiKey[]; total: number }> {
   const env = await apiJson<Envelope<Paginated<ApiKey>>>(
     `/api/v2/api-keys${pageQs(p)}`
   );
-  const items = env.data.items ?? [];
-  return { items, total: env.data.pagination?.total ?? items.length };
+  return normalizeList(env.data);
 }
 
 export async function createApiKey(

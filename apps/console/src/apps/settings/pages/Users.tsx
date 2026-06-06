@@ -14,7 +14,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App, Button, Checkbox, Form, Input, Modal, Pagination, Select } from 'antd';
 
-import { ApiError } from '../../../api/apiClient';
+import { errMsg } from '../../../api/apiClient';
 import {
   assignUserRole,
   createUser,
@@ -31,12 +31,6 @@ import './Users.css';
 
 const PAGE_SIZE = 20;
 
-function errMsg(e: unknown): string {
-  if (e instanceof ApiError || e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
-}
 
 function statusTone(status: string, active: boolean): 'ink' | 'muted' | 'warning' {
   if (!active) {

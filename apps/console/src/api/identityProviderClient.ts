@@ -4,7 +4,7 @@
  * admin uses (forwarded to the sso upstream). client_secret is write-only —
  * it is never returned by the API.
  */
-import { apiFetch, apiJson } from './apiClient';
+import { apiFetch, apiJson, type Envelope } from './apiClient';
 
 export interface IdentityProvider {
   id: number;
@@ -48,12 +48,6 @@ export interface UpdateProviderReq {
   auto_provision?: boolean;
   default_roles?: string;
   enabled?: boolean;
-}
-
-interface Envelope<T> {
-  code: number;
-  message: string;
-  data: T;
 }
 
 export async function listProviders(): Promise<IdentityProvider[]> {

@@ -14,19 +14,13 @@ import {
 import { Button, DatePicker, Input, Pagination, Select } from 'antd';
 import type { Dayjs } from 'dayjs';
 
-import { ApiError } from '../../../api/apiClient';
+import { errMsg } from '../../../api/apiClient';
 import { type AuditLog, listAuditLogs } from '../../../api/auditClient';
 
 import './AuditLogs.css';
 
 const PAGE_SIZE = 20;
 
-function errMsg(e: unknown): string {
-  if (e instanceof ApiError || e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
-}
 
 function actorOf(l: AuditLog): string {
   return l.username || (l.user_id ? `user:${String(l.user_id)}` : 'system');

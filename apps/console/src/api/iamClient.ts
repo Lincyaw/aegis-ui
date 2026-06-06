@@ -7,19 +7,15 @@
  * List endpoints reject `size < 10` with a 400, so callers must page with
  * `size >= 10`.
  */
-import { apiFetch, apiJson } from './apiClient';
-
-interface Envelope<T> {
-  code: number;
-  message: string;
-  data: T;
-}
-
-interface Paginated<T> {
-  items: T[] | null;
-  total?: number;
-  pagination?: { total?: number };
-}
+import {
+  apiFetch,
+  apiJson,
+  type Envelope,
+  normalizeList,
+  type Paginated,
+  type PageReq,
+  pageQs,
+} from './apiClient';
 
 export interface UserRole {
   id: number;
@@ -67,43 +63,10 @@ export interface IamPermission {
   action?: string;
 }
 
-export interface PageReq {
-  page?: number;
-  size?: number;
-}
-
-const MIN_SIZE = 10;
-
-function pageQs(p: PageReq): string {
-  const u = new URLSearchParams();
-  u.set('page', String(p.page ?? 1));
-  u.set('size', String(Math.max(p.size ?? MIN_SIZE, MIN_SIZE)));
-  return `?${u.toString()}`;
-}
-
-// Tolerates the real `{items, pagination:{total}}` envelope, a flat
-// `{items,total}`, and a bare array, with a possibly-null items.
-function normalizeList<T>(data: Paginated<T> | T[] | null): {
-  items: T[];
-  total: number;
-} {
-  if (Array.isArray(data)) {
-    return { items: data, total: data.length };
-  }
-  if (data === null) {
-    return { items: [], total: 0 };
-  }
-  const items = data.items ?? [];
-  return {
-    items,
-    total: data.pagination?.total ?? data.total ?? items.length,
-  };
-}
-
 export async function listUsers(
   p: PageReq = {}
 ): Promise<{ items: IamUser[]; total: number }> {
-  const env = await apiJson<Envelope<Paginated<IamUser> | IamUser[] | null>>(
+  const env = await apiJson<Envelope<Paginated<IamUser> | null>>(
     `/api/v2/users${pageQs(p)}`
   );
   return normalizeList(env.data);
@@ -165,7 +128,7 @@ export async function removeUserRole(
 export async function listRoles(
   p: PageReq = {}
 ): Promise<{ items: IamRole[]; total: number }> {
-  const env = await apiJson<Envelope<Paginated<IamRole> | IamRole[] | null>>(
+  const env = await apiJson<Envelope<Paginated<IamRole> | null>>(
     `/api/v2/roles${pageQs(p)}`
   );
   return normalizeList(env.data);
@@ -216,7 +179,7 @@ export async function removeRolePermissions(
 
 export async function listPermissions(): Promise<IamPermission[]> {
   const env = await apiJson<
-    Envelope<Paginated<IamPermission> | IamPermission[] | null>
+    Envelope<Paginated<IamPermission> | null>
   >('/api/v2/permissions');
   return normalizeList(env.data).items;
 }

@@ -13,7 +13,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Button, Collapse, Form, Input, Modal, Select } from 'antd';
 
-import { ApiError } from '../../../api/apiClient';
+import { errMsg } from '../../../api/apiClient';
 import {
   createProvider,
   type CreateProviderReq,
@@ -42,16 +42,6 @@ const actionsCellStyle = {
   gap: 'var(--space-1)',
   justifyContent: 'flex-end',
 };
-
-function errMsg(e: unknown): string {
-  if (e instanceof ApiError) {
-    return e.message;
-  }
-  if (e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
-}
 
 export default function IdentityProviders() {
   const { message: msg, modal } = AntdApp.useApp();
