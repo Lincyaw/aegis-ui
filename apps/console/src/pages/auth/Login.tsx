@@ -1,8 +1,18 @@
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
-import { AuthLayout, LoginForm, useAuth } from '@lincyaw/aegis-ui';
+import {
+  AuthLayout,
+  Button,
+  LoginForm,
+  SectionDivider,
+  useAuth,
+} from '@lincyaw/aegis-ui';
 
+import {
+  type FederatedProvider,
+  fetchProviders,
+} from '../../auth/ssoClient';
 import { loadSsoConfig, ssoUrl } from '../../auth/ssoConfig';
 
 interface LoginFormValues {
@@ -89,6 +99,23 @@ export function Login(): ReactElement {
     ssoErrorMessage(params.get('error'))
   );
   const triggered = useRef(false);
+  const [providers, setProviders] = useState<FederatedProvider[]>([]);
+
+  useEffect(() => {
+    if (!handoff) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const list = await fetchProviders(loadSsoConfig());
+      if (!cancelled) {
+        setProviders(list);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [handoff]);
 
   useEffect(() => {
     if (handoff || triggered.current || status === 'authenticated') {
@@ -126,7 +153,22 @@ export function Login(): ReactElement {
     setSubmitting(true);
   };
 
-  const action = ssoUrl('/login', loadSsoConfig());
+  const cfg = loadSsoConfig();
+  const action = ssoUrl('/login', cfg);
+
+  const federatedUrl = (name: string): string => {
+    const query = new URLSearchParams({
+      response_type: 'code',
+      client_id: handoff.clientId,
+      redirect_uri: handoff.redirectUri,
+      state: handoff.state,
+      scope: handoff.scope,
+      code_challenge: handoff.codeChallenge,
+      code_challenge_method: handoff.codeChallengeMethod,
+    });
+    const base = ssoUrl(`/auth/federated/${encodeURIComponent(name)}`, cfg);
+    return `${base}?${query.toString()}`;
+  };
 
   return (
     <AuthLayout
@@ -154,6 +196,23 @@ export function Login(): ReactElement {
           code_challenge_method: handoff.codeChallengeMethod,
         }}
       />
+      {providers.length > 0 && (
+        <>
+          <SectionDivider>or</SectionDivider>
+          {providers.map((provider) => (
+            <Button
+              key={provider.name}
+              type='button'
+              tone='secondary'
+              onClick={() => {
+                window.location.assign(federatedUrl(provider.name));
+              }}
+            >
+              Sign in with {provider.display_name}
+            </Button>
+          ))}
+        </>
+      )}
     </AuthLayout>
   );
 }
