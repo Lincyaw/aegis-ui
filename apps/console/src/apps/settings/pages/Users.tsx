@@ -1,186 +1,244 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   Avatar,
   Chip,
   DataTable,
   type DataTableColumn,
+  EmptyState,
+  ErrorState,
   FormRow,
   PageHeader,
   Panel,
   StatusDot,
 } from '@lincyaw/aegis-ui';
-import { App, Button, Input, Modal, Select } from 'antd';
+import { App, Button, Form, Input, Modal, Pagination, Select } from 'antd';
+
+import { ApiError } from '../../../api/apiClient';
+import {
+  createUser,
+  deleteUser,
+  type IamUser,
+  listUsers,
+  updateUser,
+} from '../../../api/iamClient';
 
 import './Users.css';
 
-type Role = 'admin' | 'editor' | 'viewer';
-type Status = 'active' | 'pending' | 'disabled';
+const PAGE_SIZE = 20;
 
-interface UserRow {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  status: Status;
-  online: boolean;
-  lastActive: string;
+function errMsg(e: unknown): string {
+  if (e instanceof ApiError || e instanceof Error) {
+    return e.message;
+  }
+  return 'unknown error';
 }
 
-const MOCK_USERS: UserRow[] = [
-  {
-    id: 'u-1',
-    name: 'Grace Hopper',
-    email: 'grace.hopper@aegislab.io',
-    role: 'admin',
-    status: 'active',
-    online: true,
-    lastActive: '2 min ago',
-  },
-  {
-    id: 'u-2',
-    name: 'Linus Torvalds',
-    email: 'linus@aegislab.io',
-    role: 'admin',
-    status: 'active',
-    online: true,
-    lastActive: '14 min ago',
-  },
-  {
-    id: 'u-3',
-    name: 'Ada Lovelace',
-    email: 'ada.lovelace@aegislab.io',
-    role: 'editor',
-    status: 'active',
-    online: false,
-    lastActive: '3 hours ago',
-  },
-  {
-    id: 'u-4',
-    name: 'Alan Turing',
-    email: 'alan.turing@aegislab.io',
-    role: 'editor',
-    status: 'active',
-    online: false,
-    lastActive: 'Yesterday',
-  },
-  {
-    id: 'u-5',
-    name: 'Margaret Hamilton',
-    email: 'margaret@aegislab.io',
-    role: 'editor',
-    status: 'active',
-    online: true,
-    lastActive: 'Just now',
-  },
-  {
-    id: 'u-6',
-    name: 'Edsger Dijkstra',
-    email: 'dijkstra@aegislab.io',
-    role: 'viewer',
-    status: 'active',
-    online: false,
-    lastActive: '2 days ago',
-  },
-  {
-    id: 'u-7',
-    name: 'Barbara Liskov',
-    email: 'barbara.liskov@aegislab.io',
-    role: 'viewer',
-    status: 'active',
-    online: false,
-    lastActive: '5 days ago',
-  },
-  {
-    id: 'u-8',
-    name: 'Donald Knuth',
-    email: 'donald.knuth@aegislab.io',
-    role: 'viewer',
-    status: 'disabled',
-    online: false,
-    lastActive: '3 weeks ago',
-  },
-  {
-    id: 'u-9',
-    name: 'Katherine Johnson',
-    email: 'katherine@aegislab.io',
-    role: 'viewer',
-    status: 'pending',
-    online: false,
-    lastActive: 'Never',
-  },
-  {
-    id: 'u-10',
-    name: 'Tim Berners-Lee',
-    email: 'tim.bl@aegislab.io',
-    role: 'editor',
-    status: 'pending',
-    online: false,
-    lastActive: 'Never',
-  },
-];
-
-const ROLE_LABEL: Record<Role, string> = {
-  admin: 'Admin',
-  editor: 'Editor',
-  viewer: 'Viewer',
-};
-
-const ROLE_TONE: Record<Role, 'ink' | 'default' | 'ghost'> = {
-  admin: 'ink',
-  editor: 'default',
-  viewer: 'ghost',
-};
-
-function statusTone(status: Status): 'ink' | 'muted' | 'warning' {
-  switch (status) {
-    case 'active':
-      return 'ink';
-    case 'pending':
-      return 'warning';
-    case 'disabled':
-      return 'muted';
+function statusTone(status: string, active: boolean): 'ink' | 'muted' | 'warning' {
+  if (!active) {
+    return 'muted';
   }
+  if (status === 'pending') {
+    return 'warning';
+  }
+  return 'ink';
+}
+
+function statusLabel(u: IamUser): string {
+  if (!u.is_active) {
+    return 'Disabled';
+  }
+  if (u.status) {
+    return u.status[0].toUpperCase() + u.status.slice(1);
+  }
+  return 'Active';
+}
+
+function displayName(u: IamUser): string {
+  return u.full_name || u.username;
+}
+
+function roleNames(u: IamUser): string[] {
+  return (u.roles ?? []).map((r) => r.name);
+}
+
+interface InviteForm {
+  username: string;
+  email: string;
+  full_name: string;
+  password: string;
+}
+
+interface EditForm {
+  full_name: string;
+  email: string;
 }
 
 export default function Users() {
-  const { modal } = App.useApp();
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<UserRow | null>(null);
+  const { modal, message: msg } = App.useApp();
+  const [users, setUsers] = useState<IamUser[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = MOCK_USERS.filter((u) => {
-    if (roleFilter !== 'all' && u.role !== roleFilter) {
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'disabled'>(
+    'all'
+  );
+
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteForm] = Form.useForm<InviteForm>();
+  const [editTarget, setEditTarget] = useState<IamUser | null>(null);
+  const [editForm] = Form.useForm<EditForm>();
+  const [submitting, setSubmitting] = useState(false);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await listUsers({ page, size: PAGE_SIZE });
+      setUsers(res.items);
+      setTotal(res.total);
+    } catch (e) {
+      setError(errMsg(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [page]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const roleOptions = useMemo(() => {
+    const names = new Set<string>();
+    users.forEach((u) => roleNames(u).forEach((n) => names.add(n)));
+    return [
+      { value: 'all', label: 'All roles' },
+      ...[...names].sort().map((n) => ({ value: n, label: n })),
+    ];
+  }, [users]);
+
+  const filtered = users.filter((u) => {
+    if (roleFilter !== 'all' && !roleNames(u).includes(roleFilter)) {
       return false;
     }
-    if (statusFilter !== 'all' && u.status !== statusFilter) {
+    if (statusFilter === 'active' && !u.is_active) {
       return false;
     }
-    if (
-      search &&
-      !u.name.toLowerCase().includes(search.toLowerCase()) &&
-      !u.email.toLowerCase().includes(search.toLowerCase())
-    ) {
+    if (statusFilter === 'disabled' && u.is_active) {
       return false;
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      if (
+        !displayName(u).toLowerCase().includes(q) &&
+        !u.email.toLowerCase().includes(q) &&
+        !u.username.toLowerCase().includes(q)
+      ) {
+        return false;
+      }
     }
     return true;
   });
 
-  const handleDisable = (user: UserRow): void => {
+  const handleToggleActive = (u: IamUser): void => {
+    const disable = u.is_active;
     modal.confirm({
-      title: `Disable ${user.name}?`,
-      content: 'They will lose access to this workspace immediately.',
-      okText: 'Disable',
-      okButtonProps: { danger: true },
-      onOk: () => {
-        console.warn('disable user', user.id);
+      title: disable ? `Disable ${displayName(u)}?` : `Enable ${displayName(u)}?`,
+      content: disable
+        ? 'They will lose access to this workspace immediately.'
+        : 'They will regain access to this workspace.',
+      okText: disable ? 'Disable' : 'Enable',
+      okButtonProps: { danger: disable },
+      onOk: async () => {
+        try {
+          await updateUser(u.id, { is_active: !u.is_active });
+          void msg.success(disable ? 'User disabled' : 'User enabled');
+          await refresh();
+        } catch (e) {
+          void msg.error(`Update failed: ${errMsg(e)}`);
+        }
       },
     });
   };
 
-  const columns: Array<DataTableColumn<UserRow>> = [
+  const handleDelete = (u: IamUser): void => {
+    modal.confirm({
+      title: `Delete ${displayName(u)}?`,
+      content: `${u.username} will be removed permanently.`,
+      okText: 'Delete',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await deleteUser(u.id);
+          void msg.success('User deleted');
+          await refresh();
+        } catch (e) {
+          void msg.error(`Delete failed: ${errMsg(e)}`);
+        }
+      },
+    });
+  };
+
+  const handleInvite = (): void => {
+    inviteForm
+      .validateFields()
+      .then(async (values) => {
+        setSubmitting(true);
+        try {
+          await createUser({
+            username: values.username.trim(),
+            email: values.email.trim(),
+            full_name: values.full_name.trim(),
+            password: values.password,
+          });
+          void msg.success('User created');
+          setInviteOpen(false);
+          inviteForm.resetFields();
+          await refresh();
+        } catch (e) {
+          void msg.error(`Create failed: ${errMsg(e)}`);
+        } finally {
+          setSubmitting(false);
+        }
+      })
+      .catch(() => {
+        /* validation handled inline */
+      });
+  };
+
+  const handleEdit = (): void => {
+    if (editTarget === null) {
+      return;
+    }
+    const target = editTarget;
+    editForm
+      .validateFields()
+      .then(async (values) => {
+        setSubmitting(true);
+        try {
+          await updateUser(target.id, {
+            full_name: values.full_name.trim(),
+            email: values.email.trim(),
+          });
+          void msg.success('User updated');
+          setEditTarget(null);
+          await refresh();
+        } catch (e) {
+          void msg.error(`Update failed: ${errMsg(e)}`);
+        } finally {
+          setSubmitting(false);
+        }
+      })
+      .catch(() => {
+        /* validation handled inline */
+      });
+  };
+
+  const columns: Array<DataTableColumn<IamUser>> = [
     {
       key: 'user',
       header: 'User',
@@ -188,13 +246,9 @@ export default function Users() {
       resizable: true,
       render: (u) => (
         <div className='users-page__user'>
-          <Avatar
-            name={u.name}
-            size='md'
-            status={u.online ? 'online' : 'offline'}
-          />
+          <Avatar name={displayName(u)} size='md' />
           <div className='users-page__user-text'>
-            <span className='users-page__user-name'>{u.name}</span>
+            <span className='users-page__user-name'>{displayName(u)}</span>
             <span className='users-page__user-email'>{u.email}</span>
           </div>
         </div>
@@ -202,11 +256,25 @@ export default function Users() {
     },
     {
       key: 'role',
-      header: 'Role',
-      width: 110,
+      header: 'Roles',
+      minWidth: 120,
       truncate: false,
       resizable: true,
-      render: (u) => <Chip tone={ROLE_TONE[u.role]}>{ROLE_LABEL[u.role]}</Chip>,
+      render: (u) => {
+        const names = roleNames(u);
+        if (names.length === 0) {
+          return <Chip tone='ghost'>none</Chip>;
+        }
+        return (
+          <span style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}>
+            {names.map((n) => (
+              <Chip key={n} tone='default'>
+                {n}
+              </Chip>
+            ))}
+          </span>
+        );
+      },
     },
     {
       key: 'status',
@@ -216,38 +284,64 @@ export default function Users() {
       resizable: true,
       render: (u) => (
         <span className='users-page__status'>
-          <StatusDot size={6} tone={statusTone(u.status)} />
-          <span>{u.status[0].toUpperCase() + u.status.slice(1)}</span>
+          <StatusDot size={6} tone={statusTone(u.status, u.is_active)} />
+          <span>{statusLabel(u)}</span>
         </span>
       ),
     },
     {
       key: 'lastActive',
-      header: 'Last active',
+      header: 'Last login',
       minWidth: 140,
       resizable: true,
       render: (u) => (
-        <span className='users-page__last-active'>{u.lastActive}</span>
+        <span className='users-page__last-active'>
+          {u.last_login_at
+            ? new Date(u.last_login_at).toLocaleString()
+            : 'Never'}
+        </span>
       ),
     },
     {
       key: 'actions',
       header: '',
       align: 'right',
-      width: 160,
+      width: 220,
       truncate: false,
       render: (u) => (
         <div className='users-page__actions'>
-          <Button type='text' size='small' onClick={() => setEditTarget(u)}>
+          <Button
+            type='text'
+            size='small'
+            onClick={() => {
+              setEditTarget(u);
+              editForm.setFieldsValue({
+                full_name: u.full_name,
+                email: u.email,
+              });
+            }}
+          >
             Edit
           </Button>
           <Button
             type='text'
             size='small'
-            danger
-            onClick={() => handleDisable(u)}
+            danger={u.is_active}
+            onClick={() => {
+              handleToggleActive(u);
+            }}
           >
-            Disable
+            {u.is_active ? 'Disable' : 'Enable'}
+          </Button>
+          <Button
+            type='text'
+            size='small'
+            danger
+            onClick={() => {
+              handleDelete(u);
+            }}
+          >
+            Delete
           </Button>
         </div>
       ),
@@ -260,110 +354,173 @@ export default function Users() {
         title='Users'
         description='Manage members and their access.'
         action={
-          <Button type='primary' onClick={() => setInviteOpen(true)}>
+          <Button
+            type='primary'
+            onClick={() => {
+              setInviteOpen(true);
+            }}
+          >
             + Invite user
           </Button>
         }
       />
-      <Panel>
-        <div className='users-page__filters'>
-          <Input.Search
-            allowClear
-            placeholder='Search by name or email'
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className='users-page__search'
+      {error !== null ? (
+        <Panel>
+          <ErrorState
+            title='Could not load users'
+            description={error}
+            action={
+              <Button
+                onClick={() => {
+                  void refresh();
+                }}
+              >
+                Try again
+              </Button>
+            }
           />
-          <Select<Role | 'all'>
-            value={roleFilter}
-            onChange={setRoleFilter}
-            className='users-page__select'
-            options={[
-              { value: 'all', label: 'All roles' },
-              { value: 'admin', label: 'Admin' },
-              { value: 'editor', label: 'Editor' },
-              { value: 'viewer', label: 'Viewer' },
-            ]}
+        </Panel>
+      ) : (
+        <Panel>
+          <div className='users-page__filters'>
+            <Input.Search
+              allowClear
+              placeholder='Search by name or email'
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+              }}
+              className='users-page__search'
+            />
+            <Select<string>
+              value={roleFilter}
+              onChange={setRoleFilter}
+              className='users-page__select'
+              options={roleOptions}
+            />
+            <Select<'all' | 'active' | 'disabled'>
+              value={statusFilter}
+              onChange={setStatusFilter}
+              className='users-page__select'
+              options={[
+                { value: 'all', label: 'All statuses' },
+                { value: 'active', label: 'Active' },
+                { value: 'disabled', label: 'Disabled' },
+              ]}
+            />
+          </div>
+          <DataTable<IamUser>
+            columns={columns}
+            data={filtered}
+            rowKey={(u) => u.id.toString()}
+            persistKey='settings.users'
+            loading={loading}
+            emptyTitle='No matching users'
+            emptyDescription='Adjust the filters or invite someone new.'
           />
-          <Select<Status | 'all'>
-            value={statusFilter}
-            onChange={setStatusFilter}
-            className='users-page__select'
-            options={[
-              { value: 'all', label: 'All statuses' },
-              { value: 'active', label: 'Active' },
-              { value: 'pending', label: 'Pending' },
-              { value: 'disabled', label: 'Disabled' },
-            ]}
-          />
-        </div>
-        <DataTable<UserRow>
-          columns={columns}
-          data={filtered}
-          rowKey={(u) => u.id}
-          persistKey='settings.users'
-          emptyTitle='No matching users'
-          emptyDescription='Adjust the filters or invite someone new.'
-        />
-      </Panel>
+          {!loading && users.length === 0 ? (
+            <EmptyState
+              title='No users yet'
+              description='Invite someone to get started.'
+            />
+          ) : null}
+          {total > PAGE_SIZE ? (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                paddingTop: 'var(--space-3)',
+              }}
+            >
+              <Pagination
+                current={page}
+                pageSize={PAGE_SIZE}
+                total={total}
+                showSizeChanger={false}
+                onChange={setPage}
+              />
+            </div>
+          ) : null}
+        </Panel>
+      )}
 
       <Modal
         title='Invite user'
         open={inviteOpen}
-        onCancel={() => setInviteOpen(false)}
-        onOk={() => {
-          console.warn('invite submitted');
+        onCancel={() => {
           setInviteOpen(false);
+          inviteForm.resetFields();
         }}
-        okText='Send invite'
+        onOk={handleInvite}
+        okText='Create user'
+        confirmLoading={submitting}
+        destroyOnClose
       >
-        <FormRow label='Email' description='Where the invite is sent.'>
-          <Input placeholder='teammate@example.com' />
-        </FormRow>
-        <FormRow label='Role' description='Can be changed later.'>
-          <Select
-            defaultValue='viewer'
-            style={{ width: '100%' }}
-            options={[
-              { value: 'admin', label: 'Admin' },
-              { value: 'editor', label: 'Editor' },
-              { value: 'viewer', label: 'Viewer' },
+        <Form form={inviteForm} layout='vertical'>
+          <Form.Item
+            name='username'
+            label='Username'
+            rules={[{ required: true, message: 'username is required' }]}
+          >
+            <Input placeholder='ada.lovelace' />
+          </Form.Item>
+          <Form.Item
+            name='email'
+            label='Email'
+            rules={[
+              { required: true, message: 'email is required' },
+              { type: 'email', message: 'must be a valid email' },
             ]}
-          />
-        </FormRow>
-        <FormRow label='Welcome message' description='Optional.'>
-          <Input.TextArea rows={3} placeholder='A short note for the invitee' />
-        </FormRow>
+          >
+            <Input placeholder='teammate@example.com' />
+          </Form.Item>
+          <Form.Item
+            name='full_name'
+            label='Display name'
+            rules={[{ required: true, message: 'display name is required' }]}
+          >
+            <Input placeholder='Ada Lovelace' />
+          </Form.Item>
+          <Form.Item
+            name='password'
+            label='Initial password'
+            rules={[
+              { required: true, message: 'password is required' },
+              { min: 8, message: 'at least 8 characters' },
+            ]}
+          >
+            <Input.Password placeholder='at least 8 characters' />
+          </Form.Item>
+        </Form>
       </Modal>
 
       <Modal
-        title={editTarget ? `Edit ${editTarget.name}` : 'Edit user'}
+        title={editTarget ? `Edit ${displayName(editTarget)}` : 'Edit user'}
         open={editTarget !== null}
-        onCancel={() => setEditTarget(null)}
-        onOk={() => {
-          console.warn('edit saved', editTarget?.id);
+        onCancel={() => {
           setEditTarget(null);
         }}
+        onOk={handleEdit}
         okText='Save'
+        confirmLoading={submitting}
+        destroyOnClose
       >
-        {editTarget !== null && (
-          <>
-            <FormRow label='Display name'>
-              <Input defaultValue={editTarget.name} />
-            </FormRow>
-            <FormRow label='Role'>
-              <Select
-                defaultValue={editTarget.role}
-                style={{ width: '100%' }}
-                options={[
-                  { value: 'admin', label: 'Admin' },
-                  { value: 'editor', label: 'Editor' },
-                  { value: 'viewer', label: 'Viewer' },
-                ]}
-              />
-            </FormRow>
-          </>
-        )}
+        <Form form={editForm} layout='vertical'>
+          <FormRow label='Display name'>
+            <Form.Item name='full_name' noStyle>
+              <Input />
+            </Form.Item>
+          </FormRow>
+          <FormRow label='Email'>
+            <Form.Item
+              name='email'
+              noStyle
+              rules={[{ type: 'email', message: 'must be a valid email' }]}
+            >
+              <Input />
+            </Form.Item>
+          </FormRow>
+        </Form>
       </Modal>
     </>
   );
