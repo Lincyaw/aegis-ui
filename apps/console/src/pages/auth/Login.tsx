@@ -1,4 +1,10 @@
-import { type ReactElement, useEffect, useRef, useState } from 'react';
+import {
+  type ReactElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import {
@@ -93,7 +99,10 @@ export function Login(): ReactElement {
   const { signIn, status } = useAuth();
   const location = useLocation();
   const [params] = useSearchParams();
-  const handoff = readHandoff(params);
+  // readHandoff returns a fresh object each call; memoize on the stable search
+  // string so dependent effects don't re-run every render (infinite fetch loop).
+  const search = params.toString();
+  const handoff = useMemo(() => readHandoff(new URLSearchParams(search)), [search]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(() =>
     ssoErrorMessage(params.get('error'))
