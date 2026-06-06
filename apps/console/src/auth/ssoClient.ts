@@ -15,6 +15,30 @@ export interface UserInfo {
   picture?: string;
 }
 
+export interface FederatedProvider {
+  name: string;
+  display_name: string;
+  type: 'oidc' | 'oauth2';
+}
+
+export async function fetchProviders(
+  cfg: SsoConfig
+): Promise<FederatedProvider[]> {
+  try {
+    const res = await fetch(ssoUrl('/auth/providers', cfg));
+    if (!res.ok) {
+      return [];
+    }
+    const json = (await res.json()) as
+      | { data?: FederatedProvider[] }
+      | FederatedProvider[];
+    const list = Array.isArray(json) ? json : json.data;
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
 async function form(
   cfg: SsoConfig,
   path: string,
