@@ -6,6 +6,7 @@ import {
   CloudServerOutlined,
   FileTextOutlined,
   KeyOutlined,
+  SafetyCertificateOutlined,
   SafetyOutlined,
   SettingOutlined,
   TeamOutlined,
@@ -16,6 +17,7 @@ import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import ApiKeys from './pages/ApiKeys';
 import AuditLogs from './pages/AuditLogs';
+import IdentityProviders from './pages/IdentityProviders';
 import Notifications from './pages/Notifications';
 import OidcClients from './pages/OidcClients';
 import Profile from './pages/Profile';
@@ -48,6 +50,11 @@ export const settingsApp: AegisApp = {
         { to: 'teams', label: 'Teams', icon: <UsergroupAddOutlined /> },
         { to: 'roles', label: 'Roles & Permissions', icon: <SafetyOutlined /> },
         { to: 'oidc-clients', label: 'OIDC Clients', icon: <ApiOutlined /> },
+        {
+          to: 'identity-providers',
+          label: 'Identity Providers',
+          icon: <SafetyCertificateOutlined />,
+        },
         { to: 'audit', label: 'Audit Logs', icon: <FileTextOutlined /> },
       ],
     },
@@ -67,6 +74,7 @@ export const settingsApp: AegisApp = {
     { path: 'teams', element: <Teams /> },
     { path: 'roles', element: <Roles /> },
     { path: 'oidc-clients', element: <OidcClients /> },
+    { path: 'identity-providers', element: <IdentityProviders /> },
     { path: 'audit', element: <AuditLogs /> },
     { path: 'endpoints', element: <Setup /> },
   ],
