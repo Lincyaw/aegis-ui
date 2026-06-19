@@ -34,16 +34,16 @@ function write(ids: string[]): void {
 }
 
 /**
- * Pin / unpin trajectories for side-by-side compare. Capped at two so
+ * Pin / unpin sessions for side-by-side compare. Capped at two so
  * the compare route always renders a 50/50 split.
  *
- * Multi-tab sync via the ``storage`` event so pinning a trajectory in
+ * Multi-tab sync via the ``storage`` event so pinning a session in
  * SessionList immediately updates the chip count in the header.
  */
 export function useCompareList(): {
   pinned: string[];
-  toggle: (rootSessionId: string) => void;
-  remove: (rootSessionId: string) => void;
+  toggle: (sessionId: string) => void;
+  remove: (sessionId: string) => void;
   clear: () => void;
   full: boolean;
 } {
@@ -59,19 +59,19 @@ export function useCompareList(): {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const toggle = useCallback((rsi: string) => {
+  const toggle = useCallback((sessionId: string) => {
     setPinned((cur) => {
-      const next = cur.includes(rsi)
-        ? cur.filter((x) => x !== rsi)
-        : [...cur, rsi].slice(-MAX_PINS);
+      const next = cur.includes(sessionId)
+        ? cur.filter((x) => x !== sessionId)
+        : [...cur, sessionId].slice(-MAX_PINS);
       write(next);
       return next;
     });
   }, []);
 
-  const remove = useCallback((rsi: string) => {
+  const remove = useCallback((sessionId: string) => {
     setPinned((cur) => {
-      const next = cur.filter((x) => x !== rsi);
+      const next = cur.filter((x) => x !== sessionId);
       write(next);
       return next;
     });

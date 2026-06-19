@@ -47,6 +47,33 @@ export { Skeleton, SkeletonText } from './Skeleton';
 export { TimeDisplay } from './TimeDisplay';
 export { CodeBlock } from './CodeBlock';
 export type { CodeBlockSurface } from './CodeBlock';
+export {
+  ContentInspectorDialog,
+  ContentPreview,
+} from './ContentInspectorDialog';
+export type {
+  ContentInspectorDialogProps,
+  ContentPreviewProps,
+} from './ContentInspectorDialog';
+export { prepareInspectableContent } from './ContentInspectorContent';
+export type {
+  InspectableContent,
+  InspectableContentKind,
+  PreparedInspectableContent,
+} from './ContentInspectorContent';
+export {
+  SessionRunOutputView,
+  SessionRunTrajectoryView,
+} from './SessionRunView';
+export type {
+  SessionRunFact,
+  SessionRunMessage,
+  SessionRunOutputViewProps,
+  SessionRunSubmission,
+  SessionRunSummary,
+  SessionRunToolCall,
+  SessionRunTrajectoryViewProps,
+} from './SessionRunView';
 export { DataTable } from './DataTable';
 export type { DataTableColumn, DataTableSurface } from './DataTable';
 export { EventTable } from './EventTable';

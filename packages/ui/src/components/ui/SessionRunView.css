@@ -1,0 +1,227 @@
+.aegis-session-trajectory {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--bg-page);
+}
+
+.aegis-session-trajectory__summary {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}
+
+.aegis-session-message {
+  flex: 0 0 auto;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.aegis-session-message--highlighted {
+  border-color: var(--accent-warning);
+}
+
+.aegis-session-message__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  background: var(--bg-muted);
+  min-width: 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.aegis-session-message__head::-webkit-details-marker {
+  display: none;
+}
+
+.aegis-session-message__fold {
+  width: 1ch;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  flex-shrink: 0;
+}
+
+.aegis-session-message__fold::before {
+  content: '▾';
+}
+
+.aegis-session-message:not([open]) .aegis-session-message__fold::before {
+  content: '▸';
+}
+
+.aegis-session-message__excerpt {
+  color: var(--text-muted);
+  font-size: var(--fs-12);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aegis-session-message__body {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: min(28rem, 58vh);
+  overflow: auto;
+  min-width: 0;
+}
+
+.aegis-session-message__tool,
+.aegis-session-output__json,
+.aegis-session-output__tool {
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.aegis-session-message__tool summary,
+.aegis-session-output__json summary,
+.aegis-session-output__tool summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  font-family: var(--font-brand);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+}
+
+.aegis-session-message__head .aegis-session-content__expand,
+.aegis-session-message__tool summary .aegis-session-content__expand,
+.aegis-session-output__json summary .aegis-session-content__expand,
+.aegis-session-output__tool summary .aegis-session-content__expand {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.aegis-session-message__tool > .aegis-session-content,
+.aegis-session-output__json > .aegis-session-content,
+.aegis-session-output__tool > .aegis-session-content {
+  border-top: var(--size-hairline) solid var(--border-hairline);
+  padding: var(--space-2);
+}
+
+.aegis-session-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-session-content__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.aegis-session-content__toolbar .aegis-metric-label {
+  margin-right: auto;
+}
+
+.aegis-session-content__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-family: var(--font-brand);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+}
+
+.aegis-session-content__expand {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--fs-11);
+}
+
+.aegis-session-output {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.aegis-session-output__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-session-output__section h3 {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: var(--fs-13);
+}
+
+.aegis-session-output__facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  font-size: var(--fs-12);
+}
+
+.aegis-session-output__fact {
+  display: contents;
+}
+
+.aegis-session-output__facts dt {
+  color: var(--text-muted);
+}
+
+.aegis-session-output__facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.aegis-session-output__roots {
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.aegis-session-output__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.aegis-session-output__tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-session-output__tool--error {
+  border-color: var(--accent-warning);
+}

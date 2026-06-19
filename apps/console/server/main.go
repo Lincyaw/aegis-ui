@@ -37,20 +37,21 @@ var distFS embed.FS
 var version = "dev"
 
 type config struct {
-	Port               int    `json:"port"`
-	Host               string `json:"host"`
-	Gateway            string `json:"gateway"`
-	Clickhouse         string `json:"clickhouse"`
-	ClickhouseDB       string `json:"clickhouseDb"`
-	ClickhouseTable    string `json:"clickhouseTable"`
-	ClickhouseUser     string `json:"clickhouseUser"`
-	ClickhousePassword string `json:"clickhousePassword"`
-	SsoOrigin          string `json:"ssoOrigin"`
-	SsoClientID        string `json:"ssoClientId"`
-	SsoScope           string `json:"ssoScope"`
-	Open               bool   `json:"open"`
-	Bridge             bool   `json:"bridge"`
-	BridgeNoAuth       bool   `json:"bridgeNoAuth"`
+	Port                int    `json:"port"`
+	Host                string `json:"host"`
+	Gateway             string `json:"gateway"`
+	Clickhouse          string `json:"clickhouse"`
+	ClickhouseDB        string `json:"clickhouseDb"`
+	ClickhouseTable     string `json:"clickhouseTable"`
+	ClickhouseLogsTable string `json:"clickhouseLogsTable"`
+	ClickhouseUser      string `json:"clickhouseUser"`
+	ClickhousePassword  string `json:"clickhousePassword"`
+	SsoOrigin           string `json:"ssoOrigin"`
+	SsoClientID         string `json:"ssoClientId"`
+	SsoScope            string `json:"ssoScope"`
+	Open                bool   `json:"open"`
+	Bridge              bool   `json:"bridge"`
+	BridgeNoAuth        bool   `json:"bridgeNoAuth"`
 }
 
 func main() {
@@ -62,13 +63,14 @@ func main() {
 		return
 	}
 	cfg := config{
-		Port:            3323,
-		Host:            "127.0.0.1",
-		Clickhouse:      "http://127.0.0.1:8123",
-		ClickhouseDB:    "otel",
-		ClickhouseTable: "otel_traces",
-		SsoClientID:     "aegis-console",
-		SsoScope:        "openid profile email",
+		Port:                3323,
+		Host:                "127.0.0.1",
+		Clickhouse:          "http://127.0.0.1:8123",
+		ClickhouseDB:        "otel",
+		ClickhouseTable:     "otel_traces",
+		ClickhouseLogsTable: "otel_logs",
+		SsoClientID:         "aegis-console",
+		SsoScope:            "openid profile email",
 	}
 
 	var configFile string
@@ -80,6 +82,7 @@ func main() {
 	flag.StringVar(&cfg.Clickhouse, "clickhouse", cfg.Clickhouse, "ClickHouse HTTP endpoint")
 	flag.StringVar(&cfg.ClickhouseDB, "clickhouse-db", cfg.ClickhouseDB, "ClickHouse database")
 	flag.StringVar(&cfg.ClickhouseTable, "clickhouse-table", cfg.ClickhouseTable, "Traces table")
+	flag.StringVar(&cfg.ClickhouseLogsTable, "clickhouse-logs-table", cfg.ClickhouseLogsTable, "Logs table")
 	flag.StringVar(&cfg.ClickhouseUser, "clickhouse-user", "", "Optional CH user")
 	flag.StringVar(&cfg.ClickhousePassword, "clickhouse-password", "", "Optional CH password")
 	flag.StringVar(&cfg.SsoOrigin, "sso-origin", "", "SSO origin (default same as --gateway)")
@@ -297,6 +300,7 @@ func buildConfigJS(cfg config, br *bridge) []byte {
 		"clickhouseUrl":         "/api/v2/clickhouse",
 		"clickhouseDatabase":    cfg.ClickhouseDB,
 		"clickhouseTracesTable": cfg.ClickhouseTable,
+		"clickhouseLogsTable":   cfg.ClickhouseLogsTable,
 	}
 	if cfg.ClickhouseUser != "" {
 		payload["clickhouseUser"] = cfg.ClickhouseUser

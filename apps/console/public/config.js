@@ -16,6 +16,7 @@ window.__AEGIS_CONFIG__ = {
   // clickhouseUrl: 'http://localhost:8123',
   // clickhouseDatabase: 'otel',
   // clickhouseTracesTable: 'otel_traces',
+  // clickhouseLogsTable: 'otel_logs',
   // clickhouseUser: 'default',
   // clickhousePassword: '',
 };

@@ -7,15 +7,15 @@ import { SessionList } from './pages/SessionList';
 
 export const trajectoriesApp: AegisApp = {
   id: 'trajectories',
-  label: 'Trajectories',
+  label: 'Sessions',
   icon: <NodeIndexOutlined />,
   basePath: '/trajectories',
-  description: 'Read-only viewer for AgentM OTel traces stored in ClickHouse.',
+  description: 'Read-only viewer for AgentM session trees stored in ClickHouse.',
   requiresAuth: false,
   sidebar: [
     {
       items: [
-        { to: '', label: 'Sessions', end: true },
+        { to: '', label: 'Session table', end: true },
         { to: 'compare', label: 'Compare' },
       ],
     },

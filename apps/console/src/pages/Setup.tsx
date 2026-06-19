@@ -44,6 +44,18 @@ const FIELDS: FieldDef[] = [
     hint: 'Database holding otel_traces. Default: otel.',
   },
   {
+    key: 'clickhouseTracesTable',
+    label: 'ClickHouse traces table',
+    placeholder: 'otel_traces',
+    hint: 'Table holding OTel span rows. Default: otel_traces.',
+  },
+  {
+    key: 'clickhouseLogsTable',
+    label: 'ClickHouse logs table',
+    placeholder: 'otel_logs',
+    hint: 'Table holding AgentM session logs and message bodies. Default: otel_logs.',
+  },
+  {
     key: 'aiBaseUrl',
     label: 'AI base URL',
     placeholder: 'https://api.openai.com/v1',
@@ -73,6 +85,8 @@ export function Setup(): ReactElement {
       current.ssoOrigin === current.gatewayUrl ? '' : current.ssoOrigin,
     clickhouseUrl: current.clickhouseUrl,
     clickhouseDatabase: current.clickhouseDatabase,
+    clickhouseTracesTable: current.clickhouseTracesTable,
+    clickhouseLogsTable: current.clickhouseLogsTable,
     aiBaseUrl: current.aiBaseUrl,
     aiModel: current.aiModel,
     aiApiKey: current.aiApiKey,
@@ -86,6 +100,9 @@ export function Setup(): ReactElement {
       ssoOrigin: draft.ssoOrigin?.trim() ?? '',
       clickhouseUrl: draft.clickhouseUrl?.trim() ?? '',
       clickhouseDatabase: draft.clickhouseDatabase?.trim() || 'otel',
+      clickhouseTracesTable:
+        draft.clickhouseTracesTable?.trim() || 'otel_traces',
+      clickhouseLogsTable: draft.clickhouseLogsTable?.trim() || 'otel_logs',
       aiBaseUrl: draft.aiBaseUrl?.trim() ?? '',
       aiModel: draft.aiModel?.trim() || 'gpt-4o-mini',
       aiApiKey: draft.aiApiKey ?? '',

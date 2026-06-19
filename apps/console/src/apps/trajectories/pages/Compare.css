@@ -21,6 +21,49 @@
   overflow: hidden;
 }
 
+.trajectories-compare__session-body {
+  display: grid;
+  grid-template-rows: minmax(24rem, 1fr) minmax(16rem, 0.75fr);
+  gap: var(--space-2);
+  min-height: 0;
+  padding: var(--space-2);
+  overflow: hidden;
+}
+
+.trajectories-compare__pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.trajectories-compare__pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  background: var(--bg-muted);
+  flex-shrink: 0;
+}
+
+.trajectories-compare__pane .aegis-session-trajectory,
+.trajectories-compare__pane .aegis-session-output {
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-3);
+}
+
 .trajectories-compare__col-header {
   display: flex;
   align-items: center;
@@ -42,5 +85,9 @@
 @media (max-width: 1024px) {
   .trajectories-compare__split {
     grid-template-columns: 1fr;
+  }
+
+  .trajectories-compare__session-body {
+    grid-template-rows: minmax(20rem, 1fr) minmax(14rem, 0.75fr);
   }
 }

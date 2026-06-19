@@ -24,6 +24,7 @@ export interface RuntimeConfig {
   clickhouseUrl: string;
   clickhouseDatabase: string;
   clickhouseTracesTable: string;
+  clickhouseLogsTable: string;
   clickhouseUser?: string;
   clickhousePassword?: string;
   /** OpenAI-compatible chat completions base URL (no trailing slash). Empty disables AI. */
@@ -50,6 +51,7 @@ const DEFAULTS: RuntimeConfig = {
   clickhouseUrl: '',
   clickhouseDatabase: 'otel',
   clickhouseTracesTable: 'otel_traces',
+  clickhouseLogsTable: 'otel_logs',
   aiBaseUrl: '',
   aiModel: 'gpt-4o-mini',
   aiApiKey: '',

@@ -160,6 +160,10 @@ pnpm dev             # apps/console vite dev server (gallery + demo apps)
 pnpm check           # type-check + lint + lint:css + format:check in one shot
 ```
 
+For browser runtime failures where the page renders and then turns blank, use
+the repo-local Headless DevTools Debug skill:
+`.agents/skills/headless-devtools-debug/SKILL.md`.
+
 Single-package shortcuts:
 
 ```bash

@@ -6,31 +6,42 @@ import type {
 /**
  * Lucene → ClickHouse column map for the SessionList search box.
  *
- * Constraints (these all live in the per-span WHERE, BEFORE GROUP BY):
- *   - Only fields readable from a single span row are usable here.
- *   - Aggregated predicates (errorCount > 0, turn_count, …) belong in
+ * Constraints (these all live on agentm.session.start log attributes):
+ *   - Only fields readable from the session-start row are usable here.
+ *   - Aggregated predicates (tool_count, turn_count, …) belong in
  *     HAVING and aren't supported by this surface yet.
  */
 export const SESSION_FIELD_MAPPINGS: FieldMapping[] = [
-  { field: 'trace_id', sqlExpr: 'TraceId' },
-  { field: 'service.name', sqlExpr: 'ServiceName' },
-  { field: 'span_name', sqlExpr: 'SpanName' },
-  { field: 'span_kind', sqlExpr: 'SpanKind' },
-  { field: 'status', sqlExpr: 'StatusCode' },
   {
-    field: 'agentm.session.root_id',
-    sqlExpr: "SpanAttributes['agentm.session.root_id']",
+    field: 'session_id',
+    sqlExpr: "LogAttributes['agentm.session.id']",
   },
   {
-    field: 'agentm.session.id',
-    sqlExpr: "SpanAttributes['agentm.session.id']",
+    field: 'root_session_id',
+    sqlExpr: "LogAttributes['agentm.session.root_id']",
   },
   {
-    field: 'agentm.session.parent_id',
-    sqlExpr: "SpanAttributes['agentm.session.parent_id']",
+    field: 'parent_session_id',
+    sqlExpr: "LogAttributes['agentm.session.parent_id']",
   },
-  { field: 'model', sqlExpr: "SpanAttributes['gen_ai.request.model']" },
-  { field: 'duration', sqlExpr: 'Duration', kind: 'number' },
+  { field: 'scenario', sqlExpr: "LogAttributes['agentm.session.scenario']" },
+  { field: 'purpose', sqlExpr: "LogAttributes['agentm.session.purpose']" },
+  {
+    field: 'lineage.kind',
+    sqlExpr: "LogAttributes['agentm.session.lineage.kind']",
+  },
+  {
+    field: 'lineage.source_session_id',
+    sqlExpr: "LogAttributes['agentm.session.lineage.source_session_id']",
+  },
+  {
+    field: 'fork.message_id',
+    sqlExpr: "LogAttributes['agentm.session.lineage.fork.message_id']",
+  },
+  {
+    field: 'cwd',
+    sqlExpr: "LogAttributes['agentm.session.cwd']",
+  },
 ];
 
 export const SESSION_FIELD_SUGGESTIONS: QueryAutocompleteFieldSuggestion[] =
@@ -44,27 +55,17 @@ export function suggestSessionFieldValues(
   field: string,
 ): Array<{ value: string; hint?: string }> {
   switch (field) {
-    case 'status':
+    case 'scenario':
+      return [{ value: 'rca' }, { value: 'local' }, { value: 'verifier' }];
+    case 'lineage.kind':
       return [
-        { value: 'STATUS_CODE_OK', hint: 'ok' },
-        { value: 'STATUS_CODE_ERROR', hint: 'error' },
-        { value: 'STATUS_CODE_UNSET', hint: 'unset' },
+        { value: 'root' },
+        { value: 'fork' },
+        { value: 'sub_agent' },
+        { value: 'workflow_worker' },
       ];
-    case 'span_kind':
-      return [
-        { value: 'SPAN_KIND_INTERNAL' },
-        { value: 'SPAN_KIND_CLIENT' },
-        { value: 'SPAN_KIND_SERVER' },
-        { value: 'SPAN_KIND_PRODUCER' },
-        { value: 'SPAN_KIND_CONSUMER' },
-      ];
-    case 'span_name':
-      return [
-        { value: 'invoke_agent' },
-        { value: 'agentm.turn' },
-        { value: 'chat' },
-        { value: 'execute_tool' },
-      ];
+    case 'purpose':
+      return [{ value: 'root' }, { value: 'worker' }, { value: 'critic' }];
     default:
       return [];
   }

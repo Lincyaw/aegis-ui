@@ -19,9 +19,9 @@ import {
 } from '@lincyaw/aegis-ui';
 import { parseAsString, useQueryState } from 'nuqs';
 
-import { listSessions, type SessionSummary } from '../api/clickhouse';
+import { listSessionRows, type SessionRow } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
-import { formatDurationMs, formatTokens } from '../conversation';
+import { formatTokens } from '../conversation';
 import {
   SESSION_FIELD_MAPPINGS,
   SESSION_FIELD_SUGGESTIONS,
@@ -37,8 +37,12 @@ const SINCE_PRESETS = [
 
 const DEFAULT_SINCE = 'now-7d';
 
+function shortId(value: string | undefined, length: number): string {
+  return value ? value.slice(0, length) : '—';
+}
+
 export function SessionList(): ReactElement {
-  const [rows, setRows] = useState<SessionSummary[]>([]);
+  const [rows, setRows] = useState<SessionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [since, setSince] = useQueryState(
@@ -80,7 +84,7 @@ export function SessionList(): ReactElement {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    listSessions({
+    listSessionRows({
       sinceHours,
       whereSql: compiled.sql,
       whereParams,
@@ -106,14 +110,14 @@ export function SessionList(): ReactElement {
     };
   }, [sinceHours, compiled.sql, whereParams]);
 
-  const columns: Array<EventTableColumn<SessionSummary>> = [
+  const columns: Array<EventTableColumn<SessionRow>> = [
     {
       key: 'session',
-      header: 'Agent tree',
-      width: 240,
+      header: 'Session',
+      width: 260,
       render: (r) => (
         <Link
-          to={r.rootSessionId}
+          to={r.sessionId || '#'}
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -122,16 +126,30 @@ export function SessionList(): ReactElement {
             textDecoration: 'none',
           }}
         >
-          <MonoValue size='sm'>{r.sessionId.slice(0, 16)}</MonoValue>
+          <MonoValue size='sm'>{shortId(r.sessionId, 16)}</MonoValue>
           <MetricLabel size='xs'>
-            {r.serviceName}
-            {r.sessionCount > 1
-              ? ` · ${r.sessionCount.toString()} sessions`
-              : ''}
+            {r.scenario || 'unknown'}
+            {r.lineageKind ? ` · ${r.lineageKind}` : ''}
           </MetricLabel>
         </Link>
       ),
       truncate: false,
+    },
+    {
+      key: 'parent',
+      header: 'Parent',
+      width: 150,
+      render: (r) =>
+        r.parentSessionId ? (
+          <Link
+            to={r.parentSessionId}
+            style={{ color: 'inherit', textDecoration: 'none' }}
+          >
+            <MonoValue size='sm'>{r.parentSessionId.slice(0, 12)}</MonoValue>
+          </Link>
+        ) : (
+          <MetricLabel size='xs'>root</MetricLabel>
+        ),
     },
     {
       key: 'started',
@@ -140,13 +158,17 @@ export function SessionList(): ReactElement {
       render: (r) => <TimeDisplay value={r.startedAt} />,
     },
     {
-      key: 'duration',
-      header: 'Duration',
-      align: 'right',
-      width: 100,
-      render: (r) => (
-        <MonoValue size='sm'>{formatDurationMs(r.durationMs)}</MonoValue>
-      ),
+      key: 'fork',
+      header: 'Fork point',
+      width: 140,
+      render: (r) =>
+        r.forkMessageId ? (
+          <MonoValue size='sm'>{r.forkMessageId.slice(0, 12)}</MonoValue>
+        ) : r.forkTurnIndex ? (
+          <MonoValue size='sm'>turn {r.forkTurnIndex}</MonoValue>
+        ) : (
+          <MetricLabel size='xs'>—</MetricLabel>
+        ),
     },
     {
       key: 'turns',
@@ -174,9 +196,12 @@ export function SessionList(): ReactElement {
       ),
     },
     {
-      key: 'model',
-      header: 'Model',
-      render: (r) => <MonoValue size='sm'>{r.model}</MonoValue>,
+      key: 'root',
+      header: 'Root',
+      width: 150,
+      render: (r) => (
+        <MonoValue size='sm'>{shortId(r.rootSessionId, 12)}</MonoValue>
+      ),
     },
     {
       key: 'status',
@@ -195,14 +220,29 @@ export function SessionList(): ReactElement {
       header: '',
       width: 60,
       render: (r) => {
-        const isPinned = pinned.includes(r.rootSessionId);
+        const isPinned = pinned.includes(r.sessionId);
         return (
-          <Chip
-            tone={isPinned ? 'ink' : 'default'}
-            onClick={() => toggle(r.rootSessionId)}
+          <button
+            type='button'
+            aria-label={isPinned ? 'Unpin session' : 'Pin session'}
+            title={isPinned ? 'Unpin session' : 'Pin session'}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              toggle(r.sessionId);
+            }}
+            style={{
+              border: 0,
+              background: 'transparent',
+              color: 'inherit',
+              padding: 0,
+              cursor: 'pointer',
+            }}
           >
-            {isPinned ? '★' : '☆'}
-          </Chip>
+            <Chip tone={isPinned ? 'ink' : 'default'}>
+              {isPinned ? '★' : '☆'}
+            </Chip>
+          </button>
         );
       },
       truncate: false,
@@ -231,7 +271,7 @@ export function SessionList(): ReactElement {
               onChange={(v) => void setSearch(v)}
               fieldSuggestions={SESSION_FIELD_SUGGESTIONS}
               valueSuggestions={suggestSessionFieldValues}
-              placeholder='service.name:foo AND status:STATUS_CODE_ERROR'
+              placeholder='scenario:rca AND lineage.kind:fork'
             />
           </div>
         }
@@ -255,7 +295,7 @@ export function SessionList(): ReactElement {
           <EventTable
             columns={columns}
             data={rows}
-            rowKey={(r) => r.rootSessionId}
+            rowKey={(r) => r.sessionId || `${r.startedAt}-${r.rootSessionId}`}
             loading={loading}
             emptyTitle='No sessions in window'
             emptyDescription='Try widening the time range or clearing the search.'
