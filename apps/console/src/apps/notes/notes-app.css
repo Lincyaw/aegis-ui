@@ -1,0 +1,359 @@
+/* ---- Layout ---------------------------------------------------------- */
+.notes-app {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+  min-height: 0;
+}
+
+.notes-app__sidebar {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-right: 1px solid var(--border-hairline);
+  padding-right: var(--space-3);
+  max-height: calc(100vh - var(--header-height) - var(--space-10));
+  position: sticky;
+  top: var(--space-3);
+}
+
+.notes-app__sidebar-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.notes-app__repo {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-13);
+  color: var(--text-main);
+}
+
+.notes-app__tree {
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.notes-app__center {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) 0;
+}
+
+.notes-app__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* ---- Note view ------------------------------------------------------- */
+.notes-view {
+  max-width: var(--page-max-width, 860px);
+}
+
+.notes-view__header {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.notes-view__title.notes-view__title {
+  margin-bottom: var(--space-2);
+}
+
+.notes-view__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.notes-view__path {
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}
+
+.notes-home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  color: var(--text-muted);
+}
+
+.notes-home__icon {
+  font-size: var(--fs-42);
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+}
+
+/* ---- Markdown typography --------------------------------------------- */
+.wiki-markdown {
+  font-family: var(--font-ui);
+  font-size: var(--fs-14);
+  line-height: 1.7;
+  color: var(--text-main);
+}
+
+.wiki-markdown > *:first-child {
+  margin-top: 0;
+}
+
+.wiki-markdown h1,
+.wiki-markdown h2,
+.wiki-markdown h3,
+.wiki-markdown h4 {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.wiki-markdown h1 {
+  font-size: var(--fs-28);
+}
+.wiki-markdown h2 {
+  font-size: var(--fs-24);
+}
+.wiki-markdown h3 {
+  font-size: var(--fs-18);
+}
+.wiki-markdown h4 {
+  font-size: var(--fs-16);
+}
+
+.wiki-markdown p,
+.wiki-markdown ul,
+.wiki-markdown ol {
+  margin: 0 0 var(--space-3);
+}
+
+.wiki-markdown ul,
+.wiki-markdown ol {
+  padding-left: var(--space-5);
+}
+
+.wiki-markdown li {
+  margin-bottom: var(--space-1);
+}
+
+.wiki-markdown a {
+  color: var(--accent-info);
+  text-decoration: none;
+}
+
+.wiki-markdown a:hover {
+  text-decoration: underline;
+}
+
+.wiki-markdown img {
+  max-width: 100%;
+}
+
+.wiki-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border-hairline);
+  margin: var(--space-5) 0;
+}
+
+.wiki-markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-13);
+}
+
+.wiki-markdown th,
+.wiki-markdown td {
+  border: 1px solid var(--border-hairline);
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+}
+
+.wiki-markdown th {
+  background: var(--bg-muted);
+  font-weight: var(--fw-semibold);
+}
+
+.wiki-markdown input[type='checkbox'] {
+  margin-right: var(--space-1);
+}
+
+/* ---- Code ------------------------------------------------------------ */
+.wiki-code {
+  background: var(--bg-terminal, var(--bg-muted));
+  color: var(--text-terminal, var(--text-main));
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  overflow: auto;
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  line-height: 1.5;
+}
+
+.wiki-code code {
+  font-family: inherit;
+  background: none;
+  padding: 0;
+}
+
+.wiki-code-inline {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+}
+
+/* ---- Wikilinks ------------------------------------------------------- */
+.wikilink {
+  color: var(--accent-info);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+}
+
+.wikilink:hover {
+  text-decoration: none;
+  border-bottom-style: solid;
+}
+
+.wikilink--broken {
+  color: var(--accent-warning);
+  cursor: help;
+  border-bottom-color: var(--accent-warning);
+}
+
+/* ---- Highlights ------------------------------------------------------ */
+.wiki-markdown mark {
+  background: var(--accent-caution);
+  color: var(--text-main);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-px);
+}
+
+/* ---- Blockquotes & callouts ------------------------------------------ */
+.wiki-blockquote {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.wiki-blockquote.callout {
+  color: var(--text-main);
+  border-left-width: 4px;
+}
+
+.wiki-blockquote .callout-title {
+  font-weight: var(--fw-semibold);
+  margin: 0 0 var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.wiki-blockquote .callout-title::before {
+  content: '●';
+  font-size: 0.8em;
+}
+
+.wiki-blockquote.callout > *:last-child {
+  margin-bottom: 0;
+}
+
+.callout-note,
+.callout-info,
+.callout-abstract {
+  border-left-color: var(--accent-info);
+  background: color-mix(in srgb, var(--accent-info) 10%, transparent);
+}
+.callout-note .callout-title,
+.callout-info .callout-title,
+.callout-abstract .callout-title {
+  color: var(--accent-info);
+}
+
+.callout-tip,
+.callout-success,
+.callout-hint {
+  border-left-color: var(--presence-online, #16a34a);
+  background: color-mix(in srgb, var(--presence-online, #16a34a) 10%, transparent);
+}
+.callout-tip .callout-title,
+.callout-success .callout-title,
+.callout-hint .callout-title {
+  color: var(--presence-online, #16a34a);
+}
+
+.callout-warning,
+.callout-caution,
+.callout-attention {
+  border-left-color: var(--accent-caution);
+  background: color-mix(in srgb, var(--accent-caution) 12%, transparent);
+}
+.callout-warning .callout-title,
+.callout-caution .callout-title,
+.callout-attention .callout-title {
+  color: var(--accent-caution);
+}
+
+.callout-danger,
+.callout-error,
+.callout-bug,
+.callout-failure {
+  border-left-color: var(--accent-warning);
+  background: color-mix(in srgb, var(--accent-warning) 10%, transparent);
+}
+.callout-danger .callout-title,
+.callout-error .callout-title,
+.callout-bug .callout-title,
+.callout-failure .callout-title {
+  color: var(--accent-warning);
+}
+
+/* ---- Mermaid --------------------------------------------------------- */
+.wiki-mermaid {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 var(--space-3);
+  overflow: auto;
+}
+
+.wiki-mermaid--loading {
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+  padding: var(--space-4);
+}
+
+.wiki-mermaid__error {
+  border-left: 3px solid var(--accent-warning);
+}
+
+/* ---- Math ------------------------------------------------------------ */
+.wiki-markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--space-1) 0;
+}
+
+@media (max-width: 768px) {
+  .notes-app {
+    flex-direction: column;
+  }
+  .notes-app__sidebar {
+    flex-basis: auto;
+    position: static;
+    max-height: 320px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-hairline);
+    padding-right: 0;
+    padding-bottom: var(--space-3);
+  }
+}
