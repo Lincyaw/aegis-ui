@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import { gatewayUrlFor } from '../../../config/runtime';
 import { portalAxios } from '../../portal/api/portal-client';
@@ -76,6 +77,14 @@ export function useRepoTree(
         .sort((a, b) => a.path.localeCompare(b.path));
     },
   });
+}
+
+/** Invalidate all notes caches (tree + every file). */
+export function useRefreshNotes(): () => void {
+  const qc = useQueryClient();
+  return useCallback(() => {
+    void qc.invalidateQueries({ queryKey: notesKeys.all });
+  }, [qc]);
 }
 
 /** Decoded UTF-8 content for a single markdown file. */

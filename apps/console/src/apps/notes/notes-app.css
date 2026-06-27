@@ -2,8 +2,9 @@
 .notes-app {
   display: flex;
   align-items: stretch;
-  gap: var(--space-4);
   min-height: 0;
+  position: relative;
+  height: calc(100vh - var(--header-height, 56px) - var(--space-6, 24px));
 }
 
 .notes-app__sidebar {
@@ -13,9 +14,8 @@
   gap: var(--space-2);
   border-right: 1px solid var(--border-hairline);
   padding-right: var(--space-3);
-  max-height: calc(100vh - var(--header-height) - var(--space-10));
-  position: sticky;
-  top: var(--space-3);
+  height: 100%;
+  overflow-y: auto;
 }
 
 .notes-app__sidebar-head {
@@ -29,6 +29,9 @@
   font-weight: var(--fw-semibold);
   font-size: var(--fs-13);
   color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .notes-app__tree {
@@ -46,17 +49,47 @@
 .notes-app__content {
   flex: 1 1 auto;
   min-width: 0;
+  overflow-y: auto;
+  padding-left: var(--space-4);
+}
+
+/* Mobile menu button */
+.notes-app__menu-btn {
+  position: fixed;
+  top: calc(var(--header-height, 56px) + var(--space-2));
+  left: var(--space-2);
+  z-index: 100;
+  background: transparent !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: var(--radius-md) !important;
+  width: 36px !important;
+  height: 36px !important;
 }
 
 /* ---- Note view ------------------------------------------------------- */
+.notes-view-wrapper {
+  display: flex;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
 .notes-view {
-  max-width: var(--page-max-width, 860px);
+  max-width: 720px;
+  margin: 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .notes-view__header {
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-hairline);
+}
+
+.notes-view__breadcrumb {
+  margin-bottom: var(--space-2);
+  font-size: var(--fs-12);
 }
 
 .notes-view__title.notes-view__title {
@@ -91,11 +124,71 @@
   margin-bottom: var(--space-3);
 }
 
+/* ---- Table of contents ----------------------------------------------- */
+.notes-toc {
+  position: sticky;
+  top: var(--space-6);
+  flex: 0 0 200px;
+  max-height: calc(100vh - var(--header-height, 56px) - var(--space-12));
+  overflow-y: auto;
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--border-hairline);
+}
+
+.notes-toc__title {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-2);
+  padding-left: 8px;
+}
+
+.notes-toc__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notes-toc__item {
+  margin: 0;
+}
+
+.notes-toc__link {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notes-toc__link:hover {
+  color: var(--text-main);
+  background: var(--bg-muted);
+}
+
+.notes-toc__link--active {
+  color: var(--accent-info);
+  font-weight: var(--fw-medium, 500);
+}
+
 /* ---- Markdown typography --------------------------------------------- */
 .wiki-markdown {
   font-family: var(--font-ui);
-  font-size: var(--fs-14);
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.8;
   color: var(--text-main);
 }
 
@@ -110,35 +203,43 @@
   font-family: var(--font-brand);
   font-weight: var(--fw-semibold);
   line-height: 1.3;
-  margin: var(--space-5) 0 var(--space-2);
 }
 
 .wiki-markdown h1 {
   font-size: var(--fs-28);
+  margin: var(--space-8) 0 var(--space-3);
 }
 .wiki-markdown h2 {
   font-size: var(--fs-24);
+  margin: var(--space-8) 0 var(--space-3);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--border-hairline);
 }
 .wiki-markdown h3 {
   font-size: var(--fs-18);
+  margin: var(--space-6) 0 var(--space-2);
 }
 .wiki-markdown h4 {
   font-size: var(--fs-16);
+  margin: var(--space-5) 0 var(--space-2);
 }
 
-.wiki-markdown p,
-.wiki-markdown ul,
-.wiki-markdown ol {
-  margin: 0 0 var(--space-3);
+.wiki-markdown p {
+  margin: 0 0 var(--space-4);
 }
 
 .wiki-markdown ul,
 .wiki-markdown ol {
+  margin: 0 0 var(--space-4);
   padding-left: var(--space-5);
 }
 
 .wiki-markdown li {
   margin-bottom: var(--space-1);
+}
+
+.wiki-markdown li > p {
+  margin-bottom: var(--space-2);
 }
 
 .wiki-markdown a {
@@ -152,18 +253,19 @@
 
 .wiki-markdown img {
   max-width: 100%;
+  border-radius: var(--radius-md);
 }
 
 .wiki-markdown hr {
   border: none;
   border-top: 1px solid var(--border-hairline);
-  margin: var(--space-5) 0;
+  margin: var(--space-6) 0;
 }
 
 .wiki-markdown table {
   border-collapse: collapse;
   width: 100%;
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-4);
   font-size: var(--fs-13);
 }
 
@@ -185,15 +287,16 @@
 
 /* ---- Code ------------------------------------------------------------ */
 .wiki-code {
-  background: var(--bg-terminal, var(--bg-muted));
-  color: var(--text-terminal, var(--text-main));
+  background: var(--bg-muted);
+  color: var(--text-main);
   border-radius: var(--radius-md);
-  padding: var(--space-3);
+  border: 1px solid var(--border-hairline);
+  padding: var(--space-3) var(--space-4);
   overflow: auto;
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-4);
   font-family: var(--font-mono);
   font-size: var(--fs-13);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .wiki-code code {
@@ -204,10 +307,11 @@
 
 .wiki-code-inline {
   font-family: var(--font-mono);
-  font-size: 0.9em;
+  font-size: 0.88em;
   background: var(--bg-muted);
   border-radius: var(--radius-sm);
-  padding: 0 var(--space-1);
+  padding: 1px 5px;
+  border: 1px solid var(--border-hairline);
 }
 
 /* ---- Wikilinks ------------------------------------------------------- */
@@ -238,7 +342,7 @@
 
 /* ---- Blockquotes & callouts ------------------------------------------ */
 .wiki-blockquote {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-4);
   padding: var(--space-2) var(--space-3);
   border-left: 3px solid var(--border-strong);
   color: var(--text-muted);
@@ -260,7 +364,7 @@
 }
 
 .wiki-blockquote .callout-title::before {
-  content: '●';
+  content: '\25cf';
   font-size: 0.8em;
 }
 
@@ -322,7 +426,7 @@
 .wiki-mermaid {
   display: flex;
   justify-content: center;
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-4);
   overflow: auto;
 }
 
@@ -343,17 +447,39 @@
   padding: var(--space-1) 0;
 }
 
+/* ---- Mobile ---------------------------------------------------------- */
 @media (max-width: 768px) {
   .notes-app {
     flex-direction: column;
   }
+
+  /* Sidebar is hidden on mobile — rendered inside the Drawer instead */
   .notes-app__sidebar {
-    flex-basis: auto;
-    position: static;
-    max-height: 320px;
-    border-right: none;
-    border-bottom: 1px solid var(--border-hairline);
-    padding-right: 0;
-    padding-bottom: var(--space-3);
+    display: none;
+  }
+
+  .notes-view-wrapper {
+    flex-direction: column;
+  }
+
+  .notes-view {
+    max-width: 100%;
+    padding: 0 var(--space-2);
+  }
+
+  .wiki-markdown {
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  .notes-toc {
+    display: none;
+  }
+}
+
+/* Hide TOC on tablets / smaller desktops */
+@media (max-width: 1199px) {
+  .notes-toc {
+    display: none;
   }
 }

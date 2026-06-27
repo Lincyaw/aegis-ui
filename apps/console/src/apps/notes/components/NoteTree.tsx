@@ -8,6 +8,8 @@ import type { NoteFile } from '../lib/slug-index';
 interface NoteTreeProps {
   files: NoteFile[];
   currentPath: string;
+  /** Called after a note is selected (used to close the mobile drawer). */
+  onSelect?: () => void;
 }
 
 interface BuildNode {
@@ -75,7 +77,7 @@ function ancestorDirKeys(path: string): string[] {
   return keys;
 }
 
-export function NoteTree({ files, currentPath }: NoteTreeProps): JSX.Element {
+export function NoteTree({ files, currentPath, onSelect }: NoteTreeProps): JSX.Element {
   const navigate = useNavigate();
   const treeData = useMemo(() => buildTree(files), [files]);
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
@@ -100,6 +102,7 @@ export function NoteTree({ files, currentPath }: NoteTreeProps): JSX.Element {
         const key = keys[0];
         if (typeof key === 'string' && !key.startsWith(DIR_PREFIX)) {
           navigate(noteUrl(key));
+          onSelect?.();
         }
       }}
     />
