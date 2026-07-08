@@ -18,13 +18,15 @@ import {
 import { randomUrlSafe, s256Challenge } from './pkce';
 import { type SsoAuthHandle, SsoCallbackContext } from './ssoCallbackContext';
 import {
+  discoverOidc,
   exchangeCode,
   fetchUserInfo,
+  getAuthorizeUrl,
   logoutSso,
   refreshTokens,
   type UserInfo,
 } from './ssoClient';
-import { loadSsoConfig, ssoUrl } from './ssoConfig';
+import { loadSsoConfig } from './ssoConfig';
 import {
   type PendingAuth,
   readPending,
@@ -117,6 +119,7 @@ export function SsoAuthProvider({
       };
       writePending(pending);
 
+      const endpoints = await discoverOidc(cfg);
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: cfg.clientId,
@@ -127,7 +130,7 @@ export function SsoAuthProvider({
         code_challenge_method: 'S256',
       });
       window.location.assign(
-        `${ssoUrl('/authorize', cfg)}?${params.toString()}`
+        `${getAuthorizeUrl(endpoints)}?${params.toString()}`
       );
     },
     [cfg]
