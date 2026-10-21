@@ -6,7 +6,6 @@ import {
   CodeBlock,
   DataTable,
   type DataTableColumn,
-  EmptyState,
   ErrorState,
   MonoValue,
   PageHeader,
@@ -302,24 +301,16 @@ export default function OidcClients() {
             loading={loading}
             emptyTitle='No OIDC clients'
             emptyDescription='Register a client to let a UI or service authenticate users.'
+            emptyAction={
+              <Button
+                type='primary'
+                icon={<PlusOutlined />}
+                onClick={openCreate}
+              >
+                Register client
+              </Button>
+            }
           />
-          {!loading && clients.length === 0 ? (
-            <div style={{ padding: 'var(--space-6)' }}>
-              <EmptyState
-                title='No OIDC clients yet'
-                description='Register a client to let a UI or service authenticate users.'
-                action={
-                  <Button
-                    type='primary'
-                    icon={<PlusOutlined />}
-                    onClick={openCreate}
-                  >
-                    Register client
-                  </Button>
-                }
-              />
-            </div>
-          ) : null}
         </Panel>
       )}
 
