@@ -2049,7 +2049,17 @@ function App() {
               code={404}
               title='Page not found'
               description="The page you're looking for doesn't exist or has been moved."
-              action={<Button type='primary'>Back to dashboard</Button>}
+              action={
+                <AegisButton tone='primary'>Back to dashboard</AegisButton>
+              }
+            />
+          </Specimen>
+          <Specimen caption="size='compact' · inside a pane" span={2}>
+            <ErrorState
+              size='compact'
+              title='Failed to load trajectory'
+              description='ClickHouse returned 502 Bad Gateway.'
+              action={<AegisButton tone='secondary'>Try again</AegisButton>}
             />
           </Specimen>
         </div>

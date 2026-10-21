@@ -997,7 +997,11 @@ function SftDrawer({
               description='No sft/ directory or endpoint found for this case.'
             />
           ) : load.kind === 'error' ? (
-            <ErrorState title='Failed to load SFT' description={load.message} />
+            <ErrorState
+              size='compact'
+              title='Failed to load SFT'
+              description={load.message}
+            />
           ) : !sft ? (
             <EmptyState title='SFT not available' />
           ) : (
