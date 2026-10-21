@@ -271,5 +271,3 @@ function formatBytes(n: number): string {
   }
   return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i] ?? ''}`;
 }
-
-export default FolderDropzone;

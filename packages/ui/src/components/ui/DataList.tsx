@@ -108,5 +108,3 @@ export function DataList<T extends DataListItem>({
     </div>
   );
 }
-
-export default DataList;

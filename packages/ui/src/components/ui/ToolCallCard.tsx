@@ -120,5 +120,3 @@ function StatusChip({ status }: { status: ToolCallStatus }) {
     </span>
   );
 }
-
-export default ToolCallCard;

@@ -140,5 +140,3 @@ export function NotificationBell({
     </Popover>
   );
 }
-
-export default NotificationBell;

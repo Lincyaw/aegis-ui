@@ -130,5 +130,3 @@ export function BucketCard({
     </div>
   );
 }
-
-export default BucketCard;

@@ -192,5 +192,3 @@ export function ObjectBrowser({
     </div>
   );
 }
-
-export default ObjectBrowser;

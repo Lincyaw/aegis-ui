@@ -335,5 +335,3 @@ export function ContentInspectorDialog({
     </Modal>
   );
 }
-
-export default ContentInspectorDialog;

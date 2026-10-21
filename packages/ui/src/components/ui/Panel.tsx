@@ -81,5 +81,3 @@ export function Panel({
     </section>
   );
 }
-
-export default Panel;

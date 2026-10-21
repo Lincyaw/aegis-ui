@@ -74,5 +74,3 @@ export function Chip({
     </span>
   );
 }
-
-export default Chip;

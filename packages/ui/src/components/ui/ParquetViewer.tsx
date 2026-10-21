@@ -361,5 +361,3 @@ export function ParquetViewer({
     </div>
   );
 }
-
-export default ParquetViewer;

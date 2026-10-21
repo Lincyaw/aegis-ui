@@ -194,5 +194,3 @@ export function UploadQueue({
     </div>
   );
 }
-
-export default UploadQueue;

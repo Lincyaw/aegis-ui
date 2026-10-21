@@ -215,5 +215,3 @@ export function ShareLinkDialog({
     </div>
   );
 }
-
-export default ShareLinkDialog;

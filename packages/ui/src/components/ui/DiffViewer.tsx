@@ -131,5 +131,3 @@ const diffStyles = {
     fontSize: 'var(--fs-13)',
   },
 } as const;
-
-export default DiffViewer;

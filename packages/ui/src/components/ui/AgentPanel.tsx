@@ -67,5 +67,3 @@ export function AgentPanel({
     </aside>
   );
 }
-
-export default AgentPanel;

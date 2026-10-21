@@ -122,5 +122,3 @@ function DropdownMenuItem({ item, onAfterClick }: DropdownMenuItemProps) {
     </button>
   );
 }
-
-export default DropdownMenu;

@@ -331,5 +331,3 @@ export function EventTable<T>({
     </div>
   );
 }
-
-export default EventTable;

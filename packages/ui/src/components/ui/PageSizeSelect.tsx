@@ -177,5 +177,3 @@ export function PageSizeSelect({
     </div>
   );
 }
-
-export default PageSizeSelect;

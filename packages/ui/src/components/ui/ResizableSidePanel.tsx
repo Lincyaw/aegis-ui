@@ -108,5 +108,3 @@ export function ResizableSidePanel({
     </aside>
   );
 }
-
-export default ResizableSidePanel;

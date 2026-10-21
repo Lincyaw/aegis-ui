@@ -226,5 +226,3 @@ function formatBytes(n: number): string {
   }
   return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
-
-export default FilePreview;

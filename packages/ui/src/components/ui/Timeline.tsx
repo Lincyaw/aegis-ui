@@ -85,5 +85,3 @@ export function Timeline({ items, className, style, surface }: TimelineProps) {
     </ol>
   );
 }
-
-export default Timeline;

@@ -170,5 +170,3 @@ export function InboxPage({
     </div>
   );
 }
-
-export default InboxPage;

@@ -70,5 +70,3 @@ export function MetadataList({ entries, className }: MetadataListProps) {
     </dl>
   );
 }
-
-export default MetadataList;

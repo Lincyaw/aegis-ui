@@ -113,5 +113,3 @@ export function TimeDisplay({
     </span>
   );
 }
-
-export default TimeDisplay;

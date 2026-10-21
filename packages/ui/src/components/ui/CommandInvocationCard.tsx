@@ -128,5 +128,3 @@ export function CommandInvocationCard({
     </div>
   );
 }
-
-export default CommandInvocationCard;

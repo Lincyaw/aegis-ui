@@ -220,5 +220,3 @@ export function TraceSpanInspector({
     />
   );
 }
-
-export default TraceSpanInspector;

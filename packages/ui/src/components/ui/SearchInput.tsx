@@ -51,5 +51,3 @@ export function SearchInput({
     </div>
   );
 }
-
-export default SearchInput;

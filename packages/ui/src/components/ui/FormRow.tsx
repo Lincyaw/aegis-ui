@@ -29,5 +29,3 @@ export function FormRow({
     </div>
   );
 }
-
-export default FormRow;

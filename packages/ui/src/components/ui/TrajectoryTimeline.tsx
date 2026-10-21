@@ -104,5 +104,3 @@ export function TrajectoryTimeline({
     </div>
   );
 }
-
-export default TrajectoryTimeline;

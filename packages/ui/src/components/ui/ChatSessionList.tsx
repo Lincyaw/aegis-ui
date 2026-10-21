@@ -329,5 +329,3 @@ export function ChatSessionList({
     </ul>
   );
 }
-
-export default ChatSessionList;

@@ -81,5 +81,3 @@ export function BlastRadiusBar({
     </div>
   );
 }
-
-export default BlastRadiusBar;

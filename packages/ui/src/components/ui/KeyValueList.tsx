@@ -83,5 +83,3 @@ export function KeyValueList({
     </dl>
   );
 }
-
-export default KeyValueList;

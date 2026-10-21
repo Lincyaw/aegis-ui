@@ -129,5 +129,3 @@ export function ProjectSelector({
     </div>
   );
 }
-
-export default ProjectSelector;

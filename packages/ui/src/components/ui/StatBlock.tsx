@@ -85,5 +85,3 @@ export function StatBlock({
     </div>
   );
 }
-
-export default StatBlock;

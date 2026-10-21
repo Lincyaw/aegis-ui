@@ -375,5 +375,3 @@ export function QueryAutocomplete({
     </div>
   );
 }
-
-export default QueryAutocomplete;

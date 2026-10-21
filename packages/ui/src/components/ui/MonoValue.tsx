@@ -68,5 +68,3 @@ export function MonoValue({
     </Tag>
   );
 }
-
-export default MonoValue;

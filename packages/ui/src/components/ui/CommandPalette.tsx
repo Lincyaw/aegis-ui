@@ -279,5 +279,3 @@ function CommandPaletteRow({
     </button>
   );
 }
-
-export default CommandPalette;

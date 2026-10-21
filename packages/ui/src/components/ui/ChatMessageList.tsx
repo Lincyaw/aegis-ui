@@ -73,5 +73,3 @@ export function ChatMessageList({
     </div>
   );
 }
-
-export default ChatMessageList;

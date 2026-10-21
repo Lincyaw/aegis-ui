@@ -161,5 +161,3 @@ function EnvironmentSwitcherItem({
     </li>
   );
 }
-
-export default EnvironmentSwitcher;

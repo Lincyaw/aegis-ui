@@ -63,5 +63,3 @@ export function ForgotPasswordForm({
     </form>
   );
 }
-
-export default ForgotPasswordForm;

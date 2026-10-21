@@ -103,5 +103,3 @@ export function SparkLine({
     </span>
   );
 }
-
-export default SparkLine;

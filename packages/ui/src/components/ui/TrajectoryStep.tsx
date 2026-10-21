@@ -178,5 +178,3 @@ export function TrajectoryStep({
     </article>
   );
 }
-
-export default TrajectoryStep;
