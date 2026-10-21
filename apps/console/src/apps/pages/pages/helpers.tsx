@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react';
 
-import { Chip, type DataTableColumn, MonoValue } from '@lincyaw/aegis-ui';
+import {
+  Chip,
+  type DataTableColumn,
+  formatBytes,
+  MonoValue,
+} from '@lincyaw/aegis-ui';
 import type { PagesPageSiteResponse } from '@lincyaw/portal';
 
 import {
@@ -8,20 +13,6 @@ import {
   PAGES_LIMITS,
   type PageVisibility,
 } from '../api/pages-client';
-
-export function humanBytes(n: number): string {
-  if (n < 1024) {
-    return `${n.toString()} B`;
-  }
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  let v = n / 1024;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i += 1;
-  }
-  return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i] ?? ''}`;
-}
 
 export function visibilityTone(
   v: PageVisibility | string | undefined
@@ -108,7 +99,7 @@ export function pageColumns(
       align: 'right',
       width: 100,
       render: (row) => (
-        <MonoValue size='sm'>{humanBytes(row.size_bytes ?? 0)}</MonoValue>
+        <MonoValue size='sm'>{formatBytes(row.size_bytes ?? 0)}</MonoValue>
       ),
     },
     {
@@ -128,5 +119,5 @@ export function pageColumns(
 }
 
 export function pagesUploadHelperText(): string {
-  return `${humanBytes(PAGES_LIMITS.maxFileBytes)} per file · ${humanBytes(PAGES_LIMITS.maxTotalBytes)} total · ${PAGES_LIMITS.maxFiles.toString()} files max`;
+  return `${formatBytes(PAGES_LIMITS.maxFileBytes)} per file · ${formatBytes(PAGES_LIMITS.maxTotalBytes)} total · ${PAGES_LIMITS.maxFiles.toString()} files max`;
 }

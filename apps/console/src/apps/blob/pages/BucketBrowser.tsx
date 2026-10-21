@@ -28,6 +28,7 @@ import {
   FileDropzone,
   type FileDropzoneItem,
   FilePreview,
+  formatBytes,
   MetadataList,
   MonoValue,
   ObjectBrowser,
@@ -89,20 +90,6 @@ function inferMime(item: ObjItem): string | undefined {
     return 'application/x-parquet';
   }
   return undefined;
-}
-
-function humanBytes(n: number): string {
-  if (n < 1024) {
-    return `${n.toString()} B`;
-  }
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  let v = n / 1024;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i += 1;
-  }
-  return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i] ?? ''}`;
 }
 
 const RouterLink: React.ComponentType<{
@@ -755,7 +742,7 @@ export default function BucketBrowser() {
               { label: 'Key', value: preview.key, mono: true, copyable: true },
               {
                 label: 'Size',
-                value: `${humanBytes(preview.size)} (${preview.size.toString()} B)`,
+                value: `${formatBytes(preview.size)} (${preview.size.toString()} B)`,
               },
               {
                 label: 'Content-Type',
@@ -895,7 +882,7 @@ export default function BucketBrowser() {
         align: 'right',
         width: 100,
         render: (row) => (
-          <MonoValue size='sm'>{humanBytes(row.size)}</MonoValue>
+          <MonoValue size='sm'>{formatBytes(row.size)}</MonoValue>
         ),
       },
       {

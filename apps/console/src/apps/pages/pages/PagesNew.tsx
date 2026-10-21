@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import {
   FolderDropzone,
+  formatBytes,
   PageHeader,
   Panel,
   PanelTitle,
@@ -18,7 +19,7 @@ import {
 } from '../api/pages-client';
 import '../pages-app.css';
 
-import { humanBytes, pagesUploadHelperText, validateUpload } from './helpers';
+import { pagesUploadHelperText, validateUpload } from './helpers';
 
 export default function PagesNew() {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ export default function PagesNew() {
             className='pages-app__file-tree-row'
           >
             <span>{fileRelPath(f)}</span>
-            <span>{humanBytes(f.size)}</span>
+            <span>{formatBytes(f.size)}</span>
           </div>
         ))}
       </>

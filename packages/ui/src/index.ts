@@ -19,6 +19,8 @@ export type {
   UseSavedQueriesReturn,
 } from './hooks';
 
+export { formatBytes } from './lib/format';
+
 // Headless time-range parsing (consumers can use it without the picker).
 export {
   RELATIVE_TIME_PRESETS,

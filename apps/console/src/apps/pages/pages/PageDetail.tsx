@@ -13,6 +13,7 @@ import {
   EmptyState,
   ErrorState,
   FolderDropzone,
+  formatBytes,
   MetadataList,
   PageHeader,
   Panel,
@@ -31,7 +32,8 @@ import {
   useUpdatePage,
 } from '../api/pages-client';
 import '../pages-app.css';
-import { humanBytes, validateUpload } from './helpers';
+
+import { validateUpload } from './helpers';
 
 export default function PageDetail() {
   const { id: idParam = '' } = useParams<{ id: string }>();
@@ -57,7 +59,7 @@ export default function PageDetail() {
 
   const replaceValidation = useMemo(
     () => validateUpload(replaceFiles, undefined),
-    [replaceFiles],
+    [replaceFiles]
   );
 
   const startEdit = (): void => {
@@ -85,7 +87,7 @@ export default function PageDetail() {
       setEditing(false);
     } catch (e) {
       void msg.error(
-        `Update failed: ${e instanceof Error ? e.message : 'unknown'}`,
+        `Update failed: ${e instanceof Error ? e.message : 'unknown'}`
       );
     }
   };
@@ -101,7 +103,7 @@ export default function PageDetail() {
       setReplaceMode(false);
     } catch (e) {
       void msg.error(
-        `Replace failed: ${e instanceof Error ? e.message : 'unknown'}`,
+        `Replace failed: ${e instanceof Error ? e.message : 'unknown'}`
       );
     }
   };
@@ -124,7 +126,7 @@ export default function PageDetail() {
           navigate(basePath);
         } catch (e) {
           void msg.error(
-            `Delete failed: ${e instanceof Error ? e.message : 'unknown'}`,
+            `Delete failed: ${e instanceof Error ? e.message : 'unknown'}`
           );
         }
       },
@@ -133,7 +135,7 @@ export default function PageDetail() {
 
   const shareUrl = useMemo(
     () => (data?.slug ? shareUrlForSlug(data.slug) : ''),
-    [data?.slug],
+    [data?.slug]
   );
 
   const copyShareUrl = async (): Promise<void> => {
@@ -335,7 +337,7 @@ export default function PageDetail() {
               },
               {
                 label: 'Size',
-                value: `${humanBytes(data.size_bytes ?? 0)} (${(data.size_bytes ?? 0).toString()} B)`,
+                value: `${formatBytes(data.size_bytes ?? 0)} (${(data.size_bytes ?? 0).toString()} B)`,
               },
               {
                 label: 'Created',
@@ -431,7 +433,7 @@ export default function PageDetail() {
                 >
                   {f.path ?? ''}
                 </a>
-                <span>{humanBytes(f.size_bytes ?? 0)}</span>
+                <span>{formatBytes(f.size_bytes ?? 0)}</span>
               </div>
             ))}
           </div>
