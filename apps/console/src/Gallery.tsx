@@ -2370,6 +2370,37 @@ function App() {
         <SectionDivider>DataTable · pagination</SectionDivider>
         <DataTablePaginationSpecimen />
 
+        <SectionDivider>DataTable · actions column</SectionDivider>
+        <Specimen
+          caption="kind: 'actions' · right-aligned, gapped, wraps"
+          span={3}
+        >
+          <DataTable
+            columns={[
+              ...GALLERY_RUN_COLUMNS.slice(0, 2),
+              {
+                key: 'actions',
+                header: '',
+                kind: 'actions',
+                render: (row) => (
+                  <>
+                    <AegisButton tone='ghost'>Logs</AegisButton>
+                    <AegisButton tone='ghost'>Rerun</AegisButton>
+                    <AegisButton
+                      tone='secondary'
+                      disabled={row.state !== 'running'}
+                    >
+                      Stop
+                    </AegisButton>
+                  </>
+                ),
+              },
+            ]}
+            data={GALLERY_RUNS.slice(0, 3)}
+            rowKey={(row) => row.id}
+          />
+        </Specimen>
+
         <SectionDivider>EventTable</SectionDivider>
         <Specimen
           caption='virtualized · sticky header · selection · onLoadMore'

@@ -43,6 +43,12 @@ export interface DataTableColumn<T> {
   truncate?: boolean;
   /** Allow dragging the right edge of this column to resize. Default false. */
   resizable?: boolean;
+  /**
+   * `'actions'` lays the cell out as a right-aligned, gapped, wrapping row of
+   * controls — return them straight from `render`. Overrides `align` and
+   * `truncate`.
+   */
+  kind?: 'actions';
   render: (row: T, index: number) => ReactNode;
 }
 
@@ -224,18 +230,21 @@ export function DataTable<T>({
 
   const cls = ['aegis-data-table', className ?? ''].filter(Boolean).join(' ');
 
+  const columnAlign = (col: DataTableColumn<T>) =>
+    col.kind === 'actions' ? 'right' : (col.align ?? 'left');
+
   const cellStyle = (col: DataTableColumn<T>): CSSProperties => ({
-    textAlign: col.align ?? 'left',
+    textAlign: columnAlign(col),
   });
 
   const renderCellContent = (col: DataTableColumn<T>, node: ReactNode) => {
-    const truncate = col.truncate ?? true;
-    const align = col.align ?? 'left';
     const classes = [
       'aegis-data-table__cell',
-      `aegis-data-table__cell--${align}`,
+      `aegis-data-table__cell--${columnAlign(col)}`,
     ];
-    if (truncate) {
+    if (col.kind === 'actions') {
+      classes.push('aegis-data-table__cell--actions');
+    } else if (col.truncate ?? true) {
       classes.push('aegis-data-table__cell--truncate');
     }
     return <div className={classes.join(' ')}>{node}</div>;
