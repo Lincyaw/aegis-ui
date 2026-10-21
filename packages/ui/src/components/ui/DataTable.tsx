@@ -14,6 +14,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
+import { readStorage, writeStorage } from '../../lib/storage';
 import './DataTable.css';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Skeleton';
@@ -67,15 +68,16 @@ function toCssWidth(w: number | string | undefined): string | undefined {
   return typeof w === 'number' ? `${w}px` : w;
 }
 
+function storageKey(persistKey: string): string {
+  return `aegis-data-table:${persistKey}`;
+}
+
 function readPersisted(key: string): Record<string, number> {
-  if (typeof window === 'undefined') {
+  const raw = readStorage(storageKey(key));
+  if (!raw) {
     return {};
   }
   try {
-    const raw = window.localStorage.getItem(`aegis-data-table:${key}`);
-    if (!raw) {
-      return {};
-    }
     const parsed: unknown = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
       return parsed as Record<string, number>;
@@ -87,17 +89,7 @@ function readPersisted(key: string): Record<string, number> {
 }
 
 function writePersisted(key: string, widths: Record<string, number>): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.localStorage.setItem(
-      `aegis-data-table:${key}`,
-      JSON.stringify(widths),
-    );
-  } catch {
-    /* quota or privacy-mode — silently drop */
-  }
+  writeStorage(storageKey(key), JSON.stringify(widths));
 }
 
 export function DataTable<T>({
@@ -199,7 +191,7 @@ export function DataTable<T>({
       return undefined;
     }
     const onStorage = (e: StorageEvent): void => {
-      if (e.key === `aegis-data-table:${persistKey}`) {
+      if (e.key === storageKey(persistKey)) {
         setOverrides(readPersisted(persistKey));
       }
     };
