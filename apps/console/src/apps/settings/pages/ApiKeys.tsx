@@ -26,6 +26,7 @@ import {
   revokeApiKey,
   rotateApiKey,
 } from '../../../api/apiKeyClient';
+import '../settings.css';
 
 const PAGE_SIZE = 20;
 
@@ -222,9 +223,7 @@ export default function ApiKeys() {
       key: 'scopes',
       header: 'Scopes',
       render: (row) => (
-        <span
-          style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}
-        >
+        <span className='settings-page__chips'>
           {(row.scopes ?? []).map((s) => (
             <Chip key={s} tone='ghost'>
               {s}
@@ -314,7 +313,7 @@ export default function ApiKeys() {
         title='API Keys'
         description='Manage SDK and service credentials for programmatic access.'
         action={
-          <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <span className='settings-page__actions'>
             <Button
               icon={<ReloadOutlined />}
               onClick={() => {
@@ -401,7 +400,7 @@ export default function ApiKeys() {
             <TextField placeholder='*' />
           </Form.Item>
           <Form.Item name='expiry' label='Expiry'>
-            <DatePicker style={{ width: '100%' }} showTime />
+            <DatePicker className='settings-page__full-width' showTime />
           </Form.Item>
         </Form>
       </Modal>
@@ -416,10 +415,10 @@ export default function ApiKeys() {
           setRevealed(null);
         }}
         okText='Got it'
-        cancelButtonProps={{ style: { display: 'none' } }}
+        footer={(_, { OkBtn }) => <OkBtn />}
         destroyOnClose
       >
-        <p style={{ marginTop: 0 }}>
+        <p className='settings-page__lead'>
           Copy the secret now — it will not be shown again.
         </p>
         <CodeBlock

@@ -122,7 +122,7 @@ export default function AuditLogs() {
     {
       key: 'ts',
       header: 'Timestamp',
-      width: '180px',
+      width: 180,
       render: (l) => (
         <MonoValue size='sm'>
           {new Date(l.created_at).toLocaleString()}

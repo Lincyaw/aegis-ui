@@ -1,7 +1,14 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Alert, Breadcrumb, Skeleton, Tag, Typography } from 'antd';
+import {
+  Breadcrumb,
+  Button,
+  Chip,
+  ErrorState,
+  PanelTitle,
+  SkeletonText,
+} from '@lincyaw/aegis-ui';
 
 import { useFileContent } from '../api/github-client';
 import { TableOfContents } from '../components/TableOfContents';
@@ -35,7 +42,7 @@ export default function NoteView(): JSX.Element {
   const breadcrumbItems = useMemo(() => {
     const segments = path.split('/');
     return segments.map((segment, idx) => ({
-      title:
+      label:
         idx === segments.length - 1 ? segment.replace(/\.md$/i, '') : segment,
     }));
   }, [path]);
@@ -50,25 +57,28 @@ export default function NoteView(): JSX.Element {
               items={breadcrumbItems}
             />
           )}
-          <Typography.Title level={2} className='notes-view__title'>
+          <PanelTitle as='h1' size='lg' className='notes-view__title'>
             {title}
-          </Typography.Title>
+          </PanelTitle>
           {tags.length > 0 && (
             <div className='notes-view__tags'>
               {tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
+                <Chip key={tag}>{tag}</Chip>
               ))}
             </div>
           )}
         </header>
         {file.isLoading ? (
-          <Skeleton active paragraph={{ rows: 8 }} />
+          <SkeletonText lines={8} />
         ) : file.isError ? (
-          <Alert
-            type='error'
-            showIcon
-            message='Failed to load note'
+          <ErrorState
+            title='Failed to load note'
             description={`Could not fetch ${path}.`}
+            action={
+              <Button tone='secondary' onClick={() => void file.refetch()}>
+                Try again
+              </Button>
+            }
           />
         ) : (
           <WikiMarkdown content={parsed.content} resolveSlug={resolveSlug} />

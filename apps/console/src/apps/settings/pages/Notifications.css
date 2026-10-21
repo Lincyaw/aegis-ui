@@ -1,0 +1,23 @@
+.notifications-page__channels {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.notifications-page__channel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}
+
+.notifications-page__quiet-hours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.notifications-page__quiet-field {
+  flex: 1 1 12rem;
+}

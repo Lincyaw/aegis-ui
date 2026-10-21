@@ -12,13 +12,13 @@
   text-align: left;
   font-weight: 500;
   color: var(--text-muted);
-  border-bottom: 1px solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
   background: var(--bg-panel);
 }
 
 .roles-page__head--role {
   text-align: center;
-  width: 120px;
+  width: 7.5rem;
 }
 
 .roles-page__category-row {
@@ -29,12 +29,12 @@
   padding: var(--space-2) var(--space-4);
   font-weight: 500;
   color: var(--text-main);
-  border-bottom: 1px solid var(--border-hairline);
-  border-top: 1px solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  border-top: var(--size-hairline) solid var(--border-hairline);
 }
 
 .roles-page__row {
-  border-bottom: 1px solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
 .roles-page__perm {

@@ -1,6 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom';
 
-import { Alert, Spin } from 'antd';
+import { ErrorState, SkeletonText } from '@lincyaw/aegis-ui';
 
 import { useNotesContext } from '../lib/notes-context';
 import { noteUrl } from '../lib/routes';
@@ -11,11 +11,7 @@ export default function NoteResolve(): JSX.Element {
   const { slugIndex, loading } = useNotesContext();
 
   if (loading) {
-    return (
-      <div className='notes-app__center'>
-        <Spin />
-      </div>
-    );
+    return <SkeletonText lines={8} />;
   }
 
   const path = slug ? resolveSlugToPath(slugIndex, slug) : null;
@@ -24,10 +20,8 @@ export default function NoteResolve(): JSX.Element {
   }
 
   return (
-    <Alert
-      type='warning'
-      showIcon
-      message='Note not found'
+    <ErrorState
+      title='Note not found'
       description={`No note matches the slug "${slug ?? ''}".`}
     />
   );

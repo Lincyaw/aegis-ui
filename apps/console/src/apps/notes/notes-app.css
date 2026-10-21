@@ -1,18 +1,22 @@
 /* ---- Layout ---------------------------------------------------------- */
 .notes-app {
+  --notes-sidebar-width: var(--sidebar-width-expanded);
+  --notes-toc-width: 12.5rem;
+  --notes-measure: 45rem;
+
   display: flex;
   align-items: stretch;
   min-height: 0;
   position: relative;
-  height: calc(100vh - var(--header-height, 56px) - var(--space-6, 24px));
+  height: calc(100vh - var(--header-height) - var(--space-6));
 }
 
 .notes-app__sidebar {
-  flex: 0 0 260px;
+  flex: 0 0 var(--notes-sidebar-width);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  border-right: 1px solid var(--border-hairline);
+  border-right: var(--size-hairline) solid var(--border-hairline);
   padding-right: var(--space-3);
   height: 100%;
   overflow-y: auto;
@@ -40,12 +44,6 @@
   min-height: 0;
 }
 
-.notes-app__center {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-6) 0;
-}
-
 .notes-app__content {
   flex: 1 1 auto;
   min-width: 0;
@@ -53,18 +51,21 @@
   padding-left: var(--space-4);
 }
 
-/* Mobile menu button */
-.notes-app__menu-btn {
-  position: fixed;
-  top: calc(var(--header-height, 56px) + var(--space-2));
-  left: var(--space-2);
-  z-index: 100;
-  background: transparent !important;
-  color: var(--text-main) !important;
-  border: 1px solid var(--border-hairline) !important;
-  border-radius: var(--radius-md) !important;
-  width: 36px !important;
-  height: 36px !important;
+.notes-app__mobile-bar {
+  flex: none;
+  padding-bottom: var(--space-3);
+}
+
+/* Same width as the shell's mobile nav drawer. */
+.notes-app__drawer {
+  --notes-drawer-width: min(80vw, 18rem);
+}
+
+.notes-app__drawer .notes-app__drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
 }
 
 /* ---- Note view ------------------------------------------------------- */
@@ -75,7 +76,7 @@
 }
 
 .notes-view {
-  max-width: 720px;
+  max-width: var(--notes-measure);
   margin: 0 auto;
   flex: 1 1 auto;
   min-width: 0;
@@ -84,15 +85,14 @@
 .notes-view__header {
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
 .notes-view__breadcrumb {
   margin-bottom: var(--space-2);
-  font-size: var(--fs-12);
 }
 
-.notes-view__title.notes-view__title {
+.notes-view__title {
   margin-bottom: var(--space-2);
 }
 
@@ -109,30 +109,15 @@
   color: var(--text-muted);
 }
 
-.notes-home {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: var(--space-12) var(--space-4);
-  color: var(--text-muted);
-}
-
-.notes-home__icon {
-  font-size: var(--fs-42);
-  color: var(--text-muted);
-  margin-bottom: var(--space-3);
-}
-
 /* ---- Table of contents ----------------------------------------------- */
 .notes-toc {
   position: sticky;
   top: var(--space-6);
-  flex: 0 0 200px;
-  max-height: calc(100vh - var(--header-height, 56px) - var(--space-12));
+  flex: 0 0 var(--notes-toc-width);
+  max-height: calc(100vh - var(--header-height) - var(--space-12));
   overflow-y: auto;
   padding-left: var(--space-3);
-  border-left: 1px solid var(--border-hairline);
+  border-left: var(--size-hairline) solid var(--border-hairline);
 }
 
 .notes-toc__title {
@@ -184,7 +169,7 @@
 
 .notes-toc__link--active {
   color: var(--accent-info);
-  font-weight: var(--fw-medium, 500);
+  font-weight: var(--fw-medium);
 }
 
 /* ---- Markdown extras ------------------------------------------------- */
@@ -330,13 +315,17 @@
     display: none;
   }
 
+  .notes-app__content {
+    padding-left: 0;
+  }
+
   .notes-view-wrapper {
     flex-direction: column;
   }
 
   .notes-view {
+    width: 100%;
     max-width: 100%;
-    padding: 0 var(--space-2);
   }
 
   .notes-toc {

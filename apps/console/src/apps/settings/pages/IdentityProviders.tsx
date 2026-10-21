@@ -29,6 +29,7 @@ import {
   listProviders,
   updateProvider,
 } from '../../../api/identityProviderClient';
+import '../settings.css';
 
 interface CreateFormValues {
   name: string;
@@ -222,7 +223,7 @@ export default function IdentityProviders() {
         title='Identity providers'
         description='Federated login providers (Google, GitHub, custom OIDC/OAuth2). For google/github only client_id and client_secret are needed — endpoints are auto-filled.'
         action={
-          <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <span className='settings-page__actions'>
             <Button
               icon={<ReloadOutlined />}
               onClick={() => {

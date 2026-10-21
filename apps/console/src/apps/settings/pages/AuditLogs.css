@@ -3,7 +3,7 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
 .audit-page__range {
@@ -11,12 +11,12 @@
 }
 
 .audit-page__select {
-  min-width: 160px;
+  min-width: 10rem;
 }
 
 .audit-page__search {
-  flex: 1 1 220px;
-  min-width: 200px;
+  flex: 1 1 13.75rem;
+  min-width: 12.5rem;
 }
 
 .audit-page__actor {
