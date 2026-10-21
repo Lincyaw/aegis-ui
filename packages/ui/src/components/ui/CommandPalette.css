@@ -20,9 +20,9 @@
 
 .aegis-cmdk__card {
   position: relative;
-  width: var(--bp-sm);
+  width: var(--cmdk-width);
   max-width: calc(100vw - var(--space-8));
-  max-height: var(--ask-panel-max-height);
+  max-height: var(--cmdk-max-height);
   display: flex;
   flex-direction: column;
   background: var(--bg-panel);

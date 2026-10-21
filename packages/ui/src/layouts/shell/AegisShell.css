@@ -24,14 +24,14 @@
   grid-template-columns:
     var(--sidebar-width-expanded)
     1fr
-    var(--ask-panel-width);
+    var(--agent-panel-width);
   grid-template-areas:
     'header header header'
     'sidebar main agent';
 }
 
 .aegis-shell--no-sidebar.aegis-shell--with-agent-panel {
-  grid-template-columns: 1fr var(--ask-panel-width);
+  grid-template-columns: 1fr var(--agent-panel-width);
   grid-template-areas:
     'header header'
     'main agent';

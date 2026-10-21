@@ -1,7 +1,7 @@
 .aegis-agent-panel {
   display: flex;
   flex-direction: column;
-  width: var(--ask-panel-width);
+  width: var(--agent-panel-width);
   max-width: 100%;
   height: 100%;
   background: var(--bg-panel);

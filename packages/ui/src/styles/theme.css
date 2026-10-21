@@ -159,6 +159,9 @@
   --ask-panel-shadow: var(--shadow-popover);
   --ask-panel-width: 360px;
   --ask-panel-max-height: 480px;
+  --agent-panel-width: 360px;
+  --cmdk-width: 640px;
+  --cmdk-max-height: 480px;
 
   /* ── Notification bell popover ───────────────────────────────────── */
   --notif-popover-max-height: 420px;

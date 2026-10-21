@@ -57,15 +57,4 @@ module.exports = {
     'media-query-no-invalid': null,
     'declaration-block-no-redundant-longhand-properties': null,
   },
-  overrides: [
-    {
-      /* TEMPORARY: these still carry raw px and are being tokenised on a
-       * parallel branch. Delete this override once that branch lands. */
-      files: [
-        'packages/ui/src/components/ui/AgentPanel.css',
-        'packages/ui/src/components/ui/CommandPalette.css',
-      ],
-      rules: { 'unit-disallowed-list': null },
-    },
-  ],
 };
