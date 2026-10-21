@@ -515,6 +515,7 @@
   .aegis-shell__agent-panel {
     position: fixed;
     inset: var(--header-height) 0 0;
+    align-self: stretch;
     height: auto;
     z-index: var(--z-modal);
   }
