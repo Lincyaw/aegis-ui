@@ -71,8 +71,12 @@ export interface AegisApp {
    */
   hidden?: boolean;
   /**
-   * Commands exposed by this app. Registered by AegisShell when this
-   * app becomes active. (Contract only — wiring is a separate task.)
+   * Commands this app contributes to the <CommandProvider/> registry.
+   * AegisShell registers them for every app the current user can see,
+   * with `scope` overwritten to this app's id: the palette and keyboard
+   * shortcuts surface them only while this app is active, agents see
+   * them all via `allCommands`. Register app-independent commands with
+   * `useRegisterCommands` above the shell instead.
    */
   commands?: Command[];
   /**
@@ -164,17 +168,20 @@ export interface AegisShellProps {
   /** Fired when the user navigates between apps. */
   onAppSwitch?: (appId: string) => void;
   /**
-   * When true, AegisShell mounts <CommandPalette/> and threads
-   * active-app scope into the command registry. Requires
-   * <CommandProvider/> above the shell. (Contract only — wiring is a
-   * separate task.)
+   * When true, AegisShell mounts <CommandPalette/>, opened and closed by
+   * the provider's mod+k (⌘K / Ctrl+K) binding. It lists the active app's
+   * commands plus unscoped ones. Requires <CommandProvider/> above the
+   * shell; without one the palette is not mounted and a warning is logged.
+   * Don't also render <CommandPalette/> yourself.
    */
   enableCommandPalette?: boolean;
   /**
-   * When provided, AegisShell renders the node as a collapsible right-side
-   * panel (typically <AgentPanel/> filled with messages from useAgent()).
-   * The open state is owned by the host (read via the agent context's
-   * panelOpen field). Requires <AgentProvider/> above the shell.
+   * When provided, AegisShell renders the node (typically <AgentPanel/>
+   * filled from useAgent()) as a right-side column while the agent
+   * context's `panelOpen` is true — at ≤768 px as an overlay below the
+   * header. A header toggle flips it through `setPanelOpen`. Requires
+   * <AgentProvider/> above the shell; without one nothing renders and a
+   * warning is logged.
    */
   agentPanel?: ReactNode;
 }

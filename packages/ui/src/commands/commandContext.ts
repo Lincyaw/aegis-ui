@@ -30,9 +30,9 @@ export interface Command<TArgs = unknown> {
   schema?: Record<string, unknown>;
   /** The actual side-effect. */
   handler: (args?: TArgs) => void | Promise<void>;
-  /** Optional undo callback — UI will surface an Undo affordance. */
+  /** Optional undo callback for hosts that offer Undo; CommandPalette never calls it. */
   undo?: () => void | Promise<void>;
-  /** Optional aegis-ui agent action — fired alongside handler from the palette. */
+  /** Optional aegis-ui agent action, registered while the palette row is rendered. */
   action?: AegisAction<void, unknown>;
 }
 

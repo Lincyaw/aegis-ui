@@ -20,6 +20,23 @@
     'main';
 }
 
+.aegis-shell--with-sidebar.aegis-shell--with-agent-panel {
+  grid-template-columns:
+    var(--sidebar-width-expanded)
+    1fr
+    var(--ask-panel-width);
+  grid-template-areas:
+    'header header header'
+    'sidebar main agent';
+}
+
+.aegis-shell--no-sidebar.aegis-shell--with-agent-panel {
+  grid-template-columns: 1fr var(--ask-panel-width);
+  grid-template-areas:
+    'header header'
+    'main agent';
+}
+
 .aegis-shell__header {
   grid-area: header;
   position: sticky;
@@ -285,6 +302,15 @@
   flex-direction: column;
 }
 
+.aegis-shell__agent-panel {
+  grid-area: agent;
+  position: sticky;
+  top: var(--header-height);
+  align-self: start;
+  height: calc(100vh - var(--header-height));
+  min-width: 0;
+}
+
 /* Tab pattern usable inside the inline app header slot. */
 .aegis-shell__app-tab {
   display: inline-flex;
@@ -312,8 +338,9 @@
 }
 
 /* Desktop sidebar collapse toggle — hidden on mobile (the hamburger
-   drawer takes over there). */
-.aegis-shell__sidebar-toggle {
+   drawer takes over there) — and the agent panel toggle. */
+.aegis-shell__sidebar-toggle,
+.aegis-shell__agent-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -331,22 +358,26 @@
     color var(--motion-fast);
 }
 
-.aegis-shell__sidebar-toggle:hover {
+.aegis-shell__sidebar-toggle:hover,
+.aegis-shell__agent-toggle:hover {
   background: var(--bg-muted);
   border-color: var(--border-emphasis);
 }
 
-.aegis-shell__sidebar-toggle:active {
+.aegis-shell__sidebar-toggle:active,
+.aegis-shell__agent-toggle:active {
   transform: scale(0.96);
 }
 
-.aegis-shell__sidebar-toggle[aria-pressed='true'] {
+.aegis-shell__sidebar-toggle[aria-pressed='true'],
+.aegis-shell__agent-toggle[aria-pressed='true'] {
   background: var(--bg-inverted);
   color: var(--text-on-inverted);
   border-color: var(--bg-inverted);
 }
 
-.aegis-shell__sidebar-toggle-glyph {
+.aegis-shell__sidebar-toggle-glyph,
+.aegis-shell__agent-toggle-glyph {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -425,6 +456,13 @@
       'main';
   }
 
+  .aegis-shell.aegis-shell--with-agent-panel {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'main';
+  }
+
   .aegis-shell--with-sidebar .aegis-shell__header-left {
     width: auto;
     border-right: none;
@@ -472,6 +510,13 @@
 
   .aegis-shell--mobile-nav-open .aegis-shell__backdrop {
     display: block;
+  }
+
+  .aegis-shell__agent-panel {
+    position: fixed;
+    inset: var(--header-height) 0 0;
+    height: auto;
+    z-index: var(--z-modal);
   }
 
   .aegis-shell__breadcrumb {
