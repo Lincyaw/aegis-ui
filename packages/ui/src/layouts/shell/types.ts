@@ -164,10 +164,11 @@ export interface AegisShellProps {
   /** Fired when the user navigates between apps. */
   onAppSwitch?: (appId: string) => void;
   /**
-   * When true, AegisShell mounts <CommandPalette/> and threads
-   * active-app scope into the command registry. Requires
-   * <CommandProvider/> above the shell. (Contract only — wiring is a
-   * separate task.)
+   * When true, AegisShell mounts <CommandPalette/>, opened and closed by
+   * the provider's mod+k (⌘K / Ctrl+K) binding. It lists the active app's
+   * commands plus unscoped ones. Requires <CommandProvider/> above the
+   * shell; without one the palette is not mounted and a warning is logged.
+   * Don't also render <CommandPalette/> yourself.
    */
   enableCommandPalette?: boolean;
   /**

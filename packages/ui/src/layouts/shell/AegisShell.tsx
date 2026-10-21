@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -24,7 +25,9 @@ import {
 } from '../../agent';
 import { type AegisAuthUser, type AuthStatus, useAuth } from '../../auth';
 import { useCommands } from '../../commands';
+import { defaultCommandContextValue } from '../../commands/commandContext';
 import { Chip } from '../../components/ui/Chip';
+import { CommandPalette } from '../../components/ui/CommandPalette';
 import { readStorage, writeStorage } from '../../lib/storage';
 import { ThemeContext } from '../../theme/themeContext';
 import { PageWrapper } from '../PageWrapper';
@@ -60,6 +63,7 @@ export function AegisShell({
   headerActions,
   inboxPath,
   onAppSwitch,
+  enableCommandPalette = false,
 }: AegisShellProps): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
@@ -114,11 +118,19 @@ export function AegisShell({
     assertUniqueBasePaths(apps);
   }, [apps]);
 
-  const { setActiveScope } = useCommands();
+  const commandRegistry = useCommands();
+  const hasCommandProvider = commandRegistry !== defaultCommandContextValue;
+  const { setActiveScope } = commandRegistry;
   const activeAppId = activeApp?.id;
   useEffect(() => {
     setActiveScope(activeAppId);
   }, [setActiveScope, activeAppId]);
+
+  const showCommandPalette = enableCommandPalette && hasCommandProvider;
+  useWarnOnce(
+    enableCommandPalette && !hasCommandProvider,
+    'AegisShell: enableCommandPalette needs a <CommandProvider> above the shell; the command palette is not mounted.',
+  );
 
   // Auto-close the drawer on navigation.
   useEffect(() => {
@@ -291,10 +303,21 @@ export function AegisShell({
             )}
           </main>
           <AskOverlay />
+          {showCommandPalette && <CommandPalette />}
         </div>
       </ActiveAppEnvironmentProvider>
     </AegisAgentProvider>
   );
+}
+
+function useWarnOnce(shouldWarn: boolean, message: string): void {
+  const warnedRef = useRef(false);
+  useEffect(() => {
+    if (shouldWarn && !warnedRef.current) {
+      warnedRef.current = true;
+      console.warn(message);
+    }
+  }, [shouldWarn, message]);
 }
 
 function AppRoutes({ app }: { app: AegisApp }): ReactElement | null {
