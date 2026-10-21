@@ -37,6 +37,7 @@ const INDEX_PATH = resolve(
   repoRoot,
   'packages/ui/src/components/ui/index.ts',
 );
+const UI_DIR = resolve(repoRoot, 'packages/ui/src/components/ui');
 const AGENT_INDEX_PATH = resolve(repoRoot, 'packages/ui/src/agent/index.ts');
 const AGENT_DIR = resolve(repoRoot, 'packages/ui/src/agent');
 const GALLERY_PATH = resolve(repoRoot, 'apps/console/src/Gallery.tsx');
@@ -204,8 +205,11 @@ function main() {
   const agentSrc = readSource(AGENT_INDEX_PATH);
   const gallerySrc = readSource(GALLERY_PATH);
 
-  // From `components/ui/index.ts`: legacy "module name = required specimen".
-  const uiExports = collectModuleExports(indexSrc);
+  // From `components/ui/index.ts`: module name = required specimen. Modules
+  // without a `.tsx` source are data helpers, not primitives.
+  const uiExports = collectModuleExports(indexSrc).filter((name) =>
+    existsSync(resolve(UI_DIR, `${name}.tsx`)),
+  );
 
   // From `agent/index.ts`: filter to UI components only via UI_RULE.
   const agentExports = collectIdentifierExports(agentSrc)

@@ -61,6 +61,11 @@
   gap: var(--space-3);
 }
 
+.gallery__stack--fill {
+  align-self: stretch;
+  width: 100%;
+}
+
 .gallery__list {
   display: flex;
   flex-direction: column;
