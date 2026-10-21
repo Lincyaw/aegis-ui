@@ -50,7 +50,9 @@ export function TrajectoryTimeline({
     ref: wrapRef,
     enabled: Boolean(surface),
   });
-  const cls = ['aegis-timeline', className ?? ''].filter(Boolean).join(' ');
+  const cls = ['aegis-trajectory-timeline', className ?? '']
+    .filter(Boolean)
+    .join(' ');
 
   const statusTone =
     status === 'failed' ? 'warning' : status === 'completed' ? 'ink' : 'ink';
@@ -63,11 +65,13 @@ export function TrajectoryTimeline({
       data-agent-surface-id={surface?.id}
       data-agent-ask={surface?.ask === false ? 'off' : undefined}
     >
-      <header className="aegis-timeline__header">
-        <div className="aegis-timeline__header-left">
+      <header className="aegis-trajectory-timeline__header">
+        <div className="aegis-trajectory-timeline__header-left">
           <StatusDot tone={statusTone} pulse={pulse} />
           {agentName ? (
-            <span className="aegis-timeline__agent-name">{agentName}</span>
+            <span className="aegis-trajectory-timeline__agent-name">
+              {agentName}
+            </span>
           ) : (
             <MetricLabel size="sm">agent trajectory</MetricLabel>
           )}
@@ -75,7 +79,7 @@ export function TrajectoryTimeline({
             {status}
           </Chip>
         </div>
-        <div className="aegis-timeline__header-right">
+        <div className="aegis-trajectory-timeline__header-right">
           {totalDurationMs !== undefined && (
             <MetricLabel size="sm">
               <MonoValue size="sm" weight="regular">
@@ -88,7 +92,7 @@ export function TrajectoryTimeline({
         </div>
       </header>
 
-      <div className="aegis-timeline__track">
+      <div className="aegis-trajectory-timeline__track">
         {steps.map((step, i) => (
           <TrajectoryStep
             key={step.step}

@@ -1,10 +1,10 @@
-.aegis-timeline {
+.aegis-trajectory-timeline {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-.aegis-timeline__header {
+.aegis-trajectory-timeline__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -15,21 +15,21 @@
   border-radius: var(--radius-md);
 }
 
-.aegis-timeline__header-left {
+.aegis-trajectory-timeline__header-left {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
 }
 
-.aegis-timeline__header-right {
+.aegis-trajectory-timeline__header-right {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex-shrink: 0;
 }
 
-.aegis-timeline__agent-name {
+.aegis-trajectory-timeline__agent-name {
   font-family: var(--font-brand);
   font-weight: var(--fw-semibold);
   font-size: var(--fs-16);
@@ -37,14 +37,14 @@
   color: var(--text-main);
 }
 
-.aegis-timeline__track {
+.aegis-trajectory-timeline__track {
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
 /* Vertical timeline line */
-.aegis-timeline__track::before {
+.aegis-trajectory-timeline__track::before {
   content: '';
   position: absolute;
   top: 0;
@@ -55,18 +55,18 @@
   z-index: 0;
 }
 
-.aegis-timeline__track > * {
+.aegis-trajectory-timeline__track > * {
   position: relative;
   z-index: 1;
 }
 
 @media (max-width: 768px) {
-  .aegis-timeline__header {
+  .aegis-trajectory-timeline__header {
     flex-wrap: wrap;
     padding: var(--space-2) var(--space-3);
   }
 
-  .aegis-timeline__track::before {
+  .aegis-trajectory-timeline__track::before {
     left: 1.125rem;
   }
 }

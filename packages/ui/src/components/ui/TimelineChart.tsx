@@ -261,25 +261,32 @@ export function TimelineChart({
 
   const gridTemplate = `${LABEL_WIDTH}px 1fr`;
 
-  const rootClassName = ['aegis-timeline', className].filter(Boolean).join(' ');
+  const rootClassName = ['aegis-timeline-chart', className]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={rootClassName}>
       <div
-        className="aegis-timeline__axis"
+        className="aegis-timeline-chart__axis"
         style={{ gridTemplateColumns: gridTemplate }}
       >
-        <div className="aegis-timeline__axis-label-gutter" aria-hidden="true" />
-        <div className="aegis-timeline__axis-ticks" ref={trackHeaderRef}>
+        <div
+          className="aegis-timeline-chart__axis-label-gutter"
+          aria-hidden="true"
+        />
+        <div className="aegis-timeline-chart__axis-ticks" ref={trackHeaderRef}>
           {ticks.map((tick) => {
             const left = ((tick.ns - minNs) / range) * 100;
             return (
               <div
                 key={tick.ns}
-                className="aegis-timeline__tick"
+                className="aegis-timeline-chart__tick"
                 style={{ left: `${left.toFixed(4)}%` }}
               >
-                <span className="aegis-timeline__tick-label">{tick.label}</span>
+                <span className="aegis-timeline-chart__tick-label">
+                  {tick.label}
+                </span>
               </div>
             );
           })}
@@ -288,47 +295,47 @@ export function TimelineChart({
 
       {loading ? (
         <div
-          className="aegis-timeline__body"
+          className="aegis-timeline-chart__body"
           style={{ height: `${bodyHeight || rowHeight * 6}px` }}
         >
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="aegis-timeline__skeleton-row"
+              className="aegis-timeline-chart__skeleton-row"
               style={{
                 gridTemplateColumns: gridTemplate,
                 height: `${rowHeight}px`,
               }}
             >
-              <div className="aegis-timeline__skeleton" />
-              <div className="aegis-timeline__skeleton" />
+              <div className="aegis-timeline-chart__skeleton" />
+              <div className="aegis-timeline-chart__skeleton" />
             </div>
           ))}
         </div>
       ) : !hasSpans ? (
-        <div className="aegis-timeline__empty">
+        <div className="aegis-timeline-chart__empty">
           <EmptyState title="No spans" description="Nothing to plot yet." />
         </div>
       ) : (
         <div
           ref={scrollRef}
-          className="aegis-timeline__body"
+          className="aegis-timeline-chart__body"
           style={{ height: `${bodyHeight}px` }}
         >
           <div
-            className="aegis-timeline__virtual"
+            className="aegis-timeline-chart__virtual"
             style={{ height: `${virtualizer.getTotalSize()}px` }}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
             <div
               ref={guideRef}
-              className="aegis-timeline__guide"
+              className="aegis-timeline-chart__guide"
               aria-hidden="true"
             >
               <div
                 ref={guideLabelRef}
-                className="aegis-timeline__guide-label"
+                className="aegis-timeline-chart__guide-label"
               />
             </div>
             {virtualizer.getVirtualItems().map((item) => {
@@ -338,14 +345,16 @@ export function TimelineChart({
               const widthPct = (span.durationNs / range) * 100;
               const isSelected = selectedId === span.id;
               const classes = [
-                'aegis-timeline__row',
-                isSelected ? 'aegis-timeline__row--selected' : '',
+                'aegis-timeline-chart__row',
+                isSelected ? 'aegis-timeline-chart__row--selected' : '',
               ]
                 .filter(Boolean)
                 .join(' ');
               const barClasses = [
-                'aegis-timeline__bar',
-                span.status === 'error' ? 'aegis-timeline__bar--error' : '',
+                'aegis-timeline-chart__bar',
+                span.status === 'error'
+                  ? 'aegis-timeline-chart__bar--error'
+                  : '',
               ]
                 .filter(Boolean)
                 .join(' ');
@@ -369,17 +378,17 @@ export function TimelineChart({
                   }}
                 >
                   <div
-                    className="aegis-timeline__label"
+                    className="aegis-timeline-chart__label"
                     style={{
                       paddingLeft: `calc(var(--space-3) + ${depth * INDENT_PX}px)`,
                     }}
                     title={span.label}
                   >
-                    <span className="aegis-timeline__label-text">
+                    <span className="aegis-timeline-chart__label-text">
                       {span.label}
                     </span>
                   </div>
-                  <div className="aegis-timeline__track">
+                  <div className="aegis-timeline-chart__track">
                     <Tooltip
                       title={`${span.label} · ${formatDuration(span.durationNs)}`}
                       mouseEnterDelay={0.2}
@@ -393,7 +402,7 @@ export function TimelineChart({
                         }}
                       >
                         {span.badge ? (
-                          <span className="aegis-timeline__bar-badge">
+                          <span className="aegis-timeline-chart__bar-badge">
                             {span.badge}
                           </span>
                         ) : null}
