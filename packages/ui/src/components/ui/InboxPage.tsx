@@ -1,6 +1,5 @@
 import { type ReactElement, useMemo, useRef, useState } from 'react';
 
-import { Segmented } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -14,6 +13,7 @@ import { Chip } from './Chip';
 import { EmptyState } from './EmptyState';
 import './InboxPage.css';
 import { PageHeader } from './PageHeader';
+import { Tabs } from './Tabs';
 import { relativeTime } from './relativeTime';
 
 type Filter = 'all' | 'unread';
@@ -78,76 +78,76 @@ export function InboxPage({
         }
       />
 
-      <div className="aegis-inbox__filter">
-        <Segmented<Filter>
-          value={filter}
-          onChange={(v) => {
-            setFilter(v);
-          }}
-          options={[
-            { label: 'All', value: 'all' },
-            {
-              label: `Unread${unreadCount > 0 ? ` (${String(unreadCount)})` : ''}`,
-              value: 'unread',
-            },
-          ]}
-        />
-      </div>
-
-      {visible.length === 0 ? (
-        <EmptyState
-          title={filter === 'unread' ? 'No unread items' : 'No notifications'}
-          description={
-            filter === 'unread'
-              ? "You're all caught up."
-              : 'Activity will appear here as it happens.'
-          }
-        />
-      ) : (
-        <ul className="aegis-inbox__list">
-          {visible.map((item) => (
-            <li key={item.id} className="aegis-inbox__row-wrap">
-              <button
-                type="button"
-                className={[
-                  'aegis-inbox__row',
-                  item.read ? '' : 'aegis-inbox__row--unread',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                onClick={() => {
-                  handleRowClick(item);
-                }}
-              >
-                <Avatar name={item.actor ?? item.title} size="md" />
-                <div className="aegis-inbox__row-body">
-                  <div className="aegis-inbox__row-head">
-                    <span className="aegis-inbox__row-title">{item.title}</span>
-                    <span className="aegis-inbox__row-time">
-                      {relativeTime(item.timestamp)}
-                    </span>
-                  </div>
-                  {item.body && (
-                    <div className="aegis-inbox__row-text">{item.body}</div>
-                  )}
-                  {(item.category ?? item.severity) && (
-                    <div className="aegis-inbox__row-meta">
-                      {item.severity && (
-                        <Chip tone={SEVERITY_TONE[item.severity]}>
-                          {item.severity}
-                        </Chip>
-                      )}
-                      {item.category && (
-                        <Chip tone="ghost">{item.category}</Chip>
-                      )}
+      <Tabs
+        activeKey={filter}
+        onChange={(key) => {
+          setFilter(key === 'unread' ? 'unread' : 'all');
+        }}
+        items={[
+          { key: 'all', label: 'All' },
+          {
+            key: 'unread',
+            label: `Unread${unreadCount > 0 ? ` (${String(unreadCount)})` : ''}`,
+          },
+        ]}
+      >
+        {visible.length === 0 ? (
+          <EmptyState
+            title={filter === 'unread' ? 'No unread items' : 'No notifications'}
+            description={
+              filter === 'unread'
+                ? "You're all caught up."
+                : 'Activity will appear here as it happens.'
+            }
+          />
+        ) : (
+          <ul className="aegis-inbox__list">
+            {visible.map((item) => (
+              <li key={item.id} className="aegis-inbox__row-wrap">
+                <button
+                  type="button"
+                  className={[
+                    'aegis-inbox__row',
+                    item.read ? '' : 'aegis-inbox__row--unread',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  onClick={() => {
+                    handleRowClick(item);
+                  }}
+                >
+                  <Avatar name={item.actor ?? item.title} size="md" />
+                  <div className="aegis-inbox__row-body">
+                    <div className="aegis-inbox__row-head">
+                      <span className="aegis-inbox__row-title">
+                        {item.title}
+                      </span>
+                      <span className="aegis-inbox__row-time">
+                        {relativeTime(item.timestamp)}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+                    {item.body && (
+                      <div className="aegis-inbox__row-text">{item.body}</div>
+                    )}
+                    {(item.category ?? item.severity) && (
+                      <div className="aegis-inbox__row-meta">
+                        {item.severity && (
+                          <Chip tone={SEVERITY_TONE[item.severity]}>
+                            {item.severity}
+                          </Chip>
+                        )}
+                        {item.category && (
+                          <Chip tone="ghost">{item.category}</Chip>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Tabs>
     </div>
   );
 }
