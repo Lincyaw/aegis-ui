@@ -163,6 +163,7 @@
   --agent-panel-width: 360px;
   --cmdk-width: 640px;
   --cmdk-max-height: 480px;
+  --tooltip-max-width: 480px;
 
   /* ── Notification bell popover ───────────────────────────────────── */
   --notif-popover-max-height: 420px;

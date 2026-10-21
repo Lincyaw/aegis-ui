@@ -195,8 +195,8 @@ function SavedQueryChip({
             onOpenChange={setMenuOpen}
             placement="bottomRight"
             arrow={false}
-            overlayClassName="aegis-sqb__popover"
-            destroyTooltipOnHide
+            classNames={{ root: 'aegis-sqb__popover' }}
+            destroyOnHidden
           >
             <button
               type="button"
@@ -344,8 +344,8 @@ function OverflowMenu({
         onOpenChange={setOpen}
         placement="bottomRight"
         arrow={false}
-        overlayClassName="aegis-sqb__popover"
-        destroyTooltipOnHide
+        classNames={{ root: 'aegis-sqb__popover' }}
+        destroyOnHidden
       >
         <button
           type="button"
@@ -494,8 +494,8 @@ function SaveCurrentControl({
       onOpenChange={setOpen}
       placement="bottomRight"
       arrow={false}
-      overlayClassName="aegis-sqb__popover"
-      destroyTooltipOnHide
+      classNames={{ root: 'aegis-sqb__popover' }}
+      destroyOnHidden
     >
       <button
         type="button"

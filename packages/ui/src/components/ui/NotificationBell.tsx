@@ -117,7 +117,7 @@ export function NotificationBell({
       onOpenChange={setOpen}
       placement="bottomRight"
       arrow={false}
-      overlayClassName="aegis-notif-pop__overlay"
+      classNames={{ root: 'aegis-notif-pop__overlay' }}
     >
       <button
         type="button"

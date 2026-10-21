@@ -207,8 +207,8 @@ export function TimeRangePicker({
       onOpenChange={handleOpen}
       placement="bottomLeft"
       arrow={false}
-      overlayClassName="aegis-trp__overlay"
-      destroyTooltipOnHide
+      classNames={{ root: 'aegis-trp__overlay' }}
+      destroyOnHidden
     >
       <button
         type="button"

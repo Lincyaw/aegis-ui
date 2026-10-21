@@ -281,7 +281,7 @@ export function TraceTree({
               <Tooltip
                 placement="topLeft"
                 mouseEnterDelay={0.3}
-                overlayStyle={{ maxWidth: 480 }}
+                styles={{ root: { maxWidth: 'var(--tooltip-max-width)' } }}
                 title={tooltipContent}
               >
                 <span className="aegis-trace-tree__name">{n.span.name}</span>

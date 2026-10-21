@@ -332,7 +332,7 @@ export function QueryAutocomplete({
         trigger={[]}
         placement="bottomLeft"
         arrow={false}
-        overlayClassName="aegis-query-ac__popover"
+        classNames={{ root: 'aegis-query-ac__popover' }}
       >
         <input
           ref={inputRef}
@@ -361,7 +361,7 @@ export function QueryAutocomplete({
         <Tooltip
           title={helpContent}
           placement="bottomRight"
-          overlayClassName="aegis-query-ac__help-overlay"
+          classNames={{ root: 'aegis-query-ac__help-overlay' }}
         >
           <span
             className="aegis-query-ac__help-icon"

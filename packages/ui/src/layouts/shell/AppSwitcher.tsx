@@ -72,7 +72,7 @@ export function AppSwitcher({
       placement="rightTop"
       arrow={false}
       content={content}
-      overlayClassName="aegis-shell__app-popover"
+      classNames={{ root: 'aegis-shell__app-popover' }}
       destroyOnHidden
     >
       <button

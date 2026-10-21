@@ -31,7 +31,7 @@
     "@lincyaw/portal": "^2.5.0",
     "@tanstack/react-query": "^5.28.0",
     "@xyflow/react": "^12.10.2",
-    "antd": "^5.15.0",
+    "antd": "^5.25.0",
     "apache-arrow": "^21.1.0",
     "axios": "^1.6.7",
     "dayjs": "^1.11.10",
