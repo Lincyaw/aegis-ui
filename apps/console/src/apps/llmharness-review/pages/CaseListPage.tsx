@@ -39,6 +39,8 @@ import {
 } from '../repo';
 import type { CaseSummary } from '../schemas';
 
+import './CaseListPage.css';
+
 function nsToMs(ns: number): number {
   return Math.round(ns / 1_000_000);
 }
@@ -155,7 +157,7 @@ export function CaseListPage(): ReactElement {
           title='Connect to a case source'
           description='Configure a `llmharness serve` URL, point at a path inside platform blob storage, or pick a local cases/ directory (Chromium-based browsers only).'
           action={
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className='llmh-cases__actions'>
               <Link to='settings'>
                 <Button>
                   <ApiOutlined /> Open Connection settings
@@ -193,13 +195,7 @@ export function CaseListPage(): ReactElement {
       render: (r) => (
         <Link
           to={encodeURIComponent(r.caseId)}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            color: 'inherit',
-            textDecoration: 'none',
-          }}
+          className='llmh-cases__case-link'
         >
           <MonoValue size='sm'>{r.caseId}</MonoValue>
           {r.meta.sample_id && r.meta.sample_id !== r.caseId && (
@@ -266,7 +262,7 @@ export function CaseListPage(): ReactElement {
     <Panel
       title={<PanelTitle size='lg'>Cases</PanelTitle>}
       extra={
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <>
           <MetricLabel>
             {sourceLabel}
             {repo.label}
@@ -279,7 +275,7 @@ export function CaseListPage(): ReactElement {
               Change root
             </Button>
           )}
-        </div>
+        </>
       }
     >
       <Toolbar
@@ -288,7 +284,7 @@ export function CaseListPage(): ReactElement {
         onSearchChange={setSearch}
         filters={filterChips}
         action={
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className='llmh-cases__filters'>
             <Chip
               tone={onlySurfaced ? 'warning' : 'default'}
               onClick={() => setOnlySurfaced((v) => !v)}
@@ -309,7 +305,7 @@ export function CaseListPage(): ReactElement {
           </div>
         }
       />
-      <div style={{ marginTop: 16 }}>
+      <div className='llmh-cases__table'>
         {error ? (
           <ErrorState title='Failed to read cases root' description={error} />
         ) : (

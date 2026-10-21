@@ -248,6 +248,7 @@ interface GraphViewportProps {
 function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
   const { selection, set } = useCaseSelection();
   const { openDetail, openTurnsList } = useDetailModal();
+  const [droppedOpen, setDroppedOpen] = useState(false);
 
   const orderedExtractors = useMemo<ExtractorFiring[]>(
     () => [...bundle.extractor].sort((a, b) => a.sequence - b.sequence),
@@ -289,7 +290,7 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
     const graphEvents = snapshot?.events ?? outEvents;
     const graphEdges = snapshot?.edges ?? outEdges;
     const newEventIds = snapshot ? new Set(outEvents.map((e) => e.id)) : null;
-    const droppedCount = output?.dropped_edges.length ?? 0;
+    const droppedEdges = output?.dropped_edges ?? [];
     const idx = orderedExtractors.findIndex(
       (f) => f.sequence === extractorFiring.sequence
     );
@@ -329,17 +330,14 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
               E#{next.sequence} →
             </Chip>
           )}
-          {droppedCount > 0 && (
+          {droppedEdges.length > 0 && (
             <Chip
               tone='warning'
               onClick={() => {
-                const el = document.getElementById('llmh-insp__dropped');
-                if (el) {
-                  el.scrollIntoView({ block: 'start', behavior: 'smooth' });
-                }
+                setDroppedOpen(true);
               }}
             >
-              {droppedCount} dropped
+              {droppedEdges.length} dropped
             </Chip>
           )}
         </header>
@@ -354,6 +352,39 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
             onOpenDetail={onOpenEventDetail}
           />
         </div>
+        <Modal
+          title={`Dropped edges · E#${extractorFiring.sequence.toString()}`}
+          open={droppedOpen}
+          onCancel={() => {
+            setDroppedOpen(false);
+          }}
+          footer={null}
+          width={720}
+          destroyOnClose
+          styles={{
+            body: { maxHeight: '70vh', overflow: 'auto', padding: 0 },
+          }}
+        >
+          <div className='llmh-insp'>
+            <section className='llmh-insp__section'>
+              <header className='llmh-insp__sec-head'>
+                <span>output.dropped_edges</span>
+                <MetricLabel size='xs'>{droppedEdges.length}</MetricLabel>
+              </header>
+              {droppedEdges.map((d, i) => (
+                <div key={i} className='llmh-insp__pre'>
+                  <strong>{d.reason}</strong>
+                  {d.raw !== undefined && (
+                    <>
+                      {'\n'}
+                      {JSON.stringify(d.raw, null, 2)}
+                    </>
+                  )}
+                </div>
+              ))}
+            </section>
+          </div>
+        </Modal>
       </div>
     );
   }

@@ -241,7 +241,7 @@ export function SftPage(): ReactElement {
     <Panel
       title={<PanelTitle size='lg'>SFT preview</PanelTitle>}
       extra={
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <>
           <MetricLabel>
             {repoSource === 'blob' ? `blob · ${repo.label}` : repo.label}
           </MetricLabel>
@@ -251,7 +251,7 @@ export function SftPage(): ReactElement {
           <Button tone='ghost' onClick={() => void handleClear()}>
             {repoSource === 'blob' ? 'Detach' : 'Change root'}
           </Button>
-        </div>
+        </>
       }
     >
       {error && (

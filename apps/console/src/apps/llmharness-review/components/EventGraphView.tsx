@@ -22,7 +22,14 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import ReactFlow, {
+
+import {
+  type GraphLabel as DagreGraphLabel,
+  graphlib as dagreGraphlib,
+  layout as dagreLayout,
+} from '@dagrejs/dagre';
+import { EmptyState } from '@lincyaw/aegis-ui';
+import {
   Background,
   BaseEdge,
   Controls,
@@ -32,24 +39,16 @@ import ReactFlow, {
   getBezierPath,
   type NodeTypes,
   Position,
+  ReactFlow,
   type Edge as RFEdge,
-  type Node as RFNode,
   Panel as RFPanel,
   useEdgesState,
   useNodesState,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
-
-import {
-  type GraphLabel as DagreGraphLabel,
-  graphlib as dagreGraphlib,
-  layout as dagreLayout,
-} from '@dagrejs/dagre';
-import { EmptyState } from '@lincyaw/aegis-ui';
+} from '@xyflow/react';
 
 import type { ExtractorEvent, GraphEdge } from '../schemas';
 
-import { EventNode, type EventNodeData } from './EventNode';
+import { type EventFlowNode, EventNode } from './EventNode';
 
 import './EventGraphView.css';
 
@@ -337,7 +336,7 @@ function buildNodes(
     onSelectEvent?: (id: number) => void;
     onOpenTurns?: (turns: number[]) => void;
   }
-): Array<RFNode<EventNodeData>> {
+): EventFlowNode[] {
   return events.map((e) => {
     const key = nodeKeyOf(e);
     return {
@@ -408,7 +407,7 @@ export function EventGraphView({
     [topology]
   );
 
-  const [rfNodes, setRfNodes, onNodesChange] = useNodesState<EventNodeData>(
+  const [rfNodes, setRfNodes, onNodesChange] = useNodesState<EventFlowNode>(
     buildNodes(events, initialPositions, {
       selectedEventId,
       newEventIds,
@@ -521,10 +520,7 @@ export function EventGraphView({
         onNodeDoubleClick={
           onOpenDetail
             ? (_e, node) => {
-                const data = node.data as EventNodeData | undefined;
-                if (data) {
-                  onOpenDetail(data.id);
-                }
+                onOpenDetail(node.data.id);
               }
             : undefined
         }
