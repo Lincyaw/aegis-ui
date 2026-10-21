@@ -2,7 +2,7 @@
  * @lincyaw/aegis-ui — public API.
  *
  * Add a new primitive ⇒ export it here AND add a specimen to
- * `src/playground/Gallery.tsx`. The gallery is the live spec.
+ * `apps/console/src/Gallery.tsx`. The gallery is the live spec.
  */
 import './index.css';
 
@@ -83,7 +83,11 @@ export { aegisTheme, getAegisTheme } from './theme/antdTheme';
 export { ThemeProvider } from './theme/ThemeProvider';
 export type { ThemeProviderProps } from './theme/ThemeProvider';
 export { useTheme } from './theme/useTheme';
-export type { ThemeMode, ThemePreference } from './theme/themeContext';
+export type {
+  ThemeMode,
+  ThemePreference,
+  ThemeState,
+} from './theme/themeContext';
 
 // Auth context contract (presentational — host wires the implementation).
 export { AuthProvider, RequireAuth, useAuth } from './auth';
@@ -122,6 +126,7 @@ export type {
   AgentmEnvelopeKind,
   AgentMessage,
   AgentMessageRole,
+  AgentToolCallRecord,
 } from './agent';
 
 // Agent-native UI substrate — runtime + hooks + provider.
@@ -163,6 +168,7 @@ export type {
   ListActionsFilter,
   McpToolDefinition,
   RegisteredAction,
+  RegisteredSurface,
   RuntimeDeps,
   SearchOptions,
   SearchProvider,
