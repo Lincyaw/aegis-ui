@@ -19,6 +19,7 @@ import { isAxiosError } from 'axios';
 import { ApiError, errMsg } from '../../../api/apiClient';
 import { updateUser } from '../../../api/iamClient';
 import { authenticationApi } from '../../portal/api/portal-client';
+import '../settings.css';
 
 function isForbidden(e: unknown): boolean {
   if (isAxiosError(e)) {
@@ -29,12 +30,6 @@ function isForbidden(e: unknown): boolean {
   }
   return false;
 }
-
-const actionRowStyle = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  paddingTop: 'var(--space-2)',
-};
 
 export default function Profile() {
   const { message: msg } = App.useApp();
@@ -127,13 +122,7 @@ export default function Profile() {
           description='Manage your personal information and security settings.'
         />
         <Panel>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
+          <div className='settings-page__loading'>
             <Spin />
           </div>
         </Panel>
@@ -198,7 +187,7 @@ export default function Profile() {
           <FormRow label='Avatar' description='Generated from your name.'>
             <Avatar name={name || 'Aegis User'} size='lg' />
           </FormRow>
-          <div style={actionRowStyle}>
+          <div className='settings-page__form-actions'>
             <Button
               type='primary'
               loading={savingIdentity}
@@ -241,7 +230,7 @@ export default function Profile() {
               }}
             />
           </FormRow>
-          <div style={actionRowStyle}>
+          <div className='settings-page__form-actions'>
             <Button
               type='primary'
               loading={savingPassword}

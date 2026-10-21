@@ -1,0 +1,30 @@
+.settings-page__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.settings-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.settings-page__loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.settings-page__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-2);
+}
+
+.settings-page__lead {
+  margin-top: 0;
+}
+
+.settings-page__full-width {
+  width: 100%;
+}

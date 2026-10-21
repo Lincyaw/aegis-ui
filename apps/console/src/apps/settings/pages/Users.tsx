@@ -25,6 +25,7 @@ import {
   removeUserRole,
   updateUser,
 } from '../../../api/iamClient';
+import '../settings.css';
 
 import './Users.css';
 
@@ -325,9 +326,7 @@ export default function Users() {
           return <Chip tone='ghost'>none</Chip>;
         }
         return (
-          <span
-            style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}
-          >
+          <span className='settings-page__chips'>
             {names.map((n) => (
               <Chip key={n} tone='default'>
                 {n}
@@ -603,24 +602,20 @@ export default function Users() {
         destroyOnClose
       >
         {rolesLoading ? (
-          <p style={{ margin: 0 }}>Loading roles…</p>
+          <p className='users-page__roles-loading'>Loading roles…</p>
         ) : (
           <Checkbox.Group
             value={selectedRoleIds}
             onChange={(v) => {
               setSelectedRoleIds(v as number[]);
             }}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-2)',
-            }}
+            className='users-page__role-options'
           >
             {allRoles.map((r) => (
               <Checkbox key={r.id} value={r.id}>
                 {r.name}
                 {r.description ? (
-                  <span style={{ color: 'var(--text-muted)' }}>
+                  <span className='users-page__role-desc'>
                     {' '}
                     — {r.description}
                   </span>

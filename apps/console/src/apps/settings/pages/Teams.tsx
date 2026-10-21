@@ -15,6 +15,7 @@ import { App, Button, Form, Input, Modal, Spin } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import { teamsApi } from '../../portal/api/portal-client';
+import '../settings.css';
 
 import './Teams.css';
 
@@ -187,13 +188,7 @@ export default function Teams() {
         </Panel>
       ) : loading ? (
         <Panel>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
+          <div className='settings-page__loading'>
             <Spin />
           </div>
         </Panel>
@@ -226,7 +221,7 @@ export default function Teams() {
                     </PanelTitle>
                     <MetricLabel>{team.description}</MetricLabel>
                   </div>
-                  <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <span className='settings-page__actions'>
                     {team.is_public ? <Chip tone='ghost'>public</Chip> : null}
                     <Button
                       danger

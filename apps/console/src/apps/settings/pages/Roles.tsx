@@ -20,6 +20,7 @@ import {
   listRoles,
   removeRolePermissions,
 } from '../../../api/iamClient';
+import '../settings.css';
 
 import './Roles.css';
 
@@ -201,13 +202,7 @@ export default function Roles() {
         </Panel>
       ) : loading ? (
         <Panel>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
+          <div className='settings-page__loading'>
             <Spin />
           </div>
         </Panel>

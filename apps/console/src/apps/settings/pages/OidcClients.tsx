@@ -23,6 +23,7 @@ import {
   type OidcClient,
   rotateSecret,
 } from '../../../api/ssoAdminClient';
+import '../settings.css';
 
 const GRANTS = [
   { value: 'authorization_code', label: 'authorization_code' },
@@ -188,9 +189,7 @@ export default function OidcClients() {
         key: 'grants',
         header: 'Grants',
         render: (row) => (
-          <span
-            style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}
-          >
+          <span className='settings-page__chips'>
             {row.grants.map((g) => (
               <Chip key={g} tone='ghost'>
                 {g}
@@ -245,7 +244,7 @@ export default function OidcClients() {
         title='OIDC clients'
         description='Manage clients registered against aegis-sso. Used by first-party UIs and downstream services.'
         action={
-          <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <span className='settings-page__actions'>
             <Button
               icon={<ReloadOutlined />}
               onClick={() => {
@@ -376,10 +375,10 @@ export default function OidcClients() {
           setRevealedSecret(null);
         }}
         okText='Got it'
-        cancelButtonProps={{ style: { display: 'none' } }}
+        footer={(_, { OkBtn }) => <OkBtn />}
         destroyOnClose
       >
-        <p style={{ marginTop: 0 }}>
+        <p className='settings-page__lead'>
           Copy the secret now — it will not be shown again.
         </p>
         <CodeBlock

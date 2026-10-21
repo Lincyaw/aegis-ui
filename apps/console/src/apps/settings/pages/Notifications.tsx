@@ -16,6 +16,8 @@ import {
   type SubscriptionRow,
 } from '../../../api/notificationClient';
 
+import './Notifications.css';
+
 const noop = (): void => undefined;
 
 // Categories the console understands. Backend may know more — we render
@@ -54,16 +56,6 @@ const KNOWN_CATEGORIES: Array<{
 
 const KNOWN_CHANNELS = ['inbox', 'email', 'slack'] as const;
 type Channel = (typeof KNOWN_CHANNELS)[number];
-
-const quietHoursStyle = {
-  display: 'flex',
-  gap: 'var(--space-4)',
-  flexWrap: 'wrap' as const,
-};
-
-const quietFieldStyle = {
-  flex: '1 1 12rem',
-};
 
 function key(category: string, channel: string): string {
   return `${category}::${channel}`;
@@ -155,19 +147,9 @@ export default function Notifications() {
         >
           {KNOWN_CATEGORIES.map((c) => (
             <FormRow key={c.key} label={c.label} description={c.description}>
-              <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
+              <div className='notifications-page__channels'>
                 {KNOWN_CHANNELS.map((ch) => (
-                  <label
-                    key={ch}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 'var(--space-1)',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 'var(--fs-11)',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
+                  <label key={ch} className='notifications-page__channel'>
                     <Switch
                       size='small'
                       disabled={loading}
@@ -192,19 +174,9 @@ export default function Notifications() {
               label={cat}
               description='Category surfaced by the backend.'
             >
-              <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
+              <div className='notifications-page__channels'>
                 {KNOWN_CHANNELS.map((ch: Channel) => (
-                  <label
-                    key={ch}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 'var(--space-1)',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 'var(--fs-11)',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
+                  <label key={ch} className='notifications-page__channel'>
                     <Switch
                       size='small'
                       disabled={loading}
@@ -229,11 +201,11 @@ export default function Notifications() {
             label='Window'
             description='Times are interpreted in your local timezone.'
           >
-            <div style={quietHoursStyle}>
-              <div style={quietFieldStyle}>
+            <div className='notifications-page__quiet-hours'>
+              <div className='notifications-page__quiet-field'>
                 <TextField label='From' type='time' defaultValue='22:00' />
               </div>
-              <div style={quietFieldStyle}>
+              <div className='notifications-page__quiet-field'>
                 <TextField label='To' type='time' defaultValue='07:00' />
               </div>
             </div>
