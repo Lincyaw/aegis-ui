@@ -1,7 +1,7 @@
 {
   "name": "aegis",
   "private": true,
-  "description": "AegisLab shared design system monorepo: packages/ui (published) + apps/console (dev only).",
+  "description": "AegisLab design system (packages/ui, published to npm) and the console app that hosts the AegisLab sub-apps (apps/console).",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@lincyaw/console",
