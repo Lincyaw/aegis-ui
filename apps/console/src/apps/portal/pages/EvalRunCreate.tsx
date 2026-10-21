@@ -82,7 +82,7 @@ export default function EvalRunCreate() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='New evaluation run'
         description='Launch an algorithm evaluation against a dataset.'
@@ -138,6 +138,6 @@ export default function EvalRunCreate() {
       <Button tone='primary' onClick={submit} disabled={mutate.isPending}>
         {mutate.isPending ? 'Starting…' : 'Start'}
       </Button>
-    </div>
+    </>
   );
 }

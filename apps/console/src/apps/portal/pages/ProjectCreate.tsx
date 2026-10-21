@@ -50,7 +50,7 @@ export default function ProjectCreate() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='New Project'
         description='Create a new fault-injection project.'
@@ -93,6 +93,6 @@ export default function ProjectCreate() {
       >
         {createProject.isPending ? 'Creating…' : 'Create'}
       </Button>
-    </div>
+    </>
   );
 }

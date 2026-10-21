@@ -34,16 +34,12 @@ export default function EvalRunDetail() {
   }, [run?.result_json]);
 
   if (isLoading) {
-    return (
-      <div className='page-wrapper'>
-        <PageHeader title='Loading evaluation…' />
-      </div>
-    );
+    return <PageHeader title='Loading evaluation…' />;
   }
 
   if (isError || !run) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Eval run not found' />
         <Panel>
           <EmptyState
@@ -55,12 +51,12 @@ export default function EvalRunDetail() {
             }
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={`Eval #${String(run.id)}`}
         description={`${run.algorithm_name}@${run.algorithm_version} · ${run.eval_type}`}
@@ -125,6 +121,6 @@ export default function EvalRunDetail() {
           <CodeBlock language='json' code={resultText} />
         )}
       </Panel>
-    </div>
+    </>
   );
 }

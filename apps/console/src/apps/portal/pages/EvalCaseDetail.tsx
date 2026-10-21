@@ -17,7 +17,7 @@ export default function EvalCaseDetail() {
   const { data: run, isLoading } = useEvaluation(id);
 
   return (
-    <div className='page-wrapper'>
+    <>
       <Breadcrumb
         items={[
           { label: 'Eval runs', to: href('eval') },
@@ -41,6 +41,6 @@ export default function EvalCaseDetail() {
           description='@lincyaw/portal 1.5.0 does not expose per-case evaluation results. See run detail for aggregate metrics and the result_json payload.'
         />
       </Panel>
-    </div>
+    </>
   );
 }

@@ -32,7 +32,7 @@ export default function Datasets() {
   const datasets = data?.items ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Datasets'
         description='Curated bundles of injections + traces for replay & eval.'
@@ -67,48 +67,48 @@ export default function Datasets() {
           />
         ) : (
           <>
-          <DataTable<DatasetDatasetResp>
-            data={datasets}
-            rowKey={(r) => String(r.id ?? '')}
-            columns={[
-              {
-                key: 'name',
-                header: 'Name',
-                render: (r) => (
-                  <Link to={href(`datasets/${String(r.id ?? '')}`)}>
-                    <MonoValue size='sm'>{r.name ?? '—'}</MonoValue>
-                  </Link>
-                ),
-              },
-              { key: 'type', header: 'Type', render: (r) => r.type ?? '—' },
-              {
-                key: 'visibility',
-                header: 'Visibility',
-                render: (r) => (r.is_public ? 'public' : 'private'),
-              },
-              {
-                key: 'status',
-                header: 'Status',
-                render: (r) => r.status ?? '—',
-              },
-              {
-                key: 'created',
-                header: 'Created',
-                render: (r) =>
-                  r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
-              },
-            ]}
-          />
-          <div className='page-table-footer'>
-            <PageSizeSelect
-              value={size}
-              onChange={setSize}
-              options={PAGE_SIZE_OPTIONS}
+            <DataTable<DatasetDatasetResp>
+              data={datasets}
+              rowKey={(r) => String(r.id ?? '')}
+              columns={[
+                {
+                  key: 'name',
+                  header: 'Name',
+                  render: (r) => (
+                    <Link to={href(`datasets/${String(r.id ?? '')}`)}>
+                      <MonoValue size='sm'>{r.name ?? '—'}</MonoValue>
+                    </Link>
+                  ),
+                },
+                { key: 'type', header: 'Type', render: (r) => r.type ?? '—' },
+                {
+                  key: 'visibility',
+                  header: 'Visibility',
+                  render: (r) => (r.is_public ? 'public' : 'private'),
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (r) => r.status ?? '—',
+                },
+                {
+                  key: 'created',
+                  header: 'Created',
+                  render: (r) =>
+                    r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
+                },
+              ]}
             />
-          </div>
+            <div className='page-table-footer'>
+              <PageSizeSelect
+                value={size}
+                onChange={setSize}
+                options={PAGE_SIZE_OPTIONS}
+              />
+            </div>
           </>
         )}
       </Panel>
-    </div>
+    </>
   );
 }

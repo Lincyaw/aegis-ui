@@ -34,7 +34,7 @@ export default function Executions() {
   const items: ExecutionExecutionResp[] = data?.items ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Executions'
         description={`Algorithm + eval executions for project ${String(projectId)}.`}
@@ -76,56 +76,56 @@ export default function Executions() {
           />
         ) : (
           <>
-          <DataTable<ExecutionExecutionResp>
-            data={items}
-            rowKey={(r) => String(r.id ?? '')}
-            columns={[
-              {
-                key: 'id',
-                header: 'Execution',
-                render: (r) => (
-                  <Link to={href(`executions/${String(r.id ?? '')}`)}>
-                    <MonoValue size='sm'>{String(r.id ?? '—')}</MonoValue>
-                  </Link>
-                ),
-              },
-              {
-                key: 'algorithm',
-                header: 'Algorithm',
-                render: (r) =>
-                  `${r.algorithm_name ?? '—'}${r.algorithm_version ? ` @ ${r.algorithm_version}` : ''}`,
-              },
-              {
-                key: 'datapack',
-                header: 'Datapack',
-                render: (r) => (
-                  <MonoValue size='sm'>{r.datapack_name ?? '—'}</MonoValue>
-                ),
-              },
-              {
-                key: 'state',
-                header: 'State',
-                render: (r) => (
-                  <StatusChip status={r.state ?? r.status ?? 'pending'} />
-                ),
-              },
-              {
-                key: 'started',
-                header: 'Created',
-                render: (r) => <TimeDisplay value={r.created_at ?? ''} />,
-              },
-            ]}
-          />
-          <div className='page-table-footer'>
-            <PageSizeSelect
-              value={size}
-              onChange={setSize}
-              options={PAGE_SIZE_OPTIONS}
+            <DataTable<ExecutionExecutionResp>
+              data={items}
+              rowKey={(r) => String(r.id ?? '')}
+              columns={[
+                {
+                  key: 'id',
+                  header: 'Execution',
+                  render: (r) => (
+                    <Link to={href(`executions/${String(r.id ?? '')}`)}>
+                      <MonoValue size='sm'>{String(r.id ?? '—')}</MonoValue>
+                    </Link>
+                  ),
+                },
+                {
+                  key: 'algorithm',
+                  header: 'Algorithm',
+                  render: (r) =>
+                    `${r.algorithm_name ?? '—'}${r.algorithm_version ? ` @ ${r.algorithm_version}` : ''}`,
+                },
+                {
+                  key: 'datapack',
+                  header: 'Datapack',
+                  render: (r) => (
+                    <MonoValue size='sm'>{r.datapack_name ?? '—'}</MonoValue>
+                  ),
+                },
+                {
+                  key: 'state',
+                  header: 'State',
+                  render: (r) => (
+                    <StatusChip status={r.state ?? r.status ?? 'pending'} />
+                  ),
+                },
+                {
+                  key: 'started',
+                  header: 'Created',
+                  render: (r) => <TimeDisplay value={r.created_at ?? ''} />,
+                },
+              ]}
             />
-          </div>
+            <div className='page-table-footer'>
+              <PageSizeSelect
+                value={size}
+                onChange={setSize}
+                options={PAGE_SIZE_OPTIONS}
+              />
+            </div>
           </>
         )}
       </Panel>
-    </div>
+    </>
   );
 }

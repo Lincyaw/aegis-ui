@@ -104,7 +104,7 @@ export default function ContainerCreate({
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={copy.title}
         description={copy.description}
@@ -158,6 +158,6 @@ export default function ContainerCreate({
       >
         {createContainer.isPending ? 'Registering…' : copy.submitLabel}
       </Button>
-    </div>
+    </>
   );
 }

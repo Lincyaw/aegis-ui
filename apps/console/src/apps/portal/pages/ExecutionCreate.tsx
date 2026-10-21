@@ -58,7 +58,7 @@ export default function ExecutionCreate() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Run algorithm'
         description={`Submit an algorithm execution for project ${projectName}.`}
@@ -105,6 +105,6 @@ export default function ExecutionCreate() {
       <Button tone='primary' onClick={submit} disabled={runAlgorithm.isPending}>
         {runAlgorithm.isPending ? 'Submitting…' : 'Run'}
       </Button>
-    </div>
+    </>
   );
 }

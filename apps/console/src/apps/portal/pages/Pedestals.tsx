@@ -43,7 +43,7 @@ export default function Pedestals() {
   const releases = data ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Pedestals'
         description='Deployed benchmark instances per system + namespace.'
@@ -106,6 +106,6 @@ export default function Pedestals() {
           />
         )}
       </Panel>
-    </div>
+    </>
   );
 }

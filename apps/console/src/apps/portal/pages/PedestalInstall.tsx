@@ -181,7 +181,7 @@ export default function PedestalInstall() {
   const selectedSystem = systems.find((s) => s.name === systemCode);
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Install pedestal'
         description='Provision a new benchmark instance.'
@@ -376,6 +376,6 @@ export default function PedestalInstall() {
           </div>
         </Panel>
       )}
-    </div>
+    </>
   );
 }

@@ -164,7 +164,7 @@ export default function InjectionCreate() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='New Injection'
         description={`Guided fault-injection wizard for project ${pid}.`}
@@ -294,6 +294,6 @@ export default function InjectionCreate() {
           rows={3}
         />
       </Modal>
-    </div>
+    </>
   );
 }

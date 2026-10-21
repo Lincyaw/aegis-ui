@@ -125,7 +125,7 @@ export default function Dashboard(): ReactElement {
   const dashError = dashboardQuery.error;
 
   return (
-    <div className='page-wrapper dashboard'>
+    <div className='dashboard'>
       <header className='dashboard__header'>
         <div className='dashboard__header-left'>
           <h1 className='dashboard__title'>

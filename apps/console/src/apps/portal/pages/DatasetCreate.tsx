@@ -58,7 +58,7 @@ export default function DatasetCreate() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='New dataset'
         description='Create an empty dataset; add injections from the Injections list.'
@@ -106,6 +106,6 @@ export default function DatasetCreate() {
       <Button tone='primary' onClick={submit} disabled={create.isPending}>
         {create.isPending ? 'Creating…' : 'Create'}
       </Button>
-    </div>
+    </>
   );
 }

@@ -29,7 +29,7 @@ export default function DatasetDetail() {
 
   if (isLoading) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Loading…' />
         <Panel>
           <div
@@ -42,13 +42,13 @@ export default function DatasetDetail() {
             <Spin />
           </div>
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (isError) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Dataset' />
         <Panel>
           <ErrorState
@@ -58,13 +58,13 @@ export default function DatasetDetail() {
             }
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (!dataset || dataset.id === undefined) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Dataset not found' />
         <Panel>
           <EmptyState
@@ -72,7 +72,7 @@ export default function DatasetDetail() {
             description='This dataset no longer exists.'
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
@@ -81,7 +81,7 @@ export default function DatasetDetail() {
   const labelEntries = dataset.labels ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={dataset.name ?? `Dataset #${String(dataset.id)}`}
         description={dataset.description}
@@ -204,6 +204,6 @@ export default function DatasetDetail() {
           />
         )}
       </Panel>
-    </div>
+    </>
   );
 }

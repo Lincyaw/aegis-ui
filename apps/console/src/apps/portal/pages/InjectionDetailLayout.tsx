@@ -77,15 +77,17 @@ export default function InjectionDetailLayout() {
     const tail = location.pathname.startsWith(basePath)
       ? location.pathname.slice(basePath.length).replace(/^\/+/, '')
       : '';
-    const match = TAB_SPECS.find(
-      (t) => (t.path === '' ? tail === '' : tail === t.path || tail.startsWith(`${t.path}/`)),
+    const match = TAB_SPECS.find((t) =>
+      t.path === ''
+        ? tail === ''
+        : tail === t.path || tail.startsWith(`${t.path}/`)
     );
     return match?.key ?? 'overview';
   }, [href, idNum, location.pathname]);
 
   if (Number.isNaN(idNum)) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={`Injection ${injectionId ?? ''}`} />
         <Panel>
           <EmptyState
@@ -93,21 +95,17 @@ export default function InjectionDetailLayout() {
             description={injectionId ?? ''}
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (isLoading) {
-    return (
-      <div className='page-wrapper'>
-        <PageHeader title={`Injection ${idNum}`} description='Loading…' />
-      </div>
-    );
+    return <PageHeader title={`Injection ${idNum}`} description='Loading…' />;
   }
 
   if (isError || !injection) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={`Injection ${idNum}`} />
         <Panel>
           <EmptyState
@@ -119,7 +117,7 @@ export default function InjectionDetailLayout() {
             }
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
@@ -136,7 +134,7 @@ export default function InjectionDetailLayout() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={`Injection ${injection.id ?? idNum}`}
         description={injection.name}
@@ -167,6 +165,6 @@ export default function InjectionDetailLayout() {
       />
 
       <Outlet />
-    </div>
+    </>
   );
 }

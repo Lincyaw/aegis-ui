@@ -57,7 +57,7 @@ export default function ContainerDetail({
 
   if (isLoading) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={copy.loadingTitle} />
         <Panel>
           <EmptyState
@@ -65,13 +65,13 @@ export default function ContainerDetail({
             description='Please wait.'
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (isError || !container) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={copy.notFoundTitle} />
         <Panel>
           <EmptyState
@@ -83,13 +83,16 @@ export default function ContainerDetail({
             }
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className='page-wrapper'>
-      <PageHeader title={container.name ?? '—'} description={copy.description} />
+    <>
+      <PageHeader
+        title={container.name ?? '—'}
+        description={copy.description}
+      />
       <Panel title={<PanelTitle size='base'>Summary</PanelTitle>}>
         <KeyValueList
           items={[
@@ -180,6 +183,6 @@ export default function ContainerDetail({
           ]}
         />
       </Panel>
-    </div>
+    </>
   );
 }

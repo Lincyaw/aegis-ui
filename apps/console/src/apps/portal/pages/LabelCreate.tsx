@@ -62,7 +62,7 @@ export default function LabelCreate() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='New label'
         description='Create a custom label (key-value pair) for organizing resources.'
@@ -113,6 +113,6 @@ export default function LabelCreate() {
       <Button tone='primary' onClick={submit} disabled={create.isPending}>
         {create.isPending ? 'Creating…' : 'Create'}
       </Button>
-    </div>
+    </>
   );
 }

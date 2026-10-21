@@ -69,7 +69,7 @@ export default function ClusterStatus() {
   const failing = checks.filter((c) => normalizeStatus(c.status) !== 'ok');
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Cluster status'
         description='Control-plane preflight checks.'
@@ -120,6 +120,6 @@ export default function ClusterStatus() {
           <Terminal lines={lines} />
         )}
       </Panel>
-    </div>
+    </>
   );
 }

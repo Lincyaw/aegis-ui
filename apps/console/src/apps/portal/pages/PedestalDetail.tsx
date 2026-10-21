@@ -47,18 +47,18 @@ export default function PedestalDetail() {
 
   if (isLoading && !data) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={`Pedestal ${release}`} />
         <Panel>
           <Spin />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (!data || !data.release) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Pedestal not found' />
         <Panel>
           <EmptyState
@@ -66,7 +66,7 @@ export default function PedestalDetail() {
             description='Pedestal may have been uninstalled.'
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
@@ -125,7 +125,7 @@ export default function PedestalDetail() {
         : 'ghost';
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={`Pedestal ${data.release ?? ''}`}
         description={
@@ -224,6 +224,6 @@ export default function PedestalDetail() {
           placeholder={data.release}
         />
       </Modal>
-    </div>
+    </>
   );
 }

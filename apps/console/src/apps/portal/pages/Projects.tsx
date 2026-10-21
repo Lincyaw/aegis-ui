@@ -27,7 +27,7 @@ export default function Projects() {
   } = useProjectsList();
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Projects'
         description='Manage fault-injection projects and their associated resources.'
@@ -115,6 +115,6 @@ export default function Projects() {
           />
         )}
       </Panel>
-    </div>
+    </>
   );
 }

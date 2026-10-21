@@ -69,7 +69,7 @@ export default function Containers({ containerType }: ContainersProps) {
   const containers = data?.items ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={copy.title}
         description={copy.description}
@@ -125,6 +125,6 @@ export default function Containers({ containerType }: ContainersProps) {
           ]}
         />
       </Panel>
-    </div>
+    </>
   );
 }

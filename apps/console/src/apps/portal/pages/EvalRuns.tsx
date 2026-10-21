@@ -38,7 +38,7 @@ export default function EvalRuns() {
   const total = data?.total ?? 0;
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='LLM evaluations'
         description='Algorithm evaluation runs.'
@@ -168,6 +168,6 @@ export default function EvalRuns() {
           </Button>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }

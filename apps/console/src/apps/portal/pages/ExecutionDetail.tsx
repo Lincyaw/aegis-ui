@@ -69,9 +69,7 @@ function logLevelClass(level: string | undefined): TerminalLine['level'] {
   return 'info';
 }
 
-function logLines(
-  entries: TraceTraceLogEntry[] | undefined,
-): TerminalLine[] {
+function logLines(entries: TraceTraceLogEntry[] | undefined): TerminalLine[] {
   if (!entries || entries.length === 0) {
     return [];
   }
@@ -163,31 +161,31 @@ export default function ExecutionDetail() {
       level: logLevel === 'all' ? undefined : logLevel,
       q: debouncedLogSearch.length > 0 ? debouncedLogSearch : undefined,
     },
-    live ? 3_000 : false,
+    live ? 3_000 : false
   );
   const allLogLines = useMemo(
     () => logLines(logsResp?.entries),
-    [logsResp?.entries],
+    [logsResp?.entries]
   );
   const filteredLogLines = useMemo<TerminalLine[]>(
     () => allLogLines.slice(-logLimit),
-    [allLogLines, logLimit],
+    [allLogLines, logLimit]
   );
 
   if (isLoading) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={`Execution ${executionId ?? ''}`} />
         <Panel>
           <EmptyState title='Loading…' description='Fetching execution.' />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (isError || !data) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={`Execution ${executionId ?? ''}`} />
         <Panel>
           <ErrorState
@@ -197,7 +195,7 @@ export default function ExecutionDetail() {
             }
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
@@ -206,7 +204,7 @@ export default function ExecutionDetail() {
   const detectorResults = data.detector_results ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={`Execution ${String(data.id ?? '')}`}
         description={`${data.algorithm_name ?? 'algorithm'} · ${data.datapack_name ?? 'datapack'}`}
@@ -261,11 +259,7 @@ export default function ExecutionDetail() {
             },
             {
               k: 'finished',
-              v: live ? (
-                '—'
-              ) : (
-                <TimeDisplay value={data.updated_at ?? ''} />
-              ),
+              v: live ? '—' : <TimeDisplay value={data.updated_at ?? ''} />,
             },
             {
               k: 'trace id',
@@ -375,6 +369,6 @@ export default function ExecutionDetail() {
           />
         )}
       </Panel>
-    </div>
+    </>
   );
 }
