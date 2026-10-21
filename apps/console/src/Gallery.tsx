@@ -2682,6 +2682,9 @@ function App() {
           <p className='gallery__panel-body'>Tab panel content goes here.</p>
         </RosettaTabs>
 
+        <SectionDivider>Tabs · overflow</SectionDivider>
+        <TabsOverflowSpecimen />
+
         <SectionDivider>Breadcrumb</SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='simple'>
@@ -4870,6 +4873,62 @@ function DataTablePaginationSpecimen(): ReactNode {
             },
           }}
         />
+      </Specimen>
+    </div>
+  );
+}
+
+const GALLERY_CHAOS_FAMILIES = [
+  'Pod',
+  'Container',
+  'Network',
+  'Stress',
+  'HTTP',
+  'JVM',
+  'DNS',
+  'Time',
+].map((name) => ({ key: name.toLowerCase(), label: `${name} chaos` }));
+
+function TabsOverflowSpecimen(): ReactNode {
+  const [active, setActive] = useState('network');
+  const step = (delta: number): void => {
+    const count = GALLERY_CHAOS_FAMILIES.length;
+    const index = GALLERY_CHAOS_FAMILIES.findIndex((f) => f.key === active);
+    setActive(GALLERY_CHAOS_FAMILIES[(index + delta + count) % count].key);
+  };
+  return (
+    <div className='gallery__row'>
+      <Specimen caption="overflow · defaultActiveKey='jvm' scrolled into view">
+        <RosettaTabs items={GALLERY_CHAOS_FAMILIES} defaultActiveKey='jvm' />
+      </Specimen>
+      <Specimen
+        caption='overflow · active tab follows Previous / Next'
+        span={2}
+      >
+        <RosettaTabs
+          items={GALLERY_CHAOS_FAMILIES}
+          activeKey={active}
+          onChange={setActive}
+        >
+          <div className='gallery__row'>
+            <AegisButton
+              tone='secondary'
+              onClick={() => {
+                step(-1);
+              }}
+            >
+              Previous
+            </AegisButton>
+            <AegisButton
+              tone='secondary'
+              onClick={() => {
+                step(1);
+              }}
+            >
+              Next
+            </AegisButton>
+          </div>
+        </RosettaTabs>
       </Specimen>
     </div>
   );
