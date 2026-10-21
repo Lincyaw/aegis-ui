@@ -9,8 +9,11 @@ import {
 
 import {
   AppstoreOutlined,
+  DeleteOutlined,
+  DownloadOutlined,
   LogoutOutlined,
   PlusOutlined,
+  ReloadOutlined,
   SearchOutlined,
   SettingOutlined,
   UserOutlined,
@@ -2103,6 +2106,42 @@ function App() {
               ]}
             />
           </Specimen>
+          <Specimen
+            caption='inside a Panel · trigger on its bottom edge · wide items escape the clip'
+            span={2}
+          >
+            <Panel title='Run 4812' className='gallery__menu-host'>
+              <div className='gallery__menu-host-foot'>
+                <MetricLabel size='xs'>actions</MetricLabel>
+                <DropdownMenu
+                  trigger={<Chip tone='default'>More</Chip>}
+                  items={[
+                    {
+                      key: 'rerun',
+                      label: 'Re-run with the same datapack and algorithm',
+                      icon: <ReloadOutlined />,
+                    },
+                    {
+                      key: 'export',
+                      label: 'Export the trace bundle as Parquet',
+                      icon: <DownloadOutlined />,
+                    },
+                    {
+                      key: 'archive',
+                      label: 'Archive',
+                      disabled: true,
+                    },
+                    {
+                      key: 'delete',
+                      label: 'Delete run',
+                      icon: <DeleteOutlined />,
+                      danger: true,
+                    },
+                  ]}
+                />
+              </div>
+            </Panel>
+          </Specimen>
         </div>
 
         <SectionDivider>ProjectSelector</SectionDivider>
@@ -4091,6 +4130,7 @@ function TabsOverflowSpecimen(): ReactNode {
 function PageSizeSelectSpecimen(): ReactNode {
   const [size, setSize] = useState(20);
   const [customSize, setCustomSize] = useState(25);
+  const [panelSize, setPanelSize] = useState(10);
   return (
     <div className='gallery__row'>
       <Specimen caption='default · [10, 20, 50, 100]'>
@@ -4112,6 +4152,27 @@ function PageSizeSelectSpecimen(): ReactNode {
           options={[5, 25, 100]}
           label='Page size'
         />
+      </Specimen>
+      <Specimen
+        caption='DataTable footer in a Panel · one row · panel opens above the table'
+        span={3}
+      >
+        <Panel title='Runs' className='gallery__menu-host'>
+          <DataTable
+            columns={GALLERY_RUN_COLUMNS}
+            data={GALLERY_RUNS.slice(0, 1)}
+            rowKey={(row) => row.id}
+            pagination={{
+              page: 1,
+              pageSize: panelSize,
+              total: GALLERY_RUNS.length,
+              pageSizeOptions: [5, 10, 20, 50, 100],
+              onChange: (_page, nextSize) => {
+                setPanelSize(nextSize);
+              },
+            }}
+          />
+        </Panel>
       </Specimen>
     </div>
   );

@@ -1,6 +1,8 @@
-import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
+import { type ReactElement, useId } from 'react';
 
-import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { Popover } from 'antd';
+
+import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
 import './PageSizeSelect.css';
 
 export interface PageSizeSelectProps {
@@ -11,12 +13,10 @@ export interface PageSizeSelectProps {
   label?: string;
   className?: string;
   /**
-   * Where the options panel opens relative to the trigger. Default is
-   * 'top' because the primitive was originally used as a pagination
-   * footer where the table content is above. Use 'bottom' when the
-   * trigger sits at the top of a section (e.g. a filter row above a
-   * scrolling log terminal) — otherwise the panel pops upward and
-   * clips against the section header.
+   * Preferred side for the options panel. Default is 'top' because the
+   * primitive was originally used as a pagination footer where the table
+   * content is above; use 'bottom' when the trigger sits at the top of a
+   * section. The panel flips when the preferred side has no room.
    */
   placement?: 'top' | 'bottom';
 }
@@ -33,133 +33,88 @@ export function PageSizeSelect({
   placement = 'top',
 }: PageSizeSelectProps): ReactElement {
   const labelId = useId();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const menu = useMenuPopover<HTMLUListElement>();
 
-  useOutsideClick(ref, () => setOpen(false), open);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const idx = options.indexOf(value);
-    const target = itemRefs.current[idx >= 0 ? idx : 0];
-    target?.focus();
-  }, [open, options, value]);
-
-  const cls = [
-    'aegis-page-size-select',
-    `aegis-page-size-select--placement-${placement}`,
-    className ?? '',
-  ]
+  const cls = ['aegis-page-size-select', className ?? '']
     .filter(Boolean)
     .join(' ');
 
-  const handleTriggerKeyDown = (
-    e: React.KeyboardEvent<HTMLButtonElement>,
-  ): void => {
-    if (disabled) {
-      return;
-    }
-    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setOpen(true);
-    }
-  };
-
-  const handleItemKeyDown = (
-    e: React.KeyboardEvent<HTMLButtonElement>,
-    index: number,
-  ): void => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const next = itemRefs.current[(index + 1) % options.length];
-      next?.focus();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const prev =
-        itemRefs.current[(index - 1 + options.length) % options.length];
-      prev?.focus();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      setOpen(false);
-      triggerRef.current?.focus();
-    } else if (e.key === 'Tab') {
-      setOpen(false);
-    }
-  };
-
   const pickOption = (next: number): void => {
-    setOpen(false);
-    triggerRef.current?.focus();
+    menu.close();
     if (next !== value) {
       onChange(next);
     }
   };
 
+  const panel = (
+    <ul
+      ref={menu.panelRef}
+      className="aegis-page-size-select__panel"
+      role="listbox"
+      tabIndex={-1}
+      onKeyDown={menu.onPanelKeyDown}
+    >
+      {options.map((opt) => {
+        const selected = opt === value;
+        return (
+          <li key={opt} role="presentation">
+            <button
+              type="button"
+              role="option"
+              aria-selected={selected}
+              className={[
+                'aegis-page-size-select__item',
+                selected ? 'aegis-page-size-select__item--selected' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              onClick={() => {
+                pickOption(opt);
+              }}
+            >
+              <span className="aegis-page-size-select__item-value">{opt}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
   return (
-    <div className={cls} ref={ref}>
+    <div className={cls}>
       {label && (
         <span className="aegis-page-size-select__label" id={labelId}>
           {label}
         </span>
       )}
-      <button
-        ref={triggerRef}
-        type="button"
-        className="aegis-page-size-select__trigger"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-labelledby={label ? labelId : undefined}
-        aria-label={!label ? 'Page size' : undefined}
-        disabled={disabled}
-        onClick={() => {
-          setOpen((v) => !v);
-        }}
-        onKeyDown={handleTriggerKeyDown}
+      <Popover
+        content={panel}
+        trigger="click"
+        open={disabled ? false : menu.open}
+        onOpenChange={menu.setOpen}
+        placement={placement === 'top' ? 'topRight' : 'bottomRight'}
+        autoAdjustOverflow={MENU_OVERFLOW}
+        arrow={false}
+        classNames={{ root: 'aegis-page-size-select__overlay' }}
+        destroyOnHidden
       >
-        <span className="aegis-page-size-select__value">{value}</span>
-        <span className="aegis-page-size-select__caret" aria-hidden="true">
-          ▾
-        </span>
-      </button>
-      {open && (
-        <ul className="aegis-page-size-select__panel" role="listbox">
-          {options.map((opt, idx) => {
-            const selected = opt === value;
-            return (
-              <li key={opt} role="presentation">
-                <button
-                  ref={(el) => {
-                    itemRefs.current[idx] = el;
-                  }}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  className={[
-                    'aegis-page-size-select__item',
-                    selected ? 'aegis-page-size-select__item--selected' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  onClick={() => {
-                    pickOption(opt);
-                  }}
-                  onKeyDown={(e) => {
-                    handleItemKeyDown(e, idx);
-                  }}
-                >
-                  <span className="aegis-page-size-select__item-value">
-                    {opt}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+        <button
+          ref={menu.triggerRef}
+          type="button"
+          className="aegis-page-size-select__trigger"
+          aria-haspopup="listbox"
+          aria-expanded={menu.open}
+          aria-labelledby={label ? labelId : undefined}
+          aria-label={!label ? 'Page size' : undefined}
+          disabled={disabled}
+          onKeyDown={menu.onTriggerKeyDown}
+        >
+          <span className="aegis-page-size-select__value">{value}</span>
+          <span className="aegis-page-size-select__caret" aria-hidden="true">
+            ▾
+          </span>
+        </button>
+      </Popover>
     </div>
   );
 }

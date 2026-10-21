@@ -1,5 +1,4 @@
 .aegis-page-size-select {
-  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -56,13 +55,24 @@
   color: var(--text-muted);
 }
 
+/* The panel portals to the body: antd's default popover z-index sits below
+   the shell's mobile drawer, and its inner surface would double the panel.
+   `.ant-popover` is added to the selectors to outrank antd's own rules. */
+.aegis-page-size-select__overlay.ant-popover {
+  z-index: var(--z-popover);
+}
+
+.aegis-page-size-select__overlay.ant-popover .ant-popover-inner {
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .aegis-page-size-select__panel {
-  position: absolute;
-  right: 0;
-  z-index: var(--z-dropdown);
   display: flex;
   flex-direction: column;
-  min-width: 100%;
+  min-width: 4.5rem;
   margin: 0;
   padding: var(--space-1);
   list-style: none;
@@ -70,14 +80,6 @@
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-popover);
-}
-
-.aegis-page-size-select--placement-top .aegis-page-size-select__panel {
-  bottom: calc(100% + var(--space-1));
-}
-
-.aegis-page-size-select--placement-bottom .aegis-page-size-select__panel {
-  top: calc(100% + var(--space-1));
 }
 
 .aegis-page-size-select__item {

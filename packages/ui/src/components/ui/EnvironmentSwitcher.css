@@ -1,5 +1,4 @@
 .aegis-env-switcher {
-  position: relative;
   display: inline-flex;
 }
 
@@ -62,14 +61,25 @@
   background: var(--accent-warning);
 }
 
+/* The panel portals to the body: antd's default popover z-index sits below
+   the shell's mobile drawer, and its inner surface would double the panel.
+   `.ant-popover` is added to the selectors to outrank antd's own rules. */
+.aegis-env-switcher__overlay.ant-popover {
+  z-index: var(--z-popover);
+}
+
+.aegis-env-switcher__overlay.ant-popover .ant-popover-inner {
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .aegis-env-switcher__panel {
-  position: absolute;
-  top: calc(100% + var(--space-1));
-  right: 0;
-  z-index: var(--z-dropdown);
   display: flex;
   flex-direction: column;
   min-width: 13.5rem;
+  max-width: calc(100vw - var(--space-4));
   margin: 0;
   padding: var(--space-1);
   list-style: none;

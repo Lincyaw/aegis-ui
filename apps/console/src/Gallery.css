@@ -497,3 +497,15 @@ select.gallery__demo-input:focus {
   font-size: var(--fs-13);
   color: var(--text-muted);
 }
+
+.gallery__menu-host {
+  width: 100%;
+}
+
+.gallery__menu-host-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+}
