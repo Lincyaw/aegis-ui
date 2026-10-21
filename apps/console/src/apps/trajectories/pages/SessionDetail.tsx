@@ -18,28 +18,16 @@ import {
   type InspectableContent,
   MetricLabel,
   MonoValue,
-  SessionRunOutputView,
-  SessionRunTrajectoryView,
 } from '@lincyaw/aegis-ui';
 
 import {
   getSessionRow,
-  listMessagesBySession,
   listSessionRows,
-  listToolsBySession,
   type SessionRow,
 } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
-import {
-  lineageLabel,
-  parentKey,
-  type SessionDataState,
-  toSessionRunFacts,
-  toSessionRunMessages,
-  toSessionRunSubmission,
-  toSessionRunSummary,
-  toSessionRunTools,
-} from '../sessionRunAdapters';
+import { OutputPane, TrajectoryPane } from '../SessionPanes';
+import { lineageLabel, parentKey, useSessionData } from '../sessionRunAdapters';
 
 import './SessionDetail.css';
 
@@ -80,7 +68,7 @@ function clamp(value: number, min: number, max: number): number {
 function constrainPaneWidths(
   widths: PaneWidths,
   containerWidth: number,
-  activeEdge: ResizeEdge,
+  activeEdge: ResizeEdge
 ): PaneWidths {
   if (containerWidth <= 0) {
     return widths;
@@ -88,17 +76,21 @@ function constrainPaneWidths(
   const available = containerWidth - SPLITTER_TOTAL_WIDTH;
   const leftMaxByCenter = Math.max(
     MIN_LEFT_WIDTH,
-    available - MIN_CENTER_WIDTH - MIN_RIGHT_WIDTH,
+    available - MIN_CENTER_WIDTH - MIN_RIGHT_WIDTH
   );
   const rightMaxByCenter = Math.max(
     MIN_RIGHT_WIDTH,
-    available - MIN_CENTER_WIDTH - MIN_LEFT_WIDTH,
+    available - MIN_CENTER_WIDTH - MIN_LEFT_WIDTH
   );
-  let left = clamp(widths.left, MIN_LEFT_WIDTH, Math.min(MAX_LEFT_WIDTH, leftMaxByCenter));
+  let left = clamp(
+    widths.left,
+    MIN_LEFT_WIDTH,
+    Math.min(MAX_LEFT_WIDTH, leftMaxByCenter)
+  );
   let right = clamp(
     widths.right,
     MIN_RIGHT_WIDTH,
-    Math.min(MAX_RIGHT_WIDTH, rightMaxByCenter),
+    Math.min(MAX_RIGHT_WIDTH, rightMaxByCenter)
   );
   const center = available - left - right;
   if (center < MIN_CENTER_WIDTH) {
@@ -119,7 +111,11 @@ function buildTree(rows: SessionRow[], selectedId: string): SessionTreeNode[] {
   }
   let root = selected;
   const seen = new Set<string>();
-  while (parentKey(root) && byId.has(parentKey(root)) && !seen.has(root.sessionId)) {
+  while (
+    parentKey(root) &&
+    byId.has(parentKey(root)) &&
+    !seen.has(root.sessionId)
+  ) {
     seen.add(root.sessionId);
     root = byId.get(parentKey(root)) ?? root;
   }
@@ -137,7 +133,7 @@ function buildTree(rows: SessionRow[], selectedId: string): SessionTreeNode[] {
   childrenByParent.forEach((list) => {
     list.sort(
       (a, b) =>
-        new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
+        new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
     );
   });
 
@@ -145,7 +141,7 @@ function buildTree(rows: SessionRow[], selectedId: string): SessionTreeNode[] {
     row,
     depth,
     children: (childrenByParent.get(row.sessionId) ?? []).map((child) =>
-      walk(child, depth + 1),
+      walk(child, depth + 1)
     ),
   });
   return [walk(root, 0)];
@@ -161,7 +157,10 @@ function flattenTree(nodes: SessionTreeNode[]): SessionTreeNode[] {
   return out;
 }
 
-function mergeSessionRows(rows: SessionRow[], required: SessionRow | null): SessionRow[] {
+function mergeSessionRows(
+  rows: SessionRow[],
+  required: SessionRow | null
+): SessionRow[] {
   if (!required || rows.some((row) => row.sessionId === required.sessionId)) {
     return rows;
   }
@@ -179,9 +178,7 @@ export function SessionDetail(): ReactElement {
   });
   const [treeLoad, setTreeLoad] = useState<LoadState>({ kind: 'loading' });
   const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
-  const [sessionData, setSessionData] = useState<SessionDataState>({
-    kind: 'idle',
-  });
+  const sessionData = useSessionData(selectedSessionId);
   const [inspectedContent, setInspectedContent] =
     useState<InspectableContent | null>(null);
 
@@ -201,7 +198,10 @@ export function SessionDetail(): ReactElement {
     ])
       .then(([rows, requiredRow]) => {
         if (!cancelled) {
-          setTreeLoad({ kind: 'ready', rows: mergeSessionRows(rows, requiredRow) });
+          setTreeLoad({
+            kind: 'ready',
+            rows: mergeSessionRows(rows, requiredRow),
+          });
         }
       })
       .catch((err: unknown) => {
@@ -217,42 +217,14 @@ export function SessionDetail(): ReactElement {
     };
   }, [sessionId]);
 
-  useEffect(() => {
-    if (!selectedSessionId) {
-      return;
-    }
-    let cancelled = false;
-    setSessionData({ kind: 'loading' });
-    Promise.all([
-      listMessagesBySession(selectedSessionId),
-      listToolsBySession(selectedSessionId),
-    ])
-      .then(([messages, tools]) => {
-        if (!cancelled) {
-          setSessionData({ kind: 'ready', messages, tools });
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setSessionData({
-            kind: 'error',
-            message: err instanceof Error ? err.message : String(err),
-          });
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedSessionId]);
-
   const rows = useMemo(
     () => (treeLoad.kind === 'ready' ? treeLoad.rows : []),
-    [treeLoad],
+    [treeLoad]
   );
   const selectedRow = rows.find((row) => row.sessionId === selectedSessionId);
   const tree = useMemo(
     () => buildTree(rows, selectedSessionId || sessionId),
-    [rows, selectedSessionId, sessionId],
+    [rows, selectedSessionId, sessionId]
   );
   const visibleTree = useMemo(() => flattenTree(tree), [tree]);
   const pinSessionId = selectedRow?.sessionId || selectedSessionId;
@@ -278,7 +250,7 @@ export function SessionDetail(): ReactElement {
 
   const startPaneResize = (
     edge: ResizeEdge,
-    event: PointerEvent<HTMLButtonElement>,
+    event: PointerEvent<HTMLButtonElement>
   ): void => {
     event.preventDefault();
     resizePane(edge, event.clientX);
@@ -310,7 +282,7 @@ export function SessionDetail(): ReactElement {
 
   const handleSplitterKeyDown = (
     edge: ResizeEdge,
-    event: KeyboardEvent<HTMLButtonElement>,
+    event: KeyboardEvent<HTMLButtonElement>
   ): void => {
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
@@ -328,8 +300,8 @@ export function SessionDetail(): ReactElement {
             [edge]: edge === 'left' ? MIN_LEFT_WIDTH : MAX_RIGHT_WIDTH,
           },
           width,
-          edge,
-        ),
+          edge
+        )
       );
     } else if (event.key === 'End') {
       event.preventDefault();
@@ -341,8 +313,8 @@ export function SessionDetail(): ReactElement {
             [edge]: edge === 'left' ? MAX_LEFT_WIDTH : MIN_RIGHT_WIDTH,
           },
           width,
-          edge,
-        ),
+          edge
+        )
       );
     }
   };
@@ -386,7 +358,9 @@ export function SessionDetail(): ReactElement {
           description={treeLoad.message}
         />
       )}
-      {treeLoad.kind === 'loading' && <EmptyState title='Loading session tree…' />}
+      {treeLoad.kind === 'loading' && (
+        <EmptyState title='Loading session tree…' />
+      )}
       {treeLoad.kind === 'ready' && !selectedRow && (
         <ErrorState
           title='Session not found'
@@ -394,11 +368,7 @@ export function SessionDetail(): ReactElement {
         />
       )}
       {treeLoad.kind === 'ready' && selectedRow && (
-        <div
-          ref={layoutRef}
-          className='session-tree-page'
-          style={layoutStyle}
-        >
+        <div ref={layoutRef} className='session-tree-page' style={layoutStyle}>
           <aside className='session-tree-page__tree'>
             <header className='session-tree-page__pane-head'>
               Session tree
@@ -420,12 +390,13 @@ export function SessionDetail(): ReactElement {
           <main className='session-tree-page__trajectory'>
             <header className='session-tree-page__pane-head'>
               Trajectory
-              <MetricLabel size='xs'>{selectedSessionId.slice(0, 12)}</MetricLabel>
+              <MetricLabel size='xs'>
+                {selectedSessionId.slice(0, 12)}
+              </MetricLabel>
             </header>
             <TrajectoryPane
               row={selectedRow}
               state={sessionData}
-              forkMessageId={selectedRow.forkMessageId}
               onInspectContent={setInspectedContent}
             />
           </main>
@@ -466,11 +437,11 @@ function PaneSplitter({
   label: string;
   onPointerDown: (
     edge: ResizeEdge,
-    event: PointerEvent<HTMLButtonElement>,
+    event: PointerEvent<HTMLButtonElement>
   ) => void;
   onKeyDown: (
     edge: ResizeEdge,
-    event: KeyboardEvent<HTMLButtonElement>,
+    event: KeyboardEvent<HTMLButtonElement>
   ) => void;
   onDoubleClick: () => void;
 }): ReactElement {
@@ -536,55 +507,6 @@ function SessionTreeList({
         );
       })}
     </div>
-  );
-}
-
-function TrajectoryPane({
-  row,
-  state,
-  forkMessageId,
-  onInspectContent,
-}: {
-  row: SessionRow;
-  state: SessionDataState;
-  forkMessageId: string;
-  onInspectContent: (content: InspectableContent) => void;
-}): ReactElement {
-  return (
-    <SessionRunTrajectoryView
-      summary={toSessionRunSummary(row)}
-      messages={
-        state.kind === 'ready'
-          ? toSessionRunMessages(state.messages, forkMessageId)
-          : []
-      }
-      loading={state.kind === 'loading' || state.kind === 'idle'}
-      error={state.kind === 'error' ? state.message : undefined}
-      onInspectContent={onInspectContent}
-    />
-  );
-}
-
-function OutputPane({
-  row,
-  state,
-  onInspectContent,
-}: {
-  row: SessionRow;
-  state: SessionDataState;
-  onInspectContent: (content: InspectableContent) => void;
-}): ReactElement {
-  return (
-    <SessionRunOutputView
-      facts={toSessionRunFacts(row)}
-      acceptedSubmission={
-        state.kind === 'ready' ? toSessionRunSubmission(state.tools) : null
-      }
-      tools={state.kind === 'ready' ? toSessionRunTools(state.tools) : []}
-      loading={state.kind === 'loading' || state.kind === 'idle'}
-      error={state.kind === 'error' ? state.message : undefined}
-      onInspectContent={onInspectContent}
-    />
   );
 }
 

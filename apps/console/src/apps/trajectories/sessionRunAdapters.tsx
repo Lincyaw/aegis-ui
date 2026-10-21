@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import {
   MonoValue,
   type SessionRunFact,
@@ -7,7 +9,14 @@ import {
   type SessionRunToolCall,
 } from '@lincyaw/aegis-ui';
 
-import type { SessionMessage, SessionRow, ToolCallRow } from './api/clickhouse';
+import {
+  listMessagesBySession,
+  listToolsBySession,
+  type SessionMessage,
+  type SessionRow,
+  type ToolCallRow,
+} from './api/clickhouse';
+
 import { formatDurationMs, formatTokens } from './conversation';
 
 export type SessionDataState =
@@ -15,6 +24,40 @@ export type SessionDataState =
   | { kind: 'loading' }
   | { kind: 'error'; message: string }
   | { kind: 'ready'; messages: SessionMessage[]; tools: ToolCallRow[] };
+
+export function useSessionData(sessionId: string): SessionDataState {
+  const [state, setState] = useState<SessionDataState>({ kind: 'idle' });
+
+  useEffect(() => {
+    if (!sessionId) {
+      return;
+    }
+    let cancelled = false;
+    setState({ kind: 'loading' });
+    Promise.all([
+      listMessagesBySession(sessionId),
+      listToolsBySession(sessionId),
+    ])
+      .then(([messages, tools]) => {
+        if (!cancelled) {
+          setState({ kind: 'ready', messages, tools });
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setState({
+            kind: 'error',
+            message: err instanceof Error ? err.message : String(err),
+          });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  return state;
+}
 
 export function parentKey(row: SessionRow): string {
   return row.parentSessionId || row.sourceSessionId;
@@ -76,7 +119,7 @@ interface AcceptedSubmission {
 }
 
 function acceptedSubmissionFromTools(
-  tools: ToolCallRow[],
+  tools: ToolCallRow[]
 ): AcceptedSubmission | null {
   const submitTools = ['submit_final_report', 'submit_judge_review'];
   for (const tool of [...tools].reverse()) {
@@ -162,7 +205,7 @@ export function toSessionRunSummary(row: SessionRow): SessionRunSummary {
 
 export function toSessionRunMessages(
   messages: SessionMessage[],
-  forkMessageId: string,
+  forkMessageId: string
 ): SessionRunMessage[] {
   return messages.map((message) => ({
     id: message.id,
@@ -177,7 +220,7 @@ export function toSessionRunFacts(row: SessionRow): SessionRunFact[] {
     {
       key: 'session',
       label: 'session',
-      value: <MonoValue size="sm">{row.sessionId}</MonoValue>,
+      value: <MonoValue size='sm'>{row.sessionId}</MonoValue>,
     },
     { key: 'parent', label: 'parent', value: parentKey(row) || '—' },
     { key: 'scenario', label: 'scenario', value: row.scenario || '—' },
@@ -202,7 +245,7 @@ export function toSessionRunTools(tools: ToolCallRow[]): SessionRunToolCall[] {
 }
 
 export function toSessionRunSubmission(
-  tools: ToolCallRow[],
+  tools: ToolCallRow[]
 ): SessionRunSubmission | null {
   const submission = acceptedSubmissionFromTools(tools);
   if (submission == null) {

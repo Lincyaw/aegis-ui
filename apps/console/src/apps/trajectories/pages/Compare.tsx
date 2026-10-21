@@ -11,25 +11,12 @@ import {
   MonoValue,
   Panel,
   PanelTitle,
-  SessionRunOutputView,
-  SessionRunTrajectoryView,
 } from '@lincyaw/aegis-ui';
 
-import {
-  getSessionRow,
-  listMessagesBySession,
-  listToolsBySession,
-  type SessionRow,
-} from '../api/clickhouse';
+import { getSessionRow, type SessionRow } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
-import {
-  type SessionDataState,
-  toSessionRunFacts,
-  toSessionRunMessages,
-  toSessionRunSubmission,
-  toSessionRunSummary,
-  toSessionRunTools,
-} from '../sessionRunAdapters';
+import { OutputPane, TrajectoryPane } from '../SessionPanes';
+import { useSessionData } from '../sessionRunAdapters';
 
 import './Compare.css';
 
@@ -116,37 +103,26 @@ function CompareColumn({
   onInspectContent: (content: InspectableContent) => void;
 }): ReactElement {
   const [row, setRow] = useState<SessionRow | null>(null);
-  const [state, setState] = useState<SessionDataState>({ kind: 'loading' });
   const [error, setError] = useState<string | null>(null);
+  const state = useSessionData(sessionId);
 
   useEffect(() => {
     let cancelled = false;
     setRow(null);
-    setState({ kind: 'loading' });
     setError(null);
-    Promise.all([
-      getSessionRow(sessionId),
-      listMessagesBySession(sessionId),
-      listToolsBySession(sessionId),
-    ])
-      .then(([nextRow, messages, tools]) => {
+    getSessionRow(sessionId)
+      .then((nextRow) => {
         if (!cancelled) {
           if (nextRow === null) {
             setError('Session not found');
-            setState({ kind: 'error', message: 'Session not found' });
-            return;
+          } else {
+            setRow(nextRow);
           }
-          setRow(nextRow);
-          setState({ kind: 'ready', messages, tools });
         }
       })
       .catch((err: unknown) => {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : String(err));
-          setState({
-            kind: 'error',
-            message: err instanceof Error ? err.message : String(err),
-          });
         }
       });
     return () => {
@@ -174,29 +150,20 @@ function CompareColumn({
       ) : (
         <div className='trajectories-compare__session-body'>
           <section className='trajectories-compare__pane trajectories-compare__pane--trajectory'>
-            <header className='trajectories-compare__pane-head'>Trajectory</header>
-            <SessionRunTrajectoryView
-              summary={toSessionRunSummary(row)}
-              messages={
-                state.kind === 'ready'
-                  ? toSessionRunMessages(state.messages, row.forkMessageId)
-                  : []
-              }
-              loading={state.kind === 'loading' || state.kind === 'idle'}
-              error={state.kind === 'error' ? state.message : undefined}
+            <header className='trajectories-compare__pane-head'>
+              Trajectory
+            </header>
+            <TrajectoryPane
+              row={row}
+              state={state}
               onInspectContent={onInspectContent}
             />
           </section>
           <section className='trajectories-compare__pane trajectories-compare__pane--output'>
             <header className='trajectories-compare__pane-head'>Output</header>
-            <SessionRunOutputView
-              facts={toSessionRunFacts(row)}
-              acceptedSubmission={
-                state.kind === 'ready' ? toSessionRunSubmission(state.tools) : null
-              }
-              tools={state.kind === 'ready' ? toSessionRunTools(state.tools) : []}
-              loading={state.kind === 'loading' || state.kind === 'idle'}
-              error={state.kind === 'error' ? state.message : undefined}
+            <OutputPane
+              row={row}
+              state={state}
               onInspectContent={onInspectContent}
             />
           </section>
