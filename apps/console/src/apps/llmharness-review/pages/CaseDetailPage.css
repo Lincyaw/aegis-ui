@@ -307,13 +307,6 @@
   padding: var(--space-3);
 }
 
-.llmh-cdp__sft-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  margin-bottom: var(--space-2);
-}
-
 .llmh-cdp__sft-rows {
   display: grid;
   grid-template-columns: 1fr 1fr;

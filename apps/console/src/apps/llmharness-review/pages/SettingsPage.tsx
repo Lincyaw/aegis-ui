@@ -1,7 +1,17 @@
-import { type ReactElement, useCallback, useEffect, useState } from 'react';
+import {
+  type ComponentType,
+  type ReactElement,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { CaretDownOutlined, FolderOutlined } from '@ant-design/icons';
 import {
+  Breadcrumb,
+  type BreadcrumbItem,
   Button,
   Chip,
   DropdownMenu,
@@ -31,6 +41,8 @@ import {
   sftBlobRoot,
 } from '../connection';
 
+import './SettingsPage.css';
+
 type ProbeState =
   | { kind: 'idle' }
   | { kind: 'probing' }
@@ -44,6 +56,12 @@ type BrowseState =
   | { kind: 'loading' }
   | { kind: 'ok'; subdirs: string[]; truncated: boolean }
   | { kind: 'error'; message: string };
+
+type CrumbLink = ComponentType<{
+  to: string;
+  className?: string;
+  children: ReactNode;
+}>;
 
 interface BlobPathPickerProps {
   buckets: BucketSummary[];
@@ -65,7 +83,7 @@ function BlobPathPicker({
   const [prefix, setPrefix] = useState<string>(saved?.prefix ?? '');
   const [browse, setBrowse] = useState<BrowseState>({ kind: 'idle' });
 
-  // Re-hydrate when the parent's saved value changes (e.g. on forget).
+  // Re-hydrate when the saved value changes (e.g. on forget).
   useEffect(() => {
     setBucket(saved?.bucket ?? '');
     setPrefix(saved?.prefix ?? '');
@@ -130,24 +148,38 @@ function BlobPathPicker({
     }
   })();
 
-  const segments = prefix
-    .split('/')
-    .filter((s) => s.length > 0)
-    .map((seg, idx, arr) => ({
-      label: seg,
-      target: `${arr.slice(0, idx + 1).join('/')}/`,
-    }));
+  // Crumb `to` is the absolute path inside the bucket ('/' = bucket root)
+  // so the root crumb has a non-empty target and renders as a link.
+  const crumbs: BreadcrumbItem[] = [
+    { label: bucket, to: '/' },
+    ...prefix
+      .split('/')
+      .filter((s) => s.length > 0)
+      .map((seg, idx, arr) => ({
+        label: seg,
+        to: `/${arr.slice(0, idx + 1).join('/')}/`,
+      })),
+  ];
+
+  const PrefixLink = useMemo<CrumbLink>(
+    () =>
+      function PrefixLink({ to, className, children }) {
+        return (
+          <button
+            type='button'
+            className={`${className ?? ''} llmh-settings__crumb`}
+            onClick={() => setPrefix(to.slice(1))}
+          >
+            {children}
+          </button>
+        );
+      },
+    []
+  );
 
   return (
     <>
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div className='llmh-settings__row'>
         <MetricLabel size='xs'>bucket</MetricLabel>
         <DropdownMenu
           align='left'
@@ -187,42 +219,12 @@ function BlobPathPicker({
       </div>
 
       {bucket && (
-        <div style={{ marginTop: 16 }}>
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              marginBottom: 8,
-            }}
-          >
+        <div className='llmh-settings__block'>
+          <div className='llmh-settings__path'>
             <MetricLabel size='xs'>path</MetricLabel>
-            <Chip
-              tone={prefix === '' ? 'ink' : 'default'}
-              onClick={() => setPrefix('')}
-            >
-              {bucket}
-            </Chip>
-            {segments.map((seg, idx) => (
-              <Chip
-                key={seg.target}
-                tone={idx === segments.length - 1 ? 'ink' : 'default'}
-                onClick={() => setPrefix(seg.target)}
-              >
-                {seg.label}
-              </Chip>
-            ))}
+            <Breadcrumb items={crumbs} linkComponent={PrefixLink} />
           </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              minHeight: 32,
-            }}
-          >
+          <div className='llmh-settings__subdirs'>
             {browse.kind === 'loading' && (
               <MetricLabel size='xs'>browsing…</MetricLabel>
             )}
@@ -240,7 +242,7 @@ function BlobPathPicker({
                 const label = rel.replace(/\/$/, '');
                 return (
                   <Chip key={sub} tone='default' onClick={() => setPrefix(sub)}>
-                    <FolderOutlined style={{ marginRight: 4 }} />
+                    <FolderOutlined className='llmh-settings__folder-icon' />
                     {label}
                   </Chip>
                 );
@@ -254,17 +256,9 @@ function BlobPathPicker({
         </div>
       )}
 
-      <div
-        style={{
-          marginTop: 16,
-          display: 'flex',
-          gap: 8,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div className='llmh-settings__block llmh-settings__actions'>
         {statusChip}
-        <div style={{ flex: 1 }} />
+        <div className='llmh-settings__spacer' />
         <Button
           onClick={() => {
             store.set({ bucket, prefix });
@@ -277,7 +271,7 @@ function BlobPathPicker({
       </div>
 
       {saved && (
-        <div style={{ marginTop: 16 }}>
+        <div className='llmh-settings__block'>
           <KeyValueList
             items={[
               {
@@ -294,7 +288,7 @@ function BlobPathPicker({
               },
             ]}
           />
-          <div style={{ marginTop: 12 }}>
+          <div className='llmh-settings__forget'>
             <Button
               tone='ghost'
               onClick={() => {
@@ -394,8 +388,8 @@ export function SettingsPage(): ReactElement {
         title='Backend URL'
         description='Point this at any `llmharness serve` instance. The sub-app talks to it directly — no shell proxy involved.'
       >
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
+        <div className='llmh-settings__url-row'>
+          <div className='llmh-settings__spacer'>
             <TextField
               label='URL'
               placeholder={PLACEHOLDER}
@@ -419,14 +413,7 @@ export function SettingsPage(): ReactElement {
             Save
           </Button>
         </div>
-        <div
-          style={{
-            marginTop: 12,
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center',
-          }}
-        >
+        <div className='llmh-settings__row llmh-settings__status'>
           {statusChip}
           {probe.kind === 'ok' && (
             <MetricLabel size='xs'>
@@ -438,7 +425,7 @@ export function SettingsPage(): ReactElement {
           )}
         </div>
         {probe.kind === 'ok' && (
-          <div style={{ marginTop: 16 }}>
+          <div className='llmh-settings__block'>
             <KeyValueList
               items={[
                 {

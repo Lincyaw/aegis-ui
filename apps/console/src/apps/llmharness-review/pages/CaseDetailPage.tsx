@@ -19,6 +19,7 @@ import {
   Panel,
   PanelTitle,
   ResizableSidePanel,
+  Tabs,
 } from '@lincyaw/aegis-ui';
 import { Modal } from 'antd';
 
@@ -874,6 +875,8 @@ type SftLoadState =
   | { kind: 'unavailable' }
   | { kind: 'error'; message: string };
 
+type SftTab = 'extractor' | 'auditor' | 'dropped';
+
 interface SftDrawerProps {
   repo: CaseRepo;
   caseId: string;
@@ -886,9 +889,7 @@ function SftDrawer({
   rootSessionId,
 }: SftDrawerProps): ReactElement {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<'extractor' | 'auditor' | 'dropped'>(
-    'extractor'
-  );
+  const [tab, setTab] = useState<SftTab>('extractor');
   const [selected, setSelected] = useState<SftRow | null>(null);
   const [load, setLoad] = useState<SftLoadState>({ kind: 'idle' });
 
@@ -969,36 +970,27 @@ function SftDrawer({
           ) : !sft ? (
             <EmptyState title='SFT not available' />
           ) : (
-            <>
-              <div className='llmh-cdp__sft-tabs'>
-                <Chip
-                  tone={tab === 'extractor' ? 'ink' : 'default'}
-                  onClick={() => {
-                    setTab('extractor');
-                    setSelected(null);
-                  }}
-                >
-                  extractor ({sft.extractor.length})
-                </Chip>
-                <Chip
-                  tone={tab === 'auditor' ? 'ink' : 'default'}
-                  onClick={() => {
-                    setTab('auditor');
-                    setSelected(null);
-                  }}
-                >
-                  auditor ({sft.auditor.length})
-                </Chip>
-                <Chip
-                  tone={tab === 'dropped' ? 'ink' : 'default'}
-                  onClick={() => {
-                    setTab('dropped');
-                    setSelected(null);
-                  }}
-                >
-                  dropped ({sft.dropped.length})
-                </Chip>
-              </div>
+            <Tabs
+              items={[
+                {
+                  key: 'extractor',
+                  label: `extractor (${sft.extractor.length.toString()})`,
+                },
+                {
+                  key: 'auditor',
+                  label: `auditor (${sft.auditor.length.toString()})`,
+                },
+                {
+                  key: 'dropped',
+                  label: `dropped (${sft.dropped.length.toString()})`,
+                },
+              ]}
+              activeKey={tab}
+              onChange={(key) => {
+                setTab(key as SftTab);
+                setSelected(null);
+              }}
+            >
               {tab === 'dropped' ? (
                 <pre className='llmh-cdp__pre'>
                   {JSON.stringify(sft.dropped, null, 2)}
@@ -1031,7 +1023,7 @@ function SftDrawer({
                   </div>
                 </div>
               )}
-            </>
+            </Tabs>
           )}
         </div>
       )}
