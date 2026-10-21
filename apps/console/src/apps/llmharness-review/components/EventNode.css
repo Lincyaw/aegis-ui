@@ -43,39 +43,37 @@
 }
 
 .llmh-evt-node__kind {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-label);
   font-size: var(--fs-9);
-  padding: 1px var(--space-1);
+  padding: var(--space-px) var(--space-1);
   border-radius: var(--radius-xs);
-  background: var(--bg-muted);
-  color: var(--text-main);
+  background: color-mix(
+    in srgb,
+    var(--llmh-kind-hue, var(--text-main)) 16%,
+    transparent
+  );
+  color: var(--llmh-kind-hue, var(--text-main));
 }
 
 .llmh-evt-node--task .llmh-evt-node__kind {
-  background: #dbeafe;
-  color: #1e3a8a;
+  --llmh-kind-hue: var(--avatar-hue-2);
 }
 .llmh-evt-node--hyp .llmh-evt-node__kind {
-  background: #fef3c7;
-  color: #78350f;
+  --llmh-kind-hue: var(--avatar-hue-4);
 }
 .llmh-evt-node--evid .llmh-evt-node__kind {
-  background: #d1fae5;
-  color: #065f46;
+  --llmh-kind-hue: var(--avatar-hue-3);
 }
 .llmh-evt-node--act .llmh-evt-node__kind {
-  background: #ede9fe;
-  color: #4c1d95;
+  --llmh-kind-hue: var(--avatar-hue-1);
 }
 .llmh-evt-node--dec .llmh-evt-node__kind {
-  background: #fce7f3;
-  color: #831843;
+  --llmh-kind-hue: var(--avatar-hue-5);
 }
 .llmh-evt-node--concl .llmh-evt-node__kind {
-  background: #ffedd5;
-  color: #7c2d12;
+  --llmh-kind-hue: var(--accent-info);
 }
 
 .llmh-evt-node__id {

@@ -389,17 +389,13 @@
 .callout-tip,
 .callout-success,
 .callout-hint {
-  border-left-color: var(--presence-online, #16a34a);
-  background: color-mix(
-    in srgb,
-    var(--presence-online, #16a34a) 10%,
-    transparent
-  );
+  border-left-color: var(--presence-online);
+  background: color-mix(in srgb, var(--presence-online) 10%, transparent);
 }
 .callout-tip .callout-title,
 .callout-success .callout-title,
 .callout-hint .callout-title {
-  color: var(--presence-online, #16a34a);
+  color: var(--presence-online);
 }
 
 .callout-warning,
