@@ -1,12 +1,8 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
 import type {
   GenericResponsePagesPageSiteResponse,
   PagesPageSiteResponse,
 } from '@lincyaw/portal';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { gatewayUrlFor } from '../../../config/runtime';
 import { pagesApi, portalAxios } from '../../portal/api/portal-client';
@@ -42,14 +38,13 @@ export const PAGES_LIMITS = {
 // `['console', 'pages', …]` because the 'pages' sub-app owns the namespace.
 export const pagesKeys = {
   all: ['pages'] as const,
-  myList: (params: ListPagesParams) =>
-    ['pages', 'my', 'list', params] as const,
+  myList: (params: ListPagesParams) => ['pages', 'my', 'list', params] as const,
   publicList: (params: ListPagesParams) =>
     ['pages', 'public', 'list', params] as const,
   detail: (id: number | undefined) => ['pages', 'detail', id] as const,
 };
 
-function fileRelPath(f: File): string {
+export function fileRelPath(f: File): string {
   return f.webkitRelativePath !== '' ? f.webkitRelativePath : f.name;
 }
 
@@ -120,7 +115,7 @@ export function useCreatePage() {
     mutationFn: async (input: CreatePageInput) => {
       const res = await portalAxios.post<GenericResponsePagesPageSiteResponse>(
         gatewayUrlFor('/api/v2/pages'),
-        buildMultipart(input),
+        buildMultipart(input)
       );
       const data = res.data.data;
       if (!data) {
@@ -140,7 +135,7 @@ export function useReplacePage(id: number) {
     mutationFn: async (input: CreatePageInput) => {
       const res = await portalAxios.post<GenericResponsePagesPageSiteResponse>(
         gatewayUrlFor(`/api/v2/pages/${id.toString()}/upload`),
-        buildMultipart(input),
+        buildMultipart(input)
       );
       const data = res.data.data;
       if (!data) {

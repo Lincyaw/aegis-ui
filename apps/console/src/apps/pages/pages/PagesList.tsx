@@ -7,9 +7,7 @@ import {
   PlusOutlined,
 } from '@ant-design/icons';
 import {
-  Chip,
   DataTable,
-  type DataTableColumn,
   EmptyState,
   ErrorState,
   MonoValue,
@@ -29,7 +27,8 @@ import {
   usePagesList,
 } from '../api/pages-client';
 import '../pages-app.css';
-import { humanBytes, visibilityTone } from './helpers';
+
+import { pageColumns } from './helpers';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
@@ -62,7 +61,7 @@ function RowActions({ row }: { row: PagesPageSiteResponse }) {
           void msg.success('Deleted');
         } catch (e) {
           void msg.error(
-            `Delete failed: ${e instanceof Error ? e.message : 'unknown'}`,
+            `Delete failed: ${e instanceof Error ? e.message : 'unknown'}`
           );
         }
       },
@@ -96,77 +95,24 @@ export default function PagesList() {
   const { size, setSize } = usePageSize('pages:mine', 20);
   const { data, isLoading, error, refetch } = usePagesList({ limit: size });
 
-  const columns = useMemo<Array<DataTableColumn<PagesPageSiteResponse>>>(
-    () => [
-      {
-        key: 'slug',
-        header: 'Slug',
-        render: (row) => (
+  const columns = useMemo(
+    () =>
+      pageColumns(
+        (row) => (
           <Link to={`${basePath}/${(row.id ?? '').toString()}`}>
             <MonoValue size='sm'>{row.slug ?? '—'}</MonoValue>
           </Link>
         ),
-      },
-      {
-        key: 'title',
-        header: 'Title',
-        render: (row) =>
-          row.title !== undefined && row.title !== '' ? (
-            row.title
-          ) : (
-            <span className='pages-app__muted'>—</span>
-          ),
-      },
-      {
-        key: 'visibility',
-        header: 'Visibility',
-        width: 140,
-        render: (row) => (
-          <Chip tone={visibilityTone(row.visibility)}>
-            {row.visibility ?? '—'}
-          </Chip>
-        ),
-      },
-      {
-        key: 'files',
-        header: 'Files',
-        align: 'right',
-        width: 80,
-        render: (row) => (
-          <MonoValue size='sm'>{(row.file_count ?? 0).toString()}</MonoValue>
-        ),
-      },
-      {
-        key: 'size',
-        header: 'Size',
-        align: 'right',
-        width: 100,
-        render: (row) => (
-          <MonoValue size='sm'>{humanBytes(row.size_bytes ?? 0)}</MonoValue>
-        ),
-      },
-      {
-        key: 'updated',
-        header: 'Updated',
-        width: 180,
-        render: (row) => (
-          <MonoValue size='sm'>
-            {row.updated_at !== undefined && row.updated_at !== ''
-              ? new Date(row.updated_at).toLocaleString()
-              : '—'}
-          </MonoValue>
-        ),
-      },
-      {
-        key: 'actions',
-        header: '',
-        align: 'right',
-        truncate: false,
-        width: 160,
-        render: (row) => <RowActions row={row} />,
-      },
-    ],
-    [basePath],
+        {
+          key: 'actions',
+          header: '',
+          align: 'right',
+          truncate: false,
+          width: 160,
+          render: (row) => <RowActions row={row} />,
+        }
+      ),
+    [basePath]
   );
 
   const items = data ?? [];
