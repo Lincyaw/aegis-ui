@@ -1,4 +1,9 @@
-import { type ReactNode, useCallback, useState } from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useState,
+} from 'react';
 
 import { DoubleLeftOutlined, DoubleRightOutlined } from '@ant-design/icons';
 
@@ -29,6 +34,13 @@ export interface ResizableSidePanelProps {
   /** Controlled collapsed state. If omitted, internal state is used. */
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
+  /**
+   * At ≤768 px, fill the parent's width with a bounded height and hide the
+   * resize handle — for layouts that stack the panel above or below its
+   * neighbour on narrow screens. The parent still owns the stacking
+   * (e.g. `flex-direction: column`).
+   */
+  stackOnMobile?: boolean;
   /** Optional className appended to the root. */
   className?: string;
 }
@@ -46,6 +58,7 @@ export function ResizableSidePanel({
   collapsible = false,
   collapsed: collapsedProp,
   onCollapsedChange,
+  stackOnMobile = false,
   className,
 }: ResizableSidePanelProps) {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
@@ -83,6 +96,7 @@ export function ResizableSidePanel({
     `aegis-resizable-panel--${side}`,
     isDragging ? 'aegis-resizable-panel--dragging' : '',
     collapsed ? 'aegis-resizable-panel--collapsed' : '',
+    stackOnMobile ? 'aegis-resizable-panel--stack-on-mobile' : '',
     className ?? '',
   ]
     .filter(Boolean)
@@ -115,8 +129,14 @@ export function ResizableSidePanel({
     />
   );
 
+  // A custom property rather than an inline width, so the stacked mobile
+  // layout can override it from the stylesheet.
+  const style = {
+    '--aegis-resizable-panel-width': `${String(width)}px`,
+  } as CSSProperties;
+
   return (
-    <aside className={rootClass} style={{ width }}>
+    <aside className={rootClass} style={style}>
       {side === 'left' ? null : handle}
       <div className="aegis-resizable-panel__body">{children}</div>
       {side === 'left' ? handle : null}

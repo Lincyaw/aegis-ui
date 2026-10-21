@@ -3481,6 +3481,12 @@ function App() {
           >
             <ResizableSidePanelConstrainedSpecimen />
           </Specimen>
+          <Specimen
+            caption='stackOnMobile · at ≤768 px the parent stacks it full-width above the content, height capped, handle hidden'
+            span={3}
+          >
+            <ResizableSidePanelStackedSpecimen />
+          </Specimen>
         </div>
       </Panel>
 
@@ -5159,6 +5165,42 @@ function ResizableSidePanelConstrainedSpecimen(): ReactNode {
         <MetricLabel as='div' size='xs'>
           centre · ≥ 320px
         </MetricLabel>
+      </div>
+    </div>
+  );
+}
+
+function ResizableSidePanelStackedSpecimen(): ReactNode {
+  return (
+    <div className='gallery__resizable-stack'>
+      <ResizableSidePanel
+        side='left'
+        defaultWidth={220}
+        minWidth={160}
+        maxWidth={400}
+        stackOnMobile
+      >
+        <div style={{ padding: 'var(--space-3)' }}>
+          <MetricLabel as='div' size='xs'>
+            turns · stackOnMobile
+          </MetricLabel>
+          {Array.from({ length: 12 }, (_, i) => (
+            <p key={i}>
+              <MonoValue size='sm'>{String(i + 1).padStart(2, '0')}</MonoValue>{' '}
+              turn {i + 1}
+            </p>
+          ))}
+        </div>
+      </ResizableSidePanel>
+      <div className='gallery__resizable-stack-main'>
+        <MetricLabel as='div' size='xs'>
+          viewport
+        </MetricLabel>
+        <p>
+          Desktop: a resizable rail beside the content. Narrow the window to
+          ≤768 px and the rail stacks on top at full width, scrolling inside its
+          capped height.
+        </p>
       </div>
     </div>
   );
