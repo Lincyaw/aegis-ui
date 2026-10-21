@@ -45,7 +45,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Button, Input, Modal, Tooltip } from 'antd';
 
-import { ApiError } from '../../../api/apiClient';
+import { errMsg } from '../../../api/apiClient';
 import {
   batchDelete,
   copyObject,
@@ -103,13 +103,6 @@ function humanBytes(n: number): string {
     i += 1;
   }
   return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i] ?? ''}`;
-}
-
-function errMsg(e: unknown): string {
-  if (e instanceof ApiError || e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
 }
 
 const RouterLink: React.ComponentType<{

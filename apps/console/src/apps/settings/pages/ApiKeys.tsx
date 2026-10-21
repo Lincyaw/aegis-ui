@@ -6,14 +6,20 @@ import {
   CodeBlock,
   DataTable,
   type DataTableColumn,
-  EmptyState,
   ErrorState,
   MonoValue,
   PageHeader,
   Panel,
   TextField,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Button, DatePicker, Form, Modal, Pagination } from 'antd';
+import {
+  App as AntdApp,
+  Button,
+  DatePicker,
+  Form,
+  Modal,
+  Pagination,
+} from 'antd';
 import type { Dayjs } from 'dayjs';
 
 import { errMsg } from '../../../api/apiClient';
@@ -43,7 +49,6 @@ const actionsCellStyle = {
   justifyContent: 'flex-end',
   flexWrap: 'wrap' as const,
 };
-
 
 function statusChip(key: ApiKey) {
   if (key.revoked_at) {
@@ -231,7 +236,9 @@ export default function ApiKeys() {
       key: 'scopes',
       header: 'Scopes',
       render: (row) => (
-        <span style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}>
+        <span
+          style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}
+        >
           {(row.scopes ?? []).map((s) => (
             <Chip key={s} tone='ghost'>
               {s}
@@ -248,12 +255,16 @@ export default function ApiKeys() {
     {
       key: 'created',
       header: 'Created',
-      render: (row) => <MonoValue size='sm'>{fmtDate(row.created_at)}</MonoValue>,
+      render: (row) => (
+        <MonoValue size='sm'>{fmtDate(row.created_at)}</MonoValue>
+      ),
     },
     {
       key: 'lastUsed',
       header: 'Last used',
-      render: (row) => <MonoValue size='sm'>{fmtDate(row.last_used_at)}</MonoValue>,
+      render: (row) => (
+        <MonoValue size='sm'>{fmtDate(row.last_used_at)}</MonoValue>
+      ),
     },
     {
       key: 'actions',
@@ -358,24 +369,16 @@ export default function ApiKeys() {
             loading={loading}
             emptyTitle='No API keys'
             emptyDescription='Generate your first key to start using the API.'
+            emptyAction={
+              <Button
+                type='primary'
+                icon={<PlusOutlined />}
+                onClick={openCreate}
+              >
+                Generate key
+              </Button>
+            }
           />
-          {!loading && keys.length === 0 ? (
-            <div style={{ padding: 'var(--space-6)' }}>
-              <EmptyState
-                title='No API keys yet'
-                description='Generate your first key to start using the API.'
-                action={
-                  <Button
-                    type='primary'
-                    icon={<PlusOutlined />}
-                    onClick={openCreate}
-                  >
-                    Generate key
-                  </Button>
-                }
-              />
-            </div>
-          ) : null}
           {total > PAGE_SIZE ? (
             <div
               style={{

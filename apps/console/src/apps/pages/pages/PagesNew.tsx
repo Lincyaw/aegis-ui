@@ -11,17 +11,14 @@ import {
 import { App as AntdApp, Button, Input, Radio } from 'antd';
 
 import {
+  fileRelPath,
   PAGES_LIMITS,
   type PageVisibility,
   useCreatePage,
 } from '../api/pages-client';
 import '../pages-app.css';
-import {
-  fileRelPath,
-  humanBytes,
-  pagesUploadHelperText,
-  validateUpload,
-} from './helpers';
+
+import { humanBytes, pagesUploadHelperText, validateUpload } from './helpers';
 
 export default function PagesNew() {
   const navigate = useNavigate();
@@ -37,7 +34,7 @@ export default function PagesNew() {
 
   const validation = useMemo(
     () => validateUpload(files, slug.trim() === '' ? undefined : slug.trim()),
-    [files, slug],
+    [files, slug]
   );
 
   const handleSubmit = async (): Promise<void> => {
@@ -59,7 +56,7 @@ export default function PagesNew() {
       }
     } catch (e) {
       void msg.error(
-        `Create failed: ${e instanceof Error ? e.message : 'unknown'}`,
+        `Create failed: ${e instanceof Error ? e.message : 'unknown'}`
       );
     }
   };
@@ -67,18 +64,15 @@ export default function PagesNew() {
   const summary =
     files.length > 0 ? (
       <>
-        {files.map((f, i) => {
-          const tooBig = f.size > PAGES_LIMITS.maxFileBytes;
-          const cls = tooBig
-            ? 'pages-app__file-tree-row pages-app__file-tree-row--invalid'
-            : 'pages-app__file-tree-row';
-          return (
-            <div key={`${fileRelPath(f)}-${i.toString()}`} className={cls}>
-              <span>{fileRelPath(f)}</span>
-              <span>{humanBytes(f.size)}</span>
-            </div>
-          );
-        })}
+        {files.map((f, i) => (
+          <div
+            key={`${fileRelPath(f)}-${i.toString()}`}
+            className='pages-app__file-tree-row'
+          >
+            <span>{fileRelPath(f)}</span>
+            <span>{humanBytes(f.size)}</span>
+          </div>
+        ))}
       </>
     ) : null;
 

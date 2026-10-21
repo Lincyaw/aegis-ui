@@ -79,10 +79,6 @@
   color: var(--text-muted);
 }
 
-.pages-app__file-tree-row--invalid {
-  color: var(--accent-warning);
-}
-
 .pages-app__file-tree-row--strong {
   color: var(--text-main);
 }

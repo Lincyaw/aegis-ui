@@ -19,6 +19,7 @@ import {
   MonoValue,
   Panel,
   PanelTitle,
+  Tabs,
   Toolbar,
 } from '@lincyaw/aegis-ui';
 
@@ -31,19 +32,19 @@ import {
   restoreSftRoot,
   type SftRepo,
 } from '../repo';
-import type { DroppedRow, SftRowBase } from '../schemas';
+import type { DroppedRow, SftRow } from '../schemas';
 
 import './SftPage.css';
 
 type Phase = 'extractor' | 'auditor';
 
 interface LoadedSft {
-  extractor: SftRowBase[];
-  auditor: SftRowBase[];
+  extractor: SftRow[];
+  auditor: SftRow[];
   dropped: DroppedRow[];
 }
 
-function auditorSurfaced(row: SftRowBase): boolean {
+function auditorSurfaced(row: SftRow): boolean {
   const call = row.target.tool_calls[0];
   const v = (call?.arguments as { verdict?: { surface_reminder?: boolean } })
     ?.verdict;
@@ -62,7 +63,7 @@ export function SftPage(): ReactElement {
   const [phase, setPhase] = useState<Phase>('auditor');
   const [search, setSearch] = useState('');
   const [onlySurfaced, setOnlySurfaced] = useState(false);
-  const [selected, setSelected] = useState<SftRowBase | null>(null);
+  const [selected, setSelected] = useState<SftRow | null>(null);
 
   const refresh = useCallback(async (r: SftRepo) => {
     setLoading(true);
@@ -134,7 +135,7 @@ export function SftPage(): ReactElement {
     setSelected(null);
   }, [repoSource]);
 
-  const rows: SftRowBase[] = useMemo(() => {
+  const rows: SftRow[] = useMemo(() => {
     if (!data) return [];
     return phase === 'extractor' ? data.extractor : data.auditor;
   }, [data, phase]);
@@ -180,7 +181,7 @@ export function SftPage(): ReactElement {
     );
   }
 
-  const columns: Array<DataTableColumn<SftRowBase>> = [
+  const columns: Array<DataTableColumn<SftRow>> = [
     {
       key: 'sample',
       header: 'sample_id',
@@ -217,7 +218,7 @@ export function SftPage(): ReactElement {
             key: 'surfaced',
             header: 'verdict',
             width: 120,
-            render: (r: SftRowBase) => {
+            render: (r: SftRow) => {
               const surfaced = auditorSurfaced(r);
               return (
                 <Chip tone={surfaced ? 'warning' : 'ghost'}>
@@ -263,67 +264,59 @@ export function SftPage(): ReactElement {
             auditor={data.auditor}
             dropped={data.dropped}
           />
-          <Toolbar
-            searchPlaceholder='sample_id / session / turn'
-            searchValue={search}
-            onSearchChange={setSearch}
-            filters={filterChips}
-            action={
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Chip
-                  tone={phase === 'extractor' ? 'ink' : 'default'}
-                  onClick={() => {
-                    setPhase('extractor');
-                    setSelected(null);
-                  }}
-                >
-                  extractor
-                </Chip>
-                <Chip
-                  tone={phase === 'auditor' ? 'ink' : 'default'}
-                  onClick={() => {
-                    setPhase('auditor');
-                    setSelected(null);
-                  }}
-                >
-                  auditor
-                </Chip>
-                {phase === 'auditor' && (
+          <Tabs
+            items={[
+              { key: 'extractor', label: 'extractor' },
+              { key: 'auditor', label: 'auditor' },
+            ]}
+            activeKey={phase}
+            onChange={(key) => {
+              setPhase(key as Phase);
+              setSelected(null);
+            }}
+          >
+            <Toolbar
+              searchPlaceholder='sample_id / session / turn'
+              searchValue={search}
+              onSearchChange={setSearch}
+              filters={filterChips}
+              action={
+                phase === 'auditor' ? (
                   <Chip
                     tone={onlySurfaced ? 'warning' : 'default'}
                     onClick={() => setOnlySurfaced((v) => !v)}
                   >
                     surfaced only
                   </Chip>
+                ) : undefined
+              }
+            />
+            <div className='llmh-sft-grid'>
+              <DataTable
+                columns={columns}
+                data={visibleRows}
+                rowKey={(r) => `${r.root_session_id}#${r.turn_index}`}
+                loading={loading}
+                emptyTitle='No SFT rows'
+                emptyDescription={
+                  rows.length === 0
+                    ? `${phase}.jsonl is empty or missing.`
+                    : 'Try clearing search / filter.'
+                }
+                persistKey={`llmharness.sft.${phase}`}
+              />
+              <div>
+                {selected ? (
+                  <SftRowDetail row={selected} />
+                ) : (
+                  <EmptyState
+                    title='No row selected'
+                    description='Click a row on the left to inspect its full input / target.'
+                  />
                 )}
               </div>
-            }
-          />
-          <div className='llmh-sft-grid'>
-            <DataTable
-              columns={columns}
-              data={visibleRows}
-              rowKey={(r) => `${r.root_session_id}#${r.turn_index}`}
-              loading={loading}
-              emptyTitle='No SFT rows'
-              emptyDescription={
-                rows.length === 0
-                  ? `${phase}.jsonl is empty or missing.`
-                  : 'Try clearing search / filter.'
-              }
-              persistKey={`llmharness.sft.${phase}`}
-            />
-            <div>
-              {selected ? (
-                <SftRowDetail row={selected} />
-              ) : (
-                <EmptyState
-                  title='No row selected'
-                  description='Click a row on the left to inspect its full input / target.'
-                />
-              )}
             </div>
-          </div>
+          </Tabs>
         </>
       )}
     </Panel>

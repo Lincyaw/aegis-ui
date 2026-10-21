@@ -6,7 +6,6 @@ import {
   CodeBlock,
   DataTable,
   type DataTableColumn,
-  EmptyState,
   ErrorState,
   MonoValue,
   PageHeader,
@@ -15,7 +14,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Button, Form, Modal, Select } from 'antd';
 
-import { ApiError } from '../../../api/apiClient';
+import { errMsg } from '../../../api/apiClient';
 import {
   createClient,
   type CreateClientReq,
@@ -53,16 +52,6 @@ function statusChip(status: number) {
     return <Chip tone='ink'>active</Chip>;
   }
   return <Chip tone='warning'>disabled</Chip>;
-}
-
-function errMsg(e: unknown): string {
-  if (e instanceof ApiError) {
-    return e.message;
-  }
-  if (e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
 }
 
 export default function OidcClients() {
@@ -302,24 +291,16 @@ export default function OidcClients() {
             loading={loading}
             emptyTitle='No OIDC clients'
             emptyDescription='Register a client to let a UI or service authenticate users.'
+            emptyAction={
+              <Button
+                type='primary'
+                icon={<PlusOutlined />}
+                onClick={openCreate}
+              >
+                Register client
+              </Button>
+            }
           />
-          {!loading && clients.length === 0 ? (
-            <div style={{ padding: 'var(--space-6)' }}>
-              <EmptyState
-                title='No OIDC clients yet'
-                description='Register a client to let a UI or service authenticate users.'
-                action={
-                  <Button
-                    type='primary'
-                    icon={<PlusOutlined />}
-                    onClick={openCreate}
-                  >
-                    Register client
-                  </Button>
-                }
-              />
-            </div>
-          ) : null}
         </Panel>
       )}
 

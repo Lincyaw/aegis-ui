@@ -1,12 +1,17 @@
-import { CaretDownOutlined, FolderOutlined } from '@ant-design/icons';
 import {
+  type ComponentType,
   type ReactElement,
+  type ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
+import { CaretDownOutlined, FolderOutlined } from '@ant-design/icons';
 import {
+  Breadcrumb,
+  type BreadcrumbItem,
   Button,
   Chip,
   DropdownMenu,
@@ -25,18 +30,18 @@ import {
   listBuckets,
 } from '../../../api/blobClient';
 import {
+  type BlobRoot,
+  type BlobRootStore,
+  casesBlobRoot,
   clearBackendUrl,
-  clearBlobRoot,
-  clearBlobSftRoot,
   fetchHealth,
   getBackendUrl,
-  getBlobRoot,
-  getBlobSftRoot,
   type HealthInfo,
   setBackendUrl,
-  setBlobRoot,
-  setBlobSftRoot,
+  sftBlobRoot,
 } from '../connection';
+
+import './SettingsPage.css';
 
 type ProbeState =
   | { kind: 'idle' }
@@ -52,16 +57,15 @@ type BrowseState =
   | { kind: 'ok'; subdirs: string[]; truncated: boolean }
   | { kind: 'error'; message: string };
 
-interface SavedBlob {
-  bucket: string;
-  prefix: string;
-}
+type CrumbLink = ComponentType<{
+  to: string;
+  className?: string;
+  children: ReactNode;
+}>;
 
 interface BlobPathPickerProps {
   buckets: BucketSummary[];
-  saved: SavedBlob | null;
-  onSave: (bucket: string, prefix: string) => void;
-  onForget: () => void;
+  store: BlobRootStore;
   saveLabel: string;
   forgetLabel: string;
   emptyHint: string;
@@ -69,18 +73,17 @@ interface BlobPathPickerProps {
 
 function BlobPathPicker({
   buckets,
-  saved,
-  onSave,
-  onForget,
+  store,
   saveLabel,
   forgetLabel,
   emptyHint,
 }: BlobPathPickerProps): ReactElement {
+  const [saved, setSaved] = useState<BlobRoot | null>(store.get);
   const [bucket, setBucket] = useState<string>(saved?.bucket ?? '');
   const [prefix, setPrefix] = useState<string>(saved?.prefix ?? '');
   const [browse, setBrowse] = useState<BrowseState>({ kind: 'idle' });
 
-  // Re-hydrate when the parent's saved value changes (e.g. on forget).
+  // Re-hydrate when the saved value changes (e.g. on forget).
   useEffect(() => {
     setBucket(saved?.bucket ?? '');
     setPrefix(saved?.prefix ?? '');
@@ -102,7 +105,9 @@ function BlobPathPicker({
         if (cancelled) {
           return;
         }
-        const subdirs = (page.common_prefixes ?? []).filter((p) => p !== prefix);
+        const subdirs = (page.common_prefixes ?? []).filter(
+          (p) => p !== prefix
+        );
         setBrowse({
           kind: 'ok',
           subdirs,
@@ -143,24 +148,38 @@ function BlobPathPicker({
     }
   })();
 
-  const segments = prefix
-    .split('/')
-    .filter((s) => s.length > 0)
-    .map((seg, idx, arr) => ({
-      label: seg,
-      target: `${arr.slice(0, idx + 1).join('/')}/`,
-    }));
+  // Crumb `to` is the absolute path inside the bucket ('/' = bucket root)
+  // so the root crumb has a non-empty target and renders as a link.
+  const crumbs: BreadcrumbItem[] = [
+    { label: bucket, to: '/' },
+    ...prefix
+      .split('/')
+      .filter((s) => s.length > 0)
+      .map((seg, idx, arr) => ({
+        label: seg,
+        to: `/${arr.slice(0, idx + 1).join('/')}/`,
+      })),
+  ];
+
+  const PrefixLink = useMemo<CrumbLink>(
+    () =>
+      function PrefixLink({ to, className, children }) {
+        return (
+          <button
+            type='button'
+            className={`${className ?? ''} llmh-settings__crumb`}
+            onClick={() => setPrefix(to.slice(1))}
+          >
+            {children}
+          </button>
+        );
+      },
+    []
+  );
 
   return (
     <>
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div className='llmh-settings__row'>
         <MetricLabel size='xs'>bucket</MetricLabel>
         <DropdownMenu
           align='left'
@@ -200,42 +219,12 @@ function BlobPathPicker({
       </div>
 
       {bucket && (
-        <div style={{ marginTop: 16 }}>
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              marginBottom: 8,
-            }}
-          >
+        <div className='llmh-settings__block'>
+          <div className='llmh-settings__path'>
             <MetricLabel size='xs'>path</MetricLabel>
-            <Chip
-              tone={prefix === '' ? 'ink' : 'default'}
-              onClick={() => setPrefix('')}
-            >
-              {bucket}
-            </Chip>
-            {segments.map((seg, idx) => (
-              <Chip
-                key={seg.target}
-                tone={idx === segments.length - 1 ? 'ink' : 'default'}
-                onClick={() => setPrefix(seg.target)}
-              >
-                {seg.label}
-              </Chip>
-            ))}
+            <Breadcrumb items={crumbs} linkComponent={PrefixLink} />
           </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              minHeight: 32,
-            }}
-          >
+          <div className='llmh-settings__subdirs'>
             {browse.kind === 'loading' && (
               <MetricLabel size='xs'>browsing…</MetricLabel>
             )}
@@ -247,39 +236,34 @@ function BlobPathPicker({
             )}
             {browse.kind === 'ok' &&
               browse.subdirs.map((sub) => {
-                const rel = sub.startsWith(prefix) ? sub.slice(prefix.length) : sub;
+                const rel = sub.startsWith(prefix)
+                  ? sub.slice(prefix.length)
+                  : sub;
                 const label = rel.replace(/\/$/, '');
                 return (
-                  <Chip
-                    key={sub}
-                    tone='default'
-                    onClick={() => setPrefix(sub)}
-                  >
-                    <FolderOutlined style={{ marginRight: 4 }} />
+                  <Chip key={sub} tone='default' onClick={() => setPrefix(sub)}>
+                    <FolderOutlined className='llmh-settings__folder-icon' />
                     {label}
                   </Chip>
                 );
               })}
             {browse.kind === 'ok' && browse.truncated && (
-              <MetricLabel size='xs'>…list truncated at 1000 entries</MetricLabel>
+              <MetricLabel size='xs'>
+                …list truncated at 1000 entries
+              </MetricLabel>
             )}
           </div>
         </div>
       )}
 
-      <div
-        style={{
-          marginTop: 16,
-          display: 'flex',
-          gap: 8,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div className='llmh-settings__block llmh-settings__actions'>
         {statusChip}
-        <div style={{ flex: 1 }} />
+        <div className='llmh-settings__spacer' />
         <Button
-          onClick={() => onSave(bucket.trim(), prefix)}
+          onClick={() => {
+            store.set({ bucket, prefix });
+            setSaved(store.get());
+          }}
           disabled={!bucket || !dirty}
         >
           {saveLabel}
@@ -287,7 +271,7 @@ function BlobPathPicker({
       </div>
 
       {saved && (
-        <div style={{ marginTop: 16 }}>
+        <div className='llmh-settings__block'>
           <KeyValueList
             items={[
               {
@@ -304,8 +288,14 @@ function BlobPathPicker({
               },
             ]}
           />
-          <div style={{ marginTop: 12 }}>
-            <Button tone='ghost' onClick={onForget}>
+          <div className='llmh-settings__forget'>
+            <Button
+              tone='ghost'
+              onClick={() => {
+                store.clear();
+                setSaved(null);
+              }}
+            >
               {forgetLabel}
             </Button>
           </div>
@@ -321,8 +311,6 @@ export function SettingsPage(): ReactElement {
   const [probe, setProbe] = useState<ProbeState>({ kind: 'idle' });
 
   const [buckets, setBuckets] = useState<BucketSummary[]>([]);
-  const [savedBlob, setSavedBlob] = useState<SavedBlob | null>(null);
-  const [savedSftBlob, setSavedSftBlob] = useState<SavedBlob | null>(null);
 
   const probeUrl = useCallback(async (url: string): Promise<void> => {
     setProbe({ kind: 'probing' });
@@ -343,14 +331,6 @@ export function SettingsPage(): ReactElement {
     setDraft(current ?? '');
     if (current) {
       void probeUrl(current);
-    }
-    const blob = getBlobRoot();
-    if (blob) {
-      setSavedBlob({ bucket: blob.bucket, prefix: blob.prefix });
-    }
-    const sftBlob = getBlobSftRoot();
-    if (sftBlob) {
-      setSavedSftBlob({ bucket: sftBlob.bucket, prefix: sftBlob.prefix });
     }
     listBuckets()
       .then(setBuckets)
@@ -384,38 +364,6 @@ export function SettingsPage(): ReactElement {
     setProbe({ kind: 'idle' });
   }, []);
 
-  const handleBlobSave = useCallback((bucket: string, prefix: string): void => {
-    if (!bucket) {
-      return;
-    }
-    setBlobRoot({ bucket, prefix });
-    const stored = getBlobRoot();
-    if (stored) {
-      setSavedBlob({ bucket: stored.bucket, prefix: stored.prefix });
-    }
-  }, []);
-
-  const handleBlobForget = useCallback((): void => {
-    clearBlobRoot();
-    setSavedBlob(null);
-  }, []);
-
-  const handleSftSave = useCallback((bucket: string, prefix: string): void => {
-    if (!bucket) {
-      return;
-    }
-    setBlobSftRoot({ bucket, prefix });
-    const stored = getBlobSftRoot();
-    if (stored) {
-      setSavedSftBlob({ bucket: stored.bucket, prefix: stored.prefix });
-    }
-  }, []);
-
-  const handleSftForget = useCallback((): void => {
-    clearBlobSftRoot();
-    setSavedSftBlob(null);
-  }, []);
-
   const statusChip = (() => {
     switch (probe.kind) {
       case 'idle':
@@ -440,8 +388,8 @@ export function SettingsPage(): ReactElement {
         title='Backend URL'
         description='Point this at any `llmharness serve` instance. The sub-app talks to it directly — no shell proxy involved.'
       >
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
+        <div className='llmh-settings__url-row'>
+          <div className='llmh-settings__spacer'>
             <TextField
               label='URL'
               placeholder={PLACEHOLDER}
@@ -465,14 +413,7 @@ export function SettingsPage(): ReactElement {
             Save
           </Button>
         </div>
-        <div
-          style={{
-            marginTop: 12,
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center',
-          }}
-        >
+        <div className='llmh-settings__row llmh-settings__status'>
           {statusChip}
           {probe.kind === 'ok' && (
             <MetricLabel size='xs'>
@@ -484,7 +425,7 @@ export function SettingsPage(): ReactElement {
           )}
         </div>
         {probe.kind === 'ok' && (
-          <div style={{ marginTop: 16 }}>
+          <div className='llmh-settings__block'>
             <KeyValueList
               items={[
                 {
@@ -514,9 +455,7 @@ export function SettingsPage(): ReactElement {
       >
         <BlobPathPicker
           buckets={buckets}
-          saved={savedBlob}
-          onSave={handleBlobSave}
-          onForget={handleBlobForget}
+          store={casesBlobRoot}
           saveLabel='Save'
           forgetLabel='Forget blob source'
           emptyHint='no sub-directories here — saving this prefix will scan its contents as cases'
@@ -528,9 +467,7 @@ export function SettingsPage(): ReactElement {
       >
         <BlobPathPicker
           buckets={buckets}
-          saved={savedSftBlob}
-          onSave={handleSftSave}
-          onForget={handleSftForget}
+          store={sftBlobRoot}
           saveLabel='Save'
           forgetLabel='Forget SFT source'
           emptyHint='no sub-directories here — saving this prefix will read extractor.jsonl / auditor.jsonl / dropped.jsonl from it'

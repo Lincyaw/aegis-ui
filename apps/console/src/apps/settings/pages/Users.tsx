@@ -5,14 +5,22 @@ import {
   Chip,
   DataTable,
   type DataTableColumn,
-  EmptyState,
   ErrorState,
   FormRow,
   PageHeader,
   Panel,
   StatusDot,
 } from '@lincyaw/aegis-ui';
-import { App, Button, Checkbox, Form, Input, Modal, Pagination, Select } from 'antd';
+import {
+  App,
+  Button,
+  Checkbox,
+  Form,
+  Input,
+  Modal,
+  Pagination,
+  Select,
+} from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import {
@@ -31,8 +39,10 @@ import './Users.css';
 
 const PAGE_SIZE = 20;
 
-
-function statusTone(status: string, active: boolean): 'ink' | 'muted' | 'warning' {
+function statusTone(
+  status: string,
+  active: boolean
+): 'ink' | 'muted' | 'warning' {
   if (!active) {
     return 'muted';
   }
@@ -82,9 +92,9 @@ export default function Users() {
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'disabled'>(
-    'all'
-  );
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'active' | 'disabled'
+  >('all');
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteForm] = Form.useForm<InviteForm>();
@@ -150,7 +160,9 @@ export default function Users() {
   const handleToggleActive = (u: IamUser): void => {
     const disable = u.is_active;
     modal.confirm({
-      title: disable ? `Disable ${displayName(u)}?` : `Enable ${displayName(u)}?`,
+      title: disable
+        ? `Disable ${displayName(u)}?`
+        : `Enable ${displayName(u)}?`,
       content: disable
         ? 'They will lose access to this workspace immediately.'
         : 'They will regain access to this workspace.',
@@ -316,7 +328,9 @@ export default function Users() {
           return <Chip tone='ghost'>none</Chip>;
         }
         return (
-          <span style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}>
+          <span
+            style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}
+          >
             {names.map((n) => (
               <Chip key={n} tone='default'>
                 {n}
@@ -474,15 +488,15 @@ export default function Users() {
             rowKey={(u) => u.id.toString()}
             persistKey='settings.users'
             loading={loading}
-            emptyTitle='No matching users'
-            emptyDescription='Adjust the filters or invite someone new.'
+            emptyTitle={
+              users.length === 0 ? 'No users yet' : 'No matching users'
+            }
+            emptyDescription={
+              users.length === 0
+                ? 'Invite someone to get started.'
+                : 'Adjust the filters or invite someone new.'
+            }
           />
-          {!loading && users.length === 0 ? (
-            <EmptyState
-              title='No users yet'
-              description='Invite someone to get started.'
-            />
-          ) : null}
           {total > PAGE_SIZE ? (
             <div
               style={{
@@ -584,7 +598,9 @@ export default function Users() {
 
       <Modal
         title={
-          rolesTarget ? `Manage roles for ${displayName(rolesTarget)}` : 'Manage roles'
+          rolesTarget
+            ? `Manage roles for ${displayName(rolesTarget)}`
+            : 'Manage roles'
         }
         open={rolesTarget !== null}
         onCancel={() => {
@@ -603,13 +619,20 @@ export default function Users() {
             onChange={(v) => {
               setSelectedRoleIds(v as number[]);
             }}
-            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-2)',
+            }}
           >
             {allRoles.map((r) => (
               <Checkbox key={r.id} value={r.id}>
                 {r.name}
                 {r.description ? (
-                  <span style={{ color: 'var(--text-muted)' }}> — {r.description}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    {' '}
+                    — {r.description}
+                  </span>
                 ) : null}
               </Checkbox>
             ))}

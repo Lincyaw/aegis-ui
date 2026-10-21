@@ -8,12 +8,12 @@ import {
   Tabs,
 } from '@lincyaw/aegis-ui';
 
-import type { SftRowBase } from '../schemas';
+import type { SftRow } from '../schemas';
 
 import './SftRowDetail.css';
 
 interface SftRowDetailProps {
-  row: SftRowBase;
+  row: SftRow;
 }
 
 function tryPrettyJson(s: string): string {

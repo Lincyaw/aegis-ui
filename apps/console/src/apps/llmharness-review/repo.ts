@@ -14,30 +14,25 @@ import { ApiError, apiFetch } from '../../api/apiClient';
 import { driverList, inlineUrl } from '../../api/blobClient';
 
 import {
-  type BlobRoot,
+  casesBlobRoot,
   fetchHealth,
   getBackendUrl,
-  getBlobRoot,
-  getBlobSftRoot,
+  sftBlobRoot,
 } from './connection';
 import {
   type AuditorFiring,
   type CaseBundle,
   type CaseMeta,
   type CaseSummary,
+  computeCaseLinks,
   type DroppedRow,
   type ExtractorFiring,
-  type FiringFile,
   type FiringPhase,
   type GraphSnapshot,
-  type GraphSnapshotFile,
-  type MainAgentMessage,
   type MainTurn,
   type SftRow,
-  type SftRowBase,
   type TrajectoryRow,
   type VerdictRow,
-  computeCaseLinks,
 } from './schemas';
 
 export interface CaseSftBundle {
@@ -51,18 +46,21 @@ export interface CaseRepo {
   readonly label: string;
   listCases(): Promise<CaseSummary[]>;
   readMeta(caseId: string): Promise<CaseMeta>;
-  readMainAgent(caseId: string): Promise<MainAgentMessage[]>;
+  readMainAgent(caseId: string): Promise<MainTurn[]>;
   listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]>;
   readFiring(
     caseId: string,
     phase: FiringPhase,
     fileName: string
-  ): Promise<FiringFile>;
+  ): Promise<ExtractorFiring | AuditorFiring>;
   readVerdicts(caseId: string): Promise<VerdictRow[]>;
   readTrajectory(caseId: string): Promise<TrajectoryRow[]>;
   /** Cumulative graph state after an extractor firing succeeded.
    * Returns null if the snapshot file is missing (firing didn't advance). */
-  readSnapshot(caseId: string, extractorSequence: number): Promise<GraphSnapshotFile | null>;
+  readSnapshot(
+    caseId: string,
+    extractorSequence: number
+  ): Promise<GraphSnapshot | null>;
   /** Compose meta + main + extractor[] + auditor[] + graph snapshots into a
    *  CaseBundle, computing the cross-pane link index in one place. SFT is
    *  excluded (different backends source it differently); pages load it lazily. */
@@ -72,12 +70,12 @@ export interface CaseRepo {
    *  treat that as an error. */
   loadSftForCase(
     caseId: string,
-    rootSessionId: string,
+    rootSessionId: string
   ): Promise<CaseSftBundle | null>;
 }
 
 function parseFiringFileName(
-  name: string,
+  name: string
 ): { seq: number; turn: number } | null {
   const m = /^(\d+)_turn_(\d+)\.json$/.exec(name);
   if (!m) {
@@ -90,9 +88,9 @@ function parseFiringFileName(
  *  all the files for a case via the interface methods. */
 async function loadBundleViaRepo(
   repo: CaseRepo,
-  caseId: string,
+  caseId: string
 ): Promise<CaseBundle> {
-  const [meta, mainRaw, extractorFiles, auditorFiles] = await Promise.all([
+  const [meta, main, extractorFiles, auditorFiles] = await Promise.all([
     repo.readMeta(caseId),
     repo.readMainAgent(caseId),
     repo.listFiringFiles(caseId, 'extractor'),
@@ -103,33 +101,33 @@ async function loadBundleViaRepo(
     .map((f) => ({ file: f, parsed: parseFiringFileName(f) }))
     .filter(
       (x): x is { file: string; parsed: { seq: number; turn: number } } =>
-        x.parsed !== null,
+        x.parsed !== null
     );
   const auditorMeta = auditorFiles
     .map((f) => ({ file: f, parsed: parseFiringFileName(f) }))
     .filter(
       (x): x is { file: string; parsed: { seq: number; turn: number } } =>
-        x.parsed !== null,
+        x.parsed !== null
     );
 
   const [extractor, auditor, snapshots] = await Promise.all([
     Promise.all(
       extractorMeta.map(async ({ file }) => {
         const raw = await repo.readFiring(caseId, 'extractor', file);
-        return raw as unknown as ExtractorFiring;
-      }),
+        return raw as ExtractorFiring;
+      })
     ),
     Promise.all(
       auditorMeta.map(async ({ file }) => {
         const raw = await repo.readFiring(caseId, 'auditor', file);
-        return raw as unknown as AuditorFiring;
-      }),
+        return raw as AuditorFiring;
+      })
     ),
     Promise.all(
       extractorMeta.map(async ({ parsed }) => ({
         seq: parsed.seq,
         snap: await repo.readSnapshot(caseId, parsed.seq).catch(() => null),
-      })),
+      }))
     ),
   ]);
 
@@ -138,11 +136,9 @@ async function loadBundleViaRepo(
   const graphs = new Map<number, GraphSnapshot>();
   for (const { seq, snap } of snapshots) {
     if (snap) {
-      graphs.set(seq, snap as GraphSnapshot);
+      graphs.set(seq, snap);
     }
   }
-
-  const main = mainRaw as unknown as MainTurn[];
 
   const partial: Omit<CaseBundle, 'links'> = {
     meta,
@@ -240,11 +236,9 @@ export class FSAccessCaseRepo implements CaseRepo {
     return JSON.parse(await readTextFile(dir, 'meta.json')) as CaseMeta;
   }
 
-  async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
+  async readMainAgent(caseId: string): Promise<MainTurn[]> {
     const dir = await this.caseDir(caseId);
-    return parseJsonl<MainAgentMessage>(
-      await readTextFile(dir, 'main_agent.jsonl')
-    );
+    return parseJsonl<MainTurn>(await readTextFile(dir, 'main_agent.jsonl'));
   }
 
   async listFiringFiles(caseId: string, phase: FiringPhase): Promise<string[]> {
@@ -264,11 +258,11 @@ export class FSAccessCaseRepo implements CaseRepo {
     caseId: string,
     phase: FiringPhase,
     fileName: string
-  ): Promise<FiringFile> {
+  ): Promise<ExtractorFiring | AuditorFiring> {
     const dir = await this.caseDir(caseId);
     const phaseDir = await dir.getDirectoryHandle(phase);
     const text = await readTextFile(phaseDir, fileName);
-    return JSON.parse(text) as FiringFile;
+    return JSON.parse(text) as ExtractorFiring | AuditorFiring;
   }
 
   async readVerdicts(caseId: string): Promise<VerdictRow[]> {
@@ -288,7 +282,7 @@ export class FSAccessCaseRepo implements CaseRepo {
   async readSnapshot(
     caseId: string,
     extractorSequence: number
-  ): Promise<GraphSnapshotFile | null> {
+  ): Promise<GraphSnapshot | null> {
     const dir = await this.caseDir(caseId);
     try {
       const snapDir = await dir.getDirectoryHandle('event_graph');
@@ -297,7 +291,7 @@ export class FSAccessCaseRepo implements CaseRepo {
         snapDir,
         `after_extractor_${padded}.json`
       );
-      return JSON.parse(text) as GraphSnapshotFile;
+      return JSON.parse(text) as GraphSnapshot;
     } catch {
       return null;
     }
@@ -320,7 +314,11 @@ export class FSAccessCaseRepo implements CaseRepo {
       readJsonlOrEmpty<SftRow>(sftDir, 'auditor.jsonl'),
       readJsonlOrEmpty<DroppedRow>(sftDir, 'dropped.jsonl'),
     ]);
-    if (extractor.length === 0 && auditor.length === 0 && dropped.length === 0) {
+    if (
+      extractor.length === 0 &&
+      auditor.length === 0 &&
+      dropped.length === 0
+    ) {
       return null;
     }
     return { extractor, auditor, dropped };
@@ -463,8 +461,8 @@ export const clearStoredRoot = casesRoot.clear;
 
 export interface SftRepo {
   readonly label: string;
-  readExtractor(): Promise<SftRowBase[]>;
-  readAuditor(): Promise<SftRowBase[]>;
+  readExtractor(): Promise<SftRow[]>;
+  readAuditor(): Promise<SftRow[]>;
   readDropped(): Promise<DroppedRow[]>;
 }
 
@@ -477,10 +475,10 @@ export class FSAccessSftRepo implements SftRepo {
     this.label = root.name;
   }
 
-  readExtractor = (): Promise<SftRowBase[]> =>
-    readJsonlOrEmpty<SftRowBase>(this.root, 'extractor.jsonl');
-  readAuditor = (): Promise<SftRowBase[]> =>
-    readJsonlOrEmpty<SftRowBase>(this.root, 'auditor.jsonl');
+  readExtractor = (): Promise<SftRow[]> =>
+    readJsonlOrEmpty<SftRow>(this.root, 'extractor.jsonl');
+  readAuditor = (): Promise<SftRow[]> =>
+    readJsonlOrEmpty<SftRow>(this.root, 'auditor.jsonl');
   readDropped = (): Promise<DroppedRow[]> =>
     readJsonlOrEmpty<DroppedRow>(this.root, 'dropped.jsonl');
 }
@@ -498,7 +496,9 @@ export class BlobSftRepo implements SftRepo {
 
   private async getJsonlOrEmpty<T>(name: string): Promise<T[]> {
     try {
-      const res = await apiFetch(inlineUrl(this.bucket, `${this.prefix}${name}`));
+      const res = await apiFetch(
+        inlineUrl(this.bucket, `${this.prefix}${name}`)
+      );
       return parseJsonl<T>(await res.text());
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
@@ -508,16 +508,16 @@ export class BlobSftRepo implements SftRepo {
     }
   }
 
-  readExtractor = (): Promise<SftRowBase[]> =>
-    this.getJsonlOrEmpty<SftRowBase>('extractor.jsonl');
-  readAuditor = (): Promise<SftRowBase[]> =>
-    this.getJsonlOrEmpty<SftRowBase>('auditor.jsonl');
+  readExtractor = (): Promise<SftRow[]> =>
+    this.getJsonlOrEmpty<SftRow>('extractor.jsonl');
+  readAuditor = (): Promise<SftRow[]> =>
+    this.getJsonlOrEmpty<SftRow>('auditor.jsonl');
   readDropped = (): Promise<DroppedRow[]> =>
     this.getJsonlOrEmpty<DroppedRow>('dropped.jsonl');
 }
 
 export function probeBlobSftRepo(): BlobSftRepo | null {
-  const root = getBlobSftRoot();
+  const root = sftBlobRoot.get();
   if (!root) {
     return null;
   }
@@ -577,8 +577,8 @@ export class HttpCaseRepo implements CaseRepo {
     );
   }
 
-  async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
-    return parseJsonl<MainAgentMessage>(
+  async readMainAgent(caseId: string): Promise<MainTurn[]> {
+    return parseJsonl<MainTurn>(
       await this.getText(`/api/cases/${encodeURIComponent(caseId)}/main_agent`)
     );
   }
@@ -594,8 +594,8 @@ export class HttpCaseRepo implements CaseRepo {
     caseId: string,
     phase: FiringPhase,
     fileName: string
-  ): Promise<FiringFile> {
-    return this.getJson<FiringFile>(
+  ): Promise<ExtractorFiring | AuditorFiring> {
+    return this.getJson<ExtractorFiring | AuditorFiring>(
       `/api/cases/${encodeURIComponent(caseId)}/firings/${phase}/${encodeURIComponent(fileName)}`
     );
   }
@@ -625,9 +625,9 @@ export class HttpCaseRepo implements CaseRepo {
   async readSnapshot(
     caseId: string,
     sequence: number
-  ): Promise<GraphSnapshotFile | null> {
+  ): Promise<GraphSnapshot | null> {
     try {
-      return await this.getJson<GraphSnapshotFile>(
+      return await this.getJson<GraphSnapshot>(
         `/api/cases/${encodeURIComponent(caseId)}/snapshots/${sequence}`
       );
     } catch {
@@ -640,7 +640,9 @@ export class HttpCaseRepo implements CaseRepo {
   }
 
   async loadSftForCase(caseId: string): Promise<CaseSftBundle | null> {
-    const r = await fetch(`${this.base}/api/cases/${encodeURIComponent(caseId)}/sft`);
+    const r = await fetch(
+      `${this.base}/api/cases/${encodeURIComponent(caseId)}/sft`
+    );
     if (r.status === 404) {
       return null;
     }
@@ -760,8 +762,8 @@ export class BlobCaseRepo implements CaseRepo {
     return this.getJson<CaseMeta>(this.keyFor(caseId, 'meta.json'));
   }
 
-  async readMainAgent(caseId: string): Promise<MainAgentMessage[]> {
-    return parseJsonl<MainAgentMessage>(
+  async readMainAgent(caseId: string): Promise<MainTurn[]> {
+    return parseJsonl<MainTurn>(
       await this.getText(this.keyFor(caseId, 'main_agent.jsonl'))
     );
   }
@@ -777,8 +779,8 @@ export class BlobCaseRepo implements CaseRepo {
     caseId: string,
     phase: FiringPhase,
     fileName: string
-  ): Promise<FiringFile> {
-    return this.getJson<FiringFile>(
+  ): Promise<ExtractorFiring | AuditorFiring> {
+    return this.getJson<ExtractorFiring | AuditorFiring>(
       `${this.prefix}${caseId}/${phase}/${fileName}`
     );
   }
@@ -798,10 +800,10 @@ export class BlobCaseRepo implements CaseRepo {
   async readSnapshot(
     caseId: string,
     sequence: number
-  ): Promise<GraphSnapshotFile | null> {
+  ): Promise<GraphSnapshot | null> {
     const padded = String(sequence).padStart(3, '0');
     try {
-      return await this.getJson<GraphSnapshotFile>(
+      return await this.getJson<GraphSnapshot>(
         `${this.prefix}${caseId}/event_graph/after_extractor_${padded}.json`
       );
     } catch (err) {
@@ -818,7 +820,7 @@ export class BlobCaseRepo implements CaseRepo {
 
   async loadSftForCase(
     caseId: string,
-    rootSessionId: string,
+    rootSessionId: string
   ): Promise<CaseSftBundle | null> {
     // Per-case sibling first: `<prefix><caseId>/sft/*.jsonl`.
     const perCasePrefix = `${this.prefix}${caseId}/sft/`;
@@ -841,36 +843,20 @@ export class BlobCaseRepo implements CaseRepo {
     const extractor = gExt.filter((r) => r.root_session_id === rootSessionId);
     const auditor = gAud.filter((r) => r.root_session_id === rootSessionId);
     const dropped = gDrop.filter((r) => r.root_session_id === rootSessionId);
-    if (extractor.length === 0 && auditor.length === 0 && dropped.length === 0) {
+    if (
+      extractor.length === 0 &&
+      auditor.length === 0 &&
+      dropped.length === 0
+    ) {
       return null;
     }
     return { extractor, auditor, dropped };
   }
 }
 
-export interface BlobProbeInfo {
-  bucket: string;
-  prefix: string;
-  caseCount: number;
-}
-
-/** Probe a (bucket, prefix) by listing one page of common-prefixes. Used by
- *  the Settings page to confirm the path before saving. */
-export async function probeBlobRoot(root: BlobRoot): Promise<BlobProbeInfo> {
-  const page = await driverList(root.bucket, {
-    prefix: root.prefix,
-    delimiter: '/',
-    max_keys: 1000,
-  });
-  const count = (page.common_prefixes ?? []).filter(
-    (p) => p !== root.prefix
-  ).length;
-  return { bucket: root.bucket, prefix: root.prefix, caseCount: count };
-}
-
 /** Return a ready BlobCaseRepo when one has been configured, else null. */
 export function probeBlobCaseRepo(): BlobCaseRepo | null {
-  const root = getBlobRoot();
+  const root = casesBlobRoot.get();
   if (!root) {
     return null;
   }
@@ -893,4 +879,18 @@ export async function probeHttpCaseRepo(): Promise<HttpCaseRepo | null> {
   } catch {
     return null;
   }
+}
+
+/** First configured source wins: `llmharness serve` URL → blob root →
+ *  previously picked FS-Access directory. */
+export async function resolveCaseRepo(): Promise<CaseRepo | null> {
+  const http = await probeHttpCaseRepo();
+  if (http) {
+    return http;
+  }
+  const blob = probeBlobCaseRepo();
+  if (blob) {
+    return blob;
+  }
+  return restoreCasesRoot();
 }

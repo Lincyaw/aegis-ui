@@ -9,7 +9,6 @@ import {
   useState,
 } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Modal } from 'antd';
 
 import {
   Chip,
@@ -20,21 +19,19 @@ import {
   Panel,
   PanelTitle,
   ResizableSidePanel,
+  Tabs,
 } from '@lincyaw/aegis-ui';
+import { Modal } from 'antd';
 
+import { CaseSelectionProvider } from '../CaseSelection';
 import {
   CaseMetaBar,
   EventGraphView,
   MessageBlocks,
   SftRowDetail,
 } from '../components';
-import {
-  type CaseRepo,
-  type CaseSftBundle,
-  probeBlobCaseRepo,
-  probeHttpCaseRepo,
-  restoreCasesRoot,
-} from '../repo';
+import { normalizeTurn } from '../messageAdapter';
+import { type CaseRepo, type CaseSftBundle, resolveCaseRepo } from '../repo';
 import type {
   AuditorFiring,
   CaseBundle,
@@ -44,7 +41,6 @@ import type {
   MainTurn,
   SftRow,
 } from '../schemas';
-import { CaseSelectionProvider } from '../CaseSelection';
 import { useCaseSelection } from '../selection';
 
 import { FiringsTimeline } from './FiringsTimeline';
@@ -77,44 +73,18 @@ function useDetailModal(): DetailModalApi {
 }
 
 function firstTextExcerpt(turn: MainTurn): string {
-  for (const block of turn.content) {
-    if (
-      block.type === 'text' &&
-      typeof (block as { text?: unknown }).text === 'string'
-    ) {
-      const text = (block as { text: string }).text.trim();
+  for (const block of normalizeTurn(turn).blocks) {
+    if (block.kind === 'text' || block.kind === 'tool_result') {
+      const text = block.text.trim();
       if (text) {
         return text.length > EXCERPT_LIMIT
           ? `${text.slice(0, EXCERPT_LIMIT)}…`
           : text;
       }
-    }
-    if (block.type === 'tool_call') {
-      const name = (block as { name?: unknown }).name;
-      if (typeof name === 'string' && name) {
-        return `→ ${name}`;
-      }
-    }
-    if (block.type === 'tool_use') {
-      const name = (block as { name?: unknown }).name;
-      if (typeof name === 'string' && name) {
-        return `→ ${name}`;
-      }
-    }
-    if (block.type === 'tool_result') {
-      const content = (block as { content?: unknown }).content;
-      if (typeof content === 'string' && content.trim()) {
-        const text = content.trim();
-        return text.length > EXCERPT_LIMIT
-          ? `${text.slice(0, EXCERPT_LIMIT)}…`
-          : text;
-      }
-    }
-    if (block.type === 'thinking') {
-      const text = (block as { thinking?: unknown }).thinking;
-      if (typeof text === 'string' && text.trim()) {
-        return `(thinking)`;
-      }
+    } else if (block.kind === 'tool_call') {
+      return `→ ${block.name}`;
+    } else if (block.kind === 'thinking' && block.text.trim()) {
+      return '(thinking)';
     }
   }
   return '';
@@ -147,7 +117,7 @@ function TurnRail({ bundle }: TurnRailProps): ReactElement {
   const firingWindow = useMemo<Set<number>>(() => {
     if (selection.mode === 'extractor' && selection.extractorSeq !== null) {
       const f = bundle.extractor.find(
-        (x) => x.sequence === selection.extractorSeq,
+        (x) => x.sequence === selection.extractorSeq
       );
       if (f) {
         return new Set(f.input.payload.new_turns.map((t) => t.index));
@@ -181,7 +151,7 @@ function TurnRail({ bundle }: TurnRailProps): ReactElement {
       return;
     }
     const el = containerRef.current?.querySelector(
-      `[data-turn="${selection.turn.toString()}"]`,
+      `[data-turn="${selection.turn.toString()}"]`
     );
     if (el) {
       el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -281,11 +251,11 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
 
   const orderedExtractors = useMemo<ExtractorFiring[]>(
     () => [...bundle.extractor].sort((a, b) => a.sequence - b.sequence),
-    [bundle.extractor],
+    [bundle.extractor]
   );
   const orderedAuditors = useMemo<AuditorFiring[]>(
     () => [...bundle.auditor].sort((a, b) => a.sequence - b.sequence),
-    [bundle.auditor],
+    [bundle.auditor]
   );
 
   const extractorFiring =
@@ -301,14 +271,14 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
     (id: number) => {
       set({ eventId: id });
     },
-    [set],
+    [set]
   );
   const onOpenEventDetail = useCallback(
     (id: number) => {
       set({ eventId: id });
       openDetail();
     },
-    [set, openDetail],
+    [set, openDetail]
   );
 
   if (extractorFiring) {
@@ -318,12 +288,10 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
     const outEdges = output?.edges ?? [];
     const graphEvents = snapshot?.events ?? outEvents;
     const graphEdges = snapshot?.edges ?? outEdges;
-    const newEventIds = snapshot
-      ? new Set(outEvents.map((e) => e.id))
-      : null;
+    const newEventIds = snapshot ? new Set(outEvents.map((e) => e.id)) : null;
     const droppedCount = output?.dropped_edges.length ?? 0;
     const idx = orderedExtractors.findIndex(
-      (f) => f.sequence === extractorFiring.sequence,
+      (f) => f.sequence === extractorFiring.sequence
     );
     const prev = idx > 0 ? orderedExtractors[idx - 1] : undefined;
     const next =
@@ -394,7 +362,7 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
     const snapshotRef = auditorFiring.input.graph_snapshot_ref;
     const snapshot = bundle.graphs.get(snapshotRef);
     const idx = orderedAuditors.findIndex(
-      (f) => f.sequence === auditorFiring.sequence,
+      (f) => f.sequence === auditorFiring.sequence
     );
     const prev = idx > 0 ? orderedAuditors[idx - 1] : undefined;
     const next =
@@ -476,7 +444,7 @@ interface DetailRailProps {
 
 function findEventById(
   bundle: CaseBundle,
-  id: number,
+  id: number
 ): { event: ExtractorEvent; firing: ExtractorFiring } | null {
   for (const f of bundle.extractor) {
     const ev = f.output?.events.find((e) => e.id === id);
@@ -488,7 +456,7 @@ function findEventById(
     const ev = snap.events.find((e) => e.id === id);
     if (ev) {
       const firing = bundle.extractor.find(
-        (x) => x.sequence === snap.after_extractor_firing,
+        (x) => x.sequence === snap.after_extractor_firing
       );
       if (firing) {
         return { event: ev, firing };
@@ -500,7 +468,7 @@ function findEventById(
 
 function findingsCitingEvent(
   bundle: CaseBundle,
-  eventId: number,
+  eventId: number
 ): Array<{ auditorSeq: number; finding: Finding }> {
   const out: Array<{ auditorSeq: number; finding: Finding }> = [];
   for (const a of bundle.auditor) {
@@ -671,10 +639,10 @@ function DetailRail({ bundle }: DetailRailProps): ReactElement {
   // --- Finding detail
   if (selection.findingId !== null) {
     const aud = bundle.auditor.find(
-      (a) => a.sequence === selection.findingId?.auditorSeq,
+      (a) => a.sequence === selection.findingId?.auditorSeq
     );
     const finding = aud?.input.findings.find(
-      (f) => f.index === selection.findingId?.index,
+      (f) => f.index === selection.findingId?.index
     );
     if (!aud || !finding) {
       return (
@@ -907,6 +875,8 @@ type SftLoadState =
   | { kind: 'unavailable' }
   | { kind: 'error'; message: string };
 
+type SftTab = 'extractor' | 'auditor' | 'dropped';
+
 interface SftDrawerProps {
   repo: CaseRepo;
   caseId: string;
@@ -919,9 +889,7 @@ function SftDrawer({
   rootSessionId,
 }: SftDrawerProps): ReactElement {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<'extractor' | 'auditor' | 'dropped'>(
-    'extractor',
-  );
+  const [tab, setTab] = useState<SftTab>('extractor');
   const [selected, setSelected] = useState<SftRow | null>(null);
   const [load, setLoad] = useState<SftLoadState>({ kind: 'idle' });
 
@@ -1002,36 +970,27 @@ function SftDrawer({
           ) : !sft ? (
             <EmptyState title='SFT not available' />
           ) : (
-            <>
-              <div className='llmh-cdp__sft-tabs'>
-                <Chip
-                  tone={tab === 'extractor' ? 'ink' : 'default'}
-                  onClick={() => {
-                    setTab('extractor');
-                    setSelected(null);
-                  }}
-                >
-                  extractor ({sft.extractor.length})
-                </Chip>
-                <Chip
-                  tone={tab === 'auditor' ? 'ink' : 'default'}
-                  onClick={() => {
-                    setTab('auditor');
-                    setSelected(null);
-                  }}
-                >
-                  auditor ({sft.auditor.length})
-                </Chip>
-                <Chip
-                  tone={tab === 'dropped' ? 'ink' : 'default'}
-                  onClick={() => {
-                    setTab('dropped');
-                    setSelected(null);
-                  }}
-                >
-                  dropped ({sft.dropped.length})
-                </Chip>
-              </div>
+            <Tabs
+              items={[
+                {
+                  key: 'extractor',
+                  label: `extractor (${sft.extractor.length.toString()})`,
+                },
+                {
+                  key: 'auditor',
+                  label: `auditor (${sft.auditor.length.toString()})`,
+                },
+                {
+                  key: 'dropped',
+                  label: `dropped (${sft.dropped.length.toString()})`,
+                },
+              ]}
+              activeKey={tab}
+              onChange={(key) => {
+                setTab(key as SftTab);
+                setSelected(null);
+              }}
+            >
               {tab === 'dropped' ? (
                 <pre className='llmh-cdp__pre'>
                   {JSON.stringify(sft.dropped, null, 2)}
@@ -1050,9 +1009,7 @@ function SftDrawer({
                       >
                         turn {r.turn_index}
                         {r.sequence !== undefined && (
-                          <MetricLabel size='xs'>
-                            seq {r.sequence}
-                          </MetricLabel>
+                          <MetricLabel size='xs'>seq {r.sequence}</MetricLabel>
                         )}
                       </button>
                     ))}
@@ -1066,7 +1023,7 @@ function SftDrawer({
                   </div>
                 </div>
               )}
-            </>
+            </Tabs>
           )}
         </div>
       )}
@@ -1119,7 +1076,7 @@ function CaseDetailBody({ data }: { data: LoadedCase }): ReactElement {
         setTurnsList(turns);
       },
     }),
-    [],
+    []
   );
 
   const modalTitle = useMemo(() => {
@@ -1203,7 +1160,7 @@ function TurnsListModal({
       turns
         .map((idx) => bundle.main.find((t) => t.index === idx))
         .filter((t): t is MainTurn => t !== undefined),
-    [turns, bundle.main],
+    [turns, bundle.main]
   );
   const title =
     turns.length === 1
@@ -1255,24 +1212,14 @@ export function CaseDetailPage(): ReactElement {
     let cancelled = false;
     setError(null);
     setData(null);
-    (async (): Promise<CaseRepo | null> => {
-      const http = await probeHttpCaseRepo();
-      if (http) {
-        return http;
-      }
-      const blob = probeBlobCaseRepo();
-      if (blob) {
-        return blob;
-      }
-      return restoreCasesRoot();
-    })()
+    resolveCaseRepo()
       .then(async (repo) => {
         if (cancelled) {
           return;
         }
         if (!repo) {
           setError(
-            'No backend connected. Configure a `llmharness serve` URL, a blob root (bucket + prefix), or open a local cases root from the Cases list first.',
+            'No backend connected. Configure a `llmharness serve` URL, a blob root (bucket + prefix), or open a local cases root from the Cases list first.'
           );
           return;
         }

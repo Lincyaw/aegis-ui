@@ -5,13 +5,20 @@ import {
   Chip,
   DataTable,
   type DataTableColumn,
-  EmptyState,
   ErrorState,
   PageHeader,
   Panel,
   TextField,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Button, Collapse, Form, Input, Modal, Select } from 'antd';
+import {
+  App as AntdApp,
+  Button,
+  Collapse,
+  Form,
+  Input,
+  Modal,
+  Select,
+} from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import {
@@ -121,7 +128,9 @@ export default function IdentityProviders() {
     void (async () => {
       try {
         await updateProvider(row.id, { enabled: !row.enabled });
-        void msg.success(row.enabled ? 'Provider disabled' : 'Provider enabled');
+        void msg.success(
+          row.enabled ? 'Provider disabled' : 'Provider enabled'
+        );
         await refresh();
       } catch (e) {
         void msg.error(`Update failed: ${errMsg(e)}`);
@@ -149,7 +158,11 @@ export default function IdentityProviders() {
 
   const columns = useMemo<Array<DataTableColumn<IdentityProvider>>>(
     () => [
-      { key: 'display_name', header: 'Display name', render: (r) => r.display_name },
+      {
+        key: 'display_name',
+        header: 'Display name',
+        render: (r) => r.display_name,
+      },
       { key: 'name', header: 'Name', render: (r) => r.name },
       {
         key: 'type',
@@ -255,24 +268,16 @@ export default function IdentityProviders() {
             loading={loading}
             emptyTitle='No identity providers'
             emptyDescription='Add Google or GitHub to enable social login.'
+            emptyAction={
+              <Button
+                type='primary'
+                icon={<PlusOutlined />}
+                onClick={openCreate}
+              >
+                Add provider
+              </Button>
+            }
           />
-          {!loading && providers.length === 0 ? (
-            <div style={{ padding: 'var(--space-6)' }}>
-              <EmptyState
-                title='No identity providers yet'
-                description='Add Google or GitHub to enable social login.'
-                action={
-                  <Button
-                    type='primary'
-                    icon={<PlusOutlined />}
-                    onClick={openCreate}
-                  >
-                    Add provider
-                  </Button>
-                }
-              />
-            </div>
-          ) : null}
         </Panel>
       )}
 
@@ -346,10 +351,7 @@ export default function IdentityProviders() {
                     <Form.Item name='userinfo_url' label='Userinfo URL'>
                       <TextField />
                     </Form.Item>
-                    <Form.Item
-                      name='scopes'
-                      label='Scopes (comma separated)'
-                    >
+                    <Form.Item name='scopes' label='Scopes (comma separated)'>
                       <TextField placeholder='openid,email,profile' />
                     </Form.Item>
                     <Form.Item

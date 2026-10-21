@@ -54,56 +54,6 @@ async function chQuery<TRow = unknown>(
 
 /* ── Domain models ───────────────────────────────────────────────────── */
 
-/**
- * One row per agent tree (grouped by `agentm.session.root_id`). For an
- * in-process tree this matches one OTel TraceId; for a cross-process
- * tree linked via W3C TraceContext it also typically matches one
- * TraceId (children inherit parent's trace_id), but we group on the
- * AgentM-logical root_session_id so the row is stable even when the
- * orchestrator's session span hasn't ended yet.
- */
-export interface SessionSummary {
-  rootSessionId: string;
-  /** session_id of the root session (logical AgentM key). */
-  sessionId: string;
-  /** OTel TraceId — used to fetch the full span set for the detail page. */
-  traceId: string;
-  serviceName: string;
-  startedAt: string;
-  endedAt: string | null;
-  durationMs: number;
-  turnCount: number;
-  toolCount: number;
-  errorCount: number;
-  /** Number of distinct agentm.session spans (root + spawned children). */
-  sessionCount: number;
-  inputTokens: number;
-  outputTokens: number;
-  model: string;
-}
-
-export interface SpanRow {
-  traceId: string;
-  spanId: string;
-  parentSpanId: string;
-  name: string;
-  kind: string;
-  serviceName: string;
-  timestamp: string;
-  durationNs: number;
-  statusCode: string;
-  statusMessage: string;
-  attributes: Record<string, string>;
-  resourceAttributes: Record<string, string>;
-  events: SpanEvent[];
-}
-
-export interface SpanEvent {
-  timestamp: string;
-  name: string;
-  attributes: Record<string, string>;
-}
-
 export interface SessionRow {
   sessionId: string;
   rootSessionId: string;
@@ -145,41 +95,6 @@ export interface ToolCallRow {
   args: unknown;
   result: unknown;
   attributes: Record<string, string>;
-}
-
-interface RawSession {
-  TraceId: string;
-  root_session_id: string;
-  session_id: string;
-  ServiceName: string;
-  started_at: string;
-  ended_at: string | null;
-  duration_ns: number;
-  turn_count: number;
-  tool_count: number;
-  error_count: number;
-  session_count: number;
-  input_tokens: number;
-  output_tokens: number;
-  model: string;
-}
-
-interface RawSpan {
-  TraceId: string;
-  SpanId: string;
-  ParentSpanId: string;
-  SpanName: string;
-  SpanKind: string;
-  ServiceName: string;
-  Timestamp: string;
-  Duration: number;
-  StatusCode: string;
-  StatusMessage: string;
-  SpanAttributes: Record<string, string>;
-  ResourceAttributes: Record<string, string>;
-  'Events.Timestamp': string[];
-  'Events.Name': string[];
-  'Events.Attributes': Array<Record<string, string>>;
 }
 
 interface RawSessionRow {
@@ -229,13 +144,16 @@ interface RawToolCall {
 function rawSessionString(
   row: RawSessionRow,
   key: keyof RawSessionRow,
-  fallbackKey?: keyof RawSessionRow,
+  fallbackKey?: keyof RawSessionRow
 ): string {
   const value = row[key] ?? (fallbackKey ? row[fallbackKey] : undefined);
   return value == null ? '' : String(value);
 }
 
-function rawSessionNumber(row: RawSessionRow, key: keyof RawSessionRow): number {
+function rawSessionNumber(
+  row: RawSessionRow,
+  key: keyof RawSessionRow
+): number {
   const value = Number(row[key] ?? 0);
   return Number.isFinite(value) ? value : 0;
 }
@@ -246,12 +164,12 @@ function mapSessionRow(r: RawSessionRow): SessionRow {
     rootSessionId: rawSessionString(
       r,
       'root_session_id',
-      'starts.root_session_id',
+      'starts.root_session_id'
     ),
     parentSessionId: rawSessionString(
       r,
       'parent_session_id',
-      'starts.parent_session_id',
+      'starts.parent_session_id'
     ),
     purpose: rawSessionString(r, 'purpose', 'starts.purpose'),
     scenario: rawSessionString(r, 'scenario', 'starts.scenario'),
@@ -259,17 +177,17 @@ function mapSessionRow(r: RawSessionRow): SessionRow {
     sourceSessionId: rawSessionString(
       r,
       'source_session_id',
-      'starts.source_session_id',
+      'starts.source_session_id'
     ),
     forkMessageId: rawSessionString(
       r,
       'fork_message_id',
-      'starts.fork_message_id',
+      'starts.fork_message_id'
     ),
     forkTurnIndex: rawSessionString(
       r,
       'fork_turn_index',
-      'starts.fork_turn_index',
+      'starts.fork_turn_index'
     ),
     startedAt: rawSessionString(r, 'started_at', 'starts.started_at'),
     turnCount: rawSessionNumber(r, 'turn_count'),
@@ -313,7 +231,7 @@ function deepParseJsonStrings(value: unknown, depth = 0): unknown {
       Object.entries(value as Record<string, unknown>).map(([key, item]) => [
         key,
         deepParseJsonStrings(item, depth + 1),
-      ]),
+      ])
     );
   }
   return value;
@@ -335,7 +253,7 @@ function tryJson(raw: string | undefined): unknown {
 
 function normalizeMessageBody(
   body: unknown,
-  timestampNs: number,
+  timestampNs: number
 ): SessionMessage | null {
   if (body == null || typeof body !== 'object') {
     return null;
@@ -377,7 +295,7 @@ export interface ListSessionsOpts {
 }
 
 export async function listSessionRows(
-  opts: ListSessionsOpts = {},
+  opts: ListSessionsOpts = {}
 ): Promise<SessionRow[]> {
   const limit = opts.limit ?? 500;
   const sinceHours = opts.sinceHours ?? 168;
@@ -458,7 +376,7 @@ FORMAT JSON`;
 }
 
 export async function getSessionRow(
-  sessionId: string,
+  sessionId: string
 ): Promise<SessionRow | null> {
   const logsTbl = getRuntimeConfig().clickhouseLogsTable;
   const tracesTbl = getRuntimeConfig().clickhouseTracesTable;
@@ -526,146 +444,8 @@ FORMAT JSON`;
   return rows.length > 0 ? mapSessionRow(rows[0]) : null;
 }
 
-export async function listSessions(
-  opts: ListSessionsOpts = {}
-): Promise<SessionSummary[]> {
-  const limit = opts.limit ?? 100;
-  const sinceHours = opts.sinceHours ?? 168;
-  const whereSql = opts.whereSql?.trim() ?? '';
-  const whereParams = opts.whereParams ?? {};
-  // Group by `agentm.session.root_id` so each row represents one whole
-  // agent tree (orchestrator + all in-process / cross-process children).
-  // Reading from arbitrary spans (not just SpanName='invoke_agent ...')
-  // means in-flight trees show up immediately, before the orchestrator's
-  // session span has ended.
-  const tbl = getRuntimeConfig().clickhouseTracesTable;
-  const searchClause = whereSql ? `AND (${whereSql})` : '';
-  // Group by TraceId. With standard W3C propagation, every span in one
-  // agent tree (orchestrator + in-process children + cross-process
-  // children whose embedder set TRACEPARENT) shares one TraceId, so
-  // grouping at this level captures the whole tree correctly without
-  // needing every span to carry agentm.* attributes.
-  // root_session_id / session_id / model are projected from the session
-  // spans that DO carry the relevant attributes.
-  const sql = `
-SELECT
-  TraceId,
-  anyIf(SpanAttributes['agentm.session.root_id'],
-        SpanAttributes['agentm.session.root_id'] != '') AS root_session_id,
-  -- Prefer the root invoke_agent span_id (parent_id == ''), falling back
-  -- to whatever children claim as parent for the in-flight case where
-  -- the root span hasn't ended yet.
-  coalesce(
-    nullIf(anyIf(SpanAttributes['agentm.session.id'],
-                 startsWith(SpanName, 'invoke_agent')
-                 AND SpanAttributes['agentm.session.parent_id'] = ''), ''),
-    nullIf(anyIf(SpanAttributes['agentm.session.parent_id'],
-                 SpanAttributes['agentm.session.parent_id'] != ''), ''),
-    anyIf(SpanAttributes['agentm.session.id'],
-          startsWith(SpanName, 'invoke_agent'))
-  )                                                      AS session_id,
-  any(ServiceName)                                       AS ServiceName,
-  formatDateTime(min(Timestamp), '%Y-%m-%dT%H:%i:%S.%fZ', 'UTC')                AS started_at,
-  formatDateTime(max(Timestamp + toIntervalNanosecond(Duration)), '%Y-%m-%dT%H:%i:%S.%fZ', 'UTC') AS ended_at,
-  dateDiff('nanosecond', min(Timestamp), max(Timestamp + toIntervalNanosecond(Duration))) AS duration_ns,
-  countIf(SpanName = 'agentm.turn')                      AS turn_count,
-  countIf(startsWith(SpanName, 'execute_tool'))          AS tool_count,
-  countIf(StatusCode = 'STATUS_CODE_ERROR')              AS error_count,
-  countIf(startsWith(SpanName, 'invoke_agent'))          AS session_count,
-  sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.input_tokens']))  AS input_tokens,
-  sum(toUInt64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])) AS output_tokens,
-  anyIf(SpanAttributes['gen_ai.request.model'],
-        SpanAttributes['gen_ai.request.model'] != '')                AS model
-FROM ${tbl}
-WHERE Timestamp >= now() - toIntervalHour({sinceHours:UInt32})
-  ${searchClause}
-GROUP BY TraceId
-HAVING root_session_id != ''
-ORDER BY started_at DESC
-LIMIT {limit:UInt32}
-FORMAT JSON`;
-
-  const rows = await chQuery<RawSession>(sql, {
-    limit,
-    sinceHours,
-    ...whereParams,
-  });
-  return rows.map((r) => ({
-    rootSessionId: r.root_session_id,
-    sessionId: r.session_id,
-    traceId: r.TraceId,
-    serviceName: r.ServiceName,
-    startedAt: r.started_at,
-    endedAt: r.ended_at,
-    durationMs: r.duration_ns / 1_000_000,
-    turnCount: Number(r.turn_count),
-    toolCount: Number(r.tool_count),
-    errorCount: Number(r.error_count),
-    sessionCount: Number(r.session_count),
-    inputTokens: Number(r.input_tokens),
-    outputTokens: Number(r.output_tokens),
-    model: r.model || '—',
-  }));
-}
-
-export async function listSpansByRootSession(
-  rootSessionId: string,
-  opts: { sinceHours?: number } = {}
-): Promise<SpanRow[]> {
-  const sinceHours = opts.sinceHours ?? 720; // 30d window for detail
-  const tbl = getRuntimeConfig().clickhouseTracesTable;
-  // Two-step: first resolve the set of TraceIds carrying this
-  // root_session_id (cross-process trees may span multiple), then fetch
-  // all their spans via the TraceId primary key. Doing it as one query
-  // with a subquery lets ClickHouse use the trace-id index for the
-  // outer scan instead of map-attribute filtering across the whole
-  // partition.
-  const sql = `
-SELECT
-  TraceId, SpanId, ParentSpanId, SpanName, SpanKind, ServiceName,
-  formatDateTime(Timestamp, '%Y-%m-%dT%H:%i:%S.%fZ', 'UTC') AS Timestamp,
-  Duration, StatusCode, StatusMessage,
-  SpanAttributes, ResourceAttributes,
-  Events.Timestamp, Events.Name, Events.Attributes
-FROM ${tbl}
-WHERE TraceId IN (
-  SELECT DISTINCT TraceId FROM ${tbl}
-  WHERE SpanAttributes['agentm.session.root_id'] = {rootSessionId:String}
-    AND Timestamp >= now() - toIntervalHour({sinceHours:UInt32})
-)
-ORDER BY Timestamp ASC
-LIMIT 50000
-FORMAT JSON`;
-  const rows = await chQuery<RawSpan>(sql, { rootSessionId, sinceHours });
-  return rows.map((r) => {
-    const evTs = r['Events.Timestamp'];
-    const evName = r['Events.Name'];
-    const evAttr = r['Events.Attributes'];
-    const events: SpanEvent[] = evTs.map((t, i) => ({
-      timestamp: t,
-      name: evName[i] ?? '',
-      attributes: evAttr[i] ?? {},
-    }));
-    return {
-      traceId: r.TraceId,
-      spanId: r.SpanId,
-      parentSpanId: r.ParentSpanId,
-      name: r.SpanName,
-      kind: r.SpanKind,
-      serviceName: r.ServiceName,
-      timestamp: r.Timestamp,
-      durationNs: Number(r.Duration),
-      statusCode: r.StatusCode,
-      statusMessage: r.StatusMessage,
-      attributes: r.SpanAttributes,
-      resourceAttributes: r.ResourceAttributes,
-      events,
-    };
-  });
-}
-
 export async function listMessagesBySession(
-  sessionId: string,
+  sessionId: string
 ): Promise<SessionMessage[]> {
   const logsTbl = getRuntimeConfig().clickhouseLogsTable;
   const systemSql = `
@@ -720,7 +500,7 @@ FORMAT JSON`;
   for (const row of messageRows) {
     const normalized = normalizeMessageBody(
       parseBody(row.Body),
-      Number(row.timestamp_ns),
+      Number(row.timestamp_ns)
     );
     if (normalized) {
       out.push(normalized);
@@ -730,7 +510,7 @@ FORMAT JSON`;
 }
 
 export async function listToolsBySession(
-  sessionId: string,
+  sessionId: string
 ): Promise<ToolCallRow[]> {
   const tracesTbl = getRuntimeConfig().clickhouseTracesTable;
   const sql = `

@@ -4,31 +4,17 @@
  * so as long as the normalizer recognises the source shape, the user
  * sees prose instead of JSON.
  */
-
 import { type ReactElement } from 'react';
 
 import {
+  jsonStringify,
   normalizeContent,
-  normalizeTurn,
   type NormalizedBlock,
+  normalizeTurn,
 } from '../messageAdapter';
 import type { MainTurn } from '../schemas';
 
 import './MessageBlocks.css';
-
-function argsToText(args: unknown): string {
-  if (args == null) {
-    return '';
-  }
-  if (typeof args === 'string') {
-    return args;
-  }
-  try {
-    return JSON.stringify(args, null, 2);
-  } catch {
-    return String(args);
-  }
-}
 
 function shortId(id: string): string {
   if (id.length <= 8) {
@@ -53,7 +39,7 @@ function ToolCallBlock({
         <span className='llmh-msg__tool-name'>{name}</span>
         {id && <span className='llmh-msg__tool-id'>{shortId(id)}</span>}
       </summary>
-      <pre className='llmh-msg__tool-body'>{argsToText(args)}</pre>
+      <pre className='llmh-msg__tool-body'>{jsonStringify(args)}</pre>
     </details>
   );
 }
@@ -126,13 +112,7 @@ function renderBlock(block: NormalizedBlock, key: number): ReactElement {
     case 'unknown':
       return (
         <pre key={key} className='llmh-msg__raw'>
-          {(() => {
-            try {
-              return JSON.stringify(block.raw, null, 2);
-            } catch {
-              return String(block.raw);
-            }
-          })()}
+          {jsonStringify(block.raw)}
         </pre>
       );
   }

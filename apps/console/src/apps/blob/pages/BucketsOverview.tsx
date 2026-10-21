@@ -14,7 +14,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Button, Input, Modal, Select } from 'antd';
 
-import { ApiError } from '../../../api/apiClient';
+import { errMsg } from '../../../api/apiClient';
 import {
   type BucketSummary,
   createBucket,
@@ -25,13 +25,6 @@ const DRIVERS = ['localfs', 's3'] as const;
 type Driver = (typeof DRIVERS)[number];
 
 type SortKey = 'name-asc' | 'name-desc';
-
-function errMsg(e: unknown): string {
-  if (e instanceof ApiError || e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
-}
 
 export default function BucketsOverview() {
   const [buckets, setBuckets] = useState<BucketSummary[]>([]);

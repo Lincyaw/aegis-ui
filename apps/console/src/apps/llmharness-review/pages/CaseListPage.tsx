@@ -35,9 +35,7 @@ import {
   HttpCaseRepo,
   isFsAccessSupported,
   pickCasesRoot,
-  probeBlobCaseRepo,
-  probeHttpCaseRepo,
-  restoreCasesRoot,
+  resolveCaseRepo,
 } from '../repo';
 import type { CaseSummary } from '../schemas';
 
@@ -73,46 +71,25 @@ export function CaseListPage(): ReactElement {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      try {
-        const http = await probeHttpCaseRepo();
+    resolveCaseRepo()
+      .then(async (r) => {
         if (cancelled) {
           return;
         }
-        if (http) {
-          setRepo(http);
-          await refresh(http);
-          return;
-        }
-        const blob = probeBlobCaseRepo();
-        if (cancelled) {
-          return;
-        }
-        if (blob) {
-          setRepo(blob);
-          await refresh(blob);
-          return;
-        }
-        const fs = await restoreCasesRoot();
-        if (cancelled) {
-          return;
-        }
-        if (fs) {
-          setRepo(fs);
-          await refresh(fs);
-        } else {
+        if (!r) {
           setLoading(false);
+          return;
         }
-      } catch (err) {
+        setRepo(r);
+        await refresh(r);
+      })
+      .catch((err: unknown) => {
         if (cancelled) {
           return;
         }
         setError(err instanceof Error ? err.message : String(err));
         setLoading(false);
-      }
-    })().catch(() => {
-      /* swallow — the inner try already handles. */
-    });
+      });
     return () => {
       cancelled = true;
     };
