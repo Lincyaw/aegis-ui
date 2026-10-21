@@ -360,11 +360,10 @@ export default function Users() {
     {
       key: 'actions',
       header: '',
-      align: 'right',
+      kind: 'actions',
       width: 280,
-      truncate: false,
       render: (u) => (
-        <div className='users-page__actions'>
+        <>
           <Button
             type='text'
             size='small'
@@ -407,7 +406,7 @@ export default function Users() {
           >
             Delete
           </Button>
-        </div>
+        </>
       ),
     },
   ];

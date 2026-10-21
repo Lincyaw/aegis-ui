@@ -36,13 +36,6 @@ interface KeyFormValues {
   expiry?: Dayjs;
 }
 
-const actionsCellStyle = {
-  display: 'flex',
-  gap: 'var(--space-1)',
-  justifyContent: 'flex-end',
-  flexWrap: 'wrap' as const,
-};
-
 function statusChip(key: ApiKey) {
   if (key.revoked_at) {
     return <Chip tone='warning'>revoked</Chip>;
@@ -262,13 +255,12 @@ export default function ApiKeys() {
     {
       key: 'actions',
       header: '',
-      align: 'right',
-      truncate: false,
+      kind: 'actions',
       render: (row) => {
         const revoked = Boolean(row.revoked_at);
         const enabled = row.status === 1 && !revoked;
         return (
-          <div style={actionsCellStyle}>
+          <>
             <Button
               size='small'
               type='text'
@@ -310,7 +302,7 @@ export default function ApiKeys() {
             >
               Delete
             </Button>
-          </div>
+          </>
         );
       },
     },

@@ -46,9 +46,3 @@
 .users-page__last-active {
   color: var(--text-muted);
 }
-
-.users-page__actions {
-  display: inline-flex;
-  gap: var(--space-1);
-  justify-content: flex-end;
-}
