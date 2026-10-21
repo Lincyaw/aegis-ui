@@ -323,7 +323,6 @@ function assertUniqueBasePaths(apps: AegisApp[]): void {
     const key = normalizeBasePath(app.basePath);
     const prev = seen.get(key);
     if (prev) {
-      // eslint-disable-next-line no-console
       console.error(
         `AegisShell: duplicate basePath "${key}" on apps "${prev}" and "${app.id}". ` +
           `Routing will collide — give each app a unique basePath.`,

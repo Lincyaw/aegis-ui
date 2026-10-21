@@ -290,5 +290,3 @@ export function AskPanel({
     </div>
   );
 }
-
-export default AskPanel;

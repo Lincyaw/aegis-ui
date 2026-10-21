@@ -4,7 +4,11 @@ import { uniqueId } from '../lib/id';
 import { getOrCreateStored } from '../lib/storage';
 import { AegisAgentContext } from './aegisAgentContext';
 import { RECONNECT_BACKOFF_MS } from './agentmChannelClient';
-import { type AegisRuntime, createAegisRuntime } from './runtime';
+import {
+  type AegisRuntime,
+  createAegisRuntime,
+  defaultShellSnapshot,
+} from './runtime';
 import type { ShellSnapshot } from './types';
 
 interface BridgeConfig {
@@ -283,15 +287,7 @@ export function AegisAgentProvider({
   useEffect(() => {
     runtime._setShellSnapshot(() => {
       const getter = shellSnapshotRef.current;
-      return (
-        getter?.() ?? {
-          currentAppId: appId,
-          route: { pathname: '/', search: '', params: {} },
-          breadcrumbs: [],
-          theme: 'light',
-          viewport: { width: 0, height: 0 },
-        }
-      );
+      return getter?.() ?? defaultShellSnapshot(appId);
     });
   }, [runtime, appId]);
 
