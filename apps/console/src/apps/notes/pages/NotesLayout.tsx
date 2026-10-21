@@ -130,15 +130,9 @@ export default function NotesLayout(): JSX.Element {
             open={drawerOpen}
             placement='left'
             onClose={() => setDrawerOpen(false)}
-            width={280}
-            styles={{
-              body: {
-                padding: '12px 16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-              },
-            }}
+            width='var(--notes-drawer-width)'
+            rootClassName='notes-app__drawer'
+            classNames={{ body: 'notes-app__drawer-body' }}
             title={NOTES_REPO}
           >
             {sidebarContent}
