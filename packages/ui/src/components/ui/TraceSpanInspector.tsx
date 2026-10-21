@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 import { Chip } from './Chip';
 import { CodeBlock } from './CodeBlock';
 import { EmptyState } from './EmptyState';
@@ -9,6 +7,7 @@ import { ObjectInspector, type ObjectInspectorTab } from './ObjectInspector';
 import { StatusDot } from './StatusDot';
 import './TraceSpanInspector.css';
 import type { TraceSpan } from './TraceTree';
+import { formatDuration, nodeToString, statusTone } from './traceFormat';
 
 export interface TraceSpanInspectorProps {
   span: TraceSpan | null;
@@ -30,26 +29,6 @@ function truncate(value: string, max: number): string {
   return `${value.slice(0, max)}...`;
 }
 
-function formatDuration(ms: number): string {
-  if (ms < 1) {
-    return `${(ms * 1000).toFixed(0)}µs`;
-  }
-  if (ms < 1000) {
-    return `${ms.toFixed(ms < 10 ? 1 : 0)}ms`;
-  }
-  return `${(ms / 1000).toFixed(2)}s`;
-}
-
-function statusTone(status?: TraceSpan['status']): 'warning' | 'ink' | 'muted' {
-  if (status === 'error') {
-    return 'warning';
-  }
-  if (status === 'ok') {
-    return 'ink';
-  }
-  return 'muted';
-}
-
 function stripFnRefs(span: TraceSpan): Record<string, unknown> {
   const out: Record<string, unknown> = {
     id: span.id,
@@ -63,13 +42,6 @@ function stripFnRefs(span: TraceSpan): Record<string, unknown> {
     out.kind = span.kind;
   }
   return out;
-}
-
-function nodeToString(node: ReactNode): string {
-  if (typeof node === 'string' || typeof node === 'number') {
-    return String(node);
-  }
-  return '';
 }
 
 export function TraceSpanInspector({
