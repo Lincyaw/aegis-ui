@@ -119,6 +119,13 @@ function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
       motionDurationSlow: '0.25s',
     },
     components: {
+      Tree: {
+        nodeHoverBg: p.bgMuted,
+        nodeSelectedBg: p.inverted,
+        nodeSelectedColor: p.textOnInverted,
+        directoryNodeSelectedBg: p.inverted,
+        directoryNodeSelectedColor: p.textOnInverted,
+      },
       Button: {
         borderRadius: 20,
         borderRadiusLG: 24,
