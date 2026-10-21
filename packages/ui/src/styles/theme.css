@@ -146,6 +146,8 @@
   --motion-skeleton: 1400ms;
   --motion-spin: 800ms;
   --motion-pulse: 2000ms;
+  --motion-stagger-step: 40ms;
+  --motion-stagger-offset: 2px;
 
   /* ── Aegis highlight (agent "look here" cue) ─────────────────────── */
   --aegis-highlight-ring: rgba(99, 102, 241, 0.55);
@@ -291,11 +293,11 @@
   }
 }
 
-/* ── Staggered children (Panel contents, list rows) ────────────────── */
+/* ── Staggered children (PageWrapper's top-level blocks) ───────────── */
 @keyframes stagger-fade-in {
   from {
     opacity: 0;
-    transform: translateY(2px);
+    transform: translateY(var(--motion-stagger-offset));
   }
   to {
     opacity: 1;
