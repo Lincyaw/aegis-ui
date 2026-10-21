@@ -16,10 +16,13 @@ import { portalApp } from './apps/portal';
 import { settingsApp } from './apps/settings';
 import { trajectoriesApp } from './apps/trajectories';
 
+// Demo apps run on seed data / localhost URLs; keep them out of production.
+const devOnly = (apps: AegisApp[]): AegisApp[] =>
+  import.meta.env.DEV ? apps : [];
+
 export const registeredApps: AegisApp[] = [
   portalApp,
-  containersApp,
-  datasetsApp,
+  ...devOnly([containersApp, datasetsApp]),
   trajectoriesApp,
   llmharnessReviewApp,
   blobApp,
@@ -27,7 +30,5 @@ export const registeredApps: AegisApp[] = [
   notesApp,
   settingsApp,
   galleryApp,
-  envDemoAlphaApp,
-  envDemoBravoApp,
-  envDemoNoneApp,
+  ...devOnly([envDemoAlphaApp, envDemoBravoApp, envDemoNoneApp]),
 ];
