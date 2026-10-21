@@ -15,7 +15,6 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import {
-  type ContainerContainerResp,
   type ContainerContainerVersionResp,
   ContainerType,
   type PedestalInstallPedestalReq,
@@ -28,20 +27,9 @@ import { useInstallPedestal, usePedestalHelmConfig } from '../api/pedestals';
 import { containersApi } from '../api/portal-client';
 import { useSystems } from '../api/systems';
 import { WizardSteps } from '../components/WizardSteps';
+import { useContainersList } from '../hooks/useContainers';
 
 const STEPS = ['System', 'Container version', 'Helm values', 'Review'];
-
-function useChaosPedestalContainers() {
-  return useQuery<ContainerContainerResp[]>({
-    queryKey: ['containers', 'list', { type: ContainerType.Pedestal }],
-    queryFn: async () => {
-      const res = await containersApi.listContainers({
-        type: ContainerType.Pedestal,
-      });
-      return res.data.data?.items ?? [];
-    },
-  });
-}
 
 function useContainerVersions(containerId: number | undefined) {
   return useQuery<ContainerContainerVersionResp[]>({
@@ -98,7 +86,7 @@ export default function PedestalInstall() {
   const [helmTouched, setHelmTouched] = useState(false);
 
   const systemsQuery = useSystems();
-  const containersQuery = useChaosPedestalContainers();
+  const containersQuery = useContainersList({ type: ContainerType.Pedestal });
   const versionsQuery = useContainerVersions(containerId);
   const helmConfigQuery = usePedestalHelmConfig(versionId);
   const installMutation = useInstallPedestal();
@@ -175,7 +163,7 @@ export default function PedestalInstall() {
   };
 
   const systems = systemsQuery.data ?? [];
-  const containers = containersQuery.data ?? [];
+  const containers = containersQuery.data?.items ?? [];
   const selectedContainer = containers.find((c) => c.id === containerId);
   const selectedVersion = versions.find((v) => v.id === versionId);
   const selectedSystem = systems.find((s) => s.name === systemCode);

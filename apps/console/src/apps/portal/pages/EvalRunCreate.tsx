@@ -9,42 +9,18 @@ import {
   Panel,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { useQuery } from '@tanstack/react-query';
 import { App as AntdApp, Input, Select } from 'antd';
 
-import { apiJson } from '../../../api/apiClient';
+import { useDatasetsList } from '../api/datasets';
 import { useBatchEvaluateDataset } from '../api/hooks/useEvaluations';
-
-interface DatasetItem {
-  id?: number;
-  name?: string;
-}
-
-interface DatasetListResp {
-  items: DatasetItem[];
-}
-
-interface GenericResponse<T> {
-  code?: number;
-  data?: T;
-  message?: string;
-}
 
 export default function EvalRunCreate() {
   const navigate = useAppNavigate();
   const [params] = useSearchParams();
   const { message: msg } = AntdApp.useApp();
 
-  const datasetsQ = useQuery({
-    queryKey: ['datasets', { page: 1, size: 100 }],
-    queryFn: async () => {
-      const res = await apiJson<GenericResponse<DatasetListResp>>(
-        '/api/v2/datasets?page=1&size=100'
-      );
-      return res.data?.items ?? [];
-    },
-  });
-  const datasets = datasetsQ.data ?? [];
+  const datasetsQ = useDatasetsList({ page: 1, size: 100 });
+  const datasets = datasetsQ.data?.items ?? [];
 
   const [algorithm, setAlgorithm] = useState('');
   const [algorithmVersion, setAlgorithmVersion] = useState('latest');

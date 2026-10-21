@@ -7,13 +7,12 @@ import {
   Panel,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import { PageSize } from '@lincyaw/portal';
 import { App as AntdApp, Select } from 'antd';
 
+import { useDatasetsList } from '../api/datasets';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
-import {
-  useContainersList,
-  useDatasetsList,
-} from '../hooks/useContainersAndDatasets';
+import { useContainersList } from '../hooks/useContainers';
 import { useRunAlgorithm } from '../hooks/useExecutions';
 import { useProject } from '../hooks/useProjects';
 
@@ -24,8 +23,8 @@ export default function ExecutionCreate() {
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
 
-  const containersQ = useContainersList();
-  const datasetsQ = useDatasetsList();
+  const containersQ = useContainersList({ page: 1, size: PageSize.XLarge });
+  const datasetsQ = useDatasetsList({ page: 1, size: 100 });
   const runAlgorithm = useRunAlgorithm();
 
   const [containerName, setContainerName] = useState<string | undefined>(
@@ -81,7 +80,7 @@ export default function ExecutionCreate() {
             onChange={setContainerName}
             loading={containersQ.isLoading}
             placeholder='Select an algorithm'
-            options={(containersQ.data ?? []).map((c) => ({
+            options={(containersQ.data?.items ?? []).map((c) => ({
               value: c.name ?? '',
               label: c.name ?? `#${String(c.id ?? '')}`,
             }))}
@@ -95,7 +94,7 @@ export default function ExecutionCreate() {
             loading={datasetsQ.isLoading}
             allowClear
             placeholder='Optional — select a dataset'
-            options={(datasetsQ.data ?? []).map((d) => ({
+            options={(datasetsQ.data?.items ?? []).map((d) => ({
               value: d.name ?? '',
               label: d.name ?? `#${String(d.id ?? '')}`,
             }))}
