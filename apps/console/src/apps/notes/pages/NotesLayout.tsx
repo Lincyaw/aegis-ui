@@ -89,6 +89,7 @@ export default function NotesLayout(): JSX.Element {
           <SkeletonText lines={6} />
         ) : tree.isError ? (
           <ErrorState
+            size='compact'
             title='Failed to load notes'
             description='The repository tree could not be fetched.'
             action={

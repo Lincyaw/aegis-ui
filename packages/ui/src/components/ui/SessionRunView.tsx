@@ -311,7 +311,13 @@ export function SessionRunTrajectoryView({
     return <EmptyState title="Loading trajectory…" />;
   }
   if (error !== undefined) {
-    return <ErrorState title="Failed to load trajectory" description={error} />;
+    return (
+      <ErrorState
+        size="compact"
+        title="Failed to load trajectory"
+        description={error}
+      />
+    );
   }
   return (
     <div className="aegis-session-trajectory">
@@ -351,7 +357,13 @@ export function SessionRunOutputView({
     return <EmptyState title="Loading output…" />;
   }
   if (error !== undefined) {
-    return <ErrorState title="Failed to load output" description={error} />;
+    return (
+      <ErrorState
+        size="compact"
+        title="Failed to load output"
+        description={error}
+      />
+    );
   }
 
   const erroredTools = tools.filter((tool) => tool.errored === true);

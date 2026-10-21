@@ -192,6 +192,7 @@ export default function Dashboard(): ReactElement {
             <SkeletonText lines={5} />
           ) : dashError ? (
             <ErrorState
+              size='compact'
               title='Failed to load injections'
               description={errMsg(dashError)}
             />
@@ -250,6 +251,7 @@ export default function Dashboard(): ReactElement {
             <SkeletonText lines={5} />
           ) : dashError ? (
             <ErrorState
+              size='compact'
               title='Failed to load traces'
               description={errMsg(dashError)}
             />
@@ -292,6 +294,7 @@ export default function Dashboard(): ReactElement {
           <SkeletonText lines={5} />
         ) : dashError ? (
           <ErrorState
+            size='compact'
             title='Failed to load executions'
             description={errMsg(dashError)}
           />

@@ -144,7 +144,11 @@ function CompareColumn({
         <MetricLabel size='xs'>open ↗</MetricLabel>
       </header>
       {error ? (
-        <ErrorState title='Failed to load session' description={error} />
+        <ErrorState
+          size='compact'
+          title='Failed to load session'
+          description={error}
+        />
       ) : row === null ? (
         <EmptyState title='Loading session…' />
       ) : (

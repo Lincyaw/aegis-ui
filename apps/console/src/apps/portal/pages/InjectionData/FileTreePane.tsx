@@ -31,6 +31,7 @@ export function FileTreePane({
   if (error) {
     return (
       <ErrorState
+        size='compact'
         title='Failed to load datapack files'
         description={errMsg(error)}
       />
