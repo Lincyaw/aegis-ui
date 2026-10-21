@@ -83,11 +83,11 @@
 
 .page-table__row:hover {
   background: var(--bg-muted);
-  transform: translateX(2px);
+  transform: translateX(var(--space-px));
 }
 
 .page-table__row:active {
-  transform: translateX(2px) scale(0.998);
+  transform: translateX(var(--space-px)) scale(0.998);
 }
 
 .page-table__cell {
