@@ -5,9 +5,26 @@ import type { Components, ExtraProps, Options } from 'react-markdown';
 import { CodeBlock } from './CodeBlock';
 import './Markdown.css';
 
-const ReactMarkdown = lazy(() =>
-  import('react-markdown').then((m) => ({ default: m.default })),
-);
+// GitHub-flavoured Markdown (tables, task lists, strikethrough) is on by
+// default. Both packages are ESM-only, so they load lazily to keep the CJS
+// build requirable.
+const ReactMarkdown = lazy(async () => {
+  const [{ default: BaseMarkdown }, { default: remarkGfm }] = await Promise.all(
+    [import('react-markdown'), import('remark-gfm')],
+  );
+  function GfmMarkdown({ remarkPlugins, ...rest }: Options) {
+    return (
+      <BaseMarkdown
+        {...rest}
+        remarkPlugins={[
+          remarkGfm,
+          ...(remarkPlugins ?? []).filter((p) => p !== remarkGfm),
+        ]}
+      />
+    );
+  }
+  return { default: GfmMarkdown };
+});
 
 export interface MarkdownProps extends Pick<
   Options,
@@ -24,17 +41,10 @@ export interface MarkdownProps extends Pick<
 }
 
 type HastNode = NonNullable<ExtraProps['node']>['children'][number];
-type CodeBlockLanguage = NonNullable<
-  ComponentProps<typeof CodeBlock>['language']
->;
 
-const FENCE_LANGUAGES: Partial<Record<string, CodeBlockLanguage>> = {
-  json: 'json',
+const FENCE_ALIASES: Partial<Record<string, string>> = {
   jsonc: 'json',
-  yaml: 'yaml',
   yml: 'yaml',
-  sql: 'sql',
-  bash: 'bash',
   sh: 'bash',
   shell: 'bash',
   zsh: 'bash',
@@ -51,11 +61,12 @@ function textOf(node: HastNode): string {
   return '';
 }
 
-function fenceLanguage(className: unknown): CodeBlockLanguage {
+function fenceLanguage(className: unknown): string {
   const classes = Array.isArray(className) ? className : [];
   for (const c of classes) {
     if (typeof c === 'string' && c.startsWith('language-')) {
-      return FENCE_LANGUAGES[c.slice('language-'.length)] ?? 'text';
+      const name = c.slice('language-'.length);
+      return FENCE_ALIASES[name] ?? name;
     }
   }
   return 'text';
