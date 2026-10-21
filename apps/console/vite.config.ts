@@ -57,12 +57,6 @@ export default defineConfig(({ mode }) => {
       })(),
     },
     optimizeDeps: {
-      exclude: [
-        '@finos/perspective',
-        '@finos/perspective-viewer',
-        '@finos/perspective-viewer-datagrid',
-        '@finos/perspective-viewer-d3fc',
-      ],
       esbuildOptions: {
         target: 'esnext',
       },
@@ -77,22 +71,12 @@ export default defineConfig(({ mode }) => {
               return 'parquet';
             }
             if (
-              id.includes('/node_modules/echarts') ||
-              id.includes('/node_modules/echarts-for-react') ||
-              id.includes('/node_modules/zrender')
-            ) {
-              return 'echarts';
-            }
-            if (
               id.includes('/node_modules/reactflow') ||
               id.includes('/node_modules/@reactflow/')
             ) {
               return 'reactflow';
             }
-            if (
-              id.includes('/node_modules/apache-arrow') ||
-              id.includes('/node_modules/arrow-js-ffi')
-            ) {
+            if (id.includes('/node_modules/apache-arrow')) {
               return 'arrow';
             }
             if (
