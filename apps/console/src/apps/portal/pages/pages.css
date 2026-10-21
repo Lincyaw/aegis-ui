@@ -1,6 +1,6 @@
-/* Portal-specific patterns. .page-wrapper, .page-overview-grid and
-   .page-table* ship with the library (packages/ui/src/layouts/PageWrapper.css)
-   — do NOT re-declare them here or the library tokens get overridden. */
+/* Portal-specific patterns. .page-wrapper and .page-overview-grid ship with
+   the library (packages/ui/src/layouts/PageWrapper.css) — do NOT re-declare
+   them here or the library tokens get overridden. */
 
 /* ── Wizard primitives ───────────────────────────────────────────── */
 
