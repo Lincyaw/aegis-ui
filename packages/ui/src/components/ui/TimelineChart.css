@@ -180,25 +180,5 @@
 }
 
 .aegis-timeline-chart__skeleton {
-  height: var(--space-3);
-  margin: 0 var(--space-3);
-  border-radius: var(--radius-sm);
-  background: linear-gradient(
-    90deg,
-    var(--bg-muted) 25%,
-    var(--bg-page) 50%,
-    var(--bg-muted) 75%
-  );
-  background-size: 200% 100%;
-  animation: aegis-timeline-chart-shimmer 1.5s infinite;
-}
-
-@keyframes aegis-timeline-chart-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
+  padding: 0 var(--space-3);
 }

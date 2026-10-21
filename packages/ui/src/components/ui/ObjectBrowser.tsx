@@ -3,6 +3,7 @@ import { type ReactNode, useState } from 'react';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
 import './ObjectBrowser.css';
+import { Skeleton } from './Skeleton';
 
 interface ObjectBrowserProps {
   /** Sub-prefixes at the current level (driver list with delimiter='/'). */
@@ -176,9 +177,9 @@ export function ObjectBrowser({
           <div className="aegis-object-browser__body">
             {loading ? (
               <div className="aegis-object-browser__skeleton" aria-busy="true">
-                <div className="aegis-object-browser__skeleton-row aegis-skeleton-shimmer" />
-                <div className="aegis-object-browser__skeleton-row aegis-skeleton-shimmer" />
-                <div className="aegis-object-browser__skeleton-row aegis-skeleton-shimmer" />
+                <Skeleton block height="var(--space-8)" />
+                <Skeleton block height="var(--space-8)" />
+                <Skeleton block height="var(--space-8)" />
               </div>
             ) : (
               children

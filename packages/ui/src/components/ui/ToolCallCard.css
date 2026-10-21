@@ -98,14 +98,8 @@
 .aegis-tool-call__spinner {
   width: var(--size-icon-sm);
   height: var(--size-icon-sm);
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   border: var(--size-hairline) solid var(--text-terminal-muted);
   border-top-color: transparent;
-  animation: aegis-tool-call-spin var(--motion-base) linear infinite;
-}
-
-@keyframes aegis-tool-call-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  animation: aegis-spin var(--motion-spin) linear infinite;
 }

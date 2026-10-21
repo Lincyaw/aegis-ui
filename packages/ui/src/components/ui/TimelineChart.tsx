@@ -14,6 +14,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { Tooltip } from 'antd';
 
 import { EmptyState } from './EmptyState';
+import { Skeleton } from './Skeleton';
 import './TimelineChart.css';
 
 export interface TimelineSpan {
@@ -307,8 +308,12 @@ export function TimelineChart({
                 height: `${rowHeight}px`,
               }}
             >
-              <div className="aegis-timeline-chart__skeleton" />
-              <div className="aegis-timeline-chart__skeleton" />
+              <div className="aegis-timeline-chart__skeleton">
+                <Skeleton block height="var(--space-3)" />
+              </div>
+              <div className="aegis-timeline-chart__skeleton">
+                <Skeleton block height="var(--space-3)" />
+              </div>
             </div>
           ))}
         </div>

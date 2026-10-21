@@ -16,6 +16,7 @@ import {
 } from '../../agent/usePrimitiveSurface';
 import './DataTable.css';
 import { EmptyState } from './EmptyState';
+import { Skeleton } from './Skeleton';
 
 export type DataTableSurface<T> = PrimitiveSurface<T[]>;
 
@@ -282,7 +283,7 @@ export function DataTable<T>({
                     >
                       {renderCellContent(
                         col,
-                        <span className="aegis-data-table__skeleton" />,
+                        <Skeleton width="80%" height="var(--space-3)" />,
                       )}
                     </td>
                   ))}
