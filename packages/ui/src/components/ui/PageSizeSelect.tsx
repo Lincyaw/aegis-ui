@@ -1,4 +1,4 @@
-import { type ReactElement, useEffect, useRef, useState } from 'react';
+import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
 
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import './PageSizeSelect.css';
@@ -32,6 +32,7 @@ export function PageSizeSelect({
   className,
   placement = 'top',
 }: PageSizeSelectProps): ReactElement {
+  const labelId = useId();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -101,10 +102,7 @@ export function PageSizeSelect({
   return (
     <div className={cls} ref={ref}>
       {label && (
-        <span
-          className="aegis-page-size-select__label"
-          id="aegis-page-size-label"
-        >
+        <span className="aegis-page-size-select__label" id={labelId}>
           {label}
         </span>
       )}
@@ -114,7 +112,7 @@ export function PageSizeSelect({
         className="aegis-page-size-select__trigger"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-labelledby={label ? 'aegis-page-size-label' : undefined}
+        aria-labelledby={label ? labelId : undefined}
         aria-label={!label ? 'Page size' : undefined}
         disabled={disabled}
         onClick={() => {
