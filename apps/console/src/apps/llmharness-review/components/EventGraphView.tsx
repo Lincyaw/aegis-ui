@@ -28,7 +28,7 @@ import {
   graphlib as dagreGraphlib,
   layout as dagreLayout,
 } from '@dagrejs/dagre';
-import { EmptyState } from '@lincyaw/aegis-ui';
+import { EmptyState, useTheme } from '@lincyaw/aegis-ui';
 import {
   Background,
   BaseEdge,
@@ -396,6 +396,7 @@ export function EventGraphView({
   onOpenDetail,
   height,
 }: EventGraphViewProps) {
+  const { resolved: colorMode } = useTheme();
   const topology = useMemo(() => topologyKey(events, edges), [events, edges]);
   const lastTopologyRef = useRef<string | null>(null);
 
@@ -533,6 +534,7 @@ export function EventGraphView({
         nodesDraggable
         nodesConnectable={false}
         proOptions={{ hideAttribution: true }}
+        colorMode={colorMode}
       >
         <Background />
         <Controls showInteractive={false} />

@@ -57,12 +57,6 @@ export default defineConfig(({ mode }) => {
             if (id.includes('hyparquet') || id.includes('workerBundle')) {
               return 'parquet';
             }
-            if (
-              id.includes('/node_modules/reactflow') ||
-              id.includes('/node_modules/@reactflow/')
-            ) {
-              return 'reactflow';
-            }
             if (id.includes('/node_modules/apache-arrow')) {
               return 'arrow';
             }
