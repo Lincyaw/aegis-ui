@@ -76,7 +76,11 @@ export type {
   SessionRunTrajectoryViewProps,
 } from './SessionRunView';
 export { DataTable } from './DataTable';
-export type { DataTableColumn, DataTableSurface } from './DataTable';
+export type {
+  DataTableColumn,
+  DataTablePagination,
+  DataTableSurface,
+} from './DataTable';
 export { EventTable } from './EventTable';
 export type { EventTableColumn, EventTableProps } from './EventTable';
 export { DataList } from './DataList';

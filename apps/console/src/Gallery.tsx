@@ -48,6 +48,7 @@ import {
   DataList,
   type DataListColumn,
   DataTable,
+  type DataTableColumn,
   DiffViewer,
   DropdownMenu,
   EmptyState,
@@ -2365,6 +2366,9 @@ function App() {
             emptyDescription='Run an experiment to see results here.'
           />
         </Specimen>
+
+        <SectionDivider>DataTable · pagination</SectionDivider>
+        <DataTablePaginationSpecimen />
 
         <SectionDivider>EventTable</SectionDivider>
         <Specimen
@@ -4701,6 +4705,106 @@ function SqlCodeEditorSpecimen(): ReactNode {
           : `submitted → ${submitted}`}
       </pre>
     </>
+  );
+}
+
+interface GalleryRunRow {
+  id: string;
+  service: string;
+  state: 'running' | 'queued' | 'failed' | 'done';
+  duration: number;
+}
+
+const GALLERY_RUN_STATES: Array<GalleryRunRow['state']> = [
+  'done',
+  'running',
+  'done',
+  'queued',
+  'failed',
+];
+
+const GALLERY_RUNS: GalleryRunRow[] = Array.from({ length: 47 }, (_, i) => ({
+  id: `RUN-${String(i + 1).padStart(4, '0')}`,
+  service: ['order-svc', 'cart-svc', 'inventory', 'payments'][i % 4],
+  state: GALLERY_RUN_STATES[i % GALLERY_RUN_STATES.length],
+  duration: 30 + ((i * 37) % 270),
+}));
+
+const GALLERY_RUN_COLUMNS: Array<DataTableColumn<GalleryRunRow>> = [
+  {
+    key: 'id',
+    header: 'Run',
+    render: (row) => <MonoValue size='sm'>{row.id}</MonoValue>,
+  },
+  { key: 'service', header: 'Service', render: (row) => row.service },
+  {
+    key: 'duration',
+    header: 'Duration',
+    align: 'right',
+    render: (row) => <MonoValue size='sm'>{`${row.duration} s`}</MonoValue>,
+  },
+  {
+    key: 'state',
+    header: 'State',
+    align: 'center',
+    render: (row) => (
+      <Chip
+        tone={
+          row.state === 'failed'
+            ? 'warning'
+            : row.state === 'running'
+              ? 'ink'
+              : 'default'
+        }
+      >
+        {row.state}
+      </Chip>
+    ),
+  },
+];
+
+function DataTablePaginationSpecimen(): ReactNode {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [uncountedPage, setUncountedPage] = useState(1);
+  const uncountedSize = 5;
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='total · pageSizeOptions' span={3}>
+        <DataTable
+          columns={GALLERY_RUN_COLUMNS}
+          data={GALLERY_RUNS.slice((page - 1) * pageSize, page * pageSize)}
+          rowKey={(row) => row.id}
+          pagination={{
+            page,
+            pageSize,
+            total: GALLERY_RUNS.length,
+            pageSizeOptions: [5, 10, 20, 50],
+            onChange: (nextPage, nextSize) => {
+              setPage(nextPage);
+              setPageSize(nextSize);
+            },
+          }}
+        />
+      </Specimen>
+      <Specimen caption='no total · Next while the page is full' span={3}>
+        <DataTable
+          columns={GALLERY_RUN_COLUMNS}
+          data={GALLERY_RUNS.slice(
+            (uncountedPage - 1) * uncountedSize,
+            uncountedPage * uncountedSize
+          )}
+          rowKey={(row) => row.id}
+          pagination={{
+            page: uncountedPage,
+            pageSize: uncountedSize,
+            onChange: (nextPage) => {
+              setUncountedPage(nextPage);
+            },
+          }}
+        />
+      </Specimen>
+    </div>
   );
 }
 
