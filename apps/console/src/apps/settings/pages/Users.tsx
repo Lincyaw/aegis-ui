@@ -119,11 +119,17 @@ export default function Users() {
   const roleOptions = useMemo(() => {
     const names = new Set<string>();
     users.forEach((u) => roleNames(u).forEach((n) => names.add(n)));
+    if (roleFilter !== 'all') {
+      names.add(roleFilter);
+    }
     return [
       { value: 'all', label: 'All roles' },
       ...[...names].sort().map((n) => ({ value: n, label: n })),
     ];
-  }, [users]);
+  }, [users, roleFilter]);
+
+  const filtering =
+    search !== '' || roleFilter !== 'all' || statusFilter !== 'all';
 
   const filtered = users.filter((u) => {
     if (roleFilter !== 'all' && !roleNames(u).includes(roleFilter)) {
@@ -448,7 +454,7 @@ export default function Users() {
           <div className='users-page__filters'>
             <Input.Search
               allowClear
-              placeholder='Search by name or email'
+              placeholder='Search this page by name or email'
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -471,6 +477,12 @@ export default function Users() {
                 { value: 'disabled', label: 'Disabled' },
               ]}
             />
+            {filtering && (
+              <span className='users-page__filter-note' role='status'>
+                {filtered.length} of {users.length} users on this page match.
+                Other pages aren&apos;t searched.
+              </span>
+            )}
           </div>
           <DataTable<IamUser>
             columns={columns}
@@ -479,12 +491,12 @@ export default function Users() {
             persistKey='settings.users'
             loading={loading}
             emptyTitle={
-              users.length === 0 ? 'No users yet' : 'No matching users'
+              users.length === 0 ? 'No users yet' : 'No matches on this page'
             }
             emptyDescription={
               users.length === 0
                 ? 'Invite someone to get started.'
-                : 'Adjust the filters or invite someone new.'
+                : 'Try another page or adjust the filters.'
             }
             pagination={{
               page,

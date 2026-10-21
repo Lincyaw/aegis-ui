@@ -15,6 +15,12 @@
   min-width: 140px;
 }
 
+.users-page__filter-note {
+  flex-basis: 100%;
+  color: var(--text-muted);
+  font-size: var(--fs-12);
+}
+
 .users-page__user {
   display: flex;
   align-items: center;
