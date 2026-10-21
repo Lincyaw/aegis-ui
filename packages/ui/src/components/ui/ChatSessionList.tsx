@@ -10,7 +10,9 @@ import {
   useState,
 } from 'react';
 
-import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { Popover } from 'antd';
+
+import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
 import './ChatSessionList.css';
 import { relativeTime } from './relativeTime';
 
@@ -52,24 +54,11 @@ export function ChatSessionList({
   const [focusIndex, setFocusIndex] = useState<number>(
     selectedIndex >= 0 ? selectedIndex : 0,
   );
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState<string>('');
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const rowRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
-  const containerRef = useRef<HTMLUListElement | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
-
-  useOutsideClick(
-    containerRef,
-    () => {
-      setMenuOpenId(null);
-      setConfirmDeleteId(null);
-      setRenamingId(null);
-    },
-    Boolean(menuOpenId) || Boolean(confirmDeleteId) || Boolean(renamingId),
-  );
 
   useEffect(() => {
     if (renamingId && renameInputRef.current) {
@@ -135,18 +124,11 @@ export function ChatSessionList({
     .join(' ');
 
   return (
-    <ul
-      ref={containerRef}
-      className={cls}
-      role="listbox"
-      aria-label="Conversations"
-    >
+    <ul className={cls} role="listbox" aria-label="Conversations">
       {items.map((item, index) => {
         const isSelected = Boolean(item.selected);
         const isFocused = index === focusIndex;
         const isRenaming = renamingId === item.id;
-        const isMenuOpen = menuOpenId === item.id;
-        const isConfirmingDelete = confirmDeleteId === item.id;
 
         const rowCls = [
           'aegis-chat-session-list__row',
@@ -224,80 +206,148 @@ export function ChatSessionList({
               )}
 
               {(onRename ?? onDelete) && !isRenaming && (
-                <div className="aegis-chat-session-list__actions">
-                  <button
-                    type="button"
-                    className="aegis-chat-session-list__more"
-                    aria-label="More actions"
-                    aria-haspopup="menu"
-                    aria-expanded={isMenuOpen}
-                    aria-controls={`${listId}-menu-${item.id}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setMenuOpenId(isMenuOpen ? null : item.id);
-                      setConfirmDeleteId(null);
-                    }}
-                  >
-                    •••
-                  </button>
-                  {isMenuOpen && (
-                    <div
-                      id={`${listId}-menu-${item.id}`}
-                      className="aegis-chat-session-list__menu"
-                      role="menu"
-                    >
-                      {onRename && !isConfirmingDelete && (
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="aegis-chat-session-list__menu-item"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setRenameDraft(item.title);
-                            setRenamingId(item.id);
-                            setMenuOpenId(null);
-                          }}
-                        >
-                          Rename
-                        </button>
-                      )}
-                      {onDelete &&
-                        (isConfirmingDelete ? (
-                          <span className="aegis-chat-session-list__confirm">
-                            <button
-                              type="button"
-                              className="aegis-chat-session-list__confirm-btn"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                onDelete(item.id);
-                                setConfirmDeleteId(null);
-                                setMenuOpenId(null);
-                              }}
-                            >
-                              Confirm?
-                            </button>
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="aegis-chat-session-list__menu-item aegis-chat-session-list__menu-item--danger"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setConfirmDeleteId(item.id);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        ))}
-                    </div>
-                  )}
-                </div>
+                <RowActions
+                  menuId={`${listId}-menu-${item.id}`}
+                  onRename={
+                    onRename
+                      ? () => {
+                          setRenameDraft(item.title);
+                          setRenamingId(item.id);
+                        }
+                      : undefined
+                  }
+                  onDelete={
+                    onDelete
+                      ? () => {
+                          onDelete(item.id);
+                        }
+                      : undefined
+                  }
+                />
               )}
             </div>
           </li>
         );
       })}
     </ul>
+  );
+}
+
+interface RowActionsProps {
+  menuId: string;
+  onRename?: () => void;
+  onDelete?: () => void;
+}
+
+function RowActions({
+  menuId,
+  onRename,
+  onDelete,
+}: RowActionsProps): ReactElement {
+  const menu = useMenuPopover<HTMLDivElement>();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const confirmRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (confirmingDelete) {
+      confirmRef.current?.focus();
+    }
+  }, [confirmingDelete]);
+
+  // The row's own arrow / Enter navigation must not see keys meant for the
+  // menu; React bubbles the portalled panel's events through the row too.
+  const panel = (
+    <div
+      ref={menu.panelRef}
+      id={menuId}
+      className="aegis-chat-session-list__menu"
+      role="menu"
+      tabIndex={-1}
+      onKeyDown={(event) => {
+        event.stopPropagation();
+        menu.onPanelKeyDown(event);
+      }}
+    >
+      {onRename && !confirmingDelete && (
+        <button
+          type="button"
+          role="menuitem"
+          className="aegis-chat-session-list__menu-item"
+          onClick={() => {
+            menu.setOpen(false);
+            onRename();
+          }}
+        >
+          Rename
+        </button>
+      )}
+      {onDelete &&
+        (confirmingDelete ? (
+          <span className="aegis-chat-session-list__confirm">
+            <button
+              ref={confirmRef}
+              type="button"
+              className="aegis-chat-session-list__confirm-btn"
+              onClick={() => {
+                menu.setOpen(false);
+                onDelete();
+              }}
+            >
+              Confirm?
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            role="menuitem"
+            className="aegis-chat-session-list__menu-item aegis-chat-session-list__menu-item--danger"
+            onClick={() => {
+              setConfirmingDelete(true);
+            }}
+          >
+            Delete
+          </button>
+        ))}
+    </div>
+  );
+
+  return (
+    <div className="aegis-chat-session-list__actions">
+      <Popover
+        content={panel}
+        trigger="click"
+        open={menu.open}
+        onOpenChange={(next) => {
+          if (next) {
+            setConfirmingDelete(false);
+          }
+          menu.setOpen(next);
+        }}
+        placement="bottomRight"
+        autoAdjustOverflow={MENU_OVERFLOW}
+        arrow={false}
+        classNames={{ root: 'aegis-chat-session-list__overlay' }}
+        destroyOnHidden
+      >
+        <button
+          ref={menu.triggerRef}
+          type="button"
+          className="aegis-chat-session-list__more"
+          aria-label="More actions"
+          aria-haspopup="menu"
+          aria-expanded={menu.open}
+          aria-controls={menuId}
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
+          onKeyDown={(event) => {
+            event.stopPropagation();
+            menu.onTriggerKeyDown(event);
+          }}
+        >
+          •••
+        </button>
+      </Popover>
+    </div>
   );
 }

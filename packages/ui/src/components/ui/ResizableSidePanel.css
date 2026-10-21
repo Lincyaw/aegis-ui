@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: row;
   flex: 0 0 auto;
+  width: var(--aegis-resizable-panel-width);
   min-width: 0;
   height: 100%;
   background: var(--bg-panel);
@@ -77,4 +78,21 @@
   display: inline-flex;
   font-size: var(--fs-10);
   line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .aegis-resizable-panel--stack-on-mobile {
+    width: 100%;
+    height: auto;
+    max-height: var(--size-resize-stacked-max);
+  }
+
+  .aegis-resizable-panel--stack-on-mobile .aegis-resizable-handle {
+    display: none;
+  }
+
+  .aegis-resizable-panel--stack-on-mobile.aegis-resizable-panel--collapsed {
+    flex-basis: auto;
+    padding: var(--space-1) 0;
+  }
 }

@@ -31,19 +31,21 @@ export function ChatSwitcher(): ReactElement {
     deleteChat,
   } = useChatStore();
   const [open, setOpen] = useState<boolean>(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  // Set by the container's React onMouseDown, which (unlike a DOM contains
+  // check) also fires for presses in the session list's portalled row menu.
+  const pressedInsideRef = useRef(false);
 
   useEffect(() => {
     if (!open) {
       return;
     }
-    const onDocClick = (event: MouseEvent): void => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
+    pressedInsideRef.current = false;
+    const onDocClick = (): void => {
+      if (pressedInsideRef.current) {
+        pressedInsideRef.current = false;
+        return;
       }
+      setOpen(false);
     };
     const onKey = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
@@ -83,7 +85,12 @@ export function ChatSwitcher(): ReactElement {
   );
 
   return (
-    <div className='aegis-chat-switcher' ref={containerRef}>
+    <div
+      className='aegis-chat-switcher'
+      onMouseDown={() => {
+        pressedInsideRef.current = true;
+      }}
+    >
       <button
         type='button'
         className='aegis-chat-switcher__trigger'

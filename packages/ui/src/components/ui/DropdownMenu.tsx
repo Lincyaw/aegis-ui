@@ -1,8 +1,10 @@
-import { type ReactNode, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+
+import { Popover } from 'antd';
 
 import { useAegisAction } from '../../agent/hooks';
 import type { AegisAction } from '../../agent/types';
-import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
 import './DropdownMenu.css';
 
 export interface DropdownItem {
@@ -35,58 +37,70 @@ export function DropdownMenu({
   className,
   align = 'right',
 }: DropdownMenuProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useOutsideClick(ref, () => setOpen(false), open);
+  const menu = useMenuPopover<HTMLDivElement>();
 
   const cls = ['aegis-dropdown', className ?? ''].filter(Boolean).join(' ');
 
-  const panelCls = [
-    'aegis-dropdown__panel',
-    `aegis-dropdown__panel--${align}`,
-    open ? 'aegis-dropdown__panel--open' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const panel = (
+    <div
+      ref={menu.panelRef}
+      className="aegis-dropdown__panel"
+      role="menu"
+      tabIndex={-1}
+      onKeyDown={menu.onPanelKeyDown}
+    >
+      {header && (
+        <>
+          <div className="aegis-dropdown__header">{header}</div>
+          <div className="aegis-dropdown__divider" role="separator" />
+        </>
+      )}
+      {items.map((item) => (
+        <DropdownMenuItem
+          key={item.key}
+          item={item}
+          onAfterClick={menu.close}
+        />
+      ))}
+      {footerItems.length > 0 && (
+        <>
+          <div className="aegis-dropdown__divider" role="separator" />
+          {footerItems.map((item) => (
+            <DropdownMenuItem
+              key={item.key}
+              item={item}
+              onAfterClick={menu.close}
+            />
+          ))}
+        </>
+      )}
+    </div>
+  );
 
   return (
-    <div className={cls} ref={ref}>
-      <button
-        type="button"
-        className="aegis-dropdown__trigger"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
+    <div className={cls}>
+      <Popover
+        content={panel}
+        trigger="click"
+        open={menu.open}
+        onOpenChange={menu.setOpen}
+        placement={align === 'left' ? 'bottomLeft' : 'bottomRight'}
+        autoAdjustOverflow={MENU_OVERFLOW}
+        arrow={false}
+        classNames={{ root: 'aegis-dropdown__overlay' }}
+        destroyOnHidden
       >
-        {trigger}
-      </button>
-      <div className={panelCls}>
-        {header && (
-          <>
-            <div className="aegis-dropdown__header">{header}</div>
-            <div className="aegis-dropdown__divider" role="separator" />
-          </>
-        )}
-        {items.map((item) => (
-          <DropdownMenuItem
-            key={item.key}
-            item={item}
-            onAfterClick={() => setOpen(false)}
-          />
-        ))}
-        {footerItems.length > 0 && (
-          <>
-            <div className="aegis-dropdown__divider" role="separator" />
-            {footerItems.map((item) => (
-              <DropdownMenuItem
-                key={item.key}
-                item={item}
-                onAfterClick={() => setOpen(false)}
-              />
-            ))}
-          </>
-        )}
-      </div>
+        <button
+          ref={menu.triggerRef}
+          type="button"
+          className="aegis-dropdown__trigger"
+          aria-haspopup="menu"
+          aria-expanded={menu.open}
+          onKeyDown={menu.onTriggerKeyDown}
+        >
+          {trigger}
+        </button>
+      </Popover>
     </div>
   );
 }
@@ -115,6 +129,7 @@ function DropdownMenuItem({ item, onAfterClick }: DropdownMenuItemProps) {
   return (
     <button
       type="button"
+      role="menuitem"
       className={[
         'aegis-dropdown__item',
         item.danger ? 'aegis-dropdown__item--danger' : '',

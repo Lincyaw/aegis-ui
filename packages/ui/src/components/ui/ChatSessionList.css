@@ -90,7 +90,6 @@
 }
 
 .aegis-chat-session-list__actions {
-  position: relative;
   display: flex;
   align-items: center;
   flex-shrink: 0;
@@ -115,7 +114,8 @@
 
 .aegis-chat-session-list__row:hover .aegis-chat-session-list__more,
 .aegis-chat-session-list__row:focus-within .aegis-chat-session-list__more,
-.aegis-chat-session-list__row--selected .aegis-chat-session-list__more {
+.aegis-chat-session-list__row--selected .aegis-chat-session-list__more,
+.aegis-chat-session-list__more[aria-expanded='true'] {
   opacity: 1;
 }
 
@@ -133,11 +133,21 @@
   background: transparent;
 }
 
-.aegis-chat-session-list__menu {
-  position: absolute;
-  top: calc(100% + var(--space-1));
-  right: 0;
+/* The menu portals to the body: antd's default popover z-index sits below
+   the shell's mobile drawer, and its inner surface would double the menu.
+   `.ant-popover` is added to the selectors to outrank antd's own rules. */
+.aegis-chat-session-list__overlay.ant-popover {
   z-index: var(--z-popover);
+}
+
+.aegis-chat-session-list__overlay.ant-popover .ant-popover-inner {
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.aegis-chat-session-list__menu {
   background: var(--bg-panel);
   color: var(--text-main);
   border: var(--size-hairline) solid var(--border-emphasis);

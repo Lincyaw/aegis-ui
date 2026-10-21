@@ -9,8 +9,11 @@ import {
 
 import {
   AppstoreOutlined,
+  DeleteOutlined,
+  DownloadOutlined,
   LogoutOutlined,
   PlusOutlined,
+  ReloadOutlined,
   SearchOutlined,
   SettingOutlined,
   UserOutlined,
@@ -2103,6 +2106,42 @@ function App() {
               ]}
             />
           </Specimen>
+          <Specimen
+            caption='inside a Panel · trigger on its bottom edge · wide items escape the clip'
+            span={2}
+          >
+            <Panel title='Run 4812' className='gallery__menu-host'>
+              <div className='gallery__menu-host-foot'>
+                <MetricLabel size='xs'>actions</MetricLabel>
+                <DropdownMenu
+                  trigger={<Chip tone='default'>More</Chip>}
+                  items={[
+                    {
+                      key: 'rerun',
+                      label: 'Re-run with the same datapack and algorithm',
+                      icon: <ReloadOutlined />,
+                    },
+                    {
+                      key: 'export',
+                      label: 'Export the trace bundle as Parquet',
+                      icon: <DownloadOutlined />,
+                    },
+                    {
+                      key: 'archive',
+                      label: 'Archive',
+                      disabled: true,
+                    },
+                    {
+                      key: 'delete',
+                      label: 'Delete run',
+                      icon: <DeleteOutlined />,
+                      danger: true,
+                    },
+                  ]}
+                />
+              </div>
+            </Panel>
+          </Specimen>
         </div>
 
         <SectionDivider>ProjectSelector</SectionDivider>
@@ -3442,6 +3481,12 @@ function App() {
           >
             <ResizableSidePanelConstrainedSpecimen />
           </Specimen>
+          <Specimen
+            caption='stackOnMobile · at ≤768 px the parent stacks it full-width above the content, height capped, handle hidden'
+            span={3}
+          >
+            <ResizableSidePanelStackedSpecimen />
+          </Specimen>
         </div>
       </Panel>
 
@@ -4091,6 +4136,7 @@ function TabsOverflowSpecimen(): ReactNode {
 function PageSizeSelectSpecimen(): ReactNode {
   const [size, setSize] = useState(20);
   const [customSize, setCustomSize] = useState(25);
+  const [panelSize, setPanelSize] = useState(10);
   return (
     <div className='gallery__row'>
       <Specimen caption='default · [10, 20, 50, 100]'>
@@ -4112,6 +4158,27 @@ function PageSizeSelectSpecimen(): ReactNode {
           options={[5, 25, 100]}
           label='Page size'
         />
+      </Specimen>
+      <Specimen
+        caption='DataTable footer in a Panel · one row · panel opens above the table'
+        span={3}
+      >
+        <Panel title='Runs' className='gallery__menu-host'>
+          <DataTable
+            columns={GALLERY_RUN_COLUMNS}
+            data={GALLERY_RUNS.slice(0, 1)}
+            rowKey={(row) => row.id}
+            pagination={{
+              page: 1,
+              pageSize: panelSize,
+              total: GALLERY_RUNS.length,
+              pageSizeOptions: [5, 10, 20, 50, 100],
+              onChange: (_page, nextSize) => {
+                setPanelSize(nextSize);
+              },
+            }}
+          />
+        </Panel>
       </Specimen>
     </div>
   );
@@ -5098,6 +5165,42 @@ function ResizableSidePanelConstrainedSpecimen(): ReactNode {
         <MetricLabel as='div' size='xs'>
           centre · ≥ 320px
         </MetricLabel>
+      </div>
+    </div>
+  );
+}
+
+function ResizableSidePanelStackedSpecimen(): ReactNode {
+  return (
+    <div className='gallery__resizable-stack'>
+      <ResizableSidePanel
+        side='left'
+        defaultWidth={220}
+        minWidth={160}
+        maxWidth={400}
+        stackOnMobile
+      >
+        <div style={{ padding: 'var(--space-3)' }}>
+          <MetricLabel as='div' size='xs'>
+            turns · stackOnMobile
+          </MetricLabel>
+          {Array.from({ length: 12 }, (_, i) => (
+            <p key={i}>
+              <MonoValue size='sm'>{String(i + 1).padStart(2, '0')}</MonoValue>{' '}
+              turn {i + 1}
+            </p>
+          ))}
+        </div>
+      </ResizableSidePanel>
+      <div className='gallery__resizable-stack-main'>
+        <MetricLabel as='div' size='xs'>
+          viewport
+        </MetricLabel>
+        <p>
+          Desktop: a resizable rail beside the content. Narrow the window to
+          ≤768 px and the rail stacks on top at full width, scrolling inside its
+          capped height.
+        </p>
       </div>
     </div>
   );

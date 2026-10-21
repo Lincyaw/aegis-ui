@@ -190,6 +190,7 @@
   --size-badge: 16px;
   --size-resize-handle: 6px;
   --size-resize-collapsed: 8px;
+  --size-resize-stacked-max: 14rem;
 
   /* ── Layout ──────────────────────────────────────────────────────── */
   --header-height: 56px;

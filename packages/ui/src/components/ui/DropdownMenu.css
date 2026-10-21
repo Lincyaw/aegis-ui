@@ -1,5 +1,4 @@
 .aegis-dropdown {
-  position: relative;
   display: inline-flex;
 }
 
@@ -13,30 +12,30 @@
   color: inherit;
 }
 
+/* The menu portals to the body: antd's default popover z-index sits below
+   the shell's mobile drawer, and its inner surface would double the panel.
+   `.ant-popover` is added to the selectors to outrank antd's own rules. */
+.aegis-dropdown__overlay.ant-popover {
+  z-index: var(--z-popover);
+}
+
+.aegis-dropdown__overlay.ant-popover .ant-popover-inner {
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .aegis-dropdown__panel {
-  position: absolute;
-  top: calc(100% + var(--space-1));
-  z-index: var(--z-dropdown);
-  display: none;
+  display: flex;
+  flex-direction: column;
   min-width: 11.25rem;
+  max-width: calc(100vw - var(--space-4));
   padding: var(--space-1);
   background: var(--bg-panel);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-popover);
-}
-
-.aegis-dropdown__panel--open {
-  display: flex;
-  flex-direction: column;
-}
-
-.aegis-dropdown__panel--left {
-  left: 0;
-}
-
-.aegis-dropdown__panel--right {
-  right: 0;
 }
 
 .aegis-dropdown__header {
@@ -93,4 +92,6 @@
 .aegis-dropdown__item-label {
   flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

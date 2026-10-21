@@ -45,9 +45,10 @@ export interface AegisApp {
   /** Optional inner sidebar shown when this app is active. */
   sidebar?: AegisAppNavGroup[];
   /**
-   * Optional sub-header rendered between the shell's `TopHeader` and the
-   * page content. Use for app-scoped toolbars, tab nav, filters, etc.
-   * Sticky by default so it stays in view while the page scrolls.
+   * Optional app header rendered in the centre of the shell's sticky top
+   * header, in place of `headerCenter`. Use for app-scoped toolbars, tab
+   * nav, a project switcher, etc. At ≤768 px it wraps onto its own
+   * full-width row under the brand and actions.
    *
    * Rendered inside `wrap`, so it can read from the app's Context.
    */

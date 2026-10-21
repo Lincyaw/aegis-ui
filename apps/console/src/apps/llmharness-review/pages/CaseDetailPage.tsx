@@ -1134,6 +1134,7 @@ function CaseDetailBody({ data }: { data: LoadedCase }): ReactElement {
             minWidth={160}
             maxWidth={480}
             collapsible
+            stackOnMobile
             persistKey='llmh-cdp-turn-w'
           >
             <TurnRail bundle={data.bundle} />

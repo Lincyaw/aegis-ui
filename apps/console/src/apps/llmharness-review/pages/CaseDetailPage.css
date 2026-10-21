@@ -360,16 +360,6 @@
     flex-direction: column;
     gap: var(--space-3);
   }
-  /*
-   * The resizable side panels set width inline (px) on the aside; on
-   * mobile we want them stacked full-width with bounded height. The
-   * !important wins over inline only here, scoped to the layout.
-   */
-  .llmh-cdp__layout > .aegis-resizable-panel {
-    width: 100% !important;
-    height: auto;
-    max-height: 14rem;
-  }
   .llmh-cdp__viewport {
     flex: 1 1 auto;
     min-height: 24rem;
