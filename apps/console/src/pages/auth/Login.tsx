@@ -1,25 +1,9 @@
-import {
-  type ReactElement,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
-import {
-  AuthLayout,
-  Button,
-  LoginForm,
-  SectionDivider,
-  useAuth,
-} from '@lincyaw/aegis-ui';
+import { AuthLayout, LoginForm, useAuth } from '@lincyaw/aegis-ui';
 
-import {
-  type FederatedProvider,
-  fetchProviders,
-} from '../../auth/ssoClient';
-import { loadSsoConfig, ssoUrl } from '../../auth/ssoConfig';
+import { ssoUrlFor } from '../../config/runtime';
 
 interface LoginFormValues {
   email: string;
@@ -102,29 +86,15 @@ export function Login(): ReactElement {
   // readHandoff returns a fresh object each call; memoize on the stable search
   // string so dependent effects don't re-run every render (infinite fetch loop).
   const search = params.toString();
-  const handoff = useMemo(() => readHandoff(new URLSearchParams(search)), [search]);
+  const handoff = useMemo(
+    () => readHandoff(new URLSearchParams(search)),
+    [search]
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(() =>
     ssoErrorMessage(params.get('error'))
   );
   const triggered = useRef(false);
-  const [providers, setProviders] = useState<FederatedProvider[]>([]);
-
-  useEffect(() => {
-    if (!handoff) {
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      const list = await fetchProviders(loadSsoConfig());
-      if (!cancelled) {
-        setProviders(list);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [handoff]);
 
   useEffect(() => {
     if (handoff || triggered.current || status === 'authenticated') {
@@ -162,22 +132,7 @@ export function Login(): ReactElement {
     setSubmitting(true);
   };
 
-  const cfg = loadSsoConfig();
-  const action = ssoUrl('/login', cfg);
-
-  const federatedUrl = (name: string): string => {
-    const query = new URLSearchParams({
-      response_type: 'code',
-      client_id: handoff.clientId,
-      redirect_uri: handoff.redirectUri,
-      state: handoff.state,
-      scope: handoff.scope,
-      code_challenge: handoff.codeChallenge,
-      code_challenge_method: handoff.codeChallengeMethod,
-    });
-    const base = ssoUrl(`/auth/federated/${encodeURIComponent(name)}`, cfg);
-    return `${base}?${query.toString()}`;
-  };
+  const action = ssoUrlFor('/login');
 
   return (
     <AuthLayout
@@ -205,23 +160,6 @@ export function Login(): ReactElement {
           code_challenge_method: handoff.codeChallengeMethod,
         }}
       />
-      {providers.length > 0 && (
-        <>
-          <SectionDivider>or</SectionDivider>
-          {providers.map((provider) => (
-            <Button
-              key={provider.name}
-              type='button'
-              tone='secondary'
-              onClick={() => {
-                window.location.assign(federatedUrl(provider.name));
-              }}
-            >
-              Sign in with {provider.display_name}
-            </Button>
-          ))}
-        </>
-      )}
     </AuthLayout>
   );
 }

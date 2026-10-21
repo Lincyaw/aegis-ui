@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout, RegisterForm } from '@lincyaw/aegis-ui';
 
 import { registerUser } from '../../auth/ssoClient';
-import { loadSsoConfig } from '../../auth/ssoConfig';
 
 function deriveUsername(email: string): string {
   return email.split('@')[0]?.toLowerCase() || email.toLowerCase();
@@ -23,7 +22,7 @@ export function Register(): ReactElement {
     setError(undefined);
     setSubmitting(true);
     try {
-      await registerUser(loadSsoConfig(), {
+      await registerUser({
         username: deriveUsername(values.email),
         email: values.email,
         password: values.password,
