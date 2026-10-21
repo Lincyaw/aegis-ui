@@ -16,20 +16,9 @@ import type { AuthUserProfileResp } from '@lincyaw/portal';
 import { App, Button, Spin } from 'antd';
 import { isAxiosError } from 'axios';
 
-import { ApiError } from '../../../api/apiClient';
+import { ApiError, errMsg } from '../../../api/apiClient';
 import { updateUser } from '../../../api/iamClient';
 import { authenticationApi } from '../../portal/api/portal-client';
-
-function errMsg(e: unknown): string {
-  if (isAxiosError(e)) {
-    const data = e.response?.data as { message?: string } | undefined;
-    return data?.message ?? e.message;
-  }
-  if (e instanceof ApiError || e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
-}
 
 function isForbidden(e: unknown): boolean {
   if (isAxiosError(e)) {
@@ -139,7 +128,11 @@ export default function Profile() {
         />
         <Panel>
           <div
-            style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--space-6)',
+            }}
           >
             <Spin />
           </div>

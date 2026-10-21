@@ -10,29 +10,15 @@ import {
   Panel,
   PanelTitle,
 } from '@lincyaw/aegis-ui';
-import type {
-  TeamTeamMemberResp,
-  TeamTeamResp,
-} from '@lincyaw/portal';
+import type { TeamTeamMemberResp, TeamTeamResp } from '@lincyaw/portal';
 import { App, Button, Form, Input, Modal, Spin } from 'antd';
-import { isAxiosError } from 'axios';
 
+import { errMsg } from '../../../api/apiClient';
 import { teamsApi } from '../../portal/api/portal-client';
 
 import './Teams.css';
 
 const MAX_VISIBLE = 5;
-
-function errMsg(e: unknown): string {
-  if (isAxiosError(e)) {
-    const data = e.response?.data as { message?: string } | undefined;
-    return data?.message ?? e.message;
-  }
-  if (e instanceof Error) {
-    return e.message;
-  }
-  return 'unknown error';
-}
 
 interface CreateForm {
   name: string;
@@ -48,7 +34,11 @@ function MembersStrip({ teamId }: { teamId: number }) {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await teamsApi.listTeamMembers({ teamId, page: 1, size: 10 });
+        const res = await teamsApi.listTeamMembers({
+          teamId,
+          page: 1,
+          size: 10,
+        });
         if (cancelled) {
           return;
         }
@@ -197,7 +187,13 @@ export default function Teams() {
         </Panel>
       ) : loading ? (
         <Panel>
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--space-6)',
+            }}
+          >
             <Spin />
           </div>
         </Panel>
