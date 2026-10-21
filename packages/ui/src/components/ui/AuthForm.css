@@ -1,0 +1,21 @@
+/* Shared by LoginForm, RegisterForm and ForgotPasswordForm. */
+.aegis-loginform,
+.aegis-registerform,
+.aegis-forgotform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-family: var(--font-ui);
+}
+
+.aegis-loginform__error,
+.aegis-registerform__error,
+.aegis-forgotform__error {
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-warning-soft);
+  border: var(--size-hairline) solid var(--accent-warning);
+  border-radius: var(--radius-md);
+  color: var(--accent-warning);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+}

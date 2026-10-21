@@ -71,46 +71,6 @@
   justify-content: center;
 }
 
-.aegis-folder-dropzone__action {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  background: var(--bg-panel);
-  color: var(--text-main);
-  font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  line-height: 1.4;
-  border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition:
-    background var(--motion-fast),
-    border-color var(--motion-fast);
-}
-
-.aegis-folder-dropzone__action:hover:not(:disabled) {
-  background: var(--bg-muted);
-  border-color: var(--border-emphasis);
-}
-
-.aegis-folder-dropzone__action:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.aegis-folder-dropzone__action--quiet {
-  background: transparent;
-  border-color: transparent;
-  color: var(--text-muted);
-}
-
-.aegis-folder-dropzone__action--quiet:hover:not(:disabled) {
-  color: var(--text-main);
-  border-color: var(--border-hairline);
-}
-
 .aegis-folder-dropzone__input {
   position: absolute;
   inset: 0;

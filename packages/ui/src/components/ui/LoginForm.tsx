@@ -1,5 +1,7 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
+import './AuthForm.css';
+import { Button } from './Button';
 import './LoginForm.css';
 import { PasswordField } from './PasswordField';
 import { TextField } from './TextField';
@@ -117,13 +119,14 @@ export function LoginForm({
           )}
         </div>
       )}
-      <button
+      <Button
+        tone="primary"
         type="submit"
         className="aegis-loginform__submit"
         disabled={submitting}
       >
         {submitting ? 'Signing in…' : 'Sign in'}
-      </button>
+      </Button>
     </form>
   );
 }

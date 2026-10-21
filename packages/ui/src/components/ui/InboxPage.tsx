@@ -1,6 +1,6 @@
 import { type ReactElement, useMemo, useRef, useState } from 'react';
 
-import { Button, Segmented } from 'antd';
+import { Segmented } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -9,6 +9,7 @@ import {
 } from '../../agent/usePrimitiveSurface';
 import { type AegisNotification, useNotifications } from '../../notifications';
 import { Avatar } from './Avatar';
+import { Button } from './Button';
 import { Chip } from './Chip';
 import { EmptyState } from './EmptyState';
 import './InboxPage.css';
@@ -66,6 +67,7 @@ export function InboxPage({
         action={
           markAllRead && unreadCount > 0 ? (
             <Button
+              tone="secondary"
               onClick={() => {
                 void markAllRead();
               }}

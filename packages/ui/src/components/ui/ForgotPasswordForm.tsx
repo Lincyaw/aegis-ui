@@ -1,5 +1,7 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
+import './AuthForm.css';
+import { Button } from './Button';
 import './ForgotPasswordForm.css';
 import { TextField } from './TextField';
 
@@ -53,13 +55,14 @@ export function ForgotPasswordForm({
         required
         helperText="We'll send a reset link to this address."
       />
-      <button
+      <Button
+        tone="primary"
         type="submit"
         className="aegis-forgotform__submit"
         disabled={submitting}
       >
         {submitting ? 'Sending…' : 'Send reset link'}
-      </button>
+      </Button>
     </form>
   );
 }
