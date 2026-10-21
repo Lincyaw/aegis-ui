@@ -15,6 +15,15 @@ export interface ResizableSidePanelProps {
   maxWidth?: number;
   /** localStorage key to persist width across reloads. */
   persistKey?: string;
+  /** Width change per arrow-key press on the handle, in px. */
+  keyboardStep?: number;
+  /**
+   * Narrows a proposed width after the min/max clamp, e.g. to keep the
+   * neighbouring content above its own minimum width.
+   */
+  constrainWidth?: (width: number) => number;
+  /** Double-clicking the handle restores `defaultWidth`. */
+  resetOnDoubleClick?: boolean;
   /** Whether the panel can be fully collapsed (rendered as a thin handle bar). */
   collapsible?: boolean;
   /** Controlled collapsed state. If omitted, internal state is used. */
@@ -31,6 +40,9 @@ export function ResizableSidePanel({
   minWidth = 200,
   maxWidth = 800,
   persistKey,
+  keyboardStep,
+  constrainWidth,
+  resetOnDoubleClick = false,
   collapsible = false,
   collapsed: collapsedProp,
   onCollapsedChange,
@@ -55,13 +67,15 @@ export function ResizableSidePanel({
     }
   }, [collapsible, setCollapsed]);
 
-  const { width, handleProps, isDragging } = useResizable({
+  const { width, handleProps, isDragging, reset } = useResizable({
     initialWidth: defaultWidth,
     minWidth,
     maxWidth,
     side,
     persistKey,
     onCollapse: handleCollapse,
+    keyboardStep,
+    constrainWidth,
   });
 
   const rootClass = [
@@ -97,6 +111,7 @@ export function ResizableSidePanel({
       {...handleProps}
       className="aegis-resizable-handle"
       aria-label="Resize panel"
+      onDoubleClick={resetOnDoubleClick ? reset : undefined}
     />
   );
 

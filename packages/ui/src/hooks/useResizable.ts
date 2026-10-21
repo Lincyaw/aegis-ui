@@ -15,7 +15,7 @@ import { readStorage, writeStorage } from '../lib/storage';
 
 const DEFAULT_MIN = 200;
 const DEFAULT_MAX = 800;
-const KEYBOARD_STEP = 16;
+const DEFAULT_KEYBOARD_STEP = 16;
 
 export interface UseResizableOptions {
   initialWidth: number;
@@ -24,12 +24,21 @@ export interface UseResizableOptions {
   side: 'left' | 'right';
   persistKey?: string;
   onCollapse?: () => void;
+  /** Width change per arrow-key press, in px. */
+  keyboardStep?: number;
+  /**
+   * Narrows a proposed width after the min/max clamp, e.g. so a neighbouring
+   * pane keeps its own minimum. The result is clamped to min/max again.
+   */
+  constrainWidth?: (width: number) => number;
 }
 
 export interface UseResizableReturn {
   width: number;
   handleProps: HTMLAttributes<HTMLDivElement>;
   isDragging: boolean;
+  /** Restores `initialWidth`, clamped and constrained like any other change. */
+  reset: () => void;
 }
 
 function readPersisted(key: string | undefined): number | undefined {
@@ -49,10 +58,23 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
     side,
     persistKey,
     onCollapse,
+    keyboardStep = DEFAULT_KEYBOARD_STEP,
+    constrainWidth,
   } = opts;
 
+  const constrainRef = useRef(constrainWidth);
+
+  useEffect(() => {
+    constrainRef.current = constrainWidth;
+  }, [constrainWidth]);
+
   const clamp = useCallback(
-    (value: number) => Math.min(Math.max(value, minWidth), maxWidth),
+    (value: number) => {
+      const bound = (v: number): number =>
+        Math.min(Math.max(v, minWidth), maxWidth);
+      const constrain = constrainRef.current;
+      return constrain ? bound(constrain(bound(value))) : bound(value);
+    },
     [minWidth, maxWidth],
   );
 
@@ -137,21 +159,32 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
       const shrink = side === 'left' ? 'ArrowLeft' : 'ArrowRight';
       if (event.key === grow) {
         event.preventDefault();
-        setWidth((prev) => clamp(prev + KEYBOARD_STEP));
+        setWidth((prev) => clamp(prev + keyboardStep));
       } else if (event.key === shrink) {
         event.preventDefault();
         setWidth((prev) => {
-          const next = prev - KEYBOARD_STEP;
+          const next = prev - keyboardStep;
           if (next < minWidth && !collapseFiredRef.current) {
             collapseFiredRef.current = true;
             onCollapseRef.current?.();
           }
           return clamp(next);
         });
+      } else if (event.key === 'Home' || event.key === 'End') {
+        // Like the arrows, Home / End move the handle itself: to its
+        // leftmost / rightmost position.
+        event.preventDefault();
+        const atLeftEdge = side === 'left' ? minWidth : maxWidth;
+        const atRightEdge = side === 'left' ? maxWidth : minWidth;
+        setWidth(clamp(event.key === 'Home' ? atLeftEdge : atRightEdge));
       }
     },
-    [side, clamp, minWidth],
+    [side, clamp, minWidth, maxWidth, keyboardStep],
   );
+
+  const reset = useCallback(() => {
+    setWidth(clamp(initialWidth));
+  }, [clamp, initialWidth]);
 
   const handleProps = useMemo<HTMLAttributes<HTMLDivElement>>(
     () => ({
@@ -167,5 +200,5 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
     [minWidth, maxWidth, width, onPointerDown, onKeyDown],
   );
 
-  return { width, handleProps, isDragging };
+  return { width, handleProps, isDragging, reset };
 }
