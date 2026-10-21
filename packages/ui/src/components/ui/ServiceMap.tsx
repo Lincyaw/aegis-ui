@@ -114,6 +114,8 @@ function computeLayout(
         x: (p?.x ?? 0) - NODE_WIDTH / 2,
         y: (p?.y ?? 0) - NODE_HEIGHT / 2,
       },
+      initialWidth: NODE_WIDTH,
+      initialHeight: NODE_HEIGHT,
       data: { node: n, selected: selectedNodeId === n.id },
       sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
       targetPosition: isHorizontal ? Position.Left : Position.Top,

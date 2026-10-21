@@ -190,6 +190,11 @@
 }
 
 .aegis-service-map .react-flow__minimap {
+  --xy-minimap-background-color: var(--bg-panel);
+  --xy-minimap-mask-background-color: var(--bg-muted);
+  --xy-minimap-mask-stroke-color: var(--border-emphasis);
+  --xy-minimap-node-background-color: var(--border-emphasis);
+
   background: var(--bg-panel);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-sm);
@@ -197,4 +202,10 @@
 
 .aegis-service-map .react-flow__background {
   background: var(--bg-page);
+}
+
+@media (max-width: 768px) {
+  .aegis-service-map .react-flow__minimap {
+    display: none;
+  }
 }
