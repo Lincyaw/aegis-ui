@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 import {
   Chip,
   compileLuceneToSql,
+  ErrorState,
   EventTable,
   type EventTableColumn,
-  ErrorState,
   MetricLabel,
   MonoValue,
   Panel,
@@ -66,14 +66,18 @@ export function SessionList(): ReactElement {
       compileLuceneToSql(search, {
         fields: SESSION_FIELD_MAPPINGS,
       }),
-    [search],
+    [search]
   );
 
   const whereParams = useMemo(() => {
-    // Strip Date-typed params — listSessions only ever needs primitives.
+    // Strip Date-typed params — listSessionRows only ever needs primitives.
     const out: Record<string, string | number | boolean> = {};
     for (const [k, v] of Object.entries(compiled.params)) {
-      if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+      if (
+        typeof v === 'string' ||
+        typeof v === 'number' ||
+        typeof v === 'boolean'
+      ) {
         out[k] = v;
       }
     }
