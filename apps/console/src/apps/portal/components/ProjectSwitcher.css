@@ -4,8 +4,6 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
-  background: var(--bg-panel);
-  border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
 .project-switcher-bar__left,
