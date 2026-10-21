@@ -4,11 +4,12 @@
   --notes-toc-width: 12.5rem;
   --notes-measure: 45rem;
 
+  --notes-sticky-top: calc(var(--header-height) + var(--space-6));
+  --notes-sticky-height: calc(100vh - var(--header-height) - var(--space-12));
+
   display: flex;
-  align-items: stretch;
-  min-height: 0;
+  align-items: flex-start;
   position: relative;
-  height: calc(100vh - var(--header-height) - var(--space-6));
 }
 
 .notes-app__sidebar {
@@ -18,7 +19,9 @@
   gap: var(--space-2);
   border-right: var(--size-hairline) solid var(--border-hairline);
   padding-right: var(--space-3);
-  height: 100%;
+  position: sticky;
+  top: var(--notes-sticky-top);
+  max-height: var(--notes-sticky-height);
   overflow-y: auto;
 }
 
@@ -47,7 +50,6 @@
 .notes-app__content {
   flex: 1 1 auto;
   min-width: 0;
-  overflow-y: auto;
   padding-left: var(--space-4);
 }
 
@@ -112,9 +114,9 @@
 /* ---- Table of contents ----------------------------------------------- */
 .notes-toc {
   position: sticky;
-  top: var(--space-6);
+  top: var(--notes-sticky-top);
   flex: 0 0 var(--notes-toc-width);
-  max-height: calc(100vh - var(--header-height) - var(--space-12));
+  max-height: var(--notes-sticky-height);
   overflow-y: auto;
   padding-left: var(--space-3);
   border-left: var(--size-hairline) solid var(--border-hairline);
@@ -167,8 +169,10 @@
   background: var(--bg-muted);
 }
 
-.notes-toc__link--active {
-  color: var(--accent-info);
+.notes-toc__link--active,
+.notes-toc__link--active:hover {
+  color: var(--text-on-inverted);
+  background: var(--bg-inverted);
   font-weight: var(--fw-medium);
 }
 
@@ -184,18 +188,18 @@
 
 /* ---- Wikilinks ------------------------------------------------------- */
 .wiki-markdown .wikilink {
-  color: var(--accent-info);
+  color: var(--text-main);
   text-decoration: none;
   border-bottom: var(--size-hairline) dashed currentColor;
 }
 
 .wiki-markdown .wikilink:hover {
-  color: var(--accent-info);
   border-bottom-style: solid;
 }
 
 .wiki-markdown .wikilink--broken {
-  color: var(--accent-warning);
+  color: var(--text-muted);
+  border-bottom-style: dotted;
   cursor: help;
 }
 
@@ -313,6 +317,10 @@
   /* Sidebar is hidden on mobile — rendered inside the Drawer instead */
   .notes-app__sidebar {
     display: none;
+  }
+
+  .notes-app__content {
+    width: 100%;
   }
 
   .notes-app__content {

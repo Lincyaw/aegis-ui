@@ -9,7 +9,6 @@ import { Link } from 'react-router-dom';
 import { Markdown, type MarkdownProps } from '@lincyaw/aegis-ui';
 import 'katex/dist/katex.min.css';
 import rehypeKatex from 'rehype-katex';
-import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 import { extractHeadings } from '../lib/headings';
@@ -21,7 +20,6 @@ import { remarkWikilink, WIKILINK_SCHEME } from '../lib/remark-wikilink';
 import { Mermaid } from './Mermaid';
 
 const remarkPlugins: MarkdownProps['remarkPlugins'] = [
-  remarkGfm,
   remarkMath,
   remarkWikilink,
   remarkHighlight,
@@ -95,6 +93,7 @@ export function WikiMarkdown({
 
   return (
     <Markdown
+      variant='document'
       className='wiki-markdown'
       remarkPlugins={remarkPlugins}
       rehypePlugins={rehypePlugins}
