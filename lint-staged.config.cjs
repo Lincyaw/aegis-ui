@@ -29,7 +29,7 @@ module.exports = {
     const quoted = safe.map((f) => `"${f}"`).join(' ');
     return [`stylelint --fix ${quoted}`, `prettier --write ${quoted}`];
   },
-  '*.{json,md}': (files) => {
+  '*.{json,md,mjs,yml}': (files) => {
     const safe = files.filter(notConsole);
     if (safe.length === 0) {
       return [];

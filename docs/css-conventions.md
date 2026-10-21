@@ -1,7 +1,8 @@
 # CSS conventions
 
-The contract every `.css` file in `src/` must follow. Enforced by review
-and (where mechanizable) by ESLint / Prettier / Stylelint.
+The contract every `.css` file in `packages/ui/src/` must follow (paths
+below are relative to `packages/ui/`). Enforced by review and, where
+mechanizable, by Prettier and Stylelint.
 
 ## 1. Tokens are the only source of visual truth
 
@@ -17,38 +18,38 @@ Every visual value comes from a CSS custom property in `src/styles/theme.css`.
 
 - `0` / `100%` / `auto` / `inherit` / `unset` — keyword-like values, not tokens
 - `1px` borders may use `var(--size-hairline)`; raw `1px` is acceptable
-  *only* if explicitly hair-line for visual rendering reasons (rare)
+  _only_ if explicitly hair-line for visual rendering reasons (rare)
 - `em` / `rem` / `%` / `vh` / `vw` / `fr` — these are scale-relative
   units, not raw pixels
-- raw `px` *inside* token declarations in `theme.css` (that's where the
+- raw `px` _inside_ token declarations in `theme.css` (that's where the
   values live)
 
 If a token is missing, add it to `theme.css` first, then use it.
 
 ### Token namespaces
 
-| Prefix | Use for |
-|---|---|
-| `--bg-*` | background colours |
-| `--text-*` | foreground / ink colours |
-| `--border-*` | borders + dividers |
-| `--accent-*` | semantic accents — anomaly red only |
-| `--ink-*` | secondary semantic (logs, cautions) |
-| `--space-*` | margin / padding / gap (4 px scale) |
-| `--radius-*` | border-radius |
-| `--size-icon-*` | icon glyph sizes (12/16/20) |
-| `--size-control-*` | input/button heights (24/32/40) |
-| `--size-avatar-*` | avatar/dot sizes (24/32/40) |
-| `--size-hairline` | 1 px hairline borders |
-| `--font-*` | font-family stacks |
-| `--fs-*` | font-size (9/10/11/13/16/18/24/42) |
-| `--fw-*` | font-weight |
-| `--tracking-*` | letter-spacing |
-| `--motion-*` | transition / animation durations + easing |
-| `--shadow-*` | box-shadow |
-| `--z-*` | z-index scale |
-| `--header-height`, `--sidebar-width-*`, `--page-max-width` | layout constants |
-| `--bp-*` | breakpoint reference values |
+| Prefix                                                     | Use for                                           |
+| ---------------------------------------------------------- | ------------------------------------------------- |
+| `--bg-*`                                                   | background colours                                |
+| `--text-*`                                                 | foreground / ink colours                          |
+| `--border-*`                                               | borders + dividers                                |
+| `--accent-*`                                               | semantic accents — anomaly red only               |
+| `--ink-*`                                                  | secondary semantic (logs, cautions)               |
+| `--space-*`                                                | margin / padding / gap (4 px scale)               |
+| `--radius-*`                                               | border-radius                                     |
+| `--size-icon-*`                                            | icon glyph sizes (12/16/20)                       |
+| `--size-control-*`                                         | input/button heights (24/32/40)                   |
+| `--size-avatar-*`                                          | avatar/dot sizes (24/32/40)                       |
+| `--size-hairline`                                          | 1 px hairline borders                             |
+| `--font-*`                                                 | font-family stacks                                |
+| `--fs-*`                                                   | font-size (`--fs-<px>` steps plus `--fs-display`) |
+| `--fw-*`                                                   | font-weight                                       |
+| `--tracking-*`                                             | letter-spacing                                    |
+| `--motion-*`                                               | transition / animation durations + easing         |
+| `--shadow-*`                                               | box-shadow                                        |
+| `--z-*`                                                    | z-index scale                                     |
+| `--header-height`, `--sidebar-width-*`, `--page-max-width` | layout constants                                  |
+| `--bp-*`                                                   | breakpoint reference values                       |
 
 ## 2. BEM naming, scoped per component
 
@@ -63,6 +64,7 @@ selectors at that prefix.
 ```
 
 Examples (already in the codebase):
+
 - `.aegis-panel` / `.aegis-panel__header` / `.aegis-panel--ghost`
 - `.aegis-metric-card` / `.aegis-metric-card--inverted` / `.aegis-metric-card--clickable`
 - `.aegis-shell` / `.aegis-shell__sidebar` / `.aegis-shell__nav-link--active`
@@ -107,16 +109,16 @@ Missing any of these is a review block.
 
 Breakpoints (Tailwind-aligned):
 
-| Token | Min width | When to use |
-|---|---|---|
-| `--bp-sm` | 640 px | small phones in landscape, large phones in portrait |
-| `--bp-md` | 768 px | tablets |
-| `--bp-lg` | 1024 px | small laptops |
-| `--bp-xl` | 1280 px | desktops |
+| Token     | Min width | When to use                                         |
+| --------- | --------- | --------------------------------------------------- |
+| `--bp-sm` | 640 px    | small phones in landscape, large phones in portrait |
+| `--bp-md` | 768 px    | tablets                                             |
+| `--bp-lg` | 1024 px   | small laptops                                       |
+| `--bp-xl` | 1280 px   | desktops                                            |
 
 Authoring style: **desktop first**. Default rules target the largest
 viewport; smaller viewports are progressively constrained with
-`@media (max-width: ...)` blocks. Use the breakpoint *values* (not
+`@media (max-width: ...)` blocks. Use the breakpoint _values_ (not
 custom property references — CSS doesn't allow them inside `@media`).
 
 ```css
@@ -169,20 +171,20 @@ Adding a new colour value? Add both light + dark to `theme.css` first.
 
 - One `.css` next to each `.tsx`, same basename: `Panel.tsx` + `Panel.css`.
 - The `.tsx` imports its own `.css` (the bundler tree-shakes properly).
-- No `@import` inside component CSS — only `theme.css` does that.
+- No `@import` inside component CSS — only `src/index.css` does that
+  (it imports `theme.css`).
 - No global selectors (`body`, `html`, `*`, `:root`) in component CSS.
   Global resets live in `src/index.css` only.
 
-## 8. What goes in shared CSS vs component CSS
+## 8. No shared stylesheets
 
-Shared partials in `src/styles/shared/` exist for *structural* patterns
-that span many components (forms, tables, cards). A primitive's own CSS
-file owns its specific styling.
+A primitive's own CSS file owns all of its styling; there are no shared
+partials or utility classes. If you find yourself copying a snippet
+between two component CSS files, either:
 
-If you find yourself copying a snippet between two component CSS files,
-either:
-- extract it to `src/styles/shared/` as a `.aegis-shared-*` class, or
-- promote it to a real primitive in `src/components/ui/`.
+- move the repeated _value_ into a token in `theme.css`, or
+- promote the repeated _pattern_ to a real primitive in
+  `src/components/ui/` and compose it.
 
 Don't duplicate.
 
@@ -197,11 +199,16 @@ Don't duplicate.
 ## 10. What gets enforced
 
 Mechanical:
-- **ESLint** — JS/TSX only.
-- **Prettier** — formatting + import order in JS/TSX/CSS.
-- **Stylelint** — colour / unit allowlist (re-enabled after the legacy
-  raw-value sweep lands; see Phase 3 in the design-system roadmap).
+
+- **Prettier** — formatting (import order applies to TS/TSX only).
+- **Stylelint** (`pnpm lint:css`, config in the root `.stylelintrc.cjs`)
+  — `stylelint-config-standard` plus `color-no-hex` and
+  `color-named: never`. `theme.css` and `index.css` are exempt. Units
+  are not restricted yet (`px` and `ms` are in the allowed list), so
+  raw sizes and durations are caught with the token-discipline grep in
+  `CLAUDE.md`, not by Stylelint.
 
 By review:
-- BEM naming, property order, state coverage, dark-mode contract,
-  shared-vs-component scope decisions.
+
+- Raw `px` / `ms`, BEM naming, property order, state coverage,
+  dark-mode contract, duplication.

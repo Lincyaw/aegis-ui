@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/.turbo
+.git
+.claude
+.playwright-mcp
+apps/console/bin
+apps/console/server/aegis-console
+apps/console/server/server
+**/.env*
+**/*.local
+**/*.log

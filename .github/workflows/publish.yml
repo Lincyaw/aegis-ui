@@ -7,48 +7,47 @@ on:
 
 permissions:
   contents: read
-  packages: write
+  id-token: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.3
+      - uses: pnpm/action-setup@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           registry-url: 'https://registry.npmjs.org/'
-          scope: '@lincyaw'
-          cache: pnpm
+
+      - name: Verify tag matches packages/ui version
+        run: |
+          PKG_VERSION=$(node -p "require('./packages/ui/package.json').version")
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match packages/ui/package.json version $PKG_VERSION"
+            exit 1
+          fi
 
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Verify tag matches package.json version
-        run: |
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
-            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $PKG_VERSION"
-            exit 1
-          fi
+      - name: Check
+        run: pnpm check
 
-      - name: Type-check
-        run: pnpm type-check
+      - name: Build library
+        run: pnpm -F @lincyaw/aegis-ui build
 
-      - name: Lint
-        run: pnpm lint
+      # Trusted Publishing (OIDC) needs npm >= 11.5.1.
+      - name: npm version
+        run: npm --version
 
-      - name: Build
-        run: pnpm build
-
+      # npm tries Trusted Publishing first and falls back to NODE_AUTH_TOKEN,
+      # so this works with either an npm trusted publisher or an NPM_TOKEN secret.
       - name: Publish to npmjs.com
         working-directory: packages/ui
-        run: pnpm publish --no-git-checks --access public
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -30,26 +30,22 @@ jobs:
           - macos-arm64
           - windows-x64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.3
+      - uses: pnpm/action-setup@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
-          go-version: '1.22'
+          go-version-file: apps/console/server/go.mod
           cache: false
 
       - name: Install
         run: pnpm install --frozen-lockfile
-        env:
-          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build library + SPA dist
         run: pnpm -F @lincyaw/aegis-ui build && pnpm -F @lincyaw/console bundle:prepare
@@ -82,7 +78,7 @@ jobs:
           curl -fs -o /dev/null -w '%{http_code}\n' http://127.0.0.1:13399/
           kill $PID
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: aegis-console-${{ matrix.target }}
           path: apps/console/bin/aegis-console-*
@@ -93,9 +89,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
@@ -116,7 +112,7 @@ jobs:
           echo "version=$VERSION"  >> "$GITHUB_OUTPUT"
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: aegis-console ${{ steps.ver.outputs.version }}

@@ -33,10 +33,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const INDEX_PATH = resolve(
-  repoRoot,
-  'packages/ui/src/components/ui/index.ts',
-);
+const INDEX_PATH = resolve(repoRoot, 'packages/ui/src/components/ui/index.ts');
 const UI_DIR = resolve(repoRoot, 'packages/ui/src/components/ui');
 const AGENT_INDEX_PATH = resolve(repoRoot, 'packages/ui/src/agent/index.ts');
 const AGENT_DIR = resolve(repoRoot, 'packages/ui/src/agent');
@@ -65,7 +62,8 @@ function readSource(path) {
  */
 function collectModuleExports(src) {
   const names = new Set();
-  const re = /export\s+(?:type\s+)?(?:\{[^}]*\}|\*)\s+from\s+['"]\.\/([A-Z][A-Za-z0-9]+)['"]/g;
+  const re =
+    /export\s+(?:type\s+)?(?:\{[^}]*\}|\*)\s+from\s+['"]\.\/([A-Z][A-Za-z0-9]+)['"]/g;
   let m;
   while ((m = re.exec(src)) !== null) {
     names.add(m[1]);
@@ -81,7 +79,8 @@ function collectIdentifierExports(src) {
   const out = [];
 
   // Form A: `export … from './Source'` where the brace block lists names.
-  const reBraced = /export\s+(type\s+)?\{([^}]*)\}\s+from\s+['"]\.\/([A-Za-z0-9_]+)['"]/g;
+  const reBraced =
+    /export\s+(type\s+)?\{([^}]*)\}\s+from\s+['"]\.\/([A-Za-z0-9_]+)['"]/g;
   let m;
   while ((m = reBraced.exec(src)) !== null) {
     const isType = Boolean(m[1]);
@@ -98,14 +97,19 @@ function collectIdentifierExports(src) {
       const asMatch = cleaned.match(/\bas\s+([A-Za-z_][A-Za-z0-9_]*)\s*$/);
       const name = asMatch ? asMatch[1] : cleaned;
       if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
-        out.push({ name, sourceModule, isType: isType || /^type\s+/.test(piece) });
+        out.push({
+          name,
+          sourceModule,
+          isType: isType || /^type\s+/.test(piece),
+        });
       }
     }
   }
 
   // Form B: `export * from './Source'` — the source module name is the export
   // (matches the legacy regex behaviour for the components/ui barrel).
-  const reStar = /export\s+(type\s+)?\*\s+from\s+['"]\.\/([A-Z][A-Za-z0-9_]+)['"]/g;
+  const reStar =
+    /export\s+(type\s+)?\*\s+from\s+['"]\.\/([A-Z][A-Za-z0-9_]+)['"]/g;
   while ((m = reStar.exec(src)) !== null) {
     const isType = Boolean(m[1]);
     const sourceModule = m[2];
@@ -240,7 +244,9 @@ function main() {
   console.log(`Gallery specimen coverage (NS#2)`);
   console.log(`  exports scanned:    ${exports.length}`);
   console.log(`    components/ui:    ${uiExports.length}`);
-  console.log(`    agent (UI only):  ${agentExports.length}  [${agentExports.join(', ')}]`);
+  console.log(
+    `    agent (UI only):  ${agentExports.length}  [${agentExports.join(', ')}]`,
+  );
   console.log(`  ignored:            ${IGNORED.size}`);
   console.log(`  divider blocks:     ${dividerTexts.length}`);
   console.log(`  covered:            ${covered.length} / ${total}  (${pct}%)`);
