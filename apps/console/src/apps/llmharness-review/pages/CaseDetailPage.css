@@ -97,7 +97,7 @@
 
 .llmh-cdp__rail-row-mark {
   color: var(--accent-warning);
-  font-size: var(--fs-12);
+  font-size: var(--fs-13);
   line-height: 1;
 }
 
@@ -252,7 +252,7 @@
 }
 
 .llmh-insp__details {
-  font-size: var(--fs-12);
+  font-size: var(--fs-13);
 }
 
 .llmh-insp__pre {
@@ -269,7 +269,7 @@
 .llmh-cdp__detail-summary {
   white-space: pre-wrap;
   overflow-wrap: break-word;
-  font-size: var(--fs-12);
+  font-size: var(--fs-13);
   line-height: 1.5;
 }
 

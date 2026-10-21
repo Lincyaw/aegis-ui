@@ -46,7 +46,7 @@
   cursor: pointer;
   color: inherit;
   text-align: left;
-  font: var(--text-caption);
+  font: inherit;
   font-family: var(--font-ui);
 }
 
@@ -83,7 +83,7 @@
   background: transparent;
   border: none;
   color: inherit;
-  font: var(--text-caption);
+  font: inherit;
   font-family: var(--font-ui);
   padding: 0;
   outline: none;
@@ -153,7 +153,7 @@
   text-align: left;
   background: transparent;
   border: none;
-  font: var(--text-caption);
+  font: inherit;
   font-family: var(--font-ui);
   color: var(--text-main);
   padding: var(--space-1) var(--space-2);
@@ -180,7 +180,7 @@
   border: var(--size-hairline) solid var(--accent-warning);
   color: var(--accent-warning);
   border-radius: var(--radius-sm);
-  font: var(--text-caption);
+  font: inherit;
   font-family: var(--font-ui);
   padding: var(--space-px) var(--space-2);
   cursor: pointer;
@@ -193,7 +193,7 @@
 
 .aegis-chat-session-list__empty {
   padding: var(--space-3);
-  font: var(--text-caption);
+  font: inherit;
   font-family: var(--font-ui);
   color: var(--text-muted);
   text-align: center;

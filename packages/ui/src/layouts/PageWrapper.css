@@ -4,7 +4,7 @@
   padding: var(--space-6);
   max-width: var(--page-max-width);
   margin: 0 auto;
-  animation: page-fade-in var(--motion-base) forwards;
+  animation: page-fade-in var(--motion-base) backwards;
 }
 
 .page-wrapper > * + * {
