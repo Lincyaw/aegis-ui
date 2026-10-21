@@ -49,9 +49,13 @@ export interface AgentContextValue {
   send: (content: string) => Promise<void> | void;
   /** Optional: clear the current thread. */
   clear?: () => void;
-  /** Optional: panel open/closed (panel controls). Persisted by host. */
+  /**
+   * Optional: whether AegisShell's `agentPanel` is shown. Pass it with
+   * `setPanelOpen` to own the state; leave it undefined and
+   * <AgentProvider/> keeps it instead.
+   */
   panelOpen?: boolean;
-  /** Optional: toggle panel. */
+  /** Optional: open or close the agent panel (AegisShell's header toggle). */
   setPanelOpen?: (open: boolean) => void;
 }
 
