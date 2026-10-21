@@ -35,6 +35,7 @@ module.exports = {
       '%',
       'vh',
       'vw',
+      'cqi',
       'fr',
       'deg',
       'px',

@@ -339,11 +339,13 @@ export function DataTable<T>({
                   colSpan={columns.length}
                   className="aegis-data-table__empty-cell"
                 >
-                  <EmptyState
-                    title={emptyTitle}
-                    description={emptyDescription}
-                    action={emptyAction}
-                  />
+                  <div className="aegis-data-table__empty">
+                    <EmptyState
+                      title={emptyTitle}
+                      description={emptyDescription}
+                      action={emptyAction}
+                    />
+                  </div>
                 </td>
               </tr>
             ) : (

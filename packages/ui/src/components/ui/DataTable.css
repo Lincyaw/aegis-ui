@@ -6,6 +6,7 @@
 .aegis-data-table__scroll {
   overflow-x: auto;
   min-width: 0;
+  container-type: inline-size;
 }
 
 .aegis-data-table__table {
@@ -125,6 +126,14 @@
 .aegis-data-table__empty-cell {
   border-bottom: none;
   padding: 0;
+}
+
+/* Keep the empty state in the visible part of a table that is wider than
+ * its scroller. */
+.aegis-data-table__empty {
+  position: sticky;
+  left: 0;
+  width: 100cqi;
 }
 
 .aegis-data-table__footer {

@@ -18,7 +18,7 @@ Every visual value comes from a CSS custom property in `src/styles/theme.css`.
 **Allowed exceptions**:
 
 - `0` / `100%` / `auto` / `inherit` / `unset` — keyword-like values, not tokens
-- `em` / `rem` / `%` / `vh` / `vw` / `fr` — these are scale-relative
+- `em` / `rem` / `%` / `vh` / `vw` / `cqi` / `fr` — these are scale-relative
   units, not raw pixels
 - raw `px` _inside_ token declarations in `theme.css` (that's where the
   values live)
