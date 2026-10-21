@@ -82,7 +82,7 @@
 }
 
 .aegis-timeline-chart__row:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--bg-inverted);
+  box-shadow: inset 0 0 0 var(--size-border-thick) var(--bg-inverted);
 }
 
 .aegis-timeline-chart__row--selected,

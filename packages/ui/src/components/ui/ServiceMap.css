@@ -160,7 +160,7 @@
 
 .aegis-service-map__edge--error .aegis-service-map__edge-path {
   stroke: var(--accent-warning);
-  stroke-width: 2px;
+  stroke-width: var(--size-border-thick);
 }
 
 .aegis-service-map__edge-label {

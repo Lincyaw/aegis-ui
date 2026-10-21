@@ -158,6 +158,9 @@
   --ask-panel-width: 360px;
   --ask-panel-max-height: 480px;
 
+  /* ── Notification bell popover ───────────────────────────────────── */
+  --notif-popover-max-height: 420px;
+
   /* ── Component sizing (icons, controls, avatars) ─────────────────── */
   --size-icon-sm: 12px;
   --size-icon-base: 16px;
@@ -169,6 +172,9 @@
   --size-avatar-base: 32px;
   --size-avatar-lg: 40px;
   --size-hairline: 1px;
+  --size-border-thick: 2px;
+  --size-dot: 6px;
+  --size-badge: 16px;
   --size-resize-handle: 6px;
   --size-resize-collapsed: 8px;
 

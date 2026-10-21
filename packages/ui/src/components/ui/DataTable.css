@@ -43,8 +43,8 @@
 .aegis-data-table__resizer {
   position: absolute;
   top: 0;
-  right: -3px;
-  width: 6px;
+  right: calc(var(--size-resize-handle) / -2);
+  width: var(--size-resize-handle);
   height: 100%;
   cursor: col-resize;
   user-select: none;

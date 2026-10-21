@@ -79,7 +79,7 @@
   display: inline-block;
   width: var(--size-icon-base);
   height: var(--size-icon-base);
-  border: 2px solid var(--text-on-inverted-muted);
+  border: var(--size-border-thick) solid var(--text-on-inverted-muted);
   border-top-color: var(--text-on-inverted);
   border-radius: var(--radius-circle);
   animation: aegis-spin var(--motion-spin) linear infinite;
