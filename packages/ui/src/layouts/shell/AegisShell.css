@@ -204,6 +204,18 @@
   justify-content: center;
 }
 
+.aegis-shell__user {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Initials stand in for the name on narrow screens only. */
+.aegis-shell__user .aegis-shell__user-initials {
+  display: none;
+}
+
 .aegis-shell__header-center {
   flex: 1;
   display: flex;
@@ -463,6 +475,20 @@
       'main';
   }
 
+  .aegis-shell {
+    grid-template-rows: auto 1fr;
+  }
+
+  .aegis-shell__header {
+    flex-wrap: wrap;
+  }
+
+  .aegis-shell__header-left {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: calc(var(--header-height) - var(--size-hairline));
+  }
+
   .aegis-shell--with-sidebar .aegis-shell__header-left {
     width: auto;
     border-right: none;
@@ -470,6 +496,13 @@
 
   .aegis-shell__brand {
     flex: 1;
+    min-width: 0;
+  }
+
+  .aegis-shell__brand-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .aegis-shell__menu-toggle {
@@ -487,9 +520,36 @@
     display: none;
   }
 
+  /* An app's own header (project switcher, tabs) stays reachable: it
+     wraps onto a full-width row under the brand and actions. */
+  .aegis-shell__header-center--app {
+    display: flex;
+    order: 1;
+    flex: 1 0 100%;
+    min-height: calc(var(--size-control-base) + var(--space-3));
+    padding: 0;
+    border-top: var(--size-hairline) solid var(--border-hairline);
+  }
+
   .aegis-shell__header-right {
     flex-shrink: 0;
-    padding: 0;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+  }
+
+  .aegis-shell__user-name {
+    max-width: 6rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .aegis-shell__user--badge .aegis-shell__user-name {
+    display: none;
+  }
+
+  .aegis-shell__user .aegis-shell__user-initials {
+    display: inline-flex;
   }
 
   .aegis-shell__sidebar {

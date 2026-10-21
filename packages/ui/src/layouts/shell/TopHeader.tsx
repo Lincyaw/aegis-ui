@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode } from 'react';
 
 import { Link, useNavigate } from 'react-router-dom';
 
+import { Avatar } from '../../components/ui/Avatar';
 import {
   type DropdownItem,
   DropdownMenu,
@@ -70,7 +71,7 @@ export function TopHeader({
       {brand.logo && (
         <span className="aegis-shell__brand-logo">{brand.logo}</span>
       )}
-      <span>{brand.name}</span>
+      <span className="aegis-shell__brand-name">{brand.name}</span>
     </>
   );
 
@@ -132,7 +133,11 @@ export function TopHeader({
         )}
       </div>
       <div
-        className="aegis-shell__header-center"
+        className={
+          inlineSlotActive
+            ? 'aegis-shell__header-center aegis-shell__header-center--app'
+            : 'aegis-shell__header-center'
+        }
         ref={inlineSlotRef}
         data-aegis-inline-slot=""
       >
@@ -213,10 +218,25 @@ function UserMenu({ user }: { user: AegisUser }): ReactElement {
         : entry.onClick,
     };
   });
+  const badge =
+    user.avatar ??
+    (typeof user.name === 'string' ? (
+      <Avatar
+        name={user.name}
+        size="sm"
+        className="aegis-shell__user-initials"
+      />
+    ) : null);
   const trigger = (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-      {user.avatar}
-      <span>{user.name}</span>
+    <span
+      className={
+        badge
+          ? 'aegis-shell__user aegis-shell__user--badge'
+          : 'aegis-shell__user'
+      }
+    >
+      {badge}
+      <span className="aegis-shell__user-name">{user.name}</span>
     </span>
   );
   if (items.length === 0) {
