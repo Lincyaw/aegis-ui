@@ -145,6 +145,7 @@
   --motion-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --motion-skeleton: 1400ms;
   --motion-spin: 800ms;
+  --motion-pulse: 2000ms;
 
   /* ── Aegis highlight (agent "look here" cue) ─────────────────────── */
   --aegis-highlight-ring: rgba(99, 102, 241, 0.55);
@@ -160,6 +161,13 @@
 
   /* ── Notification bell popover ───────────────────────────────────── */
   --notif-popover-max-height: 420px;
+
+  /* ── Component layout sizes ──────────────────────────────────────── */
+  --object-browser-tree-width: 220px;
+  --composer-input-max-height: 160px;
+  --chat-session-menu-min-width: 140px;
+  --parquet-created-by-max-width: 200px;
+  --service-map-min-height: 360px;
 
   /* ── Component sizing (icons, controls, avatars) ─────────────────── */
   --size-icon-sm: 12px;

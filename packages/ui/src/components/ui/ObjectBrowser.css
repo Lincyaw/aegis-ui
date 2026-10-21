@@ -1,6 +1,6 @@
 .aegis-object-browser {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: var(--object-browser-tree-width) minmax(0, 1fr);
   gap: var(--space-4);
   min-width: 0;
 }

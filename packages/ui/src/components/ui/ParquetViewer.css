@@ -52,7 +52,7 @@
   font-family: var(--font-mono);
   font-size: var(--fs-11);
   color: var(--text-muted);
-  max-width: 200px;
+  max-width: var(--parquet-created-by-max-width);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
