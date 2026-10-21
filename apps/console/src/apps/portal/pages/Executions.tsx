@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -6,7 +7,6 @@ import {
   ErrorState,
   MonoValue,
   PageHeader,
-  PageSizeSelect,
   Panel,
   TimeDisplay,
   useAppHref,
@@ -27,9 +27,12 @@ export default function Executions() {
   const navigate = useAppNavigate();
   const href = useAppHref();
   const { size, setSize } = usePageSize('executions', 20);
+  // Switching the active project starts again from the first page.
+  const [paging, setPaging] = useState({ projectId, page: 1 });
+  const page = paging.projectId === projectId ? paging.page : 1;
   const { data, isLoading, isError, error, refetch } = useExecutionsList(
     projectId,
-    { size }
+    { page, size }
   );
   const items: ExecutionExecutionResp[] = data?.items ?? [];
 
@@ -66,58 +69,59 @@ export default function Executions() {
             }
           />
         ) : (
-          <>
-            <DataTable<ExecutionExecutionResp>
-              loading={isLoading}
-              emptyTitle='No executions'
-              emptyDescription='Run an algorithm to see results here.'
-              data={items}
-              rowKey={(r) => String(r.id ?? '')}
-              columns={[
-                {
-                  key: 'id',
-                  header: 'Execution',
-                  render: (r) => (
-                    <Link to={href(`executions/${String(r.id ?? '')}`)}>
-                      <MonoValue size='sm'>{String(r.id ?? '—')}</MonoValue>
-                    </Link>
-                  ),
-                },
-                {
-                  key: 'algorithm',
-                  header: 'Algorithm',
-                  render: (r) =>
-                    `${r.algorithm_name ?? '—'}${r.algorithm_version ? ` @ ${r.algorithm_version}` : ''}`,
-                },
-                {
-                  key: 'datapack',
-                  header: 'Datapack',
-                  render: (r) => (
-                    <MonoValue size='sm'>{r.datapack_name ?? '—'}</MonoValue>
-                  ),
-                },
-                {
-                  key: 'state',
-                  header: 'State',
-                  render: (r) => (
-                    <StatusChip status={r.state ?? r.status ?? 'pending'} />
-                  ),
-                },
-                {
-                  key: 'started',
-                  header: 'Created',
-                  render: (r) => <TimeDisplay value={r.created_at ?? ''} />,
-                },
-              ]}
-            />
-            <div className='page-table-footer'>
-              <PageSizeSelect
-                value={size}
-                onChange={setSize}
-                options={PAGE_SIZE_OPTIONS}
-              />
-            </div>
-          </>
+          <DataTable<ExecutionExecutionResp>
+            loading={isLoading}
+            emptyTitle='No executions'
+            emptyDescription='Run an algorithm to see results here.'
+            data={items}
+            rowKey={(r) => String(r.id ?? '')}
+            columns={[
+              {
+                key: 'id',
+                header: 'Execution',
+                render: (r) => (
+                  <Link to={href(`executions/${String(r.id ?? '')}`)}>
+                    <MonoValue size='sm'>{String(r.id ?? '—')}</MonoValue>
+                  </Link>
+                ),
+              },
+              {
+                key: 'algorithm',
+                header: 'Algorithm',
+                render: (r) =>
+                  `${r.algorithm_name ?? '—'}${r.algorithm_version ? ` @ ${r.algorithm_version}` : ''}`,
+              },
+              {
+                key: 'datapack',
+                header: 'Datapack',
+                render: (r) => (
+                  <MonoValue size='sm'>{r.datapack_name ?? '—'}</MonoValue>
+                ),
+              },
+              {
+                key: 'state',
+                header: 'State',
+                render: (r) => (
+                  <StatusChip status={r.state ?? r.status ?? 'pending'} />
+                ),
+              },
+              {
+                key: 'started',
+                header: 'Created',
+                render: (r) => <TimeDisplay value={r.created_at ?? ''} />,
+              },
+            ]}
+            pagination={{
+              page,
+              pageSize: size,
+              total: data?.pagination?.total,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              onChange: (nextPage, nextSize) => {
+                setPaging({ projectId, page: nextPage });
+                setSize(nextSize);
+              },
+            }}
+          />
         )}
       </Panel>
     </>

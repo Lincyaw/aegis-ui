@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -6,7 +7,6 @@ import {
   ErrorState,
   MonoValue,
   PageHeader,
-  PageSizeSelect,
   Panel,
   TimeDisplay,
   useAppHref,
@@ -24,10 +24,8 @@ export default function Datasets() {
   const navigate = useAppNavigate();
   const href = useAppHref();
   const { size, setSize } = usePageSize('datasets', 50);
-  const { data, isLoading, isError, error } = useDatasetsList({
-    page: 1,
-    size,
-  });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, error } = useDatasetsList({ page, size });
   const datasets = data?.items ?? [];
 
   return (
@@ -48,50 +46,51 @@ export default function Datasets() {
             description={errMsg(error, 'Unknown error')}
           />
         ) : (
-          <>
-            <DataTable<DatasetDatasetResp>
-              loading={isLoading}
-              emptyTitle='No datasets'
-              emptyDescription='Build a dataset from the Injections list.'
-              data={datasets}
-              rowKey={(r) => String(r.id ?? '')}
-              columns={[
-                {
-                  key: 'name',
-                  header: 'Name',
-                  render: (r) => (
-                    <Link to={href(`datasets/${String(r.id ?? '')}`)}>
-                      <MonoValue size='sm'>{r.name ?? '—'}</MonoValue>
-                    </Link>
-                  ),
-                },
-                { key: 'type', header: 'Type', render: (r) => r.type ?? '—' },
-                {
-                  key: 'visibility',
-                  header: 'Visibility',
-                  render: (r) => (r.is_public ? 'public' : 'private'),
-                },
-                {
-                  key: 'status',
-                  header: 'Status',
-                  render: (r) => r.status ?? '—',
-                },
-                {
-                  key: 'created',
-                  header: 'Created',
-                  render: (r) =>
-                    r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
-                },
-              ]}
-            />
-            <div className='page-table-footer'>
-              <PageSizeSelect
-                value={size}
-                onChange={setSize}
-                options={PAGE_SIZE_OPTIONS}
-              />
-            </div>
-          </>
+          <DataTable<DatasetDatasetResp>
+            loading={isLoading}
+            emptyTitle='No datasets'
+            emptyDescription='Build a dataset from the Injections list.'
+            data={datasets}
+            rowKey={(r) => String(r.id ?? '')}
+            columns={[
+              {
+                key: 'name',
+                header: 'Name',
+                render: (r) => (
+                  <Link to={href(`datasets/${String(r.id ?? '')}`)}>
+                    <MonoValue size='sm'>{r.name ?? '—'}</MonoValue>
+                  </Link>
+                ),
+              },
+              { key: 'type', header: 'Type', render: (r) => r.type ?? '—' },
+              {
+                key: 'visibility',
+                header: 'Visibility',
+                render: (r) => (r.is_public ? 'public' : 'private'),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (r) => r.status ?? '—',
+              },
+              {
+                key: 'created',
+                header: 'Created',
+                render: (r) =>
+                  r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
+              },
+            ]}
+            pagination={{
+              page,
+              pageSize: size,
+              total: data?.pagination?.total,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              onChange: (nextPage, nextSize) => {
+                setPage(nextPage);
+                setSize(nextSize);
+              },
+            }}
+          />
         )}
       </Panel>
     </>
