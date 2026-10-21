@@ -23,6 +23,7 @@ import {
   type ShellSnapshot,
 } from '../../agent';
 import { type AegisAuthUser, type AuthStatus, useAuth } from '../../auth';
+import { useCommands } from '../../commands';
 import { Chip } from '../../components/ui/Chip';
 import { readStorage, writeStorage } from '../../lib/storage';
 import { ThemeContext } from '../../theme/themeContext';
@@ -112,6 +113,12 @@ export function AegisShell({
   useEffect(() => {
     assertUniqueBasePaths(apps);
   }, [apps]);
+
+  const { setActiveScope } = useCommands();
+  const activeAppId = activeApp?.id;
+  useEffect(() => {
+    setActiveScope(activeAppId);
+  }, [setActiveScope, activeAppId]);
 
   // Auto-close the drawer on navigation.
   useEffect(() => {
