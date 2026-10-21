@@ -88,6 +88,7 @@ interface DataTableProps<T> {
 }
 
 const DEFAULT_MIN_WIDTH = 60;
+const AUTO_COLUMN_MIN_WIDTH = 120;
 
 function toCssWidth(w: number | string | undefined): string | undefined {
   if (w === undefined) {
@@ -166,6 +167,24 @@ export function DataTable<T>({
       }),
     [columns, overrides],
   );
+
+  // A fixed-layout table squeezes width-less columns to zero once the sized
+  // ones fill the container; a min-width lets the scroll wrapper take over.
+  const tableMinWidth = useMemo(() => {
+    if (!hasAnyWidth) {
+      return undefined;
+    }
+    const total = columns.reduce((sum, c) => {
+      const px =
+        c.key in overrides
+          ? overrides[c.key]
+          : typeof c.width === 'number'
+            ? c.width
+            : undefined;
+      return sum + (px ?? c.minWidth ?? AUTO_COLUMN_MIN_WIDTH);
+    }, 0);
+    return `${total.toString()}px`;
+  }, [columns, overrides, hasAnyWidth]);
 
   const startResize = useCallback(
     (col: DataTableColumn<T>, colIndex: number) =>
@@ -260,6 +279,7 @@ export function DataTable<T>({
               ? 'aegis-data-table__table aegis-data-table__table--fixed'
               : 'aegis-data-table__table'
           }
+          style={tableMinWidth ? { minWidth: tableMinWidth } : undefined}
         >
           {hasAnyWidth && (
             <colgroup>
