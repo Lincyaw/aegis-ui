@@ -135,7 +135,12 @@ export function ChatSessionList({
     .join(' ');
 
   return (
-    <ul ref={containerRef} className={cls} role="listbox" aria-label="对话列表">
+    <ul
+      ref={containerRef}
+      className={cls}
+      role="listbox"
+      aria-label="Conversations"
+    >
       {items.map((item, index) => {
         const isSelected = Boolean(item.selected);
         const isFocused = index === focusIndex;
@@ -195,7 +200,7 @@ export function ChatSessionList({
                     onBlur={() => {
                       commitRename(item.id);
                     }}
-                    aria-label="重命名对话"
+                    aria-label="Rename conversation"
                   />
                 </div>
               ) : (
@@ -223,7 +228,7 @@ export function ChatSessionList({
                   <button
                     type="button"
                     className="aegis-chat-session-list__more"
-                    aria-label="更多操作"
+                    aria-label="More actions"
                     aria-haspopup="menu"
                     aria-expanded={isMenuOpen}
                     aria-controls={`${listId}-menu-${item.id}`}
@@ -253,7 +258,7 @@ export function ChatSessionList({
                             setMenuOpenId(null);
                           }}
                         >
-                          重命名
+                          Rename
                         </button>
                       )}
                       {onDelete &&
@@ -269,7 +274,7 @@ export function ChatSessionList({
                                 setMenuOpenId(null);
                               }}
                             >
-                              确认?
+                              Confirm?
                             </button>
                           </span>
                         ) : (
@@ -282,7 +287,7 @@ export function ChatSessionList({
                               setConfirmDeleteId(item.id);
                             }}
                           >
-                            删除
+                            Delete
                           </button>
                         ))}
                     </div>
