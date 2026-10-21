@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import './CodeBlock.css';
 
 export type CodeBlockSurface = PrimitiveSurface<{
@@ -33,14 +34,11 @@ export function CodeBlock({
     'code',
     wrapRef,
   );
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard(1500);
 
   const handleCopy = useCallback(() => {
-    void navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  }, [code]);
+    void copy(code);
+  }, [copy, code]);
 
   const lines = code.split('\n');
   const padLen = String(lines.length).length;
