@@ -1,5 +1,6 @@
 import {
   Chip,
+  DataTable,
   EmptyState,
   MetricCard,
   PageHeader,
@@ -95,18 +96,23 @@ export default function ClusterStatus() {
         {failing.length === 0 ? (
           <Chip tone='ink'>All checks green</Chip>
         ) : (
-          <div className='page-table'>
-            <div className='page-table__head'>
-              <span className='page-table__cell'>Check</span>
-              <span className='page-table__cell'>Detail</span>
-            </div>
-            {failing.map((c) => (
-              <div key={c.id ?? c.name} className='page-table__row'>
-                <span className='page-table__cell'>{c.name ?? c.id}</span>
-                <span className='page-table__cell'>{normalizeDetail(c)}</span>
-              </div>
-            ))}
-          </div>
+          <DataTable<ClusterClusterCheck>
+            data={failing}
+            rowKey={(c) => c.id ?? c.name ?? ''}
+            columns={[
+              {
+                key: 'check',
+                header: 'Check',
+                render: (c) => c.name ?? c.id,
+              },
+              {
+                key: 'detail',
+                header: 'Detail',
+                truncate: false,
+                render: (c) => normalizeDetail(c),
+              },
+            ]}
+          />
         )}
       </Panel>
 
