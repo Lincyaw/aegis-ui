@@ -230,7 +230,10 @@ function normalizeForMatch(s: string): string {
 function turnText(turn: MainTurn): string {
   const parts: string[] = [];
   for (const block of turn.content) {
-    if (block.type === 'text' && typeof (block as { text?: unknown }).text === 'string') {
+    if (
+      block.type === 'text' &&
+      typeof (block as { text?: unknown }).text === 'string'
+    ) {
       parts.push((block as { text: string }).text);
     } else if (
       block.type === 'tool_result' &&
@@ -242,9 +245,7 @@ function turnText(turn: MainTurn): string {
   return parts.join(' ');
 }
 
-export function computeCaseLinks(
-  bundle: Omit<CaseBundle, 'links'>,
-): CaseLinks {
+export function computeCaseLinks(bundle: Omit<CaseBundle, 'links'>): CaseLinks {
   const turnToExtractor = new Map<number, number[]>();
   const turnToAuditor = new Map<number, number[]>();
   const eventOrigin = new Map<number, number>();
@@ -325,14 +326,3 @@ export function computeCaseLinks(
     reminderInjection,
   };
 }
-
-// --- Back-compat aliases for code that still imports from './types'. -------
-// The old `types.ts` file is removed; consumers should migrate to these names.
-
-export type MainAgentMessage = MainTurn;
-export type FiringFile = ExtractorFiring | AuditorFiring;
-export type GraphEvent = ExtractorEvent;
-export type GraphSnapshotFile = GraphSnapshot;
-export type SftRowBase = SftRow;
-export type EventKind = string;
-export type EdgeKind = string;

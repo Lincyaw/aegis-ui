@@ -63,21 +63,29 @@ export async function fetchHealth(url: string): Promise<HealthInfo> {
   return { root: raw.root, caseCount: raw.case_count, version: raw.version };
 }
 
-/* ── Blob-backed cases root ──────────────────────────────────────────
+/* ── Blob-backed roots ───────────────────────────────────────────────
  *
  * When set, the Case Review sub-app reads cases from the platform's
  * blob storage instead of (or in addition to) an external llmharness
  * backend / FS-Access local directory. Same `CaseRepo` contract — the
  * sub-app stays agnostic.
+ *
+ * The SFT root is stored separately from the cases root because SFT
+ * bundles are produced independently and typically live in a sibling
+ * prefix (e.g. `shared/sft-10case-2026-05-18/`).
  */
-
-const BLOB_STORAGE_KEY = 'aegis.llmharness.blob';
 
 export interface BlobRoot {
   bucket: string;
   /** Directory prefix inside the bucket. Always normalised to end with '/'.
    *  Empty string means the root of the bucket. */
   prefix: string;
+}
+
+export interface BlobRootStore {
+  get: () => BlobRoot | null;
+  set: (root: BlobRoot) => void;
+  clear: () => void;
 }
 
 function normaliseBlobPrefix(prefix: string): string {
@@ -88,92 +96,47 @@ function normaliseBlobPrefix(prefix: string): string {
   return p;
 }
 
-export function getBlobRoot(): BlobRoot | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  const raw = window.localStorage.getItem(BLOB_STORAGE_KEY);
-  if (!raw) {
-    return null;
-  }
-  try {
-    const parsed = JSON.parse(raw) as Partial<BlobRoot>;
-    if (typeof parsed.bucket !== 'string' || !parsed.bucket.trim()) {
-      return null;
-    }
-    return {
-      bucket: parsed.bucket.trim(),
-      prefix: normaliseBlobPrefix(parsed.prefix ?? ''),
-    };
-  } catch {
-    return null;
-  }
-}
-
-export function setBlobRoot(root: BlobRoot): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  const value: BlobRoot = {
-    bucket: root.bucket.trim(),
-    prefix: normaliseBlobPrefix(root.prefix),
+function createBlobRootStore(storageKey: string): BlobRootStore {
+  return {
+    get() {
+      if (typeof window === 'undefined') {
+        return null;
+      }
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) {
+        return null;
+      }
+      try {
+        const parsed = JSON.parse(raw) as Partial<BlobRoot>;
+        if (typeof parsed.bucket !== 'string' || !parsed.bucket.trim()) {
+          return null;
+        }
+        return {
+          bucket: parsed.bucket.trim(),
+          prefix: normaliseBlobPrefix(parsed.prefix ?? ''),
+        };
+      } catch {
+        return null;
+      }
+    },
+    set(root) {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      const value: BlobRoot = {
+        bucket: root.bucket.trim(),
+        prefix: normaliseBlobPrefix(root.prefix),
+      };
+      window.localStorage.setItem(storageKey, JSON.stringify(value));
+    },
+    clear() {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.localStorage.removeItem(storageKey);
+    },
   };
-  window.localStorage.setItem(BLOB_STORAGE_KEY, JSON.stringify(value));
 }
 
-export function clearBlobRoot(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  window.localStorage.removeItem(BLOB_STORAGE_KEY);
-}
-
-/* ── Blob-backed SFT root ────────────────────────────────────────────
- *
- * Separate from `BlobRoot` (which points at the cases directory tree)
- * because SFT bundles are produced independently and typically live in
- * a sibling prefix (e.g. `shared/sft-10case-2026-05-18/`). Same wire
- * shape, separate storage key so users can configure both.
- */
-
-const BLOB_SFT_STORAGE_KEY = 'aegis.llmharness.blob.sft';
-
-export function getBlobSftRoot(): BlobRoot | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  const raw = window.localStorage.getItem(BLOB_SFT_STORAGE_KEY);
-  if (!raw) {
-    return null;
-  }
-  try {
-    const parsed = JSON.parse(raw) as Partial<BlobRoot>;
-    if (typeof parsed.bucket !== 'string' || !parsed.bucket.trim()) {
-      return null;
-    }
-    return {
-      bucket: parsed.bucket.trim(),
-      prefix: normaliseBlobPrefix(parsed.prefix ?? ''),
-    };
-  } catch {
-    return null;
-  }
-}
-
-export function setBlobSftRoot(root: BlobRoot): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  const value: BlobRoot = {
-    bucket: root.bucket.trim(),
-    prefix: normaliseBlobPrefix(root.prefix),
-  };
-  window.localStorage.setItem(BLOB_SFT_STORAGE_KEY, JSON.stringify(value));
-}
-
-export function clearBlobSftRoot(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  window.localStorage.removeItem(BLOB_SFT_STORAGE_KEY);
-}
+export const casesBlobRoot = createBlobRootStore('aegis.llmharness.blob');
+export const sftBlobRoot = createBlobRootStore('aegis.llmharness.blob.sft');

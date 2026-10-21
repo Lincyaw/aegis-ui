@@ -31,19 +31,19 @@ import {
   restoreSftRoot,
   type SftRepo,
 } from '../repo';
-import type { DroppedRow, SftRowBase } from '../schemas';
+import type { DroppedRow, SftRow } from '../schemas';
 
 import './SftPage.css';
 
 type Phase = 'extractor' | 'auditor';
 
 interface LoadedSft {
-  extractor: SftRowBase[];
-  auditor: SftRowBase[];
+  extractor: SftRow[];
+  auditor: SftRow[];
   dropped: DroppedRow[];
 }
 
-function auditorSurfaced(row: SftRowBase): boolean {
+function auditorSurfaced(row: SftRow): boolean {
   const call = row.target.tool_calls[0];
   const v = (call?.arguments as { verdict?: { surface_reminder?: boolean } })
     ?.verdict;
@@ -62,7 +62,7 @@ export function SftPage(): ReactElement {
   const [phase, setPhase] = useState<Phase>('auditor');
   const [search, setSearch] = useState('');
   const [onlySurfaced, setOnlySurfaced] = useState(false);
-  const [selected, setSelected] = useState<SftRowBase | null>(null);
+  const [selected, setSelected] = useState<SftRow | null>(null);
 
   const refresh = useCallback(async (r: SftRepo) => {
     setLoading(true);
@@ -134,7 +134,7 @@ export function SftPage(): ReactElement {
     setSelected(null);
   }, [repoSource]);
 
-  const rows: SftRowBase[] = useMemo(() => {
+  const rows: SftRow[] = useMemo(() => {
     if (!data) return [];
     return phase === 'extractor' ? data.extractor : data.auditor;
   }, [data, phase]);
@@ -180,7 +180,7 @@ export function SftPage(): ReactElement {
     );
   }
 
-  const columns: Array<DataTableColumn<SftRowBase>> = [
+  const columns: Array<DataTableColumn<SftRow>> = [
     {
       key: 'sample',
       header: 'sample_id',
@@ -217,7 +217,7 @@ export function SftPage(): ReactElement {
             key: 'surfaced',
             header: 'verdict',
             width: 120,
-            render: (r: SftRowBase) => {
+            render: (r: SftRow) => {
               const surfaced = auditorSurfaced(r);
               return (
                 <Chip tone={surfaced ? 'warning' : 'ghost'}>

@@ -1,12 +1,12 @@
 import { Chip, KeyValueList, MetricLabel } from '@lincyaw/aegis-ui';
 
-import type { DroppedRow, SftRowBase } from '../schemas';
+import type { DroppedRow, SftRow } from '../schemas';
 
 import './SftStats.css';
 
 interface SftStatsProps {
-  extractor: SftRowBase[];
-  auditor: SftRowBase[];
+  extractor: SftRow[];
+  auditor: SftRow[];
   dropped: DroppedRow[];
 }
 
@@ -18,7 +18,7 @@ function uniqueSamples(rows: Array<{ sample_id?: string }>): number {
   return set.size;
 }
 
-function surfacedCount(rows: SftRowBase[]): number {
+function surfacedCount(rows: SftRow[]): number {
   let n = 0;
   for (const r of rows) {
     const call = r.target.tool_calls[0];

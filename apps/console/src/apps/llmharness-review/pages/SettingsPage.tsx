@@ -1,11 +1,6 @@
-import { CaretDownOutlined, FolderOutlined } from '@ant-design/icons';
-import {
-  type ReactElement,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { type ReactElement, useCallback, useEffect, useState } from 'react';
 
+import { CaretDownOutlined, FolderOutlined } from '@ant-design/icons';
 import {
   Button,
   Chip,
@@ -25,17 +20,15 @@ import {
   listBuckets,
 } from '../../../api/blobClient';
 import {
+  type BlobRoot,
+  type BlobRootStore,
+  casesBlobRoot,
   clearBackendUrl,
-  clearBlobRoot,
-  clearBlobSftRoot,
   fetchHealth,
   getBackendUrl,
-  getBlobRoot,
-  getBlobSftRoot,
   type HealthInfo,
   setBackendUrl,
-  setBlobRoot,
-  setBlobSftRoot,
+  sftBlobRoot,
 } from '../connection';
 
 type ProbeState =
@@ -52,16 +45,9 @@ type BrowseState =
   | { kind: 'ok'; subdirs: string[]; truncated: boolean }
   | { kind: 'error'; message: string };
 
-interface SavedBlob {
-  bucket: string;
-  prefix: string;
-}
-
 interface BlobPathPickerProps {
   buckets: BucketSummary[];
-  saved: SavedBlob | null;
-  onSave: (bucket: string, prefix: string) => void;
-  onForget: () => void;
+  store: BlobRootStore;
   saveLabel: string;
   forgetLabel: string;
   emptyHint: string;
@@ -69,13 +55,12 @@ interface BlobPathPickerProps {
 
 function BlobPathPicker({
   buckets,
-  saved,
-  onSave,
-  onForget,
+  store,
   saveLabel,
   forgetLabel,
   emptyHint,
 }: BlobPathPickerProps): ReactElement {
+  const [saved, setSaved] = useState<BlobRoot | null>(store.get);
   const [bucket, setBucket] = useState<string>(saved?.bucket ?? '');
   const [prefix, setPrefix] = useState<string>(saved?.prefix ?? '');
   const [browse, setBrowse] = useState<BrowseState>({ kind: 'idle' });
@@ -102,7 +87,9 @@ function BlobPathPicker({
         if (cancelled) {
           return;
         }
-        const subdirs = (page.common_prefixes ?? []).filter((p) => p !== prefix);
+        const subdirs = (page.common_prefixes ?? []).filter(
+          (p) => p !== prefix
+        );
         setBrowse({
           kind: 'ok',
           subdirs,
@@ -247,21 +234,21 @@ function BlobPathPicker({
             )}
             {browse.kind === 'ok' &&
               browse.subdirs.map((sub) => {
-                const rel = sub.startsWith(prefix) ? sub.slice(prefix.length) : sub;
+                const rel = sub.startsWith(prefix)
+                  ? sub.slice(prefix.length)
+                  : sub;
                 const label = rel.replace(/\/$/, '');
                 return (
-                  <Chip
-                    key={sub}
-                    tone='default'
-                    onClick={() => setPrefix(sub)}
-                  >
+                  <Chip key={sub} tone='default' onClick={() => setPrefix(sub)}>
                     <FolderOutlined style={{ marginRight: 4 }} />
                     {label}
                   </Chip>
                 );
               })}
             {browse.kind === 'ok' && browse.truncated && (
-              <MetricLabel size='xs'>…list truncated at 1000 entries</MetricLabel>
+              <MetricLabel size='xs'>
+                …list truncated at 1000 entries
+              </MetricLabel>
             )}
           </div>
         </div>
@@ -279,7 +266,10 @@ function BlobPathPicker({
         {statusChip}
         <div style={{ flex: 1 }} />
         <Button
-          onClick={() => onSave(bucket.trim(), prefix)}
+          onClick={() => {
+            store.set({ bucket, prefix });
+            setSaved(store.get());
+          }}
           disabled={!bucket || !dirty}
         >
           {saveLabel}
@@ -305,7 +295,13 @@ function BlobPathPicker({
             ]}
           />
           <div style={{ marginTop: 12 }}>
-            <Button tone='ghost' onClick={onForget}>
+            <Button
+              tone='ghost'
+              onClick={() => {
+                store.clear();
+                setSaved(null);
+              }}
+            >
               {forgetLabel}
             </Button>
           </div>
@@ -321,8 +317,6 @@ export function SettingsPage(): ReactElement {
   const [probe, setProbe] = useState<ProbeState>({ kind: 'idle' });
 
   const [buckets, setBuckets] = useState<BucketSummary[]>([]);
-  const [savedBlob, setSavedBlob] = useState<SavedBlob | null>(null);
-  const [savedSftBlob, setSavedSftBlob] = useState<SavedBlob | null>(null);
 
   const probeUrl = useCallback(async (url: string): Promise<void> => {
     setProbe({ kind: 'probing' });
@@ -343,14 +337,6 @@ export function SettingsPage(): ReactElement {
     setDraft(current ?? '');
     if (current) {
       void probeUrl(current);
-    }
-    const blob = getBlobRoot();
-    if (blob) {
-      setSavedBlob({ bucket: blob.bucket, prefix: blob.prefix });
-    }
-    const sftBlob = getBlobSftRoot();
-    if (sftBlob) {
-      setSavedSftBlob({ bucket: sftBlob.bucket, prefix: sftBlob.prefix });
     }
     listBuckets()
       .then(setBuckets)
@@ -382,38 +368,6 @@ export function SettingsPage(): ReactElement {
     setSaved(null);
     setDraft('');
     setProbe({ kind: 'idle' });
-  }, []);
-
-  const handleBlobSave = useCallback((bucket: string, prefix: string): void => {
-    if (!bucket) {
-      return;
-    }
-    setBlobRoot({ bucket, prefix });
-    const stored = getBlobRoot();
-    if (stored) {
-      setSavedBlob({ bucket: stored.bucket, prefix: stored.prefix });
-    }
-  }, []);
-
-  const handleBlobForget = useCallback((): void => {
-    clearBlobRoot();
-    setSavedBlob(null);
-  }, []);
-
-  const handleSftSave = useCallback((bucket: string, prefix: string): void => {
-    if (!bucket) {
-      return;
-    }
-    setBlobSftRoot({ bucket, prefix });
-    const stored = getBlobSftRoot();
-    if (stored) {
-      setSavedSftBlob({ bucket: stored.bucket, prefix: stored.prefix });
-    }
-  }, []);
-
-  const handleSftForget = useCallback((): void => {
-    clearBlobSftRoot();
-    setSavedSftBlob(null);
   }, []);
 
   const statusChip = (() => {
@@ -514,9 +468,7 @@ export function SettingsPage(): ReactElement {
       >
         <BlobPathPicker
           buckets={buckets}
-          saved={savedBlob}
-          onSave={handleBlobSave}
-          onForget={handleBlobForget}
+          store={casesBlobRoot}
           saveLabel='Save'
           forgetLabel='Forget blob source'
           emptyHint='no sub-directories here — saving this prefix will scan its contents as cases'
@@ -528,9 +480,7 @@ export function SettingsPage(): ReactElement {
       >
         <BlobPathPicker
           buckets={buckets}
-          saved={savedSftBlob}
-          onSave={handleSftSave}
-          onForget={handleSftForget}
+          store={sftBlobRoot}
           saveLabel='Save'
           forgetLabel='Forget SFT source'
           emptyHint='no sub-directories here — saving this prefix will read extractor.jsonl / auditor.jsonl / dropped.jsonl from it'
