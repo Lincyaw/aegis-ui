@@ -22,7 +22,7 @@ import {
   AskOverlay,
   type ShellSnapshot,
 } from '../../agent';
-import { type AegisAuthUser, useAuth } from '../../auth';
+import { type AegisAuthUser, type AuthStatus, useAuth } from '../../auth';
 import { Chip } from '../../components/ui/Chip';
 import { readStorage, writeStorage } from '../../lib/storage';
 import { ThemeContext } from '../../theme/themeContext';
@@ -34,6 +34,7 @@ import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
 import { ActiveAppContext } from './activeAppContext';
 import { ActiveAppEnvironmentProvider } from './environments';
+import { normalizeBasePath } from './paths';
 import type { AegisApp, AegisShellProps, AegisUser } from './types';
 
 const SIDEBAR_COLLAPSED_KEY = 'aegis-shell.sidebar-collapsed';
@@ -103,7 +104,7 @@ export function AegisShell({
   const activeAppValue = useMemo(
     () =>
       activeApp
-        ? { id: activeApp.id, basePath: stripTrailingSlash(activeApp.basePath) }
+        ? { id: activeApp.id, basePath: normalizeBasePath(activeApp.basePath) }
         : null,
     [activeApp],
   );
@@ -132,7 +133,7 @@ export function AegisShell({
 
   const routeTree = useMemo<RouteObject[]>(() => {
     const appRoutes: RouteObject[] = apps.map((app) => ({
-      path: `${stripTrailingSlash(app.basePath)}/*`,
+      path: `${normalizeBasePath(app.basePath)}/*`,
       element: (
         <PageWrapper>
           {isAppVisible(app, auth.status, auth.user) ? (
@@ -312,7 +313,7 @@ function renderAppRegion(
 function assertUniqueBasePaths(apps: AegisApp[]): void {
   const seen = new Map<string, string>();
   for (const app of apps) {
-    const key = stripTrailingSlash(app.basePath);
+    const key = normalizeBasePath(app.basePath);
     const prev = seen.get(key);
     if (prev) {
       // eslint-disable-next-line no-console
@@ -332,23 +333,20 @@ function findActiveApp(
   // Longest-prefix wins so that nested basePaths still work.
   const candidates = apps
     .filter((app) => {
-      const base = stripTrailingSlash(app.basePath);
+      const base = normalizeBasePath(app.basePath);
       return pathname === base || pathname.startsWith(`${base}/`);
     })
-    .sort((a, b) => b.basePath.length - a.basePath.length);
+    .sort(
+      (a, b) =>
+        normalizeBasePath(b.basePath).length -
+        normalizeBasePath(a.basePath).length,
+    );
   return candidates[0];
-}
-
-function stripTrailingSlash(p: string): string {
-  if (p === '/') {
-    return '';
-  }
-  return p.endsWith('/') ? p.slice(0, -1) : p;
 }
 
 function isAppVisible(
   app: AegisApp,
-  status: 'loading' | 'authenticated' | 'unauthenticated',
+  status: AuthStatus,
   user: AegisAuthUser | null,
 ): boolean {
   if (app.requiresAuth === false) {

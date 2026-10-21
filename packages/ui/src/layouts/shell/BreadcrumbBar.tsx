@@ -6,6 +6,7 @@ import {
   Breadcrumb,
   type BreadcrumbItem,
 } from '../../components/ui/Breadcrumb';
+import { joinPath } from './paths';
 import type { AegisApp } from './types';
 
 interface BreadcrumbBarProps {
@@ -29,7 +30,7 @@ export function BreadcrumbBar({
       return [];
     }
     const trail: BreadcrumbItem[] = [
-      { label: activeApp.label, to: activeApp.basePath },
+      { label: activeApp.label, to: joinPath(activeApp.basePath, '') },
     ];
 
     const navItems = (activeApp.sidebar ?? []).flatMap((group) => group.items);
@@ -73,10 +74,4 @@ function InternalLink({
       {children}
     </Link>
   );
-}
-
-function joinPath(base: string, rel: string): string {
-  const b = base.endsWith('/') ? base.slice(0, -1) : base;
-  const r = rel.startsWith('/') ? rel.slice(1) : rel;
-  return r ? `${b}/${r}` : b;
 }

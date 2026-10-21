@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { type NavigateOptions, useNavigate } from 'react-router-dom';
 
 import { useActiveApp } from './activeAppContext';
+import { joinPath } from './paths';
 
 /**
  * Resolves an app-relative path against the active app's `basePath`.
@@ -19,20 +20,13 @@ import { useActiveApp } from './activeAppContext';
 export function useAppHref(): (to: string) => string {
   const { basePath } = useActiveApp();
   return useCallback(
-    (to: string) => {
-      if (
-        to === '' ||
-        to.startsWith('http://') ||
-        to.startsWith('https://') ||
-        to.startsWith('mailto:') ||
-        to.startsWith('#')
-      ) {
-        return to === '' ? basePath || '/' : to;
-      }
-      const rel = to.startsWith('/') ? to.slice(1) : to;
-      const base = basePath || '';
-      return rel === '' ? base || '/' : `${base}/${rel}`;
-    },
+    (to: string) =>
+      to.startsWith('http://') ||
+      to.startsWith('https://') ||
+      to.startsWith('mailto:') ||
+      to.startsWith('#')
+        ? to
+        : joinPath(basePath, to),
     [basePath],
   );
 }
