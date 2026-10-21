@@ -1,7 +1,32 @@
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'fs';
 import path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+
+const pkg = JSON.parse(
+  readFileSync(path.resolve(__dirname, 'package.json'), 'utf8'),
+) as {
+  dependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+};
+
+const externalPackages = Object.keys({
+  ...pkg.dependencies,
+  ...pkg.peerDependencies,
+});
+
+// Consumers install dependencies themselves, so bundling them would ship a
+// second copy (and break singletons like @codemirror/state). Stylesheets stay
+// bundled because dist/style.css is the only CSS consumers import.
+function isExternal(id: string): boolean {
+  if (/\.css(\?|$)/.test(id)) {
+    return false;
+  }
+  return externalPackages.some(
+    (name) => id === name || id.startsWith(`${name}/`),
+  );
+}
 
 export default defineConfig({
   plugins: [
@@ -26,14 +51,7 @@ export default defineConfig({
       cssFileName: 'style',
     },
     rollupOptions: {
-      external: [
-        'react',
-        'react/jsx-runtime',
-        'react-dom',
-        'react-router-dom',
-        'antd',
-        /^@ant-design\/icons/,
-      ],
+      external: isExternal,
       output: {
         assetFileNames: (assetInfo) =>
           assetInfo.name === 'style.css'
