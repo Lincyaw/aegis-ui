@@ -15,6 +15,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useInjectionsList } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
@@ -114,9 +115,7 @@ export default function Injections() {
         {isError ? (
           <EmptyState
             title='Failed to load injections'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         ) : (
           <>

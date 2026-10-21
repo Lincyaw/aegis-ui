@@ -27,6 +27,7 @@ import type {
 } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import {
   isActiveTraceState,
   useInjectionDetail,
@@ -462,11 +463,10 @@ export default function InjectionProcess() {
       <Panel>
         <EmptyState
           title='Process trace unavailable'
-          description={
-            error instanceof Error
-              ? error.message
-              : 'The orchestrator has not reported this trace.'
-          }
+          description={errMsg(
+            error,
+            'The orchestrator has not reported this trace.'
+          )}
         />
       </Panel>
     );

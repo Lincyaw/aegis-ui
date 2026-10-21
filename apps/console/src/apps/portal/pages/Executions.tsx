@@ -14,6 +14,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import type { ExecutionExecutionResp } from '@lincyaw/portal';
 
+import { errMsg } from '../../../api/apiClient';
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import { useExecutionsList } from '../hooks/useExecutions';
@@ -52,9 +53,7 @@ export default function Executions() {
         {isError ? (
           <ErrorState
             title='Failed to load executions'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
             action={
               <Button
                 tone='secondary'

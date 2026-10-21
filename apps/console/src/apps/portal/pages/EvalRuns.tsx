@@ -14,6 +14,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import {
   type EvaluationResp,
   useDeleteEvaluation,
@@ -52,9 +53,7 @@ export default function EvalRuns() {
         {isError ? (
           <EmptyState
             title='Failed to load evaluations'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         ) : (
           <DataTable<EvaluationResp>

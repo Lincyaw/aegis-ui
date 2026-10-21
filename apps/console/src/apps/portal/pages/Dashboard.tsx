@@ -27,6 +27,7 @@ import type {
 } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
+import { errMsg } from '../../../api/apiClient';
 import { projectsApi } from '../api/portal-client';
 
 import './Dashboard.css';
@@ -77,10 +78,6 @@ const DEMO_TERMINAL_LINES: TerminalLine[] = [
     body: 'RCA conclusion → missing index',
   },
 ];
-
-function errMsg(e: unknown): string {
-  return e instanceof Error ? e.message : String(e);
-}
 
 export default function Dashboard(): ReactElement {
   const projectsQuery = useQuery({

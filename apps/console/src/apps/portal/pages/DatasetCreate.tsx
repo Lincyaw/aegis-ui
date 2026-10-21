@@ -10,6 +10,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Select } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useCreateDataset } from '../api/datasets';
 
 const TYPES = [
@@ -49,9 +50,7 @@ export default function DatasetCreate() {
           }
         },
         onError: (err) => {
-          void msg.error(
-            err instanceof Error ? err.message : 'Failed to create dataset'
-          );
+          void msg.error(errMsg(err, 'Failed to create dataset'));
         },
       }
     );

@@ -6,6 +6,8 @@
  * Each surface routes through its own vite proxy prefix (see
  * vite.config.ts), so callers stay on relative paths.
  */
+import { isAxiosError } from 'axios';
+
 import { readTokens } from '../auth/tokenStore';
 import { gatewayUrlFor } from '../config/runtime';
 
@@ -84,12 +86,20 @@ export async function apiJson<T>(
   return (await res.json()) as T;
 }
 
-/** Human-readable message for a caught error from this transport. */
-export function errMsg(e: unknown): string {
+/**
+ * Human-readable message for a caught error — this transport's ApiError,
+ * an axios error from the portal SDK (prefers the server's `message`), or
+ * any other Error. Non-errors yield `fallback`.
+ */
+export function errMsg(e: unknown, fallback = 'unknown error'): string {
+  if (isAxiosError(e)) {
+    const data = e.response?.data as { message?: string } | undefined;
+    return data?.message ?? e.message;
+  }
   if (e instanceof Error) {
     return e.message;
   }
-  return 'unknown error';
+  return fallback;
 }
 
 /** Standard aegis `{code,message,data}` response envelope. */

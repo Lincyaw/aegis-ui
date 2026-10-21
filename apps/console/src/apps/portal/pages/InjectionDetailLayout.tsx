@@ -13,6 +13,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useInjectionDetail } from '../api/injections';
 import { injectionsApi } from '../api/portal-client';
 import { StatusChip } from '../components/StatusChip';
@@ -65,7 +66,7 @@ export default function InjectionDetailLayout() {
       void qc.invalidateQueries({ queryKey: ['portal', 'injections'] });
     },
     onError: (e: unknown) => {
-      void msg.error(e instanceof Error ? e.message : 'Cancel failed');
+      void msg.error(errMsg(e, 'Cancel failed'));
     },
   });
 
@@ -110,11 +111,10 @@ export default function InjectionDetailLayout() {
         <Panel>
           <EmptyState
             title='Injection not found'
-            description={
-              error instanceof Error
-                ? error.message
-                : 'It may have been removed or never existed.'
-            }
+            description={errMsg(
+              error,
+              'It may have been removed or never existed.'
+            )}
           />
         </Panel>
       </>

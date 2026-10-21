@@ -15,6 +15,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import type { LabelLabelResp } from '@lincyaw/portal';
 
+import { errMsg } from '../../../api/apiClient';
 import { useLabelsList } from '../api/labels';
 import { usePageSize } from '../hooks/usePageSize';
 
@@ -45,9 +46,7 @@ export default function Labels() {
         {isError ? (
           <ErrorState
             title='Failed to load labels'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         ) : (
           <>

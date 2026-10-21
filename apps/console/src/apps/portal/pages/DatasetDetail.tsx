@@ -18,6 +18,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useDataset, useDeleteDataset } from '../api/datasets';
 
 export default function DatasetDetail() {
@@ -46,9 +47,7 @@ export default function DatasetDetail() {
         <Panel>
           <ErrorState
             title='Failed to load dataset'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         </Panel>
       </>
@@ -100,11 +99,7 @@ export default function DatasetDetail() {
                     navigate('datasets');
                   },
                   onError: (err) => {
-                    void msg.error(
-                      err instanceof Error
-                        ? err.message
-                        : 'Failed to delete dataset'
-                    );
+                    void msg.error(errMsg(err, 'Failed to delete dataset'));
                   },
                 });
               }}

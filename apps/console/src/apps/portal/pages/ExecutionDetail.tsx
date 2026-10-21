@@ -16,6 +16,7 @@ import {
 import type { ExecutionDetectorResultItem } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useTraceLogs } from '../api/traces';
 import { StatusChip } from '../components/StatusChip';
 import { TraceLogsPanel } from '../components/TraceLogsPanel';
@@ -116,9 +117,7 @@ export default function ExecutionDetail() {
         <Panel>
           <ErrorState
             title='Not found'
-            description={
-              error instanceof Error ? error.message : 'Unknown execution.'
-            }
+            description={errMsg(error, 'Unknown execution.')}
           />
         </Panel>
       </>

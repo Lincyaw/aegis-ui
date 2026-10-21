@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 
 import { AuthLayout, ForgotPasswordForm } from '@lincyaw/aegis-ui';
 
+import { errMsg } from '../../api/apiClient';
+
 // SSO has no password-reset endpoint yet; stub keeps the form working
 // so the user gets the standard "if an account exists…" acknowledgement.
 async function requestPasswordReset(_email: string): Promise<void> {
@@ -23,7 +25,7 @@ export function ForgotPassword(): ReactElement {
         `If an account exists for ${values.email}, we've sent a reset link.`
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong');
+      setError(errMsg(e, 'Something went wrong'));
     } finally {
       setSubmitting(false);
     }

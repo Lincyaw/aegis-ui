@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import { AuthLayout, LoginForm, useAuth } from '@lincyaw/aegis-ui';
 
+import { errMsg } from '../../api/apiClient';
 import { ssoUrlFor } from '../../config/runtime';
 
 interface LoginFormValues {
@@ -107,7 +108,7 @@ export function Login(): ReactElement {
       try {
         await signIn?.({ redirectAfter: from });
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Sign in failed');
+        setError(errMsg(e, 'Sign in failed'));
         triggered.current = false;
       }
     })();

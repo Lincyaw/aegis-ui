@@ -16,6 +16,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useDeleteLabel, useLabel } from '../api/labels';
 
 export default function LabelDetail() {
@@ -44,9 +45,7 @@ export default function LabelDetail() {
         <Panel>
           <ErrorState
             title='Failed to load label'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         </Panel>
       </>
@@ -83,11 +82,7 @@ export default function LabelDetail() {
                   navigate('labels');
                 },
                 onError: (err) => {
-                  void msg.error(
-                    err instanceof Error
-                      ? err.message
-                      : 'Failed to delete label'
-                  );
+                  void msg.error(errMsg(err, 'Failed to delete label'));
                 },
               });
             }}

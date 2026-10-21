@@ -14,6 +14,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import type { DatasetDatasetResp } from '@lincyaw/portal';
 
+import { errMsg } from '../../../api/apiClient';
 import { useDatasetsList } from '../api/datasets';
 import { usePageSize } from '../hooks/usePageSize';
 
@@ -44,9 +45,7 @@ export default function Datasets() {
         {isError ? (
           <ErrorState
             title='Failed to load datasets'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         ) : (
           <>

@@ -23,6 +23,7 @@ import { useQuery } from '@tanstack/react-query';
 import { App as AntdApp, Select, Spin } from 'antd';
 import yaml from 'js-yaml';
 
+import { errMsg } from '../../../api/apiClient';
 import { useInstallPedestal, usePedestalHelmConfig } from '../api/pedestals';
 import { containersApi } from '../api/portal-client';
 import { useSystems } from '../api/systems';
@@ -60,7 +61,7 @@ function parseHelmYaml(text: string): HelmParseResult {
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'Invalid YAML',
+      error: errMsg(err, 'Invalid YAML'),
     };
   }
   if (parsed == null) {

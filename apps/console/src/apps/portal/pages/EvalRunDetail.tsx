@@ -14,6 +14,7 @@ import {
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
 
+import { errMsg } from '../../../api/apiClient';
 import { useEvaluation } from '../api/hooks/useEvaluations';
 
 export default function EvalRunDetail() {
@@ -44,11 +45,7 @@ export default function EvalRunDetail() {
         <Panel>
           <EmptyState
             title={isError ? 'Failed to load' : 'Not found'}
-            description={
-              error instanceof Error
-                ? error.message
-                : 'Run may have been removed.'
-            }
+            description={errMsg(error, 'Run may have been removed.')}
           />
         </Panel>
       </>

@@ -10,6 +10,7 @@ import {
 import { PageSize } from '@lincyaw/portal';
 import { App as AntdApp, Select } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useDatasetsList } from '../api/datasets';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import { useContainersList } from '../hooks/useContainers';
@@ -50,7 +51,7 @@ export default function ExecutionCreate() {
           navigate('executions');
         },
         onError: (err) => {
-          void msg.error(err instanceof Error ? err.message : 'Submit failed');
+          void msg.error(errMsg(err, 'Submit failed'));
         },
       }
     );

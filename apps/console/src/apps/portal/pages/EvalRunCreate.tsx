@@ -11,6 +11,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Input, Select } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useDatasetsList } from '../api/datasets';
 import { useBatchEvaluateDataset } from '../api/hooks/useEvaluations';
 
@@ -72,11 +73,7 @@ export default function EvalRunCreate() {
         {datasetsQ.isError ? (
           <EmptyState
             title='Could not load datasets'
-            description={
-              datasetsQ.error instanceof Error
-                ? datasetsQ.error.message
-                : 'Unknown error'
-            }
+            description={errMsg(datasetsQ.error, 'Unknown error')}
           />
         ) : null}
         <FormRow label='Algorithm name'>
