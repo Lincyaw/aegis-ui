@@ -32,7 +32,10 @@ function normalizeCell(v: unknown): unknown {
     return v;
   }
   if (typeof v === 'bigint') {
-    if (v <= BigInt(Number.MAX_SAFE_INTEGER) && v >= BigInt(Number.MIN_SAFE_INTEGER)) {
+    if (
+      v <= BigInt(Number.MAX_SAFE_INTEGER) &&
+      v >= BigInt(Number.MIN_SAFE_INTEGER)
+    ) {
       return Number(v);
     }
     return v.toString();

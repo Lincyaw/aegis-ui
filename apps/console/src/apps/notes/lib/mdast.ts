@@ -22,7 +22,7 @@ export interface MdastNode {
  */
 export function transformTextNodes(
   node: MdastNode,
-  transform: (value: string) => MdastNode[] | null,
+  transform: (value: string) => MdastNode[] | null
 ): void {
   if (!node.children) {
     return;
@@ -45,7 +45,10 @@ export function transformTextNodes(
 }
 
 /** Recurse the tree invoking `visitor` on every node. */
-export function visit(node: MdastNode, visitor: (node: MdastNode) => void): void {
+export function visit(
+  node: MdastNode,
+  visitor: (node: MdastNode) => void
+): void {
   visitor(node);
   if (node.children) {
     for (const child of node.children) {

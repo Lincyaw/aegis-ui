@@ -168,7 +168,9 @@
   color: var(--text-muted);
   padding: 3px 8px;
   border-radius: var(--radius-sm);
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -388,7 +390,11 @@
 .callout-success,
 .callout-hint {
   border-left-color: var(--presence-online, #16a34a);
-  background: color-mix(in srgb, var(--presence-online, #16a34a) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--presence-online, #16a34a) 10%,
+    transparent
+  );
 }
 .callout-tip .callout-title,
 .callout-success .callout-title,

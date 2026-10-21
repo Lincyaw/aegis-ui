@@ -29,7 +29,9 @@ export function Mermaid({ code }: MermaidProps): JSX.Element {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to render diagram');
+          setError(
+            err instanceof Error ? err.message : 'Failed to render diagram'
+          );
         }
       }
     })();
@@ -40,15 +42,19 @@ export function Mermaid({ code }: MermaidProps): JSX.Element {
 
   if (error) {
     return (
-      <pre className="wiki-code wiki-mermaid__error" title={error}>
+      <pre className='wiki-code wiki-mermaid__error' title={error}>
         <code>{code}</code>
       </pre>
     );
   }
   if (!svg) {
-    return <div className="wiki-mermaid wiki-mermaid--loading">Rendering diagram…</div>;
+    return (
+      <div className='wiki-mermaid wiki-mermaid--loading'>
+        Rendering diagram…
+      </div>
+    );
   }
   return (
-    <div className="wiki-mermaid" dangerouslySetInnerHTML={{ __html: svg }} />
+    <div className='wiki-mermaid' dangerouslySetInnerHTML={{ __html: svg }} />
   );
 }

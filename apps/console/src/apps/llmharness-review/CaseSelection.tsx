@@ -12,7 +12,6 @@
  *
  * The hook + Context object live in selection.ts.
  */
-
 import {
   type ReactElement,
   type ReactNode,
@@ -24,9 +23,9 @@ import {
 
 import type { CaseLinks } from './schemas';
 import {
-  CaseSelectionContext,
   type CaseSelection,
   type CaseSelectionApi,
+  CaseSelectionContext,
   EMPTY_SELECTION,
   type InspectorMode,
 } from './selection';
@@ -101,10 +100,7 @@ function selectionToHash(sel: CaseSelection): string {
     params.set('event', String(sel.eventId));
   }
   if (sel.findingId) {
-    params.set(
-      'finding',
-      `${sel.findingId.auditorSeq}.${sel.findingId.index}`,
-    );
+    params.set('finding', `${sel.findingId.auditorSeq}.${sel.findingId.index}`);
   }
   const s = params.toString();
   return s ? `#${s}` : '';
@@ -113,7 +109,7 @@ function selectionToHash(sel: CaseSelection): string {
 function applyCascade(
   cur: CaseSelection,
   patch: Partial<CaseSelection>,
-  _links: CaseLinks,
+  _links: CaseLinks
 ): CaseSelection {
   const next: CaseSelection = { ...cur, ...patch };
 
@@ -185,12 +181,12 @@ export function CaseSelectionProvider({
     (patch: Partial<CaseSelection>) => {
       setState((cur) => applyCascade(cur, patch, links));
     },
-    [links],
+    [links]
   );
 
   const value = useMemo<CaseSelectionApi>(
     () => ({ selection, set }),
-    [selection, set],
+    [selection, set]
   );
 
   return (

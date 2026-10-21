@@ -18,7 +18,7 @@ export function resolveUrl(slug: string): string {
 
 /** Build a wikilink resolver: slug → note router URL, or `null` if unknown. */
 export function makeWikilinkResolver(
-  slugIndex: Map<string, string>,
+  slugIndex: Map<string, string>
 ): (slug: string) => string | null {
   return (slug) => {
     const path = resolveSlugToPath(slugIndex, slug);

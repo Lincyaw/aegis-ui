@@ -23,7 +23,7 @@ export default function InjectionDetailOverview() {
 
   const idNum = injectionId ? Number.parseInt(injectionId, 10) : Number.NaN;
   const { data: injection } = useInjectionDetail(
-    Number.isNaN(idNum) ? null : idNum,
+    Number.isNaN(idNum) ? null : idNum
   );
 
   if (!injection) {

@@ -1,5 +1,6 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
+
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { gatewayUrlFor } from '../../../config/runtime';
 import { portalAxios } from '../../portal/api/portal-client';
@@ -59,20 +60,20 @@ function decodeBase64Utf8(content: string): string {
 
 /** Markdown files in the repo, sorted by path. Cached aggressively. */
 export function useRepoTree(
-  ref: RepoRef = { owner: NOTES_OWNER, repo: NOTES_REPO, branch: NOTES_BRANCH },
+  ref: RepoRef = { owner: NOTES_OWNER, repo: NOTES_REPO, branch: NOTES_BRANCH }
 ) {
   return useQuery({
     queryKey: notesKeys.tree(ref),
     staleTime: STALE_MS,
     queryFn: async (): Promise<GitTreeEntry[]> => {
       const url = gatewayUrlFor(
-        `/api/v2/github/repos/${ref.owner}/${ref.repo}/git/trees/${ref.branch}?recursive=1`,
+        `/api/v2/github/repos/${ref.owner}/${ref.repo}/git/trees/${ref.branch}?recursive=1`
       );
       const res = await portalAxios.get<GitTreeResponse>(url);
       return res.data.tree
         .filter(
           (entry) =>
-            entry.type === 'blob' && entry.path.toLowerCase().endsWith('.md'),
+            entry.type === 'blob' && entry.path.toLowerCase().endsWith('.md')
         )
         .sort((a, b) => a.path.localeCompare(b.path));
     },
@@ -91,7 +92,7 @@ export function useRefreshNotes(): () => void {
 export function useFileContent(
   path: string | undefined,
   owner: string = NOTES_OWNER,
-  repo: string = NOTES_REPO,
+  repo: string = NOTES_REPO
 ) {
   return useQuery({
     queryKey: notesKeys.file(owner, repo, path ?? ''),
@@ -103,7 +104,7 @@ export function useFileContent(
         return '';
       }
       const url = gatewayUrlFor(
-        `/api/v2/github/repos/${owner}/${repo}/contents/${encodePath(path)}`,
+        `/api/v2/github/repos/${owner}/${repo}/contents/${encodePath(path)}`
       );
       const res = await portalAxios.get<GitContentResponse>(url);
       const { content, encoding } = res.data;

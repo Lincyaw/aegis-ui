@@ -15,30 +15,36 @@
  * the visual arrow follows reasoning flow (earlier → later: task → act
  * → hyp → concl). Do not "fix" this flip back — the schema is canonical.
  */
-import { type ReactElement, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
-  graphlib as dagreGraphlib,
-  layout as dagreLayout,
-  type GraphLabel as DagreGraphLabel,
-} from '@dagrejs/dagre';
+  type ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import ReactFlow, {
-  BaseEdge,
   Background,
+  BaseEdge,
   Controls,
   EdgeLabelRenderer,
-  getBezierPath,
-  Panel as RFPanel,
-  Position,
-  useEdgesState,
-  useNodesState,
-  type Edge as RFEdge,
   type EdgeProps,
   type EdgeTypes,
-  type Node as RFNode,
+  getBezierPath,
   type NodeTypes,
+  Position,
+  type Edge as RFEdge,
+  type Node as RFNode,
+  Panel as RFPanel,
+  useEdgesState,
+  useNodesState,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
+import {
+  type GraphLabel as DagreGraphLabel,
+  graphlib as dagreGraphlib,
+  layout as dagreLayout,
+} from '@dagrejs/dagre';
 import { EmptyState } from '@lincyaw/aegis-ui';
 
 import type { ExtractorEvent, GraphEdge } from '../schemas';
@@ -133,14 +139,14 @@ const NODE_BOTTOM_PAD = 16;
 function estimateNodeHeight(summary: string): number {
   const lineEstimate = Math.max(
     1,
-    Math.ceil(summary.length / NODE_CHARS_PER_LINE),
+    Math.ceil(summary.length / NODE_CHARS_PER_LINE)
   );
   // Hard-wraps add 1 implicit line per newline already in the string.
   const newlines = (summary.match(/\n/g) ?? []).length;
   const lines = lineEstimate + newlines;
   return Math.max(
     NODE_MIN_HEIGHT,
-    NODE_HEAD_HEIGHT + lines * NODE_LINE_HEIGHT + NODE_BOTTOM_PAD,
+    NODE_HEAD_HEIGHT + lines * NODE_LINE_HEIGHT + NODE_BOTTOM_PAD
   );
 }
 
@@ -162,7 +168,7 @@ function endpointKey(id: number, turns: number[] | undefined): string {
 
 function layoutNodes(
   events: ExtractorEvent[],
-  edges: GraphEdge[],
+  edges: GraphEdge[]
 ): Map<string, { x: number; y: number }> {
   const g = new dagreGraphlib.Graph();
   // network-simplex ranker + tight-tree ordering reads more like a tree
@@ -330,7 +336,7 @@ function buildNodes(
     newEventIds: Set<number> | null | undefined;
     onSelectEvent?: (id: number) => void;
     onOpenTurns?: (turns: number[]) => void;
-  },
+  }
 ): Array<RFNode<EventNodeData>> {
   return events.map((e) => {
     const key = nodeKeyOf(e);
@@ -356,7 +362,7 @@ function buildNodes(
 
 function buildEdges(
   edges: GraphEdge[],
-  selectedEventId: number | null,
+  selectedEventId: number | null
 ): RFEdge[] {
   return edges.map((ed, i) => {
     const srcTurns = (ed as { src_turns?: number[] }).src_turns;
@@ -399,7 +405,7 @@ export function EventGraphView({
     // We deliberately key off topology so unrelated re-renders (selection
     // highlighting, parent re-render) don't reshuffle the dagre layout.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [topology],
+    [topology]
   );
 
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState<EventNodeData>(
@@ -408,10 +414,10 @@ export function EventGraphView({
       newEventIds,
       onSelectEvent,
       onOpenTurns,
-    }),
+    })
   );
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState(
-    buildEdges(edges, selectedEventId),
+    buildEdges(edges, selectedEventId)
   );
 
   // Re-seed nodes when topology changes; otherwise just refresh the
@@ -426,7 +432,7 @@ export function EventGraphView({
           newEventIds,
           onSelectEvent,
           onOpenTurns,
-        }),
+        })
       );
       return;
     }
@@ -450,7 +456,7 @@ export function EventGraphView({
             onOpenTurns,
           },
         };
-      }),
+      })
     );
   }, [
     topology,
@@ -473,7 +479,7 @@ export function EventGraphView({
       current.map((n) => ({
         ...n,
         position: positions.get(n.id) ?? n.position,
-      })),
+      }))
     );
   }, [events, edges, setRfNodes]);
 

@@ -35,6 +35,7 @@ import {
   Chip,
   CodeBlock,
   CodeEditor,
+  type CodeEditorField,
   type Command,
   CommandInvocationCard,
   CommandPalette,
@@ -56,13 +57,13 @@ import {
   EventTable,
   type EventTableColumn,
   type FieldMapping,
-  type InspectableContent,
   FileDropzone,
   FilePreview,
   FolderDropzone,
   ForgotPasswordForm,
   FormRow,
   InboxPage,
+  type InspectableContent,
   type KeyValueItem,
   KeyValueList,
   LoginForm,
@@ -88,15 +89,15 @@ import {
   type QueryAutocompleteValueSuggestion,
   RegisterForm,
   ResizableSidePanel,
-  ServiceMap,
-  type ServiceMapEdge,
-  type ServiceMapNode,
   Tabs as RosettaTabs,
-  SavedQueryBar,
   type SavedQuery,
+  SavedQueryBar,
   SearchInput,
   type SearchProvider,
   SectionDivider,
+  ServiceMap,
+  type ServiceMapEdge,
+  type ServiceMapNode,
   SessionRunOutputView,
   SessionRunTrajectoryView,
   SettingsSection,
@@ -104,7 +105,6 @@ import {
   Skeleton,
   SkeletonText,
   SparkLine,
-  type CodeEditorField,
   StatBlock,
   StatusDot,
   Terminal,
@@ -3624,7 +3624,9 @@ function App() {
         </SectionDivider>
         <QueryAutocompleteSpecimen />
 
-        <SectionDivider extra={<MetricLabel>localStorage · namespaced</MetricLabel>}>
+        <SectionDivider
+          extra={<MetricLabel>localStorage · namespaced</MetricLabel>}
+        >
           SavedQueryBar
         </SectionDivider>
         <SavedQueryBarSpecimen />
@@ -4538,7 +4540,7 @@ function SavedQueryBarSpecimen(): ReactNode {
                   pinned: lastApplied.pinned,
                 },
                 null,
-                2,
+                2
               )}`
             : '(click a chip to apply)'}
         </pre>
@@ -4556,7 +4558,7 @@ const SQL_EDITOR_FIELDS: CodeEditorField[] = [
 
 function SqlCodeEditorSpecimen(): ReactNode {
   const [value, setValue] = useState(
-    'SELECT TraceId, SpanName\nFROM otel_traces\nWHERE Duration > 1000',
+    'SELECT TraceId, SpanName\nFROM otel_traces\nWHERE Duration > 1000'
   );
   const [submitted, setSubmitted] = useState<string | null>(null);
   return (
@@ -5072,82 +5074,82 @@ function SessionRunViewSpecimen(): ReactNode {
       <div className='gallery__row gallery__row--wide'>
         <Specimen caption='SessionRunTrajectoryView' span={2}>
           <div className='gallery__stack--fill'>
-          <SessionRunTrajectoryView
-            summary={{
-              lineage: 'root · 2 children',
-              startedAt: '2026-10-21T02:14:00Z',
-              inputTokens: '18.4k',
-              outputTokens: '2.1k',
-            }}
-            messages={[
-              {
-                id: 'msg_01system00',
-                role: 'system',
-                content: [
-                  { type: 'text', text: 'You are an RCA agent. Use tools.' },
-                ],
-              },
-              {
-                id: 'msg_02assist00',
-                role: 'assistant',
-                highlighted: true,
-                content: [
-                  {
-                    type: 'text',
-                    text: 'Checking error rates for the **payment** service first.',
-                  },
-                  {
-                    type: 'tool_call',
-                    name: 'query_sql',
-                    arguments: {
-                      sql: "SELECT count(*) FROM spans WHERE status = 'error'",
+            <SessionRunTrajectoryView
+              summary={{
+                lineage: 'root · 2 children',
+                startedAt: '2026-10-21T02:14:00Z',
+                inputTokens: '18.4k',
+                outputTokens: '2.1k',
+              }}
+              messages={[
+                {
+                  id: 'msg_01system00',
+                  role: 'system',
+                  content: [
+                    { type: 'text', text: 'You are an RCA agent. Use tools.' },
+                  ],
+                },
+                {
+                  id: 'msg_02assist00',
+                  role: 'assistant',
+                  highlighted: true,
+                  content: [
+                    {
+                      type: 'text',
+                      text: 'Checking error rates for the **payment** service first.',
                     },
-                  },
-                ],
-              },
-              {
-                id: 'msg_03tool000',
-                role: 'tool',
-                content: [{ type: 'tool_result', output: { count: 1284 } }],
-              },
-            ]}
-            onInspectContent={setOpen}
-          />
+                    {
+                      type: 'tool_call',
+                      name: 'query_sql',
+                      arguments: {
+                        sql: "SELECT count(*) FROM spans WHERE status = 'error'",
+                      },
+                    },
+                  ],
+                },
+                {
+                  id: 'msg_03tool000',
+                  role: 'tool',
+                  content: [{ type: 'tool_result', output: { count: 1284 } }],
+                },
+              ]}
+              onInspectContent={setOpen}
+            />
           </div>
         </Specimen>
         <Specimen caption='SessionRunOutputView' span={2}>
           <div className='gallery__stack--fill'>
-          <SessionRunOutputView
-            facts={[
-              { key: 'agent', label: 'Agent', value: 'rca-agent' },
-              { key: 'model', label: 'Model', value: 'claude-opus-5-5' },
-              { key: 'duration', label: 'Duration', value: '4m 12s' },
-            ]}
-            acceptedSubmission={{
-              tool: 'submit_rca',
-              payload: { root_causes: ['payment'] },
-              result: { accepted: true },
-              summary: 'payment — connection pool exhausted',
-            }}
-            tools={[
-              {
-                id: 't1',
-                tool: 'query_sql',
-                duration: '312ms',
-                args: { sql: 'SELECT 1' },
-                result: { rows: 1 },
-              },
-              {
-                id: 't2',
+            <SessionRunOutputView
+              facts={[
+                { key: 'agent', label: 'Agent', value: 'rca-agent' },
+                { key: 'model', label: 'Model', value: 'claude-opus-5-5' },
+                { key: 'duration', label: 'Duration', value: '4m 12s' },
+              ]}
+              acceptedSubmission={{
                 tool: 'submit_rca',
-                duration: '48ms',
-                args: { root_causes: [] },
-                result: { error: 'empty root_causes' },
-                errored: true,
-              },
-            ]}
-            onInspectContent={setOpen}
-          />
+                payload: { root_causes: ['payment'] },
+                result: { accepted: true },
+                summary: 'payment — connection pool exhausted',
+              }}
+              tools={[
+                {
+                  id: 't1',
+                  tool: 'query_sql',
+                  duration: '312ms',
+                  args: { sql: 'SELECT 1' },
+                  result: { rows: 1 },
+                },
+                {
+                  id: 't2',
+                  tool: 'submit_rca',
+                  duration: '48ms',
+                  args: { root_causes: [] },
+                  result: { error: 'empty root_causes' },
+                  errored: true,
+                },
+              ]}
+              onInspectContent={setOpen}
+            />
           </div>
         </Specimen>
         <Specimen caption='loading'>
@@ -5353,11 +5355,41 @@ const SERVICE_MAP_MICRO_NODES: ServiceMapNode[] = [
 ];
 
 const SERVICE_MAP_MICRO_EDGES: ServiceMapEdge[] = [
-  { id: 'e1', source: 'gateway', target: 'auth', label: '1.2k/s', status: 'ok' },
-  { id: 'e2', source: 'gateway', target: 'orders', label: '820/s', status: 'warn' },
-  { id: 'e3', source: 'gateway', target: 'inventory', label: '610/s', status: 'error' },
-  { id: 'e4', source: 'orders', target: 'inventory', label: '410/s', status: 'error' },
-  { id: 'e5', source: 'orders', target: 'cache', label: '2.4k/s', status: 'muted' },
+  {
+    id: 'e1',
+    source: 'gateway',
+    target: 'auth',
+    label: '1.2k/s',
+    status: 'ok',
+  },
+  {
+    id: 'e2',
+    source: 'gateway',
+    target: 'orders',
+    label: '820/s',
+    status: 'warn',
+  },
+  {
+    id: 'e3',
+    source: 'gateway',
+    target: 'inventory',
+    label: '610/s',
+    status: 'error',
+  },
+  {
+    id: 'e4',
+    source: 'orders',
+    target: 'inventory',
+    label: '410/s',
+    status: 'error',
+  },
+  {
+    id: 'e5',
+    source: 'orders',
+    target: 'cache',
+    label: '2.4k/s',
+    status: 'muted',
+  },
   { id: 'e6', source: 'inventory', target: 'db', label: '610/s', status: 'ok' },
   { id: 'e7', source: 'auth', target: 'db', label: '200/s', status: 'ok' },
 ];
@@ -5387,7 +5419,12 @@ function buildAgentDag(): { nodes: ServiceMapNode[]; edges: ServiceMapEdge[] } {
       sublabel: t === 3 ? 'retry · throttled' : 'tool plan',
       status: turnStatus,
     });
-    edges.push({ id: `r-${turnId}`, source: 'root', target: turnId, status: turnStatus });
+    edges.push({
+      id: `r-${turnId}`,
+      source: 'root',
+      target: turnId,
+      status: turnStatus,
+    });
     const toolCount = t === 4 ? 1 : t === 1 ? 3 : 2;
     for (let i = 0; i < toolCount; i += 1) {
       const toolId = `${turnId}-tool-${String(i)}`;

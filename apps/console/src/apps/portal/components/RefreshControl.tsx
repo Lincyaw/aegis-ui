@@ -1,4 +1,4 @@
-import { Button, DropdownMenu, type DropdownItem } from '@lincyaw/aegis-ui';
+import { Button, type DropdownItem, DropdownMenu } from '@lincyaw/aegis-ui';
 
 import type { RefreshInterval } from './refresh-interval';
 
@@ -48,11 +48,7 @@ export function RefreshControl({
         trigger={<Button tone='secondary'>{`Refresh: ${triggerLabel}`}</Button>}
         items={items}
       />
-      <Button
-        tone='secondary'
-        disabled={isFetching}
-        onClick={onRefresh}
-      >
+      <Button tone='secondary' disabled={isFetching} onClick={onRefresh}>
         {isFetching ? 'Refreshing…' : 'Refresh now'}
       </Button>
     </div>

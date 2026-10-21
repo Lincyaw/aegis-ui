@@ -29,7 +29,9 @@
 }
 
 .llmh-evt-node--new.llmh-evt-node--active {
-  box-shadow: 0 0 0 2px var(--accent-warning), 0 0 0 4px var(--text-main);
+  box-shadow:
+    0 0 0 2px var(--accent-warning),
+    0 0 0 4px var(--text-main);
 }
 
 .llmh-evt-node__head {

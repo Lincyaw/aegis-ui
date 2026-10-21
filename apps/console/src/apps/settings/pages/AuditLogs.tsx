@@ -21,7 +21,6 @@ import './AuditLogs.css';
 
 const PAGE_SIZE = 20;
 
-
 function actorOf(l: AuditLog): string {
   return l.username || (l.user_id ? `user:${String(l.user_id)}` : 'system');
 }
@@ -125,7 +124,9 @@ export default function AuditLogs() {
       header: 'Timestamp',
       width: '180px',
       render: (l) => (
-        <MonoValue size='sm'>{new Date(l.created_at).toLocaleString()}</MonoValue>
+        <MonoValue size='sm'>
+          {new Date(l.created_at).toLocaleString()}
+        </MonoValue>
       ),
     },
     {

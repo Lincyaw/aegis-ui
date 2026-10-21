@@ -36,7 +36,7 @@ export function buildSlugIndex(files: NoteFile[]): Map<string, string> {
 
 export function resolveSlugToPath(
   index: Map<string, string>,
-  slug: string,
+  slug: string
 ): string | null {
   return index.get(slug.trim().toLowerCase()) ?? null;
 }

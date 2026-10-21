@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { EmptyState, ErrorState, MonoValue, PageHeader, Panel } from '@lincyaw/aegis-ui';
+import {
+  EmptyState,
+  ErrorState,
+  MonoValue,
+  PageHeader,
+  Panel,
+} from '@lincyaw/aegis-ui';
 import { App, Button, Checkbox, Form, Input, Modal, Spin } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
@@ -16,7 +22,6 @@ import {
 } from '../../../api/iamClient';
 
 import './Roles.css';
-
 
 function permLabel(p: IamPermission): string {
   return p.description?.trim() || p.name;
@@ -103,7 +108,11 @@ export default function Roles() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [permissions]);
 
-  const toggle = (role: IamRole, perm: IamPermission, checked: boolean): void => {
+  const toggle = (
+    role: IamRole,
+    perm: IamPermission,
+    checked: boolean
+  ): void => {
     const cellKey = `${String(role.id)}:${String(perm.id)}`;
     setSavingCell(cellKey);
     void (async () => {
@@ -192,7 +201,13 @@ export default function Roles() {
         </Panel>
       ) : loading ? (
         <Panel>
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--space-6)',
+            }}
+          >
             <Spin />
           </div>
         </Panel>

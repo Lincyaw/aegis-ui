@@ -24,7 +24,8 @@ export function InjectionDrillRedirect({
     return <Navigate to={href('injections')} replace />;
   }
 
-  const path = target === '' ? `injections/${raw}` : `injections/${raw}/${target}`;
+  const path =
+    target === '' ? `injections/${raw}` : `injections/${raw}/${target}`;
   return <Navigate to={href(path)} replace />;
 }
 

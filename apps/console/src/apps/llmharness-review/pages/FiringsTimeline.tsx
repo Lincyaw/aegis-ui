@@ -4,12 +4,11 @@
  * only place that flips selection.mode — chip clicks inside an inspector
  * stay in the same mode (just highlight cross-pane state).
  */
-
 import { type ReactElement, useEffect, useMemo, useRef } from 'react';
 
 import { Chip, MetricLabel } from '@lincyaw/aegis-ui';
 
-import type { CaseBundle, AuditorFiring, ExtractorFiring } from '../schemas';
+import type { AuditorFiring, CaseBundle, ExtractorFiring } from '../schemas';
 import { useCaseSelection } from '../selection';
 
 import './FiringsTimeline.css';
@@ -55,7 +54,11 @@ export function FiringsTimeline({
     }
     const el = stripRef.current?.querySelector(`[data-chipkey="${activeKey}"]`);
     if (el) {
-      el.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      el.scrollIntoView({
+        block: 'nearest',
+        inline: 'center',
+        behavior: 'smooth',
+      });
     }
   }, [activeKey]);
 
@@ -72,8 +75,14 @@ export function FiringsTimeline({
       <div className='llmh-tl__strip' ref={stripRef}>
         {entries.map((e) => {
           const seq = e.firing.sequence;
-          const key = e.kind === 'extractor' ? `e${seq.toString()}` : `a${seq.toString()}`;
-          const label = e.kind === 'extractor' ? `E#${seq.toString()}` : `A#${seq.toString()}`;
+          const key =
+            e.kind === 'extractor'
+              ? `e${seq.toString()}`
+              : `a${seq.toString()}`;
+          const label =
+            e.kind === 'extractor'
+              ? `E#${seq.toString()}`
+              : `A#${seq.toString()}`;
           const active = activeKey === key;
           const tone: 'ink' | 'default' | 'warning' = active
             ? 'ink'
@@ -120,7 +129,9 @@ export function FiringsTimeline({
               }`}
             >
               <Chip tone={tone}>{label}</Chip>
-              <span className='llmh-tl__btn-turn'>t{e.firing.turn_index.toString()}</span>
+              <span className='llmh-tl__btn-turn'>
+                t{e.firing.turn_index.toString()}
+              </span>
             </button>
           );
         })}

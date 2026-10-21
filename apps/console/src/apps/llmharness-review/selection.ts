@@ -3,7 +3,6 @@
  * lives in selection.tsx; this file is split out so react-refresh can keep
  * the hook hot-swappable without disabling component-only-exports.
  */
-
 import { createContext, useContext } from 'react';
 
 export type InspectorMode = 'extractor' | 'auditor';
@@ -37,14 +36,14 @@ export const EMPTY_SELECTION: CaseSelection = {
 };
 
 export const CaseSelectionContext = createContext<CaseSelectionApi | null>(
-  null,
+  null
 );
 
 export function useCaseSelection(): CaseSelectionApi {
   const v = useContext(CaseSelectionContext);
   if (!v) {
     throw new Error(
-      'useCaseSelection must be used inside <CaseSelectionProvider>',
+      'useCaseSelection must be used inside <CaseSelectionProvider>'
     );
   }
   return v;

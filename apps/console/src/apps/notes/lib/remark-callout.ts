@@ -21,7 +21,11 @@ function applyCallout(blockquote: MdastNode): void {
     return;
   }
   const firstText = firstChild.children[0];
-  if (!firstText || firstText.type !== 'text' || typeof firstText.value !== 'string') {
+  if (
+    !firstText ||
+    firstText.type !== 'text' ||
+    typeof firstText.value !== 'string'
+  ) {
     return;
   }
   const match = CALLOUT_RE.exec(firstText.value);

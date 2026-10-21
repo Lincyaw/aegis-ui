@@ -23,15 +23,17 @@ import {
 
 import { FileTreePane } from './FileTreePane';
 import { ResultView } from './ResultView';
+
 import './InjectionData.css';
 
 const DEFAULT_SQL = '-- Cmd/Ctrl+Enter to run\nSELECT 1 AS hello;';
 
 export default function InjectionData() {
   const { injectionId } = useParams<{ injectionId: string }>();
-  const idNum = injectionId !== undefined && /^\d+$/.test(injectionId)
-    ? Number(injectionId)
-    : null;
+  const idNum =
+    injectionId !== undefined && /^\d+$/.test(injectionId)
+      ? Number(injectionId)
+      : null;
 
   const [sql, setSql] = useState<string>(DEFAULT_SQL);
   const [selectedPath, setSelectedPath] = useState<string | undefined>();
@@ -55,7 +57,7 @@ export default function InjectionData() {
 
   const tables = useMemo(
     () => schemaQuery.data?.tables.map((t) => t.name) ?? [],
-    [schemaQuery.data],
+    [schemaQuery.data]
   );
   const fields: CodeEditorField[] = useMemo(() => {
     if (!schemaQuery.data) {
@@ -120,7 +122,9 @@ export default function InjectionData() {
           <div className='injection-data__editor-head'>
             <PanelTitle>SQL</PanelTitle>
             <div className='injection-data__editor-actions'>
-              <span className='injection-data__hint'>Cmd/Ctrl+Enter to run</span>
+              <span className='injection-data__hint'>
+                Cmd/Ctrl+Enter to run
+              </span>
               <Button
                 tone='primary'
                 disabled={runMutation.isPending}

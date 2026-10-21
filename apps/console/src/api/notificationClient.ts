@@ -86,7 +86,10 @@ export async function listSubscriptions(): Promise<SubscriptionRow[]> {
   // plain array depending on serializer; tolerate all three.
   const res = await apiJson<
     | SubscriptionRow[]
-    | { items?: SubscriptionRow[] | null; subscriptions?: SubscriptionRow[] | null }
+    | {
+        items?: SubscriptionRow[] | null;
+        subscriptions?: SubscriptionRow[] | null;
+      }
   >('/api/v2/inbox/subscriptions');
   if (Array.isArray(res)) {
     return res;

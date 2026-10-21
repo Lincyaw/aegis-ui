@@ -1,6 +1,7 @@
-import { type TreeDataNode, Tree } from 'antd';
 import { type Key, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { Tree, type TreeDataNode } from 'antd';
 
 import { noteUrl } from '../lib/routes';
 import type { NoteFile } from '../lib/slug-index';
@@ -77,7 +78,11 @@ function ancestorDirKeys(path: string): string[] {
   return keys;
 }
 
-export function NoteTree({ files, currentPath, onSelect }: NoteTreeProps): JSX.Element {
+export function NoteTree({
+  files,
+  currentPath,
+  onSelect,
+}: NoteTreeProps): JSX.Element {
   const navigate = useNavigate();
   const treeData = useMemo(() => buildTree(files), [files]);
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
@@ -85,7 +90,7 @@ export function NoteTree({ files, currentPath, onSelect }: NoteTreeProps): JSX.E
   useEffect(() => {
     if (currentPath) {
       setExpandedKeys((prev) =>
-        Array.from(new Set([...prev, ...ancestorDirKeys(currentPath)])),
+        Array.from(new Set([...prev, ...ancestorDirKeys(currentPath)]))
       );
     }
   }, [currentPath]);

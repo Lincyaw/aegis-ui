@@ -10,7 +10,8 @@ export const trajectoriesApp: AegisApp = {
   label: 'Sessions',
   icon: <NodeIndexOutlined />,
   basePath: '/trajectories',
-  description: 'Read-only viewer for AgentM session trees stored in ClickHouse.',
+  description:
+    'Read-only viewer for AgentM session trees stored in ClickHouse.',
   requiresAuth: false,
   sidebar: [
     {

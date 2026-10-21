@@ -52,7 +52,7 @@ export const SESSION_FIELD_SUGGESTIONS: QueryAutocompleteFieldSuggestion[] =
 
 /** Constant value-completions for a few common, low-cardinality fields. */
 export function suggestSessionFieldValues(
-  field: string,
+  field: string
 ): Array<{ value: string; hint?: string }> {
   switch (field) {
     case 'scenario':

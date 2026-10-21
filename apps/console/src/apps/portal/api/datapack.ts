@@ -2,9 +2,12 @@ import type { InjectionDatapackFilesResp } from '@lincyaw/portal';
 import axios, { type AxiosError } from 'axios';
 
 import { getRuntimeConfig } from '../../../config/runtime';
+import {
+  type ArrowResult,
+  arrowStreamToRows,
+} from '../pages/InjectionData/arrowToRows';
 
 import { injectionsApi, portalAxios } from './portal-client';
-import { arrowStreamToRows, type ArrowResult } from '../pages/InjectionData/arrowToRows';
 
 export interface DatapackColumn {
   name: string;
@@ -24,7 +27,10 @@ export class DatapackQueryError extends Error {
   status?: number;
   isBackendMissing: boolean;
 
-  constructor(message: string, opts: { status?: number; isBackendMissing?: boolean } = {}) {
+  constructor(
+    message: string,
+    opts: { status?: number; isBackendMissing?: boolean } = {}
+  ) {
     super(message);
     this.name = 'DatapackQueryError';
     this.status = opts.status;
@@ -37,7 +43,7 @@ function gatewayBase(): string {
 }
 
 export async function listDatapackFiles(
-  id: number,
+  id: number
 ): Promise<InjectionDatapackFilesResp> {
   const res = await injectionsApi.listDatapackFiles({ id });
   return res.data.data ?? { files: [], dir_count: 0, file_count: 0 };
@@ -45,9 +51,9 @@ export async function listDatapackFiles(
 
 export async function getDatapackSchema(id: number): Promise<DatapackSchema> {
   try {
-    const res = await portalAxios.get<{ data?: DatapackSchema } | DatapackSchema>(
-      `${gatewayBase()}/api/v2/injections/${String(id)}/datapack-schema`,
-    );
+    const res = await portalAxios.get<
+      { data?: DatapackSchema } | DatapackSchema
+    >(`${gatewayBase()}/api/v2/injections/${String(id)}/datapack-schema`);
     const body = res.data as { data?: DatapackSchema } & DatapackSchema;
     if (body.tables) {
       return { tables: body.tables };
@@ -69,7 +75,7 @@ export interface DatapackQueryResult {
 
 export async function runDatapackQuery(
   id: number,
-  sql: string,
+  sql: string
 ): Promise<DatapackQueryResult> {
   const startedAt = performance.now();
   try {
@@ -82,14 +88,14 @@ export async function runDatapackQuery(
           'content-type': 'application/json',
           accept: 'application/vnd.apache.arrow.stream',
         },
-      },
+      }
     );
     const contentType = String(res.headers['content-type'] ?? '');
     if (!contentType.includes('arrow')) {
       const text = decodeMaybeJson(res.data);
       throw new DatapackQueryError(
         text ?? 'Backend returned non-Arrow response',
-        { status: res.status, isBackendMissing: true },
+        { status: res.status, isBackendMissing: true }
       );
     }
     const parsed = arrowStreamToRows(new Uint8Array(res.data));
@@ -142,7 +148,10 @@ function wrapAxiosError(err: unknown, fallback: string): DatapackQueryError {
     } else if (ax.message) {
       message = ax.message;
     }
-    return new DatapackQueryError(message, { status, isBackendMissing: backendMissing });
+    return new DatapackQueryError(message, {
+      status,
+      isBackendMissing: backendMissing,
+    });
   }
   if (err instanceof Error) {
     return new DatapackQueryError(err.message);

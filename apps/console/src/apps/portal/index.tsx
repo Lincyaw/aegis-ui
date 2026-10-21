@@ -47,6 +47,7 @@ import Pedestals from './pages/Pedestals';
 import ProjectCreate from './pages/ProjectCreate';
 import ProjectOverview from './pages/ProjectOverview';
 import Projects from './pages/Projects';
+
 import './pages/pages.css';
 
 export const portalApp: AegisApp = {
@@ -118,7 +119,10 @@ export const portalApp: AegisApp = {
 
     // Legacy injection-drill flat routes — redirect to the new Data tab.
     { path: 'traces', element: <InjectionDrillRedirect target='data' /> },
-    { path: 'traces/:traceId', element: <InjectionDrillRedirect target='data' /> },
+    {
+      path: 'traces/:traceId',
+      element: <InjectionDrillRedirect target='data' />,
+    },
     {
       path: 'observations',
       element: <InjectionDrillRedirect target='data' />,
