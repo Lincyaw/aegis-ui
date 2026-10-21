@@ -12,14 +12,7 @@ import {
   Panel,
   TextField,
 } from '@lincyaw/aegis-ui';
-import {
-  App as AntdApp,
-  Button,
-  DatePicker,
-  Form,
-  Modal,
-  Pagination,
-} from 'antd';
+import { App as AntdApp, Button, DatePicker, Form, Modal } from 'antd';
 import type { Dayjs } from 'dayjs';
 
 import { errMsg } from '../../../api/apiClient';
@@ -378,24 +371,13 @@ export default function ApiKeys() {
                 Generate key
               </Button>
             }
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              total,
+              onChange: setPage,
+            }}
           />
-          {total > PAGE_SIZE ? (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                padding: 'var(--space-3)',
-              }}
-            >
-              <Pagination
-                current={page}
-                pageSize={PAGE_SIZE}
-                total={total}
-                showSizeChanger={false}
-                onChange={setPage}
-              />
-            </div>
-          ) : null}
         </Panel>
       )}
 
