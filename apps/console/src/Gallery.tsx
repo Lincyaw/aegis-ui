@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 import {
+  AppstoreOutlined,
   LogoutOutlined,
   PlusOutlined,
   SearchOutlined,
@@ -2959,12 +2960,6 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider>PageSizeSelect</SectionDivider>
-        <PageSizeSelectSpecimen />
-
-        <SectionDivider>EnvironmentSwitcher</SectionDivider>
-        <EnvironmentSwitcherSpecimen />
-
         <SectionDivider>ProjectSelector</SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='with projects' span={2}>
@@ -2995,7 +2990,11 @@ function App() {
                 /* gallery specimen — no-op */
               }}
               footerItems={[
-                { key: 'all', label: 'View all projects' },
+                {
+                  key: 'all',
+                  label: 'View all projects',
+                  icon: <AppstoreOutlined />,
+                },
                 {
                   key: 'new',
                   label: 'New project',
@@ -3014,6 +3013,12 @@ function App() {
             />
           </Specimen>
         </div>
+
+        <SectionDivider>EnvironmentSwitcher</SectionDivider>
+        <EnvironmentSwitcherSpecimen />
+
+        <SectionDivider>PageSizeSelect</SectionDivider>
+        <PageSizeSelectSpecimen />
       </Panel>
 
       {/* ── Layouts ────────────────────────────────────────────────── */}
