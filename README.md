@@ -21,8 +21,10 @@ and plugs into the shell through the `AegisApp` contract.
 | Agent-native runtime | `useAegisAction`, `useAegisSurface`, `AskPanel` and related types; see [docs/agent-native-ui.md](docs/agent-native-ui.md)              |
 | Headless helpers     | Relative time-range parsing and a Lucene-to-SQL compiler used by the query components                                                  |
 
-The live catalogue of every component is the gallery app. Run `pnpm dev` and
-open <http://localhost:3323/gallery>.
+The live catalogue of every component is the gallery, published at
+<https://profile.aoyangfang.top/aegis-ui/>. Locally, run `pnpm dev` and open
+<http://localhost:3323/gallery>; `pnpm -F @lincyaw/console build:pages` builds
+the static version that the `pages` workflow deploys.
 
 ## Install
 

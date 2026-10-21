@@ -134,31 +134,32 @@ themselves render content only, never the layout chrome.
 
 ## Where things live
 
-| Path                                            | Purpose                                                                           |
-| ----------------------------------------------- | --------------------------------------------------------------------------------- |
-| `packages/ui/src/styles/theme.css`              | Design tokens (CSS custom properties + keyframes)                                 |
-| `packages/ui/src/components/ui/`                | Primitives + their CSS, one component per file                                    |
-| `packages/ui/src/components/ui/index.ts`        | Primitive barrel — public API of the UI kit                                       |
-| `packages/ui/src/layouts/PageWrapper.{tsx,css}` | Page root container                                                               |
-| `packages/ui/src/layouts/shell/`                | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar)                |
-| `packages/ui/src/auth/`                         | `AuthProvider` / `useAuth` contract + `RequireAuth` route guard                   |
-| `packages/ui/src/agent/`                        | AgentM channel client, Ask overlay/panel, MCP tool catalogue                      |
-| `packages/ui/src/theme/antdTheme.ts`            | Ant Design `ConfigProvider` mapped to our tokens                                  |
-| `packages/ui/src/index.ts`                      | Library public API barrel                                                         |
-| `packages/ui/src/index.css`                     | Global reset + scrollbar + focus ring                                             |
-| `packages/ui/package.json`                      | Library publish config — name, version, exports                                   |
-| `packages/ui/vite.config.ts`                    | Library build (ESM + CJS + d.ts + style.css)                                      |
-| `apps/console/src/Gallery.{tsx,css}`            | Live spec — every primitive's specimen                                            |
-| `apps/console/src/apps/*`                       | Sub-apps, registered with AegisShell in `apps/console/src/registry.ts`            |
-| `apps/console/src/main.tsx`                     | Console entry (not part of the npm package)                                       |
-| `apps/console/index.html`                       | Vite HTML entry for the dev server                                                |
-| `apps/console/server/`                          | Single-binary Go server that embeds the console (see its README)                  |
-| `Dockerfile`, `scripts/deploy-frontend.sh`      | nginx image of the console + build/push/rollout script                            |
-| `.github/workflows/`                            | CI (`check`), npm publish (`publish`), console binary release (`release-console`) |
-| `tsconfig.base.json`                            | Shared strict TS settings, extended by every package                              |
-| `pnpm-workspace.yaml`                           | Workspace package globs                                                           |
-| `turbo.json`                                    | Pipeline graph (build, type-check, lint, lint:css)                                |
-| `.changeset/`                                   | Versioning + publish tracking                                                     |
+| Path                                               | Purpose                                                                                                   |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/styles/theme.css`                 | Design tokens (CSS custom properties + keyframes)                                                         |
+| `packages/ui/src/components/ui/`                   | Primitives + their CSS, one component per file                                                            |
+| `packages/ui/src/components/ui/index.ts`           | Primitive barrel — public API of the UI kit                                                               |
+| `packages/ui/src/layouts/PageWrapper.{tsx,css}`    | Page root container                                                                                       |
+| `packages/ui/src/layouts/shell/`                   | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar)                                        |
+| `packages/ui/src/auth/`                            | `AuthProvider` / `useAuth` contract + `RequireAuth` route guard                                           |
+| `packages/ui/src/agent/`                           | AgentM channel client, Ask overlay/panel, MCP tool catalogue                                              |
+| `packages/ui/src/theme/antdTheme.ts`               | Ant Design `ConfigProvider` mapped to our tokens                                                          |
+| `packages/ui/src/index.ts`                         | Library public API barrel                                                                                 |
+| `packages/ui/src/index.css`                        | Global reset + scrollbar + focus ring                                                                     |
+| `packages/ui/package.json`                         | Library publish config — name, version, exports                                                           |
+| `packages/ui/vite.config.ts`                       | Library build (ESM + CJS + d.ts + style.css)                                                              |
+| `apps/console/src/Gallery.{tsx,css}`               | Live spec — every primitive's specimen                                                                    |
+| `apps/console/src/apps/*`                          | Sub-apps, registered with AegisShell in `apps/console/src/registry.ts`                                    |
+| `apps/console/src/main.tsx`                        | Console entry (not part of the npm package)                                                               |
+| `apps/console/index.html`                          | Vite HTML entry for the dev server                                                                        |
+| `apps/console/{gallery.html,src/gallery-main.tsx}` | Standalone gallery entry for the static GitHub Pages build (`build:pages`)                                |
+| `apps/console/server/`                             | Single-binary Go server that embeds the console (see its README)                                          |
+| `Dockerfile`, `scripts/deploy-frontend.sh`         | nginx image of the console + build/push/rollout script                                                    |
+| `.github/workflows/`                               | CI (`check`), npm publish (`publish`), console binary release (`release-console`), gallery site (`pages`) |
+| `tsconfig.base.json`                               | Shared strict TS settings, extended by every package                                                      |
+| `pnpm-workspace.yaml`                              | Workspace package globs                                                                                   |
+| `turbo.json`                                       | Pipeline graph (build, type-check, lint, lint:css)                                                        |
+| `.changeset/`                                      | Versioning + publish tracking                                                                             |
 
 ## Validation gates
 

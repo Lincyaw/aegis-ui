@@ -89,5 +89,5 @@ export function ContainerList() {
 
 The [repository README](https://github.com/Lincyaw/aegis-ui#readme) covers the
 full contents of the package, the development workflow and the release
-process. The component gallery in the repository's console app shows every
-component with its variants.
+process. The [component gallery](https://profile.aoyangfang.top/aegis-ui/)
+shows every component with its variants, in light and dark themes.

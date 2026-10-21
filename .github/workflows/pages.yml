@@ -1,0 +1,61 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/ui/**'
+      - 'apps/console/src/Gallery.*'
+      - 'apps/console/src/apps/gallery/**'
+      - 'apps/console/src/gallery-main.tsx'
+      - 'apps/console/gallery.html'
+      - 'apps/console/vite.config.ts'
+      - 'apps/console/package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build library
+        run: pnpm -F @lincyaw/aegis-ui build
+
+      - name: Build gallery
+        run: pnpm -F @lincyaw/console build:pages
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/console/dist-pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

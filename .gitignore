@@ -2,6 +2,7 @@ node_modules
 **/node_modules
 dist
 **/dist
+**/dist-pages
 .DS_Store
 *.log
 .vite

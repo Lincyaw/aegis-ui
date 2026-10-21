@@ -1,14 +1,37 @@
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import react from '@vitejs/plugin-react';
+import fs from 'node:fs';
 import path from 'node:path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
+
+const PAGES_OUT_DIR = path.resolve(__dirname, 'dist-pages');
+
+// GitHub Pages serves index.html at the root and 404.html for any other
+// path, so the single gallery entry is published under both names.
+function galleryPagesIndex(): Plugin {
+  return {
+    name: 'gallery-pages-index',
+    apply: 'build',
+    closeBundle() {
+      const index = path.join(PAGES_OUT_DIR, 'index.html');
+      fs.renameSync(path.join(PAGES_OUT_DIR, 'gallery.html'), index);
+      fs.copyFileSync(index, path.join(PAGES_OUT_DIR, '404.html'));
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const useHttps = env.VITE_HTTPS !== '0';
+  const pages = mode === 'pages';
+  const useHttps = env.VITE_HTTPS !== '0' && !pages;
 
   return {
-    plugins: [react(), ...(useHttps ? [basicSsl()] : [])],
+    base: pages ? env.VITE_PAGES_BASE || '/aegis-ui/' : '/',
+    plugins: [
+      react(),
+      ...(useHttps ? [basicSsl()] : []),
+      ...(pages ? [galleryPagesIndex()] : []),
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src/apps/portal'),
@@ -48,10 +71,13 @@ export default defineConfig(({ mode }) => {
         target: 'esnext',
       },
     },
+    ...(pages ? { publicDir: false } : {}),
     build: {
       target: 'esnext',
-      sourcemap: 'hidden',
+      sourcemap: pages ? false : 'hidden',
+      ...(pages ? { outDir: PAGES_OUT_DIR } : {}),
       rollupOptions: {
+        ...(pages ? { input: path.resolve(__dirname, 'gallery.html') } : {}),
         output: {
           manualChunks(id) {
             if (id.includes('hyparquet') || id.includes('workerBundle')) {
