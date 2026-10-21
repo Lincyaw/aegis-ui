@@ -302,7 +302,7 @@ export function AegisShell({
             }
             inboxPath={auth.status === 'authenticated' ? inboxPath : undefined}
             onMobileMenuToggle={toggleMobileNav}
-            showMobileMenu={hasSidebar}
+            showMobileMenu={appHasSidebar}
             sidebarCollapsible={appHasSidebar}
             sidebarCollapsed={sidebarCollapsed}
             onSidebarToggle={toggleSidebar}
@@ -313,7 +313,7 @@ export function AegisShell({
               agentPanelEnabled && setPanelOpen ? toggleAgentPanel : undefined
             }
           />
-          {hasSidebar && <Sidebar activeApp={activeApp} />}
+          {appHasSidebar && <Sidebar activeApp={activeApp} />}
           <button
             type="button"
             className="aegis-shell__backdrop"

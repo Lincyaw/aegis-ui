@@ -460,6 +460,13 @@
   min-width: 0;
 }
 
+/* Collapsing the sidebar is a desktop preference; phones keep the drawer. */
+@media (min-width: 769px) {
+  .aegis-shell--no-sidebar .aegis-shell__sidebar {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .aegis-shell--with-sidebar {
     grid-template-columns: 1fr;
