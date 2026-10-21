@@ -39,22 +39,11 @@
   border-color: var(--bg-inverted);
 }
 
-.wizard-card--inline {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  min-width: 96px;
-}
-
 .wizard-card__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-}
-
-.wizard-card__name {
-  font-weight: var(--fw-medium);
 }
 
 .wizard-card__desc {
@@ -71,28 +60,6 @@
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--space-3);
   margin-top: var(--space-3);
-}
-
-.wizard-family + .wizard-family {
-  margin-top: var(--space-4);
-}
-
-.wizard-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-5);
-}
-
-.wizard-radio-row {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-}
-
-.wizard-range {
-  width: 100%;
-  margin-top: var(--space-2);
-  accent-color: var(--bg-inverted);
 }
 
 .wizard-actions {
@@ -127,30 +94,6 @@
   justify-content: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-3);
-}
-
-/* ── Side-by-side detail layout ──────────────────────────────────── */
-
-.page-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-
-@media (max-width: 1024px) {
-  .page-split {
-    grid-template-columns: 1fr;
-  }
-  .wizard-form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Row hover for tables with selection */
-.page-row-check {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .page-action-row {

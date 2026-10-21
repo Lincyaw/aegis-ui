@@ -18,8 +18,6 @@ import { useChatStore } from './ai/chatStore';
 
 import { ConsoleApp } from './App';
 
-import './main.css';
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30_000, refetchOnWindowFocus: false, retry: 1 },
