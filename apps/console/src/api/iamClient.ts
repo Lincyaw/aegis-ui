@@ -12,9 +12,9 @@ import {
   apiJson,
   type Envelope,
   normalizeList,
-  type Paginated,
-  type PageReq,
   pageQs,
+  type PageReq,
+  type Paginated,
 } from './apiClient';
 
 export interface UserRole {
@@ -95,34 +95,22 @@ export async function deleteUser(id: number): Promise<void> {
   await apiFetch(`/api/v2/users/${String(id)}`, { method: 'DELETE' });
 }
 
-export async function resetPassword(
-  id: number,
-  newPassword?: string
-): Promise<void> {
-  await apiFetch(`/api/v2/users/${String(id)}/reset-password`, {
-    method: 'POST',
-    body: newPassword ? JSON.stringify({ new_password: newPassword }) : undefined,
-  });
-}
-
 export async function assignUserRole(
   userId: number,
   roleId: number
 ): Promise<void> {
-  await apiFetch(
-    `/api/v2/users/${String(userId)}/roles/${String(roleId)}`,
-    { method: 'POST' }
-  );
+  await apiFetch(`/api/v2/users/${String(userId)}/roles/${String(roleId)}`, {
+    method: 'POST',
+  });
 }
 
 export async function removeUserRole(
   userId: number,
   roleId: number
 ): Promise<void> {
-  await apiFetch(
-    `/api/v2/users/${String(userId)}/roles/${String(roleId)}`,
-    { method: 'DELETE' }
-  );
+  await apiFetch(`/api/v2/users/${String(userId)}/roles/${String(roleId)}`, {
+    method: 'DELETE',
+  });
 }
 
 export async function listRoles(
@@ -153,10 +141,6 @@ export async function createRole(req: {
   return env.data;
 }
 
-export async function deleteRole(roleId: number): Promise<void> {
-  await apiFetch(`/api/v2/roles/${String(roleId)}`, { method: 'DELETE' });
-}
-
 export async function assignRolePermissions(
   roleId: number,
   permissionIds: number[]
@@ -178,8 +162,8 @@ export async function removeRolePermissions(
 }
 
 export async function listPermissions(): Promise<IamPermission[]> {
-  const env = await apiJson<
-    Envelope<Paginated<IamPermission> | null>
-  >('/api/v2/permissions');
+  const env = await apiJson<Envelope<Paginated<IamPermission> | null>>(
+    '/api/v2/permissions'
+  );
   return normalizeList(env.data).items;
 }

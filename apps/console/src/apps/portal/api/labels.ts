@@ -3,7 +3,6 @@ import type {
   LabelCreateLabelReq,
   LabelLabelDetailResp,
   LabelLabelResp,
-  LabelUpdateLabelReq,
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -56,26 +55,6 @@ export function useCreateLabel() {
       return res.data.data ?? {};
     },
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: labelsKeys.all });
-    },
-  });
-}
-
-export function useUpdateLabel() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (args: {
-      labelId: number;
-      body: LabelUpdateLabelReq;
-    }) => {
-      const res = await labelsApi.updateLabel({
-        labelId: args.labelId,
-        labelUpdateLabelReq: args.body,
-      });
-      return res.data.data ?? {};
-    },
-    onSuccess: (_data, vars) => {
-      void qc.invalidateQueries({ queryKey: labelsKeys.detail(vars.labelId) });
       void qc.invalidateQueries({ queryKey: labelsKeys.all });
     },
   });

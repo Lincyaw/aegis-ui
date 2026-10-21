@@ -2,11 +2,6 @@
  * Client for aegis-blob's /api/v2/blob/* surface (presign + list +
  * inline get + delete). Goes through the vite proxy
  * (`/api/v2/blob` → 8085 in dev).
- *
- * Some endpoints return DB rows that are *not* json-tagged on the
- * backend (ObjectRecord). Those serialise with PascalCase field names;
- * the typed surface here matches that convention so we don't silently
- * read undefined.
  */
 import { apiFetch, type ApiFetchOptions, apiJson } from './apiClient';
 
@@ -19,10 +14,7 @@ interface Envelope<T> {
   timestamp?: number;
 }
 
-async function unwrap<T>(
-  path: string,
-  init: ApiFetchOptions = {},
-): Promise<T> {
+async function unwrap<T>(path: string, init: ApiFetchOptions = {}): Promise<T> {
   const env = await apiJson<Envelope<T>>(path, init);
   return env.data;
 }
@@ -57,28 +49,6 @@ export interface PresignGetReq {
   ttl_seconds?: number;
 }
 
-/** DB row shape: gorm fields with no json tag → PascalCase on the wire. */
-export interface ObjectRow {
-  ID: number;
-  Bucket: string;
-  StorageKey: string;
-  SizeBytes: number;
-  ContentType: string;
-  ETag: string;
-  UploadedBy: number | null;
-  EntityKind: string;
-  EntityID: string;
-  Metadata: Record<string, string> | null;
-  CreatedAt: string;
-  ExpiresAt: string | null;
-  DeletedAt: string | null;
-}
-
-export interface ListResp {
-  items: ObjectRow[];
-  next_cursor?: string;
-}
-
 export interface BucketSummary {
   name: string;
   driver: string;
@@ -90,40 +60,6 @@ export interface BucketSummary {
 export async function listBuckets(): Promise<BucketSummary[]> {
   const res = await unwrap<{ items: BucketSummary[] }>(`${ROOT}/buckets`);
   return res.items ?? [];
-}
-
-export interface ListParams {
-  cursor?: string;
-  limit?: number;
-  entity_kind?: string;
-  entity_id?: string;
-}
-
-function buildQuery(p: ListParams): string {
-  const u = new URLSearchParams();
-  if (p.cursor) {
-    u.set('cursor', p.cursor);
-  }
-  if (p.limit !== undefined) {
-    u.set('limit', p.limit.toString());
-  }
-  if (p.entity_kind) {
-    u.set('entity_kind', p.entity_kind);
-  }
-  if (p.entity_id) {
-    u.set('entity_id', p.entity_id);
-  }
-  const s = u.toString();
-  return s ? `?${s}` : '';
-}
-
-export async function listObjects(
-  bucket: string,
-  params: ListParams = {}
-): Promise<ListResp> {
-  return unwrap<ListResp>(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects${buildQuery(params)}`
-  );
 }
 
 export async function presignPut(
@@ -282,7 +218,7 @@ export async function driverList(
   }
   const q = u.toString();
   const raw = await unwrap<DriverListResult>(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`,
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`
   );
   return {
     ...raw,

@@ -2,7 +2,6 @@ import type {
   DatasetCreateDatasetReq,
   DatasetDatasetDetailResp,
   DatasetDatasetResp,
-  DatasetUpdateDatasetReq,
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -57,28 +56,6 @@ export function useCreateDataset() {
       return res.data.data ?? {};
     },
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: datasetsKeys.all });
-    },
-  });
-}
-
-export function useUpdateDataset() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (args: {
-      datasetId: number;
-      body: DatasetUpdateDatasetReq;
-    }) => {
-      const res = await datasetsApi.updateDataset({
-        datasetId: args.datasetId,
-        datasetUpdateDatasetReq: args.body,
-      });
-      return res.data.data ?? {};
-    },
-    onSuccess: (_data, vars) => {
-      void qc.invalidateQueries({
-        queryKey: datasetsKeys.detail(vars.datasetId),
-      });
       void qc.invalidateQueries({ queryKey: datasetsKeys.all });
     },
   });
