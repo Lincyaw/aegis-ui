@@ -1,7 +1,7 @@
 /**
  * Lock-in for the design-token contract — block reintroduction of raw
- * hex / px in component CSS. Token-defining files (theme.css, global
- * resets) are ignored.
+ * hex / px / ms / s in component CSS. Token-defining files (theme.css,
+ * global resets) are ignored.
  */
 module.exports = {
   extends: ['stylelint-config-standard'],
@@ -19,8 +19,15 @@ module.exports = {
     'color-named': 'never',
     'color-function-notation': null,
 
-    /* Allowed unit set: relative scales + raw px allowed only via tokens
-     * (the px values in component CSS are gone). */
+    /* Raw sizes and durations come from theme.css tokens. px survives
+     * only as a media-query breakpoint, because custom properties can't
+     * be used inside @media. */
+    'unit-disallowed-list': [
+      ['px', 'ms', 's'],
+      { ignoreMediaFeatureNames: { px: ['max-width', 'min-width'] } },
+    ],
+    /* px is listed here only because this rule also checks @media params
+     * and has no media exemption; unit-disallowed-list bans it elsewhere. */
     'unit-allowed-list': [
       'em',
       'rem',
@@ -30,8 +37,6 @@ module.exports = {
       'vw',
       'fr',
       'deg',
-      's',
-      'ms',
       'px',
     ],
 
@@ -52,4 +57,15 @@ module.exports = {
     'media-query-no-invalid': null,
     'declaration-block-no-redundant-longhand-properties': null,
   },
+  overrides: [
+    {
+      /* TEMPORARY: these still carry raw px and are being tokenised on a
+       * parallel branch. Delete this override once that branch lands. */
+      files: [
+        'packages/ui/src/components/ui/AgentPanel.css',
+        'packages/ui/src/components/ui/CommandPalette.css',
+      ],
+      rules: { 'unit-disallowed-list': null },
+    },
+  ],
 };
