@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 
+import { formatBytes } from '../../lib/format';
 import './FolderDropzone.css';
 
 export interface FolderDropzoneProps {
@@ -256,18 +257,4 @@ export function FolderDropzone({
       ) : null}
     </div>
   );
-}
-
-function formatBytes(n: number): string {
-  if (n < 1024) {
-    return `${n.toString()} B`;
-  }
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  let v = n / 1024;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i += 1;
-  }
-  return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i] ?? ''}`;
 }

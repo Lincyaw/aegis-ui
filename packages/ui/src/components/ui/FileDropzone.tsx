@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { type Accept, useDropzone } from 'react-dropzone';
 
+import { formatBytes } from '../../lib/format';
 import './FileDropzone.css';
 
 export interface FileDropzoneItem {
@@ -162,14 +163,4 @@ export function FileDropzone({
       ) : null}
     </div>
   );
-}
-
-function formatBytes(n: number): string {
-  if (n < 1024) {
-    return `${n.toString()} B`;
-  }
-  if (n < 1024 * 1024) {
-    return `${(n / 1024).toFixed(0)} KB`;
-  }
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }

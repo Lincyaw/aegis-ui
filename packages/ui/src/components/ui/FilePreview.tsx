@@ -10,6 +10,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
+import { formatBytes } from '../../lib/format';
 import './FilePreview.css';
 
 export type FilePreviewSurface = PrimitiveSurface<{
@@ -192,17 +193,4 @@ function classify(mime: string | undefined): Kind {
     return 'text';
   }
   return 'binary';
-}
-
-function formatBytes(n: number): string {
-  if (n < 1024) {
-    return `${n.toString()} B`;
-  }
-  if (n < 1024 * 1024) {
-    return `${(n / 1024).toFixed(1)} KB`;
-  }
-  if (n < 1024 * 1024 * 1024) {
-    return `${(n / 1024 / 1024).toFixed(1)} MB`;
-  }
-  return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }

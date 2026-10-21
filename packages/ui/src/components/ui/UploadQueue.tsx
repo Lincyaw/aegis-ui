@@ -1,3 +1,4 @@
+import { formatBytes } from '../../lib/format';
 import { Button } from './Button';
 import { EmptyState } from './EmptyState';
 import type { FileDropzoneItem } from './FileDropzone';
@@ -16,21 +17,8 @@ interface UploadQueueProps {
   className?: string;
 }
 
-function humanBytes(n: number): string {
-  if (n < 1024) {
-    return `${n.toString()} B`;
-  }
-  if (n < 1024 * 1024) {
-    return `${(n / 1024).toFixed(0)} KB`;
-  }
-  if (n < 1024 * 1024 * 1024) {
-    return `${(n / 1024 / 1024).toFixed(1)} MB`;
-  }
-  return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
-}
-
 function humanSpeed(bps: number): string {
-  return `${humanBytes(bps)}/s`;
+  return `${formatBytes(bps)}/s`;
 }
 
 function humanEta(seconds: number): string {
@@ -90,7 +78,7 @@ export function UploadQueue({
           </MetricLabel>
           <MetricLabel>·</MetricLabel>
           <MonoValue size="sm">
-            {humanBytes(uploadedBytes)}/{humanBytes(totalBytes)}
+            {formatBytes(uploadedBytes)}/{formatBytes(totalBytes)}
           </MonoValue>
           {maxEta > 0 ? (
             <>
@@ -128,7 +116,7 @@ export function UploadQueue({
                       : null}
                   </MonoValue>
                 ) : null}
-                <MetricLabel>{humanBytes(it.file.size)}</MetricLabel>
+                <MetricLabel>{formatBytes(it.file.size)}</MetricLabel>
                 <MetricLabel>{STATUS_LABEL[it.status]}</MetricLabel>
                 {it.status === 'uploading' && it.onCancel !== undefined ? (
                   <Button
