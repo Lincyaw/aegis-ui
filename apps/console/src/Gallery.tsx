@@ -2938,6 +2938,22 @@ function App() {
               ]}
             />
           </Specimen>
+          <Specimen caption='footerItems · below a divider'>
+            <DropdownMenu
+              trigger={<Chip tone='default'>Workspace</Chip>}
+              items={[
+                { key: 'aegis', label: 'aegis-lab' },
+                { key: 'sandbox', label: 'sandbox' },
+              ]}
+              footerItems={[
+                {
+                  key: 'new',
+                  label: 'New workspace',
+                  icon: <PlusOutlined />,
+                },
+              ]}
+            />
+          </Specimen>
         </div>
 
         <SectionDivider>PageSizeSelect</SectionDivider>
@@ -2963,6 +2979,26 @@ function App() {
               onSelect={() => {
                 /* gallery specimen — no-op */
               }}
+            />
+          </Specimen>
+          <Specimen caption='footerItems · view all + create' span={2}>
+            <ProjectSelector
+              projects={[
+                { id: '1', name: 'catalog-service' },
+                { id: '2', name: 'order-platform' },
+              ]}
+              selectedId='2'
+              onSelect={() => {
+                /* gallery specimen — no-op */
+              }}
+              footerItems={[
+                { key: 'all', label: 'View all projects' },
+                {
+                  key: 'new',
+                  label: 'New project',
+                  icon: <PlusOutlined />,
+                },
+              ]}
             />
           </Specimen>
           <Specimen caption='empty state'>

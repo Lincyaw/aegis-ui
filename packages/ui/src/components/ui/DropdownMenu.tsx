@@ -19,6 +19,8 @@ export interface DropdownItem {
 interface DropdownMenuProps {
   trigger: ReactNode;
   items: DropdownItem[];
+  /** Rendered below `items`, after a divider — e.g. "View all" / "Create". */
+  footerItems?: DropdownItem[];
   className?: string;
   align?: 'left' | 'right';
 }
@@ -26,6 +28,7 @@ interface DropdownMenuProps {
 export function DropdownMenu({
   trigger,
   items,
+  footerItems = [],
   className,
   align = 'right',
 }: DropdownMenuProps) {
@@ -62,6 +65,18 @@ export function DropdownMenu({
             onAfterClick={() => setOpen(false)}
           />
         ))}
+        {footerItems.length > 0 && (
+          <>
+            <div className="aegis-dropdown__divider" role="separator" />
+            {footerItems.map((item) => (
+              <DropdownMenuItem
+                key={item.key}
+                item={item}
+                onAfterClick={() => setOpen(false)}
+              />
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
