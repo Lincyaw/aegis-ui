@@ -71,8 +71,12 @@ export interface AegisApp {
    */
   hidden?: boolean;
   /**
-   * Commands exposed by this app. Registered by AegisShell when this
-   * app becomes active. (Contract only — wiring is a separate task.)
+   * Commands this app contributes to the <CommandProvider/> registry.
+   * AegisShell registers them for every app the current user can see,
+   * with `scope` overwritten to this app's id: the palette and keyboard
+   * shortcuts surface them only while this app is active, agents see
+   * them all via `allCommands`. Register app-independent commands with
+   * `useRegisterCommands` above the shell instead.
    */
   commands?: Command[];
   /**

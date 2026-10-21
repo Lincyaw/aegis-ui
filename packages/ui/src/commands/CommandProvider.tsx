@@ -21,9 +21,9 @@ interface CommandProviderProps {
 
 /**
  * Owns the command registry, the palette open-state, and the global
- * `mod+k` opener. Apps inside register commands via
- * `useRegisterCommands`; AegisShell flips the active scope as the user
- * navigates between sub-apps.
+ * `mod+k` opener. Components register commands via
+ * `useRegisterCommands`; AegisShell registers each `AegisApp.commands`
+ * and flips the active scope as the user navigates between sub-apps.
  */
 export function CommandProvider({
   children,

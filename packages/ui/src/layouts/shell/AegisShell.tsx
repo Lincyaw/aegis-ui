@@ -24,7 +24,7 @@ import {
   type ShellSnapshot,
 } from '../../agent';
 import { type AegisAuthUser, type AuthStatus, useAuth } from '../../auth';
-import { useCommands } from '../../commands';
+import { type Command, useCommands } from '../../commands';
 import { defaultCommandContextValue } from '../../commands/commandContext';
 import { Chip } from '../../components/ui/Chip';
 import { CommandPalette } from '../../components/ui/CommandPalette';
@@ -120,11 +120,20 @@ export function AegisShell({
 
   const commandRegistry = useCommands();
   const hasCommandProvider = commandRegistry !== defaultCommandContextValue;
-  const { setActiveScope } = commandRegistry;
+  const { register, setActiveScope } = commandRegistry;
   const activeAppId = activeApp?.id;
   useEffect(() => {
     setActiveScope(activeAppId);
   }, [setActiveScope, activeAppId]);
+
+  const appCommands = useMemo<Command[]>(
+    () =>
+      visibleApps.flatMap((app) =>
+        (app.commands ?? []).map((cmd) => ({ ...cmd, scope: app.id })),
+      ),
+    [visibleApps],
+  );
+  useEffect(() => register(appCommands), [register, appCommands]);
 
   const showCommandPalette = enableCommandPalette && hasCommandProvider;
   useWarnOnce(
