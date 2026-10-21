@@ -63,14 +63,8 @@ export function ThemeProvider({
     resolve(preference),
   );
 
-  // Apply to <html> + persist.
   useEffect(() => {
-    const next = resolve(preference);
-    setResolved(next);
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', next);
-      document.documentElement.style.colorScheme = next;
-    }
+    setResolved(resolve(preference));
     writeStorage(STORAGE_KEY, preference);
   }, [preference]);
 
@@ -81,16 +75,16 @@ export function ThemeProvider({
     }
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
     const onChange = (): void => {
-      const next: ThemeMode = mql.matches ? 'dark' : 'light';
-      setResolved(next);
-      if (typeof document !== 'undefined') {
-        document.documentElement.setAttribute('data-theme', next);
-        document.documentElement.style.colorScheme = next;
-      }
+      setResolved(mql.matches ? 'dark' : 'light');
     };
     mql.addEventListener('change', onChange);
     return () => mql.removeEventListener('change', onChange);
   }, [preference]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', resolved);
+    document.documentElement.style.colorScheme = resolved;
+  }, [resolved]);
 
   const setPreference = useCallback((next: ThemePreference) => {
     setPreferenceState(next);
