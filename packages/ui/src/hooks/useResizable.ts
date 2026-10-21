@@ -11,6 +11,8 @@ import {
   useState,
 } from 'react';
 
+import { readStorage, writeStorage } from '../lib/storage';
+
 const DEFAULT_MIN = 200;
 const DEFAULT_MAX = 800;
 const KEYBOARD_STEP = 16;
@@ -31,30 +33,12 @@ export interface UseResizableReturn {
 }
 
 function readPersisted(key: string | undefined): number | undefined {
-  if (key === undefined || typeof window === 'undefined') {
+  const raw = key === undefined ? null : readStorage(key);
+  if (raw === null) {
     return undefined;
   }
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = Number.parseFloat(raw);
-    return Number.isFinite(parsed) ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function writePersisted(key: string | undefined, value: number): void {
-  if (key === undefined || typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.localStorage.setItem(key, String(Math.round(value)));
-  } catch {
-    /* localStorage unavailable — silently skip */
-  }
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 export function useResizable(opts: UseResizableOptions): UseResizableReturn {
@@ -89,7 +73,9 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
   }, [onCollapse]);
 
   useEffect(() => {
-    writePersisted(persistKey, width);
+    if (persistKey !== undefined) {
+      writeStorage(persistKey, String(Math.round(width)));
+    }
   }, [persistKey, width]);
 
   // Re-clamp if bounds change.

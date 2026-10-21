@@ -8,6 +8,8 @@ import {
   useState,
 } from 'react';
 
+import { uniqueId } from '../lib/id';
+import { getOrCreateStored } from '../lib/storage';
 import { AgentProvider } from './AgentProvider';
 import type {
   AgentContextValue,
@@ -52,25 +54,7 @@ interface MappedOutbound {
   toolCall?: AgentToolCallRecord;
 }
 
-function readPersistedPeerId(): string {
-  if (typeof window === 'undefined') {
-    return `peer-${Math.random().toString(36).slice(2, 10)}`;
-  }
-  const KEY = 'aegis.agentm.peerId';
-  try {
-    const existing = window.sessionStorage.getItem(KEY);
-    if (existing) {
-      return existing;
-    }
-    const fresh = `peer-${Date.now().toString(36)}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}`;
-    window.sessionStorage.setItem(KEY, fresh);
-    return fresh;
-  } catch {
-    return `peer-${Math.random().toString(36).slice(2, 10)}`;
-  }
-}
+const PEER_ID_KEY = 'aegis.agentm.peerId';
 
 function defaultMapOutbound(env: Envelope): MappedOutbound | null {
   const body = env.body as {
@@ -140,12 +124,6 @@ function parseToolCall(metadata: unknown): AgentToolCallRecord | null {
   return record;
 }
 
-function messageId(): string {
-  return `msg-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}`;
-}
-
 /**
  * Connects to an AgentM channels gateway (contrib/channels) as a
  * `chat_client` peer over WebSocket and exposes the conversation as
@@ -204,7 +182,9 @@ export function AgentmChannelProvider({
 
   useEffect(() => {
     const current = channelRef.current;
-    const peerId = current.peerId ?? readPersistedPeerId();
+    const peerId =
+      current.peerId ??
+      getOrCreateStored(PEER_ID_KEY, () => uniqueId('peer'), 'session');
     const client = new AgentmChannelClient({ ...current, peerId });
     clientRef.current = client;
 
@@ -232,7 +212,7 @@ export function AgentmChannelProvider({
       setMessages((prev) => [
         ...prev,
         {
-          id: messageId(),
+          id: uniqueId('msg'),
           role: 'system',
           content: `[${code}] ${detail}`,
           timestamp: new Date().toISOString(),
@@ -269,7 +249,7 @@ export function AgentmChannelProvider({
     setMessages((prev) => [
       ...prev,
       {
-        id: messageId(),
+        id: uniqueId('msg'),
         role: 'user',
         content: trimmed,
         timestamp: new Date().toISOString(),
@@ -279,7 +259,7 @@ export function AgentmChannelProvider({
       setMessages((prev) => [
         ...prev,
         {
-          id: messageId(),
+          id: uniqueId('msg'),
           role: 'system',
           content: 'AgentM gateway is not connected — message not delivered.',
           timestamp: new Date().toISOString(),
@@ -295,7 +275,7 @@ export function AgentmChannelProvider({
       setMessages((prev) => [
         ...prev,
         {
-          id: messageId(),
+          id: uniqueId('msg'),
           role: 'system',
           content: `send failed: ${err instanceof Error ? err.message : String(err)}`,
           timestamp: new Date().toISOString(),
@@ -350,7 +330,7 @@ function appendOutbound(
       }
       return next;
     }
-    const id = messageId();
+    const id = uniqueId('msg');
     streamMap.set(mapped.streamId, id);
     const fresh: AgentMessage = {
       id,
@@ -368,7 +348,7 @@ function appendOutbound(
   return [
     ...prev,
     {
-      id: messageId(),
+      id: uniqueId('msg'),
       role,
       content: mapped.content,
       timestamp,

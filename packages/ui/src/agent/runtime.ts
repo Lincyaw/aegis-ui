@@ -2,6 +2,7 @@
 // v0 deliberately ignores `confirm`, `dryRun`, and `availability` enforcement:
 // every dispatch goes straight through `run()`. Those gates land in a later
 // slice once the human-trigger / Ask-overlay layer is wired.
+import { uniqueId } from '../lib/id';
 import { MCP_TOOL_CATALOGUE } from './mcpToolCatalogue';
 import type {
   ActionContext,
@@ -218,9 +219,6 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     return entry ? describe(entry) : null;
   };
 
-  const newCorrelationId = (): string =>
-    `aegis-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-
   const dispatch = async <R = unknown>(
     id: string,
     params: unknown = undefined,
@@ -230,7 +228,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       by?: InvocationSource;
     } = {},
   ): Promise<DispatchResult<R>> => {
-    const correlationId = opts.correlationId ?? newCorrelationId();
+    const correlationId = opts.correlationId ?? uniqueId('aegis');
     const by: InvocationSource = opts.by ?? 'user';
     const entry = registry.get(id);
     if (!entry) {

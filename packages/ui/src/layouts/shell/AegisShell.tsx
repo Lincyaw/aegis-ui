@@ -24,6 +24,7 @@ import {
 } from '../../agent';
 import { type AegisAuthUser, useAuth } from '../../auth';
 import { Chip } from '../../components/ui/Chip';
+import { readStorage, writeStorage } from '../../lib/storage';
 import { ThemeContext } from '../../theme/themeContext';
 import { PageWrapper } from '../PageWrapper';
 import './AegisShell.css';
@@ -34,6 +35,8 @@ import { TopHeader } from './TopHeader';
 import { ActiveAppContext } from './activeAppContext';
 import { ActiveAppEnvironmentProvider } from './environments';
 import type { AegisApp, AegisShellProps, AegisUser } from './types';
+
+const SIDEBAR_COLLAPSED_KEY = 'aegis-shell.sidebar-collapsed';
 
 /**
  * Top-level layout: top header, two-section sidebar, breadcrumb bar, and
@@ -62,8 +65,9 @@ export function AegisShell({
   const auth = useAuth();
   const themeCtx = useContext(ThemeContext);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] =
-    useState<boolean>(readSidebarCollapsed);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(
+    () => readStorage(SIDEBAR_COLLAPSED_KEY) === '1',
+  );
   const [inlineSlot, setInlineSlot] = useState<HTMLDivElement | null>(null);
 
   const resolvedUser = useMemo<AegisUser | undefined>(() => {
@@ -121,7 +125,7 @@ export function AegisShell({
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed((collapsed) => {
       const next = !collapsed;
-      writeSidebarCollapsed(next);
+      writeStorage(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
       return next;
     });
   }, []);
@@ -340,30 +344,6 @@ function stripTrailingSlash(p: string): string {
     return '';
   }
   return p.endsWith('/') ? p.slice(0, -1) : p;
-}
-
-const SIDEBAR_COLLAPSED_KEY = 'aegis-shell.sidebar-collapsed';
-
-function readSidebarCollapsed(): boolean {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  try {
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function writeSidebarCollapsed(value: boolean): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, value ? '1' : '0');
-  } catch {
-    // Storage may be unavailable (private mode, quota); fail silently.
-  }
 }
 
 function isAppVisible(
