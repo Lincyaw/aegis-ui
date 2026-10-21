@@ -44,12 +44,6 @@ interface CreateFormValues {
   default_roles?: string;
 }
 
-const actionsCellStyle = {
-  display: 'flex',
-  gap: 'var(--space-1)',
-  justifyContent: 'flex-end',
-};
-
 export default function IdentityProviders() {
   const { message: msg, modal } = AntdApp.useApp();
   const [providers, setProviders] = useState<IdentityProvider[]>([]);
@@ -191,9 +185,9 @@ export default function IdentityProviders() {
       {
         key: 'actions',
         header: '',
-        align: 'right',
+        kind: 'actions',
         render: (row) => (
-          <div style={actionsCellStyle}>
+          <>
             <Button
               size='small'
               type='text'
@@ -213,7 +207,7 @@ export default function IdentityProviders() {
             >
               Delete
             </Button>
-          </div>
+          </>
         ),
       },
     ],

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -7,7 +8,6 @@ import {
   ErrorState,
   MonoValue,
   PageHeader,
-  PageSizeSelect,
   Panel,
   TimeDisplay,
   useAppHref,
@@ -25,10 +25,8 @@ export default function Labels() {
   const navigate = useAppNavigate();
   const href = useAppHref();
   const { size, setSize } = usePageSize('labels', 50);
-  const { data, isLoading, isError, error } = useLabelsList({
-    page: 1,
-    size,
-  });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, error } = useLabelsList({ page, size });
   const labels = data?.items ?? [];
 
   return (
@@ -49,63 +47,62 @@ export default function Labels() {
             description={errMsg(error, 'Unknown error')}
           />
         ) : (
-          <>
-            <DataTable<LabelLabelResp>
-              loading={isLoading}
-              emptyTitle='No labels'
-              emptyDescription='Create your first label.'
-              data={labels}
-              rowKey={(r) => String(r.id ?? '')}
-              columns={[
-                {
-                  key: 'key',
-                  header: 'Key',
-                  render: (r) => (
-                    <Link to={href(`labels/${String(r.id ?? '')}`)}>
-                      <MonoValue size='sm'>{r.key ?? '—'}</MonoValue>
-                    </Link>
-                  ),
-                },
-                {
-                  key: 'value',
-                  header: 'Value',
-                  render: (r) => (
-                    <MonoValue size='sm'>{r.value ?? '—'}</MonoValue>
-                  ),
-                },
-                {
-                  key: 'category',
-                  header: 'Category',
-                  render: (r) => <Chip tone='ghost'>{r.category ?? '—'}</Chip>,
-                },
-                {
-                  key: 'system',
-                  header: 'System',
-                  render: (r) => (r.is_system ? 'yes' : 'no'),
-                },
-                {
-                  key: 'usage',
-                  header: 'Uses',
-                  render: (r) => (
-                    <MonoValue size='sm'>{r.usage ?? 0}</MonoValue>
-                  ),
-                },
-                {
-                  key: 'created',
-                  header: 'Created',
-                  render: (r) =>
-                    r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
-                },
-              ]}
-            />
-            <div className='page-table-footer'>
-              <PageSizeSelect
-                value={size}
-                onChange={setSize}
-                options={PAGE_SIZE_OPTIONS}
-              />
-            </div>
-          </>
+          <DataTable<LabelLabelResp>
+            loading={isLoading}
+            emptyTitle='No labels'
+            emptyDescription='Create your first label.'
+            data={labels}
+            rowKey={(r) => String(r.id ?? '')}
+            columns={[
+              {
+                key: 'key',
+                header: 'Key',
+                render: (r) => (
+                  <Link to={href(`labels/${String(r.id ?? '')}`)}>
+                    <MonoValue size='sm'>{r.key ?? '—'}</MonoValue>
+                  </Link>
+                ),
+              },
+              {
+                key: 'value',
+                header: 'Value',
+                render: (r) => (
+                  <MonoValue size='sm'>{r.value ?? '—'}</MonoValue>
+                ),
+              },
+              {
+                key: 'category',
+                header: 'Category',
+                render: (r) => <Chip tone='ghost'>{r.category ?? '—'}</Chip>,
+              },
+              {
+                key: 'system',
+                header: 'System',
+                render: (r) => (r.is_system ? 'yes' : 'no'),
+              },
+              {
+                key: 'usage',
+                header: 'Uses',
+                render: (r) => <MonoValue size='sm'>{r.usage ?? 0}</MonoValue>,
+              },
+              {
+                key: 'created',
+                header: 'Created',
+                render: (r) =>
+                  r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
+              },
+            ]}
+            pagination={{
+              page,
+              pageSize: size,
+              total: data?.pagination?.total,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              onChange: (nextPage, nextSize) => {
+                setPage(nextPage);
+                setSize(nextSize);
+              },
+            }}
+          />
         )}
       </Panel>
     </>

@@ -12,14 +12,7 @@ import {
   Panel,
   TextField,
 } from '@lincyaw/aegis-ui';
-import {
-  App as AntdApp,
-  Button,
-  DatePicker,
-  Form,
-  Modal,
-  Pagination,
-} from 'antd';
+import { App as AntdApp, Button, DatePicker, Form, Modal } from 'antd';
 import type { Dayjs } from 'dayjs';
 
 import { errMsg } from '../../../api/apiClient';
@@ -42,13 +35,6 @@ interface KeyFormValues {
   scopes?: string;
   expiry?: Dayjs;
 }
-
-const actionsCellStyle = {
-  display: 'flex',
-  gap: 'var(--space-1)',
-  justifyContent: 'flex-end',
-  flexWrap: 'wrap' as const,
-};
 
 function statusChip(key: ApiKey) {
   if (key.revoked_at) {
@@ -269,13 +255,12 @@ export default function ApiKeys() {
     {
       key: 'actions',
       header: '',
-      align: 'right',
-      truncate: false,
+      kind: 'actions',
       render: (row) => {
         const revoked = Boolean(row.revoked_at);
         const enabled = row.status === 1 && !revoked;
         return (
-          <div style={actionsCellStyle}>
+          <>
             <Button
               size='small'
               type='text'
@@ -317,7 +302,7 @@ export default function ApiKeys() {
             >
               Delete
             </Button>
-          </div>
+          </>
         );
       },
     },
@@ -378,24 +363,13 @@ export default function ApiKeys() {
                 Generate key
               </Button>
             }
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              total,
+              onChange: setPage,
+            }}
           />
-          {total > PAGE_SIZE ? (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                padding: 'var(--space-3)',
-              }}
-            >
-              <Pagination
-                current={page}
-                pageSize={PAGE_SIZE}
-                total={total}
-                showSizeChanger={false}
-                onChange={setPage}
-              />
-            </div>
-          ) : null}
         </Panel>
       )}
 

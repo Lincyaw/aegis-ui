@@ -41,12 +41,6 @@ interface CreateFormValues {
   is_confidential: boolean;
 }
 
-const actionsCellStyle = {
-  display: 'flex',
-  gap: 'var(--space-1)',
-  justifyContent: 'flex-end',
-};
-
 function statusChip(status: number) {
   if (status === 1) {
     return <Chip tone='ink'>active</Chip>;
@@ -213,9 +207,9 @@ export default function OidcClients() {
       {
         key: 'actions',
         header: '',
-        align: 'right',
+        kind: 'actions',
         render: (row) => (
-          <div style={actionsCellStyle}>
+          <>
             <Button
               size='small'
               type='text'
@@ -235,7 +229,7 @@ export default function OidcClients() {
             >
               Delete
             </Button>
-          </div>
+          </>
         ),
       },
     ],

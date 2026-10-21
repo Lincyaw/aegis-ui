@@ -42,7 +42,7 @@ export function Mermaid({ code }: MermaidProps): JSX.Element {
 
   if (error) {
     return (
-      <pre className='wiki-code wiki-mermaid__error' title={error}>
+      <pre className='wiki-mermaid__error' title={error}>
         <code>{code}</code>
       </pre>
     );

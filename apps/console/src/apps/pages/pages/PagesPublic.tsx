@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ExportOutlined } from '@ant-design/icons';
 import {
@@ -7,7 +7,6 @@ import {
   ErrorState,
   MonoValue,
   PageHeader,
-  PageSizeSelect,
   Panel,
 } from '@lincyaw/aegis-ui';
 import { Button } from 'antd';
@@ -22,7 +21,11 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function PagesPublic() {
   const { size, setSize } = usePageSize('pages:public', 20);
-  const { data, isLoading, error, refetch } = usePagesPublic({ limit: size });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error, refetch } = usePagesPublic({
+    limit: size,
+    offset: (page - 1) * size,
+  });
 
   const columns = useMemo(
     () =>
@@ -39,8 +42,7 @@ export default function PagesPublic() {
         {
           key: 'open',
           header: '',
-          align: 'right',
-          truncate: false,
+          kind: 'actions',
           width: 80,
           render: (row) => (
             <Button
@@ -85,7 +87,7 @@ export default function PagesPublic() {
             }
           />
         </Panel>
-      ) : !isLoading && items.length === 0 ? (
+      ) : !isLoading && items.length === 0 && page === 1 ? (
         <Panel>
           <EmptyState
             title='Nothing listed yet'
@@ -99,14 +101,16 @@ export default function PagesPublic() {
             data={items}
             rowKey={(row) => row.id ?? ''}
             loading={isLoading}
+            pagination={{
+              page,
+              pageSize: size,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              onChange: (nextPage, nextSize) => {
+                setPage(nextPage);
+                setSize(nextSize);
+              },
+            }}
           />
-          <div className='page-table-footer'>
-            <PageSizeSelect
-              value={size}
-              onChange={setSize}
-              options={PAGE_SIZE_OPTIONS}
-            />
-          </div>
         </Panel>
       )}
     </>

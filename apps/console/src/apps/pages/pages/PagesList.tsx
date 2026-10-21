@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import {
@@ -12,7 +12,6 @@ import {
   ErrorState,
   MonoValue,
   PageHeader,
-  PageSizeSelect,
   Panel,
   Toolbar,
   useActiveApp,
@@ -69,7 +68,7 @@ function RowActions({ row }: { row: PagesPageSiteResponse }) {
   };
 
   return (
-    <span className='pages-app__row-actions'>
+    <>
       <Button
         size='small'
         type='text'
@@ -85,7 +84,7 @@ function RowActions({ row }: { row: PagesPageSiteResponse }) {
         title='Delete'
         onClick={onDelete}
       />
-    </span>
+    </>
   );
 }
 
@@ -93,7 +92,11 @@ export default function PagesList() {
   const navigate = useNavigate();
   const { basePath } = useActiveApp();
   const { size, setSize } = usePageSize('pages:mine', 20);
-  const { data, isLoading, error, refetch } = usePagesList({ limit: size });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error, refetch } = usePagesList({
+    limit: size,
+    offset: (page - 1) * size,
+  });
 
   const columns = useMemo(
     () =>
@@ -106,8 +109,7 @@ export default function PagesList() {
         {
           key: 'actions',
           header: '',
-          align: 'right',
-          truncate: false,
+          kind: 'actions',
           width: 160,
           render: (row) => <RowActions row={row} />,
         }
@@ -154,7 +156,7 @@ export default function PagesList() {
             }
           />
         </Panel>
-      ) : !isLoading && items.length === 0 ? (
+      ) : !isLoading && items.length === 0 && page === 1 ? (
         <Panel>
           <EmptyState
             title='No pages yet'
@@ -179,14 +181,16 @@ export default function PagesList() {
             data={items}
             rowKey={(row) => row.id ?? ''}
             loading={isLoading}
+            pagination={{
+              page,
+              pageSize: size,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              onChange: (nextPage, nextSize) => {
+                setPage(nextPage);
+                setSize(nextSize);
+              },
+            }}
           />
-          <div className='page-table-footer'>
-            <PageSizeSelect
-              value={size}
-              onChange={setSize}
-              options={PAGE_SIZE_OPTIONS}
-            />
-          </div>
         </Panel>
       )}
     </>

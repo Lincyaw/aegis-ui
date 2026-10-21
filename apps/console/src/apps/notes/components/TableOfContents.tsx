@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { extractHeadings } from '../lib/headings';
 
@@ -17,47 +23,63 @@ export function TableOfContents({
 }: TableOfContentsProps): JSX.Element | null {
   const headings = useMemo(() => extractHeadings(content), [content]);
   const [activeId, setActiveId] = useState<string>('');
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  // Track which headings are currently intersecting.
-  const visibleIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (headings.length === 0) return;
 
-    visibleIds.current.clear();
+    // Track which headings are currently intersecting.
+    const visibleIds = new Set<string>();
+    const headerHeight = getComputedStyle(document.documentElement)
+      .getPropertyValue('--header-height')
+      .trim();
 
-    observerRef.current = new IntersectionObserver(
+    const intersections = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            visibleIds.current.add(entry.target.id);
+            visibleIds.add(entry.target.id);
           } else {
-            visibleIds.current.delete(entry.target.id);
+            visibleIds.delete(entry.target.id);
           }
         }
         // Pick the first heading (in document order) that is visible.
         for (const h of headings) {
-          if (visibleIds.current.has(h.id)) {
+          if (visibleIds.has(h.id)) {
             setActiveId(h.id);
             break;
           }
         }
       },
-      { rootMargin: '-60px 0px -75% 0px', threshold: 0 }
+      { rootMargin: `-${headerHeight} 0px -75% 0px`, threshold: 0 }
     );
 
-    const elements: Element[] = [];
-    for (const h of headings) {
-      const el = document.getElementById(h.id);
-      if (el) {
-        observerRef.current.observe(el);
-        elements.push(el);
+    // The note body can render its headings after this effect (the markdown
+    // renderer loads lazily) and re-creates them when its renderers change,
+    // so follow whichever element currently carries each heading id.
+    const observed = new Map<string, Element>();
+    const syncObserved = (): void => {
+      for (const { id } of headings) {
+        const el = document.getElementById(id);
+        const prev = observed.get(id);
+        if (el === prev) continue;
+        if (prev) {
+          intersections.unobserve(prev);
+          visibleIds.delete(id);
+          observed.delete(id);
+        }
+        if (el) {
+          intersections.observe(el);
+          observed.set(id, el);
+        }
       }
-    }
+    };
+    syncObserved();
+    const mutations = new MutationObserver(syncObserved);
+    mutations.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      observerRef.current?.disconnect();
+      mutations.disconnect();
+      intersections.disconnect();
     };
   }, [headings]);
 
@@ -81,7 +103,9 @@ export function TableOfContents({
             <button
               type='button'
               className={`notes-toc__link${h.id === activeId ? ' notes-toc__link--active' : ''}`}
-              style={{ paddingLeft: `${(h.level - minLevel) * 12 + 8}px` }}
+              style={
+                { '--notes-toc-depth': h.level - minLevel } as CSSProperties
+              }
               onClick={() => handleClick(h.id)}
             >
               {h.text}

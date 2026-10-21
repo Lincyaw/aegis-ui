@@ -139,17 +139,10 @@ export default function SharesPage() {
       {
         key: 'actions',
         header: '',
-        align: 'right',
-        truncate: false,
+        kind: 'actions',
         width: 140,
         render: (row) => (
-          <span
-            style={{
-              display: 'flex',
-              gap: 'var(--space-1)',
-              justifyContent: 'flex-end',
-            }}
-          >
+          <>
             <Button
               size='small'
               type='text'
@@ -169,7 +162,7 @@ export default function SharesPage() {
               }}
               title='Forget'
             />
-          </span>
+          </>
         ),
       },
     ],

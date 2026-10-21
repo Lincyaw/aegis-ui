@@ -11,6 +11,7 @@ export interface MdastNode {
   type: string;
   value?: string;
   url?: string;
+  lang?: string;
   children?: MdastNode[];
   data?: MdastData;
 }

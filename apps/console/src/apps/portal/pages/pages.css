@@ -1,6 +1,6 @@
-/* Portal-specific patterns. .page-wrapper, .page-overview-grid and
-   .page-table* ship with the library (packages/ui/src/layouts/PageWrapper.css)
-   — do NOT re-declare them here or the library tokens get overridden. */
+/* Portal-specific patterns. .page-wrapper and .page-overview-grid ship with
+   the library (packages/ui/src/layouts/PageWrapper.css) — do NOT re-declare
+   them here or the library tokens get overridden. */
 
 /* ── Wizard primitives ───────────────────────────────────────────── */
 
@@ -84,16 +84,6 @@
 .page-bulk-bar__actions {
   display: flex;
   gap: var(--space-2);
-}
-
-/* ── Table footer (page-size + future pager) ─────────────────────── */
-
-.page-table-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
 }
 
 .page-action-row {

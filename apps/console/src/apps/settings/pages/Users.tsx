@@ -11,16 +11,7 @@ import {
   Panel,
   StatusDot,
 } from '@lincyaw/aegis-ui';
-import {
-  App,
-  Button,
-  Checkbox,
-  Form,
-  Input,
-  Modal,
-  Pagination,
-  Select,
-} from 'antd';
+import { App, Button, Checkbox, Form, Input, Modal, Select } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import {
@@ -369,11 +360,10 @@ export default function Users() {
     {
       key: 'actions',
       header: '',
-      align: 'right',
+      kind: 'actions',
       width: 280,
-      truncate: false,
       render: (u) => (
-        <div className='users-page__actions'>
+        <>
           <Button
             type='text'
             size='small'
@@ -416,7 +406,7 @@ export default function Users() {
           >
             Delete
           </Button>
-        </div>
+        </>
       ),
     },
   ];
@@ -496,24 +486,13 @@ export default function Users() {
                 ? 'Invite someone to get started.'
                 : 'Adjust the filters or invite someone new.'
             }
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              total,
+              onChange: setPage,
+            }}
           />
-          {total > PAGE_SIZE ? (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                paddingTop: 'var(--space-3)',
-              }}
-            >
-              <Pagination
-                current={page}
-                pageSize={PAGE_SIZE}
-                total={total}
-                showSizeChanger={false}
-                onChange={setPage}
-              />
-            </div>
-          ) : null}
         </Panel>
       )}
 

@@ -11,7 +11,7 @@ import {
   PageHeader,
   Panel,
 } from '@lincyaw/aegis-ui';
-import { Button, DatePicker, Input, Pagination, Select } from 'antd';
+import { Button, DatePicker, Input, Select } from 'antd';
 import type { Dayjs } from 'dayjs';
 
 import { errMsg } from '../../../api/apiClient';
@@ -236,24 +236,13 @@ export default function AuditLogs() {
             loading={loading}
             emptyTitle='No matching events'
             emptyDescription='Try widening the time range or clearing filters.'
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              total,
+              onChange: setPage,
+            }}
           />
-          {total > PAGE_SIZE ? (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                padding: 'var(--space-3)',
-              }}
-            >
-              <Pagination
-                current={page}
-                pageSize={PAGE_SIZE}
-                total={total}
-                showSizeChanger={false}
-                onChange={setPage}
-              />
-            </div>
-          ) : null}
         </Panel>
       )}
     </>
