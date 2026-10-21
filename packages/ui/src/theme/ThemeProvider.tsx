@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 
+import { readStorage, writeStorage } from '../lib/storage';
 import {
   ThemeContext,
   type ThemeMode,
@@ -19,10 +20,7 @@ export type { ThemeMode, ThemePreference, ThemeState } from './themeContext';
 const STORAGE_KEY = 'aegis-ui:theme';
 
 function readPreference(): ThemePreference | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  const stored = readStorage(STORAGE_KEY);
   if (stored === 'light' || stored === 'dark' || stored === 'system') {
     return stored;
   }
@@ -73,9 +71,7 @@ export function ThemeProvider({
       document.documentElement.setAttribute('data-theme', next);
       document.documentElement.style.colorScheme = next;
     }
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY, preference);
-    }
+    writeStorage(STORAGE_KEY, preference);
   }, [preference]);
 
   // Track system changes while preference is 'system'.
