@@ -1,339 +1,115 @@
-# RCABench Frontend
+# @lincyaw/console
 
-English | [中文](./docs/README.zh-CN.md)
+The AegisLab console: a private Vite + React app that mounts
+`<AegisShell>` from `@lincyaw/aegis-ui` and registers every AegisLab
+sub-app, including the component gallery that serves as the live spec
+for the library. It is not published to npm.
 
-Frontend application for RCABench (AegisLab) - A microservices root cause analysis benchmarking platform.
+## Sub-apps
 
-## Tech Stack
+Sub-apps live in `src/apps/<name>/` and are registered in
+`src/registry.ts`. Each one exports an `AegisApp` (see the root
+`CLAUDE.md` for the contract).
 
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite 5
-- **UI Library**: Ant Design 5
-- **State Management**: Zustand
-- **Data Fetching**: TanStack Query (React Query)
-- **HTTP Client**: Axios
-- **Routing**: React Router v6
-- **Charts**: ECharts
-- **Code Editor**: Monaco Editor
-- **Styling**: CSS + Ant Design Theme Customization
+| Sub-app             | Base path                                              | What it is                                                            |
+| ------------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
+| `portal`            | `/portal`                                              | AegisLab: injections, executions, algorithms, benchmarks, datasets, … |
+| `trajectories`      | `/trajectories`                                        | Read-only viewer for AgentM session trees stored in ClickHouse        |
+| `llmharness-review` | `/cases`                                               | Browse llmharness case directories: trajectory, firings, verdicts     |
+| `blob`              | `/blob`                                                | Object storage browser, uploader, and share-link manager              |
+| `pages`             | `/pages`                                               | Static-site rendering of a markdown folder uploaded to blob storage   |
+| `notes`             | `/notes`                                               | Knowledge-base reader with wikilink navigation                        |
+| `settings`          | `/settings`                                            | Account preferences, workspace administration, endpoint configuration |
+| `gallery`           | `/gallery`                                             | Live specimen of every primitive shipped by `@lincyaw/aegis-ui`       |
+| `containers`        | `/containers`                                          | Demo: toolbar header + sidebar layout pattern (dev builds only)       |
+| `datasets`          | `/datasets`                                            | Demo: tabs-in-header layout pattern (dev builds only)                 |
+| `env-demo`          | `/env-demo/alpha`, `/env-demo/bravo`, `/env-demo/none` | Demo: environment switcher (dev builds only)                          |
 
-## Design Style
+Outside the sub-apps, `src/App.tsx` mounts the landing page (`/`), the
+inbox (`/inbox`), the auth pages (`/auth/*`) and the error pages.
 
-**Academic Research Style**:
+## Develop
 
-- Neutral color scheme with deep blue (#2563eb) as primary color
-- Clear information hierarchy and data presentation
-- Emphasis on chart and analysis result readability
-- Clean and professional interface design
-
-## Project Structure
-
-```plain
-frontend/
-├── src/
-│   ├── api/                  # API clients
-│   │   ├── client.ts        # Axios config and interceptors
-│   │   ├── auth.ts          # Authentication APIs
-│   │   ├── projects.ts      # Project management APIs
-│   │   ├── containers.ts    # Container management APIs
-│   │   ├── injections.ts    # Injection APIs
-│   │   ├── executions.ts    # Execution APIs
-│   │   ├── tasks.ts         # Task management APIs
-│   │   └── evaluations.ts   # Evaluation APIs
-│   ├── assets/              # Static assets
-│   ├── components/          # React components
-│   │   ├── common/          # Common components
-│   │   └── layout/          # Layout components
-│   │       └── MainLayout.tsx
-│   ├── hooks/               # Custom hooks
-│   ├── pages/               # Page components
-│   │   ├── auth/            # Authentication pages
-│   │   │   └── Login.tsx
-│   │   ├── dashboard/       # Dashboard
-│   │   │   └── Dashboard.tsx
-│   │   ├── projects/        # Project management
-│   │   │   └── ProjectList.tsx
-│   │   ├── containers/      # Container management
-│   │   │   └── ContainerList.tsx
-│   │   ├── datasets/        # Dataset management
-│   │   ├── injections/      # Fault injection
-│   │   │   ├── InjectionList.tsx
-│   │   │   └── InjectionCreate.tsx
-│   │   ├── executions/      # Algorithm execution
-│   │   │   └── ExecutionList.tsx
-│   │   ├── evaluations/     # Evaluation
-│   │   ├── tasks/           # Task monitoring
-│   │   ├── system/          # System management
-│   │   └── settings/        # Settings
-│   ├── store/               # State management
-│   │   └── auth.ts         # Authentication state
-│   ├── types/               # TypeScript type definitions
-│   │   └── api.ts          # API types
-│   ├── utils/               # Utility functions
-│   │   └── theme.ts        # Theme configuration
-│   ├── App.tsx             # Root component
-│   ├── main.tsx            # Application entry
-│   └── index.css           # Global styles
-├── index.html              # HTML template
-├── package.json            # Dependencies
-├── tsconfig.json           # TypeScript config
-├── vite.config.ts          # Vite config
-└── README.md               # Documentation
-```
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js >= 18
-- pnpm >= 8
-
-### Install Dependencies
+From the repo root:
 
 ```bash
 pnpm install
+pnpm dev        # builds packages/ui, then starts the console dev server
 ```
 
-### Development Mode
+The dev server listens on `https://localhost:3323` with a self-signed
+certificate. The console imports the library from `packages/ui/dist`,
+so after changing `packages/ui` run `pnpm -F @lincyaw/aegis-ui build`
+(or restart `pnpm dev`).
 
-```bash
-pnpm dev
-# or use just command
-just dev
-```
+Other scripts, run with `pnpm -F @lincyaw/console <script>`:
 
-The app will start at `http://localhost:3000` with API requests proxied to `http://10.10.10.220:32080`
+| Script                   | Does                                                     |
+| ------------------------ | -------------------------------------------------------- |
+| `build`                  | Production build into `dist/`                            |
+| `preview`                | Serve `dist/` locally                                    |
+| `type-check`, `lint`     | TypeScript and ESLint (`.eslintrc.cjs` in this folder)   |
+| `format`, `format:check` | Prettier over `src/` (`.prettierrc.cjs` in this folder)  |
+| `bundle:<target>`        | Build the single-file Go binary (see `server/README.md`) |
 
-### Build for Production
+### Dev server settings
 
-```bash
-pnpm build
-```
+Set these in the environment or in `apps/console/.env.local`.
 
-Build artifacts will be generated in the `dist` directory.
+| Variable                 | Default                 | Effect                                                                                        |
+| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------- |
+| `VITE_HTTPS`             | on                      | Set to `0` to serve plain HTTP                                                                |
+| `VITE_PORT`              | `3323`                  | Dev server port (strict: fails if taken)                                                      |
+| `VITE_API_TARGET`        | `http://127.0.0.1:8082` | Proxy target for `/api`, `/v1`, `/.well-known`, `/authorize`, `/login`, `/token`, `/userinfo` |
+| `VITE_CLICKHOUSE_TARGET` | `http://127.0.0.1:8123` | Proxy target for `/api/v2/clickhouse/*` (prefix stripped)                                     |
 
-### Preview Production Build
+### Build-time variables
 
-```bash
-pnpm preview
-```
+These are inlined into the bundle.
 
-### Linting
+| Variable                      | Default                      | Effect                                      |
+| ----------------------------- | ---------------------------- | ------------------------------------------- |
+| `VITE_AGENTM_GATEWAY_URL`     | `ws://127.0.0.1:7777/agentm` | AgentM gateway WebSocket for the AI dock    |
+| `VITE_AGENTM_TOKEN`           | unset                        | Token sent to the AgentM gateway            |
+| `VITE_LLMHARNESS_DEFAULT_URL` | unset                        | Default case source for the Case Review app |
 
-```bash
-pnpm lint
-```
+### Runtime endpoints
 
-### Type Checking
+Endpoints that differ per deployment are read at runtime by
+`src/config/runtime.ts`, in this order (later wins):
 
-```bash
-pnpm type-check
-```
+1. Built-in defaults: empty URLs, meaning same-origin.
+2. `window.__AEGIS_CONFIG__`, set by `/config.js` (`public/config.js`
+   in the image; generated from CLI flags by the Go binary).
+3. A per-browser override saved from **Settings → Endpoints**
+   (`/settings/endpoints`) in `localStorage`.
 
-## Core Features
+The keys are `gatewayUrl`, `ssoOrigin`, `ssoClientId`, `ssoScope`,
+`clickhouseUrl`, `clickhouseDatabase`, `clickhouseTracesTable`,
+`clickhouseLogsTable`, `clickhouseUser`, `clickhousePassword`,
+`aiBaseUrl` and `aiModel`. The AI API key (`aiApiKey`) is accepted only
+from the `localStorage` override.
 
-### Implemented
+## Deploy
 
-✅ **Authentication System**
+There are two ways to ship the console.
 
-- Login page
-- JWT Token authentication
-- Automatic token refresh
-- Auth state management
+### nginx image (Kubernetes)
 
-✅ **Main Layout**
+The root `Dockerfile` builds the library and the console from the repo
+root and serves `dist/` with nginx. `nginx.conf` is installed as a
+template: it falls back to `index.html` for client-side routes and
+proxies `/api` to the `API_TARGET` environment variable.
 
-- Fixed Header and Sidebar
-- Responsive design
-- User info dropdown menu
+`scripts/deploy-frontend.sh <topic-slug>` runs `pnpm check`, builds
+and pushes the image for `linux/amd64` to `docker.io/opspai`, and runs
+`kubectl set image` + `rollout status` on the `rcabench-frontend`
+deployment. The Helm chart in `helm/` deploys the image and sets
+`API_TARGET` from `apiTarget` in `values.yaml`.
 
-✅ **Dashboard**
+### Single binary
 
-- Key metrics display (projects, experiments, tasks, executions)
-- Task status distribution pie chart
-- Recent activity list
-
-✅ **Project Management**
-
-- Project list (pagination, search, filtering)
-- Create/Edit/Delete projects
-- Label management
-
-✅ **Container Management**
-
-- Container list (pagination, search, type filtering)
-- Support for Pedestal/Benchmark/Algorithm types
-- Version management
-
-### To Be Implemented
-
-⏳ **Fault Injection**
-
-- Visual fault orchestrator (batches + parallel nodes)
-- Fault configuration forms (dynamic forms based on fault type)
-- Injection details page (real-time status, log streaming)
-
-⏳ **Algorithm Execution**
-
-- Execution list and details
-- Result visualization (service topology, layered results)
-- Accuracy analysis (Top-K, confusion matrix)
-
-⏳ **Evaluation**
-
-- Datapack evaluation
-- Dataset evaluation
-- Algorithm comparison (radar chart, bar chart)
-
-⏳ **Task Monitoring**
-
-- Task list and details
-- Real-time log streaming (SSE)
-- Task dependency tree visualization
-
-⏳ **System Management**
-
-- User management
-- Role management
-- Permission management
-- Label management
-
-## API Proxy Configuration
-
-In development mode, Vite proxies `/api` requests to the backend server:
-
-```typescript
-// vite.config.ts
-server: {
-  port: 3000,
-  proxy: {
-    '/api': {
-      target: 'http://10.10.10.220:32080',
-      changeOrigin: true,
-    },
-  },
-}
-```
-
-## Environment Variables
-
-Create a `.env.local` file to configure environment variables:
-
-```bash
-# API Base URL (uses proxy by default)
-VITE_API_BASE_URL=/api/v2
-
-# Other configurations...
-```
-
-## Theme Customization
-
-Theme configuration is in `src/utils/theme.ts` and `src/main.tsx`:
-
-```typescript
-// Primary colors
-colorPrimary: '#2563eb'; // Deep blue
-colorSuccess: '#10b981'; // Green
-colorWarning: '#f59e0b'; // Amber
-colorError: '#ef4444'; // Red
-colorInfo: '#06b6d4'; // Cyan
-```
-
-## State Management
-
-Using Zustand for lightweight state management, primarily for auth state:
-
-```typescript
-// Usage example
-import { useAuthStore } from '@/store/auth';
-
-const { user, login, logout, isAuthenticated } = useAuthStore();
-```
-
-## Data Fetching
-
-Using TanStack Query (React Query) for server state management:
-
-```typescript
-// Usage example
-import { useQuery } from '@tanstack/react-query';
-
-import { projectApi } from '@/api/projects';
-
-const { data, isLoading } = useQuery({
-  queryKey: ['projects', { page: 1, size: 10 }],
-  queryFn: () => projectApi.getProjects({ page: 1, size: 10 }),
-});
-```
-
-## Routing Structure
-
-```plain
-/                     # Redirect to /dashboard
-/login                # Login page
-/dashboard            # Dashboard
-/projects             # Project list
-/containers           # Container list
-/datasets             # Dataset list
-/injections           # Injection list
-/injections/create    # Create injection
-/executions           # Execution list
-/evaluations          # Evaluation page
-/tasks                # Task monitoring
-/system               # System management
-/settings             # User settings
-```
-
-## Docker Deployment
-
-### Development Environment
-
-Start the dev container with live reload:
-
-```bash
-just dev
-```
-
-The container will:
-
-- Run in the background
-- Auto-restart on system reboot
-- Sync local code changes (hot reload)
-- Expose port 3000
-
-See [README.Docker.md](README.Docker.md) for more details.
-
-## Next Steps
-
-1. **Implement Fault Injection Visual Orchestrator** (Core feature)
-   - Drag-and-drop batch management
-   - Parallel fault node configuration
-   - Real-time preview and validation
-
-2. **Implement Algorithm Execution Result Visualization**
-   - Service topology graph (D3.js or Cytoscape)
-   - Layered result display
-   - Accuracy analysis charts
-
-3. **Implement SSE Real-time Log Streaming**
-   - EventSource integration
-   - Auto-reconnection mechanism
-   - Log level filtering
-
-4. **Improve Common Component Library**
-   - LabelSelector
-   - ContainerSelector
-   - LogStream
-   - TaskStatusBadge
-
-## Contributing
-
-1. Fork the project
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-MIT License
+`server/` contains a Go program that embeds `dist/` and reverse-proxies
+the gateway and ClickHouse, producing one static executable per
+platform. See [`server/README.md`](server/README.md) for building,
+running and releasing it.
