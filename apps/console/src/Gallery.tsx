@@ -136,6 +136,7 @@ import {
   useAegisSurface,
   useCommands,
   useRegisterCommands,
+  useTheme,
 } from '@lincyaw/aegis-ui';
 import {
   Button,
@@ -155,24 +156,56 @@ import './Gallery.css';
 
 /* ── Static specimen data ──────────────────────────────────────────── */
 
-const COLOR_TOKENS: Array<{
-  name: string;
-  value: string;
-  desc: string;
-  inverted?: boolean;
-}> = [
-  { name: '--bg-page', value: '#F5F5F7', desc: 'Page surface' },
-  { name: '--bg-panel', value: '#FFFFFF', desc: 'Panel surface' },
-  {
-    name: '--bg-inverted',
-    value: '#000000',
-    desc: 'Active / inverted',
-    inverted: true,
-  },
-  { name: '--bg-muted', value: '#E8E8ED', desc: 'Muted surface' },
-  { name: '--bg-warning-soft', value: '#FEF2F2', desc: 'Warning wash' },
-  { name: '--accent-warning', value: '#E11D48', desc: 'Anomaly accent' },
+const COLOR_TOKENS: Array<{ name: string; desc: string }> = [
+  { name: '--bg-page', desc: 'Page surface' },
+  { name: '--bg-panel', desc: 'Panel surface' },
+  { name: '--bg-inverted', desc: 'Active / inverted' },
+  { name: '--bg-muted', desc: 'Muted surface' },
+  { name: '--bg-warning-soft', desc: 'Warning wash' },
+  { name: '--accent-warning', desc: 'Anomaly accent' },
 ];
+
+const MARKDOWN_DOCUMENT_SAMPLE = `# Injection runbook
+
+Run a fault injection against a staging namespace and collect the traces
+the RCA agents read.
+
+## Prepare the target
+
+1. Pick a pedestal that is **healthy** in the cluster view.
+2. Confirm the namespace has no injection in flight.
+
+### Configure the fault
+
+| Field    | Example         | Notes                        |
+| -------- | --------------- | ---------------------------- |
+| Family   | Network chaos   | Partition, delay or loss     |
+| Duration | \`300s\`         | Shorter runs miss slow drift |
+
+#### Submit
+
+\`\`\`typescript
+await client.injections.create({ family: 'network', durationSec: 300 });
+\`\`\`
+
+> Traces land in ClickHouse within a minute of the run finishing.
+`;
+
+function TokenValue({ name }: { name: string }): ReactNode {
+  const { resolved } = useTheme();
+  const [value, setValue] = useState('');
+  useEffect(() => {
+    // ThemeProvider writes data-theme in its own effect, which runs after
+    // this child's effect; read on the next frame to see the new value.
+    const id = requestAnimationFrame(() => {
+      setValue(
+        getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+      );
+    });
+    return () => cancelAnimationFrame(id);
+  }, [name, resolved]);
+  return <MetricLabel size='xs'>{value}</MetricLabel>;
+}
 
 const TYPE_SAMPLES: Array<{
   family: 'brand' | 'ui' | 'mono';
@@ -723,17 +756,14 @@ function App() {
                 className='gallery__swatch-chip'
                 style={{
                   background: `var(${t.name})`,
-                  outline:
-                    t.value === '#FFFFFF'
-                      ? '1px solid var(--border-hairline)'
-                      : undefined,
+                  outline: 'var(--size-hairline) solid var(--border-hairline)',
                 }}
               />
               <div className='gallery__swatch-meta'>
                 <MonoValue size='sm' weight='regular'>
                   {t.name}
                 </MonoValue>
-                <MetricLabel size='xs'>{t.value}</MetricLabel>
+                <TokenValue name={t.name} />
                 <span className='gallery__swatch-desc'>{t.desc}</span>
               </div>
             </div>
@@ -846,6 +876,9 @@ function App() {
             >
               {GALLERY_WIKI_MARKDOWN}
             </Markdown>
+          </Specimen>
+          <Specimen caption="variant='document' · heading scale" span={3}>
+            <Markdown variant='document'>{MARKDOWN_DOCUMENT_SAMPLE}</Markdown>
           </Specimen>
         </div>
 
@@ -1735,7 +1768,9 @@ function App() {
           <Specimen caption='json' span={2}>
             <CodeBlock
               language='json'
-              code='{\n  "service": "catalog",\n  "metric": "latency_p99",\n  "value": 482,\n  "unit": "ms"\n}'
+              code={
+                '{\n  "service": "catalog",\n  "metric": "latency_p99",\n  "value": 482,\n  "unit": "ms"\n}'
+              }
               surface={{
                 id: 'gallery.codeblock.json',
                 kind: 'code',
@@ -1757,7 +1792,9 @@ function App() {
           <Specimen caption='bash' span={2}>
             <CodeBlock
               language='bash'
-              code="kubectl apply -f injection.yaml\nwatch -n 1 'kubectl get pods'"
+              code={
+                "kubectl apply -f injection.yaml\nwatch -n 1 'kubectl get pods'"
+              }
             />
           </Specimen>
           <Specimen caption='any language string · typescript' span={2}>
