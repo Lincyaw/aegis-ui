@@ -3,11 +3,11 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 
 import { type ChatSessionItem, ChatSessionList } from '@lincyaw/aegis-ui';
+import { Popover } from 'antd';
 
 import { useChatStore } from './chatStore';
 
@@ -31,31 +31,18 @@ export function ChatSwitcher(): ReactElement {
     deleteChat,
   } = useChatStore();
   const [open, setOpen] = useState<boolean>(false);
-  // Set by the container's React onMouseDown, which (unlike a DOM contains
-  // check) also fires for presses in the session list's portalled row menu.
-  const pressedInsideRef = useRef(false);
 
   useEffect(() => {
     if (!open) {
       return;
     }
-    pressedInsideRef.current = false;
-    const onDocClick = (): void => {
-      if (pressedInsideRef.current) {
-        pressedInsideRef.current = false;
-        return;
-      }
-      setOpen(false);
-    };
     const onKey = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         setOpen(false);
       }
     };
-    document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener('mousedown', onDocClick);
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
@@ -85,29 +72,15 @@ export function ChatSwitcher(): ReactElement {
   );
 
   return (
-    <div
-      className='aegis-chat-switcher'
-      onMouseDown={() => {
-        pressedInsideRef.current = true;
-      }}
-    >
-      <button
-        type='button'
-        className='aegis-chat-switcher__trigger'
-        aria-haspopup='menu'
-        aria-expanded={open}
-        onClick={() => {
-          setOpen((v) => !v);
-        }}
-      >
-        <span className='aegis-chat-switcher__title'>
-          {truncate(currentChat.title, 24)}
-        </span>
-        <span aria-hidden='true' className='aegis-chat-switcher__caret'>
-          ▾
-        </span>
-      </button>
-      {open && (
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+      trigger='click'
+      placement='bottomLeft'
+      arrow={false}
+      destroyOnHidden
+      classNames={{ root: 'aegis-chat-switcher__overlay' }}
+      content={
         <div className='aegis-chat-switcher__popover' role='menu'>
           <button
             type='button'
@@ -126,7 +99,21 @@ export function ChatSwitcher(): ReactElement {
             />
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <button
+        type='button'
+        className='aegis-chat-switcher__trigger'
+        aria-haspopup='menu'
+        aria-expanded={open}
+      >
+        <span className='aegis-chat-switcher__title'>
+          {truncate(currentChat.title, 24)}
+        </span>
+        <span aria-hidden='true' className='aegis-chat-switcher__caret'>
+          ▾
+        </span>
+      </button>
+    </Popover>
   );
 }

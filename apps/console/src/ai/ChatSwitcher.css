@@ -11,11 +11,11 @@
   font-family: var(--font-brand);
   color: var(--text-main);
   background: transparent;
-  border: 1px solid var(--border-hairline);
+  border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-sm);
   padding: var(--space-1) var(--space-3);
   cursor: pointer;
-  max-width: 240px;
+  max-width: 15rem;
   transition:
     background var(--motion-fast),
     border-color var(--motion-fast);
@@ -37,15 +37,18 @@
   color: var(--text-muted);
 }
 
+.aegis-chat-switcher__overlay.ant-popover .ant-popover-inner {
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .aegis-chat-switcher__popover {
-  position: absolute;
-  top: calc(100% + var(--space-1));
-  left: 0;
-  z-index: var(--z-popover);
-  min-width: 260px;
-  max-width: 320px;
+  min-width: 16.25rem;
+  max-width: 20rem;
   background: var(--bg-panel);
-  border: 1px solid var(--border-emphasis);
+  border: var(--size-hairline) solid var(--border-emphasis);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-popover);
   padding: var(--space-1);
@@ -72,13 +75,13 @@
 }
 
 .aegis-chat-switcher__list {
-  max-height: 320px;
+  max-height: 20rem;
   overflow-y: auto;
 }
 
 @media (max-width: 768px) {
   .aegis-chat-switcher__popover {
-    min-width: 220px;
+    min-width: 13.75rem;
     max-width: 80vw;
   }
 }
