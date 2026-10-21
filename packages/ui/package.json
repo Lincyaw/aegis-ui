@@ -22,7 +22,7 @@
     "./dist/style.css"
   ],
   "scripts": {
-    "build": "node scripts/emit-mcp-tools.mjs && tsc -p tsconfig.build.json && vite build",
+    "build": "node scripts/emit-mcp-tools.mjs && tsc -p tsconfig.build.json --noEmit && vite build",
     "gen:mcp-tools": "node scripts/emit-mcp-tools.mjs",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext ts,tsx --max-warnings 0",

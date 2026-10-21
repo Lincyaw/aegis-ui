@@ -37,11 +37,6 @@ export default defineConfig({
       tsconfigPath: 'tsconfig.build.json',
     }),
   ],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
   build: {
     target: 'esnext',
     lib: {
