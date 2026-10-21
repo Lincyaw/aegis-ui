@@ -37,7 +37,7 @@ Peer dependencies:
 | `react`             | 18      |
 | `react-dom`         | 18      |
 | `react-router-dom`  | 6       |
-| `antd`              | 5       |
+| `antd`              | 5.25+   |
 | `@ant-design/icons` | 5       |
 
 The type tokens use Geist, Inter and JetBrains Mono. The package does not
@@ -136,8 +136,17 @@ export function App() {
 `userMenu`, `headerCenter`, `headerActions` and `inboxPath`. See
 `AegisShellProps` in
 [`packages/ui/src/layouts/shell/types.ts`](packages/ui/src/layouts/shell/types.ts).
-Per-app environment switching is described in
-[`environments/README.md`](packages/ui/src/layouts/shell/environments/README.md).
+
+Two optional features need a provider above the shell:
+
+- `enableCommandPalette` mounts the command palette (Cmd/Ctrl+K). Wrap the
+  shell in `CommandProvider`. Commands listed in an app's `commands` field
+  appear only while that app is active.
+- `agentPanel` renders the given node as a right-hand column, or as a
+  full-screen overlay at 768 px and below. Wrap the shell in `AgentProvider`
+  (or `AgentmChannelProvider`); a toggle appears in the header.
+  Per-app environment switching is described in
+  [`environments/README.md`](packages/ui/src/layouts/shell/environments/README.md).
 
 ### Write a page
 

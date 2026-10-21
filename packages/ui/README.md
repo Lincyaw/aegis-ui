@@ -15,7 +15,7 @@ pnpm add @lincyaw/aegis-ui
 ```
 
 Peer dependencies: `react` 18, `react-dom` 18, `react-router-dom` 6,
-`antd` 5, `@ant-design/icons` 5.
+`antd` 5.25 or later, `@ant-design/icons` 5.
 
 Fonts are not bundled. Install `@fontsource-variable/geist`,
 `@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono`, and
