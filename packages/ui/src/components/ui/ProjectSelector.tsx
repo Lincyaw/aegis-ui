@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 
 import { FolderOutlined, SearchOutlined } from '@ant-design/icons';
 
@@ -9,6 +9,8 @@ import './ProjectSelector.css';
 export interface ProjectOption {
   id: string;
   name: string;
+  /** Trailing content on the option row, e.g. a status chip or a count. */
+  meta?: ReactNode;
   /** Optional aegis-ui agent action — fired when the option is selected. */
   action?: AegisAction<void, unknown>;
 }
@@ -49,62 +51,49 @@ export function ProjectSelector({
   }, [projects, search]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
-    const items: DropdownItem[] = [
-      {
-        key: '__search',
-        label: (
-          <div className="aegis-project-selector__search">
-            <SearchOutlined />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              placeholder="Search projects…"
-              className="aegis-project-selector__search-input"
-            />
-          </div>
-        ),
-        onClick: () => {
-          /* search input handles its own events */
-        },
-        disabled: true,
-      },
-    ];
-
     if (filtered.length === 0) {
-      items.push({
-        key: '__empty',
-        label: 'No projects found',
-        disabled: true,
-      });
-    } else {
-      filtered.forEach((p) => {
-        items.push({
-          key: p.id,
-          label: (
-            <span
-              className={
-                p.id === selectedId
-                  ? 'aegis-project-selector__name aegis-project-selector__name--active'
-                  : 'aegis-project-selector__name'
-              }
-            >
-              {p.name}
-            </span>
-          ),
-          icon: <FolderOutlined />,
-          onClick: () => {
-            onSelect(p.id);
-            setSearch('');
-          },
-          action: p.action,
-        });
-      });
+      return [{ key: '__empty', label: 'No projects found', disabled: true }];
     }
+    return filtered.map((p) => ({
+      key: p.id,
+      label: (
+        <span className="aegis-project-selector__option">
+          <span
+            className={
+              p.id === selectedId
+                ? 'aegis-project-selector__name aegis-project-selector__name--active'
+                : 'aegis-project-selector__name'
+            }
+          >
+            {p.name}
+          </span>
+          {p.meta && (
+            <span className="aegis-project-selector__meta">{p.meta}</span>
+          )}
+        </span>
+      ),
+      icon: <FolderOutlined />,
+      onClick: () => {
+        onSelect(p.id);
+        setSearch('');
+      },
+      action: p.action,
+    }));
+  }, [filtered, selectedId, onSelect]);
 
-    return items;
-  }, [filtered, search, selectedId, onSelect]);
+  const searchField = (
+    <label className="aegis-project-selector__search">
+      <SearchOutlined aria-hidden />
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search projects…"
+        aria-label="Search projects"
+        className="aegis-project-selector__search-input"
+      />
+    </label>
+  );
 
   const trigger = (
     <div className="aegis-project-selector__trigger">
@@ -130,6 +119,7 @@ export function ProjectSelector({
     <div className={cls}>
       <DropdownMenu
         trigger={trigger}
+        header={searchField}
         items={dropdownItems}
         footerItems={footerItems}
         align={align}

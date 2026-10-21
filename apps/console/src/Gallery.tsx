@@ -2048,9 +2048,10 @@ function App() {
               ]}
             />
           </Specimen>
-          <Specimen caption='footerItems · below a divider'>
+          <Specimen caption='header · footerItems · dividers'>
             <DropdownMenu
               trigger={<Chip tone='default'>Workspace</Chip>}
+              header={<MetricLabel size='xs'>Switch workspace</MetricLabel>}
               items={[
                 { key: 'aegis', label: 'aegis-lab' },
                 { key: 'sandbox', label: 'sandbox' },
@@ -2068,22 +2069,39 @@ function App() {
 
         <SectionDivider>ProjectSelector</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='with projects' span={2}>
-            <ProjectSelector
-              projects={[
-                {
-                  id: '1',
-                  name: 'catalog-service',
-                  action: GALLERY_ACTIONS.projectSelect,
-                },
-                { id: '2', name: 'order-platform' },
-                { id: '3', name: 'inventory-v2' },
-              ]}
-              selectedId='1'
-              onSelect={() => {
-                /* gallery specimen — no-op */
-              }}
-            />
+          <Specimen caption='with projects · search · meta slot' span={2}>
+            <div style={{ width: '100%' }}>
+              <ProjectSelector
+                projects={[
+                  {
+                    id: '1',
+                    name: 'catalog-service',
+                    action: GALLERY_ACTIONS.projectSelect,
+                    meta: (
+                      <>
+                        <Chip tone='ink'>active</Chip>
+                        <MonoValue size='sm'>128 inj</MonoValue>
+                      </>
+                    ),
+                  },
+                  {
+                    id: '2',
+                    name: 'order-platform',
+                    meta: (
+                      <>
+                        <Chip tone='ghost'>archived</Chip>
+                        <MonoValue size='sm'>12 inj</MonoValue>
+                      </>
+                    ),
+                  },
+                  { id: '3', name: 'inventory-v2' },
+                ]}
+                selectedId='1'
+                onSelect={() => {
+                  /* gallery specimen — no-op */
+                }}
+              />
+            </div>
           </Specimen>
           <Specimen caption='footerItems · view all + create' span={2}>
             <ProjectSelector
