@@ -6,15 +6,7 @@ import {
   useState,
 } from 'react';
 
-import {
-  type AsyncBuffer,
-  type FileMetaData,
-  asyncBufferFromUrl,
-  parquetMetadataAsync,
-  parquetReadObjects,
-  toJson,
-} from 'hyparquet';
-import { compressors } from 'hyparquet-compressors';
+import type { AsyncBuffer, FileMetaData } from 'hyparquet';
 
 import {
   type PrimitiveSurface,
@@ -50,7 +42,20 @@ interface ColumnSpec {
   type: string;
 }
 
+// hyparquet ships ESM only; loading it on demand keeps `require()` of the
+// CJS build working.
+async function loadParquet() {
+  const [hyparquet, { compressors }] = await Promise.all([
+    import('hyparquet'),
+    import('hyparquet-compressors'),
+  ]);
+  return { ...hyparquet, compressors };
+}
+
+type ParquetModule = Awaited<ReturnType<typeof loadParquet>>;
+
 interface MetaSummary {
+  parquet: ParquetModule;
   buffer: AsyncBuffer;
   metadata: FileMetaData;
   columns: ColumnSpec[];
@@ -102,7 +107,7 @@ function sanitizeMetadata(meta: FileMetaData): void {
   }
 }
 
-function formatCell(value: unknown): string {
+function formatCell(value: unknown, parquet: ParquetModule): string {
   if (value === null || value === undefined) {
     return '';
   }
@@ -114,7 +119,7 @@ function formatCell(value: unknown): string {
   }
   if (typeof value === 'object') {
     try {
-      return JSON.stringify(toJson(value));
+      return JSON.stringify(parquet.toJson(value));
     } catch {
       return String(value);
     }
@@ -162,15 +167,17 @@ export function ParquetViewer({
     const state = { cancelled: false };
     void (async () => {
       try {
+        const parquet = await loadParquet();
         const buffer = file
           ? asyncBufferFromBlob(file)
-          : await asyncBufferFromUrl({ url: src ?? '' });
-        const metadata = await parquetMetadataAsync(buffer);
+          : await parquet.asyncBufferFromUrl({ url: src ?? '' });
+        const metadata = await parquet.parquetMetadataAsync(buffer);
         if (state.cancelled) {
           return;
         }
         sanitizeMetadata(metadata);
         setMeta({
+          parquet,
           buffer,
           metadata,
           columns: buildColumns(metadata),
@@ -202,12 +209,12 @@ export function ParquetViewer({
     const rowEnd = Math.min(rowStart + pageSize, meta.totalRows);
     void (async () => {
       try {
-        const result = await parquetReadObjects({
+        const result = await meta.parquet.parquetReadObjects({
           file: meta.buffer,
           metadata: meta.metadata,
           rowStart,
           rowEnd,
-          compressors,
+          compressors: meta.parquet.compressors,
         });
         if (state.cancelled) {
           return;
@@ -246,7 +253,7 @@ export function ParquetViewer({
         resizable: true,
         render: (row) => (
           <span className="aegis-parquet-viewer__cell">
-            {formatCell(row[c.name])}
+            {formatCell(row[c.name], meta.parquet)}
           </span>
         ),
       }),
