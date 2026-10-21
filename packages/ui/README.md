@@ -1,9 +1,12 @@
 # @lincyaw/aegis-ui
 
-AegisLab shared design system: tokens, primitives, layout, AntD theme.
+Design system and multi-app shell for AegisLab front ends: design tokens,
+presentational React components, `PageWrapper`, the router-aware
+`AegisShell`, and an Ant Design theme that follows the same tokens.
 
-See the [repository root README](../../README.md) for project documentation,
-conventions, and the AegisApp contract.
+The package contains no API clients, business state or pages. Applications
+provide their own data and plug into the shell through the `AegisApp`
+contract.
 
 ## Install
 
@@ -11,7 +14,80 @@ conventions, and the AegisApp contract.
 pnpm add @lincyaw/aegis-ui
 ```
 
-```ts
-import { PageWrapper, Panel } from '@lincyaw/aegis-ui';
+Peer dependencies: `react` 18, `react-dom` 18, `react-router-dom` 6,
+`antd` 5, `@ant-design/icons` 5.
+
+Fonts are not bundled. Install `@fontsource-variable/geist`,
+`@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono`, and
+import all three once in the app entry.
+
+## Usage
+
+```tsx
+import {
+  type AegisApp,
+  AegisShell,
+  ThemeProvider,
+  getAegisTheme,
+  useTheme,
+} from '@lincyaw/aegis-ui';
 import '@lincyaw/aegis-ui/style.css';
+import { ConfigProvider } from 'antd';
+import { BrowserRouter } from 'react-router-dom';
+
+const containersApp: AegisApp = {
+  id: 'containers',
+  label: 'Containers',
+  icon: <HddOutlined />,
+  basePath: '/containers',
+  sidebar: [{ items: [{ to: '', label: 'List', end: true }] }],
+  routes: [{ path: '', element: <ContainerList /> }],
+};
+
+function Root() {
+  const { resolved } = useTheme();
+  return (
+    <ConfigProvider theme={getAegisTheme(resolved)}>
+      <BrowserRouter>
+        <AegisShell
+          brand={{ name: 'AegisLab', href: '/' }}
+          apps={[containersApp]}
+          fallbackPath="/containers"
+        />
+      </BrowserRouter>
+    </ConfigProvider>
+  );
+}
+
+export function App() {
+  return (
+    <ThemeProvider>
+      <Root />
+    </ThemeProvider>
+  );
+}
 ```
+
+The shell wraps each route in `PageWrapper`, so pages render content only:
+
+```tsx
+import { DataTable, PageHeader, Panel } from '@lincyaw/aegis-ui';
+
+export function ContainerList() {
+  return (
+    <>
+      <PageHeader title="Containers" />
+      <Panel>
+        <DataTable columns={columns} data={rows} rowKey={(row) => row.id} />
+      </Panel>
+    </>
+  );
+}
+```
+
+## Documentation
+
+The [repository README](https://github.com/Lincyaw/aegis-ui#readme) covers the
+full contents of the package, the development workflow and the release
+process. The component gallery in the repository's console app shows every
+component with its variants.

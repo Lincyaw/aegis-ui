@@ -1,260 +1,218 @@
-# @lincyaw/aegis-ui
+# aegis-ui
 
-The shared design system + multi-app shell for every AegisLab portal.
-One visual language, one navigation chrome, many independent sub-apps.
+Design system and multi-app shell for AegisLab front ends, published to npm
+as [`@lincyaw/aegis-ui`](https://www.npmjs.com/package/@lincyaw/aegis-ui).
 
----
+The package gives every AegisLab sub-application the same tokens,
+components and navigation chrome. It is presentational only: it ships no API
+clients, no business state and no pages. Each application brings its own data
+and plugs into the shell through the `AegisApp` contract.
 
-## Positioning
+## Contents
 
-`aegis-ui` is a **library**, not an application. It ships:
+| Area                 | What it provides                                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Design tokens        | CSS custom properties for colour, type, spacing, radius, shadow and motion, with light and dark values                                 |
+| Primitives           | Presentational React components: panels, tables, forms, charts, code and diff viewers, trace and trajectory views, chat, file browsers |
+| `PageWrapper`        | Page root that owns width, padding and the entry animation                                                                             |
+| `AegisShell`         | Router-aware chrome (header, sidebar, breadcrumb, app switcher) composed from an `AegisApp[]` list                                     |
+| Theming              | `ThemeProvider` (light, dark, system) and `getAegisTheme(scheme)` for the Ant Design `ConfigProvider`                                  |
+| Context contracts    | Auth, notifications, command palette and agent providers; the host supplies the implementation                                         |
+| Agent-native runtime | `useAegisAction`, `useAegisSurface`, `AskPanel` and related types; see [docs/agent-native-ui.md](docs/agent-native-ui.md)              |
+| Headless helpers     | Relative time-range parsing and a Lucene-to-SQL compiler used by the query components                                                  |
 
-- **Design tokens** (colour, type, spacing, motion, radius, shadow)
-- **Primitives** — ~30 router-agnostic, presentational React components
-- **Layouts** — `PageWrapper` for page roots
-- **Shell** — `AegisShell`: top header, two-section sidebar, auto
-  breadcrumb, and route composition over an `AegisApp[]` contract
-- **AntD theme** — `ConfigProvider` mapping wired to the tokens
+The live catalogue of every component is the gallery app. Run `pnpm dev` and
+open <http://localhost:3323/gallery>.
 
-What it does **not** ship: API clients, Zustand stores, business pages,
-auth flows, request interceptors. Consumers own all of that.
-
-The architectural model is "**Alibaba Cloud Console**": one portal frame
-hosts many independent sub-applications (Containers, Datasets,
-Experiments, Observability, …), each with its own routes and business
-logic but a single shared visual identity.
-
-## Motivation
-
-We expect 7–10 AegisLab sub-applications over the next year. Without a
-shared library:
-
-- Each app re-implements the same `Panel` / `DataTable` / sidebar /
-  breadcrumb 7× with subtle drift.
-- The design language fragments — one app's "active state" is blue,
-  another's is bold, another's is an outline.
-- Cross-app navigation is impossible because nobody owns the chrome.
-- Any token change (typography, spacing) requires N coordinated PRs.
-
-A separate repo (rather than `packages/ui` inside the portal) is the
-right call because:
-
-1. **Multiple consumers, decoupled cadence** — sub-apps will live in
-   their own repos and pin their own `aegis-ui` version. Lockstep with
-   the portal monorepo would force every consumer to track unrelated
-   churn.
-2. **Forces a real public API** — anything that's not exported through
-   `packages/ui/src/index.ts` is invisible. No "I'll just reach into
-   `internal/Foo.tsx`" shortcuts.
-3. **Versioning + changelog hygiene** — breaking changes get a major
-   bump and a written note, not a silent rename in someone else's PR.
-4. **Gallery as spec** — the gallery sub-app (mounted at `/gallery` in
-   the console) is the single place to evaluate visual changes without
-   spinning up any backend.
-
-## Use
-
-Install from public npmjs.com — no auth needed:
+## Install
 
 ```bash
 pnpm add @lincyaw/aegis-ui
 ```
 
-### Composing a page
+Peer dependencies:
 
-```tsx
-import { PageWrapper, PageHeader, Panel, DataTable } from '@lincyaw/aegis-ui';
-import '@lincyaw/aegis-ui/style.css';
+| Package             | Version |
+| ------------------- | ------- |
+| `react`             | 18      |
+| `react-dom`         | 18      |
+| `react-router-dom`  | 6       |
+| `antd`              | 5       |
+| `@ant-design/icons` | 5       |
 
-export default function ContainersPage() {
-  return (
-    <PageWrapper>
-      <PageHeader title="Containers" />
-      <Panel>
-        <DataTable columns={...} data={...} rowKey={(r) => r.id} />
-      </Panel>
-    </PageWrapper>
-  );
-}
+The type tokens use Geist, Inter and JetBrains Mono. The package does not
+bundle font files; install and import them once in the app entry:
+
+```bash
+pnpm add @fontsource-variable/geist @fontsource-variable/inter @fontsource-variable/jetbrains-mono
 ```
 
-### Wiring the AntD theme
+```ts
+import '@fontsource-variable/geist';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
+```
+
+## Usage
+
+### Set up the root
+
+Import the stylesheet once, wrap the app in `ThemeProvider`, and pass the
+matching Ant Design theme to `ConfigProvider` so antd components follow the
+current colour scheme.
 
 ```tsx
-import { aegisTheme } from '@lincyaw/aegis-ui';
+import { createRoot } from 'react-dom/client';
+
+import { ThemeProvider, getAegisTheme, useTheme } from '@lincyaw/aegis-ui';
+import '@lincyaw/aegis-ui/style.css';
 import { ConfigProvider } from 'antd';
 
-<ConfigProvider theme={aegisTheme}>
-  <App />
-</ConfigProvider>;
+function Root() {
+  const { resolved } = useTheme();
+  return (
+    <ConfigProvider theme={getAegisTheme(resolved)}>
+      <App />
+    </ConfigProvider>
+  );
+}
+
+createRoot(document.getElementById('root')!).render(
+  <ThemeProvider>
+    <Root />
+  </ThemeProvider>,
+);
 ```
 
-### Building a multi-app portal
+### Register applications with the shell
+
+Each sub-application is an `AegisApp`. Its routes are mounted under
+`basePath` and its `sidebar` entries are resolved relative to it.
 
 ```tsx
+import { type AegisApp, AegisShell } from '@lincyaw/aegis-ui';
 import { BrowserRouter } from 'react-router-dom';
-import { AegisShell, type AegisApp } from '@lincyaw/aegis-ui';
-import '@lincyaw/aegis-ui/style.css';
 
 const containersApp: AegisApp = {
   id: 'containers',
   label: 'Containers',
   icon: <HddOutlined />,
   basePath: '/containers',
-  sidebar: [{ items: [{ to: '', label: 'List', end: true }, { to: 'new', label: 'Create' }] }],
+  description: 'Build and manage container images.',
+  sidebar: [
+    {
+      items: [
+        { to: '', label: 'List', end: true },
+        { to: 'new', label: 'Create' },
+      ],
+    },
+  ],
   routes: [
-    { element: <ContainersRoot />, children: [
-      { path: '',     element: <ContainerList /> },
-      { path: 'new',  element: <ContainerCreate /> },
-      { path: ':id',  element: <ContainerDetail /> },
-    ]},
+    {
+      element: <ContainersRoot />,
+      children: [
+        { path: '', element: <ContainerList /> },
+        { path: 'new', element: <ContainerCreate /> },
+        { path: ':id', element: <ContainerDetail /> },
+      ],
+    },
   ],
 };
 
-<BrowserRouter>
-  <AegisShell
-    brand={{ name: 'AegisLab', href: '/' }}
-    apps={[containersApp, datasetsApp, observabilityApp]}
-    fallbackPath="/containers"
-    user={{ name: 'me', menu: [...] }}
-  />
-</BrowserRouter>
+export function App() {
+  return (
+    <BrowserRouter>
+      <AegisShell
+        brand={{ name: 'AegisLab', href: '/' }}
+        apps={[containersApp]}
+        fallbackPath="/containers"
+      />
+    </BrowserRouter>
+  );
+}
 ```
 
-The shell wraps every routed page in `<PageWrapper>` automatically — the
-app's pages render content only, never the layout chrome.
+`AegisShell` also accepts `rootRoutes`, `notFoundElement`, `user`,
+`userMenu`, `headerCenter`, `headerActions` and `inboxPath`. See
+`AegisShellProps` in
+[`packages/ui/src/layouts/shell/types.ts`](packages/ui/src/layouts/shell/types.ts).
+Per-app environment switching is described in
+[`environments/README.md`](packages/ui/src/layouts/shell/environments/README.md).
 
-The console (`apps/console/`) is a working example: it registers the
-AegisLab portal + the library spec gallery as two `AegisApp` entries on
-a single `<AegisShell>`. Run `pnpm dev` to see it.
+### Write a page
 
-## Develop
+The shell wraps every route in `PageWrapper`, so a page renders content only.
+
+```tsx
+import { DataTable, PageHeader, Panel } from '@lincyaw/aegis-ui';
+
+export function ContainerList() {
+  return (
+    <>
+      <PageHeader title="Containers" />
+      <Panel>
+        <DataTable columns={columns} data={rows} rowKey={(row) => row.id} />
+      </Panel>
+    </>
+  );
+}
+```
+
+## Repository layout
+
+This is a pnpm workspace. Only `packages/ui` is published.
+
+| Path                               | Contents                                                                                  |
+| ---------------------------------- | ----------------------------------------------------------------------------------------- |
+| `packages/ui/src/styles/theme.css` | Design tokens                                                                             |
+| `packages/ui/src/components/ui/`   | Primitives, one `.tsx` and one `.css` per component                                       |
+| `packages/ui/src/layouts/`         | `PageWrapper` and the shell                                                               |
+| `packages/ui/src/theme/`           | `ThemeProvider` and the Ant Design theme                                                  |
+| `packages/ui/src/agent/`           | Agent context, AgentM channel client and the agent-native runtime                         |
+| `packages/ui/src/index.ts`         | Public API; anything not exported here is internal                                        |
+| `apps/console/`                    | Private Vite app that hosts the gallery and the AegisLab sub-applications                 |
+| `apps/console/src/Gallery.tsx`     | Gallery specimens for every primitive                                                     |
+| `apps/console/server/`             | Go binary that serves the built console (see its [README](apps/console/server/README.md)) |
+| `docs/`                            | [CSS conventions](docs/css-conventions.md) and the agent-native UI design                 |
+
+## Development
+
+Requires Node 22+ and pnpm 9.
 
 ```bash
-NPM_TOKEN=<token> pnpm install
-pnpm dev              # local console on http://localhost:3323
-pnpm type-check       # tsc --noEmit, strict mode
-pnpm lint             # eslint --max-warnings 0
-pnpm format:check     # prettier
-pnpm check            # type-check + lint + format:check
-pnpm build            # emits dist/{index.js,index.cjs,index.d.ts,style.css}
+pnpm install
+pnpm dev        # console on http://localhost:3323 (HTTPS unless VITE_HTTPS=0)
+pnpm check      # type-check, lint, stylelint, prettier, gallery coverage, MCP tool manifest
+pnpm build      # library to packages/ui/dist, console to apps/console/dist
 ```
 
-## Management
+Rules that `pnpm check` and review enforce:
 
-### What goes into this repo
+- Component and layout CSS uses tokens from `theme.css` only: no raw hex,
+  `px` or `ms` values. Details are in [docs/css-conventions.md](docs/css-conventions.md).
+- Components take data through props. They do not call APIs or read global
+  stores.
+- Every component exported from `packages/ui/src/components/ui/index.ts` has a
+  specimen in the gallery. `pnpm check:gallery` fails otherwise.
+- Changes to a component are checked in the gallery in light and dark mode,
+  at desktop width and at 768 px or narrower.
+- Commit messages follow Conventional Commits. Husky runs ESLint and Prettier
+  on staged files.
 
-In:
+## Releasing
 
-- A new primitive that is **presentational only** and would otherwise be
-  re-implemented in ≥2 sub-apps.
-- A new layout pattern owned by all consumers (page shell variations,
-  side-panel patterns, …).
-- A token (`--space-*`, `--accent-*`, `--font-*`) used by ≥2 primitives.
-- Shell improvements (sidebar collapsing, app switcher, breadcrumb
-  overrides, …).
-- AntD theme adjustments aligned with the token system.
+Versions follow semver and are managed with
+[Changesets](https://github.com/changesets/changesets).
 
-Out (belongs in a consumer repo):
+1. Add a changeset describing the change: `pnpm changeset`.
+2. Apply it: `pnpm changeset version`. This bumps `packages/ui/package.json`
+   and updates `packages/ui/CHANGELOG.md`.
+3. Commit, tag `v<version>`, and push the tag.
+4. The `publish` workflow checks that the tag matches
+   `packages/ui/package.json`, runs `pnpm check`, builds the library, and
+   publishes it to npm. It authenticates through npm Trusted Publishing or,
+   if that is not configured, the `NPM_TOKEN` repository secret.
 
-- API clients, SDK wrappers.
-- Business state (Zustand / Redux / Context owning domain data).
-- Pages that map 1:1 to a backend resource.
-- Anything that imports from a specific consumer's source tree.
-
-### Design conventions — enforced
-
-- **No hardcoded values** in component CSS. No raw hex / px / ms — all
-  visual values reference a CSS custom property from
-  `packages/ui/src/styles/theme.css`.
-- **Activation = surface inversion** (`--bg-inverted`), never accent
-  colour.
-- **Anomaly red** (`--accent-warning`, `#E11D48`) is reserved for real
-  anomalies (failures, breaches, alarms). Never decorative.
-- **Type stack**: Geist (brand titles), Inter (UI body), JetBrains Mono
-  (data / IDs / numbers). Use the `--font-*` tokens.
-- **Components are presentational.** No API calls, no global state reads,
-  no business logic.
-- **Every new primitive ships with a Specimen** in the gallery.
-
-### Adding or changing a primitive
-
-1. Add `packages/ui/src/components/ui/MyThing.tsx` + `MyThing.css`.
-2. Export from `packages/ui/src/components/ui/index.ts`.
-3. Add a specimen to `apps/console/src/Gallery.tsx`
-   covering states + edge cases. **A primitive without a gallery entry
-   is incomplete.**
-4. `pnpm check` must pass (strict TS + ESLint `--max-warnings 0`).
-5. `pnpm build` must emit a working `dist/`.
-6. Eyeball the console (especially the gallery) at desktop + ≤768 px width.
-
-Breaking the public API (renames, removed exports, props signature
-changes) requires a **major** version bump and a note in the PR
-describing the migration step for the consumer.
-
-### Versioning
-
-- **Semver.**
-  - `patch` — bugfix, internal-only refactor, doc/comment changes.
-  - `minor` — new primitive, new prop with a safe default, new token.
-  - `major` — any change to the public API of an exported symbol,
-    renamed token, dropped peer-dep range, or changed CSS contract that
-    consumers might rely on.
-- The `dist/` is published to **GitHub Packages** under the
-  `@lincyaw` scope. The version in `package.json` is the source of
-  truth; CI publishes on tag (workflow lands in a follow-up PR).
-
-### Commit + branch policy
-
-- Conventional commits enforced by `commitlint`. Prefixes:
-  `feat:` / `fix:` / `refactor:` / `chore:` / `docs:` / `test:`.
-- Husky pre-commit runs `lint-staged` (ESLint + Prettier).
-- Husky commit-msg validates the header.
-- Don't pass `--no-verify` unless a human asks. Fix the underlying issue.
-
-### Consumer install
-
-`@lincyaw/aegis-ui` is published to public npmjs.com — no `.npmrc` or
-auth token needed.
-
-```bash
-pnpm add @lincyaw/aegis-ui
-```
-
-## Repo map
-
-This is a **pnpm monorepo**: `packages/ui` is the published library;
-`apps/console` is a private dev surface that depends on it via
-`workspace:*`. Only `packages/ui` ships to consumers.
-
-| Path                                                  | Purpose                                                                             |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `packages/ui/src/styles/theme.css`                    | Design tokens — the only source of visual truth                                     |
-| `packages/ui/src/styles/{responsive,utility}.css`     | Responsive + utility helpers                                                        |
-| `packages/ui/src/styles/shared/{card,form,table}.css` | Shared structural CSS                                                               |
-| `packages/ui/src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono imports                                              |
-| `packages/ui/src/components/ui/`                      | Primitives, one `.tsx`+`.css` per component                                         |
-| `packages/ui/src/components/ui/index.ts`              | Primitive barrel                                                                    |
-| `packages/ui/src/layouts/PageWrapper.{tsx,css}`       | Page root container                                                                 |
-| `packages/ui/src/layouts/shell/`                      | AegisShell, TopHeader, Sidebar, BreadcrumbBar                                       |
-| `packages/ui/src/theme/antdTheme.ts`                  | AntD `ConfigProvider` theme                                                         |
-| `packages/ui/src/index.ts`                            | Library public API (the only entry point)                                           |
-| `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                                               |
-| `packages/ui/package.json`                            | Library publish config (`@lincyaw/aegis-ui`)                                        |
-| `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                                        |
-| `apps/console/src/`                                   | Gallery + demo apps; NOT shipped                                                    |
-| `apps/console/src/main.tsx`                           | Console entry                                                                       |
-| `apps/console/index.html`                             | Vite dev-server HTML entry                                                          |
-| `apps/portal/`                                        | AegisLab portal (`rcabench-frontend`); shallow integration, owns its own UI for now |
-| `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package                                |
-| `pnpm-workspace.yaml`                                 | Workspace package globs                                                             |
-| `turbo.json`                                          | Pipeline graph (build, type-check, lint, lint:css)                                  |
-| `.changeset/`                                         | Versioning + publish tracking                                                       |
-| `CLAUDE.md`                                           | Working guidelines for Claude Code agents in this repo                              |
-
-## Related
-
-- **AegisLab-frontend** — the current portal application; first consumer
-  of this library.
-- **issue #396** (in `OperationsPAI/aegis`) — the original RFC that
-  motivated this split.
+Removing or renaming an export, changing a prop's type, or renaming a token
+is a breaking change. Downstream apps (AegisLab-frontend) need a matching
+update.
