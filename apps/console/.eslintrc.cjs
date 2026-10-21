@@ -13,15 +13,7 @@ module.exports = {
     'plugin:react/jsx-runtime',
     'prettier',
   ],
-  ignorePatterns: [
-    'dist',
-    'node_modules',
-    'bin',
-    'server',
-    '.eslintrc.js',
-    'commitlint.config.js',
-    'vitest.config.ts',
-  ],
+  ignorePatterns: ['dist', 'node_modules', 'bin', 'server'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
@@ -41,7 +33,7 @@ module.exports = {
     'unused-imports',
   ],
   rules: {
-    // React 规则
+    // React
     'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off',
     'react/jsx-uses-react': 'off',
@@ -50,7 +42,7 @@ module.exports = {
       { allowConstantExport: true },
     ],
 
-    // TypeScript 规则
+    // TypeScript
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
@@ -73,14 +65,14 @@ module.exports = {
       },
     ],
 
-    // 导入规则
+    // Imports
     // 'import/order' is disabled because Prettier's sort-imports plugin handles import ordering
     'import/order': 'off',
     'unused-imports/no-unused-imports': 'error',
     'no-duplicate-imports': 'error',
     'import/no-duplicates': 'error',
 
-    // 代码质量规则
+    // Code quality
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-debugger': 'error',
     'no-duplicate-case': 'error',
@@ -91,7 +83,7 @@ module.exports = {
     'prefer-template': 'error',
     'object-shorthand': 'error',
 
-    // 命名规则
+    // Naming
     '@typescript-eslint/naming-convention': [
       'error',
       {
@@ -109,7 +101,7 @@ module.exports = {
       },
     ],
 
-    // React Hooks 规则
+    // React Hooks
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'error',
 
@@ -137,7 +129,7 @@ module.exports = {
       },
     ],
 
-    // JSX 规则
+    // JSX
     'react/jsx-boolean-value': ['error', 'never'],
     'react/jsx-curly-brace-presence': ['error', 'never'],
     'react/jsx-fragments': ['error', 'syntax'],
@@ -159,22 +151,13 @@ module.exports = {
     {
       files: ['*.ts', '*.tsx'],
       rules: {
-        'no-undef': 'off', // TypeScript会检查未定义变量
+        'no-undef': 'off', // TypeScript reports undefined identifiers
       },
     },
     {
       files: ['src/main.tsx', 'src/apps/**/index.tsx', 'src/apps/**/store.tsx'],
       rules: {
         'react-refresh/only-export-components': 'off',
-      },
-    },
-    {
-      files: ['*.test.ts', '*.test.tsx', '*.spec.ts', '*.spec.tsx'],
-      env: {
-        jest: true,
-      },
-      rules: {
-        '@typescript-eslint/no-explicit-any': 'off', // 测试中允许使用any
       },
     },
   ],
