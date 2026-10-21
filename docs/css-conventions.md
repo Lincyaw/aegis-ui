@@ -11,20 +11,26 @@ Every visual value comes from a CSS custom property in `src/styles/theme.css`.
 **Banned in component CSS** (`src/components/**`, `src/layouts/**`):
 
 - raw hex / `rgb()` / `rgba()` / named colours
-- raw `px` for sizes, spacing, font-size, radius
+- raw `px` for sizes, spacing, font-size, radius — including `1px`
+  hairlines, which use `var(--size-hairline)`
 - raw `ms` / `s` for transitions / animations
 
 **Allowed exceptions**:
 
 - `0` / `100%` / `auto` / `inherit` / `unset` — keyword-like values, not tokens
-- `1px` borders may use `var(--size-hairline)`; raw `1px` is acceptable
-  _only_ if explicitly hair-line for visual rendering reasons (rare)
 - `em` / `rem` / `%` / `vh` / `vw` / `fr` — these are scale-relative
   units, not raw pixels
 - raw `px` _inside_ token declarations in `theme.css` (that's where the
   values live)
+- raw `px` in `@media (max-width: …)` / `@media (min-width: …)`
+  breakpoints — custom properties can't be used there (see §5)
 
 If a token is missing, add it to `theme.css` first, then use it.
+
+When a size is also needed by TypeScript layout code (e.g. the node box
+that `ServiceMap` hands to dagre), the `.tsx` constant is the single
+source: the component sets it as a custom property on its root element
+and the CSS reads that property. Don't copy the number into a token.
 
 ### Token namespaces
 
@@ -38,18 +44,18 @@ If a token is missing, add it to `theme.css` first, then use it.
 | `--space-*`                                                | margin / padding / gap (4 px scale)               |
 | `--radius-*`                                               | border-radius                                     |
 | `--size-icon-*`                                            | icon glyph sizes (12/16/20)                       |
-| `--size-control-*`                                         | input/button heights (24/32/40)                   |
+| `--size-control-*`                                         | input/button heights (24/32)                      |
 | `--size-avatar-*`                                          | avatar/dot sizes (24/32/40)                       |
 | `--size-hairline`                                          | 1 px hairline borders                             |
 | `--font-*`                                                 | font-family stacks                                |
 | `--fs-*`                                                   | font-size (`--fs-<px>` steps plus `--fs-display`) |
 | `--fw-*`                                                   | font-weight                                       |
 | `--tracking-*`                                             | letter-spacing                                    |
-| `--motion-*`                                               | transition / animation durations + easing         |
+| `--motion-*`                                               | transition / animation durations, easing, offsets |
 | `--shadow-*`                                               | box-shadow                                        |
 | `--z-*`                                                    | z-index scale                                     |
 | `--header-height`, `--sidebar-width-*`, `--page-max-width` | layout constants                                  |
-| `--bp-*`                                                   | breakpoint reference values                       |
+| `--{component}-*` (e.g. `--ask-panel-width`)               | sizes owned by a single component                 |
 
 ## 2. BEM naming, scoped per component
 
@@ -107,14 +113,16 @@ Missing any of these is a review block.
 
 ## 5. Responsive
 
-Breakpoints (Tailwind-aligned):
+Breakpoints (Tailwind-aligned). There are no breakpoint tokens: custom
+properties can't be used inside `@media`, so these values are written
+literally in media queries.
 
-| Token     | Min width | When to use                                         |
-| --------- | --------- | --------------------------------------------------- |
-| `--bp-sm` | 640 px    | small phones in landscape, large phones in portrait |
-| `--bp-md` | 768 px    | tablets                                             |
-| `--bp-lg` | 1024 px   | small laptops                                       |
-| `--bp-xl` | 1280 px   | desktops                                            |
+| Name | Width   | When to use                                         |
+| ---- | ------- | --------------------------------------------------- |
+| sm   | 640 px  | small phones in landscape, large phones in portrait |
+| md   | 768 px  | tablets                                             |
+| lg   | 1024 px | small laptops                                       |
+| xl   | 1280 px | desktops                                            |
 
 Authoring style: **desktop first**. Default rules target the largest
 viewport; smaller viewports are progressively constrained with
@@ -192,7 +200,10 @@ Don't duplicate.
 
 - All durations / easings come from `--motion-*` tokens.
 - Respect `prefers-reduced-motion` — the global rule in `theme.css`
-  already collapses animations to ~instant; don't override.
+  already collapses animations to ~instant; don't override. It does not
+  shorten delays, so an animation that holds an element hidden during a
+  delay (`backwards` fill, like the `PageWrapper` stagger) must be set
+  to `animation: none` under `prefers-reduced-motion: reduce`.
 - No infinite loops unless meaningfully semantic (`StatusDot` pulse is
   the canonical example).
 
@@ -202,13 +213,20 @@ Mechanical:
 
 - **Prettier** — formatting (import order applies to TS/TSX only).
 - **Stylelint** (`pnpm lint:css`, config in the root `.stylelintrc.cjs`)
-  — `stylelint-config-standard` plus `color-no-hex` and
-  `color-named: never`. `theme.css` and `index.css` are exempt. Units
-  are not restricted yet (`px` and `ms` are in the allowed list), so
-  raw sizes and durations are caught with the token-discipline grep in
-  `CLAUDE.md`, not by Stylelint.
+  — `stylelint-config-standard` plus the token rules: `color-no-hex`,
+  `color-named: never`, `unit-disallowed-list` for `px` / `ms` / `s`
+  (px is exempt only in `max-width` / `min-width` media features) and a
+  `unit-allowed-list` that rejects any unit not listed (`pt`, `cm`, …).
+  `theme.css` and `index.css` are exempt — that's where the values live.
+- **Token-discipline grep** (north-star #4 in `CLAUDE.md`) — a quick
+  audit for the same rule; it should print nothing:
+
+  ```bash
+  grep -REn --include='*.css' '#[0-9a-fA-F]{3,8}\b|\b[0-9]+px\b|\b[0-9.]+m?s\b' \
+    packages/ui/src/components packages/ui/src/layouts | grep -v '@media'
+  ```
 
 By review:
 
-- Raw `px` / `ms`, BEM naming, property order, state coverage,
-  dark-mode contract, duplication.
+- BEM naming, property order, state coverage, dark-mode contract,
+  duplication.
