@@ -1,7 +1,5 @@
 import {
   type CSSProperties,
-  type KeyboardEvent,
-  type PointerEvent,
   type ReactElement,
   useEffect,
   useMemo,
@@ -18,6 +16,7 @@ import {
   type InspectableContent,
   MetricLabel,
   MonoValue,
+  useResizable,
 } from '@lincyaw/aegis-ui';
 
 import {
@@ -53,55 +52,6 @@ type LoadState =
   | { kind: 'loading' }
   | { kind: 'error'; message: string }
   | { kind: 'ready'; rows: SessionRow[] };
-
-type ResizeEdge = 'left' | 'right';
-
-interface PaneWidths {
-  left: number;
-  right: number;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-function constrainPaneWidths(
-  widths: PaneWidths,
-  containerWidth: number,
-  activeEdge: ResizeEdge
-): PaneWidths {
-  if (containerWidth <= 0) {
-    return widths;
-  }
-  const available = containerWidth - SPLITTER_TOTAL_WIDTH;
-  const leftMaxByCenter = Math.max(
-    MIN_LEFT_WIDTH,
-    available - MIN_CENTER_WIDTH - MIN_RIGHT_WIDTH
-  );
-  const rightMaxByCenter = Math.max(
-    MIN_RIGHT_WIDTH,
-    available - MIN_CENTER_WIDTH - MIN_LEFT_WIDTH
-  );
-  let left = clamp(
-    widths.left,
-    MIN_LEFT_WIDTH,
-    Math.min(MAX_LEFT_WIDTH, leftMaxByCenter)
-  );
-  let right = clamp(
-    widths.right,
-    MIN_RIGHT_WIDTH,
-    Math.min(MAX_RIGHT_WIDTH, rightMaxByCenter)
-  );
-  const center = available - left - right;
-  if (center < MIN_CENTER_WIDTH) {
-    if (activeEdge === 'left') {
-      left = Math.max(MIN_LEFT_WIDTH, available - MIN_CENTER_WIDTH - right);
-    } else {
-      right = Math.max(MIN_RIGHT_WIDTH, available - MIN_CENTER_WIDTH - left);
-    }
-  }
-  return { left, right };
-}
 
 function buildTree(rows: SessionRow[], selectedId: string): SessionTreeNode[] {
   const byId = new Map(rows.map((row) => [row.sessionId, row]));
@@ -172,15 +122,44 @@ export function SessionDetail(): ReactElement {
   const sessionId = rootSessionId ?? '';
   const { pinned, toggle } = useCompareList();
   const layoutRef = useRef<HTMLDivElement | null>(null);
-  const [paneWidths, setPaneWidths] = useState<PaneWidths>({
-    left: DEFAULT_LEFT_WIDTH,
-    right: DEFAULT_RIGHT_WIDTH,
+  const leftWidthRef = useRef(DEFAULT_LEFT_WIDTH);
+  const rightWidthRef = useRef(DEFAULT_RIGHT_WIDTH);
+  const besideMinCenter = (width: number, otherPaneWidth: number): number => {
+    const containerWidth = layoutRef.current?.getBoundingClientRect().width;
+    if (!containerWidth) {
+      return width;
+    }
+    return Math.min(
+      width,
+      containerWidth - SPLITTER_TOTAL_WIDTH - MIN_CENTER_WIDTH - otherPaneWidth
+    );
+  };
+  const leftPane = useResizable({
+    side: 'left',
+    initialWidth: DEFAULT_LEFT_WIDTH,
+    minWidth: MIN_LEFT_WIDTH,
+    maxWidth: MAX_LEFT_WIDTH,
+    keyboardStep: PANE_KEYBOARD_STEP,
+    constrainWidth: (width) => besideMinCenter(width, rightWidthRef.current),
+  });
+  const rightPane = useResizable({
+    side: 'right',
+    initialWidth: DEFAULT_RIGHT_WIDTH,
+    minWidth: MIN_RIGHT_WIDTH,
+    maxWidth: MAX_RIGHT_WIDTH,
+    keyboardStep: PANE_KEYBOARD_STEP,
+    constrainWidth: (width) => besideMinCenter(width, leftWidthRef.current),
   });
   const [treeLoad, setTreeLoad] = useState<LoadState>({ kind: 'loading' });
   const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
   const sessionData = useSessionData(selectedSessionId);
   const [inspectedContent, setInspectedContent] =
     useState<InspectableContent | null>(null);
+
+  useEffect(() => {
+    leftWidthRef.current = leftPane.width;
+    rightWidthRef.current = rightPane.width;
+  }, [leftPane.width, rightPane.width]);
 
   useEffect(() => {
     setSelectedSessionId(sessionId);
@@ -230,97 +209,18 @@ export function SessionDetail(): ReactElement {
   const pinSessionId = selectedRow?.sessionId || selectedSessionId;
   const isPinned = pinSessionId ? pinned.includes(pinSessionId) : false;
   const layoutStyle = {
-    '--session-tree-left-width': `${paneWidths.left.toString()}px`,
-    '--session-tree-right-width': `${paneWidths.right.toString()}px`,
+    '--session-tree-left-width': `${leftPane.width.toString()}px`,
+    '--session-tree-right-width': `${rightPane.width.toString()}px`,
   } as CSSProperties;
-
-  const resizePane = (edge: ResizeEdge, clientX: number): void => {
-    const rect = layoutRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-    setPaneWidths((current) => {
-      const next =
-        edge === 'left'
-          ? { ...current, left: clientX - rect.left }
-          : { ...current, right: rect.right - clientX };
-      return constrainPaneWidths(next, rect.width, edge);
-    });
-  };
-
-  const startPaneResize = (
-    edge: ResizeEdge,
-    event: PointerEvent<HTMLButtonElement>
-  ): void => {
-    event.preventDefault();
-    resizePane(edge, event.clientX);
-    document.body.classList.add('session-tree-page--resizing');
-    const handlePointerMove = (moveEvent: globalThis.PointerEvent): void => {
-      resizePane(edge, moveEvent.clientX);
-    };
-    const stopResize = (): void => {
-      document.body.classList.remove('session-tree-page--resizing');
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', stopResize);
-      window.removeEventListener('pointercancel', stopResize);
-    };
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', stopResize);
-    window.addEventListener('pointercancel', stopResize);
-  };
-
-  const nudgePane = (edge: ResizeEdge, delta: number): void => {
-    const width = layoutRef.current?.getBoundingClientRect().width ?? 0;
-    setPaneWidths((current) => {
-      const next =
-        edge === 'left'
-          ? { ...current, left: current.left + delta }
-          : { ...current, right: current.right - delta };
-      return constrainPaneWidths(next, width, edge);
-    });
-  };
-
-  const handleSplitterKeyDown = (
-    edge: ResizeEdge,
-    event: KeyboardEvent<HTMLButtonElement>
-  ): void => {
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault();
-      nudgePane(edge, -PANE_KEYBOARD_STEP);
-    } else if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      nudgePane(edge, PANE_KEYBOARD_STEP);
-    } else if (event.key === 'Home') {
-      event.preventDefault();
-      const width = layoutRef.current?.getBoundingClientRect().width ?? 0;
-      setPaneWidths((current) =>
-        constrainPaneWidths(
-          {
-            ...current,
-            [edge]: edge === 'left' ? MIN_LEFT_WIDTH : MAX_RIGHT_WIDTH,
-          },
-          width,
-          edge
-        )
-      );
-    } else if (event.key === 'End') {
-      event.preventDefault();
-      const width = layoutRef.current?.getBoundingClientRect().width ?? 0;
-      setPaneWidths((current) =>
-        constrainPaneWidths(
-          {
-            ...current,
-            [edge]: edge === 'left' ? MAX_LEFT_WIDTH : MIN_RIGHT_WIDTH,
-          },
-          width,
-          edge
-        )
-      );
-    }
-  };
+  const resizing = leftPane.isDragging || rightPane.isDragging;
 
   const resetPaneWidths = (): void => {
-    setPaneWidths({ left: DEFAULT_LEFT_WIDTH, right: DEFAULT_RIGHT_WIDTH });
+    // Each pane's constraint reads the other pane's width. Both reset in
+    // the same render, so point them at the defaults, not the old widths.
+    leftWidthRef.current = DEFAULT_LEFT_WIDTH;
+    rightWidthRef.current = DEFAULT_RIGHT_WIDTH;
+    leftPane.reset();
+    rightPane.reset();
   };
 
   if (!sessionId) {
@@ -368,7 +268,13 @@ export function SessionDetail(): ReactElement {
         />
       )}
       {treeLoad.kind === 'ready' && selectedRow && (
-        <div ref={layoutRef} className='session-tree-page' style={layoutStyle}>
+        <div
+          ref={layoutRef}
+          className={`session-tree-page${
+            resizing ? ' session-tree-page--resizing' : ''
+          }`}
+          style={layoutStyle}
+        >
           <aside className='session-tree-page__tree'>
             <header className='session-tree-page__pane-head'>
               Session tree
@@ -380,13 +286,14 @@ export function SessionDetail(): ReactElement {
               onSelect={setSelectedSessionId}
             />
           </aside>
-          <PaneSplitter
-            edge='left'
-            label='Resize session tree pane'
-            onPointerDown={startPaneResize}
-            onKeyDown={handleSplitterKeyDown}
+          <div
+            {...leftPane.handleProps}
+            className='session-tree-page__splitter'
+            aria-label='Resize session tree pane'
             onDoubleClick={resetPaneWidths}
-          />
+          >
+            <span className='session-tree-page__splitter-line' />
+          </div>
           <main className='session-tree-page__trajectory'>
             <header className='session-tree-page__pane-head'>
               Trajectory
@@ -400,13 +307,14 @@ export function SessionDetail(): ReactElement {
               onInspectContent={setInspectedContent}
             />
           </main>
-          <PaneSplitter
-            edge='right'
-            label='Resize output pane'
-            onPointerDown={startPaneResize}
-            onKeyDown={handleSplitterKeyDown}
+          <div
+            {...rightPane.handleProps}
+            className='session-tree-page__splitter'
+            aria-label='Resize output pane'
             onDoubleClick={resetPaneWidths}
-          />
+          >
+            <span className='session-tree-page__splitter-line' />
+          </div>
           <aside className='session-tree-page__output'>
             <header className='session-tree-page__pane-head'>Output</header>
             <OutputPane
@@ -423,41 +331,6 @@ export function SessionDetail(): ReactElement {
         onClose={() => setInspectedContent(null)}
       />
     </div>
-  );
-}
-
-function PaneSplitter({
-  edge,
-  label,
-  onPointerDown,
-  onKeyDown,
-  onDoubleClick,
-}: {
-  edge: ResizeEdge;
-  label: string;
-  onPointerDown: (
-    edge: ResizeEdge,
-    event: PointerEvent<HTMLButtonElement>
-  ) => void;
-  onKeyDown: (
-    edge: ResizeEdge,
-    event: KeyboardEvent<HTMLButtonElement>
-  ) => void;
-  onDoubleClick: () => void;
-}): ReactElement {
-  return (
-    <button
-      type='button'
-      className={`session-tree-page__splitter session-tree-page__splitter--${edge}`}
-      aria-label={label}
-      aria-orientation='vertical'
-      role='separator'
-      onPointerDown={(event) => onPointerDown(edge, event)}
-      onKeyDown={(event) => onKeyDown(edge, event)}
-      onDoubleClick={onDoubleClick}
-    >
-      <span className='session-tree-page__splitter-line' />
-    </button>
   );
 }
 

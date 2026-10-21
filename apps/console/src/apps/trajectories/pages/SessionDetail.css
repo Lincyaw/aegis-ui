@@ -57,13 +57,16 @@
   border-right: 0;
 }
 
+.session-tree-page--resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
 .session-tree-page__splitter {
   position: relative;
   z-index: 1;
   width: 100%;
   min-width: 0;
-  padding: 0;
-  border: 0;
   border-left: var(--size-hairline) solid var(--border-hairline);
   border-right: var(--size-hairline) solid var(--border-hairline);
   background: var(--bg-muted);
@@ -89,13 +92,8 @@
 
 .session-tree-page__splitter:hover .session-tree-page__splitter-line,
 .session-tree-page__splitter:focus-visible .session-tree-page__splitter-line,
-body.session-tree-page--resizing .session-tree-page__splitter-line {
+.session-tree-page--resizing .session-tree-page__splitter-line {
   background: var(--border-strong);
-}
-
-body.session-tree-page--resizing {
-  cursor: col-resize;
-  user-select: none;
 }
 
 .session-tree-page__pane-head {

@@ -48,27 +48,51 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) 0;
+  color: var(--text-muted);
+  cursor: text;
 }
 
 .aegis-project-selector__search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 10rem;
   border: none;
   background: none;
   outline: none;
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   color: var(--text-main);
-  width: 10rem;
 }
 
 .aegis-project-selector__search-input::placeholder {
   color: var(--text-muted);
 }
 
+.aegis-project-selector__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
 .aegis-project-selector__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: var(--font-ui);
   font-size: var(--fs-13);
 }
 
 .aegis-project-selector__name--active {
   font-weight: var(--fw-semibold);
+}
+
+.aegis-project-selector__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  font-size: var(--fs-11);
+  color: var(--text-muted);
 }

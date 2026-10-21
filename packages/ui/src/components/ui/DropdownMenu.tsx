@@ -19,6 +19,8 @@ export interface DropdownItem {
 interface DropdownMenuProps {
   trigger: ReactNode;
   items: DropdownItem[];
+  /** Non-clickable content above `items`, before a divider — e.g. a search field. */
+  header?: ReactNode;
   /** Rendered below `items`, after a divider — e.g. "View all" / "Create". */
   footerItems?: DropdownItem[];
   className?: string;
@@ -28,6 +30,7 @@ interface DropdownMenuProps {
 export function DropdownMenu({
   trigger,
   items,
+  header,
   footerItems = [],
   className,
   align = 'right',
@@ -58,6 +61,12 @@ export function DropdownMenu({
         {trigger}
       </button>
       <div className={panelCls}>
+        {header && (
+          <>
+            <div className="aegis-dropdown__header">{header}</div>
+            <div className="aegis-dropdown__divider" role="separator" />
+          </>
+        )}
         {items.map((item) => (
           <DropdownMenuItem
             key={item.key}

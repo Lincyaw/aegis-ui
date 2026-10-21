@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -1759,6 +1760,15 @@ function App() {
               code="kubectl apply -f injection.yaml\nwatch -n 1 'kubectl get pods'"
             />
           </Specimen>
+          <Specimen caption='any language string · typescript' span={2}>
+            <CodeBlock
+              language='typescript'
+              showLineNumbers
+              code={
+                "const latency = await probe('catalog');\nif (latency.p99 > 400) {\n  alert(latency);\n}"
+              }
+            />
+          </Specimen>
         </div>
       </Panel>
 
@@ -2039,9 +2049,10 @@ function App() {
               ]}
             />
           </Specimen>
-          <Specimen caption='footerItems · below a divider'>
+          <Specimen caption='header · footerItems · dividers'>
             <DropdownMenu
               trigger={<Chip tone='default'>Workspace</Chip>}
+              header={<MetricLabel size='xs'>Switch workspace</MetricLabel>}
               items={[
                 { key: 'aegis', label: 'aegis-lab' },
                 { key: 'sandbox', label: 'sandbox' },
@@ -2059,22 +2070,39 @@ function App() {
 
         <SectionDivider>ProjectSelector</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='with projects' span={2}>
-            <ProjectSelector
-              projects={[
-                {
-                  id: '1',
-                  name: 'catalog-service',
-                  action: GALLERY_ACTIONS.projectSelect,
-                },
-                { id: '2', name: 'order-platform' },
-                { id: '3', name: 'inventory-v2' },
-              ]}
-              selectedId='1'
-              onSelect={() => {
-                /* gallery specimen — no-op */
-              }}
-            />
+          <Specimen caption='with projects · search · meta slot' span={2}>
+            <div style={{ width: '100%' }}>
+              <ProjectSelector
+                projects={[
+                  {
+                    id: '1',
+                    name: 'catalog-service',
+                    action: GALLERY_ACTIONS.projectSelect,
+                    meta: (
+                      <>
+                        <Chip tone='ink'>active</Chip>
+                        <MonoValue size='sm'>128 inj</MonoValue>
+                      </>
+                    ),
+                  },
+                  {
+                    id: '2',
+                    name: 'order-platform',
+                    meta: (
+                      <>
+                        <Chip tone='ghost'>archived</Chip>
+                        <MonoValue size='sm'>12 inj</MonoValue>
+                      </>
+                    ),
+                  },
+                  { id: '3', name: 'inventory-v2' },
+                ]}
+                selectedId='1'
+                onSelect={() => {
+                  /* gallery specimen — no-op */
+                }}
+              />
+            </div>
           </Specimen>
           <Specimen caption='footerItems · view all + create' span={2}>
             <ProjectSelector
@@ -3356,7 +3384,11 @@ function App() {
         </div>
 
         <SectionDivider
-          extra={<MetricLabel>drag · keyboard · persist</MetricLabel>}
+          extra={
+            <MetricLabel>
+              drag · keyboard · persist · constrain · reset
+            </MetricLabel>
+          }
         >
           ResizableSidePanel
         </SectionDivider>
@@ -3366,6 +3398,12 @@ function App() {
             span={3}
           >
             <ResizableSidePanelSpecimen />
+          </Specimen>
+          <Specimen
+            caption='constrainWidth keeps the centre ≥ 320 px · keyboardStep 24 · Home / End · resetOnDoubleClick'
+            span={3}
+          >
+            <ResizableSidePanelConstrainedSpecimen />
           </Specimen>
         </div>
       </Panel>
@@ -4959,6 +4997,71 @@ function ResizableSidePanelSpecimen(): ReactNode {
           </p>
         </div>
       </ResizableSidePanel>
+    </div>
+  );
+}
+
+const CONSTRAINED_MIN_CENTRE = 320;
+
+function ResizableSidePanelConstrainedSpecimen(): ReactNode {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const centreRef = useRef<HTMLDivElement>(null);
+  const keepCentre = useCallback((width: number): number => {
+    const panel = rowRef.current?.firstElementChild;
+    const centre = centreRef.current;
+    if (!panel || !centre) {
+      return width;
+    }
+    const shared =
+      panel.getBoundingClientRect().width +
+      centre.getBoundingClientRect().width;
+    return Math.min(width, shared - CONSTRAINED_MIN_CENTRE);
+  }, []);
+  return (
+    <div
+      ref={rowRef}
+      style={{
+        display: 'flex',
+        gap: 'var(--space-2)',
+        width: '100%',
+        height: 200,
+      }}
+    >
+      <ResizableSidePanel
+        side='left'
+        defaultWidth={360}
+        minWidth={160}
+        maxWidth={1200}
+        keyboardStep={24}
+        constrainWidth={keepCentre}
+        resetOnDoubleClick
+      >
+        <div style={{ padding: 'var(--space-4)' }}>
+          <MetricLabel as='div' size='xs'>
+            left · 360px · max 1200px
+          </MetricLabel>
+          <p>
+            Drag right: the handle stops where the centre would drop below 320
+            px. ←/→ move 24 px, Home / End jump to min / max, double-click
+            restores 360 px.
+          </p>
+        </div>
+      </ResizableSidePanel>
+      <div
+        ref={centreRef}
+        style={{
+          flex: '1 1 auto',
+          minWidth: 0,
+          padding: 'var(--space-4)',
+          border: 'var(--size-hairline) dashed var(--border-hairline)',
+          borderRadius: 'var(--radius-md)',
+          background: 'var(--bg-page)',
+        }}
+      >
+        <MetricLabel as='div' size='xs'>
+          centre · ≥ 320px
+        </MetricLabel>
+      </div>
     </div>
   );
 }

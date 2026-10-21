@@ -14,7 +14,8 @@ export type CodeBlockSurface = PrimitiveSurface<{
 
 interface CodeBlockProps {
   code: string;
-  language?: 'json' | 'yaml' | 'sql' | 'bash' | 'text';
+  /** Shown as the header label, e.g. `json`, `typescript`, `python`. */
+  language?: string;
   showLineNumbers?: boolean;
   className?: string;
   surface?: CodeBlockSurface;
