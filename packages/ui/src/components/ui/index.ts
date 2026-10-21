@@ -10,6 +10,7 @@ export { Panel } from './Panel';
 export type { PanelSurface } from './Panel';
 export { PanelTitle } from './PanelTitle';
 export { Markdown } from './Markdown';
+export type { MarkdownProps } from './Markdown';
 export { MetricLabel } from './MetricLabel';
 export { MonoValue } from './MonoValue';
 export type { MonoValueSurface } from './MonoValue';
@@ -75,7 +76,11 @@ export type {
   SessionRunTrajectoryViewProps,
 } from './SessionRunView';
 export { DataTable } from './DataTable';
-export type { DataTableColumn, DataTableSurface } from './DataTable';
+export type {
+  DataTableColumn,
+  DataTablePagination,
+  DataTableSurface,
+} from './DataTable';
 export { EventTable } from './EventTable';
 export type { EventTableColumn, EventTableProps } from './EventTable';
 export { DataList } from './DataList';

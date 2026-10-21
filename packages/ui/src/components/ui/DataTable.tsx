@@ -10,13 +10,17 @@ import {
   useState,
 } from 'react';
 
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
 import { readStorage, writeStorage } from '../../lib/storage';
+import { Button } from './Button';
 import './DataTable.css';
 import { EmptyState } from './EmptyState';
+import { PageSizeSelect } from './PageSizeSelect';
 import { Skeleton } from './Skeleton';
 
 export type DataTableSurface<T> = PrimitiveSurface<T[]>;
@@ -39,7 +43,29 @@ export interface DataTableColumn<T> {
   truncate?: boolean;
   /** Allow dragging the right edge of this column to resize. Default false. */
   resizable?: boolean;
+  /**
+   * `'actions'` lays the cell out as a right-aligned, gapped, wrapping row of
+   * controls — return them straight from `render`. Overrides `align` and
+   * `truncate`.
+   */
+  kind?: 'actions';
   render: (row: T, index: number) => ReactNode;
+}
+
+/** Server-side pagination: `data` is the current page, never sliced here. */
+export interface DataTablePagination {
+  /** 1-based. */
+  page: number;
+  pageSize: number;
+  /**
+   * Rows across all pages. Omit when the backend doesn't count them: the
+   * range label drops "of N" and Next stays enabled while the page is full.
+   */
+  total?: number;
+  /** Changing the page size always resets to page 1. */
+  onChange: (page: number, pageSize: number) => void;
+  /** Renders a "Rows per page" select offering these sizes. */
+  pageSizeOptions?: number[];
 }
 
 interface DataTableProps<T> {
@@ -56,6 +82,8 @@ interface DataTableProps<T> {
    * `aegis-data-table:<persistKey>`. Use a stable key per table.
    */
   persistKey?: string;
+  /** Renders a footer with page navigation under the table. */
+  pagination?: DataTablePagination;
   surface?: DataTableSurface<T>;
 }
 
@@ -102,6 +130,7 @@ export function DataTable<T>({
   emptyAction,
   className,
   persistKey,
+  pagination,
   surface,
 }: DataTableProps<T>) {
   const tableRef = useRef<HTMLTableElement>(null);
@@ -201,18 +230,21 @@ export function DataTable<T>({
 
   const cls = ['aegis-data-table', className ?? ''].filter(Boolean).join(' ');
 
+  const columnAlign = (col: DataTableColumn<T>) =>
+    col.kind === 'actions' ? 'right' : (col.align ?? 'left');
+
   const cellStyle = (col: DataTableColumn<T>): CSSProperties => ({
-    textAlign: col.align ?? 'left',
+    textAlign: columnAlign(col),
   });
 
   const renderCellContent = (col: DataTableColumn<T>, node: ReactNode) => {
-    const truncate = col.truncate ?? true;
-    const align = col.align ?? 'left';
     const classes = [
       'aegis-data-table__cell',
-      `aegis-data-table__cell--${align}`,
+      `aegis-data-table__cell--${columnAlign(col)}`,
     ];
-    if (truncate) {
+    if (col.kind === 'actions') {
+      classes.push('aegis-data-table__cell--actions');
+    } else if (col.truncate ?? true) {
       classes.push('aegis-data-table__cell--truncate');
     }
     return <div className={classes.join(' ')}>{node}</div>;
@@ -311,6 +343,87 @@ export function DataTable<T>({
             )}
           </tbody>
         </table>
+      </div>
+      {pagination && (
+        <DataTableFooter
+          pagination={pagination}
+          rowCount={data.length}
+          loading={loading}
+        />
+      )}
+    </div>
+  );
+}
+
+interface DataTableFooterProps {
+  pagination: DataTablePagination;
+  rowCount: number;
+  loading: boolean;
+}
+
+function DataTableFooter({
+  pagination,
+  rowCount,
+  loading,
+}: DataTableFooterProps) {
+  const { page, pageSize, total, onChange, pageSizeOptions } = pagination;
+  const offset = (page - 1) * pageSize;
+  const shown =
+    total === undefined
+      ? rowCount
+      : Math.max(0, Math.min(pageSize, total - offset));
+  const hasNext =
+    total === undefined ? rowCount >= pageSize : offset + pageSize < total;
+
+  return (
+    <div className="aegis-data-table__footer">
+      {pageSizeOptions && (
+        <PageSizeSelect
+          value={pageSize}
+          options={pageSizeOptions}
+          onChange={(size) => {
+            onChange(1, size);
+          }}
+        />
+      )}
+      <div className="aegis-data-table__pager">
+        <span className="aegis-data-table__range">
+          <span className="aegis-data-table__range-num">
+            {shown > 0
+              ? `${(offset + 1).toLocaleString()}–${(offset + shown).toLocaleString()}`
+              : '0'}
+          </span>
+          {total !== undefined && (
+            <>
+              {' of '}
+              <span className="aegis-data-table__range-num">
+                {total.toLocaleString()}
+              </span>
+            </>
+          )}
+        </span>
+        <Button
+          tone="secondary"
+          className="aegis-data-table__page-btn"
+          aria-label="Previous page"
+          disabled={loading || page <= 1}
+          onClick={() => {
+            onChange(page - 1, pageSize);
+          }}
+        >
+          <LeftOutlined />
+        </Button>
+        <Button
+          tone="secondary"
+          className="aegis-data-table__page-btn"
+          aria-label="Next page"
+          disabled={loading || !hasNext}
+          onClick={() => {
+            onChange(page + 1, pageSize);
+          }}
+        >
+          <RightOutlined />
+        </Button>
       </div>
     </div>
   );

@@ -12,6 +12,19 @@
   background: var(--bg-muted);
   border-radius: var(--radius-md);
   flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.aegis-tabs__list::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-tabs__list {
+    scroll-behavior: auto;
+  }
 }
 
 .aegis-tabs__tab {

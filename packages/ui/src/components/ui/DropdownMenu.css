@@ -39,6 +39,12 @@
   right: 0;
 }
 
+.aegis-dropdown__divider {
+  height: var(--size-hairline);
+  margin: var(--space-1) 0;
+  background: var(--border-hairline);
+}
+
 .aegis-dropdown__item {
   display: flex;
   align-items: center;

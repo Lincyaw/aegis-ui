@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 import {
+  AppstoreOutlined,
   LogoutOutlined,
   PlusOutlined,
   SearchOutlined,
@@ -48,6 +49,7 @@ import {
   DataList,
   type DataListColumn,
   DataTable,
+  type DataTableColumn,
   DiffViewer,
   DropdownMenu,
   EmptyState,
@@ -68,6 +70,7 @@ import {
   KeyValueList,
   LoginForm,
   Markdown,
+  type MarkdownProps,
   MetadataList,
   MetricCard,
   MetricLabel,
@@ -544,6 +547,99 @@ const GALLERY_ACTIONS = {
     run: galleryNoop('env.select-prod'),
   },
 } satisfies Record<string, AegisAction<void, void>>;
+
+/* ── Markdown extension demo ───────────────────────────────────────── */
+
+interface GalleryTreeNode {
+  type: string;
+  value?: string;
+  url?: string;
+  tagName?: string;
+  properties?: Record<string, unknown>;
+  children?: GalleryTreeNode[];
+}
+
+const GALLERY_WIKI_SCHEME = 'wiki:';
+
+function remarkGalleryWikilinks() {
+  const visit = (node: GalleryTreeNode): void => {
+    if (!node.children) {
+      return;
+    }
+    node.children = node.children.flatMap((child): GalleryTreeNode[] => {
+      if (child.type !== 'text' || !child.value?.includes('[[')) {
+        visit(child);
+        return [child];
+      }
+      return child.value
+        .split(/(\[\[[^\]]+\]\])/)
+        .filter(Boolean)
+        .map((part) => {
+          const slug = /^\[\[([^\]]+)\]\]$/.exec(part)?.[1];
+          return slug
+            ? {
+                type: 'link',
+                url: `${GALLERY_WIKI_SCHEME}${slug}`,
+                children: [{ type: 'text', value: slug }],
+              }
+            : { type: 'text', value: part };
+        });
+    });
+  };
+  return visit;
+}
+
+function galleryTreeText(node: GalleryTreeNode): string {
+  return node.value ?? (node.children ?? []).map(galleryTreeText).join('');
+}
+
+function rehypeGalleryHeadingIds() {
+  const visit = (node: GalleryTreeNode): void => {
+    if (node.type === 'element' && /^h[1-6]$/.test(node.tagName ?? '')) {
+      const id = galleryTreeText(node)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      node.properties = { ...node.properties, id };
+    }
+    node.children?.forEach(visit);
+  };
+  return visit;
+}
+
+function galleryUrlTransform(url: string): string | undefined {
+  return /^(wiki:|https?:|#|\/)/.test(url) ? url : undefined;
+}
+
+const GALLERY_REMARK_PLUGINS: MarkdownProps['remarkPlugins'] = [
+  remarkGalleryWikilinks,
+];
+const GALLERY_REHYPE_PLUGINS: MarkdownProps['rehypePlugins'] = [
+  rehypeGalleryHeadingIds,
+];
+
+const GALLERY_MARKDOWN_COMPONENTS: MarkdownProps['components'] = {
+  a: ({ href, children }) => {
+    if (href === undefined) {
+      return <del>{children}</del>;
+    }
+    if (href.startsWith(GALLERY_WIKI_SCHEME)) {
+      return <Chip tone='ink'>{children}</Chip>;
+    }
+    return <a href={href}>{children}</a>;
+  },
+  h3: ({ id, children }) => (
+    <h3 id={id}>
+      {children} <MonoValue size='sm'>#{id}</MonoValue>
+    </h3>
+  ),
+};
+
+const GALLERY_WIKI_MARKDOWN = `### Release notes
+
+Rollout touched [[order-svc]] and [[cart-svc]]; see [the runbook](https://example.com).
+
+[blocked link](javascript:alert(1)) is dropped by \`urlTransform\`.`;
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
 
@@ -1632,9 +1728,25 @@ function App() {
 
         <SectionDivider>Markdown</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='inline + block'>
+          <Specimen
+            caption='inline + block · fences render as CodeBlock'
+            span={2}
+          >
             <Markdown>
-              {`### Quick **markdown** sample\n\n- Lists work\n- Inline \`code\` and [links](https://example.com)\n\n\`\`\`ts\nconst hello = 'world';\n\`\`\`\n\n> Blockquotes too.`}
+              {`### Quick **markdown** sample\n\n- Lists work\n- Inline \`code\` and [links](https://example.com)\n\n\`\`\`bash\nkubectl get pods -n aegis\n\`\`\`\n\n> Blockquotes too.`}
+            </Markdown>
+          </Specimen>
+          <Specimen
+            caption='remarkPlugins · rehypePlugins · components · urlTransform'
+            span={2}
+          >
+            <Markdown
+              remarkPlugins={GALLERY_REMARK_PLUGINS}
+              rehypePlugins={GALLERY_REHYPE_PLUGINS}
+              components={GALLERY_MARKDOWN_COMPONENTS}
+              urlTransform={galleryUrlTransform}
+            >
+              {GALLERY_WIKI_MARKDOWN}
             </Markdown>
           </Specimen>
         </div>
@@ -2256,6 +2368,40 @@ function App() {
           />
         </Specimen>
 
+        <SectionDivider>DataTable · pagination</SectionDivider>
+        <DataTablePaginationSpecimen />
+
+        <SectionDivider>DataTable · actions column</SectionDivider>
+        <Specimen
+          caption="kind: 'actions' · right-aligned, gapped, wraps"
+          span={3}
+        >
+          <DataTable
+            columns={[
+              ...GALLERY_RUN_COLUMNS.slice(0, 2),
+              {
+                key: 'actions',
+                header: '',
+                kind: 'actions',
+                render: (row) => (
+                  <>
+                    <AegisButton tone='ghost'>Logs</AegisButton>
+                    <AegisButton tone='ghost'>Rerun</AegisButton>
+                    <AegisButton
+                      tone='secondary'
+                      disabled={row.state !== 'running'}
+                    >
+                      Stop
+                    </AegisButton>
+                  </>
+                ),
+              },
+            ]}
+            data={GALLERY_RUNS.slice(0, 3)}
+            rowKey={(row) => row.id}
+          />
+        </Specimen>
+
         <SectionDivider>EventTable</SectionDivider>
         <Specimen
           caption='virtualized · sticky header · selection · onLoadMore'
@@ -2537,6 +2683,9 @@ function App() {
           <p className='gallery__panel-body'>Tab panel content goes here.</p>
         </RosettaTabs>
 
+        <SectionDivider>Tabs · overflow</SectionDivider>
+        <TabsOverflowSpecimen />
+
         <SectionDivider>Breadcrumb</SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='simple'>
@@ -2793,13 +2942,23 @@ function App() {
               ]}
             />
           </Specimen>
+          <Specimen caption='footerItems · below a divider'>
+            <DropdownMenu
+              trigger={<Chip tone='default'>Workspace</Chip>}
+              items={[
+                { key: 'aegis', label: 'aegis-lab' },
+                { key: 'sandbox', label: 'sandbox' },
+              ]}
+              footerItems={[
+                {
+                  key: 'new',
+                  label: 'New workspace',
+                  icon: <PlusOutlined />,
+                },
+              ]}
+            />
+          </Specimen>
         </div>
-
-        <SectionDivider>PageSizeSelect</SectionDivider>
-        <PageSizeSelectSpecimen />
-
-        <SectionDivider>EnvironmentSwitcher</SectionDivider>
-        <EnvironmentSwitcherSpecimen />
 
         <SectionDivider>ProjectSelector</SectionDivider>
         <div className='gallery__row'>
@@ -2820,6 +2979,30 @@ function App() {
               }}
             />
           </Specimen>
+          <Specimen caption='footerItems · view all + create' span={2}>
+            <ProjectSelector
+              projects={[
+                { id: '1', name: 'catalog-service' },
+                { id: '2', name: 'order-platform' },
+              ]}
+              selectedId='2'
+              onSelect={() => {
+                /* gallery specimen — no-op */
+              }}
+              footerItems={[
+                {
+                  key: 'all',
+                  label: 'View all projects',
+                  icon: <AppstoreOutlined />,
+                },
+                {
+                  key: 'new',
+                  label: 'New project',
+                  icon: <PlusOutlined />,
+                },
+              ]}
+            />
+          </Specimen>
           <Specimen caption='empty state'>
             <ProjectSelector
               projects={[]}
@@ -2830,6 +3013,12 @@ function App() {
             />
           </Specimen>
         </div>
+
+        <SectionDivider>EnvironmentSwitcher</SectionDivider>
+        <EnvironmentSwitcherSpecimen />
+
+        <SectionDivider>PageSizeSelect</SectionDivider>
+        <PageSizeSelectSpecimen />
       </Panel>
 
       {/* ── Layouts ────────────────────────────────────────────────── */}
@@ -4591,6 +4780,162 @@ function SqlCodeEditorSpecimen(): ReactNode {
           : `submitted → ${submitted}`}
       </pre>
     </>
+  );
+}
+
+interface GalleryRunRow {
+  id: string;
+  service: string;
+  state: 'running' | 'queued' | 'failed' | 'done';
+  duration: number;
+}
+
+const GALLERY_RUN_STATES: Array<GalleryRunRow['state']> = [
+  'done',
+  'running',
+  'done',
+  'queued',
+  'failed',
+];
+
+const GALLERY_RUNS: GalleryRunRow[] = Array.from({ length: 47 }, (_, i) => ({
+  id: `RUN-${String(i + 1).padStart(4, '0')}`,
+  service: ['order-svc', 'cart-svc', 'inventory', 'payments'][i % 4],
+  state: GALLERY_RUN_STATES[i % GALLERY_RUN_STATES.length],
+  duration: 30 + ((i * 37) % 270),
+}));
+
+const GALLERY_RUN_COLUMNS: Array<DataTableColumn<GalleryRunRow>> = [
+  {
+    key: 'id',
+    header: 'Run',
+    render: (row) => <MonoValue size='sm'>{row.id}</MonoValue>,
+  },
+  { key: 'service', header: 'Service', render: (row) => row.service },
+  {
+    key: 'duration',
+    header: 'Duration',
+    align: 'right',
+    render: (row) => <MonoValue size='sm'>{`${row.duration} s`}</MonoValue>,
+  },
+  {
+    key: 'state',
+    header: 'State',
+    align: 'center',
+    render: (row) => (
+      <Chip
+        tone={
+          row.state === 'failed'
+            ? 'warning'
+            : row.state === 'running'
+              ? 'ink'
+              : 'default'
+        }
+      >
+        {row.state}
+      </Chip>
+    ),
+  },
+];
+
+function DataTablePaginationSpecimen(): ReactNode {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [uncountedPage, setUncountedPage] = useState(1);
+  const uncountedSize = 5;
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='total · pageSizeOptions' span={3}>
+        <DataTable
+          columns={GALLERY_RUN_COLUMNS}
+          data={GALLERY_RUNS.slice((page - 1) * pageSize, page * pageSize)}
+          rowKey={(row) => row.id}
+          pagination={{
+            page,
+            pageSize,
+            total: GALLERY_RUNS.length,
+            pageSizeOptions: [5, 10, 20, 50],
+            onChange: (nextPage, nextSize) => {
+              setPage(nextPage);
+              setPageSize(nextSize);
+            },
+          }}
+        />
+      </Specimen>
+      <Specimen caption='no total · Next while the page is full' span={3}>
+        <DataTable
+          columns={GALLERY_RUN_COLUMNS}
+          data={GALLERY_RUNS.slice(
+            (uncountedPage - 1) * uncountedSize,
+            uncountedPage * uncountedSize
+          )}
+          rowKey={(row) => row.id}
+          pagination={{
+            page: uncountedPage,
+            pageSize: uncountedSize,
+            onChange: (nextPage) => {
+              setUncountedPage(nextPage);
+            },
+          }}
+        />
+      </Specimen>
+    </div>
+  );
+}
+
+const GALLERY_CHAOS_FAMILIES = [
+  'Pod',
+  'Container',
+  'Network',
+  'Stress',
+  'HTTP',
+  'JVM',
+  'DNS',
+  'Time',
+].map((name) => ({ key: name.toLowerCase(), label: `${name} chaos` }));
+
+function TabsOverflowSpecimen(): ReactNode {
+  const [active, setActive] = useState('network');
+  const step = (delta: number): void => {
+    const count = GALLERY_CHAOS_FAMILIES.length;
+    const index = GALLERY_CHAOS_FAMILIES.findIndex((f) => f.key === active);
+    setActive(GALLERY_CHAOS_FAMILIES[(index + delta + count) % count].key);
+  };
+  return (
+    <div className='gallery__row'>
+      <Specimen caption="overflow · defaultActiveKey='jvm' scrolled into view">
+        <RosettaTabs items={GALLERY_CHAOS_FAMILIES} defaultActiveKey='jvm' />
+      </Specimen>
+      <Specimen
+        caption='overflow · active tab follows Previous / Next'
+        span={2}
+      >
+        <RosettaTabs
+          items={GALLERY_CHAOS_FAMILIES}
+          activeKey={active}
+          onChange={setActive}
+        >
+          <div className='gallery__row'>
+            <AegisButton
+              tone='secondary'
+              onClick={() => {
+                step(-1);
+              }}
+            >
+              Previous
+            </AegisButton>
+            <AegisButton
+              tone='secondary'
+              onClick={() => {
+                step(1);
+              }}
+            >
+              Next
+            </AegisButton>
+          </div>
+        </RosettaTabs>
+      </Specimen>
+    </div>
   );
 }
 

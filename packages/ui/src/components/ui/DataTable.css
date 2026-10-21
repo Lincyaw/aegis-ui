@@ -1,7 +1,6 @@
 .aegis-data-table {
   width: 100%;
   min-width: 0;
-  overflow: hidden;
 }
 
 .aegis-data-table__scroll {
@@ -118,7 +117,46 @@
   text-align: center;
 }
 
+.aegis-data-table__cell--actions {
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
 .aegis-data-table__empty-cell {
   border-bottom: none;
   padding: 0;
+}
+
+.aegis-data-table__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.aegis-data-table__pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.aegis-data-table__range {
+  margin-right: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.aegis-data-table__range-num {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+}
+
+.aegis-data-table__pager .aegis-data-table__page-btn {
+  padding: var(--space-1) var(--space-2);
 }

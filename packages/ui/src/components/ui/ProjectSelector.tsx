@@ -17,6 +17,8 @@ interface ProjectSelectorProps {
   projects: ProjectOption[];
   selectedId?: string;
   onSelect: (id: string) => void;
+  /** Actions below the project list, e.g. "View all projects" / "New project". */
+  footerItems?: DropdownItem[];
   placeholder?: string;
   className?: string;
   align?: 'left' | 'right';
@@ -26,6 +28,7 @@ export function ProjectSelector({
   projects,
   selectedId,
   onSelect,
+  footerItems,
   placeholder = 'Select a project',
   className,
   align = 'left',
@@ -125,7 +128,12 @@ export function ProjectSelector({
 
   return (
     <div className={cls}>
-      <DropdownMenu trigger={trigger} items={dropdownItems} align={align} />
+      <DropdownMenu
+        trigger={trigger}
+        items={dropdownItems}
+        footerItems={footerItems}
+        align={align}
+      />
     </div>
   );
 }

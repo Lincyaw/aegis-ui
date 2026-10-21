@@ -64,7 +64,7 @@
   color: var(--text-muted);
 }
 
-.aegis-markdown code {
+.aegis-markdown :not(pre) > code {
   font-family: var(--font-mono);
   font-size: var(--fs-11);
   background: var(--bg-muted);
@@ -73,7 +73,7 @@
   color: inherit;
 }
 
-.aegis-markdown pre {
+.aegis-markdown pre:not(.aegis-code-block__pre) {
   margin: 0 0 var(--space-2) 0;
   padding: var(--space-3);
   background: var(--bg-terminal);
@@ -81,13 +81,15 @@
   overflow-x: auto;
 }
 
-.aegis-markdown pre code {
-  background: none;
-  padding: 0;
-  border-radius: 0;
+.aegis-markdown pre:not(.aegis-code-block__pre) code {
+  font-family: var(--font-mono);
   color: var(--text-terminal);
   font-size: var(--fs-11);
   line-height: 1.6;
+}
+
+.aegis-markdown__code-block {
+  margin: 0 0 var(--space-2) 0;
 }
 
 .aegis-markdown blockquote {

@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react';
 
 import { useAegisAction } from '../../agent/hooks';
 import type { AegisAction } from '../../agent/types';
@@ -32,6 +32,23 @@ export function Tabs({
     defaultActiveKey ?? items[0]?.key,
   );
   const activeKey = controlledKey ?? internalKey;
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    const tab = list?.querySelector(':scope > [aria-selected="true"]');
+    if (!list || !tab) {
+      return;
+    }
+    const inset = parseFloat(getComputedStyle(list).paddingLeft);
+    const listBox = list.getBoundingClientRect();
+    const tabBox = tab.getBoundingClientRect();
+    if (tabBox.left < listBox.left + inset) {
+      list.scrollLeft -= listBox.left + inset - tabBox.left;
+    } else if (tabBox.right > listBox.right - inset) {
+      list.scrollLeft += tabBox.right - (listBox.right - inset);
+    }
+  }, [activeKey]);
 
   const handleClick = (key: string) => {
     if (controlledKey === undefined) {
@@ -44,7 +61,7 @@ export function Tabs({
 
   return (
     <div className={cls}>
-      <div className="aegis-tabs__list" role="tablist">
+      <div ref={listRef} className="aegis-tabs__list" role="tablist">
         {items.map((item) => (
           <TabsTab
             key={item.key}
