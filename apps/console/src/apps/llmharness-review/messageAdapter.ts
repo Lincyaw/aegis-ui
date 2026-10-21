@@ -12,7 +12,6 @@
  *   - Anthropic SDK        tool_use     + tool_result.tool_use_id     (string OR array content)
  *   - LangGraph state msg  content as a plain string
  */
-
 import type { MainTurn } from './schemas';
 
 export type NormalizedRole = 'user' | 'assistant' | 'tool' | 'system';
@@ -37,7 +36,7 @@ export interface NormalizedTurn {
   raw: MainTurn;
 }
 
-function jsonStringify(value: unknown): string {
+export function jsonStringify(value: unknown): string {
   if (value == null) {
     return '';
   }
@@ -100,8 +99,7 @@ function normalizeBlock(block: unknown): NormalizedBlock {
     return { kind: 'text', text: b.text };
   }
   if (t === 'thinking') {
-    const text =
-      typeof b.thinking === 'string' ? b.thinking : jsonStringify(b);
+    const text = typeof b.thinking === 'string' ? b.thinking : jsonStringify(b);
     return { kind: 'thinking', text };
   }
   if (t === 'tool_call') {

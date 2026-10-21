@@ -29,6 +29,7 @@ import {
   MessageBlocks,
   SftRowDetail,
 } from '../components';
+import { normalizeTurn } from '../messageAdapter';
 import { type CaseRepo, type CaseSftBundle, resolveCaseRepo } from '../repo';
 import type {
   AuditorFiring,
@@ -71,44 +72,18 @@ function useDetailModal(): DetailModalApi {
 }
 
 function firstTextExcerpt(turn: MainTurn): string {
-  for (const block of turn.content) {
-    if (
-      block.type === 'text' &&
-      typeof (block as { text?: unknown }).text === 'string'
-    ) {
-      const text = (block as { text: string }).text.trim();
+  for (const block of normalizeTurn(turn).blocks) {
+    if (block.kind === 'text' || block.kind === 'tool_result') {
+      const text = block.text.trim();
       if (text) {
         return text.length > EXCERPT_LIMIT
           ? `${text.slice(0, EXCERPT_LIMIT)}…`
           : text;
       }
-    }
-    if (block.type === 'tool_call') {
-      const name = (block as { name?: unknown }).name;
-      if (typeof name === 'string' && name) {
-        return `→ ${name}`;
-      }
-    }
-    if (block.type === 'tool_use') {
-      const name = (block as { name?: unknown }).name;
-      if (typeof name === 'string' && name) {
-        return `→ ${name}`;
-      }
-    }
-    if (block.type === 'tool_result') {
-      const content = (block as { content?: unknown }).content;
-      if (typeof content === 'string' && content.trim()) {
-        const text = content.trim();
-        return text.length > EXCERPT_LIMIT
-          ? `${text.slice(0, EXCERPT_LIMIT)}…`
-          : text;
-      }
-    }
-    if (block.type === 'thinking') {
-      const text = (block as { thinking?: unknown }).thinking;
-      if (typeof text === 'string' && text.trim()) {
-        return `(thinking)`;
-      }
+    } else if (block.kind === 'tool_call') {
+      return `→ ${block.name}`;
+    } else if (block.kind === 'thinking' && block.text.trim()) {
+      return '(thinking)';
     }
   }
   return '';
