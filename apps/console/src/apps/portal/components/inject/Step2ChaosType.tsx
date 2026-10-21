@@ -9,9 +9,8 @@ import {
 } from '@lincyaw/aegis-ui';
 import { Tabs } from 'antd';
 
-import type { GuidedInjectionSpec } from '../../mocks/types';
-
 import { CHAOS_BY_NAME, CHAOS_TYPES, FAMILIES } from './paramSchema';
+import type { GuidedInjectionSpec } from './types';
 
 interface Props {
   spec: GuidedInjectionSpec;

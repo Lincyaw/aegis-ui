@@ -1,6 +1,13 @@
 import { Chip, StatusDot } from '@lincyaw/aegis-ui';
 
-import type { EntityStatus } from '../mocks/types';
+type EntityStatus =
+  | 'pending'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'restarting'
+  | 'installing';
 
 type ChipTone = 'default' | 'ink' | 'warning' | 'ghost';
 type DotTone = 'ink' | 'inverted' | 'warning' | 'muted';

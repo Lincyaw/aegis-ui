@@ -15,7 +15,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { GuidedInjectionSpec } from '../mocks/types';
+import type { GuidedInjectionSpec } from '../components/inject/types';
 
 import { injectionsApi, projectsApi, tracesApi } from './portal-client';
 

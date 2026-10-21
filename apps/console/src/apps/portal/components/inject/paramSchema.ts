@@ -1,4 +1,4 @@
-import type { GuidedInjectionSpec } from '../../mocks/types';
+import type { GuidedInjectionSpec } from './types';
 
 export type FieldKey =
   | 'container'

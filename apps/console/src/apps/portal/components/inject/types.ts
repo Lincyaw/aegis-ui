@@ -1,0 +1,53 @@
+export type NamespaceMode = 'specific' | 'auto' | 'auto-bootstrap';
+
+export interface GuidedInjectionSpec {
+  namespaceMode: NamespaceMode;
+  namespace: string;
+  systemCode: string;
+  systemType: string;
+  app: string;
+  container: string;
+  targetService: string;
+  chaosType: string;
+  install: boolean;
+  readyTimeoutSec: number;
+  durationSec: number;
+  skipRestartPedestal: boolean;
+  skipStaleCheck: boolean;
+  // Type-specific knobs
+  memType?: 'ram' | 'swap' | 'cache';
+  memSize?: number;
+  memWorker?: number;
+  cpuLoad?: number;
+  cpuWorker?: number;
+  cpuCount?: number;
+  direction?: 'to' | 'from' | 'both';
+  latencyMs?: number;
+  jitter?: number;
+  correlation?: number;
+  loss?: number;
+  duplicate?: number;
+  corrupt?: number;
+  rate?: number;
+  limit?: number;
+  buffer?: number;
+  route?: string;
+  httpMethod?: string;
+  bodyType?: 'json' | 'text' | 'xml';
+  body?: string;
+  replacePath?: string;
+  replaceMethod?: string;
+  returnCode?: number;
+  domain?: string;
+  timeOffset?: number;
+  class?: string;
+  method?: string;
+  latencyDuration?: number;
+  database?: string;
+  table?: string;
+  operation?: 'select' | 'insert' | 'update' | 'delete';
+  returnType?: 'string' | 'int' | 'bool' | 'object' | 'null';
+  returnOpt?: string;
+  exceptionOpt?: string;
+  mutatorConfig?: string;
+}

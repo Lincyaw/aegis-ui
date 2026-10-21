@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { Navigate, useLocation, useParams } from 'react-router-dom';
 
-import { useMockStore } from '../mocks';
+import { useAppHref } from '@lincyaw/aegis-ui';
+
+import { useActiveProjectStore } from '../hooks/useActiveProject';
 
 interface LegacyProjectRedirectProps {
   /** Path relative to the project root, e.g. 'injections' or 'traces/:traceId'. */
@@ -15,12 +17,17 @@ interface LegacyProjectRedirectProps {
 export function LegacyProjectRedirect({ to }: LegacyProjectRedirectProps) {
   const params = useParams();
   const location = useLocation();
-  const setActiveProject = useMockStore((s) => s.setActiveProject);
+  const href = useAppHref();
+  const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
   const projectId = params.projectId;
 
   useEffect(() => {
-    if (projectId) {
-      setActiveProject(projectId);
+    if (!projectId) {
+      return;
+    }
+    const id = Number.parseInt(projectId, 10);
+    if (!Number.isNaN(id)) {
+      setActiveProject(id);
     }
   }, [projectId, setActiveProject]);
 
@@ -30,8 +37,7 @@ export function LegacyProjectRedirect({ to }: LegacyProjectRedirectProps) {
       target = target.replace(`:${k}`, v);
     }
   }
-  const search = location.search ?? '';
-  return <Navigate to={`${target}${search}`} replace />;
+  return <Navigate to={`${href(target)}${location.search}`} replace />;
 }
 
 export default LegacyProjectRedirect;

@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { CodeBlock, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
 import { Radio } from 'antd';
 
-import type { GuidedInjectionSpec } from '../../mocks/types';
-
 import { specToYaml } from './paramSchema';
+import type { GuidedInjectionSpec } from './types';
 
 interface Props {
   spec: GuidedInjectionSpec;
