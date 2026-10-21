@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react';
 
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 import './ChatSessionList.css';
 
 export interface ChatSessionItem {
@@ -83,26 +84,15 @@ export function ChatSessionList({
   const containerRef = useRef<HTMLUListElement | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Close menu / confirm / rename on outside click.
-  useEffect(() => {
-    if (!menuOpenId && !confirmDeleteId && !renamingId) {
-      return undefined;
-    }
-    const onDocClick = (event: MouseEvent): void => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setMenuOpenId(null);
-        setConfirmDeleteId(null);
-        setRenamingId(null);
-      }
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => {
-      document.removeEventListener('mousedown', onDocClick);
-    };
-  }, [menuOpenId, confirmDeleteId, renamingId]);
+  useOutsideClick(
+    containerRef,
+    () => {
+      setMenuOpenId(null);
+      setConfirmDeleteId(null);
+      setRenamingId(null);
+    },
+    Boolean(menuOpenId) || Boolean(confirmDeleteId) || Boolean(renamingId),
+  );
 
   useEffect(() => {
     if (renamingId && renameInputRef.current) {

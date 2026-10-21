@@ -1,7 +1,8 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 
 import { useAegisAction } from '../../agent/hooks';
 import type { AegisAction } from '../../agent/types';
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 import './DropdownMenu.css';
 
 export interface DropdownItem {
@@ -31,20 +32,7 @@ export function DropdownMenu({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
+  useOutsideClick(ref, () => setOpen(false), open);
 
   const cls = ['aegis-dropdown', className ?? ''].filter(Boolean).join(' ');
 

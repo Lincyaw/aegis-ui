@@ -1,7 +1,8 @@
-import { type ReactElement, useEffect, useRef, useState } from 'react';
+import { type ReactElement, useRef, useState } from 'react';
 
 import { useAegisAction } from '../../agent/hooks';
 import type { AegisAction } from '../../agent/types';
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 import './EnvironmentSwitcher.css';
 
 export type EnvironmentSwitcherBadge =
@@ -47,20 +48,7 @@ export function EnvironmentSwitcher({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    function handleClick(e: MouseEvent): void {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-    };
-  }, [open]);
+  useOutsideClick(ref, () => setOpen(false), open);
 
   if (options.length === 0) {
     return null;
