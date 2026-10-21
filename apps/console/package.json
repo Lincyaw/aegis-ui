@@ -19,9 +19,7 @@
     "bundle:macos-x64": "pnpm bundle:prepare && node server/bundle.mjs macos-x64",
     "bundle:macos-arm64": "pnpm bundle:prepare && node server/bundle.mjs macos-arm64",
     "bundle:windows-x64": "pnpm bundle:prepare && node server/bundle.mjs windows-x64",
-    "bundle:all": "pnpm bundle:prepare && node server/bundle.mjs linux-x64 && node server/bundle.mjs linux-arm64 && node server/bundle.mjs macos-x64 && node server/bundle.mjs macos-arm64 && node server/bundle.mjs windows-x64",
-    "changelog": "git-cliff -o CHANGELOG.md",
-    "release": "pnpm changelog && git add CHANGELOG.md && git commit -m 'chore(release): update changelog'"
+    "bundle:all": "pnpm bundle:prepare && node server/bundle.mjs linux-x64 && node server/bundle.mjs linux-arm64 && node server/bundle.mjs macos-x64 && node server/bundle.mjs macos-arm64 && node server/bundle.mjs windows-x64"
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.0",

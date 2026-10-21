@@ -1,6 +1,5 @@
 {
   "name": "aegis",
-  "version": "0.4.0",
   "private": true,
   "description": "AegisLab shared design system monorepo: packages/ui (published) + apps/console (dev only).",
   "scripts": {
@@ -17,7 +16,6 @@
     "check:mcp-tools": "pnpm gen:mcp-tools && git diff --exit-code -- apps/console/server/mcp_tools.generated.json",
     "gen:mcp-tools": "pnpm -F @lincyaw/aegis-ui gen:mcp-tools",
     "changeset": "changeset",
-    "release": "changeset publish",
     "prepare": "husky"
   },
   "devDependencies": {
