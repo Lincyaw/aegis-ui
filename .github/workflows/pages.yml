@@ -8,7 +8,7 @@ on:
       - 'apps/console/src/Gallery.*'
       - 'apps/console/src/apps/gallery/**'
       - 'apps/console/src/gallery-main.tsx'
-      - 'apps/console/gallery.html'
+      - 'apps/console/gallery-site.html'
       - 'apps/console/vite.config.ts'
       - 'apps/console/package.json'
       - 'pnpm-lock.yaml'

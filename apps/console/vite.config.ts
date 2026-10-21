@@ -14,7 +14,7 @@ function galleryPagesIndex(): Plugin {
     apply: 'build',
     closeBundle() {
       const index = path.join(PAGES_OUT_DIR, 'index.html');
-      fs.renameSync(path.join(PAGES_OUT_DIR, 'gallery.html'), index);
+      fs.renameSync(path.join(PAGES_OUT_DIR, 'gallery-site.html'), index);
       fs.copyFileSync(index, path.join(PAGES_OUT_DIR, '404.html'));
     },
   };
@@ -77,7 +77,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: pages ? false : 'hidden',
       ...(pages ? { outDir: PAGES_OUT_DIR } : {}),
       rollupOptions: {
-        ...(pages ? { input: path.resolve(__dirname, 'gallery.html') } : {}),
+        ...(pages ? { input: path.resolve(__dirname, 'gallery-site.html') } : {}),
         output: {
           manualChunks(id) {
             if (id.includes('hyparquet') || id.includes('workerBundle')) {
