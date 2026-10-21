@@ -16,7 +16,7 @@ interface ChatStoreState {
 
 const CHATS_KEY = 'aegis.agentm.chats.v1';
 const MESSAGES_KEY_PREFIX = 'aegis.agentm.messages.v1:';
-const DEFAULT_TITLE = '新对话';
+const DEFAULT_TITLE = 'New chat';
 
 function newId(): string {
   if (

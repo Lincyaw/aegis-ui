@@ -107,7 +107,7 @@ export function ChatSwitcher(): ReactElement {
             className='aegis-chat-switcher__new'
             onClick={handleCreate}
           >
-            + 新建对话
+            + New chat
           </button>
           <div className='aegis-chat-switcher__list'>
             <ChatSessionList
