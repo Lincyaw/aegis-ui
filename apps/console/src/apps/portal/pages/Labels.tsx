@@ -4,7 +4,6 @@ import {
   Button,
   Chip,
   DataTable,
-  EmptyState,
   ErrorState,
   MonoValue,
   PageHeader,
@@ -15,7 +14,6 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import type { LabelLabelResp } from '@lincyaw/portal';
-import { Spin } from 'antd';
 
 import { useLabelsList } from '../api/labels';
 import { usePageSize } from '../hooks/usePageSize';
@@ -44,31 +42,19 @@ export default function Labels() {
         }
       />
       <Panel>
-        {isLoading ? (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
-            <Spin />
-          </div>
-        ) : isError ? (
+        {isError ? (
           <ErrorState
             title='Failed to load labels'
             description={
               error instanceof Error ? error.message : 'Unknown error'
             }
           />
-        ) : labels.length === 0 ? (
-          <EmptyState
-            title='No labels'
-            description='Create your first label.'
-          />
         ) : (
           <>
             <DataTable<LabelLabelResp>
+              loading={isLoading}
+              emptyTitle='No labels'
+              emptyDescription='Create your first label.'
               data={labels}
               rowKey={(r) => String(r.id ?? '')}
               columns={[

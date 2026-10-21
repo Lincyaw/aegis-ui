@@ -12,10 +12,11 @@ import {
   Panel,
   PanelTitle,
   SectionDivider,
+  SkeletonText,
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Spin } from 'antd';
+import { App as AntdApp } from 'antd';
 
 import { useDataset, useDeleteDataset } from '../api/datasets';
 
@@ -32,15 +33,7 @@ export default function DatasetDetail() {
       <>
         <PageHeader title='Loading…' />
         <Panel>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
-            <Spin />
-          </div>
+          <SkeletonText />
         </Panel>
       </>
     );

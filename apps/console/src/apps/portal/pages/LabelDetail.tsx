@@ -10,10 +10,11 @@ import {
   PageHeader,
   Panel,
   PanelTitle,
+  SkeletonText,
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Spin } from 'antd';
+import { App as AntdApp } from 'antd';
 
 import { useDeleteLabel, useLabel } from '../api/labels';
 
@@ -30,15 +31,7 @@ export default function LabelDetail() {
       <>
         <PageHeader title='Loading…' />
         <Panel>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
-            <Spin />
-          </div>
+          <SkeletonText />
         </Panel>
       </>
     );

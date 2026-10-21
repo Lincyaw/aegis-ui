@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   Button,
   DataTable,
-  EmptyState,
   ErrorState,
   MonoValue,
   PageHeader,
@@ -14,7 +13,6 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import type { DatasetDatasetResp } from '@lincyaw/portal';
-import { Spin } from 'antd';
 
 import { useDatasetsList } from '../api/datasets';
 import { usePageSize } from '../hooks/usePageSize';
@@ -43,31 +41,19 @@ export default function Datasets() {
         }
       />
       <Panel>
-        {isLoading ? (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
-            <Spin />
-          </div>
-        ) : isError ? (
+        {isError ? (
           <ErrorState
             title='Failed to load datasets'
             description={
               error instanceof Error ? error.message : 'Unknown error'
             }
           />
-        ) : datasets.length === 0 ? (
-          <EmptyState
-            title='No datasets'
-            description='Build a dataset from the Injections list.'
-          />
         ) : (
           <>
             <DataTable<DatasetDatasetResp>
+              loading={isLoading}
+              emptyTitle='No datasets'
+              emptyDescription='Build a dataset from the Injections list.'
               data={datasets}
               rowKey={(r) => String(r.id ?? '')}
               columns={[

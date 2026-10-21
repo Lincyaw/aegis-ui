@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   Button,
   DataTable,
-  EmptyState,
   ErrorState,
   MonoValue,
   PageHeader,
@@ -67,16 +66,12 @@ export default function Executions() {
               </Button>
             }
           />
-        ) : isLoading ? (
-          <EmptyState title='Loading…' description='Fetching executions.' />
-        ) : items.length === 0 ? (
-          <EmptyState
-            title='No executions'
-            description='Run an algorithm to see results here.'
-          />
         ) : (
           <>
             <DataTable<ExecutionExecutionResp>
+              loading={isLoading}
+              emptyTitle='No executions'
+              emptyDescription='Run an algorithm to see results here.'
               data={items}
               rowKey={(r) => String(r.id ?? '')}
               columns={[
