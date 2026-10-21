@@ -105,5 +105,3 @@ export function Toolbar({
     </div>
   );
 }
-
-export default Toolbar;

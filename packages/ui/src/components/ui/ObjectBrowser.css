@@ -159,34 +159,11 @@
   border-top: var(--size-hairline) solid var(--border-hairline);
 }
 
-/* Skeleton shimmer */
-@keyframes aegis-shimmer {
-  0% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.9;
-  }
-  100% {
-    opacity: 0.4;
-  }
-}
-
 .aegis-object-browser__skeleton {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-2) 0;
-}
-
-.aegis-object-browser__skeleton-row {
-  height: var(--space-8);
-  background: var(--border-hairline);
-  border-radius: var(--radius-sm);
-}
-
-.aegis-skeleton-shimmer {
-  animation: aegis-shimmer 1400ms ease-in-out infinite;
 }
 
 @media (max-width: 768px) {

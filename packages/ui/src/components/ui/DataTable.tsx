@@ -10,19 +10,16 @@ import {
   useState,
 } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
+import { readStorage, writeStorage } from '../../lib/storage';
 import './DataTable.css';
 import { EmptyState } from './EmptyState';
+import { Skeleton } from './Skeleton';
 
-export interface DataTableSurface<T> {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (rows: T[]) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type DataTableSurface<T> = PrimitiveSurface<T[]>;
 
 export interface DataTableColumn<T> {
   key: string;
@@ -71,15 +68,16 @@ function toCssWidth(w: number | string | undefined): string | undefined {
   return typeof w === 'number' ? `${w}px` : w;
 }
 
+function storageKey(persistKey: string): string {
+  return `aegis-data-table:${persistKey}`;
+}
+
 function readPersisted(key: string): Record<string, number> {
-  if (typeof window === 'undefined') {
+  const raw = readStorage(storageKey(key));
+  if (!raw) {
     return {};
   }
   try {
-    const raw = window.localStorage.getItem(`aegis-data-table:${key}`);
-    if (!raw) {
-      return {};
-    }
     const parsed: unknown = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
       return parsed as Record<string, number>;
@@ -91,17 +89,7 @@ function readPersisted(key: string): Record<string, number> {
 }
 
 function writePersisted(key: string, widths: Record<string, number>): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.localStorage.setItem(
-      `aegis-data-table:${key}`,
-      JSON.stringify(widths),
-    );
-  } catch {
-    /* quota or privacy-mode — silently drop */
-  }
+  writeStorage(storageKey(key), JSON.stringify(widths));
 }
 
 export function DataTable<T>({
@@ -119,16 +107,7 @@ export function DataTable<T>({
   const tableRef = useRef<HTMLTableElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  useAegisSurface<T[]>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'table',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data,
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(surface, data, 'table', wrapRef);
   const [overrides, setOverrides] = useState<Record<string, number>>(() =>
     persistKey ? readPersisted(persistKey) : {},
   );
@@ -212,7 +191,7 @@ export function DataTable<T>({
       return undefined;
     }
     const onStorage = (e: StorageEvent): void => {
-      if (e.key === `aegis-data-table:${persistKey}`) {
+      if (e.key === storageKey(persistKey)) {
         setOverrides(readPersisted(persistKey));
       }
     };
@@ -240,12 +219,7 @@ export function DataTable<T>({
   };
 
   return (
-    <div
-      ref={wrapRef}
-      className={cls}
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
+    <div ref={wrapRef} className={cls} {...agentAttrs}>
       <div className="aegis-data-table__scroll">
         <table
           ref={tableRef}
@@ -301,7 +275,7 @@ export function DataTable<T>({
                     >
                       {renderCellContent(
                         col,
-                        <span className="aegis-data-table__skeleton" />,
+                        <Skeleton width="80%" height="var(--space-3)" />,
                       )}
                     </td>
                   ))}
@@ -341,5 +315,3 @@ export function DataTable<T>({
     </div>
   );
 }
-
-export default DataTable;

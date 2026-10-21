@@ -77,7 +77,8 @@
 }
 
 .aegis-event-table__row:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--accent-focus, var(--bg-inverted));
+  box-shadow: inset 0 0 0 var(--size-border-thick)
+    var(--accent-focus, var(--bg-inverted));
 }
 
 .aegis-event-table__row--selected,
@@ -142,29 +143,4 @@
   display: grid;
   align-items: center;
   border-bottom: var(--size-hairline) solid var(--border-hairline);
-}
-
-.aegis-event-table__skeleton {
-  display: inline-block;
-  width: 80%;
-  height: var(--space-3);
-  border-radius: var(--radius-sm);
-  background: linear-gradient(
-    90deg,
-    var(--bg-muted) 25%,
-    var(--bg-page) 50%,
-    var(--bg-muted) 75%
-  );
-  background-size: 200% 100%;
-  animation: aegis-event-table-shimmer 1.5s infinite;
-}
-
-@keyframes aegis-event-table-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
 }

@@ -2,15 +2,6 @@
   min-width: 0;
 }
 
-.aegis-content-preview__plain {
-  margin: 0;
-  font-size: var(--fs-13);
-  line-height: 1.55;
-  white-space: pre;
-  overflow-x: auto;
-  max-width: 100%;
-}
-
 .aegis-content-preview__markdown {
   min-width: 0;
   overflow-wrap: anywhere;

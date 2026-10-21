@@ -10,22 +10,18 @@ import {
 
 import { Tooltip } from 'antd';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import { useResizable } from '../../hooks/useResizable';
 import { Chip } from './Chip';
 import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
 import './TraceTree.css';
+import { formatDuration, nodeToString, statusTone } from './traceFormat';
 
-export interface TraceTreeSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (spans: TraceSpan[]) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type TraceTreeSurface = PrimitiveSurface<TraceSpan[]>;
 
 export interface TraceSpan {
   id: string;
@@ -106,16 +102,6 @@ function flatten(
   return out;
 }
 
-function statusTone(status?: TraceSpan['status']): 'warning' | 'ink' | 'muted' {
-  if (status === 'error') {
-    return 'warning';
-  }
-  if (status === 'ok') {
-    return 'ink';
-  }
-  return 'muted';
-}
-
 export function TraceTree({
   spans,
   selectedId,
@@ -131,16 +117,7 @@ export function TraceTree({
   wrapName = false,
 }: TraceTreeProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  useAegisSurface<TraceSpan[]>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'tree',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: spans,
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(surface, spans, 'tree', wrapRef);
   const { roots, traceDuration, traceStart } = useMemo(() => {
     const r = buildForest(spans);
     const start = spans.length ? Math.min(...spans.map((s) => s.startMs)) : 0;
@@ -224,8 +201,7 @@ export function TraceTree({
       className={cls}
       style={style}
       role="tree"
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+      {...agentAttrs}
     >
       {visible.map((n) => {
         const isCollapsed = collapsed.has(n.span.id);
@@ -336,22 +312,3 @@ export function TraceTree({
     </div>
   );
 }
-
-function nodeToString(node: ReactNode): string {
-  if (typeof node === 'string' || typeof node === 'number') {
-    return String(node);
-  }
-  return '';
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1) {
-    return `${(ms * 1000).toFixed(0)}µs`;
-  }
-  if (ms < 1000) {
-    return `${ms.toFixed(ms < 10 ? 1 : 0)}ms`;
-  }
-  return `${(ms / 1000).toFixed(2)}s`;
-}
-
-export default TraceTree;

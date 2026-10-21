@@ -508,5 +508,3 @@ function SaveCurrentControl({
     </Popover>
   );
 }
-
-export default SavedQueryBar;

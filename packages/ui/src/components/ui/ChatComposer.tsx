@@ -92,5 +92,3 @@ export function ChatComposer({
     </form>
   );
 }
-
-export default ChatComposer;

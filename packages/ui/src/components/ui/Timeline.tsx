@@ -1,7 +1,9 @@
 import { type CSSProperties, type ReactNode, useRef } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import './Timeline.css';
 
 export interface TimelineItem {
@@ -18,16 +20,7 @@ export interface TimelineItem {
   dotColor?: string;
 }
 
-export interface TimelineSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (
-    items: TimelineItem[],
-  ) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type TimelineSurface = PrimitiveSurface<TimelineItem[]>;
 
 interface TimelineProps {
   items: TimelineItem[];
@@ -39,27 +32,12 @@ interface TimelineProps {
 
 export function Timeline({ items, className, style, surface }: TimelineProps) {
   const wrapRef = useRef<HTMLOListElement>(null);
-  useAegisSurface<TimelineItem[]>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'timeline',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: items,
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(surface, items, 'timeline', wrapRef);
   const rootClass = ['aegis-timeline', className ?? '']
     .filter(Boolean)
     .join(' ');
   return (
-    <ol
-      ref={wrapRef}
-      className={rootClass}
-      style={style}
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
+    <ol ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
       {items.map((it) => (
         <li key={it.id} className="aegis-timeline__item">
           <span
@@ -85,5 +63,3 @@ export function Timeline({ items, className, style, surface }: TimelineProps) {
     </ol>
   );
 }
-
-export default Timeline;

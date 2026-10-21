@@ -36,5 +36,3 @@ export function ErrorState({
     </div>
   );
 }
-
-export default ErrorState;

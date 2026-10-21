@@ -8,8 +8,10 @@ import { Prec } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import CodeMirror, { type Extension } from '@uiw/react-codemirror';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import './CodeEditor.css';
 
 export type CodeEditorLanguage = 'json' | 'yaml' | 'sql' | 'text';
@@ -21,17 +23,10 @@ export interface CodeEditorField {
   type?: string;
 }
 
-export interface CodeEditorSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (data: {
-    value: string;
-    language: CodeEditorLanguage;
-  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type CodeEditorSurface = PrimitiveSurface<{
+  value: string;
+  language: CodeEditorLanguage;
+}>;
 
 interface CodeEditorProps {
   value: string;
@@ -98,16 +93,12 @@ export function CodeEditor({
   onSubmit,
 }: CodeEditorProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  useAegisSurface<{ value: string; language: CodeEditorLanguage }>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'editor',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: { value, language },
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(
+    surface,
+    { value, language },
+    'editor',
+    wrapRef,
+  );
   const extensions = useMemo<Extension[]>(() => {
     const exts: Extension[] = [baseTheme];
     if (language === 'json') {
@@ -160,13 +151,7 @@ export function CodeEditor({
   };
 
   return (
-    <div
-      ref={wrapRef}
-      className={rootClass}
-      style={rootStyle}
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
+    <div ref={wrapRef} className={rootClass} style={rootStyle} {...agentAttrs}>
       <CodeMirror
         value={value}
         height="100%"
@@ -186,5 +171,3 @@ export function CodeEditor({
     </div>
   );
 }
-
-export default CodeEditor;

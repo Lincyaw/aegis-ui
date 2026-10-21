@@ -1,7 +1,8 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
+import './AuthForm.css';
+import { Button } from './Button';
 import { PasswordField } from './PasswordField';
-import './RegisterForm.css';
 import { TextField } from './TextField';
 
 interface RegisterFormValues {
@@ -81,15 +82,14 @@ export function RegisterForm({
             : undefined
         }
       />
-      <button
+      <Button
+        tone="primary"
         type="submit"
         className="aegis-registerform__submit"
         disabled={submitting}
       >
         {submitting ? 'Creating account…' : 'Create account'}
-      </button>
+      </Button>
     </form>
   );
 }
-
-export default RegisterForm;

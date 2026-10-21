@@ -225,5 +225,3 @@ export function TimeRangePicker({
     </Popover>
   );
 }
-
-export default TimeRangePicker;

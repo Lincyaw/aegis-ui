@@ -6,8 +6,11 @@ const DAY = 24 * HOUR;
  * Short, human-friendly relative time. Mirrors the conventions used in
  * inbox-style UIs ("just now", "5m", "2h", "yesterday", "Mon", "Mar 4").
  */
-export function relativeTime(iso: string, now: number = Date.now()): string {
-  const t = Date.parse(iso);
+export function relativeTime(
+  value: string | number | Date,
+  now: number = Date.now(),
+): string {
+  const t = new Date(value).getTime();
   if (Number.isNaN(t)) {
     return '';
   }

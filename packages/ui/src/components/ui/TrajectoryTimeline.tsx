@@ -1,7 +1,9 @@
 import { type ReactNode, useRef } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
@@ -9,16 +11,7 @@ import { StatusDot } from './StatusDot';
 import { TrajectoryStep, type TrajectoryStepData } from './TrajectoryStep';
 import './TrajectoryTimeline.css';
 
-export interface TrajectoryTimelineSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (
-    steps: TrajectoryStepData[],
-  ) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type TrajectoryTimelineSurface = PrimitiveSurface<TrajectoryStepData[]>;
 
 export interface TrajectoryTimelineProps {
   steps: TrajectoryStepData[];
@@ -40,34 +33,23 @@ export function TrajectoryTimeline({
   surface,
 }: TrajectoryTimelineProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  useAegisSurface<TrajectoryStepData[]>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'timeline',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: steps,
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
-  const cls = ['aegis-timeline', className ?? ''].filter(Boolean).join(' ');
+  const agentAttrs = usePrimitiveSurface(surface, steps, 'timeline', wrapRef);
+  const cls = ['aegis-trajectory-timeline', className ?? '']
+    .filter(Boolean)
+    .join(' ');
 
-  const statusTone =
-    status === 'failed' ? 'warning' : status === 'completed' ? 'ink' : 'ink';
+  const statusTone = status === 'failed' ? 'warning' : 'ink';
   const pulse = status === 'running';
 
   return (
-    <div
-      ref={wrapRef}
-      className={cls}
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
-      <header className="aegis-timeline__header">
-        <div className="aegis-timeline__header-left">
+    <div ref={wrapRef} className={cls} {...agentAttrs}>
+      <header className="aegis-trajectory-timeline__header">
+        <div className="aegis-trajectory-timeline__header-left">
           <StatusDot tone={statusTone} pulse={pulse} />
           {agentName ? (
-            <span className="aegis-timeline__agent-name">{agentName}</span>
+            <span className="aegis-trajectory-timeline__agent-name">
+              {agentName}
+            </span>
           ) : (
             <MetricLabel size="sm">agent trajectory</MetricLabel>
           )}
@@ -75,7 +57,7 @@ export function TrajectoryTimeline({
             {status}
           </Chip>
         </div>
-        <div className="aegis-timeline__header-right">
+        <div className="aegis-trajectory-timeline__header-right">
           {totalDurationMs !== undefined && (
             <MetricLabel size="sm">
               <MonoValue size="sm" weight="regular">
@@ -88,7 +70,7 @@ export function TrajectoryTimeline({
         </div>
       </header>
 
-      <div className="aegis-timeline__track">
+      <div className="aegis-trajectory-timeline__track">
         {steps.map((step, i) => (
           <TrajectoryStep
             key={step.step}
@@ -100,5 +82,3 @@ export function TrajectoryTimeline({
     </div>
   );
 }
-
-export default TrajectoryTimeline;

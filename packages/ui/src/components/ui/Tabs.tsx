@@ -90,5 +90,3 @@ function TabsTab({ item, active, onActivate }: TabsTabProps) {
     </button>
   );
 }
-
-export default Tabs;

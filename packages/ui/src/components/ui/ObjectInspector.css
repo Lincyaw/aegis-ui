@@ -120,13 +120,13 @@
   color: var(--text-muted);
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--size-border-thick) solid transparent;
   cursor: pointer;
   white-space: nowrap;
   transition:
     color var(--motion-fast),
     border-color var(--motion-fast);
-  margin-bottom: -1px;
+  margin-bottom: calc(-1 * var(--size-hairline));
 }
 
 .aegis-object-inspector__tab:hover:not(.aegis-object-inspector__tab--disabled) {

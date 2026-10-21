@@ -16,25 +16,20 @@ import {
 } from 'hyparquet';
 import { compressors } from 'hyparquet-compressors';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import { Chip } from './Chip';
 import { DataTable, type DataTableColumn } from './DataTable';
 import './ParquetViewer.css';
 
-export interface ParquetViewerSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (data: {
-    src?: string;
-    file?: File | Blob;
-    totalRows: number;
-    columns: string[];
-  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type ParquetViewerSurface = PrimitiveSurface<{
+  src?: string;
+  file?: File | Blob;
+  totalRows: number;
+  columns: string[];
+}>;
 
 interface ParquetViewerProps {
   /** Local file (e.g. from FileDropzone). Takes precedence over `src`. */
@@ -143,26 +138,17 @@ export function ParquetViewer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useAegisSurface<{
-    src?: string;
-    file?: File | Blob;
-    totalRows: number;
-    columns: string[];
-  }>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'table',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: {
+  const agentAttrs = usePrimitiveSurface(
+    surface,
+    {
       src,
       file,
       totalRows: meta?.totalRows ?? 0,
       columns: meta?.columns.map((c) => c.name) ?? [],
     },
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+    'table',
+    wrapRef,
+  );
 
   useEffect(() => {
     setMeta(null);
@@ -276,7 +262,7 @@ export function ParquetViewer({
 
   if (!file && !src) {
     return (
-      <div className={rootClass} style={style}>
+      <div ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
         <div className="aegis-parquet-viewer__empty">
           No parquet source — pass a `file` or `src` URL to inspect.
         </div>
@@ -286,14 +272,14 @@ export function ParquetViewer({
 
   if (error !== null) {
     return (
-      <div className={rootClass} style={style}>
+      <div ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
         <div className="aegis-parquet-viewer__error">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className={rootClass} style={style}>
+    <div ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
       <header className="aegis-parquet-viewer__header">
         <div className="aegis-parquet-viewer__title">{title ?? 'Parquet'}</div>
         {meta ? (
@@ -361,5 +347,3 @@ export function ParquetViewer({
     </div>
   );
 }
-
-export default ParquetViewer;

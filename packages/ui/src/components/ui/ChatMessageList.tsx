@@ -1,17 +1,12 @@
 import { Children, type ReactNode, useEffect, useRef } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import './ChatMessageList.css';
 
-export interface ChatMessageListSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (count: number) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type ChatMessageListSurface = PrimitiveSurface<number>;
 
 interface ChatMessageListProps {
   children: ReactNode;
@@ -36,16 +31,12 @@ export function ChatMessageList({
   const scrollRef = useRef<HTMLDivElement>(null);
   const childCount = Children.count(children);
 
-  useAegisSurface<number>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'chat',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: childCount,
-    project: surface ? surface.project : () => ({}),
-    ref: scrollRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(
+    surface,
+    childCount,
+    'chat',
+    scrollRef,
+  );
 
   useEffect(() => {
     if (!autoScroll) {
@@ -61,17 +52,10 @@ export function ChatMessageList({
   const cls = ['aegis-chat-list', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div
-      ref={scrollRef}
-      className={cls}
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
+    <div ref={scrollRef} className={cls} {...agentAttrs}>
       {header && <div className="aegis-chat-list__header">{header}</div>}
       <div className="aegis-chat-list__items">{children}</div>
       {footer && <div className="aegis-chat-list__footer">{footer}</div>}
     </div>
   );
 }
-
-export default ChatMessageList;

@@ -80,5 +80,3 @@ export function Breadcrumb({
     </nav>
   );
 }
-
-export default Breadcrumb;

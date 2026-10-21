@@ -168,5 +168,3 @@ export function ObjectInspector({
     </Drawer>
   );
 }
-
-export default ObjectInspector;

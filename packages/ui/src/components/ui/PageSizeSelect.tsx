@@ -1,5 +1,6 @@
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 import './PageSizeSelect.css';
 
 export interface PageSizeSelectProps {
@@ -36,20 +37,7 @@ export function PageSizeSelect({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    function handleClick(e: MouseEvent): void {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-    };
-  }, [open]);
+  useOutsideClick(ref, () => setOpen(false), open);
 
   useEffect(() => {
     if (!open) {
@@ -177,5 +165,3 @@ export function PageSizeSelect({
     </div>
   );
 }
-
-export default PageSizeSelect;

@@ -21,6 +21,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { EmptyState } from './EmptyState';
 import './EventTable.css';
+import { Skeleton } from './Skeleton';
 
 export interface EventTableColumn<T> {
   key: string;
@@ -247,7 +248,7 @@ export function EventTable<T>({
               >
                 {columns.map((c) => (
                   <div key={c.key} className="aegis-event-table__td">
-                    <span className="aegis-event-table__skeleton" />
+                    <Skeleton width="80%" height="var(--space-3)" />
                   </div>
                 ))}
               </div>
@@ -331,5 +332,3 @@ export function EventTable<T>({
     </div>
   );
 }
-
-export default EventTable;

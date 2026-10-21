@@ -144,6 +144,7 @@
   --motion-fast: 200ms ease;
   --motion-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --motion-skeleton: 1400ms;
+  --motion-spin: 800ms;
 
   /* ── Aegis highlight (agent "look here" cue) ─────────────────────── */
   --aegis-highlight-ring: rgba(99, 102, 241, 0.55);
@@ -157,6 +158,9 @@
   --ask-panel-width: 360px;
   --ask-panel-max-height: 480px;
 
+  /* ── Notification bell popover ───────────────────────────────────── */
+  --notif-popover-max-height: 420px;
+
   /* ── Component sizing (icons, controls, avatars) ─────────────────── */
   --size-icon-sm: 12px;
   --size-icon-base: 16px;
@@ -168,6 +172,9 @@
   --size-avatar-base: 32px;
   --size-avatar-lg: 40px;
   --size-hairline: 1px;
+  --size-border-thick: 2px;
+  --size-dot: 6px;
+  --size-badge: 16px;
   --size-resize-handle: 6px;
   --size-resize-collapsed: 8px;
 
@@ -298,6 +305,13 @@
   50% {
     opacity: 0.4;
     transform: scale(1.2);
+  }
+}
+
+/* ── Spin keyframe (loading spinners) ──────────────────────────────── */
+@keyframes aegis-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

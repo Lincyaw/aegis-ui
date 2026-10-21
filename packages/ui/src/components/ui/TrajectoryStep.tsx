@@ -1,7 +1,9 @@
 import { type ReactNode, useRef, useState } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import { Chip } from './Chip';
 import { Markdown } from './Markdown';
 import { MetricLabel } from './MetricLabel';
@@ -21,26 +23,13 @@ export interface TrajectoryStepData {
   observation?: string;
 }
 
-export interface TrajectoryStepSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (
-    data: TrajectoryStepData,
-  ) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type TrajectoryStepSurface = PrimitiveSurface<TrajectoryStepData>;
 
 interface TrajectoryStepProps {
   data: TrajectoryStepData;
   defaultExpanded?: boolean;
   className?: string;
   surface?: TrajectoryStepSurface;
-}
-
-function MarkdownContent({ source }: { source: string }) {
-  return <Markdown>{source}</Markdown>;
 }
 
 function StepSection({
@@ -67,16 +56,7 @@ export function TrajectoryStep({
   surface,
 }: TrajectoryStepProps) {
   const wrapRef = useRef<HTMLElement>(null);
-  useAegisSurface<TrajectoryStepData>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'detail',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data,
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(surface, data, 'detail', wrapRef);
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   const hasBody = Boolean(
@@ -99,12 +79,7 @@ export function TrajectoryStep({
     .join(' ');
 
   return (
-    <article
-      ref={wrapRef}
-      className={cls}
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
+    <article ref={wrapRef} className={cls} {...agentAttrs}>
       <button
         type="button"
         className="aegis-step__head"
@@ -155,12 +130,12 @@ export function TrajectoryStep({
         <div className="aegis-step__body">
           {data.thought && (
             <StepSection label="thought">
-              <MarkdownContent source={data.thought} />
+              <Markdown>{data.thought}</Markdown>
             </StepSection>
           )}
           {data.action && (
             <StepSection label="action">
-              <MarkdownContent source={data.action} />
+              <Markdown>{data.action}</Markdown>
             </StepSection>
           )}
           {data.toolCall && (
@@ -170,7 +145,7 @@ export function TrajectoryStep({
           )}
           {data.observation && (
             <StepSection label="observation">
-              <MarkdownContent source={data.observation} />
+              <Markdown>{data.observation}</Markdown>
             </StepSection>
           )}
         </div>
@@ -178,5 +153,3 @@ export function TrajectoryStep({
     </article>
   );
 }
-
-export default TrajectoryStep;

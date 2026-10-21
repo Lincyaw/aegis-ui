@@ -70,5 +70,3 @@ export function ControlListItem({
     </div>
   );
 }
-
-export default ControlListItem;

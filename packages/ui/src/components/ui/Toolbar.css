@@ -85,7 +85,7 @@
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   color: var(--text-muted);
-  padding: 0 2px;
+  padding: 0 var(--space-px);
 }
 
 .aegis-toolbar__clear {

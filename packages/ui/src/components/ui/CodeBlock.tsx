@@ -1,20 +1,16 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import './CodeBlock.css';
 
-export interface CodeBlockSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (data: {
-    code: string;
-    language: string;
-  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type CodeBlockSurface = PrimitiveSurface<{
+  code: string;
+  language: string;
+}>;
 
 interface CodeBlockProps {
   code: string;
@@ -32,24 +28,17 @@ export function CodeBlock({
   surface,
 }: CodeBlockProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  useAegisSurface<{ code: string; language: string }>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'code',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: { code, language },
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
-  const [copied, setCopied] = useState(false);
+  const agentAttrs = usePrimitiveSurface(
+    surface,
+    { code, language },
+    'code',
+    wrapRef,
+  );
+  const { copied, copy } = useCopyToClipboard(1500);
 
   const handleCopy = useCallback(() => {
-    void navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  }, [code]);
+    void copy(code);
+  }, [copy, code]);
 
   const lines = code.split('\n');
   const padLen = String(lines.length).length;
@@ -57,12 +46,7 @@ export function CodeBlock({
   const cls = ['aegis-code-block', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div
-      ref={wrapRef}
-      className={cls}
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
+    <div ref={wrapRef} className={cls} {...agentAttrs}>
       <div className="aegis-code-block__header">
         <span className="aegis-code-block__lang">{language}</span>
         <button
@@ -91,5 +75,3 @@ export function CodeBlock({
     </div>
   );
 }
-
-export default CodeBlock;

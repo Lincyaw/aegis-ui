@@ -10,7 +10,9 @@ import {
   useState,
 } from 'react';
 
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 import './ChatSessionList.css';
+import { relativeTime } from './relativeTime';
 
 export interface ChatSessionItem {
   id: string;
@@ -31,30 +33,6 @@ export interface ChatSessionListProps {
   /** Empty-state slot. Default: nothing — host decides. */
   emptyState?: ReactNode;
   className?: string;
-}
-
-function relativeTime(ts: number): string {
-  const diff = Date.now() - ts;
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) {
-    return '刚刚';
-  }
-  if (minutes < 60) {
-    return `${minutes.toString()} 分钟前`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours.toString()} 小时前`;
-  }
-  const days = Math.floor(hours / 24);
-  if (days < 30) {
-    return `${days.toString()} 天前`;
-  }
-  const months = Math.floor(days / 30);
-  if (months < 12) {
-    return `${months.toString()} 月前`;
-  }
-  return `${Math.floor(months / 12).toString()} 年前`;
 }
 
 export function ChatSessionList({
@@ -83,26 +61,15 @@ export function ChatSessionList({
   const containerRef = useRef<HTMLUListElement | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Close menu / confirm / rename on outside click.
-  useEffect(() => {
-    if (!menuOpenId && !confirmDeleteId && !renamingId) {
-      return undefined;
-    }
-    const onDocClick = (event: MouseEvent): void => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setMenuOpenId(null);
-        setConfirmDeleteId(null);
-        setRenamingId(null);
-      }
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => {
-      document.removeEventListener('mousedown', onDocClick);
-    };
-  }, [menuOpenId, confirmDeleteId, renamingId]);
+  useOutsideClick(
+    containerRef,
+    () => {
+      setMenuOpenId(null);
+      setConfirmDeleteId(null);
+      setRenamingId(null);
+    },
+    Boolean(menuOpenId) || Boolean(confirmDeleteId) || Boolean(renamingId),
+  );
 
   useEffect(() => {
     if (renamingId && renameInputRef.current) {
@@ -329,5 +296,3 @@ export function ChatSessionList({
     </ul>
   );
 }
-
-export default ChatSessionList;

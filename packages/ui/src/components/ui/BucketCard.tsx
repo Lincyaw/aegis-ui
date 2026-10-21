@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type ReactNode } from 'react';
 
+import { formatBytes } from '../../lib/format';
 import './BucketCard.css';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
@@ -26,20 +27,6 @@ interface BucketCardProps {
   quickActions?: ReactNode;
   onClick?: () => void;
   className?: string;
-}
-
-function humanBytes(n: number): string {
-  if (n < 1024) {
-    return `${n.toString()} B`;
-  }
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  let v = n / 1024;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i += 1;
-  }
-  return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i] ?? ''}`;
 }
 
 export function BucketCard({
@@ -99,7 +86,7 @@ export function BucketCard({
           <MetricLabel>Max object</MetricLabel>
           <MonoValue size="sm">
             {maxObjectBytes && maxObjectBytes > 0
-              ? humanBytes(maxObjectBytes)
+              ? formatBytes(maxObjectBytes)
               : '∞'}
           </MonoValue>
         </div>
@@ -120,7 +107,7 @@ export function BucketCard({
         <div className="aegis-bucket-card__stat">
           <MetricLabel>Used</MetricLabel>
           <MonoValue size="sm">
-            {totalBytes !== undefined ? humanBytes(totalBytes) : '—'}
+            {totalBytes !== undefined ? formatBytes(totalBytes) : '—'}
           </MonoValue>
         </div>
       </div>
@@ -130,5 +117,3 @@ export function BucketCard({
     </div>
   );
 }
-
-export default BucketCard;

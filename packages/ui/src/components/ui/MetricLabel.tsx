@@ -33,5 +33,3 @@ export function MetricLabel({
     </Tag>
   );
 }
-
-export default MetricLabel;

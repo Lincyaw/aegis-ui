@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
@@ -71,7 +72,7 @@ export function ShareLinkDialog({
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<ShareLinkResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy, reset: resetCopied } = useCopyToClipboard(2000);
   const [now, setNow] = useState<number>(Date.now());
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export function ShareLinkDialog({
   const handleGenerate = useCallback(async () => {
     setGenerating(true);
     setError(null);
-    setCopied(false);
+    resetCopied();
     try {
       const r = await onGenerate({ ttlSeconds: ttl, asAttachment });
       setResult(r);
@@ -98,22 +99,16 @@ export function ShareLinkDialog({
     } finally {
       setGenerating(false);
     }
-  }, [asAttachment, onGenerate, ttl]);
+  }, [asAttachment, onGenerate, ttl, resetCopied]);
 
   const handleCopy = useCallback(async () => {
     if (!result) {
       return;
     }
-    try {
-      await navigator.clipboard.writeText(result.url);
-      setCopied(true);
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch {
+    if (!(await copy(result.url))) {
       setError('clipboard unavailable');
     }
-  }, [result]);
+  }, [result, copy]);
 
   const cls = ['aegis-share-link', className ?? ''].filter(Boolean).join(' ');
 
@@ -215,5 +210,3 @@ export function ShareLinkDialog({
     </div>
   );
 }
-
-export default ShareLinkDialog;

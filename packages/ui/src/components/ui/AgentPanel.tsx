@@ -1,17 +1,12 @@
 import { type ReactNode, useRef } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type ContainerSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import './AgentPanel.css';
 
-export interface AgentPanelSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project?: () => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type AgentPanelSurface = ContainerSurface;
 
 interface AgentPanelProps {
   title?: ReactNode;
@@ -34,16 +29,7 @@ export function AgentPanel({
   surface,
 }: AgentPanelProps) {
   const wrapRef = useRef<HTMLElement>(null);
-  useAegisSurface<null>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'panel',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: null,
-    project: surface?.project ?? (() => ({})),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(surface, null, 'panel', wrapRef);
   const cls = ['aegis-agent-panel', className ?? ''].filter(Boolean).join(' ');
 
   return (
@@ -51,8 +37,7 @@ export function AgentPanel({
       ref={wrapRef}
       className={cls}
       aria-label="Agent panel"
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+      {...agentAttrs}
     >
       {(title ?? headerActions) && (
         <header className="aegis-agent-panel__header">
@@ -67,5 +52,3 @@ export function AgentPanel({
     </aside>
   );
 }
-
-export default AgentPanel;

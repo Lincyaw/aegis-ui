@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import './TimeDisplay.css';
+import { relativeTime } from './relativeTime';
 
 interface TimeDisplayProps {
   /** ISO string, timestamp ms, or Date object. */
   value: string | number | Date;
-  /** 'absolute' = full timestamp, 'relative' = "2 m ago", 'duration' = elapsed time. */
+  /** 'absolute' = full timestamp, 'relative' = "2m ago", 'duration' = elapsed time. */
   mode?: 'absolute' | 'relative' | 'duration';
   /** For relative mode: refresh interval in ms (default 60 000). */
   refreshMs?: number;
@@ -26,31 +27,6 @@ function formatAbsolute(d: Date): string {
     return time;
   }
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${time}`;
-}
-
-function formatRelative(d: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-  if (diffSec < 10) {
-    return 'just now';
-  }
-  if (diffSec < 60) {
-    return `${diffSec} s ago`;
-  }
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) {
-    return `${diffMin} m ago`;
-  }
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) {
-    return `${diffHour} h ago`;
-  }
-  const diffDay = Math.floor(diffHour / 24);
-  if (diffDay < 30) {
-    return `${diffDay} d ago`;
-  }
-  return formatAbsolute(d);
 }
 
 function formatDuration(ms: number): string {
@@ -74,18 +50,26 @@ function formatDuration(ms: number): string {
 export function TimeDisplay({
   value,
   mode = 'absolute',
+  refreshMs = 60_000,
   className,
 }: TimeDisplayProps) {
-  const d = useMemo(() => {
-    if (typeof value === 'string') {
-      return new Date(value);
+  const d = useMemo(
+    () => (value instanceof Date ? value : new Date(value)),
+    [value],
+  );
+
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (mode !== 'relative') {
+      return;
     }
-    if (typeof value === 'number') {
-      // Heuristic: if number is small, treat as ms duration; else as epoch ms
-      return value < 1e10 ? new Date(value) : new Date(value);
-    }
-    return value;
-  }, [value]);
+    const id = window.setInterval(() => {
+      setNow(Date.now());
+    }, refreshMs);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [mode, refreshMs]);
 
   const display = useMemo(() => {
     if (mode === 'duration') {
@@ -93,10 +77,10 @@ export function TimeDisplay({
       return formatDuration(ms);
     }
     if (mode === 'relative') {
-      return formatRelative(d);
+      return relativeTime(d, now);
     }
     return formatAbsolute(d);
-  }, [d, mode, value]);
+  }, [d, mode, value, now]);
 
   const tooltip = useMemo(() => {
     if (mode === 'absolute') {
@@ -113,5 +97,3 @@ export function TimeDisplay({
     </span>
   );
 }
-
-export default TimeDisplay;

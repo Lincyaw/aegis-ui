@@ -6,6 +6,8 @@ import {
   useState,
 } from 'react';
 
+import { formatBytes } from '../../lib/format';
+import { Button } from './Button';
 import './FolderDropzone.css';
 
 export interface FolderDropzoneProps {
@@ -198,31 +200,24 @@ export function FolderDropzone({
           ) : null}
         </div>
         <div className="aegis-folder-dropzone__actions">
-          <button
-            type="button"
-            className="aegis-folder-dropzone__action"
+          <Button
+            tone="secondary"
             onClick={handlePickFolder}
             disabled={disabled}
           >
             Choose folder
-          </button>
-          <button
-            type="button"
-            className="aegis-folder-dropzone__action"
+          </Button>
+          <Button
+            tone="secondary"
             onClick={handlePickFiles}
             disabled={disabled}
           >
             Choose files
-          </button>
+          </Button>
           {hasFiles ? (
-            <button
-              type="button"
-              className="aegis-folder-dropzone__action aegis-folder-dropzone__action--quiet"
-              onClick={handleClear}
-              disabled={disabled}
-            >
+            <Button tone="ghost" onClick={handleClear} disabled={disabled}>
               Clear
-            </button>
+            </Button>
           ) : null}
         </div>
         <input
@@ -257,19 +252,3 @@ export function FolderDropzone({
     </div>
   );
 }
-
-function formatBytes(n: number): string {
-  if (n < 1024) {
-    return `${n.toString()} B`;
-  }
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  let v = n / 1024;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i += 1;
-  }
-  return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i] ?? ''}`;
-}
-
-export default FolderDropzone;

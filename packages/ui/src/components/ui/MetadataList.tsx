@@ -1,5 +1,6 @@
-import { type ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
 
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import './MetadataList.css';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
@@ -19,15 +20,10 @@ export interface MetadataListProps {
 }
 
 function CopyButton({ text }: { text: string }): ReactNode {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard(1500);
 
   const handleCopy = (): void => {
-    void navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => {
-        setCopied(false);
-      }, 1500);
-    });
+    void copy(text);
   };
 
   return (
@@ -70,5 +66,3 @@ export function MetadataList({ entries, className }: MetadataListProps) {
     </dl>
   );
 }
-
-export default MetadataList;

@@ -1,12 +1,15 @@
 import { type ReactElement, useMemo, useRef, useState } from 'react';
 
-import { Button, Segmented } from 'antd';
+import { Segmented } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import { type AegisNotification, useNotifications } from '../../notifications';
 import { Avatar } from './Avatar';
+import { Button } from './Button';
 import { Chip } from './Chip';
 import { EmptyState } from './EmptyState';
 import './InboxPage.css';
@@ -15,16 +18,7 @@ import { relativeTime } from './relativeTime';
 
 type Filter = 'all' | 'unread';
 
-export interface InboxPageSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (
-    items: AegisNotification[],
-  ) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type InboxPageSurface = PrimitiveSurface<AegisNotification[]>;
 
 interface InboxPageProps {
   defaultFilter?: Filter;
@@ -49,16 +43,7 @@ export function InboxPage({
   const [filter, setFilter] = useState<Filter>(defaultFilter);
   const navigate = useNavigate();
   const wrapRef = useRef<HTMLDivElement>(null);
-  useAegisSurface<AegisNotification[]>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'list',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: items,
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(surface, items, 'list', wrapRef);
 
   const visible = useMemo(
     () => (filter === 'unread' ? items.filter((n) => !n.read) : items),
@@ -75,18 +60,14 @@ export function InboxPage({
   };
 
   return (
-    <div
-      ref={wrapRef}
-      className="aegis-inbox"
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
+    <div ref={wrapRef} className="aegis-inbox" {...agentAttrs}>
       <PageHeader
         title="Inbox"
         description="Workspace activity, alerts, and invites in one place."
         action={
           markAllRead && unreadCount > 0 ? (
             <Button
+              tone="secondary"
               onClick={() => {
                 void markAllRead();
               }}
@@ -170,5 +151,3 @@ export function InboxPage({
     </div>
   );
 }
-
-export default InboxPage;

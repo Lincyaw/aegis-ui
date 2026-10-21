@@ -8,7 +8,7 @@
   padding: 0;
   margin: 0;
   background: transparent;
-  border: 1px solid transparent;
+  border: var(--size-hairline) solid transparent;
   border-radius: var(--radius-md);
   color: var(--text-main);
   cursor: pointer;
@@ -34,10 +34,10 @@
 
 .aegis-notif-bell__badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  min-width: 16px;
-  height: 16px;
+  top: var(--space-px);
+  right: var(--space-px);
+  min-width: var(--size-badge);
+  height: var(--size-badge);
   padding: 0 var(--space-1);
   display: inline-flex;
   align-items: center;
@@ -49,7 +49,7 @@
   font-weight: var(--fw-semibold);
   line-height: 1;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--bg-panel);
+  border: var(--size-hairline) solid var(--bg-panel);
 }
 
 /* ── Popover content ─────────────────────────────────────────────── */
@@ -63,7 +63,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-notif-pop__title {
@@ -85,12 +85,12 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 420px;
+  max-height: var(--notif-popover-max-height);
   overflow-y: auto;
 }
 
 .aegis-notif-pop__item-wrap + .aegis-notif-pop__item-wrap {
-  border-top: 1px solid var(--border-hairline);
+  border-top: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-notif-pop__item {
@@ -115,9 +115,9 @@
 
 .aegis-notif-pop__dot {
   flex: none;
-  width: 6px;
-  height: 6px;
-  margin-top: 7px;
+  width: var(--size-dot);
+  height: var(--size-dot);
+  margin-top: calc(var(--space-2) - var(--size-hairline));
   border-radius: var(--radius-circle);
   background: transparent;
 }
@@ -182,7 +182,7 @@
 
 .aegis-notif-pop__foot {
   padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--border-hairline);
+  border-top: var(--size-hairline) solid var(--border-hairline);
   text-align: center;
 }
 

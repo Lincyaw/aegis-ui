@@ -31,5 +31,3 @@ export function DangerZone({
     </section>
   );
 }
-
-export default DangerZone;

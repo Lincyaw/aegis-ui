@@ -35,5 +35,3 @@ export function PanelTitle({
 
   return <Tag className={cls}>{children}</Tag>;
 }
-
-export default PanelTitle;
