@@ -1,11 +1,12 @@
-import { type ComponentProps, type ReactNode, useMemo } from 'react';
-import ReactMarkdown, {
+import { useMemo } from 'react';
+import {
   type Components,
   defaultUrlTransform,
   type ExtraProps,
 } from 'react-markdown';
 import { Link } from 'react-router-dom';
 
+import { Markdown, type MarkdownProps } from '@lincyaw/aegis-ui';
 import 'katex/dist/katex.min.css';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
@@ -14,23 +15,21 @@ import remarkMath from 'remark-math';
 import { extractHeadings } from '../lib/headings';
 import { remarkCallout } from '../lib/remark-callout';
 import { remarkHighlight } from '../lib/remark-highlight';
+import { remarkMermaid } from '../lib/remark-mermaid';
 import { remarkWikilink, WIKILINK_SCHEME } from '../lib/remark-wikilink';
 
 import { Mermaid } from './Mermaid';
 
-type MarkdownProps = ComponentProps<typeof ReactMarkdown>;
-type RemarkPlugins = NonNullable<MarkdownProps['remarkPlugins']>;
-type RehypePlugins = NonNullable<MarkdownProps['rehypePlugins']>;
-
-const remarkPlugins = [
+const remarkPlugins: MarkdownProps['remarkPlugins'] = [
   remarkGfm,
   remarkMath,
   remarkWikilink,
   remarkHighlight,
   remarkCallout,
-] as unknown as RemarkPlugins;
+  remarkMermaid,
+];
 
-const rehypePlugins = [rehypeKatex] as unknown as RehypePlugins;
+const rehypePlugins: MarkdownProps['rehypePlugins'] = [rehypeKatex];
 
 function urlTransform(url: string): string {
   return url.startsWith(WIKILINK_SCHEME) ? url : defaultUrlTransform(url);
@@ -90,43 +89,19 @@ export function WikiMarkdown({
           </a>
         );
       },
-      pre({ children }): ReactNode {
-        return children;
-      },
-      code({ className, children }) {
-        const text = String(children ?? '').replace(/\n$/, '');
-        const lang = /language-([\w-]+)/.exec(className ?? '')?.[1];
-        if (lang === 'mermaid') {
-          return <Mermaid code={text} />;
-        }
-        const isBlock =
-          Boolean(className?.includes('language-')) || text.includes('\n');
-        if (isBlock) {
-          return (
-            <pre className='wiki-code'>
-              <code className={className}>{children}</code>
-            </pre>
-          );
-        }
-        return <code className='wiki-code-inline'>{children}</code>;
-      },
-      blockquote({ className, children }) {
-        const cls = ['wiki-blockquote', className].filter(Boolean).join(' ');
-        return <blockquote className={cls}>{children}</blockquote>;
-      },
+      figure: ({ children }) => <Mermaid code={String(children)} />,
     };
   }, [headingIds, resolveSlug]);
 
   return (
-    <div className='wiki-markdown'>
-      <ReactMarkdown
-        remarkPlugins={remarkPlugins}
-        rehypePlugins={rehypePlugins}
-        urlTransform={urlTransform}
-        components={components}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
+    <Markdown
+      className='wiki-markdown'
+      remarkPlugins={remarkPlugins}
+      rehypePlugins={rehypePlugins}
+      urlTransform={urlTransform}
+      components={components}
+    >
+      {content}
+    </Markdown>
   );
 }
