@@ -11,12 +11,6 @@
   flex-wrap: wrap;
 }
 
-.pages-app__row-actions {
-  display: flex;
-  gap: var(--space-1);
-  justify-content: flex-end;
-}
-
 .pages-app__header-actions {
   display: flex;
   gap: var(--space-2);

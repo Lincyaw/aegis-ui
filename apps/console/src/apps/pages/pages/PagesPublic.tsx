@@ -42,8 +42,7 @@ export default function PagesPublic() {
         {
           key: 'open',
           header: '',
-          align: 'right',
-          truncate: false,
+          kind: 'actions',
           width: 80,
           render: (row) => (
             <Button

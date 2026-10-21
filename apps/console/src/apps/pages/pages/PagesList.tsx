@@ -68,7 +68,7 @@ function RowActions({ row }: { row: PagesPageSiteResponse }) {
   };
 
   return (
-    <span className='pages-app__row-actions'>
+    <>
       <Button
         size='small'
         type='text'
@@ -84,7 +84,7 @@ function RowActions({ row }: { row: PagesPageSiteResponse }) {
         title='Delete'
         onClick={onDelete}
       />
-    </span>
+    </>
   );
 }
 
@@ -109,8 +109,7 @@ export default function PagesList() {
         {
           key: 'actions',
           header: '',
-          align: 'right',
-          truncate: false,
+          kind: 'actions',
           width: 160,
           render: (row) => <RowActions row={row} />,
         }
