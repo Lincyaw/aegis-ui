@@ -1,9 +1,8 @@
 import { EmptyState, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
 import { Form, Input, InputNumber, Radio, Select, Slider } from 'antd';
 
-import type { GuidedInjectionSpec } from '../../mocks/types';
-
 import { CHAOS_BY_NAME, type FieldKey, REQUIRED_FIELDS } from './paramSchema';
+import type { GuidedInjectionSpec } from './types';
 
 interface Props {
   spec: GuidedInjectionSpec;

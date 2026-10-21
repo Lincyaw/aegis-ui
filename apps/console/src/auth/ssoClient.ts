@@ -1,4 +1,6 @@
-import { type SsoConfig, ssoUrl } from './ssoConfig';
+import { ssoUrlFor } from '../config/runtime';
+
+import type { SsoConfig } from './ssoConfig';
 
 interface TokenResponse {
   access_token: string;
@@ -15,12 +17,6 @@ export interface UserInfo {
   picture?: string;
 }
 
-export interface FederatedProvider {
-  name: string;
-  display_name: string;
-  type: 'oidc' | 'oauth2';
-}
-
 interface OidcEndpoints {
   authorization_endpoint: string;
   token_endpoint: string;
@@ -30,27 +26,15 @@ interface OidcEndpoints {
 
 let cachedEndpoints: OidcEndpoints | null = null;
 
-export async function discoverOidc(cfg: SsoConfig): Promise<OidcEndpoints> {
+export async function discoverOidc(): Promise<OidcEndpoints> {
   if (cachedEndpoints) return cachedEndpoints;
-  const res = await fetch(
-    ssoUrl('/.well-known/openid-configuration', cfg)
-  );
+  const res = await fetch(ssoUrlFor('/.well-known/openid-configuration'));
   if (!res.ok) {
     throw new Error(`OIDC discovery failed (${res.status})`);
   }
   const doc = (await res.json()) as OidcEndpoints;
   cachedEndpoints = doc;
   return doc;
-}
-
-export function getAuthorizeUrl(endpoints: OidcEndpoints): string {
-  return endpoints.authorization_endpoint;
-}
-
-export async function fetchProviders(
-  _cfg: SsoConfig
-): Promise<FederatedProvider[]> {
-  return [];
 }
 
 async function formPost(
@@ -70,7 +54,7 @@ export async function exchangeCode(
   code: string,
   codeVerifier: string
 ): Promise<TokenResponse> {
-  const endpoints = await discoverOidc(cfg);
+  const endpoints = await discoverOidc();
   const res = await formPost(endpoints.token_endpoint, {
     grant_type: 'authorization_code',
     code,
@@ -88,7 +72,7 @@ export async function refreshTokens(
   cfg: SsoConfig,
   refreshToken: string
 ): Promise<TokenResponse> {
-  const endpoints = await discoverOidc(cfg);
+  const endpoints = await discoverOidc();
   const res = await formPost(endpoints.token_endpoint, {
     grant_type: 'refresh_token',
     refresh_token: refreshToken,
@@ -100,11 +84,8 @@ export async function refreshTokens(
   return (await res.json()) as TokenResponse;
 }
 
-export async function fetchUserInfo(
-  cfg: SsoConfig,
-  accessToken: string
-): Promise<UserInfo> {
-  const endpoints = await discoverOidc(cfg);
+export async function fetchUserInfo(accessToken: string): Promise<UserInfo> {
+  const endpoints = await discoverOidc();
   const res = await fetch(endpoints.userinfo_endpoint, {
     headers: { authorization: `Bearer ${accessToken}` },
   });
@@ -114,11 +95,8 @@ export async function fetchUserInfo(
   return (await res.json()) as UserInfo;
 }
 
-export async function logoutSso(
-  cfg: SsoConfig,
-  refreshToken?: string
-): Promise<void> {
-  const endpoints = await discoverOidc(cfg);
+export async function logoutSso(refreshToken?: string): Promise<void> {
+  const endpoints = await discoverOidc();
   if (endpoints.end_session_endpoint) {
     await formPost(
       endpoints.end_session_endpoint,
@@ -134,11 +112,8 @@ interface RegisterReq {
   full_name?: string;
 }
 
-export async function registerUser(
-  cfg: SsoConfig,
-  req: RegisterReq
-): Promise<void> {
-  const res = await fetch(ssoUrl('/api/v2/auth/register', cfg), {
+export async function registerUser(req: RegisterReq): Promise<void> {
+  const res = await fetch(ssoUrlFor('/api/v2/auth/register'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(req),

@@ -2,30 +2,10 @@
  * Client for aegis-blob's /api/v2/blob/* surface (presign + list +
  * inline get + delete). Goes through the vite proxy
  * (`/api/v2/blob` → 8085 in dev).
- *
- * Some endpoints return DB rows that are *not* json-tagged on the
- * backend (ObjectRecord). Those serialise with PascalCase field names;
- * the typed surface here matches that convention so we don't silently
- * read undefined.
  */
-import { apiFetch, type ApiFetchOptions, apiJson } from './apiClient';
+import { apiData, apiFetch, type ApiFetchOptions, apiJson } from './apiClient';
 
 const ROOT = '/api/v2/blob';
-
-interface Envelope<T> {
-  code: number;
-  message: string;
-  data: T;
-  timestamp?: number;
-}
-
-async function unwrap<T>(
-  path: string,
-  init: ApiFetchOptions = {},
-): Promise<T> {
-  const env = await apiJson<Envelope<T>>(path, init);
-  return env.data;
-}
 
 export interface PresignedRequest {
   method: string;
@@ -57,28 +37,6 @@ export interface PresignGetReq {
   ttl_seconds?: number;
 }
 
-/** DB row shape: gorm fields with no json tag → PascalCase on the wire. */
-export interface ObjectRow {
-  ID: number;
-  Bucket: string;
-  StorageKey: string;
-  SizeBytes: number;
-  ContentType: string;
-  ETag: string;
-  UploadedBy: number | null;
-  EntityKind: string;
-  EntityID: string;
-  Metadata: Record<string, string> | null;
-  CreatedAt: string;
-  ExpiresAt: string | null;
-  DeletedAt: string | null;
-}
-
-export interface ListResp {
-  items: ObjectRow[];
-  next_cursor?: string;
-}
-
 export interface BucketSummary {
   name: string;
   driver: string;
@@ -88,49 +46,15 @@ export interface BucketSummary {
 }
 
 export async function listBuckets(): Promise<BucketSummary[]> {
-  const res = await unwrap<{ items: BucketSummary[] }>(`${ROOT}/buckets`);
+  const res = await apiData<{ items: BucketSummary[] }>(`${ROOT}/buckets`);
   return res.items ?? [];
-}
-
-export interface ListParams {
-  cursor?: string;
-  limit?: number;
-  entity_kind?: string;
-  entity_id?: string;
-}
-
-function buildQuery(p: ListParams): string {
-  const u = new URLSearchParams();
-  if (p.cursor) {
-    u.set('cursor', p.cursor);
-  }
-  if (p.limit !== undefined) {
-    u.set('limit', p.limit.toString());
-  }
-  if (p.entity_kind) {
-    u.set('entity_kind', p.entity_kind);
-  }
-  if (p.entity_id) {
-    u.set('entity_id', p.entity_id);
-  }
-  const s = u.toString();
-  return s ? `?${s}` : '';
-}
-
-export async function listObjects(
-  bucket: string,
-  params: ListParams = {}
-): Promise<ListResp> {
-  return unwrap<ListResp>(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/objects${buildQuery(params)}`
-  );
 }
 
 export async function presignPut(
   bucket: string,
   req: PresignPutReq
 ): Promise<PresignPutResp> {
-  return unwrap<PresignPutResp>(
+  return apiData<PresignPutResp>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/presign-put`,
     { method: 'POST', body: JSON.stringify(req) }
   );
@@ -140,7 +64,7 @@ export async function presignGet(
   bucket: string,
   req: PresignGetReq
 ): Promise<PresignedRequest> {
-  return unwrap<PresignedRequest>(
+  return apiData<PresignedRequest>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/presign-get`,
     { method: 'POST', body: JSON.stringify(req) }
   );
@@ -189,7 +113,7 @@ export async function batchDelete(
   bucket: string,
   keys: string[]
 ): Promise<BatchDeleteResult> {
-  return unwrap<BatchDeleteResult>(
+  return apiData<BatchDeleteResult>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/delete-batch`,
     { method: 'POST', body: JSON.stringify({ keys }) }
   );
@@ -233,7 +157,7 @@ export interface CreateBucketReq {
 export async function createBucket(
   req: CreateBucketReq
 ): Promise<BucketSummary> {
-  return unwrap<BucketSummary>(`${ROOT}/buckets`, {
+  return apiData<BucketSummary>(`${ROOT}/buckets`, {
     method: 'POST',
     body: JSON.stringify(req),
   });
@@ -281,8 +205,8 @@ export async function driverList(
     u.set('max_keys', params.max_keys.toString());
   }
   const q = u.toString();
-  const raw = await unwrap<DriverListResult>(
-    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`,
+  const raw = await apiData<DriverListResult>(
+    `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`
   );
   return {
     ...raw,

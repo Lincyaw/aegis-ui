@@ -3,6 +3,7 @@ import { type ReactElement, useCallback, useEffect, useRef } from 'react';
 import {
   type AgentMessage,
   AgentPanel,
+  Button,
   ChatComposer,
   ChatMessage,
   ChatMessageList,
@@ -113,26 +114,16 @@ export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
       <AgentPanel
         title={<ChatSwitcher />}
         headerActions={
-          <div className='aegis-ai-dock__header-actions'>
+          <>
             {clear && messages.length > 0 && (
-              <button
-                type='button'
-                className='aegis-ai-dock__btn'
-                onClick={clear}
-                aria-label='Clear chat'
-              >
+              <Button tone='ghost' onClick={clear} aria-label='Clear chat'>
                 Clear
-              </button>
+              </Button>
             )}
-            <button
-              type='button'
-              className='aegis-ai-dock__btn'
-              onClick={onClose}
-              aria-label='Close AI panel'
-            >
+            <Button tone='ghost' onClick={onClose} aria-label='Close AI panel'>
               Close
-            </button>
-          </div>
+            </Button>
+          </>
         }
         footer={<ChatComposer onSend={send} sending={sending} />}
       >

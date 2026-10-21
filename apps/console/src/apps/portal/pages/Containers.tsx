@@ -13,6 +13,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { type ContainerContainerResp, ContainerType } from '@lincyaw/portal';
 
+import { errMsg } from '../../../api/apiClient';
 import { useContainersList } from '../hooks/useContainers';
 
 interface Copy {
@@ -69,7 +70,7 @@ export default function Containers({ containerType }: ContainersProps) {
   const containers = data?.items ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={copy.title}
         description={copy.description}
@@ -89,11 +90,7 @@ export default function Containers({ containerType }: ContainersProps) {
           rowKey={(r) => String(r.id ?? r.name ?? '')}
           emptyTitle={isError ? copy.errorTitle : copy.emptyTitle}
           emptyDescription={
-            isError
-              ? error instanceof Error
-                ? error.message
-                : 'Unknown error'
-              : copy.emptyDescription
+            isError ? errMsg(error, 'Unknown error') : copy.emptyDescription
           }
           columns={[
             {
@@ -125,6 +122,6 @@ export default function Containers({ containerType }: ContainersProps) {
           ]}
         />
       </Panel>
-    </div>
+    </>
   );
 }

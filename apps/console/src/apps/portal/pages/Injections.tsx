@@ -15,6 +15,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useInjectionsList } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
@@ -70,7 +71,7 @@ export default function Injections() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Injections'
         description={`Fault injections for project ${projectId}.`}
@@ -114,69 +115,67 @@ export default function Injections() {
         {isError ? (
           <EmptyState
             title='Failed to load injections'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         ) : (
           <>
-          <DataTable<InjectionRow>
-            data={rows}
-            rowKey={(r) => String(r.id)}
-            loading={isLoading}
-            emptyTitle='No injections'
-            emptyDescription='Click + Inject to create one.'
-            columns={[
-              {
-                key: 'sel',
-                header: '',
-                render: (r) => (
-                  <input
-                    type='checkbox'
-                    checked={selected.has(r.id)}
-                    onChange={() => toggle(r.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`select ${r.id}`}
-                  />
-                ),
-              },
-              {
-                key: 'id',
-                header: 'Injection',
-                render: (r) => (
-                  <Link to={href(`injections/${r.id}`)}>
-                    <MonoValue size='sm'>{r.id}</MonoValue>
-                  </Link>
-                ),
-              },
-              { key: 'name', header: 'Name', render: (r) => r.name },
-              {
-                key: 'fault',
-                header: 'Fault',
-                render: (r) => <MonoValue size='sm'>{r.faultType}</MonoValue>,
-              },
-              {
-                key: 'status',
-                header: 'Status',
-                render: (r) => <StatusChip status={r.status} />,
-              },
-              {
-                key: 'created',
-                header: 'Created',
-                render: (r) => <TimeDisplay value={r.createdAt} />,
-              },
-            ]}
-          />
-          <div className='page-table-footer'>
-            <PageSizeSelect
-              value={size}
-              onChange={setSize}
-              options={PAGE_SIZE_OPTIONS}
+            <DataTable<InjectionRow>
+              data={rows}
+              rowKey={(r) => String(r.id)}
+              loading={isLoading}
+              emptyTitle='No injections'
+              emptyDescription='Click + Inject to create one.'
+              columns={[
+                {
+                  key: 'sel',
+                  header: '',
+                  render: (r) => (
+                    <input
+                      type='checkbox'
+                      checked={selected.has(r.id)}
+                      onChange={() => toggle(r.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`select ${r.id}`}
+                    />
+                  ),
+                },
+                {
+                  key: 'id',
+                  header: 'Injection',
+                  render: (r) => (
+                    <Link to={href(`injections/${r.id}`)}>
+                      <MonoValue size='sm'>{r.id}</MonoValue>
+                    </Link>
+                  ),
+                },
+                { key: 'name', header: 'Name', render: (r) => r.name },
+                {
+                  key: 'fault',
+                  header: 'Fault',
+                  render: (r) => <MonoValue size='sm'>{r.faultType}</MonoValue>,
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (r) => <StatusChip status={r.status} />,
+                },
+                {
+                  key: 'created',
+                  header: 'Created',
+                  render: (r) => <TimeDisplay value={r.createdAt} />,
+                },
+              ]}
             />
-          </div>
+            <div className='page-table-footer'>
+              <PageSizeSelect
+                value={size}
+                onChange={setSize}
+                options={PAGE_SIZE_OPTIONS}
+              />
+            </div>
           </>
         )}
       </Panel>
-    </div>
+    </>
   );
 }

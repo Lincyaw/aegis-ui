@@ -12,11 +12,13 @@ import {
   Panel,
   PanelTitle,
   SectionDivider,
+  SkeletonText,
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Spin } from 'antd';
+import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useDataset, useDeleteDataset } from '../api/datasets';
 
 export default function DatasetDetail() {
@@ -29,42 +31,32 @@ export default function DatasetDetail() {
 
   if (isLoading) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Loading…' />
         <Panel>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
-            <Spin />
-          </div>
+          <SkeletonText />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (isError) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Dataset' />
         <Panel>
           <ErrorState
             title='Failed to load dataset'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (!dataset || dataset.id === undefined) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Dataset not found' />
         <Panel>
           <EmptyState
@@ -72,7 +64,7 @@ export default function DatasetDetail() {
             description='This dataset no longer exists.'
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
@@ -81,7 +73,7 @@ export default function DatasetDetail() {
   const labelEntries = dataset.labels ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={dataset.name ?? `Dataset #${String(dataset.id)}`}
         description={dataset.description}
@@ -107,11 +99,7 @@ export default function DatasetDetail() {
                     navigate('datasets');
                   },
                   onError: (err) => {
-                    void msg.error(
-                      err instanceof Error
-                        ? err.message
-                        : 'Failed to delete dataset'
-                    );
+                    void msg.error(errMsg(err, 'Failed to delete dataset'));
                   },
                 });
               }}
@@ -204,6 +192,6 @@ export default function DatasetDetail() {
           />
         )}
       </Panel>
-    </div>
+    </>
   );
 }

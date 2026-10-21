@@ -43,7 +43,7 @@ declare global {
 
 const LS_KEY = 'aegis.runtime.config.v1';
 
-const DEFAULTS: RuntimeConfig = {
+export const DEFAULTS: RuntimeConfig = {
   gatewayUrl: '',
   ssoOrigin: '',
   ssoClientId: 'aegis-console',
@@ -139,22 +139,4 @@ export function ssoUrlFor(path: string): string {
 export function clickhouseBase(): string {
   const { clickhouseUrl } = getRuntimeConfig();
   return clickhouseUrl || '/api/v2/clickhouse';
-}
-
-/**
- * True when the user has a usable configuration. With same-origin
- * deployments this is always true (empty gateway = relative paths).
- * The Setup page checks this to know whether to nudge the user.
- */
-export function isConfigured(): boolean {
-  const cfg = getRuntimeConfig();
-  return Boolean(cfg.gatewayUrl || cfg.clickhouseUrl) || isLikelyCoLocated();
-}
-
-function isLikelyCoLocated(): boolean {
-  if (typeof window === 'undefined') {
-    return true;
-  }
-  const host = window.location.hostname;
-  return host !== 'localhost' && host !== '127.0.0.1';
 }

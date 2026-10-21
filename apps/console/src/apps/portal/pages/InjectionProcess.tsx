@@ -1,24 +1,21 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
   Button,
-  Chip,
   EmptyState,
   KeyValueList,
   MonoValue,
-  PageSizeSelect,
   Panel,
   PanelTitle,
-  SearchInput,
   Terminal,
   type TerminalLine,
   TimeDisplay,
   TimelineChart,
   type TimelineSpan,
+  type TraceSpan,
   TraceSpanInspector,
   TraceTree,
-  type TraceSpan,
 } from '@lincyaw/aegis-ui';
 import type {
   InjectionInjectionTimelineEvent,
@@ -27,10 +24,10 @@ import type {
   TaskResp,
   TraceSpanNode,
   TraceTraceDetailResp,
-  TraceTraceLogEntry,
 } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import {
   isActiveTraceState,
   useInjectionDetail,
@@ -39,13 +36,15 @@ import {
   useTraceSpans,
 } from '../api/injections';
 import { useTraceLogs } from '../api/traces';
-import { RefreshControl } from '../components/RefreshControl';
 import {
   intervalToMs,
   type RefreshInterval,
 } from '../components/refresh-interval';
+import { RefreshControl } from '../components/RefreshControl';
 import { StatusChip } from '../components/StatusChip';
+import { TraceLogsPanel } from '../components/TraceLogsPanel';
 import { isActiveTaskState, useCancelTask } from '../hooks/useTasks';
+import { useTraceLogFilters } from '../hooks/useTraceLogFilters';
 
 const STAGE_LABELS: Record<string, string> = {
   RestartPedestal: 'Restart pedestal',
@@ -62,7 +61,6 @@ function stageLabel(type: string | undefined): string {
   }
   return STAGE_LABELS[type] ?? type;
 }
-
 
 function formatDuration(startIso?: string, endIso?: string): string {
   if (!startIso) {
@@ -199,34 +197,6 @@ function eventLines(
     }));
 }
 
-function logLevelClass(level: string | undefined): TerminalLine['level'] {
-  const l = (level ?? '').toLowerCase();
-  if (l === 'error' || l === 'fatal') {
-    return 'error';
-  }
-  if (l === 'warn' || l === 'warning') {
-    return 'warn';
-  }
-  if (l === 'debug' || l === 'trace') {
-    return 'debug';
-  }
-  return 'info';
-}
-
-function logLines(
-  entries: TraceTraceLogEntry[] | undefined
-): TerminalLine[] {
-  if (!entries || entries.length === 0) {
-    return [];
-  }
-  return entries.map((e, i) => ({
-    ts: e.ts ?? String(i),
-    prefix: e.service ?? e.level ?? 'log',
-    level: logLevelClass(e.level),
-    body: e.msg ?? '',
-  }));
-}
-
 function spanStatus(s: string | undefined): TraceSpan['status'] {
   const lower = (s ?? '').toLowerCase();
   if (lower === 'error' || lower === 'status_code_error') {
@@ -245,7 +215,9 @@ interface SpanGroup {
   durationMs: number;
 }
 
-function groupSpansByOTelTrace(nodes: TraceSpanNode[] | undefined): SpanGroup[] {
+function groupSpansByOTelTrace(
+  nodes: TraceSpanNode[] | undefined
+): SpanGroup[] {
   if (!nodes || nodes.length === 0) {
     return [];
   }
@@ -392,31 +364,6 @@ function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
   );
 }
 
-type LogLevelFilter = 'all' | 'error' | 'warn' | 'info';
-
-const LOG_LEVEL_OPTIONS: ReadonlyArray<{ key: LogLevelFilter; label: string }> =
-  [
-    { key: 'all', label: 'All' },
-    { key: 'error', label: 'Error' },
-    { key: 'warn', label: 'Warn' },
-    { key: 'info', label: 'Info' },
-  ];
-
-const LOG_LIMIT_OPTIONS: readonly number[] = [100, 200, 500, 1000];
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setDebounced(value);
-    }, delayMs);
-    return () => {
-      clearTimeout(handle);
-    };
-  }, [value, delayMs]);
-  return debounced;
-}
-
 export default function InjectionProcess() {
   const { injectionId } = useParams<{ injectionId: string }>();
 
@@ -443,23 +390,12 @@ export default function InjectionProcess() {
     refetch: refetchTimeline,
   } = useInjectionTimeline(validId, intervalMs);
 
-  const [logLevel, setLogLevel] = useState<LogLevelFilter>('all');
-  const [logSearchInput, setLogSearchInput] = useState('');
-  const [logLimit, setLogLimit] = useState<number>(200);
-  const debouncedLogSearch = useDebouncedValue(logSearchInput.trim(), 300);
+  const logFilters = useTraceLogFilters();
   const {
     data: logsResp,
     isFetching: logsFetching,
     refetch: refetchLogs,
-  } = useTraceLogs(
-    traceId,
-    {
-      limit: logLimit,
-      level: logLevel === 'all' ? undefined : logLevel,
-      q: debouncedLogSearch.length > 0 ? debouncedLogSearch : undefined,
-    },
-    intervalMs,
-  );
+  } = useTraceLogs(traceId, logFilters.query, intervalMs);
 
   const {
     data: spansResp,
@@ -468,7 +404,7 @@ export default function InjectionProcess() {
   } = useTraceSpans(traceId, intervalMs);
   const spanGroups = useMemo(
     () => groupSpansByOTelTrace(spansResp?.spans),
-    [spansResp?.spans],
+    [spansResp?.spans]
   );
   const [selectedSpan, setSelectedSpan] = useState<TraceSpan | null>(null);
   const spanLookup = useMemo(() => {
@@ -488,10 +424,12 @@ export default function InjectionProcess() {
 
   const phaseGantt = useMemo(
     () => (timeline ? buildPhaseGantt(timeline) : null),
-    [timeline],
+    [timeline]
   );
-  const events = useMemo(() => eventLines(timeline?.events), [timeline?.events]);
-  const logs = useMemo(() => logLines(logsResp?.entries), [logsResp?.entries]);
+  const events = useMemo(
+    () => eventLines(timeline?.events),
+    [timeline?.events]
+  );
 
   if (!injection) {
     return (
@@ -525,11 +463,10 @@ export default function InjectionProcess() {
       <Panel>
         <EmptyState
           title='Process trace unavailable'
-          description={
-            error instanceof Error
-              ? error.message
-              : 'The orchestrator has not reported this trace.'
-          }
+          description={errMsg(
+            error,
+            'The orchestrator has not reported this trace.'
+          )}
         />
       </Panel>
     );
@@ -630,7 +567,10 @@ export default function InjectionProcess() {
         {spanGroups.length > 0 ? (
           <div className='injection-process__span-groups'>
             {spanGroups.map((g) => (
-              <div key={g.otelTraceId} className='injection-process__span-group'>
+              <div
+                key={g.otelTraceId}
+                className='injection-process__span-group'
+              >
                 <div className='injection-process__span-group-head'>
                   <MonoValue size='sm'>{g.otelTraceId}</MonoValue>
                   <span className='injection-process__last-event-label'>
@@ -671,60 +611,12 @@ export default function InjectionProcess() {
         )}
       </Panel>
 
-      <Panel
-        title={<PanelTitle size='base'>Logs</PanelTitle>}
-        extra={
-          logsResp?.total_estimate != null ? (
-            <span className='injection-process__last-event-label'>
-              {`tail ${String(logLimit)} · ~${String(logsResp.total_estimate)} matched`}
-            </span>
-          ) : undefined
-        }
-      >
-        <div className='injection-process__logs-toolbar'>
-          <div className='injection-process__logs-levels' role='group' aria-label='Log level filter'>
-            {LOG_LEVEL_OPTIONS.map((opt) => (
-              <Chip
-                key={opt.key}
-                tone={logLevel === opt.key ? 'ink' : 'ghost'}
-                onClick={() => {
-                  setLogLevel(opt.key);
-                }}
-              >
-                {opt.label}
-              </Chip>
-            ))}
-          </div>
-          <SearchInput
-            value={logSearchInput}
-            onChange={setLogSearchInput}
-            onClear={() => {
-              setLogSearchInput('');
-            }}
-            placeholder='Filter log lines…'
-            className='injection-process__logs-search'
-          />
-          <PageSizeSelect
-            value={logLimit}
-            onChange={setLogLimit}
-            options={LOG_LIMIT_OPTIONS as number[]}
-            label='Tail'
-            placement='bottom'
-          />
-        </div>
-        {logs.length > 0 ? (
-          <Terminal lines={logs} />
-        ) : (
-          <EmptyState
-            title='No logs match'
-            description={
-              debouncedLogSearch.length > 0 || logLevel !== 'all'
-                ? 'No log entries match the current filters. Try clearing the search or selecting "All" level.'
-                : 'Per-service injection logs will stream here as the run progresses.'
-            }
-          />
-        )}
-      </Panel>
+      <TraceLogsPanel
+        filters={logFilters}
+        data={logsResp}
+        emptyTitle='No logs yet'
+        emptyDescription='Per-service injection logs will stream here as the run progresses.'
+      />
     </>
   );
 }

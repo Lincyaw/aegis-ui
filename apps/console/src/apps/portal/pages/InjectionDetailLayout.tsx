@@ -13,6 +13,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useInjectionDetail } from '../api/injections';
 import { injectionsApi } from '../api/portal-client';
 import { StatusChip } from '../components/StatusChip';
@@ -65,7 +66,7 @@ export default function InjectionDetailLayout() {
       void qc.invalidateQueries({ queryKey: ['portal', 'injections'] });
     },
     onError: (e: unknown) => {
-      void msg.error(e instanceof Error ? e.message : 'Cancel failed');
+      void msg.error(errMsg(e, 'Cancel failed'));
     },
   });
 
@@ -77,15 +78,17 @@ export default function InjectionDetailLayout() {
     const tail = location.pathname.startsWith(basePath)
       ? location.pathname.slice(basePath.length).replace(/^\/+/, '')
       : '';
-    const match = TAB_SPECS.find(
-      (t) => (t.path === '' ? tail === '' : tail === t.path || tail.startsWith(`${t.path}/`)),
+    const match = TAB_SPECS.find((t) =>
+      t.path === ''
+        ? tail === ''
+        : tail === t.path || tail.startsWith(`${t.path}/`)
     );
     return match?.key ?? 'overview';
   }, [href, idNum, location.pathname]);
 
   if (Number.isNaN(idNum)) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={`Injection ${injectionId ?? ''}`} />
         <Panel>
           <EmptyState
@@ -93,33 +96,28 @@ export default function InjectionDetailLayout() {
             description={injectionId ?? ''}
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (isLoading) {
-    return (
-      <div className='page-wrapper'>
-        <PageHeader title={`Injection ${idNum}`} description='Loading…' />
-      </div>
-    );
+    return <PageHeader title={`Injection ${idNum}`} description='Loading…' />;
   }
 
   if (isError || !injection) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title={`Injection ${idNum}`} />
         <Panel>
           <EmptyState
             title='Injection not found'
-            description={
-              error instanceof Error
-                ? error.message
-                : 'It may have been removed or never existed.'
-            }
+            description={errMsg(
+              error,
+              'It may have been removed or never existed.'
+            )}
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
@@ -136,7 +134,7 @@ export default function InjectionDetailLayout() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={`Injection ${injection.id ?? idNum}`}
         description={injection.name}
@@ -167,6 +165,6 @@ export default function InjectionDetailLayout() {
       />
 
       <Outlet />
-    </div>
+    </>
   );
 }

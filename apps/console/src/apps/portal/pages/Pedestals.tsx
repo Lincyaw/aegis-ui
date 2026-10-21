@@ -12,7 +12,6 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import type { PedestalPedestalRelease } from '@lincyaw/portal';
-import { Spin } from 'antd';
 
 import { usePedestals } from '../api/pedestals';
 
@@ -43,7 +42,7 @@ export default function Pedestals() {
   const releases = data ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Pedestals'
         description='Deployed benchmark instances per system + namespace.'
@@ -54,58 +53,55 @@ export default function Pedestals() {
         }
       />
       <Panel>
-        {isLoading && releases.length === 0 ? (
-          <Spin />
-        ) : (
-          <DataTable<PedestalPedestalRelease>
-            data={releases}
-            rowKey={(r) => `${r.namespace ?? ''}/${r.release ?? ''}`}
-            emptyTitle='No pedestals'
-            emptyDescription='Install one to begin injecting faults.'
-            columns={[
-              {
-                key: 'release',
-                header: 'Name',
-                render: (r) => (
-                  <Link to={href(`pedestals/${r.release ?? ''}`)}>
-                    <MonoValue size='sm'>{r.release ?? '—'}</MonoValue>
-                  </Link>
-                ),
-              },
-              {
-                key: 'namespace',
-                header: 'Namespace',
-                render: (r) => (
-                  <MonoValue size='sm'>{r.namespace ?? '—'}</MonoValue>
-                ),
-              },
-              {
-                key: 'chart',
-                header: 'Chart',
-                render: (r) => r.chart ?? '—',
-              },
-              {
-                key: 'version',
-                header: 'Version',
-                render: (r) => (
-                  <MonoValue size='sm'>{r.chart_version ?? '—'}</MonoValue>
-                ),
-              },
-              {
-                key: 'managed',
-                header: 'Status',
-                render: managedBadge,
-              },
-              {
-                key: 'deployed_at',
-                header: 'Deployed at',
-                render: (r) =>
-                  r.deployed_at ? <TimeDisplay value={r.deployed_at} /> : '—',
-              },
-            ]}
-          />
-        )}
+        <DataTable<PedestalPedestalRelease>
+          loading={isLoading}
+          data={releases}
+          rowKey={(r) => `${r.namespace ?? ''}/${r.release ?? ''}`}
+          emptyTitle='No pedestals'
+          emptyDescription='Install one to begin injecting faults.'
+          columns={[
+            {
+              key: 'release',
+              header: 'Name',
+              render: (r) => (
+                <Link to={href(`pedestals/${r.release ?? ''}`)}>
+                  <MonoValue size='sm'>{r.release ?? '—'}</MonoValue>
+                </Link>
+              ),
+            },
+            {
+              key: 'namespace',
+              header: 'Namespace',
+              render: (r) => (
+                <MonoValue size='sm'>{r.namespace ?? '—'}</MonoValue>
+              ),
+            },
+            {
+              key: 'chart',
+              header: 'Chart',
+              render: (r) => r.chart ?? '—',
+            },
+            {
+              key: 'version',
+              header: 'Version',
+              render: (r) => (
+                <MonoValue size='sm'>{r.chart_version ?? '—'}</MonoValue>
+              ),
+            },
+            {
+              key: 'managed',
+              header: 'Status',
+              render: managedBadge,
+            },
+            {
+              key: 'deployed_at',
+              header: 'Deployed at',
+              render: (r) =>
+                r.deployed_at ? <TimeDisplay value={r.deployed_at} /> : '—',
+            },
+          ]}
+        />
       </Panel>
-    </div>
+    </>
   );
 }

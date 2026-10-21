@@ -81,7 +81,7 @@ export default function BatchInjections() {
 
   if (rows.length === 0) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader
           title='Batch'
           description={`Staged injections for project ${pid}.`}
@@ -92,12 +92,12 @@ export default function BatchInjections() {
             description='Use the wizard with the Stage option.'
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Batch'
         description={`Staged injections for project ${pid}.`}
@@ -165,6 +165,6 @@ export default function BatchInjections() {
             .join('\n')}
         />
       </Panel>
-    </div>
+    </>
   );
 }

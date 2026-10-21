@@ -27,6 +27,7 @@ import type {
 } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
+import { errMsg } from '../../../api/apiClient';
 import { projectsApi } from '../api/portal-client';
 
 import './Dashboard.css';
@@ -78,10 +79,6 @@ const DEMO_TERMINAL_LINES: TerminalLine[] = [
   },
 ];
 
-function errMsg(e: unknown): string {
-  return e instanceof Error ? e.message : String(e);
-}
-
 export default function Dashboard(): ReactElement {
   const projectsQuery = useQuery({
     queryKey: ['portal', 'projects', 'first-page'],
@@ -125,7 +122,7 @@ export default function Dashboard(): ReactElement {
   const dashError = dashboardQuery.error;
 
   return (
-    <div className='page-wrapper dashboard'>
+    <div className='dashboard'>
       <header className='dashboard__header'>
         <div className='dashboard__header-left'>
           <h1 className='dashboard__title'>

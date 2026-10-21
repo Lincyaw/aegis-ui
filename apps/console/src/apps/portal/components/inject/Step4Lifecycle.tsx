@@ -6,9 +6,8 @@ import {
 } from '@lincyaw/aegis-ui';
 import { Form, Slider, Switch } from 'antd';
 
-import type { GuidedInjectionSpec } from '../../mocks/types';
-
 import { CHAOS_BY_NAME } from './paramSchema';
+import type { GuidedInjectionSpec } from './types';
 
 interface Props {
   spec: GuidedInjectionSpec;

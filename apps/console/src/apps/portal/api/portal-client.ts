@@ -1,24 +1,16 @@
 import {
   AuthenticationApi,
-  BlobApi,
   ClusterApi,
-  ConfigCenterApi,
   Configuration,
   ContainersApi,
   DatasetsApi,
   EvaluationsApi,
   ExecutionsApi,
-  GroupsApi,
   InjectionsApi,
   LabelsApi,
-  MetricsApi,
-  NotificationApi,
   PagesApi,
   PedestalApi,
   ProjectsApi,
-  ShareApi,
-  SSOAdminApi,
-  SSOClientsApi,
   SystemsApi,
   TasksApi,
   TeamsApi,
@@ -46,42 +38,23 @@ portalAxios.interceptors.request.use((req) => {
 // co-located gateway in prod).
 const basePath = getRuntimeConfig().gatewayUrl;
 
-const config = new Configuration({
-  basePath,
-  accessToken: () => readTokens()?.accessToken ?? '',
-});
+const config = new Configuration({ basePath });
 
 export const authenticationApi = new AuthenticationApi(
   config,
   basePath,
   portalAxios
 );
-export const blobApi = new BlobApi(config, basePath, portalAxios);
 export const clusterApi = new ClusterApi(config, basePath, portalAxios);
-export const configCenterApi = new ConfigCenterApi(
-  config,
-  basePath,
-  portalAxios
-);
 export const containersApi = new ContainersApi(config, basePath, portalAxios);
 export const datasetsApi = new DatasetsApi(config, basePath, portalAxios);
 export const evaluationsApi = new EvaluationsApi(config, basePath, portalAxios);
 export const executionsApi = new ExecutionsApi(config, basePath, portalAxios);
-export const groupsApi = new GroupsApi(config, basePath, portalAxios);
 export const injectionsApi = new InjectionsApi(config, basePath, portalAxios);
 export const labelsApi = new LabelsApi(config, basePath, portalAxios);
-export const metricsApi = new MetricsApi(config, basePath, portalAxios);
-export const notificationsApi = new NotificationApi(
-  config,
-  basePath,
-  portalAxios
-);
 export const pagesApi = new PagesApi(config, basePath, portalAxios);
 export const pedestalApi = new PedestalApi(config, basePath, portalAxios);
 export const projectsApi = new ProjectsApi(config, basePath, portalAxios);
-export const shareApi = new ShareApi(config, basePath, portalAxios);
-export const ssoAdminApi = new SSOAdminApi(config, basePath, portalAxios);
-export const ssoClientsApi = new SSOClientsApi(config, basePath, portalAxios);
 export const systemsApi = new SystemsApi(config, basePath, portalAxios);
 export const tasksApi = new TasksApi(config, basePath, portalAxios);
 export const teamsApi = new TeamsApi(config, basePath, portalAxios);

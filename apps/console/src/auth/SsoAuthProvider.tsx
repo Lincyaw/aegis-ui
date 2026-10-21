@@ -21,7 +21,6 @@ import {
   discoverOidc,
   exchangeCode,
   fetchUserInfo,
-  getAuthorizeUrl,
   logoutSso,
   refreshTokens,
   type UserInfo,
@@ -93,7 +92,7 @@ export function SsoAuthProvider({
         setTokens(next);
         access = next.accessToken;
       }
-      const u = await fetchUserInfo(cfg, access);
+      const u = await fetchUserInfo(access);
       setUser(userInfoToAuthUser(u));
       setStatus('authenticated');
     } catch {
@@ -119,7 +118,7 @@ export function SsoAuthProvider({
       };
       writePending(pending);
 
-      const endpoints = await discoverOidc(cfg);
+      const endpoints = await discoverOidc();
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: cfg.clientId,
@@ -130,7 +129,7 @@ export function SsoAuthProvider({
         code_challenge_method: 'S256',
       });
       window.location.assign(
-        `${getAuthorizeUrl(endpoints)}?${params.toString()}`
+        `${endpoints.authorization_endpoint}?${params.toString()}`
       );
     },
     [cfg]
@@ -144,12 +143,12 @@ export function SsoAuthProvider({
     setStatus('unauthenticated');
     if (t?.refreshToken) {
       try {
-        await logoutSso(cfg, t.refreshToken);
+        await logoutSso(t.refreshToken);
       } catch {
         // sign-out is best-effort; tokens are already cleared locally
       }
     }
-  }, [cfg, setTokens]);
+  }, [setTokens]);
 
   // Exposed for the /auth/callback route to finish the exchange.
   const completeCallback = useCallback(
@@ -162,7 +161,7 @@ export function SsoAuthProvider({
       const next = tokensFromResponse(tok);
       setTokens(next);
       writePending(null);
-      const u = await fetchUserInfo(cfg, next.accessToken);
+      const u = await fetchUserInfo(next.accessToken);
       setUser(userInfoToAuthUser(u));
       setStatus('authenticated');
       return pending.redirectAfter;

@@ -14,6 +14,7 @@ import {
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
 
+import { errMsg } from '../../../api/apiClient';
 import { useEvaluation } from '../api/hooks/useEvaluations';
 
 export default function EvalRunDetail() {
@@ -34,33 +35,25 @@ export default function EvalRunDetail() {
   }, [run?.result_json]);
 
   if (isLoading) {
-    return (
-      <div className='page-wrapper'>
-        <PageHeader title='Loading evaluation…' />
-      </div>
-    );
+    return <PageHeader title='Loading evaluation…' />;
   }
 
   if (isError || !run) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Eval run not found' />
         <Panel>
           <EmptyState
             title={isError ? 'Failed to load' : 'Not found'}
-            description={
-              error instanceof Error
-                ? error.message
-                : 'Run may have been removed.'
-            }
+            description={errMsg(error, 'Run may have been removed.')}
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={`Eval #${String(run.id)}`}
         description={`${run.algorithm_name}@${run.algorithm_version} · ${run.eval_type}`}
@@ -125,6 +118,6 @@ export default function EvalRunDetail() {
           <CodeBlock language='json' code={resultText} />
         )}
       </Panel>
-    </div>
+    </>
   );
 }

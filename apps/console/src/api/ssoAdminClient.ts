@@ -3,7 +3,7 @@
  * secret rotation). Goes through the vite proxy (`/v1/*` is forwarded
  * to the gateway / sso upstream; configure VITE_API_TARGET).
  */
-import { apiFetch, apiJson } from './apiClient';
+import { apiData, apiFetch } from './apiClient';
 
 export interface OidcClient {
   id: number;
@@ -38,34 +38,25 @@ export interface RotateResp {
   client_secret: string;
 }
 
-interface Envelope<T> {
-  code: number;
-  message: string;
-  data: T;
-}
-
 export async function listClients(service?: string): Promise<OidcClient[]> {
   const qs = service ? `?service=${encodeURIComponent(service)}` : '';
-  const env = await apiJson<Envelope<OidcClient[] | null>>(`/v1/clients${qs}`);
-  return env.data ?? [];
+  const data = await apiData<OidcClient[] | null>(`/v1/clients${qs}`);
+  return data ?? [];
 }
 
 export async function createClient(
   req: CreateClientReq
 ): Promise<CreateClientResp> {
-  const env = await apiJson<Envelope<CreateClientResp>>('/v1/clients', {
+  return apiData<CreateClientResp>('/v1/clients', {
     method: 'POST',
     body: JSON.stringify(req),
   });
-  return env.data;
 }
 
 export async function rotateSecret(id: number): Promise<RotateResp> {
-  const env = await apiJson<Envelope<RotateResp>>(
-    `/v1/clients/${id.toString()}/rotate`,
-    { method: 'POST' }
-  );
-  return env.data;
+  return apiData<RotateResp>(`/v1/clients/${id.toString()}/rotate`, {
+    method: 'POST',
+  });
 }
 
 export async function deleteClient(id: number): Promise<void> {

@@ -4,7 +4,6 @@ import {
   Button,
   Chip,
   DataTable,
-  EmptyState,
   ErrorState,
   MonoValue,
   PageHeader,
@@ -15,8 +14,8 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import type { LabelLabelResp } from '@lincyaw/portal';
-import { Spin } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useLabelsList } from '../api/labels';
 import { usePageSize } from '../hooks/usePageSize';
 
@@ -33,7 +32,7 @@ export default function Labels() {
   const labels = data?.items ?? [];
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='Labels'
         description='Organize and filter resources with custom labels.'
@@ -44,83 +43,71 @@ export default function Labels() {
         }
       />
       <Panel>
-        {isLoading ? (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
-            <Spin />
-          </div>
-        ) : isError ? (
+        {isError ? (
           <ErrorState
             title='Failed to load labels'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
-          />
-        ) : labels.length === 0 ? (
-          <EmptyState
-            title='No labels'
-            description='Create your first label.'
+            description={errMsg(error, 'Unknown error')}
           />
         ) : (
           <>
-          <DataTable<LabelLabelResp>
-            data={labels}
-            rowKey={(r) => String(r.id ?? '')}
-            columns={[
-              {
-                key: 'key',
-                header: 'Key',
-                render: (r) => (
-                  <Link to={href(`labels/${String(r.id ?? '')}`)}>
-                    <MonoValue size='sm'>{r.key ?? '—'}</MonoValue>
-                  </Link>
-                ),
-              },
-              {
-                key: 'value',
-                header: 'Value',
-                render: (r) => (
-                  <MonoValue size='sm'>{r.value ?? '—'}</MonoValue>
-                ),
-              },
-              {
-                key: 'category',
-                header: 'Category',
-                render: (r) => <Chip tone='ghost'>{r.category ?? '—'}</Chip>,
-              },
-              {
-                key: 'system',
-                header: 'System',
-                render: (r) => (r.is_system ? 'yes' : 'no'),
-              },
-              {
-                key: 'usage',
-                header: 'Uses',
-                render: (r) => <MonoValue size='sm'>{r.usage ?? 0}</MonoValue>,
-              },
-              {
-                key: 'created',
-                header: 'Created',
-                render: (r) =>
-                  r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
-              },
-            ]}
-          />
-          <div className='page-table-footer'>
-            <PageSizeSelect
-              value={size}
-              onChange={setSize}
-              options={PAGE_SIZE_OPTIONS}
+            <DataTable<LabelLabelResp>
+              loading={isLoading}
+              emptyTitle='No labels'
+              emptyDescription='Create your first label.'
+              data={labels}
+              rowKey={(r) => String(r.id ?? '')}
+              columns={[
+                {
+                  key: 'key',
+                  header: 'Key',
+                  render: (r) => (
+                    <Link to={href(`labels/${String(r.id ?? '')}`)}>
+                      <MonoValue size='sm'>{r.key ?? '—'}</MonoValue>
+                    </Link>
+                  ),
+                },
+                {
+                  key: 'value',
+                  header: 'Value',
+                  render: (r) => (
+                    <MonoValue size='sm'>{r.value ?? '—'}</MonoValue>
+                  ),
+                },
+                {
+                  key: 'category',
+                  header: 'Category',
+                  render: (r) => <Chip tone='ghost'>{r.category ?? '—'}</Chip>,
+                },
+                {
+                  key: 'system',
+                  header: 'System',
+                  render: (r) => (r.is_system ? 'yes' : 'no'),
+                },
+                {
+                  key: 'usage',
+                  header: 'Uses',
+                  render: (r) => (
+                    <MonoValue size='sm'>{r.usage ?? 0}</MonoValue>
+                  ),
+                },
+                {
+                  key: 'created',
+                  header: 'Created',
+                  render: (r) =>
+                    r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
+                },
+              ]}
             />
-          </div>
+            <div className='page-table-footer'>
+              <PageSizeSelect
+                value={size}
+                onChange={setSize}
+                options={PAGE_SIZE_OPTIONS}
+              />
+            </div>
           </>
         )}
       </Panel>
-    </div>
+    </>
   );
 }

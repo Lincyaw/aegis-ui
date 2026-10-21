@@ -10,11 +10,13 @@ import {
   PageHeader,
   Panel,
   PanelTitle,
+  SkeletonText,
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Spin } from 'antd';
+import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useDeleteLabel, useLabel } from '../api/labels';
 
 export default function LabelDetail() {
@@ -27,52 +29,42 @@ export default function LabelDetail() {
 
   if (isLoading) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Loading…' />
         <Panel>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: 'var(--space-6)',
-            }}
-          >
-            <Spin />
-          </div>
+          <SkeletonText />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (isError) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Label' />
         <Panel>
           <ErrorState
             title='Failed to load label'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
+            description={errMsg(error, 'Unknown error')}
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (!label || label.id === undefined) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Label not found' />
         <Panel>
           <EmptyState title='Not found' description='Unknown label.' />
         </Panel>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={`${label.key ?? ''}=${label.value ?? ''}`}
         description={label.description ?? 'Label details and uses.'}
@@ -90,11 +82,7 @@ export default function LabelDetail() {
                   navigate('labels');
                 },
                 onError: (err) => {
-                  void msg.error(
-                    err instanceof Error
-                      ? err.message
-                      : 'Failed to delete label'
-                  );
+                  void msg.error(errMsg(err, 'Failed to delete label'));
                 },
               });
             }}
@@ -145,6 +133,6 @@ export default function LabelDetail() {
           ]}
         />
       </Panel>
-    </div>
+    </>
   );
 }

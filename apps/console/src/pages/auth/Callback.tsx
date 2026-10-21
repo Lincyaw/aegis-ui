@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AuthLayout } from '@lincyaw/aegis-ui';
 
+import { errMsg } from '../../api/apiClient';
 import { useSsoCallback } from '../../auth/ssoCallbackContext';
 
 export function Callback(): ReactElement {
@@ -28,7 +29,7 @@ export function Callback(): ReactElement {
         const dest = await handle.complete(code, state);
         navigate(dest, { replace: true });
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Sign in failed');
+        setError(errMsg(e, 'Sign in failed'));
       }
     })();
   }, [params, navigate, handle]);

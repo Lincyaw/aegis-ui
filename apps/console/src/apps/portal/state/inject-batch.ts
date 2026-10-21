@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { GuidedInjectionSpec } from '../mocks/types';
+import type { GuidedInjectionSpec } from '../components/inject/types';
 
 export interface StagedInjection {
   id: string;

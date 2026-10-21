@@ -14,6 +14,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import {
   type EvaluationResp,
   useDeleteEvaluation,
@@ -38,7 +39,7 @@ export default function EvalRuns() {
   const total = data?.total ?? 0;
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='LLM evaluations'
         description='Algorithm evaluation runs.'
@@ -49,22 +50,16 @@ export default function EvalRuns() {
         }
       />
       <Panel>
-        {isLoading ? (
-          <EmptyState title='Loading evaluations…' />
-        ) : isError ? (
+        {isError ? (
           <EmptyState
             title='Failed to load evaluations'
-            description={
-              error instanceof Error ? error.message : 'Unknown error'
-            }
-          />
-        ) : items.length === 0 ? (
-          <EmptyState
-            title='No evaluations yet'
-            description='Kick off a run to see results here.'
+            description={errMsg(error, 'Unknown error')}
           />
         ) : (
           <DataTable<EvaluationResp>
+            loading={isLoading}
+            emptyTitle='No evaluations yet'
+            emptyDescription='Kick off a run to see results here.'
             data={items}
             rowKey={(r) => String(r.id)}
             columns={[
@@ -168,6 +163,6 @@ export default function EvalRuns() {
           </Button>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }

@@ -2,8 +2,9 @@ import { Chip, Panel, PanelTitle, SectionDivider } from '@lincyaw/aegis-ui';
 import { Form, Input, InputNumber, Radio, Select, Switch } from 'antd';
 
 import { useInjectCandidates, useSystems } from '../../api/systems';
-import type { GuidedInjectionSpec, NamespaceMode } from '../../mocks/types';
 import { useInjectBatch } from '../../state/inject-batch';
+
+import type { GuidedInjectionSpec, NamespaceMode } from './types';
 
 interface Props {
   spec: GuidedInjectionSpec;
@@ -105,9 +106,7 @@ export function Step1Target({ spec, update }: Props) {
           {systemsFailed ? (
             <Input
               value={spec.systemCode}
-              onChange={(e) =>
-                update({ systemCode: e.target.value, app: '' })
-              }
+              onChange={(e) => update({ systemCode: e.target.value, app: '' })}
               placeholder='system short_code'
             />
           ) : (
@@ -143,9 +142,11 @@ export function Step1Target({ spec, update }: Props) {
                 Failed to load candidates — using manual entry
               </Chip>
             ) : !candidatesReady ? (
-              spec.namespaceMode === 'specific'
-                ? 'Pick a system and namespace first to load candidates.'
-                : 'Pick a system first to load candidates.'
+              spec.namespaceMode === 'specific' ? (
+                'Pick a system and namespace first to load candidates.'
+              ) : (
+                'Pick a system first to load candidates.'
+              )
             ) : spec.namespaceMode === 'specific' ? (
               'Candidates discovered for this system + namespace.'
             ) : (

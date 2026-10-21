@@ -10,6 +10,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Select } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useCreateDataset } from '../api/datasets';
 
 const TYPES = [
@@ -49,16 +50,14 @@ export default function DatasetCreate() {
           }
         },
         onError: (err) => {
-          void msg.error(
-            err instanceof Error ? err.message : 'Failed to create dataset'
-          );
+          void msg.error(errMsg(err, 'Failed to create dataset'));
         },
       }
     );
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='New dataset'
         description='Create an empty dataset; add injections from the Injections list.'
@@ -106,6 +105,6 @@ export default function DatasetCreate() {
       <Button tone='primary' onClick={submit} disabled={create.isPending}>
         {create.isPending ? 'Creating…' : 'Create'}
       </Button>
-    </div>
+    </>
   );
 }

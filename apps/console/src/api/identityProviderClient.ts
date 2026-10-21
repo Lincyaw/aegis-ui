@@ -4,7 +4,7 @@
  * admin uses (forwarded to the sso upstream). client_secret is write-only —
  * it is never returned by the API.
  */
-import { apiFetch, apiJson, type Envelope } from './apiClient';
+import { apiData, apiFetch } from './apiClient';
 
 export interface IdentityProvider {
   id: number;
@@ -51,31 +51,29 @@ export interface UpdateProviderReq {
 }
 
 export async function listProviders(): Promise<IdentityProvider[]> {
-  const env = await apiJson<Envelope<IdentityProvider[] | null>>(
+  const data = await apiData<IdentityProvider[] | null>(
     '/v1/identity-providers'
   );
-  return env.data ?? [];
+  return data ?? [];
 }
 
 export async function createProvider(
   req: CreateProviderReq
 ): Promise<IdentityProvider> {
-  const env = await apiJson<Envelope<IdentityProvider>>(
-    '/v1/identity-providers',
-    { method: 'POST', body: JSON.stringify(req) }
-  );
-  return env.data;
+  return apiData<IdentityProvider>('/v1/identity-providers', {
+    method: 'POST',
+    body: JSON.stringify(req),
+  });
 }
 
 export async function updateProvider(
   id: number,
   patch: UpdateProviderReq
 ): Promise<IdentityProvider> {
-  const env = await apiJson<Envelope<IdentityProvider>>(
-    `/v1/identity-providers/${id.toString()}`,
-    { method: 'PUT', body: JSON.stringify(patch) }
-  );
-  return env.data;
+  return apiData<IdentityProvider>(`/v1/identity-providers/${id.toString()}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  });
 }
 
 export async function deleteProvider(id: number): Promise<void> {

@@ -6,9 +6,8 @@ import {
   PanelTitle,
 } from '@lincyaw/aegis-ui';
 
-import type { GuidedInjectionSpec } from '../../mocks/types';
-
 import { specToYaml } from './paramSchema';
+import type { GuidedInjectionSpec } from './types';
 
 interface Props {
   spec: GuidedInjectionSpec;

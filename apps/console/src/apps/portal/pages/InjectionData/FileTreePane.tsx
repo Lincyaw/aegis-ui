@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react';
 
 import { Chip, EmptyState, ErrorState, MonoValue } from '@lincyaw/aegis-ui';
-import type { InjectionDatapackFileItem, InjectionDatapackFilesResp } from '@lincyaw/portal';
+import type {
+  InjectionDatapackFileItem,
+  InjectionDatapackFilesResp,
+} from '@lincyaw/portal';
+
+import { errMsg } from '../../../../api/apiClient';
 
 interface FileTreePaneProps {
   data?: InjectionDatapackFilesResp;
@@ -27,7 +32,7 @@ export function FileTreePane({
     return (
       <ErrorState
         title='Failed to load datapack files'
-        description={errorMessage(error)}
+        description={errMsg(error)}
       />
     );
   }
@@ -66,7 +71,8 @@ function FileNode({ item, depth, selectedPath, onSelect }: FileNodeProps) {
   const isDir = Array.isArray(item.children);
   const [open, setOpen] = useState(depth < 1);
   const padLeft = `calc(var(--space-3) + ${String(depth)} * var(--space-3))`;
-  const selected = !isDir && item.path !== undefined && item.path === selectedPath;
+  const selected =
+    !isDir && item.path !== undefined && item.path === selectedPath;
 
   const handleClick = (): void => {
     if (isDir) {
@@ -95,7 +101,9 @@ function FileNode({ item, depth, selectedPath, onSelect }: FileNodeProps) {
         <span className='injection-data__tree-glyph' aria-hidden='true'>
           {isDir ? (open ? '▾' : '▸') : '·'}
         </span>
-        <span className='injection-data__tree-name'>{item.name ?? '(unnamed)'}</span>
+        <span className='injection-data__tree-name'>
+          {item.name ?? '(unnamed)'}
+        </span>
         {!isDir && item.size !== undefined && (
           <MonoValue size='sm'>{item.size}</MonoValue>
         )}
@@ -120,11 +128,4 @@ function FileNode({ item, depth, selectedPath, onSelect }: FileNodeProps) {
 
 function isParquet(name: string | undefined): boolean {
   return name !== undefined && /\.parquet$/i.test(name);
-}
-
-function errorMessage(err: unknown): string {
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
 }

@@ -11,6 +11,7 @@ import {
 import { ContainerType } from '@lincyaw/portal';
 import { App as AntdApp, Select } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useCreateContainer } from '../hooks/useContainers';
 
 interface Copy {
@@ -97,14 +98,14 @@ export default function ContainerCreate({
           }
         },
         onError: (err) => {
-          void msg.error(err instanceof Error ? err.message : 'Create failed');
+          void msg.error(errMsg(err, 'Create failed'));
         },
       }
     );
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={copy.title}
         description={copy.description}
@@ -158,6 +159,6 @@ export default function ContainerCreate({
       >
         {createContainer.isPending ? 'Registering…' : copy.submitLabel}
       </Button>
-    </div>
+    </>
   );
 }

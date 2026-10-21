@@ -13,8 +13,8 @@ import { Step3Params } from '../components/inject/Step3Params';
 import { Step4Lifecycle } from '../components/inject/Step4Lifecycle';
 import { Step5Stage } from '../components/inject/Step5Stage';
 import { Step6Review } from '../components/inject/Step6Review';
+import type { GuidedInjectionSpec } from '../components/inject/types';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
-import type { GuidedInjectionSpec } from '../mocks/types';
 import { useInjectBatch } from '../state/inject-batch';
 
 const STEPS = [
@@ -164,7 +164,7 @@ export default function InjectionCreate() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='New Injection'
         description={`Guided fault-injection wizard for project ${pid}.`}
@@ -294,6 +294,6 @@ export default function InjectionCreate() {
           rows={3}
         />
       </Modal>
-    </div>
+    </>
   );
 }

@@ -31,16 +31,12 @@ export default function ProjectOverview() {
   const { data: project, isLoading, isError, error } = useProject(numericId);
 
   if (isLoading) {
-    return (
-      <div className='page-wrapper'>
-        <PageHeader title='Loading project…' />
-      </div>
-    );
+    return <PageHeader title='Loading project…' />;
   }
 
   if (isError) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Project not found' />
         <Panel>
           <ErrorState
@@ -48,13 +44,13 @@ export default function ProjectOverview() {
             description={error.message}
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
   if (!project) {
     return (
-      <div className='page-wrapper'>
+      <>
         <PageHeader title='Project not found' />
         <Panel>
           <EmptyState
@@ -62,7 +58,7 @@ export default function ProjectOverview() {
             description='It may have been removed.'
           />
         </Panel>
-      </div>
+      </>
     );
   }
 
@@ -74,7 +70,7 @@ export default function ProjectOverview() {
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title={project.name ?? `Project #${String(project.id ?? '')}`}
         action={
@@ -97,10 +93,7 @@ export default function ProjectOverview() {
         />
         <MetricCard label='Executions' value={project.execution_count ?? 0} />
         <MetricCard label='Datasets' value={project.datasets?.length ?? 0} />
-        <MetricCard
-          label='Artifacts'
-          value={project.containers?.length ?? 0}
-        />
+        <MetricCard label='Artifacts' value={project.containers?.length ?? 0} />
       </div>
 
       <Panel title={<PanelTitle size='base'>Settings</PanelTitle>}>
@@ -183,6 +176,6 @@ export default function ProjectOverview() {
           Delete project
         </Button>
       </DangerZone>
-    </div>
+    </>
   );
 }

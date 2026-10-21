@@ -11,6 +11,7 @@ import {
 import { LabelCategory } from '@lincyaw/portal';
 import { App as AntdApp, Select } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useCreateLabel } from '../api/labels';
 
 const CATEGORY_OPTIONS = [
@@ -53,16 +54,14 @@ export default function LabelCreate() {
           navigate('labels');
         },
         onError: (err) => {
-          void msg.error(
-            err instanceof Error ? err.message : 'Failed to create label'
-          );
+          void msg.error(errMsg(err, 'Failed to create label'));
         },
       }
     );
   };
 
   return (
-    <div className='page-wrapper'>
+    <>
       <PageHeader
         title='New label'
         description='Create a custom label (key-value pair) for organizing resources.'
@@ -113,6 +112,6 @@ export default function LabelCreate() {
       <Button tone='primary' onClick={submit} disabled={create.isPending}>
         {create.isPending ? 'Creating…' : 'Create'}
       </Button>
-    </div>
+    </>
   );
 }

@@ -2,7 +2,6 @@ import type {
   ProjectCreateProjectReq,
   ProjectProjectDetailResp,
   ProjectProjectResp,
-  ProjectUpdateProjectReq,
 } from '@lincyaw/portal';
 import {
   useMutation,
@@ -69,31 +68,6 @@ export function useCreateProject(): UseMutationResult<
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: projectKeys.all });
-    },
-  });
-}
-
-export function useUpdateProject(): UseMutationResult<
-  ProjectProjectResp,
-  Error,
-  { id: number; body: ProjectUpdateProjectReq }
-> {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, body }) => {
-      const res = await projectsApi.updateProject({
-        projectId: id,
-        projectUpdateProjectReq: body,
-      });
-      const updated = res.data.data;
-      if (!updated) {
-        throw new Error('Update project returned no data');
-      }
-      return updated;
-    },
-    onSuccess: (_data, vars) => {
-      void qc.invalidateQueries({ queryKey: projectKeys.detail(vars.id) });
-      void qc.invalidateQueries({ queryKey: projectKeys.list() });
     },
   });
 }

@@ -1,14 +1,29 @@
-import { type FormEvent, type ReactElement, useState } from 'react';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type ReactElement,
+  useState,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Chip, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
+import {
+  Button,
+  MetricLabel,
+  Panel,
+  PanelTitle,
+  PasswordField,
+  TextField,
+} from '@lincyaw/aegis-ui';
 
 import {
   clearLocalOverride,
+  DEFAULTS,
   getLocalOverride,
   getRuntimeConfig,
   setLocalOverride,
 } from '../config/runtime';
+
+import './Setup.css';
 
 interface FieldDef {
   key: keyof ReturnType<typeof getRuntimeConfig>;
@@ -99,12 +114,14 @@ export function Setup(): ReactElement {
       gatewayUrl: draft.gatewayUrl?.trim() ?? '',
       ssoOrigin: draft.ssoOrigin?.trim() ?? '',
       clickhouseUrl: draft.clickhouseUrl?.trim() ?? '',
-      clickhouseDatabase: draft.clickhouseDatabase?.trim() || 'otel',
+      clickhouseDatabase:
+        draft.clickhouseDatabase?.trim() || DEFAULTS.clickhouseDatabase,
       clickhouseTracesTable:
-        draft.clickhouseTracesTable?.trim() || 'otel_traces',
-      clickhouseLogsTable: draft.clickhouseLogsTable?.trim() || 'otel_logs',
+        draft.clickhouseTracesTable?.trim() || DEFAULTS.clickhouseTracesTable,
+      clickhouseLogsTable:
+        draft.clickhouseLogsTable?.trim() || DEFAULTS.clickhouseLogsTable,
       aiBaseUrl: draft.aiBaseUrl?.trim() ?? '',
-      aiModel: draft.aiModel?.trim() || 'gpt-4o-mini',
+      aiModel: draft.aiModel?.trim() || DEFAULTS.aiModel,
       aiApiKey: draft.aiApiKey ?? '',
     });
     setSaved(true);
@@ -131,72 +148,35 @@ export function Setup(): ReactElement {
         </MetricLabel>
       }
     >
-      <form
-        onSubmit={submit}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-5)',
-          maxWidth: 640,
-        }}
-      >
-        {FIELDS.map((f) => (
-          <label
-            key={f.key}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-1)',
-            }}
-          >
-            <span style={{ font: 'var(--text-label)' }}>{f.label}</span>
-            <input
-              type={f.secret ? 'password' : 'text'}
-              value={draft[f.key] ?? ''}
-              placeholder={f.placeholder}
-              onChange={(e) => {
-                setDraft((d) => ({ ...d, [f.key]: e.target.value }));
-              }}
-              style={{
-                font: 'var(--text-body-mono)',
-                padding: 'var(--space-2) var(--space-3)',
-                background: 'var(--bg-surface)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            />
-            <span
-              style={{
-                font: 'var(--text-caption)',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              {f.hint}
-            </span>
-          </label>
-        ))}
-        <div
-          style={{
-            display: 'flex',
-            gap: 'var(--space-3)',
-            alignItems: 'center',
-          }}
-        >
-          <Chip
-            tone='ink'
-            onClick={() => submit(new Event('submit') as unknown as FormEvent)}
-          >
+      <form onSubmit={submit} className='setup-form'>
+        {FIELDS.map((f) => {
+          const fieldProps = {
+            label: f.label,
+            helperText: f.hint,
+            placeholder: f.placeholder,
+            value: draft[f.key] ?? '',
+            onChange: (e: ChangeEvent<HTMLInputElement>) => {
+              setDraft((d) => ({ ...d, [f.key]: e.target.value }));
+            },
+          };
+          return f.secret ? (
+            <PasswordField key={f.key} {...fieldProps} />
+          ) : (
+            <TextField key={f.key} {...fieldProps} />
+          );
+        })}
+        <div className='setup-form__actions'>
+          <Button type='submit'>
             {saved ? 'Saved · reloading' : 'Save & reload'}
-          </Chip>
+          </Button>
           {overridden && (
-            <Chip tone='warning' onClick={reset}>
+            <Button tone='secondary' onClick={reset}>
               Reset to defaults
-            </Chip>
+            </Button>
           )}
-          <Chip tone='ghost' onClick={() => nav(-1)}>
+          <Button tone='secondary' onClick={() => nav(-1)}>
             Cancel
-          </Chip>
+          </Button>
         </div>
       </form>
     </Panel>
