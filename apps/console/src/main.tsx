@@ -54,7 +54,7 @@ function ThemedRoot(): React.ReactElement {
   const { resolved } = useTheme();
   return (
     <ConfigProvider theme={getAegisTheme(resolved)}>
-      <AntdApp component={false}>
+      <AntdApp component='div'>
         <QueryClientProvider client={queryClient}>
           <MaybeAgentm>
             <ConsoleApp />
