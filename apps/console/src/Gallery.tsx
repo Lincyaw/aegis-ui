@@ -1759,6 +1759,15 @@ function App() {
               code="kubectl apply -f injection.yaml\nwatch -n 1 'kubectl get pods'"
             />
           </Specimen>
+          <Specimen caption='any language string · typescript' span={2}>
+            <CodeBlock
+              language='typescript'
+              showLineNumbers
+              code={
+                "const latency = await probe('catalog');\nif (latency.p99 > 400) {\n  alert(latency);\n}"
+              }
+            />
+          </Specimen>
         </div>
       </Panel>
 
