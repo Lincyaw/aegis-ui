@@ -8,9 +8,8 @@
  * `size >= 10`.
  */
 import {
+  apiData,
   apiFetch,
-  apiJson,
-  type Envelope,
   normalizeList,
   pageQs,
   type PageReq,
@@ -66,29 +65,27 @@ export interface IamPermission {
 export async function listUsers(
   p: PageReq = {}
 ): Promise<{ items: IamUser[]; total: number }> {
-  const env = await apiJson<Envelope<Paginated<IamUser> | null>>(
+  const data = await apiData<Paginated<IamUser> | null>(
     `/api/v2/users${pageQs(p)}`
   );
-  return normalizeList(env.data);
+  return normalizeList(data);
 }
 
 export async function createUser(req: CreateUserReq): Promise<IamUser> {
-  const env = await apiJson<Envelope<IamUser>>('/api/v2/users', {
+  return apiData<IamUser>('/api/v2/users', {
     method: 'POST',
     body: JSON.stringify(req),
   });
-  return env.data;
 }
 
 export async function updateUser(
   id: number,
   req: UpdateUserReq
 ): Promise<IamUser> {
-  const env = await apiJson<Envelope<IamUser>>(`/api/v2/users/${String(id)}`, {
+  return apiData<IamUser>(`/api/v2/users/${String(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(req),
   });
-  return env.data;
 }
 
 export async function deleteUser(id: number): Promise<void> {
@@ -116,17 +113,14 @@ export async function removeUserRole(
 export async function listRoles(
   p: PageReq = {}
 ): Promise<{ items: IamRole[]; total: number }> {
-  const env = await apiJson<Envelope<Paginated<IamRole> | null>>(
+  const data = await apiData<Paginated<IamRole> | null>(
     `/api/v2/roles${pageQs(p)}`
   );
-  return normalizeList(env.data);
+  return normalizeList(data);
 }
 
 export async function getRole(roleId: number): Promise<IamRole> {
-  const env = await apiJson<Envelope<IamRole>>(
-    `/api/v2/roles/${String(roleId)}`
-  );
-  return env.data;
+  return apiData<IamRole>(`/api/v2/roles/${String(roleId)}`);
 }
 
 export async function createRole(req: {
@@ -134,11 +128,10 @@ export async function createRole(req: {
   display_name: string;
   description?: string;
 }): Promise<IamRole> {
-  const env = await apiJson<Envelope<IamRole>>('/api/v2/roles', {
+  return apiData<IamRole>('/api/v2/roles', {
     method: 'POST',
     body: JSON.stringify(req),
   });
-  return env.data;
 }
 
 export async function assignRolePermissions(
@@ -162,8 +155,8 @@ export async function removeRolePermissions(
 }
 
 export async function listPermissions(): Promise<IamPermission[]> {
-  const env = await apiJson<Envelope<Paginated<IamPermission> | null>>(
+  const data = await apiData<Paginated<IamPermission> | null>(
     '/api/v2/permissions'
   );
-  return normalizeList(env.data).items;
+  return normalizeList(data).items;
 }

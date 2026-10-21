@@ -7,13 +7,12 @@
  * `size >= 10`.
  */
 import {
+  apiData,
   apiFetch,
-  apiJson,
-  type Envelope,
-  type Paginated,
   normalizeList,
-  type PageReq,
   pageQs,
+  type PageReq,
+  type Paginated,
 } from './apiClient';
 
 /** 1 = enabled, 0 = disabled, -1 = deleted/revoked. */
@@ -47,28 +46,23 @@ export interface CreateApiKeyReq {
 export async function listApiKeys(
   p: PageReq = {}
 ): Promise<{ items: ApiKey[]; total: number }> {
-  const env = await apiJson<Envelope<Paginated<ApiKey>>>(
-    `/api/v2/api-keys${pageQs(p)}`
-  );
-  return normalizeList(env.data);
+  const data = await apiData<Paginated<ApiKey>>(`/api/v2/api-keys${pageQs(p)}`);
+  return normalizeList(data);
 }
 
 export async function createApiKey(
   req: CreateApiKeyReq
 ): Promise<ApiKeyWithSecret> {
-  const env = await apiJson<Envelope<ApiKeyWithSecret>>('/api/v2/api-keys', {
+  return apiData<ApiKeyWithSecret>('/api/v2/api-keys', {
     method: 'POST',
     body: JSON.stringify(req),
   });
-  return env.data;
 }
 
 export async function rotateApiKey(id: number): Promise<ApiKeyWithSecret> {
-  const env = await apiJson<Envelope<ApiKeyWithSecret>>(
-    `/api/v2/api-keys/${String(id)}/rotate`,
-    { method: 'POST' }
-  );
-  return env.data;
+  return apiData<ApiKeyWithSecret>(`/api/v2/api-keys/${String(id)}/rotate`, {
+    method: 'POST',
+  });
 }
 
 export async function disableApiKey(id: number): Promise<void> {

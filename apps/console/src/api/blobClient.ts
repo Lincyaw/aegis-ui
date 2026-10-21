@@ -3,21 +3,9 @@
  * inline get + delete). Goes through the vite proxy
  * (`/api/v2/blob` → 8085 in dev).
  */
-import { apiFetch, type ApiFetchOptions, apiJson } from './apiClient';
+import { apiData, apiFetch, type ApiFetchOptions, apiJson } from './apiClient';
 
 const ROOT = '/api/v2/blob';
-
-interface Envelope<T> {
-  code: number;
-  message: string;
-  data: T;
-  timestamp?: number;
-}
-
-async function unwrap<T>(path: string, init: ApiFetchOptions = {}): Promise<T> {
-  const env = await apiJson<Envelope<T>>(path, init);
-  return env.data;
-}
 
 export interface PresignedRequest {
   method: string;
@@ -58,7 +46,7 @@ export interface BucketSummary {
 }
 
 export async function listBuckets(): Promise<BucketSummary[]> {
-  const res = await unwrap<{ items: BucketSummary[] }>(`${ROOT}/buckets`);
+  const res = await apiData<{ items: BucketSummary[] }>(`${ROOT}/buckets`);
   return res.items ?? [];
 }
 
@@ -66,7 +54,7 @@ export async function presignPut(
   bucket: string,
   req: PresignPutReq
 ): Promise<PresignPutResp> {
-  return unwrap<PresignPutResp>(
+  return apiData<PresignPutResp>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/presign-put`,
     { method: 'POST', body: JSON.stringify(req) }
   );
@@ -76,7 +64,7 @@ export async function presignGet(
   bucket: string,
   req: PresignGetReq
 ): Promise<PresignedRequest> {
-  return unwrap<PresignedRequest>(
+  return apiData<PresignedRequest>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/presign-get`,
     { method: 'POST', body: JSON.stringify(req) }
   );
@@ -125,7 +113,7 @@ export async function batchDelete(
   bucket: string,
   keys: string[]
 ): Promise<BatchDeleteResult> {
-  return unwrap<BatchDeleteResult>(
+  return apiData<BatchDeleteResult>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/delete-batch`,
     { method: 'POST', body: JSON.stringify({ keys }) }
   );
@@ -169,7 +157,7 @@ export interface CreateBucketReq {
 export async function createBucket(
   req: CreateBucketReq
 ): Promise<BucketSummary> {
-  return unwrap<BucketSummary>(`${ROOT}/buckets`, {
+  return apiData<BucketSummary>(`${ROOT}/buckets`, {
     method: 'POST',
     body: JSON.stringify(req),
   });
@@ -217,7 +205,7 @@ export async function driverList(
     u.set('max_keys', params.max_keys.toString());
   }
   const q = u.toString();
-  const raw = await unwrap<DriverListResult>(
+  const raw = await apiData<DriverListResult>(
     `${ROOT}/buckets/${encodeURIComponent(bucket)}/object-list${q ? `?${q}` : ''}`
   );
   return {

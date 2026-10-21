@@ -6,12 +6,11 @@
  * `size >= 10`.
  */
 import {
-  apiJson,
-  type Envelope,
-  type Paginated,
+  apiData,
   normalizeList,
-  type PageReq,
   pageQs,
+  type PageReq,
+  type Paginated,
 } from './apiClient';
 
 export interface AuditLog {
@@ -32,8 +31,8 @@ export interface AuditLog {
 export async function listAuditLogs(
   p: PageReq = {}
 ): Promise<{ items: AuditLog[]; total: number }> {
-  const env = await apiJson<Envelope<Paginated<AuditLog>>>(
+  const data = await apiData<Paginated<AuditLog>>(
     `/api/v2/system/audit${pageQs(p)}`
   );
-  return normalizeList(env.data);
+  return normalizeList(data);
 }

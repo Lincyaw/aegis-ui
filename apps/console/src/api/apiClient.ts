@@ -93,10 +93,19 @@ export function errMsg(e: unknown): string {
 }
 
 /** Standard aegis `{code,message,data}` response envelope. */
-export interface Envelope<T> {
+interface Envelope<T> {
   code: number;
   message: string;
   data: T;
+}
+
+/** Fetch a standard envelope and return its `data` payload. */
+export async function apiData<T>(
+  path: string,
+  init: ApiFetchOptions = {}
+): Promise<T> {
+  const env = await apiJson<Envelope<T>>(path, init);
+  return env.data;
 }
 
 /** Paginated `data` payload: `{items, pagination:{total}}`. */
