@@ -1,13 +1,13 @@
 import { type ReactElement } from 'react';
 
-import type { AegisAuthUser } from '../../auth';
+import type { AegisAuthUser, AuthStatus } from '../../auth';
 import { Chip } from '../../components/ui/Chip';
 import { EmptyState } from '../../components/ui/EmptyState';
 import type { AegisApp } from './types';
 
 interface AuthRequiredCardProps {
   app: AegisApp;
-  status: 'loading' | 'authenticated' | 'unauthenticated';
+  status: AuthStatus;
   user: AegisAuthUser | null;
   onSignIn?: () => void;
 }

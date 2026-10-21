@@ -8,6 +8,7 @@
 // outbound | ack | ack_batch | ping | pong | error | bye | delivery_batch.
 //
 // This module is transport-only: no React, no DOM.
+import { uniqueId } from '../lib/id';
 
 export const WIRE_VERSION = 1;
 
@@ -62,7 +63,7 @@ export interface AgentmChannelClientOptions {
   autoReconnect?: boolean;
 }
 
-const DEFAULT_BACKOFF = [1000, 2000, 5000, 10000];
+export const RECONNECT_BACKOFF_MS = [1000, 2000, 5000, 10000];
 
 const HEADER_BYTES = 4;
 const MAX_FRAME_BYTES = 16 * 1024 * 1024;
@@ -116,10 +117,6 @@ function nowSeconds(): number {
   return Date.now() / 1000;
 }
 
-function uniqueSuffix(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export type Listener<T> = (value: T) => void;
 
 interface ConnectResult {
@@ -155,7 +152,7 @@ export class AgentmChannelClient {
       channel: options.channel ?? 'web',
       chatId: options.chatId ?? options.peerId,
       capabilities: options.capabilities,
-      reconnectBackoffMs: options.reconnectBackoffMs ?? DEFAULT_BACKOFF,
+      reconnectBackoffMs: options.reconnectBackoffMs ?? RECONNECT_BACKOFF_MS,
       autoReconnect: options.autoReconnect ?? true,
     };
   }
@@ -214,7 +211,7 @@ export class AgentmChannelClient {
 
   /** Convenience: send an `inbound` envelope with `{channel, chat_id, content}`. */
   sendInbound(content: string, extraBody?: Record<string, unknown>): string {
-    const id = `in-${this.opts.peerId}-${uniqueSuffix()}`;
+    const id = uniqueId(`in-${this.opts.peerId}`);
     this.send({
       v: WIRE_VERSION,
       id,
@@ -265,7 +262,7 @@ export class AgentmChannelClient {
   ): Envelope {
     return {
       v: WIRE_VERSION,
-      id: `${kind}-${this.opts.peerId}-${uniqueSuffix()}`,
+      id: uniqueId(`${kind}-${this.opts.peerId}`),
       kind,
       ts: nowSeconds(),
       body,
@@ -305,7 +302,7 @@ export class AgentmChannelClient {
       ws.addEventListener('open', () => {
         const hello: Envelope = {
           v: WIRE_VERSION,
-          id: `hello-${this.opts.peerId}-${uniqueSuffix()}`,
+          id: uniqueId(`hello-${this.opts.peerId}`),
           kind: 'hello',
           ts: nowSeconds(),
           body: {
@@ -409,7 +406,7 @@ export class AgentmChannelClient {
         try {
           this.send({
             v: WIRE_VERSION,
-            id: `pong-${this.opts.peerId}-${uniqueSuffix()}`,
+            id: uniqueId(`pong-${this.opts.peerId}`),
             kind: 'pong',
             ts: nowSeconds(),
             body: { echo_id: env.id },

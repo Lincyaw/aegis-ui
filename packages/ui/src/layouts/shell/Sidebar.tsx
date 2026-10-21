@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 
 import { NavLink } from 'react-router-dom';
 
+import { joinPath } from './paths';
 import type { AegisApp } from './types';
 
 interface SidebarProps {
@@ -54,10 +55,4 @@ export function Sidebar({ activeApp }: SidebarProps): ReactElement | null {
       </section>
     </aside>
   );
-}
-
-function joinPath(base: string, rel: string): string {
-  const b = base.endsWith('/') ? base.slice(0, -1) : base;
-  const r = rel.startsWith('/') ? rel.slice(1) : rel;
-  return r ? `${b}/${r}` : b;
 }

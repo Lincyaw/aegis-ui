@@ -2,6 +2,7 @@
 // v0 deliberately ignores `confirm`, `dryRun`, and `availability` enforcement:
 // every dispatch goes straight through `run()`. Those gates land in a later
 // slice once the human-trigger / Ask-overlay layer is wired.
+import { uniqueId } from '../lib/id';
 import { MCP_TOOL_CATALOGUE } from './mcpToolCatalogue';
 import type {
   ActionContext,
@@ -99,6 +100,31 @@ export interface RuntimeDeps {
   toast?: (msg: string, level?: 'info' | 'warn' | 'error') => void;
 }
 
+export function defaultShellSnapshot(
+  currentAppId: string | null = null,
+): ShellSnapshot {
+  return {
+    currentAppId,
+    route: { pathname: '/', search: '', params: {} },
+    breadcrumbs: [],
+    theme: 'light',
+    viewport: { width: 0, height: 0 },
+  };
+}
+
+export function findSurfaceContaining(
+  surfaces: SurfaceSnapshot[],
+  entityId: string,
+): { surface: SurfaceSnapshot; entity: EntityProjection } | null {
+  for (const surface of surfaces) {
+    const entity = surface.entities?.find((e) => e.id === entityId);
+    if (entity) {
+      return { surface, entity };
+    }
+  }
+  return null;
+}
+
 export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
   const registry = new Map<string, RegisteredAction>();
   const surfaces = new Map<string, RegisteredSurface>();
@@ -114,19 +140,10 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       try {
         l(e);
       } catch (err) {
-        // eslint-disable-next-line no-console
         // Listener errors must not poison the dispatch path.
         console.error('aegis runtime listener threw', err);
       }
     }
-  };
-
-  const defaultShell: ShellSnapshot = {
-    currentAppId: null,
-    route: { pathname: '/', search: '', params: {} },
-    breadcrumbs: [],
-    theme: 'light',
-    viewport: { width: 0, height: 0 },
   };
 
   const projectSurfaces = (): SurfaceSnapshot[] => {
@@ -162,7 +179,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
 
   const snapshot = (): AegisSnapshot => ({
     timestamp: Date.now(),
-    shell: shellGetter ? shellGetter() : defaultShell,
+    shell: shellGetter ? shellGetter() : defaultShellSnapshot(),
     surfaces: projectSurfaces(),
     selection: [...selection],
     focus: { surfaceId: null, entityId: null },
@@ -197,16 +214,8 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       if (filter?.invocableBy && desc.invocableBy !== filter.invocableBy) {
         continue;
       }
-      if (filter?.appId) {
-        const appId =
-          desc.source.kind === 'app'
-            ? desc.source.appId
-            : desc.source.kind === 'route'
-              ? desc.source.appId
-              : desc.source.appId;
-        if (appId !== filter.appId) {
-          continue;
-        }
+      if (filter?.appId && desc.source.appId !== filter.appId) {
+        continue;
       }
       out.push(desc);
     }
@@ -218,9 +227,6 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     return entry ? describe(entry) : null;
   };
 
-  const newCorrelationId = (): string =>
-    `aegis-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-
   const dispatch = async <R = unknown>(
     id: string,
     params: unknown = undefined,
@@ -230,7 +236,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       by?: InvocationSource;
     } = {},
   ): Promise<DispatchResult<R>> => {
-    const correlationId = opts.correlationId ?? newCorrelationId();
+    const correlationId = opts.correlationId ?? uniqueId('aegis');
     const by: InvocationSource = opts.by ?? 'user';
     const entry = registry.get(id);
     if (!entry) {
@@ -242,15 +248,8 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       return { ok: false, error, correlationId };
     }
 
-    const sourceAppId =
-      entry.source.kind === 'app'
-        ? entry.source.appId
-        : entry.source.kind === 'route'
-          ? entry.source.appId
-          : entry.source.appId;
-
     const ctx: ActionContext = {
-      appId: sourceAppId,
+      appId: entry.source.appId,
       navigate: navigateImpl ?? ((_to: string) => undefined),
       snapshot,
       toast: deps.toast ?? ((_msg: string) => undefined),
@@ -291,7 +290,6 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
   const _register: AegisRuntime['_register'] = (entry) => {
     const { id } = entry.action;
     if (registry.has(id)) {
-      // eslint-disable-next-line no-console
       // Per design doc §10.1 — collisions are silent overwrites otherwise.
       console.warn(
         `[aegis] action id collision: "${id}" is being re-registered. ` +
@@ -355,18 +353,6 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     };
   };
 
-  const findSurfaceContaining = (
-    entityId: string,
-  ): { surface: SurfaceSnapshot; entity: EntityProjection } | null => {
-    for (const s of projectSurfaces()) {
-      const e = s.entities?.find((x) => x.id === entityId);
-      if (e) {
-        return { surface: s, entity: e };
-      }
-    }
-    return null;
-  };
-
   const inspect = (ref: AegisRef): AegisInspectResult | null => {
     if (ref.kind === 'surface') {
       const surface = projectSurfaces().find((s) => s.id === ref.surfaceId);
@@ -390,7 +376,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       return { ref, surface, entities: surface.entities, actions };
     }
     if (ref.kind === 'entity') {
-      const found = findSurfaceContaining(ref.entityId);
+      const found = findSurfaceContaining(projectSurfaces(), ref.entityId);
       if (!found) {
         return null;
       }

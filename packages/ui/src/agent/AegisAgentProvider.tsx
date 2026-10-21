@@ -1,7 +1,14 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
+import { uniqueId } from '../lib/id';
+import { getOrCreateStored } from '../lib/storage';
 import { AegisAgentContext } from './aegisAgentContext';
-import { type AegisRuntime, createAegisRuntime } from './runtime';
+import { RECONNECT_BACKOFF_MS } from './agentmChannelClient';
+import {
+  type AegisRuntime,
+  createAegisRuntime,
+  defaultShellSnapshot,
+} from './runtime';
 import type { ShellSnapshot } from './types';
 
 interface BridgeConfig {
@@ -37,7 +44,7 @@ declare global {
   }
 }
 
-const RECONNECT_BACKOFF_MS = [1000, 2000, 5000, 10000];
+const SESSION_ID_KEY = 'aegis.bridge.sessionId';
 
 interface ToolCallMessage {
   type: 'tool.call';
@@ -56,24 +63,6 @@ function isToolCallMessage(value: unknown): value is ToolCallMessage {
     typeof v.id === 'string' &&
     typeof v.tool === 'string'
   );
-}
-
-function readSessionId(): string {
-  if (typeof window === 'undefined') {
-    return `srv-${Math.random().toString(36).slice(2, 10)}`;
-  }
-  const KEY = 'aegis.bridge.sessionId';
-  try {
-    const existing = window.sessionStorage.getItem(KEY);
-    if (existing) {
-      return existing;
-    }
-    const fresh = `sess-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-    window.sessionStorage.setItem(KEY, fresh);
-    return fresh;
-  } catch {
-    return `sess-${Math.random().toString(36).slice(2, 10)}`;
-  }
 }
 
 async function runToolCall(
@@ -163,7 +152,11 @@ function useBridge(
       return;
     }
 
-    const sessionId = readSessionId();
+    const sessionId = getOrCreateStored(
+      SESSION_ID_KEY,
+      () => uniqueId('sess'),
+      'session',
+    );
     let ws: WebSocket | null = null;
     let attempt = 0;
     let reconnectTimer: number | null = null;
@@ -294,15 +287,7 @@ export function AegisAgentProvider({
   useEffect(() => {
     runtime._setShellSnapshot(() => {
       const getter = shellSnapshotRef.current;
-      return (
-        getter?.() ?? {
-          currentAppId: appId,
-          route: { pathname: '/', search: '', params: {} },
-          breadcrumbs: [],
-          theme: 'light',
-          viewport: { width: 0, height: 0 },
-        }
-      );
+      return getter?.() ?? defaultShellSnapshot(appId);
     });
   }, [runtime, appId]);
 

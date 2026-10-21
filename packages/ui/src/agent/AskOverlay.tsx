@@ -19,13 +19,7 @@ interface PanelState {
   point: { x: number; y: number } | null;
 }
 
-interface TriggerInfo {
-  origin: AskOrigin;
-  surfaceId?: string;
-  entityId?: string;
-  actionId?: string;
-  el: HTMLElement;
-}
+type TriggerInfo = AskTrigger & { el: HTMLElement };
 
 function findTrigger(target: EventTarget | null): TriggerInfo | null {
   if (!(target instanceof Element)) {
@@ -176,5 +170,3 @@ export function AskOverlay(): ReactElement | null {
   }
   return <div className="aegis-ask-overlay">{portalled}</div>;
 }
-
-export default AskOverlay;

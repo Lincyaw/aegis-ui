@@ -2,6 +2,9 @@
 // https://github.com/hyperdxio/hyperdx/blob/main/packages/app/src/savedSearch.ts
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { uniqueId } from '../lib/id';
+import { readStorage, writeStorage } from '../lib/storage';
+
 export interface SavedQuery {
   id: string;
   name: string;
@@ -34,19 +37,13 @@ function storageKey(namespace: string): string {
 }
 
 function readFromStorage(namespace: string): SavedQuery[] {
-  if (typeof window === 'undefined') {
+  const raw = readStorage(storageKey(namespace));
+  if (raw === null) {
     return [];
   }
   try {
-    const raw = window.localStorage.getItem(storageKey(namespace));
-    if (raw === null) {
-      return [];
-    }
     const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter(isSavedQuery);
+    return Array.isArray(parsed) ? parsed.filter(isSavedQuery) : [];
   } catch {
     return [];
   }
@@ -64,27 +61,6 @@ function isSavedQuery(value: unknown): value is SavedQuery {
     typeof q.pinned === 'boolean' &&
     typeof q.lastUsedAt === 'number'
   );
-}
-
-function writeToStorage(namespace: string, queries: SavedQuery[]): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.localStorage.setItem(storageKey(namespace), JSON.stringify(queries));
-  } catch {
-    // quota / disabled storage — silently ignore
-  }
-}
-
-function newId(): string {
-  if (
-    typeof crypto !== 'undefined' &&
-    typeof crypto.randomUUID === 'function'
-  ) {
-    return crypto.randomUUID();
-  }
-  return `sq-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function sortQueries(queries: SavedQuery[]): SavedQuery[] {
@@ -116,7 +92,7 @@ export function useSavedQueries(
   const persist = useCallback(
     (next: SavedQuery[]): SavedQuery[] => {
       const sorted = sortQueries(next);
-      writeToStorage(namespace, sorted);
+      writeStorage(storageKey(namespace), JSON.stringify(sorted));
       return sorted;
     },
     [namespace],
@@ -125,7 +101,7 @@ export function useSavedQueries(
   const save = useCallback(
     (name: string, value: string): SavedQuery => {
       const entry: SavedQuery = {
-        id: newId(),
+        id: uniqueId('sq'),
         name: name.trim() === '' ? 'Untitled query' : name.trim(),
         value,
         pinned: false,

@@ -3,6 +3,7 @@ import { type ReactElement, useState } from 'react';
 import { Popover } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
+import { joinPath } from './paths';
 import type { AegisApp } from './types';
 
 interface AppSwitcherProps {
@@ -27,7 +28,7 @@ export function AppSwitcher({
   const handlePick = (app: AegisApp): void => {
     setOpen(false);
     onAppSwitch?.(app.id);
-    navigate(app.basePath);
+    navigate(joinPath(app.basePath, ''));
   };
 
   const visibleApps = apps.filter((app) => !app.hidden);

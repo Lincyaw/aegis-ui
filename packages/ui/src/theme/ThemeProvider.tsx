@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 
+import { readStorage, writeStorage } from '../lib/storage';
 import {
   ThemeContext,
   type ThemeMode,
@@ -19,10 +20,7 @@ export type { ThemeMode, ThemePreference, ThemeState } from './themeContext';
 const STORAGE_KEY = 'aegis-ui:theme';
 
 function readPreference(): ThemePreference | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  const stored = readStorage(STORAGE_KEY);
   if (stored === 'light' || stored === 'dark' || stored === 'system') {
     return stored;
   }
@@ -65,17 +63,9 @@ export function ThemeProvider({
     resolve(preference),
   );
 
-  // Apply to <html> + persist.
   useEffect(() => {
-    const next = resolve(preference);
-    setResolved(next);
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', next);
-      document.documentElement.style.colorScheme = next;
-    }
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY, preference);
-    }
+    setResolved(resolve(preference));
+    writeStorage(STORAGE_KEY, preference);
   }, [preference]);
 
   // Track system changes while preference is 'system'.
@@ -85,16 +75,16 @@ export function ThemeProvider({
     }
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
     const onChange = (): void => {
-      const next: ThemeMode = mql.matches ? 'dark' : 'light';
-      setResolved(next);
-      if (typeof document !== 'undefined') {
-        document.documentElement.setAttribute('data-theme', next);
-        document.documentElement.style.colorScheme = next;
-      }
+      setResolved(mql.matches ? 'dark' : 'light');
     };
     mql.addEventListener('change', onChange);
     return () => mql.removeEventListener('change', onChange);
   }, [preference]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', resolved);
+    document.documentElement.style.colorScheme = resolved;
+  }, [resolved]);
 
   const setPreference = useCallback((next: ThemePreference) => {
     setPreferenceState(next);

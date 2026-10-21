@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 
+import { readStorage, writeStorage } from '../../../lib/storage';
 import type { AegisApp } from '../types';
 import {
   AppEnvironmentContext,
@@ -25,28 +26,6 @@ const DEFAULT_DISCOVERY_PATH = '/.well-known/aegis-environments.json';
 
 function storageKeyFor(app: AegisApp): string {
   return app.environments?.storageKey ?? `aegis.env.${app.id}`;
-}
-
-function readStored(key: string): string | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  try {
-    return window.localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function writeStored(key: string, value: string): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.localStorage.setItem(key, value);
-  } catch {
-    // localStorage may be disabled — selection becomes session-local only.
-  }
 }
 
 function syntheticProd(app: AegisApp): EnvironmentDescriptor {
@@ -113,7 +92,7 @@ export function ActiveAppEnvironmentProvider({
       }
       setManifest(result);
       setSupported(true);
-      const stored = storageKey ? readStored(storageKey) : null;
+      const stored = storageKey ? readStorage(storageKey) : null;
       const initial =
         stored && result.environments.some((e) => e.id === stored)
           ? stored
@@ -143,7 +122,7 @@ export function ActiveAppEnvironmentProvider({
       previousIdRef.current = id;
       setCurrentEnvIdState(id);
       if (storageKey) {
-        writeStored(storageKey, id);
+        writeStorage(storageKey, id);
       }
       if (typeof window !== 'undefined') {
         const detail: EnvironmentChangedEventDetail = {

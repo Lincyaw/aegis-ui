@@ -14,11 +14,11 @@
  */
 import { type ThemeConfig, theme as antdTokens } from 'antd';
 
+import type { ThemeMode } from './themeContext';
+
 const FONT_UI =
   "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', " +
   "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif";
-
-type Scheme = 'light' | 'dark';
 
 interface Palette {
   text: string;
@@ -68,7 +68,7 @@ const DARK: Palette = {
   shadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
 };
 
-function buildTheme(p: Palette, scheme: Scheme): ThemeConfig {
+function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
   return {
     cssVar: true,
     hashed: false,
@@ -213,16 +213,19 @@ function buildTheme(p: Palette, scheme: Scheme): ThemeConfig {
   };
 }
 
+// Built once so callers that pass getAegisTheme(resolved) every render hand
+// antd a stable object.
+const THEMES: Record<ThemeMode, ThemeConfig> = {
+  light: buildTheme(LIGHT, 'light'),
+  dark: buildTheme(DARK, 'dark'),
+};
+
 /**
  * Returns the antd ThemeConfig for the given scheme. Pair with `useTheme().resolved`.
  */
-export function getAegisTheme(scheme: Scheme): ThemeConfig {
-  return scheme === 'dark'
-    ? buildTheme(DARK, 'dark')
-    : buildTheme(LIGHT, 'light');
+export function getAegisTheme(scheme: ThemeMode): ThemeConfig {
+  return THEMES[scheme];
 }
 
 /** Light palette — back-compat export. Prefer `getAegisTheme(resolved)`. */
-export const aegisTheme: ThemeConfig = buildTheme(LIGHT, 'light');
-
-export default aegisTheme;
+export const aegisTheme: ThemeConfig = THEMES.light;
