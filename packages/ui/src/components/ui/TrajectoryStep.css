@@ -106,16 +106,6 @@
   padding-left: var(--space-2);
 }
 
-.aegis-step__text {
-  margin: 0;
-  font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  line-height: 1.6;
-  color: var(--text-main);
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-}
-
 /* ── Timeline connector (visual only) ────────────────────────────── */
 
 .aegis-step + .aegis-step {

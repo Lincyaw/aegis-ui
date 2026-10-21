@@ -38,8 +38,7 @@ export function TrajectoryTimeline({
     .filter(Boolean)
     .join(' ');
 
-  const statusTone =
-    status === 'failed' ? 'warning' : status === 'completed' ? 'ink' : 'ink';
+  const statusTone = status === 'failed' ? 'warning' : 'ink';
   const pulse = status === 'running';
 
   return (

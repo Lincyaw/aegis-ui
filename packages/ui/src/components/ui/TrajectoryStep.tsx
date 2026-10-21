@@ -32,10 +32,6 @@ interface TrajectoryStepProps {
   surface?: TrajectoryStepSurface;
 }
 
-function MarkdownContent({ source }: { source: string }) {
-  return <Markdown>{source}</Markdown>;
-}
-
 function StepSection({
   label,
   children,
@@ -134,12 +130,12 @@ export function TrajectoryStep({
         <div className="aegis-step__body">
           {data.thought && (
             <StepSection label="thought">
-              <MarkdownContent source={data.thought} />
+              <Markdown>{data.thought}</Markdown>
             </StepSection>
           )}
           {data.action && (
             <StepSection label="action">
-              <MarkdownContent source={data.action} />
+              <Markdown>{data.action}</Markdown>
             </StepSection>
           )}
           {data.toolCall && (
@@ -149,7 +145,7 @@ export function TrajectoryStep({
           )}
           {data.observation && (
             <StepSection label="observation">
-              <MarkdownContent source={data.observation} />
+              <Markdown>{data.observation}</Markdown>
             </StepSection>
           )}
         </div>

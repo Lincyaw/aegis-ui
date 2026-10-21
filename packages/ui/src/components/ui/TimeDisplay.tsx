@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import './TimeDisplay.css';
 
@@ -28,9 +28,8 @@ function formatAbsolute(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${time}`;
 }
 
-function formatRelative(d: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
+function formatRelative(d: Date, now: number): string {
+  const diffMs = now - d.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   if (diffSec < 10) {
     return 'just now';
@@ -74,18 +73,26 @@ function formatDuration(ms: number): string {
 export function TimeDisplay({
   value,
   mode = 'absolute',
+  refreshMs = 60_000,
   className,
 }: TimeDisplayProps) {
-  const d = useMemo(() => {
-    if (typeof value === 'string') {
-      return new Date(value);
+  const d = useMemo(
+    () => (value instanceof Date ? value : new Date(value)),
+    [value],
+  );
+
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (mode !== 'relative') {
+      return;
     }
-    if (typeof value === 'number') {
-      // Heuristic: if number is small, treat as ms duration; else as epoch ms
-      return value < 1e10 ? new Date(value) : new Date(value);
-    }
-    return value;
-  }, [value]);
+    const id = window.setInterval(() => {
+      setNow(Date.now());
+    }, refreshMs);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [mode, refreshMs]);
 
   const display = useMemo(() => {
     if (mode === 'duration') {
@@ -93,10 +100,10 @@ export function TimeDisplay({
       return formatDuration(ms);
     }
     if (mode === 'relative') {
-      return formatRelative(d);
+      return formatRelative(d, now);
     }
     return formatAbsolute(d);
-  }, [d, mode, value]);
+  }, [d, mode, value, now]);
 
   const tooltip = useMemo(() => {
     if (mode === 'absolute') {
