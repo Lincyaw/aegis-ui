@@ -43,7 +43,7 @@ declare global {
 
 const LS_KEY = 'aegis.runtime.config.v1';
 
-const DEFAULTS: RuntimeConfig = {
+export const DEFAULTS: RuntimeConfig = {
   gatewayUrl: '',
   ssoOrigin: '',
   ssoClientId: 'aegis-console',
