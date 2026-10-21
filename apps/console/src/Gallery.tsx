@@ -68,6 +68,7 @@ import {
   KeyValueList,
   LoginForm,
   Markdown,
+  type MarkdownProps,
   MetadataList,
   MetricCard,
   MetricLabel,
@@ -544,6 +545,99 @@ const GALLERY_ACTIONS = {
     run: galleryNoop('env.select-prod'),
   },
 } satisfies Record<string, AegisAction<void, void>>;
+
+/* ── Markdown extension demo ───────────────────────────────────────── */
+
+interface GalleryTreeNode {
+  type: string;
+  value?: string;
+  url?: string;
+  tagName?: string;
+  properties?: Record<string, unknown>;
+  children?: GalleryTreeNode[];
+}
+
+const GALLERY_WIKI_SCHEME = 'wiki:';
+
+function remarkGalleryWikilinks() {
+  const visit = (node: GalleryTreeNode): void => {
+    if (!node.children) {
+      return;
+    }
+    node.children = node.children.flatMap((child): GalleryTreeNode[] => {
+      if (child.type !== 'text' || !child.value?.includes('[[')) {
+        visit(child);
+        return [child];
+      }
+      return child.value
+        .split(/(\[\[[^\]]+\]\])/)
+        .filter(Boolean)
+        .map((part) => {
+          const slug = /^\[\[([^\]]+)\]\]$/.exec(part)?.[1];
+          return slug
+            ? {
+                type: 'link',
+                url: `${GALLERY_WIKI_SCHEME}${slug}`,
+                children: [{ type: 'text', value: slug }],
+              }
+            : { type: 'text', value: part };
+        });
+    });
+  };
+  return visit;
+}
+
+function galleryTreeText(node: GalleryTreeNode): string {
+  return node.value ?? (node.children ?? []).map(galleryTreeText).join('');
+}
+
+function rehypeGalleryHeadingIds() {
+  const visit = (node: GalleryTreeNode): void => {
+    if (node.type === 'element' && /^h[1-6]$/.test(node.tagName ?? '')) {
+      const id = galleryTreeText(node)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      node.properties = { ...node.properties, id };
+    }
+    node.children?.forEach(visit);
+  };
+  return visit;
+}
+
+function galleryUrlTransform(url: string): string | undefined {
+  return /^(wiki:|https?:|#|\/)/.test(url) ? url : undefined;
+}
+
+const GALLERY_REMARK_PLUGINS: MarkdownProps['remarkPlugins'] = [
+  remarkGalleryWikilinks,
+];
+const GALLERY_REHYPE_PLUGINS: MarkdownProps['rehypePlugins'] = [
+  rehypeGalleryHeadingIds,
+];
+
+const GALLERY_MARKDOWN_COMPONENTS: MarkdownProps['components'] = {
+  a: ({ href, children }) => {
+    if (href === undefined) {
+      return <del>{children}</del>;
+    }
+    if (href.startsWith(GALLERY_WIKI_SCHEME)) {
+      return <Chip tone='ink'>{children}</Chip>;
+    }
+    return <a href={href}>{children}</a>;
+  },
+  h3: ({ id, children }) => (
+    <h3 id={id}>
+      {children} <MonoValue size='sm'>#{id}</MonoValue>
+    </h3>
+  ),
+};
+
+const GALLERY_WIKI_MARKDOWN = `### Release notes
+
+Rollout touched [[order-svc]] and [[cart-svc]]; see [the runbook](https://example.com).
+
+[blocked link](javascript:alert(1)) is dropped by \`urlTransform\`.`;
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
 
@@ -1632,9 +1726,25 @@ function App() {
 
         <SectionDivider>Markdown</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='inline + block'>
+          <Specimen
+            caption='inline + block · fences render as CodeBlock'
+            span={2}
+          >
             <Markdown>
-              {`### Quick **markdown** sample\n\n- Lists work\n- Inline \`code\` and [links](https://example.com)\n\n\`\`\`ts\nconst hello = 'world';\n\`\`\`\n\n> Blockquotes too.`}
+              {`### Quick **markdown** sample\n\n- Lists work\n- Inline \`code\` and [links](https://example.com)\n\n\`\`\`bash\nkubectl get pods -n aegis\n\`\`\`\n\n> Blockquotes too.`}
+            </Markdown>
+          </Specimen>
+          <Specimen
+            caption='remarkPlugins · rehypePlugins · components · urlTransform'
+            span={2}
+          >
+            <Markdown
+              remarkPlugins={GALLERY_REMARK_PLUGINS}
+              rehypePlugins={GALLERY_REHYPE_PLUGINS}
+              components={GALLERY_MARKDOWN_COMPONENTS}
+              urlTransform={galleryUrlTransform}
+            >
+              {GALLERY_WIKI_MARKDOWN}
             </Markdown>
           </Specimen>
         </div>
