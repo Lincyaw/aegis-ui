@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
   Button,
-  Chip,
   DataTable,
   type DataTableColumn,
   EmptyState,
@@ -11,75 +9,19 @@ import {
   KeyValueList,
   MonoValue,
   PageHeader,
-  PageSizeSelect,
   Panel,
   PanelTitle,
-  SearchInput,
-  Terminal,
-  type TerminalLine,
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
-import type {
-  ExecutionDetectorResultItem,
-  TraceTraceLogEntry,
-} from '@lincyaw/portal';
+import type { ExecutionDetectorResultItem } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
 import { useTraceLogs } from '../api/traces';
 import { StatusChip } from '../components/StatusChip';
+import { TraceLogsPanel } from '../components/TraceLogsPanel';
 import { useExecutionDetail } from '../hooks/useExecutions';
 import { isActiveTaskState, useCancelTask } from '../hooks/useTasks';
-
-type LogLevelFilter = 'all' | 'error' | 'warn' | 'info';
-
-const LOG_LEVEL_OPTIONS: ReadonlyArray<{ key: LogLevelFilter; label: string }> =
-  [
-    { key: 'all', label: 'All' },
-    { key: 'error', label: 'Error' },
-    { key: 'warn', label: 'Warn' },
-    { key: 'info', label: 'Info' },
-  ];
-
-const LOG_LIMIT_OPTIONS: readonly number[] = [100, 200, 500, 1000];
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setDebounced(value);
-    }, delayMs);
-    return () => {
-      clearTimeout(handle);
-    };
-  }, [value, delayMs]);
-  return debounced;
-}
-
-function logLevelClass(level: string | undefined): TerminalLine['level'] {
-  const lower = (level ?? '').toLowerCase();
-  if (lower === 'error' || lower === 'fatal') {
-    return 'error';
-  }
-  if (lower === 'warn' || lower === 'warning') {
-    return 'warn';
-  }
-  if (lower === 'debug' || lower === 'trace') {
-    return 'debug';
-  }
-  return 'info';
-}
-
-function logLines(entries: TraceTraceLogEntry[] | undefined): TerminalLine[] {
-  if (!entries || entries.length === 0) {
-    return [];
-  }
-  return entries.map((e, i) => ({
-    ts: e.ts ?? String(i),
-    prefix: e.service ?? e.level ?? 'log',
-    level: logLevelClass(e.level),
-    body: e.msg ?? '',
-  }));
-}
+import { useTraceLogFilters } from '../hooks/useTraceLogFilters';
 
 function fmtNum(n: number | undefined, digits = 2): string {
   if (n == null || !Number.isFinite(n)) {
@@ -149,27 +91,11 @@ export default function ExecutionDetail() {
     void msg.success('Run cancelled');
   });
 
-  const [logLevel, setLogLevel] = useState<LogLevelFilter>('all');
-  const [logSearchInput, setLogSearchInput] = useState('');
-  const [logLimit, setLogLimit] = useState<number>(200);
-  const debouncedLogSearch = useDebouncedValue(logSearchInput.trim(), 300);
-
+  const logFilters = useTraceLogFilters();
   const { data: logsResp } = useTraceLogs(
     traceId,
-    {
-      limit: logLimit,
-      level: logLevel === 'all' ? undefined : logLevel,
-      q: debouncedLogSearch.length > 0 ? debouncedLogSearch : undefined,
-    },
+    logFilters.query,
     live ? 3_000 : false
-  );
-  const allLogLines = useMemo(
-    () => logLines(logsResp?.entries),
-    [logsResp?.entries]
-  );
-  const filteredLogLines = useMemo<TerminalLine[]>(
-    () => allLogLines.slice(-logLimit),
-    [allLogLines, logLimit]
   );
 
   if (isLoading) {
@@ -283,68 +209,16 @@ export default function ExecutionDetail() {
           </div>
         )}
       </Panel>
-      <Panel
-        title={<PanelTitle size='base'>Logs</PanelTitle>}
-        extra={
-          allLogLines.length > 0 ? (
-            <span className='injection-process__last-event-label'>
-              {`tail ${String(logLimit)} · ${String(filteredLogLines.length)} / ${String(allLogLines.length)}`}
-            </span>
-          ) : undefined
+      <TraceLogsPanel
+        filters={logFilters}
+        data={logsResp}
+        emptyTitle={traceId ? 'No logs yet' : 'No orchestrator trace yet'}
+        emptyDescription={
+          traceId
+            ? 'Log entries from the orchestrator will appear here as the run progresses.'
+            : 'The execution has not been dispatched to the orchestrator.'
         }
-      >
-        <div className='injection-process__logs-toolbar'>
-          <div
-            className='injection-process__logs-levels'
-            role='group'
-            aria-label='Log level filter'
-          >
-            {LOG_LEVEL_OPTIONS.map((opt) => (
-              <Chip
-                key={opt.key}
-                tone={logLevel === opt.key ? 'ink' : 'ghost'}
-                onClick={() => {
-                  setLogLevel(opt.key);
-                }}
-              >
-                {opt.label}
-              </Chip>
-            ))}
-          </div>
-          <SearchInput
-            value={logSearchInput}
-            onChange={setLogSearchInput}
-            onClear={() => {
-              setLogSearchInput('');
-            }}
-            placeholder='Filter log lines…'
-            className='injection-process__logs-search'
-          />
-          <PageSizeSelect
-            value={logLimit}
-            onChange={setLogLimit}
-            options={LOG_LIMIT_OPTIONS as number[]}
-            label='Tail'
-            placement='bottom'
-          />
-        </div>
-        {filteredLogLines.length > 0 ? (
-          <Terminal lines={filteredLogLines} />
-        ) : (
-          <EmptyState
-            title={
-              traceId ? 'No log entries match' : 'No orchestrator trace yet'
-            }
-            description={
-              traceId
-                ? debouncedLogSearch.length > 0 || logLevel !== 'all'
-                  ? 'No entries match the current filters. Try clearing the search or selecting "All" level.'
-                  : 'Log entries from the orchestrator will appear here as the run progresses.'
-                : 'The execution has not been dispatched to the orchestrator.'
-            }
-          />
-        )}
-      </Panel>
+      />
       <Panel
         title={<PanelTitle size='base'>Detector results</PanelTitle>}
         extra={
