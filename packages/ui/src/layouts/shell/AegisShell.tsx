@@ -22,7 +22,9 @@ import {
   AegisAgentProvider,
   AskOverlay,
   type ShellSnapshot,
+  useAgent,
 } from '../../agent';
+import { defaultAgentContextValue } from '../../agent/agentContext';
 import { type AegisAuthUser, type AuthStatus, useAuth } from '../../auth';
 import { type Command, useCommands } from '../../commands';
 import { defaultCommandContextValue } from '../../commands/commandContext';
@@ -64,6 +66,7 @@ export function AegisShell({
   inboxPath,
   onAppSwitch,
   enableCommandPalette = false,
+  agentPanel,
 }: AegisShellProps): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
@@ -140,6 +143,20 @@ export function AegisShell({
     enableCommandPalette && !hasCommandProvider,
     'AegisShell: enableCommandPalette needs a <CommandProvider> above the shell; the command palette is not mounted.',
   );
+
+  const agent = useAgent();
+  const hasAgentProvider = agent !== defaultAgentContextValue;
+  const hasAgentPanel = Boolean(agentPanel);
+  useWarnOnce(
+    hasAgentPanel && !hasAgentProvider,
+    'AegisShell: agentPanel needs an <AgentProvider> above the shell; the agent panel is not rendered.',
+  );
+  const agentPanelEnabled = hasAgentPanel && hasAgentProvider;
+  const agentPanelOpen = agentPanelEnabled && agent.panelOpen === true;
+  const { setPanelOpen } = agent;
+  const toggleAgentPanel = useCallback(() => {
+    setPanelOpen?.(!agentPanelOpen);
+  }, [setPanelOpen, agentPanelOpen]);
 
   // Auto-close the drawer on navigation.
   useEffect(() => {
@@ -248,6 +265,7 @@ export function AegisShell({
     'aegis-shell',
     hasSidebar ? 'aegis-shell--with-sidebar' : 'aegis-shell--no-sidebar',
     mobileNavOpen ? 'aegis-shell--mobile-nav-open' : '',
+    agentPanelOpen ? 'aegis-shell--with-agent-panel' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -290,6 +308,10 @@ export function AegisShell({
             onSidebarToggle={toggleSidebar}
             inlineSlotRef={setInlineSlot}
             inlineSlotActive={Boolean(activeApp?.header)}
+            agentPanelOpen={agentPanelOpen}
+            onAgentPanelToggle={
+              agentPanelEnabled && setPanelOpen ? toggleAgentPanel : undefined
+            }
           />
           {hasSidebar && <Sidebar activeApp={activeApp} />}
           <button
@@ -311,6 +333,9 @@ export function AegisShell({
               </>,
             )}
           </main>
+          {agentPanelOpen && (
+            <div className="aegis-shell__agent-panel">{agentPanel}</div>
+          )}
           <AskOverlay />
           {showCommandPalette && <CommandPalette />}
         </div>

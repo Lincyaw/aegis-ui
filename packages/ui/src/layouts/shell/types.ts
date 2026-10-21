@@ -176,10 +176,12 @@ export interface AegisShellProps {
    */
   enableCommandPalette?: boolean;
   /**
-   * When provided, AegisShell renders the node as a collapsible right-side
-   * panel (typically <AgentPanel/> filled with messages from useAgent()).
-   * The open state is owned by the host (read via the agent context's
-   * panelOpen field). Requires <AgentProvider/> above the shell.
+   * When provided, AegisShell renders the node (typically <AgentPanel/>
+   * filled from useAgent()) as a right-side column while the agent
+   * context's `panelOpen` is true — at ≤768 px as an overlay below the
+   * header. A header toggle flips it through `setPanelOpen`. Requires
+   * <AgentProvider/> above the shell; without one nothing renders and a
+   * warning is logged.
    */
   agentPanel?: ReactNode;
 }

@@ -40,6 +40,10 @@ interface TopHeaderProps {
   inlineSlotRef?: (node: HTMLDivElement | null) => void;
   /** When true, hide the global `headerCenter` (an app header took it over). */
   inlineSlotActive?: boolean;
+  /** Current agent panel state — drives aria-pressed on its toggle. */
+  agentPanelOpen?: boolean;
+  /** Fired by the agent panel toggle; the toggle renders only when set. */
+  onAgentPanelToggle?: () => void;
 }
 
 export function TopHeader({
@@ -58,6 +62,8 @@ export function TopHeader({
   onSidebarToggle,
   inlineSlotRef,
   inlineSlotActive,
+  agentPanelOpen = false,
+  onAgentPanelToggle,
 }: TopHeaderProps): ReactElement {
   const brandInner = (
     <>
@@ -137,6 +143,37 @@ export function TopHeader({
         {headerActions}
         {inboxPath && <NotificationBell inboxPath={inboxPath} />}
         {user && <UserMenu user={user} />}
+        {onAgentPanelToggle && (
+          <button
+            type="button"
+            className="aegis-shell__agent-toggle"
+            onClick={onAgentPanelToggle}
+            aria-label={
+              agentPanelOpen ? 'Hide agent panel' : 'Show agent panel'
+            }
+            aria-pressed={agentPanelOpen}
+            title={agentPanelOpen ? 'Hide agent panel' : 'Show agent panel'}
+          >
+            <span
+              className="aegis-shell__agent-toggle-glyph"
+              aria-hidden="true"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect x="2.5" y="3.5" width="15" height="13" rx="2" />
+                <line x1="12" y1="3.5" x2="12" y2="16.5" />
+              </svg>
+            </span>
+          </button>
+        )}
       </div>
     </header>
   );
