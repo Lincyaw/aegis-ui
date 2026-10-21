@@ -7,7 +7,7 @@ import {
   Panel,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { PageSize } from '@lincyaw/portal';
+import { ContainerType, PageSize } from '@lincyaw/portal';
 import { App as AntdApp, Select } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
@@ -24,7 +24,11 @@ export default function ExecutionCreate() {
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
 
-  const containersQ = useContainersList({ page: 1, size: PageSize.XLarge });
+  const containersQ = useContainersList({
+    page: 1,
+    size: PageSize.XLarge,
+    type: ContainerType.Algorithm,
+  });
   const datasetsQ = useDatasetsList({ page: 1, size: 100 });
   const runAlgorithm = useRunAlgorithm();
 
