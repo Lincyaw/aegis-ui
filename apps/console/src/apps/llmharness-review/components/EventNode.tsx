@@ -5,11 +5,12 @@
  * when the page's selectedEventId matches.
  */
 import { memo } from 'react';
-import { Handle, type NodeProps, Position } from 'reactflow';
+
+import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
 
 import './EventNode.css';
 
-export interface EventNodeData {
+export interface EventNodeData extends Record<string, unknown> {
   id: number;
   kind: string;
   summary: string;
@@ -26,7 +27,9 @@ export interface EventNodeData {
   onOpenTurns?: (turns: number[]) => void;
 }
 
-function EventNodeImpl({ data }: NodeProps<EventNodeData>) {
+export type EventFlowNode = Node<EventNodeData, 'event'>;
+
+function EventNodeImpl({ data }: NodeProps<EventFlowNode>) {
   const cls = [
     'llmh-evt-node',
     `llmh-evt-node--${data.kind}`,
