@@ -144,3 +144,82 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* ── Document variant ─────────────────────────────────────────────── */
+.aegis-markdown--document {
+  font-size: var(--fs-14);
+  line-height: 1.7;
+}
+
+.aegis-markdown--document p,
+.aegis-markdown--document ul,
+.aegis-markdown--document ol,
+.aegis-markdown--document blockquote,
+.aegis-markdown--document table,
+.aegis-markdown--document .aegis-markdown__code-block {
+  margin-bottom: var(--space-4);
+}
+
+.aegis-markdown--document li {
+  margin-bottom: var(--space-1);
+}
+
+.aegis-markdown--document h1,
+.aegis-markdown--document h2,
+.aegis-markdown--document h3,
+.aegis-markdown--document h4,
+.aegis-markdown--document h5,
+.aegis-markdown--document h6 {
+  line-height: 1.25;
+  letter-spacing: var(--tracking-brand);
+  margin: var(--space-8) 0 var(--space-3) 0;
+}
+
+.aegis-markdown--document h1 {
+  font-size: var(--fs-28);
+}
+
+.aegis-markdown--document h2 {
+  font-size: var(--fs-24);
+  padding-bottom: var(--space-2);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-markdown--document h3 {
+  font-size: var(--fs-18);
+  margin-top: var(--space-6);
+}
+
+.aegis-markdown--document h4 {
+  font-size: var(--fs-16);
+  margin-top: var(--space-6);
+}
+
+.aegis-markdown--document h5,
+.aegis-markdown--document h6 {
+  font-size: var(--fs-14);
+  margin-top: var(--space-4);
+}
+
+.aegis-markdown--document hr {
+  margin: var(--space-6) 0;
+}
+
+.aegis-markdown--document table {
+  font-size: var(--fs-13);
+}
+
+.aegis-markdown--document th,
+.aegis-markdown--document td {
+  padding: var(--space-2) var(--space-3);
+}
+
+@media (max-width: 768px) {
+  .aegis-markdown--document h1 {
+    font-size: var(--fs-24);
+  }
+
+  .aegis-markdown--document h2 {
+    font-size: var(--fs-18);
+  }
+}

@@ -15,6 +15,12 @@ export interface MarkdownProps extends Pick<
 > {
   children: string;
   className?: string;
+  /**
+   * `compact` (default) keeps every heading at body size for chat turns,
+   * tooltips and cards. `document` uses a heading scale and roomier
+   * spacing for long-form pages.
+   */
+  variant?: 'compact' | 'document';
 }
 
 type HastNode = NonNullable<ExtraProps['node']>['children'][number];
@@ -78,12 +84,19 @@ const DEFAULT_COMPONENTS: Components = { pre: FencedCode };
 export function Markdown({
   children,
   className,
+  variant = 'compact',
   remarkPlugins,
   rehypePlugins,
   components,
   urlTransform,
 }: MarkdownProps) {
-  const cls = ['aegis-markdown', className ?? ''].filter(Boolean).join(' ');
+  const cls = [
+    'aegis-markdown',
+    variant === 'document' ? 'aegis-markdown--document' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
     <div className={cls}>
       <Suspense
