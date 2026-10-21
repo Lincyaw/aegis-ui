@@ -6,7 +6,7 @@
   width: var(--ask-panel-width);
   max-width: 100vw;
   background: var(--bg-panel);
-  border-left: 1px solid var(--border-subtle);
+  border-left: var(--size-hairline) solid var(--border-hairline);
   box-shadow: var(--shadow-popover);
   z-index: var(--z-modal);
   display: flex;

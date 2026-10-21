@@ -97,7 +97,7 @@
 
 .llmh-cdp__rail-row-mark {
   color: var(--accent-warning);
-  font-size: var(--fs-13);
+  font-size: var(--fs-12);
   line-height: 1;
 }
 
@@ -237,7 +237,7 @@
   align-items: center;
   gap: var(--space-2);
   font-family: var(--font-brand);
-  font-size: var(--fs-13);
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -252,7 +252,7 @@
 }
 
 .llmh-insp__details {
-  font-size: var(--fs-13);
+  font-size: var(--fs-12);
 }
 
 .llmh-insp__pre {
@@ -269,7 +269,7 @@
 .llmh-cdp__detail-summary {
   white-space: pre-wrap;
   overflow-wrap: break-word;
-  font-size: var(--fs-13);
+  font-size: var(--fs-12);
   line-height: 1.5;
 }
 

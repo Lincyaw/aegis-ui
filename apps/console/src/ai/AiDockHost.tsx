@@ -67,10 +67,10 @@ export function AiDockHost(): ReactElement {
         aria-pressed={open}
         title='AI assistant (Ctrl/Cmd+K)'
         style={{
-          font: 'var(--text-caption)',
-          color: open ? 'var(--text-on-inverted)' : 'var(--text-secondary)',
+          font: 'inherit',
+          color: open ? 'var(--text-on-inverted)' : 'var(--text-muted)',
           background: open ? 'var(--bg-inverted)' : 'transparent',
-          border: '1px solid var(--border-subtle)',
+          border: 'var(--size-hairline) solid var(--border-hairline)',
           borderRadius: 'var(--radius-sm)',
           padding: 'var(--space-1) var(--space-3)',
           cursor: 'pointer',

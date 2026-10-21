@@ -57,7 +57,7 @@
 .aegis-content-json__path {
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: var(--fs-11);
+  font-size: var(--fs-12);
   line-height: 1.55;
   min-width: 0;
   overflow-wrap: anywhere;

@@ -27,7 +27,7 @@
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   font-weight: var(--fw-medium);
-  color: var(--text-primary);
+  color: var(--text-main);
   transition:
     background var(--motion-fast),
     border-color var(--motion-fast);
@@ -76,7 +76,7 @@
 .project-switcher__item-name {
   font-family: var(--font-mono);
   font-size: var(--fs-13);
-  color: var(--text-primary);
+  color: var(--text-main);
 }
 
 .project-switcher__chip {
@@ -92,8 +92,8 @@
 }
 
 .project-switcher__chip--active {
-  background: var(--accent-ink-bg, var(--bg-muted));
-  color: var(--text-primary);
+  background: var(--bg-muted);
+  color: var(--text-main);
 }
 
 .project-switcher__chip--archived {

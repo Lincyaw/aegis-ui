@@ -12,7 +12,7 @@
   background: transparent;
   border: 0;
   padding: 0;
-  color: var(--text-link, var(--text-main));
+  color: var(--text-main);
   cursor: pointer;
   font-family: var(--font-mono);
   text-decoration: underline;
