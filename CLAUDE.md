@@ -11,25 +11,30 @@ This is a **pnpm monorepo**:
   only thing that ships to consumers.
 - `apps/console` — the unified Vite app (`@lincyaw/console`,
   private). It mounts `<AegisShell>` and registers every sub-app via the
-  `AegisApp[]` config. Sub-apps live under `apps/console/src/apps/`
-  (portal, gallery, …). Currently:
-  - `apps/console/src/apps/portal/` — the real AegisLab product (pages,
-    api, components, hooks). Mounted at `basePath: '/'`.
-  - `apps/console/src/apps/gallery/` — the live spec for `packages/ui`.
-    Mounted at `basePath: '/gallery'`.
+  `AegisApp[]` config. Sub-apps live under `apps/console/src/apps/` and
+  are registered in `apps/console/src/registry.ts`:
+  - `portal/` — the real AegisLab product (pages, api, components,
+    hooks). Mounted at `basePath: '/portal'`.
+  - `trajectories/` (`/trajectories`), `llmharness-review/` (`/cases`),
+    `blob/` (`/blob`), `pages/` (`/pages`), `notes/` (`/notes`),
+    `settings/` (`/settings`) — AegisLab tools built on the shell.
+  - `gallery/` — the live spec for `packages/ui`. Mounted at
+    `basePath: '/gallery'`.
+  - `containers/`, `datasets/`, `env-demo/` — shell layout demos,
+    registered in dev builds only.
 
 The library (`packages/ui`) is presentational only — no API client, no
-business state, no router instance. Anything router-aware that's
-reusable lives in `packages/ui/src/layouts/shell/` (AegisShell + the
-`AegisApp` contract). Anything business lives inside a sub-app in
-`apps/console/src/apps/`.
+business state, no router instance. Router-aware code is confined to
+`packages/ui/src/layouts/shell/` (AegisShell + the `AegisApp` contract),
+`auth/RequireAuth`, and the `InboxPage` / `NotificationBell` primitives.
+Anything business lives inside a sub-app in `apps/console/src/apps/`.
 
 ## What this repo ships
 
 ```
 @lincyaw/aegis-ui
 ├── tokens               src/styles/theme.css
-├── primitives           src/components/ui/*    (~30 components, plain CSS, no biz logic)
+├── primitives           src/components/ui/*    (plain CSS, no biz logic)
 ├── layouts              src/layouts/PageWrapper.tsx
 ├── shell (router-aware) src/layouts/shell/AegisShell.tsx
 ├── AntD theme           src/theme/antdTheme.ts
@@ -39,7 +44,10 @@ reusable lives in `packages/ui/src/layouts/shell/` (AegisShell + the
 `dist/` is the published artifact (ESM + CJS + d.ts + style.css). Consumers
 do `import { Panel } from '@lincyaw/aegis-ui'` and
 `import '@lincyaw/aegis-ui/style.css'` — they should never reach into
-internal paths.
+internal paths. The library does not bundle fonts: consumers import
+`@fontsource-variable/geist`, `@fontsource-variable/inter` and
+`@fontsource-variable/jetbrains-mono` themselves (the console does this
+in `apps/console/src/main.tsx`).
 
 ## Top-down hierarchy — maintain in this order, never invert
 
@@ -54,8 +62,9 @@ internal paths.
 4. **Shell** (`src/layouts/shell/`) — TopHeader + Sidebar + BreadcrumbBar +
    route composition over `AegisApp[]`. Router-aware (peer-deps
    `react-router-dom`); presentation still comes from primitives + tokens.
-5. **Gallery** (`src/Gallery.tsx`) — the live spec. If a
-   primitive isn't in the gallery, the team doesn't know it exists.
+5. **Gallery** (`apps/console/src/Gallery.tsx`, mounted by the gallery
+   sub-app) — the live spec. If a primitive isn't in the gallery, the
+   team doesn't know it exists.
 6. **Consumer apps** compose pages from primitives + `PageWrapper` and plug
    into `AegisShell` via the `AegisApp` contract — never reach into the
    library's internals.
@@ -76,10 +85,12 @@ internal paths.
   no business state. Hosts pass props in.
 - **Every new primitive ships with a Specimen** in the gallery. PRs that
   add a primitive without a gallery entry are incomplete.
-- **Shell stays router-agnostic where possible.** `Breadcrumb` accepts a
-  `linkComponent` render prop instead of hardcoding `react-router-dom`.
-  Only `AegisShell` / `Sidebar` / `TopHeader` are allowed to import
-  `react-router-dom` directly.
+- **Primitives stay router-agnostic where possible.** `Breadcrumb`
+  accepts a `linkComponent` render prop instead of hardcoding
+  `react-router-dom`. Only `layouts/shell/**`, `auth/RequireAuth`, and
+  the `InboxPage` / `NotificationBell` primitives import
+  `react-router-dom` directly; don't add new importers outside
+  `layouts/shell/`.
 
 ## AegisApp contract (for adding a sub-app)
 
@@ -122,30 +133,31 @@ themselves render content only, never the layout chrome.
 
 ## Where things live
 
-| Path                                                  | Purpose                                                                             |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `packages/ui/src/styles/theme.css`                    | Design tokens (CSS custom properties + keyframes)                                   |
-| `packages/ui/src/styles/{responsive,utility}.css`     | Responsive helpers + utility classes                                                |
-| `packages/ui/src/styles/shared/{card,form,table}.css` | Shared structural patterns                                                          |
-| `packages/ui/src/styles/fonts.ts`                     | Geist / Inter / JetBrains Mono asset imports                                        |
-| `packages/ui/src/components/ui/`                      | Primitives + their CSS, one component per file                                      |
-| `packages/ui/src/components/ui/index.ts`              | Primitive barrel — public API of the UI kit                                         |
-| `packages/ui/src/layouts/PageWrapper.{tsx,css}`       | Page root container                                                                 |
-| `packages/ui/src/layouts/shell/`                      | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar)                  |
-| `packages/ui/src/theme/antdTheme.ts`                  | Ant Design `ConfigProvider` mapped to our tokens                                    |
-| `packages/ui/src/index.ts`                            | Library public API barrel                                                           |
-| `packages/ui/src/index.css`                           | Global reset + scrollbar + focus ring                                               |
-| `packages/ui/package.json`                            | Library publish config — name, version, exports                                     |
-| `packages/ui/vite.config.ts`                          | Library build (ESM + CJS + d.ts + style.css)                                        |
-| `apps/console/src/Gallery.{tsx,css}`                  | Live spec — every primitive's specimen                                              |
-| `apps/console/src/apps/*`                             | Sub-apps registered with AegisShell (portal, gallery)                               |
-| `apps/console/src/main.tsx`                           | Console entry; NOT shipped                                                          |
-| `apps/console/index.html`                             | Vite HTML entry for the dev server                                                  |
-| `apps/portal/`                                        | AegisLab portal (`rcabench-frontend`) — shallow-integrated, owns its own UI for now |
-| `tsconfig.base.json`                                  | Shared strict TS settings, extended by every package                                |
-| `pnpm-workspace.yaml`                                 | Workspace package globs                                                             |
-| `turbo.json`                                          | Pipeline graph (build, type-check, lint, lint:css)                                  |
-| `.changeset/`                                         | Versioning + publish tracking                                                       |
+| Path                                            | Purpose                                                                           |
+| ----------------------------------------------- | --------------------------------------------------------------------------------- |
+| `packages/ui/src/styles/theme.css`              | Design tokens (CSS custom properties + keyframes)                                 |
+| `packages/ui/src/components/ui/`                | Primitives + their CSS, one component per file                                    |
+| `packages/ui/src/components/ui/index.ts`        | Primitive barrel — public API of the UI kit                                       |
+| `packages/ui/src/layouts/PageWrapper.{tsx,css}` | Page root container                                                               |
+| `packages/ui/src/layouts/shell/`                | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar)                |
+| `packages/ui/src/auth/`                         | `AuthProvider` / `useAuth` contract + `RequireAuth` route guard                   |
+| `packages/ui/src/agent/`                        | AgentM channel client, Ask overlay/panel, MCP tool catalogue                      |
+| `packages/ui/src/theme/antdTheme.ts`            | Ant Design `ConfigProvider` mapped to our tokens                                  |
+| `packages/ui/src/index.ts`                      | Library public API barrel                                                         |
+| `packages/ui/src/index.css`                     | Global reset + scrollbar + focus ring                                             |
+| `packages/ui/package.json`                      | Library publish config — name, version, exports                                   |
+| `packages/ui/vite.config.ts`                    | Library build (ESM + CJS + d.ts + style.css)                                      |
+| `apps/console/src/Gallery.{tsx,css}`            | Live spec — every primitive's specimen                                            |
+| `apps/console/src/apps/*`                       | Sub-apps, registered with AegisShell in `apps/console/src/registry.ts`            |
+| `apps/console/src/main.tsx`                     | Console entry (not part of the npm package)                                       |
+| `apps/console/index.html`                       | Vite HTML entry for the dev server                                                |
+| `apps/console/server/`                          | Single-binary Go server that embeds the console (see its README)                  |
+| `Dockerfile`, `scripts/deploy-frontend.sh`      | nginx image of the console + build/push/rollout script                            |
+| `.github/workflows/`                            | CI (`check`), npm publish (`publish`), console binary release (`release-console`) |
+| `tsconfig.base.json`                            | Shared strict TS settings, extended by every package                              |
+| `pnpm-workspace.yaml`                           | Workspace package globs                                                           |
+| `turbo.json`                                    | Pipeline graph (build, type-check, lint, lint:css)                                |
+| `.changeset/`                                   | Versioning + publish tracking                                                     |
 
 ## Validation gates
 
@@ -154,11 +166,16 @@ pnpm install
 pnpm type-check      # turbo run type-check (strict + noUnused* across packages)
 pnpm lint            # turbo run lint --max-warnings 0
 pnpm lint:css        # stylelint via turbo on packages/ui
-pnpm format:check    # prettier across packages + apps
+pnpm format:check    # root prettier (packages, docs, scripts, workflows, root files), then the console's own prettier over apps/console/src
+pnpm check:gallery   # every primitive export has a gallery specimen
+pnpm check:mcp-tools # apps/console/server/mcp_tools.generated.json is up to date
 pnpm build           # turbo run build (packages/ui emits dist/, console builds)
 pnpm dev             # apps/console vite dev server (gallery + demo apps)
-pnpm check           # type-check + lint + lint:css + format:check in one shot
+pnpm check           # type-check + lint + lint:css + format:check + check:gallery + check:mcp-tools (not build)
 ```
+
+CI (`.github/workflows/check.yml`) runs `pnpm check`, then `pnpm build`,
+then a smoke test of the console Go binary.
 
 For browser runtime failures where the page renders and then turns blank, use
 the repo-local Headless DevTools Debug skill:
@@ -176,7 +193,8 @@ browser at desktop AND ≤768 px width.
 
 ## Strict-lint policy (don't water down)
 
-The ESLint config is intentionally maximal:
+The library's ESLint config (root `.eslintrc.cjs`, applied to
+`packages/ui`) is intentionally maximal:
 
 - `@typescript-eslint/recommended-type-checked` +
   `stylistic-type-checked` — all the `no-unsafe-*` /
@@ -195,10 +213,17 @@ The ESLint config is intentionally maximal:
 - `no-console` allows only `warn` / `error`.
 - `curly: ['error', 'all']` — every `if` gets braces.
 
-Console (`apps/console/src/**`) gets a few rules
-relaxed (`react-refresh/only-export-components`, `no-console`,
-`jsx-a11y/label-has-associated-control` for specimen markup). Library
-code does not.
+The console has its own, looser config in `apps/console/.eslintrc.cjs`
+(the root config ignores `apps/console/`). It extends
+`@typescript-eslint/recommended` without the type-checked presets and
+without `jsx-a11y`, and adds: `no-explicit-any` and
+`no-non-null-assertion` as errors, `consistent-type-imports`,
+`array-type: array-simple`, `naming-convention`,
+`react-hooks/exhaustive-deps` as an error, `no-console` (only `warn` /
+`error` allowed), and a `no-restricted-syntax` ban on antd's static
+`Modal.confirm` / `message.*` / `notification.*` APIs (use
+`App.useApp()` so dark mode applies). It runs with `--max-warnings 0`,
+so warnings fail too. Library code stays on the strict root config.
 
 **When you hit a lint error**: fix the code, don't disable the rule.
 Per-line `eslint-disable` comments require a justification on the next
@@ -206,12 +231,36 @@ line.
 
 ## Husky + commitlint
 
-- Pre-commit: `lint-staged` runs ESLint + Prettier on staged files.
+- Pre-commit: `lint-staged` runs ESLint + Prettier (and Stylelint for
+  CSS) on staged files outside `apps/console/`. Console files are not
+  touched by the hook; `pnpm check` covers them.
 - Commit message: `commitlint` enforces conventional-commits
   (`feat:` / `fix:` / `chore:` / `refactor:` / …).
 
 If a hook blocks you, fix the underlying issue. Don't pass `--no-verify`
 unless explicitly asked by a human.
+
+## Releasing the library
+
+`@lincyaw/aegis-ui` is versioned with changesets and published by CI,
+never from a local checkout:
+
+1. With any consumer-visible change, run `pnpm changeset` and commit the
+   generated `.changeset/*.md` alongside the change.
+2. To cut a release, run `pnpm changeset version` (bumps
+   `packages/ui/package.json`, writes the CHANGELOGs, consumes the
+   changesets) and commit the result as `chore(release): v<version>`.
+3. Tag that commit `v<version>` — it must match the version in
+   `packages/ui/package.json` — and push the tag
+   (`git push origin v<version>`).
+4. The `publish` workflow verifies the tag against
+   `packages/ui/package.json`, runs `pnpm check`, builds the library and
+   runs `npm publish --access public --provenance` from `packages/ui`.
+   npm authenticates through Trusted Publishing, falling back to the
+   `NPM_TOKEN` secret.
+
+The console binary is released separately with `console-v*` tags (see
+`apps/console/server/README.md`).
 
 ## First principle — fix the library before the page
 
@@ -280,44 +329,44 @@ Full text: `/home/ddq/.claude/plugins/cache/autoharness/autoharness/1.1.3/refere
 
 1. **Design language coherence across sub-apps** (Primary) — every page in `apps/console/src/apps/*` is composed only of `@lincyaw/aegis-ui` primitives + `PageWrapper`; no page-local re-implementation of primitives, no raw antd component without going through `getAegisTheme`.
    Measure: agent review on every page-touching change. Compare new pages against the gallery's primitive inventory and the "First principle" section.
-   Mechanism: **agent**. Baseline: unmeasured.
+   Mechanism: **agent**. Baseline: judged per change by review.
 
-2. **Gallery specimen coverage = 100%** — every export from `packages/ui/src/components/ui/index.ts` has a live specimen in `apps/console/src/Gallery.tsx`.
-   Measure: `pnpm check:gallery` (runs `scripts/check-gallery-coverage.mjs` — parses the barrel exports, walks every `<SectionDivider>…</SectionDivider>` block including multi-line dividers and ones carrying an `extra={…}` prop, exits non-zero with the missing-primitive list when coverage < 100%). Also runs as part of `pnpm check`.
-   Mechanism: **script** + **agent** confirmation (visual review in `pnpm dev` that the specimen actually renders the variants worth shipping, not just an empty placeholder). Baseline: 47 / 47 (100%) at this commit.
+2. **Gallery specimen coverage = 100%** — every export from `packages/ui/src/components/ui/index.ts`, plus the UI component exports of `packages/ui/src/agent/index.ts`, has a live specimen in `apps/console/src/Gallery.tsx`.
+   Measure: `pnpm check:gallery` (runs `scripts/check-gallery-coverage.mjs` — parses both barrels, walks every `<SectionDivider>…</SectionDivider>` block including multi-line dividers and ones carrying an `extra={…}` prop, exits non-zero with the missing-primitive list when coverage < 100%). Also runs as part of `pnpm check`.
+   Mechanism: **script** + **agent** confirmation (visual review in `pnpm dev` that the specimen actually renders the variants worth shipping, not just an empty placeholder). Baseline: measure with `pnpm check:gallery`.
 
-3. **All CI gates green** — `pnpm check` exits 0 (type-check + lint + lint:css + format:check + build).
-   Measure: `pnpm check`
-   Mechanism: **script**. Baseline: green at commit `a75324a`.
+3. **All CI gates green** — `pnpm check` (type-check + lint + lint:css + format:check + check:gallery + check:mcp-tools) and `pnpm build` both exit 0.
+   Measure: `pnpm check && pnpm build`
+   Mechanism: **script**. Baseline: measure with the command.
 
 4. **Token discipline** — zero raw hex / raw px / raw ms inside `packages/ui/src/components/**/*.css` and `packages/ui/src/layouts/**/*.css` (`packages/ui/src/styles/**` is the token home and is excluded).
    Measure: `grep -REn --include='*.css' '#[0-9a-fA-F]{3,8}\b|\b[0-9]+px\b|\b[0-9]+ms\b' packages/ui/src/components packages/ui/src/layouts`
-   Mechanism: **script**. Baseline: TBD.
+   Mechanism: **script**. Baseline: measure with the command.
 
 5. **Justified `eslint-disable` only** — every `eslint-disable` line is followed by a justification comment on the next line, per CLAUDE.md strict-lint policy.
    Measure: `grep -REn 'eslint-disable' packages/ui/src apps/console/src` and audit each hit has a justification above/below.
-   Mechanism: **script** (locate) + **agent** (judge justification). Baseline: TBD.
+   Mechanism: **script** (locate) + **agent** (judge justification). Baseline: measure with the command.
 
 6. **Dual-theme + responsive parity** — every primitive specimen and sub-app page renders cleanly in **light + dark** at **desktop + ≤768 px**.
    Measure: open `pnpm dev` → toggle `ThemeToggle` → resize.
-   Mechanism: **agent** (browser check on UI work). Baseline: parity restored at commit `a75324a` (`getAegisTheme(scheme)` landed).
+   Mechanism: **agent** (browser check on UI work). Baseline: checked in the browser on each UI change.
 
 Secondary tiebreaker: **fix the primitive before the page** — see "First principle — fix the library before the page" section above. When a target conflicts with this principle, the principle wins.
 
 ## Dev-loop stages
 
-| Stage        | Command                                                                                         | Notes                                                               |
-| ------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Type check   | `pnpm type-check`                                                                               | Run after every TS change                                           |
-| Lint         | `pnpm lint`                                                                                     | ESLint `--max-warnings 0` enforced                                  |
-| Lint CSS     | `pnpm lint:css`                                                                                 | Stylelint over `packages/ui/src/**/*.css`                           |
-| Format       | `pnpm format:check`                                                                             | Prettier — fix with `pnpm format`                                   |
-| Build        | `pnpm build`                                                                                    | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css       |
-| Full gate    | `pnpm check`                                                                                    | type-check + lint + lint:css + format:check; run before commit + PR |
-| Dev server   | `pnpm dev`                                                                                      | apps/console at `:3323` — use for dual-theme + responsive checks    |
-| Measure NS#2 | `pnpm check:gallery`                                                                            | Gallery specimen coverage (also folded into `pnpm check`)           |
-| Measure NS#4 | see north-star target 4                                                                         | Token discipline grep                                               |
-| Bundle size  | `pnpm -F @lincyaw/aegis-ui build && du -b packages/ui/dist/index.js packages/ui/dist/style.css` | Compare to baseline before/after primitive changes                  |
+| Stage        | Command                                                                                      | Notes                                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Type check   | `pnpm type-check`                                                                            | Run after every TS change                                                                                                 |
+| Lint         | `pnpm lint`                                                                                  | ESLint `--max-warnings 0` enforced                                                                                        |
+| Lint CSS     | `pnpm lint:css`                                                                              | Stylelint over `packages/ui/src/**/*.css`                                                                                 |
+| Format       | `pnpm format:check`                                                                          | Prettier (root config, then the console's) — fix with `pnpm format`                                                       |
+| Build        | `pnpm build`                                                                                 | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css                                                             |
+| Full gate    | `pnpm check`                                                                                 | type-check + lint + lint:css + format:check + check:gallery + check:mcp-tools; run (plus `pnpm build`) before commit + PR |
+| Dev server   | `pnpm dev`                                                                                   | apps/console at `:3323` — use for dual-theme + responsive checks                                                          |
+| Measure NS#2 | `pnpm check:gallery`                                                                         | Gallery specimen coverage (also folded into `pnpm check`)                                                                 |
+| Measure NS#4 | see north-star target 4                                                                      | Token discipline grep                                                                                                     |
+| Bundle size  | `pnpm -F @lincyaw/aegis-ui build && du -cb packages/ui/dist/*.js packages/ui/dist/style.css` | Compare before/after primitive changes                                                                                    |
 
 No unit-test runner is configured. Visual verification in `pnpm dev` is the testing substrate for primitives; type-check + lint + build catch correctness regressions.
 

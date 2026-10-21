@@ -12,7 +12,8 @@
 #     pair-cn-shanghai.cr.volces.com/opspai mirror, which auto-syncs).
 #
 # What it does (and does NOT do):
-#   - DOES: pnpm check (type-check + lint + lint:css + format:check)
+#   - DOES: pnpm check (type-check, lint, lint:css, format:check,
+#     check:gallery, check:mcp-tools)
 #   - DOES: docker buildx --platform linux/amd64 + push (latest + tag)
 #   - DOES: kubectl set image + rollout status wait
 #   - DOES NOT: git commit; bump aegislab manifest. Do those separately
@@ -21,7 +22,7 @@
 # Requirements:
 #   - docker login docker.io as opspai (or equivalent push creds)
 #   - kubectl context on byte-cluster, namespace `exp`
-#   - pnpm + node 20+
+#   - pnpm + node 22+
 
 set -euo pipefail
 
