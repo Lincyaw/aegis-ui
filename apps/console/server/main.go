@@ -132,6 +132,7 @@ const helpText = `aegis-console ` + `— local viewer for AegisLab trajectories 
 
 Usage:
   aegis-console [flags]
+  aegis-console mcp [--lock <file>] [--session <id>] [--list-sessions]
 
 Flags:
   --port <n>                Port to listen on (default 3323)
@@ -140,6 +141,8 @@ Flags:
   --clickhouse <url>        ClickHouse HTTP endpoint (default http://127.0.0.1:8123)
   --clickhouse-db <name>    ClickHouse database (default otel)
   --clickhouse-table <name> Traces table (default otel_traces)
+  --clickhouse-logs-table <name>
+                            Logs table (default otel_logs)
   --clickhouse-user <name>  Optional CH user
   --clickhouse-password <p> Optional CH password
   --sso-origin <url>        SSO origin (default same as --gateway)
@@ -147,8 +150,17 @@ Flags:
   --sso-scope <scope>       OIDC scope (default "openid profile email")
   --config <file>           Load JSON config (CLI flags override file values)
   --open                    Open the browser after starting
+  --bridge                  Enable the MCP bridge (lock file + /aegis-bridge/ws)
+  --bridge-no-auth          Skip the bridge auth check (dev only)
   -h, --help                Show this help and exit
   -v, --version             Show version and exit
+
+Subcommands:
+  mcp                       Run an MCP server over stdio, connected to a running
+                            console started with --bridge
+    --lock <file>           Bridge lock file (default: newest in ~/.aegis/ide)
+    --session <id>          Browser session id (default: most recent)
+    --list-sessions         Print the sessions on the bridge and exit
 
 Config file (JSON, camelCase keys):
   { "gateway": "https://gw.example.com", "clickhouse": "http://localhost:8123" }
