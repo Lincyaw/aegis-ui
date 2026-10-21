@@ -1,7 +1,9 @@
 import { type ReactNode, useRef } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
@@ -9,16 +11,7 @@ import { StatusDot } from './StatusDot';
 import { TrajectoryStep, type TrajectoryStepData } from './TrajectoryStep';
 import './TrajectoryTimeline.css';
 
-export interface TrajectoryTimelineSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (
-    steps: TrajectoryStepData[],
-  ) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type TrajectoryTimelineSurface = PrimitiveSurface<TrajectoryStepData[]>;
 
 export interface TrajectoryTimelineProps {
   steps: TrajectoryStepData[];
@@ -40,16 +33,7 @@ export function TrajectoryTimeline({
   surface,
 }: TrajectoryTimelineProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  useAegisSurface<TrajectoryStepData[]>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'timeline',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: steps,
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(surface, steps, 'timeline', wrapRef);
   const cls = ['aegis-trajectory-timeline', className ?? '']
     .filter(Boolean)
     .join(' ');
@@ -59,12 +43,7 @@ export function TrajectoryTimeline({
   const pulse = status === 'running';
 
   return (
-    <div
-      ref={wrapRef}
-      className={cls}
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
-    >
+    <div ref={wrapRef} className={cls} {...agentAttrs}>
       <header className="aegis-trajectory-timeline__header">
         <div className="aegis-trajectory-timeline__header-left">
           <StatusDot tone={statusTone} pulse={pulse} />

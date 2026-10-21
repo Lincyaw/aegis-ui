@@ -1,23 +1,18 @@
 import { type ReactNode, useRef } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import './Avatar.css';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 type AvatarStatus = 'online' | 'offline' | 'busy' | 'away';
 
-export interface AvatarSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (data: {
-    name: string;
-    status?: AvatarStatus;
-  }) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type AvatarSurface = PrimitiveSurface<{
+  name: string;
+  status?: AvatarStatus;
+}>;
 
 interface AvatarProps {
   name: string;
@@ -59,16 +54,12 @@ export function Avatar({
   surface,
 }: AvatarProps) {
   const wrapRef = useRef<HTMLSpanElement>(null);
-  useAegisSurface<{ name: string; status?: AvatarStatus }>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'entity',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: { name, status },
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(
+    surface,
+    { name, status },
+    'entity',
+    wrapRef,
+  );
 
   const cls = ['aegis-avatar', `aegis-avatar--${size}`, className]
     .filter(Boolean)
@@ -77,11 +68,6 @@ export function Avatar({
   const wrapperCls = ['aegis-avatar-wrap', `aegis-avatar-wrap--${size}`].join(
     ' ',
   );
-
-  const surfaceAttrs = {
-    'data-agent-surface-id': surface?.id,
-    'data-agent-ask': surface?.ask === false ? 'off' : undefined,
-  } as const;
 
   const content = src ? (
     <img src={src} alt={name} className={cls} />
@@ -100,14 +86,14 @@ export function Avatar({
       return content;
     }
     return (
-      <span ref={wrapRef} className="aegis-avatar-wrap" {...surfaceAttrs}>
+      <span ref={wrapRef} className="aegis-avatar-wrap" {...agentAttrs}>
         {content}
       </span>
     );
   }
 
   return (
-    <span ref={wrapRef} className={wrapperCls} {...surfaceAttrs}>
+    <span ref={wrapRef} className={wrapperCls} {...agentAttrs}>
       {content}
       <span
         className={`aegis-avatar__status aegis-avatar__status--${status}`}

@@ -1,17 +1,12 @@
 import { useRef } from 'react';
 
-import { useAegisSurface } from '../../agent/hooks';
-import type { SurfaceKind, SurfaceSnapshot } from '../../agent/types';
+import {
+  type PrimitiveSurface,
+  usePrimitiveSurface,
+} from '../../agent/usePrimitiveSurface';
 import './SparkLine.css';
 
-export interface SparkLineSurface {
-  id: string;
-  kind?: SurfaceKind;
-  label?: string;
-  project: (points: number[]) => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
-  askSuggestions?: string[];
-  ask?: boolean;
-}
+export type SparkLineSurface = PrimitiveSurface<number[]>;
 
 interface SparkLineProps {
   /** Sample values; rendered evenly on the X axis. */
@@ -60,16 +55,7 @@ export function SparkLine({
   surface,
 }: SparkLineProps) {
   const wrapRef = useRef<HTMLSpanElement>(null);
-  useAegisSurface<number[]>({
-    id: surface?.id ?? '__unused__',
-    kind: surface?.kind ?? 'chart',
-    label: surface?.label,
-    askSuggestions: surface?.askSuggestions,
-    data: points,
-    project: surface ? surface.project : () => ({}),
-    ref: wrapRef,
-    enabled: Boolean(surface),
-  });
+  const agentAttrs = usePrimitiveSurface(surface, points, 'chart', wrapRef);
   const path = buildPath(points, width, height);
   const cls = [
     'aegis-sparkline',
@@ -86,8 +72,7 @@ export function SparkLine({
       className={cls}
       aria-label={ariaLabel}
       role="img"
-      data-agent-surface-id={surface?.id}
-      data-agent-ask={surface?.ask === false ? 'off' : undefined}
+      {...agentAttrs}
     >
       <svg
         viewBox={`0 0 ${width} ${height}`}
