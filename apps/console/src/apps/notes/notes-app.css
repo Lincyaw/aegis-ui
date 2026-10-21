@@ -44,12 +44,6 @@
   min-height: 0;
 }
 
-.notes-app__center {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-6) 0;
-}
-
 .notes-app__content {
   flex: 1 1 auto;
   min-width: 0;
@@ -96,10 +90,9 @@
 
 .notes-view__breadcrumb {
   margin-bottom: var(--space-2);
-  font-size: var(--fs-12);
 }
 
-.notes-view__title.notes-view__title {
+.notes-view__title {
   margin-bottom: var(--space-2);
 }
 
@@ -114,21 +107,6 @@
   font-family: var(--font-mono);
   font-size: var(--fs-11);
   color: var(--text-muted);
-}
-
-.notes-home {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: var(--space-12) var(--space-4);
-  color: var(--text-muted);
-}
-
-.notes-home__icon {
-  font-size: var(--fs-42);
-  color: var(--text-muted);
-  margin-bottom: var(--space-3);
 }
 
 /* ---- Table of contents ----------------------------------------------- */
@@ -346,6 +324,7 @@
   }
 
   .notes-view {
+    width: 100%;
     max-width: 100%;
   }
 

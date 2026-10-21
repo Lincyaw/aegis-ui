@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { BookOutlined } from '@ant-design/icons';
-import { Skeleton, Typography } from 'antd';
+import { EmptyState, SkeletonText } from '@lincyaw/aegis-ui';
 
 import { NOTES_REPO, useFileContent } from '../api/github-client';
 import { WikiMarkdown } from '../components/WikiMarkdown';
@@ -18,7 +18,7 @@ export default function NotesHome(): JSX.Element {
   );
 
   if (readme.isLoading) {
-    return <Skeleton active paragraph={{ rows: 8 }} />;
+    return <SkeletonText lines={8} />;
   }
 
   if (readme.isSuccess && readme.data) {
@@ -31,13 +31,10 @@ export default function NotesHome(): JSX.Element {
   }
 
   return (
-    <div className='notes-home'>
-      <BookOutlined className='notes-home__icon' />
-      <Typography.Title level={3}>{NOTES_REPO}</Typography.Title>
-      <Typography.Paragraph type='secondary'>
-        {files.length} note{files.length === 1 ? '' : 's'} in this knowledge
-        base. Pick one from the sidebar to start reading.
-      </Typography.Paragraph>
-    </div>
+    <EmptyState
+      icon={<BookOutlined />}
+      title={NOTES_REPO}
+      description={`${files.length} note${files.length === 1 ? '' : 's'} in this knowledge base. Pick one to start reading.`}
+    />
   );
 }

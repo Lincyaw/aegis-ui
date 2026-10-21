@@ -1,15 +1,15 @@
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Outlet, useParams } from 'react-router-dom';
 
 import { MenuOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Button as AegisButton } from '@lincyaw/aegis-ui';
-import { Alert, Button, Drawer, Empty, Input, Spin, Tooltip } from 'antd';
+import {
+  Button,
+  EmptyState,
+  ErrorState,
+  SearchInput,
+  SkeletonText,
+} from '@lincyaw/aegis-ui';
+import { Drawer } from 'antd';
 
 import { NOTES_REPO, useRefreshNotes, useRepoTree } from '../api/github-client';
 import { NoteTree } from '../components/NoteTree';
@@ -68,39 +68,37 @@ export default function NotesLayout(): JSX.Element {
       <div className='notes-app__sidebar-head'>
         <div className='notes-app__repo'>
           {NOTES_REPO}
-          <Tooltip title='Refresh'>
-            <Button
-              type='text'
-              size='small'
-              icon={<ReloadOutlined spin={tree.isFetching} />}
-              onClick={refresh}
-            />
-          </Tooltip>
+          <Button
+            tone='ghost'
+            title='Refresh notes'
+            aria-label='Refresh notes'
+            onClick={refresh}
+          >
+            <ReloadOutlined spin={tree.isFetching} />
+          </Button>
         </div>
-        <Input
-          allowClear
-          size='small'
+        <SearchInput
           placeholder='Search notes'
           value={query}
-          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-            setQuery(event.target.value)
-          }
+          onChange={setQuery}
+          onClear={() => setQuery('')}
         />
       </div>
       <div className='notes-app__tree'>
         {tree.isLoading ? (
-          <div className='notes-app__center'>
-            <Spin />
-          </div>
+          <SkeletonText lines={6} />
         ) : tree.isError ? (
-          <Alert
-            type='error'
-            showIcon
-            message='Failed to load notes'
+          <ErrorState
+            title='Failed to load notes'
             description='The repository tree could not be fetched.'
+            action={
+              <Button tone='secondary' onClick={refresh}>
+                Try again
+              </Button>
+            }
           />
         ) : filtered.length === 0 ? (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No notes' />
+          <EmptyState title={query ? 'No matching notes' : 'No notes'} />
         ) : (
           <NoteTree
             files={filtered}
@@ -117,14 +115,14 @@ export default function NotesLayout(): JSX.Element {
       {isMobile ? (
         <>
           <div className='notes-app__mobile-bar'>
-            <AegisButton
+            <Button
               tone='secondary'
               aria-expanded={drawerOpen}
               onClick={() => setDrawerOpen(true)}
             >
               <MenuOutlined />
               Browse notes
-            </AegisButton>
+            </Button>
           </div>
           <Drawer
             open={drawerOpen}
