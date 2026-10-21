@@ -119,7 +119,6 @@
   --diff-removed-word: #fdb8c0;
 
   /* ── Weights ─────────────────────────────────────────────────────── */
-  --fw-light: 300;
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
@@ -177,7 +176,6 @@
   --size-icon-lg: 20px;
   --size-control-sm: 24px;
   --size-control-base: 32px;
-  --size-control-lg: 40px;
   --size-avatar-sm: 24px;
   --size-avatar-base: 32px;
   --size-avatar-lg: 40px;
@@ -188,27 +186,16 @@
   --size-resize-handle: 6px;
   --size-resize-collapsed: 8px;
 
-  /* ── Breakpoints (Tailwind-aligned, for documentation + JS) ──────── */
-  /* CSS @media rules can't reference custom properties, so these are  */
-  /* the canonical values to use in media queries throughout the lib. */
-  --bp-sm: 640px;
-  --bp-md: 768px;
-  --bp-lg: 1024px;
-  --bp-xl: 1280px;
-
   /* ── Layout ──────────────────────────────────────────────────────── */
   --header-height: 56px;
   --sidebar-width-expanded: 240px;
-  --sidebar-width-collapsed: 64px;
   --page-max-width: none;
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;
   --z-sticky: 1020;
-  --z-fixed: 1030;
   --z-modal: 1050;
   --z-popover: 1060;
-  --z-tooltip: 1070;
 }
 
 /* ── Dark theme — overrides only the colour + shadow tokens ────────── *
@@ -232,12 +219,10 @@
   /* Borders */
   --border-hairline: rgba(255, 255, 255, 0.1);
   --border-emphasis: rgba(255, 255, 255, 0.22);
-  --border-strong: var(--text-main);
   --border-on-inverted: rgba(0, 0, 0, 0.1);
 
   /* Semantic accents */
   --accent-warning: #fb7185; /* lighter pink-red — readable on dark ink */
-  --accent-warning-soft: var(--bg-warning-soft);
 
   /* Aegis highlight (agent "look here" cue) — brighter ring on dark ink. */
   --aegis-highlight-ring: rgba(165, 180, 252, 0.7);
