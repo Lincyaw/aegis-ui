@@ -11,21 +11,32 @@
   margin-top: var(--space-6);
 }
 
-/* Stagger children inside page-wrapper for subtle sequential reveal */
-.page-wrapper > *:nth-child(1) {
-  animation-delay: 0ms;
+/* Staggered entrance of the page's top-level blocks. :where() keeps
+ * specificity at zero so a child's own animation (Skeleton shimmer, …)
+ * wins. `backwards` fill drops the transform once the entrance ends, so
+ * the blocks don't stay stacking contexts that paint over each other's
+ * popovers. */
+:where(.page-wrapper > *) {
+  animation: stagger-fade-in var(--motion-base) backwards;
 }
-.page-wrapper > *:nth-child(2) {
-  animation-delay: 40ms;
+:where(.page-wrapper > :nth-child(2)) {
+  animation-delay: var(--motion-stagger-step);
 }
-.page-wrapper > *:nth-child(3) {
-  animation-delay: 80ms;
+:where(.page-wrapper > :nth-child(3)) {
+  animation-delay: calc(var(--motion-stagger-step) * 2);
 }
-.page-wrapper > *:nth-child(4) {
-  animation-delay: 120ms;
+:where(.page-wrapper > :nth-child(4)) {
+  animation-delay: calc(var(--motion-stagger-step) * 3);
 }
-.page-wrapper > *:nth-child(5) {
-  animation-delay: 160ms;
+:where(.page-wrapper > :nth-child(n + 5)) {
+  animation-delay: calc(var(--motion-stagger-step) * 4);
+}
+
+/* The global reduced-motion rule shortens durations but not delays. */
+@media (prefers-reduced-motion: reduce) {
+  :where(.page-wrapper > *) {
+    animation: none;
+  }
 }
 
 .page-overview-grid {
@@ -72,11 +83,11 @@
 
 .page-table__row:hover {
   background: var(--bg-muted);
-  transform: translateX(2px);
+  transform: translateX(var(--space-px));
 }
 
 .page-table__row:active {
-  transform: translateX(2px) scale(0.998);
+  transform: translateX(var(--space-px)) scale(0.998);
 }
 
 .page-table__cell {

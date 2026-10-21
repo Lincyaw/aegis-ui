@@ -119,7 +119,6 @@
   --diff-removed-word: #fdb8c0;
 
   /* ── Weights ─────────────────────────────────────────────────────── */
-  --fw-light: 300;
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
@@ -145,6 +144,9 @@
   --motion-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --motion-skeleton: 1400ms;
   --motion-spin: 800ms;
+  --motion-pulse: 2000ms;
+  --motion-stagger-step: 40ms;
+  --motion-stagger-offset: 2px;
 
   /* ── Aegis highlight (agent "look here" cue) ─────────────────────── */
   --aegis-highlight-ring: rgba(99, 102, 241, 0.55);
@@ -161,13 +163,19 @@
   /* ── Notification bell popover ───────────────────────────────────── */
   --notif-popover-max-height: 420px;
 
+  /* ── Component layout sizes ──────────────────────────────────────── */
+  --object-browser-tree-width: 220px;
+  --composer-input-max-height: 160px;
+  --chat-session-menu-min-width: 140px;
+  --parquet-created-by-max-width: 200px;
+  --service-map-min-height: 360px;
+
   /* ── Component sizing (icons, controls, avatars) ─────────────────── */
   --size-icon-sm: 12px;
   --size-icon-base: 16px;
   --size-icon-lg: 20px;
   --size-control-sm: 24px;
   --size-control-base: 32px;
-  --size-control-lg: 40px;
   --size-avatar-sm: 24px;
   --size-avatar-base: 32px;
   --size-avatar-lg: 40px;
@@ -178,27 +186,16 @@
   --size-resize-handle: 6px;
   --size-resize-collapsed: 8px;
 
-  /* ── Breakpoints (Tailwind-aligned, for documentation + JS) ──────── */
-  /* CSS @media rules can't reference custom properties, so these are  */
-  /* the canonical values to use in media queries throughout the lib. */
-  --bp-sm: 640px;
-  --bp-md: 768px;
-  --bp-lg: 1024px;
-  --bp-xl: 1280px;
-
   /* ── Layout ──────────────────────────────────────────────────────── */
   --header-height: 56px;
   --sidebar-width-expanded: 240px;
-  --sidebar-width-collapsed: 64px;
   --page-max-width: none;
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;
   --z-sticky: 1020;
-  --z-fixed: 1030;
   --z-modal: 1050;
   --z-popover: 1060;
-  --z-tooltip: 1070;
 }
 
 /* ── Dark theme — overrides only the colour + shadow tokens ────────── *
@@ -222,12 +219,10 @@
   /* Borders */
   --border-hairline: rgba(255, 255, 255, 0.1);
   --border-emphasis: rgba(255, 255, 255, 0.22);
-  --border-strong: var(--text-main);
   --border-on-inverted: rgba(0, 0, 0, 0.1);
 
   /* Semantic accents */
   --accent-warning: #fb7185; /* lighter pink-red — readable on dark ink */
-  --accent-warning-soft: var(--bg-warning-soft);
 
   /* Aegis highlight (agent "look here" cue) — brighter ring on dark ink. */
   --aegis-highlight-ring: rgba(165, 180, 252, 0.7);
@@ -283,11 +278,11 @@
   }
 }
 
-/* ── Staggered children (Panel contents, list rows) ────────────────── */
+/* ── Staggered children (PageWrapper's top-level blocks) ───────────── */
 @keyframes stagger-fade-in {
   from {
     opacity: 0;
-    transform: translateY(2px);
+    transform: translateY(var(--motion-stagger-offset));
   }
   to {
     opacity: 1;

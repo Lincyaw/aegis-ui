@@ -25,7 +25,7 @@
 .aegis-composer__input {
   flex: 1 1 auto;
   min-height: var(--size-control-base);
-  max-height: 160px;
+  max-height: var(--composer-input-max-height);
   padding: var(--space-2) var(--space-3);
   resize: vertical;
   background: var(--bg-page);

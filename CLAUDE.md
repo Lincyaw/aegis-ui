@@ -71,9 +71,10 @@ in `apps/console/src/main.tsx`).
 
 ## Design conventions — enforced
 
-- **No hardcoded values** in component CSS. No raw hex, raw px, raw ms.
-  Reference a CSS custom property from `theme.css`. If a token is missing,
-  add it there first.
+- **No hardcoded values** in component CSS. No raw hex, raw px, raw ms
+  or s (px only as an `@media` breakpoint). Reference a CSS custom
+  property from `theme.css`. If a token is missing, add it there first.
+  Stylelint (`pnpm lint:css`) enforces this.
 - **Activation = surface inversion** (`--bg-inverted` background +
   `--text-on-inverted` text). Never accent colour.
 - **Anomaly red** (`--accent-warning`, `#E11D48`) is reserved for _actual_
@@ -339,9 +340,9 @@ Full text: `/home/ddq/.claude/plugins/cache/autoharness/autoharness/1.1.3/refere
    Measure: `pnpm check && pnpm build`
    Mechanism: **script**. Baseline: measure with the command.
 
-4. **Token discipline** — zero raw hex / raw px / raw ms inside `packages/ui/src/components/**/*.css` and `packages/ui/src/layouts/**/*.css` (`packages/ui/src/styles/**` is the token home and is excluded).
-   Measure: `grep -REn --include='*.css' '#[0-9a-fA-F]{3,8}\b|\b[0-9]+px\b|\b[0-9]+ms\b' packages/ui/src/components packages/ui/src/layouts`
-   Mechanism: **script**. Baseline: measure with the command.
+4. **Token discipline** — zero raw hex / raw px / raw ms / raw s inside `packages/ui/src/components/**/*.css` and `packages/ui/src/layouts/**/*.css` (`packages/ui/src/styles/**` is the token home and is excluded). px is allowed only as an `@media` breakpoint.
+   Measure: `grep -REn --include='*.css' '#[0-9a-fA-F]{3,8}\b|\b[0-9]+px\b|\b[0-9.]+m?s\b' packages/ui/src/components packages/ui/src/layouts | grep -v '@media'` — target is no output.
+   Mechanism: **script** — Stylelint enforces it in `pnpm lint:css` (`color-no-hex`, `color-named`, `unit-disallowed-list` for px / ms / s outside media queries); the grep is a quick audit. Baseline: measure with the command.
 
 5. **Justified `eslint-disable` only** — every `eslint-disable` line is followed by a justification comment on the next line, per CLAUDE.md strict-lint policy.
    Measure: `grep -REn 'eslint-disable' packages/ui/src apps/console/src` and audit each hit has a justification above/below.
@@ -380,7 +381,7 @@ No unit-test runner is configured. Visual verification in `pnpm dev` is the test
 (See the hand-written sections above for full detail. Conventions enforced by this configuration:)
 
 - **Primitive-before-page**: see "First principle — fix the library before the page".
-- **Token-first CSS**: no raw hex / px / ms in component or layout CSS — reference `--*` tokens from `packages/ui/src/styles/theme.css`. Add a token there before using a new value.
+- **Token-first CSS**: no raw hex / px / ms / s in component or layout CSS (px only as an `@media` breakpoint; enforced by Stylelint) — reference `--*` tokens from `packages/ui/src/styles/theme.css`. Add a token there before using a new value.
 - **Every primitive ships a Gallery specimen**: PR is incomplete without one.
 - **Antd via `getAegisTheme(scheme)`**: never use raw antd directly without the scheme-aware ConfigProvider; if a token is missing for an antd component in dark mode, fix `antdTheme.ts`, not the page.
 - **Conventional commits**: enforced by commitlint via husky pre-commit. `--no-verify` only with explicit user approval.

@@ -1,6 +1,6 @@
 // Service-map composition adapted from HyperDX (MIT, DeploySentinel Inc. 2023):
 // https://github.com/hyperdxio/hyperdx/blob/main/packages/app/src/components/ServiceMap/ServiceMap.tsx
-import { useCallback, useMemo } from 'react';
+import { type CSSProperties, useCallback, useMemo } from 'react';
 
 import {
   type EdgeLabel,
@@ -68,6 +68,12 @@ interface ServiceEdgeData extends Record<string, unknown> {
 
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 64;
+
+// dagre lays nodes out at these sizes, so the CSS node box reads them too.
+const NODE_SIZE_VARS = {
+  '--aegis-service-map-node-w': `${String(NODE_WIDTH)}px`,
+  '--aegis-service-map-node-h': `${String(NODE_HEIGHT)}px`,
+};
 
 interface LayoutResult {
   nodes: Array<Node<ServiceNodeData>>;
@@ -242,8 +248,10 @@ function ServiceMapInner({
     [onEdgeClick],
   );
 
-  const style =
-    height !== undefined ? { height: `${String(height)}px` } : undefined;
+  const style = {
+    ...NODE_SIZE_VARS,
+    height: height === undefined ? undefined : `${String(height)}px`,
+  } as CSSProperties;
 
   return (
     <div
