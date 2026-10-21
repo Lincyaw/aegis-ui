@@ -8,6 +8,7 @@ import {
 import { Outlet, useParams } from 'react-router-dom';
 
 import { MenuOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button as AegisButton } from '@lincyaw/aegis-ui';
 import { Alert, Button, Drawer, Empty, Input, Spin, Tooltip } from 'antd';
 
 import { NOTES_REPO, useRefreshNotes, useRepoTree } from '../api/github-client';
@@ -115,12 +116,16 @@ export default function NotesLayout(): JSX.Element {
     <div className='notes-app'>
       {isMobile ? (
         <>
-          <Button
-            className='notes-app__menu-btn'
-            type='text'
-            icon={<MenuOutlined />}
-            onClick={() => setDrawerOpen(true)}
-          />
+          <div className='notes-app__mobile-bar'>
+            <AegisButton
+              tone='secondary'
+              aria-expanded={drawerOpen}
+              onClick={() => setDrawerOpen(true)}
+            >
+              <MenuOutlined />
+              Browse notes
+            </AegisButton>
+          </div>
           <Drawer
             open={drawerOpen}
             placement='left'

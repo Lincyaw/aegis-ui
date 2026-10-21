@@ -53,18 +53,9 @@
   padding-left: var(--space-4);
 }
 
-/* Mobile menu button */
-.notes-app__menu-btn {
-  position: fixed;
-  top: calc(var(--header-height, 56px) + var(--space-2));
-  left: var(--space-2);
-  z-index: 100;
-  background: transparent !important;
-  color: var(--text-main) !important;
-  border: 1px solid var(--border-hairline) !important;
-  border-radius: var(--radius-md) !important;
-  width: 36px !important;
-  height: 36px !important;
+.notes-app__mobile-bar {
+  flex: none;
+  padding-bottom: var(--space-3);
 }
 
 /* ---- Note view ------------------------------------------------------- */
@@ -330,13 +321,16 @@
     display: none;
   }
 
+  .notes-app__content {
+    padding-left: 0;
+  }
+
   .notes-view-wrapper {
     flex-direction: column;
   }
 
   .notes-view {
     max-width: 100%;
-    padding: 0 var(--space-2);
   }
 
   .notes-toc {
