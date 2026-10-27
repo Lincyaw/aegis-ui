@@ -246,6 +246,12 @@
   --chip-height-sm: auto;
   --chip-height-md: auto;
   --chip-height-lg: 28px;
+  --metric-label-transform: uppercase;
+  --metric-label-tracking: var(--tracking-label);
+  --search-input-height: auto;
+  --select-height: auto;
+  --stat-block-emphasized-size: var(--fs-18);
+  --page-header-margin-bottom: var(--space-6);
   --page-header-title-size: var(--fs-24);
   --page-header-title-size-mobile: var(--fs-18);
   --page-header-title-weight: var(--fw-medium);

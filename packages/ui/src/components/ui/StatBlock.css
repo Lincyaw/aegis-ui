@@ -17,6 +17,11 @@
   gap: var(--space-1);
 }
 
+/* emphasized: the large mono value, sized by the host through the token. */
+.aegis-stat__value .aegis-mono--lg {
+  font-size: var(--stat-block-emphasized-size);
+}
+
 .aegis-stat__unit {
   margin-left: var(--space-px);
 }

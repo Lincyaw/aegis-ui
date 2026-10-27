@@ -22,7 +22,7 @@ interface StatBlockProps {
   unit?: ReactNode;
   /** Layout direction. Default: horizontal (label · value, baseline). */
   direction?: 'horizontal' | 'vertical';
-  /** Use the larger 18 px mono variant. */
+  /** Use the larger mono value, `--stat-block-emphasized-size` (18 px by default). */
   emphasized?: boolean;
   /**
    * When `value` is a number, counts it up from 0 once on mount (about

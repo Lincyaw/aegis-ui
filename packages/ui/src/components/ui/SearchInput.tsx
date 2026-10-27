@@ -12,6 +12,11 @@ export interface SearchInputProps {
   /** Optional keyboard shortcut hint, e.g. `⌘K`. */
   kbd?: ReactNode;
   onClear?: () => void;
+  /**
+   * Fills the container's width, the field taking the free space. A host
+   * that sizes the search (e.g. a flex-basis in a toolbar) sets this too.
+   */
+  block?: boolean;
   className?: string;
 }
 
@@ -21,10 +26,17 @@ export function SearchInput({
   placeholder = 'Search…',
   kbd,
   onClear,
+  block = false,
   className,
 }: SearchInputProps) {
   const strings = useStrings();
-  const cls = ['aegis-search-input', className ?? ''].filter(Boolean).join(' ');
+  const cls = [
+    'aegis-search-input',
+    block ? 'aegis-search-input--block' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={cls}>

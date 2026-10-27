@@ -545,6 +545,12 @@ select.gallery__demo-input:focus {
   --chip-transform: none;
   --chip-tracking: normal;
   --chip-height-md: var(--size-control-sm);
+  --metric-label-transform: none;
+  --metric-label-tracking: normal;
+  --search-input-height: var(--size-control-base);
+  --select-height: var(--size-control-base);
+  --stat-block-emphasized-size: var(--fs-28);
+  --page-header-margin-bottom: 0;
   --page-header-title-size: var(--fs-28);
   --page-header-title-size-mobile: var(--fs-24);
   --page-header-title-weight: var(--fw-semibold);

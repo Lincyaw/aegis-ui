@@ -912,6 +912,11 @@ function App() {
           <Specimen caption="as='div'">
             <MetricLabel as='div'>block label</MetricLabel>
           </Specimen>
+          <Specimen caption='--metric-label-transform · --metric-label-tracking'>
+            <div className='gallery__token-override'>
+              <MetricLabel>Last updated</MetricLabel>
+            </div>
+          </Specimen>
         </div>
 
         <SectionDivider>Markdown</SectionDivider>
@@ -1506,6 +1511,16 @@ function App() {
               emphasized
               animateValue
             />
+          </Specimen>
+          <Specimen caption='--stat-block-emphasized-size · 28 px'>
+            <div className='gallery__token-override'>
+              <StatBlock
+                label='Pass rate'
+                value='82.4%'
+                direction='vertical'
+                emphasized
+              />
+            </div>
           </Specimen>
         </div>
 
@@ -2861,7 +2876,7 @@ function App() {
             />
           </Specimen>
           <Specimen
-            caption='--page-header-title-* · --page-header-description-*'
+            caption='--page-header-margin-bottom · --page-header-title-* · --page-header-description-*'
             span={3}
           >
             <div className='gallery__token-override'>
@@ -3722,6 +3737,53 @@ function App() {
               onChange={() => undefined}
               placeholder='Filter by prefix…'
             />
+          </Specimen>
+        </div>
+        <div className='gallery__row'>
+          <Specimen caption='block · the field fills the box' span={3}>
+            <SearchInput
+              block
+              value='checkout'
+              onChange={() => undefined}
+              onClear={() => undefined}
+            />
+          </Specimen>
+          <Specimen
+            caption="--search-input-height · --select-height · Tabs size='sm' · one --size-control-base row"
+            span={3}
+          >
+            <div className='gallery__token-override'>
+              <Toolbar
+                left={
+                  <>
+                    <SearchInput
+                      value=''
+                      onChange={() => undefined}
+                      placeholder='Search tasks'
+                    />
+                    <AegisSelect
+                      ariaLabel='Tag'
+                      value='all'
+                      options={[
+                        { value: 'all', label: 'All tags' },
+                        { value: 'sre', label: 'sre · 120' },
+                      ]}
+                      onChange={() => undefined}
+                    />
+                  </>
+                }
+                right={
+                  <RosettaTabs
+                    listOnly
+                    size='sm'
+                    items={[
+                      { key: 'excerpt', label: 'Excerpt' },
+                      { key: 'all', label: 'All 51' },
+                    ]}
+                  />
+                }
+              />
+            </div>
           </Specimen>
         </div>
 

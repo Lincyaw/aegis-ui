@@ -2,6 +2,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  height: var(--search-input-height);
   padding: var(--space-1) var(--space-3);
   background: var(--bg-page);
   border: var(--size-hairline) solid var(--border-hairline);
@@ -33,6 +34,16 @@
 
 .aegis-search-input__field::placeholder {
   color: var(--text-muted);
+}
+
+/* block: the box fills its container and the field takes the free width. */
+.aegis-search-input--block {
+  width: 100%;
+}
+
+.aegis-search-input--block .aegis-search-input__field {
+  flex: 1 1 auto;
+  width: auto;
 }
 
 .aegis-search-input__clear {

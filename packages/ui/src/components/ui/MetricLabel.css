@@ -1,6 +1,6 @@
 .aegis-metric-label {
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
+  text-transform: var(--metric-label-transform);
+  letter-spacing: var(--metric-label-tracking);
   color: var(--text-muted);
   line-height: 1.2;
   font-weight: var(--fw-regular);
