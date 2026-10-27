@@ -1,5 +1,7 @@
 import {
   type CSSProperties,
+  type KeyboardEvent,
+  type MouseEvent,
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
   useCallback,
@@ -16,6 +18,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { readStorage, writeStorage } from '../../lib/storage';
 import { useStrings } from '../../locale';
 import { Button } from './Button';
@@ -23,7 +26,7 @@ import { Checkbox } from './Checkbox';
 import './DataTable.css';
 import { EmptyState } from './EmptyState';
 import { PageSizeSelect } from './PageSizeSelect';
-import { Skeleton } from './Skeleton';
+import { Skeleton, SkeletonText } from './Skeleton';
 
 export type DataTableSurface<T> = PrimitiveSurface<T[]>;
 
@@ -51,6 +54,11 @@ export interface DataTableColumn<T> {
    * `truncate`.
    */
   kind?: 'actions';
+  /**
+   * Number column: right-aligned, monospace with tabular figures so digits
+   * and decimal points line up. Overrides `align`.
+   */
+  numeric?: boolean;
   render: (row: T, index: number) => ReactNode;
 }
 
@@ -90,12 +98,41 @@ interface DataTableProps<T> {
   selectable?: boolean;
   selectedKeys?: Array<string | number>;
   onSelectedKeysChange?: (keys: Array<string | number>) => void;
+  /**
+   * At ≤768 px, renders each row through this instead of the columns, as a
+   * stacked list with no sideways scroll. Selection, row clicks, loading,
+   * empty state and pagination keep working.
+   */
+  renderMobileCard?: (row: T, index: number) => ReactNode;
+  /**
+   * Makes rows clickable: pointer cursor, a trailing chevron, and Enter on a
+   * focused row. Links, buttons and form controls inside a cell keep their
+   * own behaviour.
+   */
+  onRowClick?: (row: T, index: number) => void;
   surface?: DataTableSurface<T>;
 }
 
 const DEFAULT_MIN_WIDTH = 60;
 const AUTO_COLUMN_MIN_WIDTH = 120;
 const SELECTION_WIDTH = 44;
+const CHEVRON_WIDTH = 40;
+const MOBILE_QUERY = '(max-width: 768px)';
+const CONTROL_SELECTOR =
+  'a, button, input, select, textarea, label, [role="button"], [role="link"], [role="checkbox"]';
+
+/** True when the click belongs to a control inside the row, or ends a text selection. */
+function isOwnedByControl(event: MouseEvent<HTMLElement>): boolean {
+  if (window.getSelection()?.type === 'Range') {
+    return true;
+  }
+  const target = event.target;
+  if (!(target instanceof Element)) {
+    return false;
+  }
+  const control = target.closest(CONTROL_SELECTOR);
+  return control !== null && event.currentTarget.contains(control);
+}
 
 function toCssWidth(w: number | string | undefined): string | undefined {
   if (w === undefined) {
@@ -142,9 +179,13 @@ export function DataTable<T>({
   selectable = false,
   selectedKeys,
   onSelectedKeysChange,
+  renderMobileCard,
+  onRowClick,
   surface,
 }: DataTableProps<T>) {
   const strings = useStrings();
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+  const cardMode = renderMobileCard !== undefined && isMobile;
   const selected = selectedKeys ?? [];
   const keys = data.map((row, index) => rowKey(row, index));
   const selectedCount = keys.filter((key) => selected.includes(key)).length;
@@ -282,9 +323,17 @@ export function DataTable<T>({
   }, [persistKey]);
 
   const cls = ['aegis-data-table', className ?? ''].filter(Boolean).join(' ');
+  const clickable = onRowClick !== undefined;
+  const fixedLayout = hasAnyWidth && !cardMode;
+  const columnCount =
+    (cardMode ? 1 : columns.length) +
+    (selectable ? 1 : 0) +
+    (clickable ? 1 : 0);
 
   const columnAlign = (col: DataTableColumn<T>) =>
-    col.kind === 'actions' ? 'right' : (col.align ?? 'left');
+    col.kind === 'actions' || col.numeric === true
+      ? 'right'
+      : (col.align ?? 'left');
 
   const cellStyle = (col: DataTableColumn<T>): CSSProperties => ({
     textAlign: columnAlign(col),
@@ -295,6 +344,9 @@ export function DataTable<T>({
       'aegis-data-table__cell',
       `aegis-data-table__cell--${columnAlign(col)}`,
     ];
+    if (col.numeric) {
+      classes.push('aegis-data-table__cell--numeric');
+    }
     if (col.kind === 'actions') {
       classes.push('aegis-data-table__cell--actions');
     } else if (col.truncate ?? true) {
@@ -303,19 +355,91 @@ export function DataTable<T>({
     return <div className={classes.join(' ')}>{node}</div>;
   };
 
+  const renderRowCells = (row: T, idx: number) =>
+    cardMode ? (
+      <td className="aegis-data-table__td aegis-data-table__card-cell">
+        {renderMobileCard(row, idx)}
+      </td>
+    ) : (
+      columns.map((col) => (
+        <td
+          key={col.key}
+          className="aegis-data-table__td"
+          style={cellStyle(col)}
+        >
+          {renderCellContent(col, col.render(row, idx))}
+        </td>
+      ))
+    );
+
+  const renderSkeletonCells = () =>
+    cardMode ? (
+      <td className="aegis-data-table__td aegis-data-table__card-cell">
+        <SkeletonText lines={2} />
+      </td>
+    ) : (
+      columns.map((col) => (
+        <td
+          key={col.key}
+          className="aegis-data-table__td"
+          style={cellStyle(col)}
+        >
+          {renderCellContent(
+            col,
+            <Skeleton width="80%" height="var(--space-3)" />,
+          )}
+        </td>
+      ))
+    );
+
+  const chevronCell = clickable && (
+    <td className="aegis-data-table__td aegis-data-table__chevron-cell">
+      <RightOutlined className="aegis-data-table__chevron" aria-hidden />
+    </td>
+  );
+
+  const handleRowClick = (
+    event: MouseEvent<HTMLTableRowElement>,
+    row: T,
+    idx: number,
+  ): void => {
+    if (!isOwnedByControl(event)) {
+      onRowClick?.(row, idx);
+    }
+  };
+
+  const handleRowKeyDown = (
+    event: KeyboardEvent<HTMLTableRowElement>,
+    row: T,
+    idx: number,
+  ): void => {
+    if (event.key === 'Enter' && event.target === event.currentTarget) {
+      event.preventDefault();
+      onRowClick?.(row, idx);
+    }
+  };
+
+  const tableClass = [
+    'aegis-data-table__table',
+    fixedLayout ? 'aegis-data-table__table--fixed' : '',
+    cardMode ? 'aegis-data-table__table--cards' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div ref={wrapRef} className={cls} {...agentAttrs}>
       <div className="aegis-data-table__scroll">
         <table
           ref={tableRef}
-          className={
-            hasAnyWidth
-              ? 'aegis-data-table__table aegis-data-table__table--fixed'
-              : 'aegis-data-table__table'
+          className={tableClass}
+          style={
+            tableMinWidth && fixedLayout
+              ? { minWidth: tableMinWidth }
+              : undefined
           }
-          style={tableMinWidth ? { minWidth: tableMinWidth } : undefined}
         >
-          {hasAnyWidth && (
+          {fixedLayout && (
             <colgroup>
               {selectable && (
                 <col key="__select" style={{ width: SELECTION_WIDTH }} />
@@ -326,46 +450,60 @@ export function DataTable<T>({
                   style={colWidths[i] ? { width: colWidths[i] } : undefined}
                 />
               ))}
+              {clickable && (
+                <col key="__chevron" style={{ width: CHEVRON_WIDTH }} />
+              )}
             </colgroup>
           )}
-          <thead>
-            <tr>
-              {selectable && (
-                <th key="__select" className="aegis-data-table__th">
-                  <span className="aegis-data-table__th-label">
-                    <Checkbox
-                      checked={keys.length > 0 && selectedCount === keys.length}
-                      indeterminate={
-                        selectedCount > 0 && selectedCount < keys.length
-                      }
-                      onChange={togglePage}
-                      ariaLabel={strings.selectAllRows}
-                    />
-                  </span>
-                </th>
-              )}
-              {columns.map((col, i) => (
-                <th
-                  key={col.key}
-                  className="aegis-data-table__th"
-                  style={cellStyle(col)}
-                >
-                  <span className="aegis-data-table__th-label">
-                    {col.header}
-                  </span>
-                  {col.resizable && (
-                    <span
-                      role="separator"
-                      aria-orientation="vertical"
-                      aria-label="Resize column"
-                      className="aegis-data-table__resizer"
-                      onPointerDown={startResize(col, i)}
-                    />
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          {(!cardMode || selectable) && (
+            <thead>
+              <tr>
+                {selectable && (
+                  <th key="__select" className="aegis-data-table__th">
+                    <span className="aegis-data-table__th-label">
+                      <Checkbox
+                        checked={
+                          keys.length > 0 && selectedCount === keys.length
+                        }
+                        indeterminate={
+                          selectedCount > 0 && selectedCount < keys.length
+                        }
+                        onChange={togglePage}
+                        ariaLabel={strings.selectAllRows}
+                      />
+                    </span>
+                  </th>
+                )}
+                {cardMode ? (
+                  <th className="aegis-data-table__th" />
+                ) : (
+                  columns.map((col, i) => (
+                    <th
+                      key={col.key}
+                      className="aegis-data-table__th"
+                      style={cellStyle(col)}
+                    >
+                      <span className="aegis-data-table__th-label">
+                        {col.header}
+                      </span>
+                      {col.resizable && (
+                        <span
+                          role="separator"
+                          aria-orientation="vertical"
+                          aria-label="Resize column"
+                          className="aegis-data-table__resizer"
+                          onPointerDown={startResize(col, i)}
+                        />
+                      )}
+                    </th>
+                  ))
+                )}
+                {clickable && (
+                  <th className="aegis-data-table__th aegis-data-table__chevron-cell" />
+                )}
+              </tr>
+            </thead>
+          )}
           <tbody>
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
@@ -373,24 +511,14 @@ export function DataTable<T>({
                   {selectable && (
                     <td key="__select" className="aegis-data-table__td" />
                   )}
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className="aegis-data-table__td"
-                      style={cellStyle(col)}
-                    >
-                      {renderCellContent(
-                        col,
-                        <Skeleton width="80%" height="var(--space-3)" />,
-                      )}
-                    </td>
-                  ))}
+                  {renderSkeletonCells()}
+                  {clickable && <td className="aegis-data-table__td" />}
                 </tr>
               ))
             ) : data.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length + (selectable ? 1 : 0)}
+                  colSpan={columnCount}
                   className="aegis-data-table__empty-cell"
                 >
                   <div className="aegis-data-table__empty">
@@ -404,7 +532,29 @@ export function DataTable<T>({
               </tr>
             ) : (
               data.map((row, idx) => (
-                <tr key={rowKey(row, idx)} className="aegis-data-table__row">
+                <tr
+                  key={rowKey(row, idx)}
+                  className={
+                    clickable
+                      ? 'aegis-data-table__row aegis-data-table__row--clickable'
+                      : 'aegis-data-table__row'
+                  }
+                  tabIndex={clickable ? 0 : undefined}
+                  onClick={
+                    clickable
+                      ? (event) => {
+                          handleRowClick(event, row, idx);
+                        }
+                      : undefined
+                  }
+                  onKeyDown={
+                    clickable
+                      ? (event) => {
+                          handleRowKeyDown(event, row, idx);
+                        }
+                      : undefined
+                  }
+                >
                   {selectable && (
                     <td key="__select" className="aegis-data-table__td">
                       {selectionCell(
@@ -415,15 +565,8 @@ export function DataTable<T>({
                       )}
                     </td>
                   )}
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className="aegis-data-table__td"
-                      style={cellStyle(col)}
-                    >
-                      {renderCellContent(col, col.render(row, idx))}
-                    </td>
-                  ))}
+                  {renderRowCells(row, idx)}
+                  {chevronCell}
                 </tr>
               ))
             )}

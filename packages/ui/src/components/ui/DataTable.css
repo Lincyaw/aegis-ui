@@ -125,6 +125,58 @@
   gap: var(--space-1);
 }
 
+.aegis-data-table__cell--numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.aegis-data-table__row--clickable {
+  cursor: pointer;
+}
+
+.aegis-data-table__row--clickable:focus-visible {
+  outline: var(--space-px) solid var(--text-main);
+  outline-offset: calc(var(--space-px) * -1);
+  background: var(--bg-muted);
+}
+
+.aegis-data-table__chevron-cell {
+  width: 1%;
+  padding-left: 0;
+  text-align: right;
+}
+
+.aegis-data-table__chevron {
+  font-size: var(--size-icon-base);
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateX(calc(var(--space-1) * -1));
+  transition:
+    opacity var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.aegis-data-table__row--clickable:hover .aegis-data-table__chevron,
+.aegis-data-table__row--clickable:focus-visible .aegis-data-table__chevron {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.aegis-data-table__row--clickable:active .aegis-data-table__chevron {
+  transform: translateX(var(--space-px));
+}
+
+/* Card mode (renderMobileCard at ≤768 px): one full-width cell per row. */
+.aegis-data-table__card-cell {
+  padding: var(--space-3);
+}
+
+/* Touch screens have no hover, so the chevron always marks a tappable card. */
+.aegis-data-table__table--cards .aegis-data-table__chevron {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 .aegis-data-table__empty-cell {
   border-bottom: none;
   padding: 0;

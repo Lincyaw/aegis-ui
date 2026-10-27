@@ -1066,7 +1066,7 @@ function App() {
               <Chip tone='warning' size='md'>
                 Execution failed
               </Chip>
-              <Chip size='md'>gpt-6.1-sol</Chip>
+              <Chip size='md'>model-alpha</Chip>
               <Chip tone='info' size='lg'>
                 Code check
               </Chip>
@@ -1733,6 +1733,24 @@ function App() {
             />
           </div>
         </Specimen>
+
+        <SectionDivider>DataTable · numeric columns</SectionDivider>
+        <Specimen
+          caption='numeric: true · right-aligned mono tabular figures'
+          span={3}
+        >
+          <DataTable
+            columns={GALLERY_MODEL_COLUMNS}
+            data={GALLERY_MODEL_ROWS}
+            rowKey={(row) => row.model}
+          />
+        </Specimen>
+
+        <SectionDivider>DataTable · row click</SectionDivider>
+        <DataTableRowClickSpecimen />
+
+        <SectionDivider>DataTable · mobile cards</SectionDivider>
+        <DataTableMobileCardSpecimen />
 
         <SectionDivider>DataTable · loading</SectionDivider>
         <Specimen caption='skeleton shimmer' span={3}>
@@ -4387,6 +4405,173 @@ function DataTablePaginationSpecimen(): ReactNode {
               setUncountedPage(nextPage);
             },
           }}
+        />
+      </Specimen>
+    </div>
+  );
+}
+
+interface GalleryModelRow {
+  model: string;
+  runs: number;
+  passed: number;
+  failed: number;
+  errored: number;
+  mean: number | null;
+}
+
+const GALLERY_MODEL_ROWS: GalleryModelRow[] = [
+  {
+    model: 'model-alpha',
+    runs: 12,
+    passed: 9,
+    failed: 2,
+    errored: 1,
+    mean: 0.75,
+  },
+  {
+    model: 'model-beta',
+    runs: 120,
+    passed: 31,
+    failed: 80,
+    errored: 9,
+    mean: 0.2583,
+  },
+  { model: 'model-gamma', runs: 8, passed: 0, failed: 8, errored: 0, mean: 0 },
+  {
+    model: 'model-delta',
+    runs: 3,
+    passed: 0,
+    failed: 0,
+    errored: 3,
+    mean: null,
+  },
+];
+
+const GALLERY_MODEL_COLUMNS: Array<DataTableColumn<GalleryModelRow>> = [
+  { key: 'model', header: 'Model', render: (row) => row.model },
+  { key: 'runs', header: 'Runs', numeric: true, render: (row) => row.runs },
+  {
+    key: 'passed',
+    header: 'Passed',
+    numeric: true,
+    render: (row) => row.passed,
+  },
+  {
+    key: 'failed',
+    header: 'Failed',
+    numeric: true,
+    render: (row) => row.failed,
+  },
+  {
+    key: 'mean',
+    header: 'Mean score',
+    numeric: true,
+    render: (row) => (row.mean === null ? '—' : row.mean.toFixed(2)),
+  },
+];
+
+function GalleryModelCard({ row }: { row: GalleryModelRow }): ReactNode {
+  return (
+    <div className='gallery__table-card'>
+      <span className='gallery__table-card-title'>{row.model}</span>
+      <MonoValue size='sm' weight='regular'>
+        {`${row.passed}/${row.runs} passed · mean ${row.mean === null ? '—' : row.mean.toFixed(2)}`}
+      </MonoValue>
+    </div>
+  );
+}
+
+function DataTableRowClickSpecimen(): ReactNode {
+  const [opened, setOpened] = useState('none');
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption={`onRowClick · hover chevron · Enter on a focused row · last: ${opened}`}
+        span={3}
+      >
+        <DataTable
+          columns={[
+            ...GALLERY_MODEL_COLUMNS.slice(0, 3),
+            {
+              key: 'link',
+              header: 'Link in a cell',
+              truncate: false,
+              render: (row) => (
+                <a
+                  href={`#${row.model}`}
+                  className='gallery__table-link'
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setOpened(`link ${row.model}`);
+                  }}
+                >
+                  Open report
+                </a>
+              ),
+            },
+          ]}
+          data={GALLERY_MODEL_ROWS}
+          rowKey={(row) => row.model}
+          onRowClick={(row) => {
+            setOpened(`row ${row.model}`);
+          }}
+        />
+      </Specimen>
+    </div>
+  );
+}
+
+function DataTableMobileCardSpecimen(): ReactNode {
+  const [page, setPage] = useState(1);
+  const [opened, setOpened] = useState('none');
+  const pageSize = 2;
+  const renderCard = (row: GalleryModelRow): ReactNode => (
+    <GalleryModelCard row={row} />
+  );
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption={`renderMobileCard · ≤768 px renders cards · pagination · onRowClick · last: ${opened}`}
+        span={3}
+      >
+        <DataTable
+          columns={GALLERY_MODEL_COLUMNS}
+          data={GALLERY_MODEL_ROWS.slice(
+            (page - 1) * pageSize,
+            page * pageSize
+          )}
+          rowKey={(row) => row.model}
+          renderMobileCard={renderCard}
+          onRowClick={(row) => {
+            setOpened(row.model);
+          }}
+          pagination={{
+            page,
+            pageSize,
+            total: GALLERY_MODEL_ROWS.length,
+            onChange: (nextPage) => {
+              setPage(nextPage);
+            },
+          }}
+        />
+      </Specimen>
+      <Specimen caption='renderMobileCard · loading' span={2}>
+        <DataTable
+          columns={GALLERY_MODEL_COLUMNS}
+          data={[]}
+          rowKey={(row) => row.model}
+          renderMobileCard={renderCard}
+          loading
+        />
+      </Specimen>
+      <Specimen caption='renderMobileCard · empty' span={2}>
+        <DataTable
+          columns={GALLERY_MODEL_COLUMNS}
+          data={[]}
+          rowKey={(row) => row.model}
+          renderMobileCard={renderCard}
+          emptyTitle='No results'
         />
       </Specimen>
     </div>

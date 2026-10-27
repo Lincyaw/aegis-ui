@@ -568,3 +568,19 @@ select.gallery__demo-input:focus {
   background: var(--bg-panel);
   font-size: var(--fs-12);
 }
+
+.gallery__table-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.gallery__table-card-title {
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+}
+
+.gallery__table-link {
+  color: var(--accent-info);
+}
