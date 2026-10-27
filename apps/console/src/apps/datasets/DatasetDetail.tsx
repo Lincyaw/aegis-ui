@@ -11,6 +11,7 @@ import {
   Panel,
 } from '@lincyaw/aegis-ui';
 
+import { DatasetsBreadcrumb } from './DatasetsBreadcrumb';
 import { useDatasets } from './store';
 
 export function DatasetDetail(): ReactElement {
@@ -45,6 +46,7 @@ export function DatasetDetail(): ReactElement {
 
   return (
     <>
+      <DatasetsBreadcrumb current={ds.name} />
       <PageHeader
         title={ds.name}
         description={ds.description}

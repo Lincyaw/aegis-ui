@@ -63,6 +63,11 @@ export interface AegisApp {
    * shell render, blowing away its state.
    */
   wrap?: (children: ReactNode) => ReactNode;
+  /**
+   * Set false to drop the shell's breadcrumb bar while this app is active,
+   * for apps whose pages render their own `<Breadcrumb>`. Default true.
+   */
+  breadcrumbBar?: boolean;
   /** Optional one-line description shown in app pickers. */
   description?: string;
   /**

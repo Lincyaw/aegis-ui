@@ -13,6 +13,7 @@ import {
 import { Button, Form, Input, Select } from 'antd';
 
 import type { DemoDataset } from './data';
+import { DatasetsBreadcrumb } from './DatasetsBreadcrumb';
 import { useDatasets } from './store';
 
 interface UploadFormShape {
@@ -31,6 +32,7 @@ export function DatasetUpload(): ReactElement {
 
   return (
     <>
+      <DatasetsBreadcrumb current='Upload' />
       <PageHeader
         title='Upload dataset'
         description='Simulated upload — progresses to 100% over ~2 seconds, then registers.'

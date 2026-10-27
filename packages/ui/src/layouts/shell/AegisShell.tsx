@@ -330,7 +330,9 @@ export function AegisShell({
                 {activeApp?.header &&
                   inlineSlot &&
                   createPortal(activeApp.header, inlineSlot)}
-                <BreadcrumbBar apps={apps} activeApp={activeApp} />
+                {activeApp?.breadcrumbBar !== false && (
+                  <BreadcrumbBar apps={apps} activeApp={activeApp} />
+                )}
                 <div className="aegis-shell__content">{element}</div>
               </>,
             )}

@@ -56,6 +56,7 @@ export const datasetsApp: AegisApp = {
   basePath: '/datasets',
   description: 'Tabs-in-header pattern (no left sidebar).',
   header: <DatasetsHeader />,
+  breadcrumbBar: false,
   wrap: wrapWithDatasetsProvider,
   routes: [
     { path: '', element: <DatasetBrowse /> },
