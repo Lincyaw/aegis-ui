@@ -1,17 +1,20 @@
 #!/usr/bin/env node
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { spawn } from 'node:child_process';
 
 const DEFAULT_CHROME =
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 function usage() {
-  return `Usage: node probe-devtools.mjs <url> [--chrome <path>] [--port <port>] [--wait-ms <ms>] [--viewport <WxH>] [--screenshot <path>]
+  return `Usage: node probe-devtools.mjs <url> [--chrome <path>] [--port <port>] [--wait-ms <ms>] [--viewport <WxH>] [--screenshot <path>] [--color-scheme <light|dark>] [--reduced-motion] [--eval <file>]
 
 Starts a clean headless Chrome, connects through the DevTools Protocol, reloads
-the target URL, and prints DOM state plus runtime/console/network errors.`;
+the target URL, and prints DOM state plus runtime/console/network errors.
+--color-scheme and --reduced-motion emulate the matching media features.
+--eval evaluates the JavaScript expression in <file> after the wait and
+prints its (awaited) value as evalResult.`;
 }
 
 function parseArgs(argv) {
@@ -22,6 +25,9 @@ function parseArgs(argv) {
     waitMs: 5000,
     viewport: { width: 1440, height: 1000 },
     screenshot: '',
+    colorScheme: '',
+    reducedMotion: false,
+    evalFile: '',
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -55,6 +61,21 @@ function parseArgs(argv) {
     }
     if (arg === '--screenshot') {
       args.screenshot = argv[++i] ?? '';
+      continue;
+    }
+    if (arg === '--color-scheme') {
+      args.colorScheme = argv[++i] ?? '';
+      if (!['light', 'dark'].includes(args.colorScheme)) {
+        throw new Error('--color-scheme must be light or dark');
+      }
+      continue;
+    }
+    if (arg === '--reduced-motion') {
+      args.reducedMotion = true;
+      continue;
+    }
+    if (arg === '--eval') {
+      args.evalFile = argv[++i] ?? '';
       continue;
     }
     if (!args.url) {
@@ -227,13 +248,13 @@ async function main() {
     let tabs = await fetchJson(`http://127.0.0.1:${port}/json`);
     let tab = tabs.find(
       (target) =>
-        target.type === 'page' && !String(target.url).startsWith('chrome-extension://'),
+        target.type === 'page' &&
+        !String(target.url).startsWith('chrome-extension://'),
     );
     if (!tab) {
-      await fetchJsonWithInit(
-        `http://127.0.0.1:${port}/json/new?about:blank`,
-        { method: 'PUT' },
-      );
+      await fetchJsonWithInit(`http://127.0.0.1:${port}/json/new?about:blank`, {
+        method: 'PUT',
+      });
       tabs = await fetchJson(`http://127.0.0.1:${port}/json`);
       tab = tabs.find(
         (target) =>
@@ -258,19 +279,55 @@ async function main() {
       deviceScaleFactor: 1,
       mobile: false,
     });
+    const mediaFeatures = [];
+    if (args.colorScheme) {
+      mediaFeatures.push({
+        name: 'prefers-color-scheme',
+        value: args.colorScheme,
+      });
+    }
+    if (args.reducedMotion) {
+      mediaFeatures.push({ name: 'prefers-reduced-motion', value: 'reduce' });
+    }
+    if (mediaFeatures.length > 0) {
+      await cdp.send('Emulation.setEmulatedMedia', {
+        features: mediaFeatures,
+      });
+    }
     await cdp.send('Page.navigate', { url: args.url });
     await sleep(args.waitMs);
 
-    const stateResult = await cdp.send('Runtime.evaluate', {
-      expression: `({
+    // innerText forces a full layout, which takes seconds on long pages.
+    const stateResult = await cdp.send(
+      'Runtime.evaluate',
+      {
+        expression: `({
         href: location.href,
         title: document.title,
         bodyText: document.body.innerText.slice(0, 2000),
         rootChildren: document.getElementById('root')?.children.length ?? -1,
         rootHtmlLength: document.getElementById('root')?.innerHTML.length ?? -1
       })`,
-      returnByValue: true,
-    });
+        returnByValue: true,
+      },
+      60000,
+    );
+    let evalResult = null;
+    if (args.evalFile) {
+      const evaluated = await cdp.send(
+        'Runtime.evaluate',
+        {
+          expression: readFileSync(args.evalFile, 'utf8'),
+          returnByValue: true,
+          awaitPromise: true,
+        },
+        60000,
+      );
+      evalResult =
+        evaluated.result.exceptionDetails?.exception?.description ??
+        evaluated.result.result.value ??
+        null;
+    }
     if (args.screenshot) {
       const image = await cdp.send('Page.captureScreenshot', {
         format: 'png',
@@ -286,6 +343,7 @@ async function main() {
           url: args.url,
           viewport: args.viewport,
           state: stateResult.result.result.value,
+          evalResult,
           exceptions: cdp.events.exceptions,
           consoleErrors: cdp.events.consoleErrors,
           networkErrors: cdp.events.networkErrors,

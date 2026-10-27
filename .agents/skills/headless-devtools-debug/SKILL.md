@@ -47,6 +47,10 @@ HTTP 200 only proves the HTML shell was served.
 - It passes `--disable-extensions` and selects a real `page` target so enterprise
   or browser extension background pages do not pollute the capture.
 - Use `--viewport 390x844` for mobile and `--viewport 1440x1000` for desktop.
+- `--color-scheme dark` and `--reduced-motion` emulate those media features
+  before navigation; `--eval <file>` runs the JavaScript expression in the
+  file after the wait (promises are awaited) and prints the value as
+  `evalResult`, e.g. computed styles of the elements under review.
 - If Chrome is not installed at `/Applications/Google Chrome.app`, pass
   `--chrome /path/to/chrome`.
 - Prefer this workflow before visual guessing whenever the symptom is "renders,
