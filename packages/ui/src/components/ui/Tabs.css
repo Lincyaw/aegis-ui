@@ -57,6 +57,12 @@
   box-shadow: var(--shadow-panel);
 }
 
+/* With the list's own padding the whole control is --size-control-base. */
+.aegis-tabs--sm .aegis-tabs__tab {
+  height: var(--size-control-sm);
+  padding-block: 0;
+}
+
 .aegis-tabs__panel {
   min-width: 0;
   padding-top: var(--space-4);

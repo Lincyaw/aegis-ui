@@ -17,6 +17,16 @@ interface TabsProps {
   defaultActiveKey?: string;
   onChange?: (key: string) => void;
   children?: ReactNode;
+  /**
+   * Renders the tab list without a tabpanel, for tabs that switch a view
+   * rendered elsewhere (site navigation, a toolbar view switch).
+   */
+  listOnly?: boolean;
+  /**
+   * `sm` makes each tab `--size-control-sm` tall, so the whole list is
+   * `--size-control-base` and lines up with inputs in a toolbar.
+   */
+  size?: 'md' | 'sm';
   className?: string;
 }
 
@@ -26,6 +36,8 @@ export function Tabs({
   defaultActiveKey,
   onChange,
   children,
+  listOnly = false,
+  size = 'md',
   className,
 }: TabsProps) {
   const [internalKey, setInternalKey] = useState(
@@ -57,7 +69,13 @@ export function Tabs({
     onChange?.(key);
   };
 
-  const cls = ['aegis-tabs', className ?? ''].filter(Boolean).join(' ');
+  const cls = [
+    'aegis-tabs',
+    size === 'sm' ? 'aegis-tabs--sm' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={cls}>
@@ -71,9 +89,11 @@ export function Tabs({
           />
         ))}
       </div>
-      <div className="aegis-tabs__panel" role="tabpanel">
-        {children}
-      </div>
+      {listOnly ? null : (
+        <div className="aegis-tabs__panel" role="tabpanel">
+          {children}
+        </div>
+      )}
     </div>
   );
 }

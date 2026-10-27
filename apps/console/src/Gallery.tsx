@@ -2310,6 +2310,9 @@ function App() {
         <SectionDivider>Tabs · overflow</SectionDivider>
         <TabsOverflowSpecimen />
 
+        <SectionDivider>Tabs · view switch</SectionDivider>
+        <TabsViewSwitchSpecimen />
+
         <SectionDivider>Breadcrumb</SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='simple'>
@@ -4881,6 +4884,35 @@ const GALLERY_CHAOS_FAMILIES = [
   'DNS',
   'Time',
 ].map((name) => ({ key: name.toLowerCase(), label: `${name} chaos` }));
+
+function TabsViewSwitchSpecimen(): ReactNode {
+  const [view, setView] = useState('answer');
+  const views = [
+    { key: 'answer', label: 'Answer and grading' },
+    { key: 'trajectory', label: 'Trajectory' },
+  ];
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='listOnly · no tabpanel under the list' span={2}>
+        <RosettaTabs
+          listOnly
+          items={views}
+          activeKey={view}
+          onChange={setView}
+        />
+      </Specimen>
+      <Specimen caption="listOnly · size='sm' · --size-control-base tall">
+        <RosettaTabs
+          listOnly
+          size='sm'
+          items={views}
+          activeKey={view}
+          onChange={setView}
+        />
+      </Specimen>
+    </div>
+  );
+}
 
 function TabsOverflowSpecimen(): ReactNode {
   const [active, setActive] = useState('network');
