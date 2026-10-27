@@ -22,10 +22,14 @@ export function PageHeader({
   return (
     <header className={cls}>
       <div className="aegis-page-header__text">
-        <PanelTitle size="lg" as="h1">
+        <PanelTitle size="lg" as="h1" className="aegis-page-header__title">
           {title}
         </PanelTitle>
-        {description && <MetricLabel>{description}</MetricLabel>}
+        {description && (
+          <MetricLabel className="aegis-page-header__description">
+            {description}
+          </MetricLabel>
+        )}
       </div>
       {action && <div className="aegis-page-header__action">{action}</div>}
     </header>

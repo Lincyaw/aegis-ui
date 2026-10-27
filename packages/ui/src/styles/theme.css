@@ -205,6 +205,34 @@
   --header-height: 56px;
   --sidebar-width-expanded: 240px;
   --page-max-width: none;
+  --page-padding-inline: var(--space-6);
+  --page-padding-inline-mobile: var(--space-4);
+
+  /* ── Component tokens ────────────────────────────────────────────── */
+  /* Defaults reproduce the stock look; a host restyles a primitive by
+   * overriding these, never by targeting its internal classes. */
+  --data-table-header-bg: var(--bg-panel);
+  --data-table-header-color: var(--text-muted);
+  --data-table-header-font-size: var(--fs-11);
+  --data-table-header-transform: uppercase;
+  --data-table-header-tracking: var(--tracking-label);
+  --data-table-row-min-height: auto;
+  --data-table-row-separator: var(--border-hairline);
+  --chip-transform: uppercase;
+  --chip-tracking: var(--tracking-label);
+  --chip-font-size-sm: var(--fs-10);
+  --chip-font-size-md: var(--fs-12);
+  --chip-font-size-lg: var(--fs-12);
+  --chip-height-sm: auto;
+  --chip-height-md: auto;
+  --chip-height-lg: 28px;
+  --page-header-title-size: var(--fs-24);
+  --page-header-title-size-mobile: var(--fs-18);
+  --page-header-title-weight: var(--fw-medium);
+  --page-header-description-size: var(--fs-10);
+  --page-header-description-color: var(--text-muted);
+  --page-header-description-transform: uppercase;
+  --page-header-description-tracking: var(--tracking-label);
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;

@@ -1,7 +1,7 @@
 /* Shared page layout — consumed via <PageWrapper> only. */
 
 .page-wrapper {
-  padding: var(--space-6);
+  padding: var(--space-6) var(--page-padding-inline);
   max-width: var(--page-max-width);
   margin: 0 auto;
   animation: page-fade-in var(--motion-base) backwards;
@@ -51,6 +51,6 @@
   }
 
   .page-wrapper {
-    padding: var(--space-4);
+    padding: var(--space-4) var(--page-padding-inline-mobile);
   }
 }

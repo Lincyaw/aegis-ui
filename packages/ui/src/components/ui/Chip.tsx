@@ -23,8 +23,11 @@ interface ChipProps {
     | 'info'
     | 'caution'
     | 'ghost';
-  /** `md` matches the 12px label size used by status badges on dense pages. */
-  size?: 'sm' | 'md';
+  /**
+   * `md` matches the 12px label size used by status badges on dense pages;
+   * `lg` is the taller standalone badge (`--chip-height-lg`).
+   */
+  size?: 'sm' | 'md' | 'lg';
   /** Optional leading dot/icon node. */
   leading?: ReactNode;
   className?: string;

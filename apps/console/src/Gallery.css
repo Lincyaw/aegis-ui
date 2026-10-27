@@ -532,3 +532,39 @@ select.gallery__demo-input:focus {
     height: auto;
   }
 }
+
+/* ── Component-token overrides ──────────────────────────────────── */
+/* What a host sets to restyle primitives structurally: sentence case,
+ * a muted table header, taller rows, a larger page title. */
+.gallery__token-override {
+  --data-table-header-bg: var(--bg-muted);
+  --data-table-header-font-size: var(--fs-12);
+  --data-table-header-transform: none;
+  --data-table-header-tracking: normal;
+  --data-table-row-min-height: calc(var(--space-12) + var(--space-4));
+  --chip-transform: none;
+  --chip-tracking: normal;
+  --chip-height-md: var(--size-control-sm);
+  --page-header-title-size: var(--fs-28);
+  --page-header-title-size-mobile: var(--fs-24);
+  --page-header-title-weight: var(--fw-semibold);
+  --page-header-description-size: var(--fs-12);
+  --page-header-description-transform: none;
+  --page-header-description-tracking: normal;
+  --page-padding-inline: var(--space-12);
+  --page-padding-inline-mobile: var(--space-2);
+
+  width: 100%;
+}
+
+.gallery__page-wrapper-host {
+  width: 100%;
+  border: var(--size-hairline) dashed var(--border-emphasis);
+  border-radius: var(--radius-md);
+}
+
+.gallery__page-wrapper-content {
+  padding: var(--space-2);
+  background: var(--bg-panel);
+  font-size: var(--fs-12);
+}

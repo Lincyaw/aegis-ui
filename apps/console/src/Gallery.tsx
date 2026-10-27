@@ -91,6 +91,7 @@ import {
   ObjectInspector,
   PageHeader,
   PageSizeSelect,
+  PageWrapper,
   Pagination,
   Panel,
   PanelTitle,
@@ -1046,6 +1047,31 @@ function App() {
               通过
             </Chip>
           </Specimen>
+          <Specimen caption="size='lg' · standalone badge">
+            <Chip tone='info' size='lg'>
+              代码验收
+            </Chip>
+          </Specimen>
+        </div>
+
+        <div className='gallery__row'>
+          <Specimen
+            caption='--chip-transform · --chip-tracking · --chip-height-md'
+            span={3}
+          >
+            <div className='gallery__token-override gallery__row'>
+              <Chip tone='success' size='md'>
+                Passed
+              </Chip>
+              <Chip tone='warning' size='md'>
+                Execution failed
+              </Chip>
+              <Chip size='md'>gpt-6.1-sol</Chip>
+              <Chip tone='info' size='lg'>
+                Code check
+              </Chip>
+            </div>
+          </Specimen>
         </div>
 
         <SectionDivider>Alert</SectionDivider>
@@ -1692,6 +1718,20 @@ function App() {
               }),
             }}
           />
+        </Specimen>
+
+        <SectionDivider>DataTable · component tokens</SectionDivider>
+        <Specimen
+          caption='--data-table-header-* · --data-table-row-min-height · --data-table-row-separator'
+          span={3}
+        >
+          <div className='gallery__token-override'>
+            <DataTable
+              columns={GALLERY_RUN_COLUMNS}
+              data={GALLERY_RUNS.slice(0, 3)}
+              rowKey={(row) => row.id}
+            />
+          </div>
         </Specimen>
 
         <SectionDivider>DataTable · loading</SectionDivider>
@@ -2471,6 +2511,30 @@ function App() {
               description='Organize members into teams.'
               action={<Chip tone='ink'>+ Create team</Chip>}
             />
+          </Specimen>
+          <Specimen
+            caption='--page-header-title-* · --page-header-description-*'
+            span={3}
+          >
+            <div className='gallery__token-override'>
+              <PageHeader
+                title='Tasks'
+                description='Every task in the current catalog, with its source and content version.'
+              />
+            </div>
+          </Specimen>
+        </div>
+
+        <SectionDivider>PageWrapper</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='--page-padding-inline (-mobile)' span={3}>
+            <div className='gallery__token-override gallery__page-wrapper-host'>
+              <PageWrapper>
+                <div className='gallery__page-wrapper-content'>
+                  Page content inset by the host&apos;s inline padding.
+                </div>
+              </PageWrapper>
+            </div>
           </Specimen>
         </div>
 

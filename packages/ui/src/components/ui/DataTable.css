@@ -24,14 +24,14 @@
   position: relative;
   padding: var(--space-2) var(--space-3);
   font-weight: var(--fw-medium);
-  font-size: var(--fs-11);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  font-size: var(--data-table-header-font-size);
+  text-transform: var(--data-table-header-transform);
+  letter-spacing: var(--data-table-header-tracking);
+  color: var(--data-table-header-color);
   text-align: left;
-  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--data-table-row-separator);
   white-space: nowrap;
-  background: var(--bg-panel);
+  background: var(--data-table-header-bg);
   z-index: 1;
 }
 
@@ -78,9 +78,11 @@
   background: var(--bg-muted);
 }
 
+/* A table cell's height is a minimum: taller content still grows the row. */
 .aegis-data-table__td {
+  height: var(--data-table-row-min-height);
   padding: var(--space-2) var(--space-3);
-  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  border-bottom: var(--size-hairline) solid var(--data-table-row-separator);
   color: var(--text-main);
   vertical-align: middle;
 }

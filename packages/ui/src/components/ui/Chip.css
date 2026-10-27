@@ -2,14 +2,15 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  height: var(--chip-height-sm);
   padding: var(--space-px) var(--space-2);
   border-radius: var(--radius-sm);
   font-family: var(--font-ui);
-  font-size: var(--fs-10);
+  font-size: var(--chip-font-size-sm);
   font-weight: var(--fw-medium);
   line-height: 1.4;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
+  text-transform: var(--chip-transform);
+  letter-spacing: var(--chip-tracking);
   white-space: nowrap;
   border: var(--size-hairline) solid var(--border-hairline);
   background: transparent;
@@ -70,8 +71,15 @@
 }
 
 .aegis-chip--size-md {
-  font-size: var(--fs-12);
+  height: var(--chip-height-md);
   padding: var(--space-1) var(--space-2);
+  font-size: var(--chip-font-size-md);
+}
+
+.aegis-chip--size-lg {
+  height: var(--chip-height-lg);
+  padding: 0 var(--space-2);
+  font-size: var(--chip-font-size-lg);
 }
 
 .aegis-chip__leading {
