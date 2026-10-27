@@ -20,6 +20,11 @@ interface AvatarProps {
   size?: AvatarSize;
   status?: AvatarStatus;
   icon?: ReactNode;
+  /**
+   * Colours the initials fallback with `--data-cat-<n>` instead of the
+   * name-hashed hue, so it matches that series in charts.
+   */
+  colorSlot?: 1 | 2 | 3 | 4 | 5 | 6;
   className?: string;
   surface?: AvatarSurface;
 }
@@ -50,6 +55,7 @@ export function Avatar({
   size = 'md',
   status,
   icon,
+  colorSlot,
   className,
   surface,
 }: AvatarProps) {
@@ -73,7 +79,11 @@ export function Avatar({
     <img src={src} alt={name} className={cls} />
   ) : (
     <span
-      className={`${cls} aegis-avatar--hue-${hueFromName(name)}`}
+      className={`${cls} ${
+        colorSlot === undefined
+          ? `aegis-avatar--hue-${hueFromName(name)}`
+          : `aegis-avatar--slot-${colorSlot}`
+      }`}
       aria-label={name}
       role="img"
     >

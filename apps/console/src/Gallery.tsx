@@ -11,6 +11,7 @@ import {
   AppstoreOutlined,
   DeleteOutlined,
   DownloadOutlined,
+  InboxOutlined,
   LogoutOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -45,6 +46,7 @@ import {
   CodeEditor,
   type CodeEditorField,
   Collapse,
+  ColumnLayout,
   type Command,
   CommandInvocationCard,
   CommandPalette,
@@ -99,6 +101,7 @@ import {
   type ParetoPoint,
   ParquetViewer,
   PasswordField,
+  PickerField,
   ProjectSelector,
   QueryAutocomplete,
   type QueryAutocompleteFieldSuggestion,
@@ -107,8 +110,10 @@ import {
   RegisterForm,
   ResizableSidePanel,
   Tabs as RosettaTabs,
+  RunPips,
   type SavedQuery,
   SavedQueryBar,
+  ScoreBar,
   SearchInput,
   type SearchProvider,
   SectionDivider,
@@ -1279,6 +1284,9 @@ function App() {
           </Specimen>
         </div>
 
+        <SectionDivider>PickerField</SectionDivider>
+        <PickerFieldSpecimen />
+
         <SectionDivider>RankBar</SectionDivider>
         <div className='gallery__stack'>
           <RankBar
@@ -1293,6 +1301,69 @@ function App() {
             }}
           />
           <RankBarSpecimen />
+        </div>
+
+        <SectionDivider>ScoreBar</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='0.75 · max 1'>
+            <ScoreBar value={0.75} />
+          </Specimen>
+          <Specimen caption='0.2583 → two decimals'>
+            <ScoreBar value={0.2583} />
+          </Specimen>
+          <Specimen caption='0 keeps an endpoint'>
+            <ScoreBar value={0} />
+          </Specimen>
+          <Specimen caption='null → em dash, empty track'>
+            <ScoreBar value={null} />
+          </Specimen>
+          <Specimen caption='max · format · ariaLabel'>
+            <ScoreBar
+              value={7}
+              max={10}
+              format={(value) => value.toFixed(0)}
+              ariaLabel='7 of 10 checks'
+            />
+          </Specimen>
+          <Specimen caption='in a numeric DataTable column' span={3}>
+            <DataTable
+              columns={[
+                GALLERY_MODEL_COLUMNS[0],
+                {
+                  key: 'score',
+                  header: 'Mean score',
+                  numeric: true,
+                  render: (row) => <ScoreBar value={row.mean} />,
+                },
+              ]}
+              data={GALLERY_MODEL_ROWS}
+              rowKey={(row) => row.model}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>RunPips</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='passed · failed · execution failed'>
+            <RunPips counts={{ passed: 3, failed: 1, errored: 1 }} />
+          </Specimen>
+          <Specimen caption='with pending'>
+            <RunPips
+              counts={{ passed: 2, failed: 0, errored: 0, pending: 3 }}
+            />
+          </Specimen>
+          <Specimen caption='beyond maxDots → segmented bar'>
+            <RunPips counts={{ passed: 31, failed: 80, errored: 9 }} />
+          </Specimen>
+          <Specimen caption='maxDots={4}'>
+            <RunPips
+              counts={{ passed: 3, failed: 2, errored: 0 }}
+              maxDots={4}
+            />
+          </Specimen>
+          <Specimen caption='no runs'>
+            <RunPips counts={{ passed: 0, failed: 0, errored: 0 }} />
+          </Specimen>
         </div>
 
         <SectionDivider>ParetoChart</SectionDivider>
@@ -1533,6 +1604,13 @@ function App() {
               title='No projects'
               description='Projects group experiments and their results.'
               action={<Chip tone='ink'>+ New project</Chip>}
+            />
+          </Specimen>
+          <Specimen caption='icon at --size-icon-xl'>
+            <EmptyState
+              icon={<InboxOutlined className='gallery__icon-xl' />}
+              title='Pick an x-axis metric'
+              description='The chart needs two metrics to compare.'
             />
           </Specimen>
         </div>
@@ -2262,6 +2340,13 @@ function App() {
             <Avatar size='lg' name='Barbara Liskov' status='offline' />
           </Specimen>
         </div>
+        <div className='gallery__row'>
+          {([1, 2, 3, 4, 5, 6] as const).map((slot) => (
+            <Specimen key={slot} caption={`colorSlot={${String(slot)}}`}>
+              <Avatar name={`model ${String(slot)}`} colorSlot={slot} />
+            </Specimen>
+          ))}
+        </div>
 
         <SectionDivider>TextField</SectionDivider>
         <div className='gallery__row'>
@@ -2655,6 +2740,48 @@ function App() {
                   Page content inset by the host&apos;s inline padding.
                 </div>
               </PageWrapper>
+            </div>
+          </Specimen>
+        </div>
+
+        <SectionDivider>ColumnLayout</SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen
+            caption="columns='240fr 552fr 360fr' · one column at ≤768 px"
+            span={3}
+          >
+            <div className='gallery__stack gallery__stack--fill'>
+              <ColumnLayout columns='240fr 552fr 360fr'>
+                <Panel title='Task and criteria'>
+                  <p className='gallery__panel-body'>Narrow column.</p>
+                </Panel>
+                <Panel title='Agent answer'>
+                  <p className='gallery__panel-body'>Wide column.</p>
+                </Panel>
+                <Panel title='Verdict'>
+                  <p className='gallery__panel-body'>Side column.</p>
+                </Panel>
+              </ColumnLayout>
+            </div>
+          </Specimen>
+          <Specimen
+            caption="columns='872fr 304fr' · nested columns='1fr' stacks cards · gap='md'"
+            span={3}
+          >
+            <div className='gallery__stack gallery__stack--fill'>
+              <ColumnLayout columns='872fr 304fr' gap='md'>
+                <Panel title='Instructions'>
+                  <p className='gallery__panel-body'>Main column.</p>
+                </Panel>
+                <ColumnLayout columns='1fr' gap='md'>
+                  <Panel title='Task facts'>
+                    <p className='gallery__panel-body'>First card.</p>
+                  </Panel>
+                  <Panel title='Checks'>
+                    <p className='gallery__panel-body'>Second card.</p>
+                  </Panel>
+                </ColumnLayout>
+              </ColumnLayout>
             </div>
           </Specimen>
         </div>
@@ -4997,6 +5124,69 @@ function ParetoChartSpecimen(): ReactNode {
         onSelect={setSelected}
       />
     </Specimen>
+  );
+}
+
+const GALLERY_CHART_TYPES = [
+  { key: 'ranking', label: 'Model ranking' },
+  { key: 'pareto', label: 'Pareto front' },
+];
+
+function PickerFieldSpecimen(): ReactNode {
+  const [open, setOpen] = useState(false);
+  const [chart, setChart] = useState('ranking');
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='label · value · opens a Dialog'>
+        <PickerField
+          label='Chart type'
+          value={GALLERY_CHART_TYPES.find((t) => t.key === chart)?.label}
+          onClick={() => {
+            setOpen(true);
+          }}
+        />
+      </Specimen>
+      <Specimen caption='placeholder'>
+        <PickerField
+          label='Compare models'
+          placeholder='All models'
+          onClick={() => {
+            setOpen(true);
+          }}
+        />
+      </Specimen>
+      <Specimen caption='disabled'>
+        <PickerField
+          label='Compare models'
+          value='3 models'
+          disabled
+          onClick={() => {
+            /* no-op */
+          }}
+        />
+      </Specimen>
+      <Dialog
+        open={open}
+        title='Chart type'
+        width='sm'
+        onClose={() => {
+          setOpen(false);
+        }}
+      >
+        {GALLERY_CHART_TYPES.map((t) => (
+          <AegisButton
+            key={t.key}
+            tone={t.key === chart ? 'primary' : 'secondary'}
+            onClick={() => {
+              setChart(t.key);
+              setOpen(false);
+            }}
+          >
+            {t.label}
+          </AegisButton>
+        ))}
+      </Dialog>
+    </div>
   );
 }
 

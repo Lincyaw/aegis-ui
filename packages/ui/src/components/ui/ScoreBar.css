@@ -1,0 +1,42 @@
+.aegis-score-bar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  vertical-align: middle;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.aegis-score-bar__value {
+  text-align: right;
+  color: var(--text-main);
+}
+
+.aegis-score-bar__value--empty {
+  color: var(--text-muted);
+}
+
+.aegis-score-bar__track {
+  display: block;
+  flex-shrink: 0;
+  width: var(--score-bar-track-width);
+  height: var(--score-bar-track-height);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--bg-muted);
+}
+
+.aegis-score-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--score-bar-fill);
+}
+
+/* A zero score still marks the axis start — an empty track reads as missing. */
+.aegis-score-bar__fill--zero {
+  min-width: var(--space-px);
+  background: var(--text-muted);
+}

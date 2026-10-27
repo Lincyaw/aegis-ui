@@ -1,0 +1,73 @@
+.aegis-picker-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--font-ui);
+}
+
+.aegis-picker-field__label {
+  font-size: var(--fs-11);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+}
+
+.aegis-picker-field__control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: var(--space-12);
+  max-width: 100%;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  text-align: left;
+  color: var(--text-main);
+  background: var(--bg-panel);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast),
+    background var(--motion-fast);
+}
+
+.aegis-picker-field__control:hover:not(:disabled) {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-picker-field__control:focus-visible {
+  outline: var(--size-hairline) solid var(--accent-info);
+  outline-offset: var(--space-px);
+}
+
+.aegis-picker-field__control:active:not(:disabled) {
+  background: var(--bg-muted);
+}
+
+.aegis-picker-field__control:disabled {
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  cursor: not-allowed;
+}
+
+.aegis-picker-field__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aegis-picker-field__value--placeholder {
+  color: var(--text-muted);
+}
+
+.aegis-picker-field__chevron {
+  flex-shrink: 0;
+  font-size: var(--size-icon-sm);
+  color: var(--text-muted);
+}

@@ -1,0 +1,24 @@
+.aegis-column-layout {
+  display: grid;
+  grid-template-columns: var(--aegis-column-layout-columns);
+  align-items: start;
+}
+
+/* fr tracks otherwise grow to fit wide content (code, tables). */
+.aegis-column-layout > * {
+  min-width: 0;
+}
+
+.aegis-column-layout--gap-md {
+  gap: var(--space-4);
+}
+
+.aegis-column-layout--gap-lg {
+  gap: var(--space-6);
+}
+
+@media (max-width: 768px) {
+  .aegis-column-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

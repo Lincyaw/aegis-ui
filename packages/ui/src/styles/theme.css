@@ -200,6 +200,7 @@
   --size-icon-sm: 12px;
   --size-icon-base: 16px;
   --size-icon-lg: 20px;
+  --size-icon-xl: 32px;
   --size-control-sm: 24px;
   --size-control-base: 32px;
   --size-avatar-sm: 24px;
@@ -247,6 +248,11 @@
   --page-header-description-tracking: var(--tracking-label);
   --rank-bar-fill: var(--bg-inverted);
   --pareto-dominated-opacity: 0.4;
+  --score-bar-fill: var(--data-seq);
+  --score-bar-track-width: 48px;
+  --score-bar-track-height: 6px;
+  --run-pips-dot: 8px;
+  --run-pips-bar-width: 64px;
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;

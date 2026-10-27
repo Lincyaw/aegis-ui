@@ -56,6 +56,31 @@
   color: var(--text-on-inverted);
 }
 
+.aegis-avatar--slot-1 {
+  background: var(--data-cat-1);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--slot-2 {
+  background: var(--data-cat-2);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--slot-3 {
+  background: var(--data-cat-3);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--slot-4 {
+  background: var(--data-cat-4);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--slot-5 {
+  background: var(--data-cat-5);
+  color: var(--text-on-inverted);
+}
+.aegis-avatar--slot-6 {
+  background: var(--data-cat-6);
+  color: var(--text-on-inverted);
+}
+
 .aegis-avatar-wrap {
   position: relative;
   display: inline-flex;

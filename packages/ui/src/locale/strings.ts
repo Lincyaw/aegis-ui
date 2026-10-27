@@ -39,6 +39,14 @@ export interface AegisStrings {
   noValue: string;
   paretoChartLabel: (xLabel: string, yLabel: string) => string;
   paretoEmptyTitle: string;
+  /** Accessible summary of RunPips, e.g. "3 of 5 runs passed, 1 failed, 1 errored". */
+  runPipsLabel: (counts: {
+    passed: number;
+    failed: number;
+    errored: number;
+    pending: number;
+    total: number;
+  }) => string;
 }
 
 export const enStrings: AegisStrings = {
@@ -79,6 +87,8 @@ export const enStrings: AegisStrings = {
   paretoChartLabel: (xLabel, yLabel) =>
     `Pareto front of ${yLabel} against ${xLabel}`,
   paretoEmptyTitle: 'No metrics configured',
+  runPipsLabel: ({ passed, failed, errored, pending, total }) =>
+    `${String(passed)} of ${String(total)} runs passed, ${String(failed)} failed, ${String(errored)} errored${pending > 0 ? `, ${String(pending)} pending` : ''}`,
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -118,4 +128,6 @@ export const zhCNStrings: AegisStrings = {
   noValue: '无数据',
   paretoChartLabel: (xLabel, yLabel) => `${yLabel} 对 ${xLabel} 的帕累托前沿`,
   paretoEmptyTitle: '未配置指标',
+  runPipsLabel: ({ passed, failed, errored, pending, total }) =>
+    `${String(total)} 次运行：通过 ${String(passed)}，未通过 ${String(failed)}，运行失败 ${String(errored)}${pending > 0 ? `，进行中 ${String(pending)}` : ''}`,
 };

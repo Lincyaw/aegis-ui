@@ -590,3 +590,7 @@ select.gallery__demo-input:focus {
 
   width: 100%;
 }
+
+.gallery__icon-xl {
+  font-size: var(--size-icon-xl);
+}

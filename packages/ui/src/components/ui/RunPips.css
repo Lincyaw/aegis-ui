@@ -1,0 +1,62 @@
+.aegis-run-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.aegis-run-pips__count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+}
+
+.aegis-run-pips__dots {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.aegis-run-pips__dot {
+  flex-shrink: 0;
+  width: var(--run-pips-dot);
+  height: var(--run-pips-dot);
+  border-radius: var(--radius-circle);
+}
+
+.aegis-run-pips__bar {
+  display: inline-flex;
+  gap: var(--size-hairline);
+  width: var(--run-pips-bar-width);
+  height: var(--run-pips-dot);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.aegis-run-pips__segment {
+  min-width: var(--space-px);
+  height: 100%;
+}
+
+.aegis-run-pips__dot--passed,
+.aegis-run-pips__segment--passed {
+  background: var(--accent-success);
+}
+
+.aegis-run-pips__dot--failed,
+.aegis-run-pips__segment--failed {
+  background: var(--accent-warning);
+}
+
+/* Execution failed: a hollow ink ring — there was no answer to grade. */
+.aegis-run-pips__dot--errored,
+.aegis-run-pips__segment--errored {
+  border: calc(var(--size-hairline) * 1.5) solid var(--text-main);
+  background: transparent;
+}
+
+.aegis-run-pips__dot--pending,
+.aegis-run-pips__segment--pending {
+  border: var(--size-hairline) solid var(--border-emphasis);
+  background: var(--bg-muted);
+}
