@@ -182,3 +182,9 @@
 .aegis-timeline-chart__skeleton {
   padding: 0 var(--space-3);
 }
+
+@media (max-width: 768px) {
+  .aegis-timeline-chart {
+    --timeline-chart-label-width: 40%;
+  }
+}

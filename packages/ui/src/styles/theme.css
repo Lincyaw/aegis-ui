@@ -275,6 +275,8 @@
   --score-bar-track-height: 6px;
   --run-pips-dot: 8px;
   --run-pips-bar-width: 64px;
+  /* TimelineChart's label column; at 768 px and below the chart sets it to 40%. */
+  --timeline-chart-label-width: 280px;
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;

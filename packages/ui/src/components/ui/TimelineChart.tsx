@@ -41,7 +41,6 @@ export interface TimelineChartProps {
   className?: string;
 }
 
-const LABEL_WIDTH = 280;
 const INDENT_PX = 12;
 const DEFAULT_ROW_HEIGHT = 24;
 const DEFAULT_MAX_VISIBLE_ROWS = 20;
@@ -262,7 +261,7 @@ export function TimelineChart({
     [handleRowActivate],
   );
 
-  const gridTemplate = `${LABEL_WIDTH}px 1fr`;
+  const gridTemplate = 'var(--timeline-chart-label-width) 1fr';
 
   const rootClassName = ['aegis-timeline-chart', className]
     .filter(Boolean)
