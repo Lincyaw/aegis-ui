@@ -1,4 +1,10 @@
-import { type CSSProperties, type KeyboardEvent, useMemo, useRef } from 'react';
+import {
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+  useMemo,
+  useRef,
+} from 'react';
 
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { useStrings } from '../../locale';
@@ -14,6 +20,14 @@ export interface ParetoPoint {
   color?: string;
 }
 
+/** One series in the legend under the plot, e.g. a model and its colour. */
+export interface ParetoLegendItem {
+  key: string;
+  label: ReactNode;
+  /** Swatch fill; the same value its points use. */
+  color?: string;
+}
+
 interface ParetoChartProps {
   points: ParetoPoint[];
   xLabel: string;
@@ -25,6 +39,14 @@ interface ParetoChartProps {
   formatX?: (value: number) => string;
   formatY?: (value: number) => string;
   onSelect?: (key: string) => void;
+  /** Series swatches with labels, listed under the plot. */
+  legend?: ParetoLegendItem[];
+  /**
+   * Shown in place of the plot, at its minimum height, while there are no
+   * points — e.g. an EmptyState with an icon asking for both axes. Replaces
+   * the default empty state built from `emptyTitle`.
+   */
+  empty?: ReactNode;
   emptyTitle?: string;
   emptyDescription?: string;
   className?: string;
@@ -63,6 +85,8 @@ export function ParetoChart({
   formatX = String,
   formatY = String,
   onSelect,
+  legend,
+  empty,
   emptyTitle,
   emptyDescription,
   className,
@@ -130,10 +154,23 @@ export function ParetoChart({
   if (points.length === 0) {
     return (
       <div ref={wrapRef} className={cls}>
-        <EmptyState
-          title={emptyTitle ?? strings.paretoEmptyTitle}
-          description={emptyDescription}
-        />
+        {empty === undefined ? (
+          <EmptyState
+            title={emptyTitle ?? strings.paretoEmptyTitle}
+            description={emptyDescription}
+          />
+        ) : (
+          <div
+            className="aegis-pareto__empty"
+            style={
+              {
+                '--aegis-pareto-min-height': `${MIN_HEIGHT.toString()}px`,
+              } as CSSProperties
+            }
+          >
+            {empty}
+          </div>
+        )}
       </div>
     );
   }
@@ -314,6 +351,27 @@ export function ParetoChart({
           {yLabel}
         </text>
       </svg>
+      {legend !== undefined && legend.length > 0 ? (
+        <ul
+          className="aegis-pareto__legend"
+          style={
+            {
+              '--aegis-pareto-swatch': `${(POINT_RADIUS * 2).toString()}px`,
+            } as CSSProperties
+          }
+        >
+          {legend.map((item) => (
+            <li key={item.key} className="aegis-pareto__legend-item">
+              <span
+                className="aegis-pareto__swatch"
+                style={item.color ? { background: item.color } : undefined}
+                aria-hidden="true"
+              />
+              {item.label}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

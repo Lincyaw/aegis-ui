@@ -12,6 +12,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   DeleteOutlined,
+  DotChartOutlined,
   DownloadOutlined,
   InboxOutlined,
   LogoutOutlined,
@@ -1421,6 +1422,23 @@ function App() {
             points={[]}
             emptyDescription='配置两个指标及优化方向后，显示模型点和帕累托前沿。'
           />
+          <Specimen
+            caption='empty · a slot in place of the plot, at its minimum height'
+            span={3}
+          >
+            <ParetoChart
+              xLabel='X metric'
+              yLabel='Mean result score'
+              points={[]}
+              empty={
+                <EmptyState
+                  icon={<DotChartOutlined aria-hidden />}
+                  title='Choose both axes'
+                  description='Pick an X metric to place every model by both metrics.'
+                />
+              }
+            />
+          </Specimen>
         </div>
 
         <SectionDivider>Dialog</SectionDivider>
@@ -5592,7 +5610,7 @@ function ParetoChartSpecimen(): ReactNode {
   const [selected, setSelected] = useState('none');
   return (
     <Specimen
-      caption={`formatX · formatY · zero-based axes · per-point color · frontier labels · last: ${selected}`}
+      caption={`formatX · formatY · zero-based axes · per-point color · frontier labels · legend · last: ${selected}`}
       span={3}
     >
       <ParetoChart
@@ -5601,6 +5619,11 @@ function ParetoChartSpecimen(): ReactNode {
         formatX={(value) => `${value.toFixed(0)} s`}
         formatY={(value) => value.toFixed(2)}
         points={GALLERY_PARETO_POINTS}
+        legend={GALLERY_PARETO_POINTS.map((point) => ({
+          key: point.key,
+          label: point.label,
+          color: point.color,
+        }))}
         onSelect={setSelected}
       />
     </Specimen>

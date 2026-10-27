@@ -35,7 +35,7 @@ export { ScoreBar } from './ScoreBar';
 export { RunPips } from './RunPips';
 export type { RunPipsCounts } from './RunPips';
 export { ParetoChart } from './ParetoChart';
-export type { ParetoPoint } from './ParetoChart';
+export type { ParetoLegendItem, ParetoPoint } from './ParetoChart';
 export { ColumnLayout } from './ColumnLayout';
 export { PickerField } from './PickerField';
 export { Dialog } from './Dialog';

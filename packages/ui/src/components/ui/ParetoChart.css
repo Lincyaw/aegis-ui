@@ -107,3 +107,37 @@
   font-size: var(--fs-11);
   fill: var(--text-muted);
 }
+
+/* The empty slot holds the plot's place at its minimum height. */
+.aegis-pareto__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--aegis-pareto-min-height);
+}
+
+.aegis-pareto__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+  list-style: none;
+}
+
+.aegis-pareto__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.aegis-pareto__swatch {
+  flex-shrink: 0;
+  width: var(--aegis-pareto-swatch);
+  height: var(--aegis-pareto-swatch);
+  border-radius: var(--radius-circle);
+  background: var(--bg-inverted);
+}
