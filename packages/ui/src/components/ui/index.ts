@@ -94,6 +94,7 @@ export type {
 } from './SessionRunView';
 export { DataTable } from './DataTable';
 export type {
+  DataTableCellTone,
   DataTableColumn,
   DataTablePagination,
   DataTableSurface,

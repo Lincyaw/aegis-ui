@@ -238,6 +238,8 @@
   --data-table-header-tracking: var(--tracking-label);
   --data-table-row-min-height: auto;
   --data-table-row-separator: var(--border-hairline);
+  /* Accent mixed into a cellTone wash per step above 1 (step 5 = 4×). */
+  --data-table-cell-tone-step: 5%;
   --chip-transform: uppercase;
   --chip-tracking: var(--tracking-label);
   --chip-font-size-sm: var(--fs-10);
@@ -315,6 +317,8 @@
   --accent-success: #4ade80;
   --bg-success-soft: #10241d;
   --bg-info-soft: #16233d;
+  /* Brighter accents need less per step to keep muted text at 4.5:1. */
+  --data-table-cell-tone-step: 3%;
 
   /* Data visualisation — lighter for dark surfaces */
   --data-seq: #a78bfa;

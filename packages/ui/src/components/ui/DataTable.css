@@ -7,6 +7,12 @@
   overflow-x: auto;
   min-width: 0;
   container-type: inline-size;
+  transition: opacity var(--motion-fast);
+}
+
+/* stale: the previous rows stay in place, dimmed, while newer ones load. */
+.aegis-data-table--stale .aegis-data-table__scroll {
+  opacity: 0.6;
 }
 
 .aegis-data-table__table {
@@ -128,6 +134,85 @@
 .aegis-data-table__cell--numeric {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* stickyFirstColumn: the first column stays put while the rest scroll. */
+.aegis-data-table__th--sticky,
+.aegis-data-table__td--sticky {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.aegis-data-table__th--sticky {
+  z-index: 2;
+}
+
+.aegis-data-table__td--sticky {
+  background: var(--bg-panel);
+}
+
+.aegis-data-table__row:hover
+  > .aegis-data-table__td--sticky:not(.aegis-data-table__td--tone),
+.aegis-data-table__row--clickable:focus-visible
+  > .aegis-data-table__td--sticky:not(.aegis-data-table__td--tone) {
+  background: var(--bg-muted);
+}
+
+/* Beside a sticky selection column, whose width the root sets. */
+.aegis-data-table__select-cell {
+  width: var(--aegis-data-table-select-width);
+}
+
+.aegis-data-table__th--sticky-offset,
+.aegis-data-table__td--sticky-offset {
+  left: var(--aegis-data-table-select-width);
+}
+
+/* cellTone: the tone's soft background, mixed with more of its accent per
+ * step (--data-table-cell-tone-step each). */
+.aegis-data-table__td--tone {
+  background: color-mix(
+    in srgb,
+    var(--aegis-cell-tone-accent) var(--aegis-cell-tone-mix, 0%),
+    var(--aegis-cell-tone-soft)
+  );
+}
+
+.aegis-data-table__td--tone-success {
+  --aegis-cell-tone-accent: var(--accent-success);
+  --aegis-cell-tone-soft: var(--bg-success-soft);
+}
+
+.aegis-data-table__td--tone-info {
+  --aegis-cell-tone-accent: var(--accent-info);
+  --aegis-cell-tone-soft: var(--bg-info-soft);
+}
+
+.aegis-data-table__td--tone-caution {
+  --aegis-cell-tone-accent: var(--ink-warn);
+  --aegis-cell-tone-soft: var(--bg-warn-soft);
+}
+
+.aegis-data-table__td--tone-warning {
+  --aegis-cell-tone-accent: var(--accent-warning);
+  --aegis-cell-tone-soft: var(--bg-warning-soft);
+}
+
+.aegis-data-table__td--step-2 {
+  --aegis-cell-tone-mix: var(--data-table-cell-tone-step);
+}
+
+.aegis-data-table__td--step-3 {
+  --aegis-cell-tone-mix: calc(var(--data-table-cell-tone-step) * 2);
+}
+
+.aegis-data-table__td--step-4 {
+  --aegis-cell-tone-mix: calc(var(--data-table-cell-tone-step) * 3);
+}
+
+.aegis-data-table__td--step-5 {
+  --aegis-cell-tone-mix: calc(var(--data-table-cell-tone-step) * 4);
 }
 
 .aegis-data-table__row--clickable {

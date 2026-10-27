@@ -30,6 +30,16 @@ import { Skeleton, SkeletonText } from './Skeleton';
 
 export type DataTableSurface<T> = PrimitiveSurface<T[]>;
 
+/** Background wash of one cell, e.g. a step on a pass-rate scale. */
+export interface DataTableCellTone {
+  tone: 'success' | 'info' | 'caution' | 'warning';
+  /**
+   * 1 (default) is the tone's soft background; each step up mixes in more
+   * of the tone's accent, to 5.
+   */
+  step?: 1 | 2 | 3 | 4 | 5;
+}
+
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
@@ -59,6 +69,8 @@ export interface DataTableColumn<T> {
    * and decimal points line up. Overrides `align`.
    */
   numeric?: boolean;
+  /** Washes a cell's background in a tone. Table rows only, not mobile cards. */
+  cellTone?: (row: T, index: number) => DataTableCellTone | undefined;
   render: (row: T, index: number) => ReactNode;
 }
 
@@ -110,6 +122,16 @@ interface DataTableProps<T> {
    * own behaviour.
    */
   onRowClick?: (row: T, index: number) => void;
+  /**
+   * Keeps the first column (with the selection column, when `selectable`)
+   * in view while the other columns scroll sideways.
+   */
+  stickyFirstColumn?: boolean;
+  /**
+   * The rows are out of date, e.g. the previous page while the next one
+   * loads: they stay in place, dimmed, and the table is marked busy.
+   */
+  stale?: boolean;
   surface?: DataTableSurface<T>;
 }
 
@@ -181,6 +203,8 @@ export function DataTable<T>({
   onSelectedKeysChange,
   renderMobileCard,
   onRowClick,
+  stickyFirstColumn = false,
+  stale = false,
   surface,
 }: DataTableProps<T>) {
   const strings = useStrings();
@@ -322,13 +346,51 @@ export function DataTable<T>({
     return () => window.removeEventListener('storage', onStorage);
   }, [persistKey]);
 
-  const cls = ['aegis-data-table', className ?? ''].filter(Boolean).join(' ');
+  const cls = [
+    'aegis-data-table',
+    stale ? 'aegis-data-table--stale' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   const clickable = onRowClick !== undefined;
   const fixedLayout = hasAnyWidth && !cardMode;
+  const sticky = stickyFirstColumn && !cardMode;
   const columnCount =
     (cardMode ? 1 : columns.length) +
     (selectable ? 1 : 0) +
     (clickable ? 1 : 0);
+
+  /** Classes of a header or body cell of data column `colIndex`. */
+  const cellClass = (
+    cell: 'th' | 'td',
+    colIndex: number,
+    tone?: DataTableCellTone,
+  ): string => {
+    const block = `aegis-data-table__${cell}`;
+    const classes = [block];
+    if (sticky && colIndex === 0) {
+      classes.push(`${block}--sticky`);
+      if (selectable) {
+        classes.push(`${block}--sticky-offset`);
+      }
+    }
+    if (tone !== undefined) {
+      classes.push(
+        'aegis-data-table__td--tone',
+        `aegis-data-table__td--tone-${tone.tone}`,
+      );
+      if (tone.step !== undefined && tone.step > 1) {
+        classes.push(`aegis-data-table__td--step-${String(tone.step)}`);
+      }
+    }
+    return classes.join(' ');
+  };
+
+  const selectCellClass = (cell: 'th' | 'td'): string =>
+    sticky
+      ? `aegis-data-table__${cell} aegis-data-table__${cell}--sticky aegis-data-table__select-cell`
+      : `aegis-data-table__${cell}`;
 
   const columnAlign = (col: DataTableColumn<T>) =>
     col.kind === 'actions' || col.numeric === true
@@ -361,10 +423,10 @@ export function DataTable<T>({
         {renderMobileCard(row, idx)}
       </td>
     ) : (
-      columns.map((col) => (
+      columns.map((col, colIndex) => (
         <td
           key={col.key}
-          className="aegis-data-table__td"
+          className={cellClass('td', colIndex, col.cellTone?.(row, idx))}
           style={cellStyle(col)}
         >
           {renderCellContent(col, col.render(row, idx))}
@@ -378,10 +440,10 @@ export function DataTable<T>({
         <SkeletonText lines={2} />
       </td>
     ) : (
-      columns.map((col) => (
+      columns.map((col, colIndex) => (
         <td
           key={col.key}
-          className="aegis-data-table__td"
+          className={cellClass('td', colIndex)}
           style={cellStyle(col)}
         >
           {renderCellContent(
@@ -428,7 +490,19 @@ export function DataTable<T>({
     .join(' ');
 
   return (
-    <div ref={wrapRef} className={cls} {...agentAttrs}>
+    <div
+      ref={wrapRef}
+      className={cls}
+      style={
+        sticky && selectable
+          ? ({
+              '--aegis-data-table-select-width': `${SELECTION_WIDTH.toString()}px`,
+            } as CSSProperties)
+          : undefined
+      }
+      aria-busy={stale ? true : undefined}
+      {...agentAttrs}
+    >
       <div className="aegis-data-table__scroll">
         <table
           ref={tableRef}
@@ -459,7 +533,7 @@ export function DataTable<T>({
             <thead>
               <tr>
                 {selectable && (
-                  <th key="__select" className="aegis-data-table__th">
+                  <th key="__select" className={selectCellClass('th')}>
                     <span className="aegis-data-table__th-label">
                       <Checkbox
                         checked={
@@ -480,7 +554,7 @@ export function DataTable<T>({
                   columns.map((col, i) => (
                     <th
                       key={col.key}
-                      className="aegis-data-table__th"
+                      className={cellClass('th', i)}
                       style={cellStyle(col)}
                     >
                       <span className="aegis-data-table__th-label">
@@ -509,7 +583,7 @@ export function DataTable<T>({
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={`sk-${i}`} className="aegis-data-table__row">
                   {selectable && (
-                    <td key="__select" className="aegis-data-table__td" />
+                    <td key="__select" className={selectCellClass('td')} />
                   )}
                   {renderSkeletonCells()}
                   {clickable && <td className="aegis-data-table__td" />}
@@ -556,7 +630,7 @@ export function DataTable<T>({
                   }
                 >
                   {selectable && (
-                    <td key="__select" className="aegis-data-table__td">
+                    <td key="__select" className={selectCellClass('td')}>
                       {selectionCell(
                         selected.includes(rowKey(row, idx)),
                         (checked) => {

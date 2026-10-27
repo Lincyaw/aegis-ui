@@ -62,6 +62,7 @@ import {
   DataList,
   type DataListColumn,
   DataTable,
+  type DataTableCellTone,
   type DataTableColumn,
   Dialog,
   DiffViewer,
@@ -1953,6 +1954,11 @@ function App() {
 
         <SectionDivider>DataTable · row click</SectionDivider>
         <DataTableRowClickSpecimen />
+
+        <SectionDivider>
+          DataTable · stickyFirstColumn · cellTone · stale
+        </SectionDivider>
+        <DataTableMatrixSpecimen />
 
         <SectionDivider>DataTable · mobile cards</SectionDivider>
         <DataTableMobileCardSpecimen />
@@ -5005,6 +5011,89 @@ function GalleryModelCard({ row }: { row: GalleryModelRow }): ReactNode {
       <MonoValue size='sm' weight='regular'>
         {`${row.passed}/${row.runs} passed · mean ${row.mean === null ? '—' : row.mean.toFixed(2)}`}
       </MonoValue>
+    </div>
+  );
+}
+
+interface GalleryMatrixRow {
+  task: string;
+  /** Passed runs per model, out of GALLERY_MATRIX_VALID valid runs. */
+  passed: number[];
+}
+
+const GALLERY_MATRIX_MODELS = [
+  'model-alpha',
+  'model-beta',
+  'model-gamma',
+  'model-delta',
+  'model-epsilon',
+  'model-zeta',
+];
+const GALLERY_MATRIX_VALID = 5;
+const GALLERY_MATRIX_ROWS: GalleryMatrixRow[] = [
+  { task: 'checkout-latency-regression', passed: [5, 4, 3, 2, 1, 0] },
+  { task: 'orders-index-rebuild', passed: [0, 1, 2, 3, 4, 5] },
+  { task: 'replica-lag-after-failover', passed: [3, 0, 5, 1, 2, 4] },
+];
+
+/** 0 passed is the anomaly wash; otherwise one step per fifth of the runs. */
+function galleryPassTone(passed: number): DataTableCellTone {
+  if (passed === 0) {
+    return { tone: 'warning' };
+  }
+  const step = Math.ceil((passed / GALLERY_MATRIX_VALID) * 5);
+  return { tone: 'success', step: step as DataTableCellTone['step'] };
+}
+
+function DataTableMatrixSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<Array<string | number>>([]);
+  const columns: Array<DataTableColumn<GalleryMatrixRow>> = [
+    {
+      key: 'task',
+      header: 'Task',
+      width: 220,
+      render: (row) => row.task,
+    },
+    ...GALLERY_MATRIX_MODELS.map(
+      (model, index): DataTableColumn<GalleryMatrixRow> => ({
+        key: model,
+        header: model,
+        width: 160,
+        numeric: true,
+        cellTone: (row) => galleryPassTone(row.passed[index]),
+        render: (row) =>
+          `${String(row.passed[index])}/${String(GALLERY_MATRIX_VALID)}`,
+      })
+    ),
+  ];
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption="stickyFirstColumn · cellTone: success steps 1–5 by pass rate, 'warning' for 0 passed"
+        span={3}
+      >
+        <DataTable
+          stickyFirstColumn
+          columns={columns}
+          data={GALLERY_MATRIX_ROWS}
+          rowKey={(row) => row.task}
+        />
+      </Specimen>
+      <Specimen
+        caption='stale · selectable · the selection column sticks too'
+        span={3}
+      >
+        <DataTable
+          stale
+          stickyFirstColumn
+          selectable
+          selectedKeys={selected}
+          onSelectedKeysChange={setSelected}
+          columns={columns}
+          data={GALLERY_MATRIX_ROWS}
+          rowKey={(row) => row.task}
+        />
+      </Specimen>
     </div>
   );
 }
