@@ -55,6 +55,10 @@ import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 ```
 
+Apps with Chinese text may also install and import
+`@fontsource-variable/noto-sans-sc`; `--font-ui` lists Noto Sans SC ahead
+of the system CJK fonts.
+
 ## Usage
 
 ### Set up the root

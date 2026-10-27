@@ -41,9 +41,10 @@ and the CSS reads that property. Don't copy the number into a token.
 | `--border-*`                                               | borders + dividers                                |
 | `--accent-*`                                               | semantic accents — anomaly red only               |
 | `--ink-*`                                                  | secondary semantic (logs, cautions)               |
+| `--data-*`                                                 | chart marks only (see below)                      |
 | `--space-*`                                                | margin / padding / gap (4 px scale)               |
 | `--radius-*`                                               | border-radius                                     |
-| `--size-icon-*`                                            | icon glyph sizes (12/16/20)                       |
+| `--size-icon-*`                                            | icon glyph sizes (12/16/20/32)                    |
 | `--size-control-*`                                         | input/button heights (24/32)                      |
 | `--size-avatar-*`                                          | avatar/dot sizes (24/32/40)                       |
 | `--size-hairline`                                          | 1 px hairline borders                             |
@@ -55,7 +56,20 @@ and the CSS reads that property. Don't copy the number into a token.
 | `--shadow-*`                                               | box-shadow                                        |
 | `--z-*`                                                    | z-index scale                                     |
 | `--header-height`, `--sidebar-width-*`, `--page-max-width` | layout constants                                  |
-| `--{component}-*` (e.g. `--ask-panel-width`)               | sizes owned by a single component                 |
+| `--{component}-*` (e.g. `--ask-panel-width`)               | values owned by a single component                |
+
+`--data-seq` is the one hue for magnitude (score and rank bars);
+`--data-cat-1` … `--data-cat-6` tell series apart, e.g. one per model in a
+scatter plot and the matching `Avatar colorSlot`. They are never status
+(pass / fail / anomaly) or link colours, and every one keeps at least 3:1
+contrast against `--bg-panel` in both themes — check a new value before
+adding it.
+
+Component tokens such as `--data-table-header-bg` or `--chip-transform`
+default to the stock rendering. A host app that needs a different structure
+(sentence case, a tinted table header, taller rows) overrides the token in
+its own stylesheet instead of targeting the component's classes, so other
+consumers keep the stock look.
 
 ## 2. BEM naming, scoped per component
 
@@ -198,7 +212,10 @@ Don't duplicate.
 
 ## 9. Animation discipline
 
-- All durations / easings come from `--motion-*` tokens.
+- All durations / easings come from `--motion-*` tokens: `--motion-enter`
+  for things appearing, the shorter `--motion-exit` for things leaving,
+  `--motion-chart` for bars and lines drawing in, `--motion-fast` /
+  `--motion-base` for state changes.
 - Respect `prefers-reduced-motion` — the global rule in `theme.css`
   already collapses animations to ~instant; don't override. It does not
   shorten delays, so an animation that holds an element hidden during a

@@ -47,7 +47,9 @@ do `import { Panel } from '@lincyaw/aegis-ui'` and
 internal paths. The library does not bundle fonts: consumers import
 `@fontsource-variable/geist`, `@fontsource-variable/inter` and
 `@fontsource-variable/jetbrains-mono` themselves (the console does this
-in `apps/console/src/main.tsx`).
+in `apps/console/src/main.tsx`). CJK consumers may also import
+`@fontsource-variable/noto-sans-sc`, which `--font-ui` lists ahead of the
+system CJK fonts.
 
 ## Top-down hierarchy — maintain in this order, never invert
 
