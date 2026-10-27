@@ -7,6 +7,8 @@ import { PanelTitle } from './PanelTitle';
 interface PageHeaderProps {
   title: string;
   description?: string;
+  /** Label row under the description, e.g. a type badge and a version. */
+  meta?: ReactNode;
   action?: ReactNode;
   className?: string;
 }
@@ -14,6 +16,7 @@ interface PageHeaderProps {
 export function PageHeader({
   title,
   description,
+  meta,
   action,
   className,
 }: PageHeaderProps) {
@@ -29,6 +32,9 @@ export function PageHeader({
           <MetricLabel className="aegis-page-header__description">
             {description}
           </MetricLabel>
+        )}
+        {meta !== undefined && (
+          <div className="aegis-page-header__meta">{meta}</div>
         )}
       </div>
       {action && <div className="aegis-page-header__action">{action}</div>}

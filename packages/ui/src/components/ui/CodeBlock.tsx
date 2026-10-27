@@ -18,6 +18,8 @@ interface CodeBlockProps {
   /** Shown as the header label, e.g. `json`, `typescript`, `python`. */
   language?: string;
   showLineNumbers?: boolean;
+  /** Caps the code area's height (number → px); longer code scrolls inside. */
+  maxHeight?: number | string;
   className?: string;
   surface?: CodeBlockSurface;
 }
@@ -26,6 +28,7 @@ export function CodeBlock({
   code,
   language = 'text',
   showLineNumbers = false,
+  maxHeight,
   className,
   surface,
 }: CodeBlockProps) {
@@ -63,7 +66,10 @@ export function CodeBlock({
           {copied ? strings.copied : strings.copy}
         </button>
       </div>
-      <pre className="aegis-code-block__pre">
+      <pre
+        className="aegis-code-block__pre"
+        style={maxHeight === undefined ? undefined : { maxHeight }}
+      >
         <code>
           {lines.map((line, i) => (
             <div key={i} className="aegis-code-block__line">

@@ -12,6 +12,8 @@ interface MonoValueProps {
   children: ReactNode;
   size?: 'sm' | 'base' | 'lg';
   weight?: 'regular' | 'medium';
+  /** Ink colour. `danger` is the anomaly red — failures only. */
+  tone?: 'default' | 'success' | 'danger' | 'muted';
   inverted?: boolean;
   as?: 'span' | 'div';
   className?: string;
@@ -23,6 +25,7 @@ export function MonoValue({
   children,
   size = 'base',
   weight = 'medium',
+  tone = 'default',
   inverted = false,
   as: Tag = 'span',
   className,
@@ -35,6 +38,7 @@ export function MonoValue({
     'aegis-mono',
     `aegis-mono--${size}`,
     `aegis-mono--${weight}`,
+    tone === 'default' ? '' : `aegis-mono--${tone}`,
     inverted ? 'aegis-mono--inverted' : '',
     className ?? '',
   ]

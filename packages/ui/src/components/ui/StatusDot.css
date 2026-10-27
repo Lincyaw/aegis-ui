@@ -17,6 +17,10 @@
   background: var(--text-muted);
 }
 
+.aegis-status-dot--success {
+  background: var(--accent-success);
+}
+
 .aegis-status-dot--pulse {
   animation: aegis-pulse var(--motion-pulse) infinite;
 }

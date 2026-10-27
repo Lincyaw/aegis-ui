@@ -18,32 +18,67 @@ export interface TimelineItem {
   meta?: ReactNode;
   /** Override dot colour with a CSS custom property name or raw token. */
   dotColor?: string;
+  /**
+   * Leading mono label in the `numbered` variant, e.g. a step number.
+   * Defaults to the 1-based position, zero-padded to two digits.
+   */
+  marker?: ReactNode;
 }
 
 export type TimelineSurface = PrimitiveSurface<TimelineItem[]>;
 
 interface TimelineProps {
   items: TimelineItem[];
+  /**
+   * `numbered` replaces the dot and connector with a leading mono marker
+   * column, separates rows with hairlines and keeps the line breaks of
+   * each description.
+   */
+  variant?: 'dot' | 'numbered';
   /** Reverse visual order (newest first vs oldest first). Doesn't sort. */
   className?: string;
   style?: CSSProperties;
   surface?: TimelineSurface;
 }
 
-export function Timeline({ items, className, style, surface }: TimelineProps) {
+export function Timeline({
+  items,
+  variant = 'dot',
+  className,
+  style,
+  surface,
+}: TimelineProps) {
   const wrapRef = useRef<HTMLOListElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, items, 'timeline', wrapRef);
-  const rootClass = ['aegis-timeline', className ?? '']
+  const numbered = variant === 'numbered';
+  const rootClass = [
+    'aegis-timeline',
+    numbered ? 'aegis-timeline--numbered' : '',
+    className ?? '',
+  ]
     .filter(Boolean)
     .join(' ');
   return (
     <ol ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
-      {items.map((it) => (
-        <li key={it.id} className="aegis-timeline__item">
-          <span
-            className="aegis-timeline__dot"
-            style={it.dotColor ? { background: it.dotColor } : undefined}
-          />
+      {items.map((it, index) => (
+        <li
+          key={it.id}
+          className={
+            numbered
+              ? 'aegis-timeline__item aegis-timeline__item--numbered'
+              : 'aegis-timeline__item'
+          }
+        >
+          {numbered ? (
+            <span className="aegis-timeline__marker">
+              {it.marker ?? String(index + 1).padStart(2, '0')}
+            </span>
+          ) : (
+            <span
+              className="aegis-timeline__dot"
+              style={it.dotColor ? { background: it.dotColor } : undefined}
+            />
+          )}
           <div className="aegis-timeline__body">
             <div className="aegis-timeline__row">
               <span className="aegis-timeline__title">{it.title}</span>

@@ -40,6 +40,24 @@
   line-height: 1.2;
 }
 
+.aegis-panel__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.aegis-panel__description {
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.aegis-panel--inverted .aegis-panel__description {
+  color: var(--text-on-inverted-muted);
+}
+
 .aegis-panel__extra {
   display: flex;
   align-items: center;

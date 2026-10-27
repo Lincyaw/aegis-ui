@@ -844,6 +844,15 @@ function App() {
           <Specimen caption='lg · medium'>
             <MonoValue size='lg'>0.142</MonoValue>
           </Specimen>
+          <Specimen caption="tone='success'">
+            <MonoValue tone='success'>12</MonoValue>
+          </Specimen>
+          <Specimen caption="tone='danger'">
+            <MonoValue tone='danger'>3</MonoValue>
+          </Specimen>
+          <Specimen caption="tone='muted'">
+            <MonoValue tone='muted'>0</MonoValue>
+          </Specimen>
         </div>
 
         <SectionDivider>MetricLabel</SectionDivider>
@@ -957,6 +966,16 @@ function App() {
               Body without inner padding — host owns the layout.
             </div>
           </Panel>
+
+          <Panel
+            title='Model ranking'
+            description='Mean result score · higher is better'
+            extra={<MetricLabel>description</MetricLabel>}
+          >
+            <p className='gallery__panel-body'>
+              A muted line under the title carries the metric and its direction.
+            </p>
+          </Panel>
         </div>
       </Panel>
 
@@ -978,6 +997,9 @@ function App() {
           </Specimen>
           <Specimen caption='size 10'>
             <StatusDot size={10} />
+          </Specimen>
+          <Specimen caption='success'>
+            <StatusDot tone='success' />
           </Specimen>
         </div>
 
@@ -1084,6 +1106,21 @@ function App() {
           </Specimen>
           <Specimen caption='error'>
             <Alert tone='error'>无法读取标签建议。</Alert>
+          </Specimen>
+          <Specimen caption='success'>
+            <Alert tone='success'>所有检查均已通过。</Alert>
+          </Specimen>
+        </div>
+        <div className='gallery__row'>
+          <Specimen caption="title · tone='error'" span={3}>
+            <Alert tone='error' title='The run failed the plan check'>
+              Plan check failed; exported results intact; safety check passed.
+            </Alert>
+          </Specimen>
+          <Specimen caption="title · tone='success'" span={3}>
+            <Alert tone='success' title='Both readers passed every check'>
+              Plan check passed; exported results intact; safety check passed.
+            </Alert>
           </Specimen>
         </div>
 
@@ -2087,6 +2124,23 @@ function App() {
               }
             />
           </Specimen>
+          <Specimen caption='maxHeight={120} · scrolls inside' span={2}>
+            <CodeBlock
+              language='json'
+              maxHeight={120}
+              code={JSON.stringify(
+                {
+                  verdict: 'failed',
+                  checks: Array.from({ length: 8 }, (_, i) => ({
+                    id: `check-${String(i + 1)}`,
+                    passed: i % 3 !== 0,
+                  })),
+                },
+                null,
+                2
+              )}
+            />
+          </Specimen>
         </div>
       </Panel>
 
@@ -2528,6 +2582,23 @@ function App() {
               title='Teams'
               description='Organize members into teams.'
               action={<Chip tone='ink'>+ Create team</Chip>}
+            />
+          </Specimen>
+          <Specimen caption='with meta row' span={2}>
+            <PageHeader
+              title='Checkout latency regression'
+              description='external/bench/checkout-latency'
+              meta={
+                <>
+                  <Chip tone='info' size='md'>
+                    Code check
+                  </Chip>
+                  <span>
+                    Evaluation version{' '}
+                    <MonoValue size='sm'>3f9c2a1b7d04</MonoValue>
+                  </span>
+                </>
+              }
             />
           </Specimen>
           <Specimen
@@ -3702,6 +3773,34 @@ function App() {
                   timestamp: '2026-05-11 18:02:11',
                   meta: <MonoValue>rev 45</MonoValue>,
                   dotColor: 'var(--presence-online)',
+                },
+              ]}
+            />
+          </Specimen>
+          <Specimen
+            caption="variant='numbered' · marker column · hairline rows · pre-wrap"
+            span={3}
+          >
+            <Timeline
+              variant='numbered'
+              items={[
+                {
+                  id: 'step-1',
+                  marker: '01',
+                  title: 'Call list_pods: {"namespace": "checkout"}',
+                  description:
+                    'Arguments: namespace=checkout\nObservation: 6 pods, 1 in CrashLoopBackOff',
+                },
+                {
+                  id: 'step-2',
+                  marker: '02',
+                  title: 'Run SQL: SELECT count(*) FROM orders',
+                  description: 'Observation: 18 204 rows',
+                },
+                {
+                  id: 'step-42',
+                  marker: '42',
+                  title: 'Submit the final answer',
                 },
               ]}
             />

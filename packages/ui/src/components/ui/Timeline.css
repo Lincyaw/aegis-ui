@@ -80,3 +80,43 @@
   font-size: var(--fs-11);
   color: var(--text-muted);
 }
+
+/* ── numbered variant: step column + hairline rows ─────────────────── */
+.aegis-timeline--numbered {
+  gap: 0;
+}
+
+.aegis-timeline__item--numbered {
+  padding: var(--space-3) 0;
+}
+
+.aegis-timeline__item--numbered + .aegis-timeline__item--numbered {
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-timeline__item--numbered::before {
+  display: none;
+}
+
+.aegis-timeline__marker {
+  min-width: 3ch;
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  line-height: calc(var(--fs-14) * 1.5);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.aegis-timeline--numbered .aegis-timeline__body {
+  gap: var(--space-1);
+  padding-block: 0;
+}
+
+.aegis-timeline--numbered .aegis-timeline__title {
+  line-height: 1.5;
+}
+
+.aegis-timeline--numbered .aegis-timeline__desc {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}

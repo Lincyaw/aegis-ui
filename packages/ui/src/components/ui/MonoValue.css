@@ -22,6 +22,16 @@
   font-weight: var(--fw-medium);
 }
 
+.aegis-mono--success {
+  color: var(--accent-success);
+}
+.aegis-mono--danger {
+  color: var(--accent-warning);
+}
+.aegis-mono--muted {
+  color: var(--text-muted);
+}
+
 .aegis-mono--inverted {
   color: var(--text-on-inverted);
 }

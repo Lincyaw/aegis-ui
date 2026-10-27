@@ -32,3 +32,38 @@
   background: var(--bg-warning-soft);
   color: var(--accent-warning);
 }
+
+.aegis-alert--success {
+  border-color: var(--bg-success-soft);
+  background: var(--bg-success-soft);
+  color: var(--accent-success);
+}
+
+/* Titled: a strong ink heading over a muted body on the soft tone wash. */
+.aegis-alert--titled {
+  padding: var(--space-3) var(--space-4);
+}
+
+.aegis-alert__marker {
+  display: flex;
+  align-items: center;
+  height: calc(var(--fs-13) * 1.5);
+}
+
+.aegis-alert__content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.aegis-alert__title {
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  color: var(--text-main);
+}
+
+.aegis-alert--titled .aegis-alert__body {
+  color: var(--text-muted);
+}
