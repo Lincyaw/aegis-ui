@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 
+import { useStrings } from '../../locale';
 import './Dialog.css';
 
 interface DialogProps {
@@ -25,6 +26,7 @@ export function Dialog({
   className,
 }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const strings = useStrings();
 
   useEffect(() => {
     if (!open) {
@@ -72,7 +74,7 @@ export function Dialog({
             className="aegis-dialog__close"
             onClick={onClose}
           >
-            关闭
+            {strings.close}
           </button>
         </div>
         {children !== undefined && (

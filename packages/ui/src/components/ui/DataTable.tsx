@@ -17,6 +17,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
 import { readStorage, writeStorage } from '../../lib/storage';
+import { useStrings } from '../../locale';
 import { Button } from './Button';
 import { Checkbox } from './Checkbox';
 import './DataTable.css';
@@ -143,6 +144,7 @@ export function DataTable<T>({
   onSelectedKeysChange,
   surface,
 }: DataTableProps<T>) {
+  const strings = useStrings();
   const selected = selectedKeys ?? [];
   const keys = data.map((row, index) => rowKey(row, index));
   const selectedCount = keys.filter((key) => selected.includes(key)).length;
@@ -151,10 +153,21 @@ export function DataTable<T>({
       checked ? [...selected, key] : selected.filter((item) => item !== key),
     );
   };
+  // Selections on other pages survive toggling the rows of this page.
+  const togglePage = (checked: boolean): void => {
+    const others = selected.filter((key) => !keys.includes(key));
+    onSelectedKeysChange?.(checked ? [...others, ...keys] : others);
+  };
   const selectionCell = (
     checked: boolean,
     onToggle: (next: boolean) => void,
-  ) => <Checkbox checked={checked} onChange={onToggle} ariaLabel="选择此行" />;
+  ) => (
+    <Checkbox
+      checked={checked}
+      onChange={onToggle}
+      ariaLabel={strings.selectRow}
+    />
+  );
   const tableRef = useRef<HTMLTableElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -325,10 +338,8 @@ export function DataTable<T>({
                       indeterminate={
                         selectedCount > 0 && selectedCount < keys.length
                       }
-                      onChange={(checked) => {
-                        onSelectedKeysChange?.(checked ? keys : []);
-                      }}
-                      ariaLabel="选择全部行"
+                      onChange={togglePage}
+                      ariaLabel={strings.selectAllRows}
                     />
                   </span>
                 </th>
@@ -441,6 +452,7 @@ function DataTableFooter({
   rowCount,
   loading,
 }: DataTableFooterProps) {
+  const strings = useStrings();
   const { page, pageSize, total, onChange, pageSizeOptions } = pagination;
   const offset = (page - 1) * pageSize;
   const shown =
@@ -470,7 +482,7 @@ function DataTableFooter({
           </span>
           {total !== undefined && (
             <>
-              {' of '}
+              {strings.rangeOf}
               <span className="aegis-data-table__range-num">
                 {total.toLocaleString()}
               </span>
@@ -480,7 +492,7 @@ function DataTableFooter({
         <Button
           tone="secondary"
           className="aegis-data-table__page-btn"
-          aria-label="Previous page"
+          aria-label={strings.previousPage}
           disabled={loading || page <= 1}
           onClick={() => {
             onChange(page - 1, pageSize);
@@ -491,7 +503,7 @@ function DataTableFooter({
         <Button
           tone="secondary"
           className="aegis-data-table__page-btn"
-          aria-label="Next page"
+          aria-label={strings.nextPage}
           disabled={loading || !hasNext}
           onClick={() => {
             onChange(page + 1, pageSize);

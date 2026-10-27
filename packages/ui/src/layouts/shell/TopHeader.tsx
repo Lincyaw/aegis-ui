@@ -9,6 +9,7 @@ import {
 } from '../../components/ui/DropdownMenu';
 import { EnvironmentSwitcher } from '../../components/ui/EnvironmentSwitcher';
 import { NotificationBell } from '../../components/ui/NotificationBell';
+import { useStrings } from '../../locale';
 import { AppSwitcher } from './AppSwitcher';
 import { useEnvironmentManifest } from './environments';
 import type { AegisApp, AegisBrand, AegisUser } from './types';
@@ -66,6 +67,7 @@ export function TopHeader({
   agentPanelOpen = false,
   onAgentPanelToggle,
 }: TopHeaderProps): ReactElement {
+  const strings = useStrings();
   const brandInner = (
     <>
       {brand.logo && (
@@ -83,7 +85,7 @@ export function TopHeader({
             type="button"
             className="aegis-shell__menu-toggle"
             onClick={onMobileMenuToggle}
-            aria-label="Open navigation"
+            aria-label={strings.openNavigation}
           >
             <span className="aegis-shell__menu-toggle-glyph" aria-hidden="true">
               ☰
@@ -95,9 +97,11 @@ export function TopHeader({
             type="button"
             className="aegis-shell__sidebar-toggle"
             onClick={onSidebarToggle}
-            aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+            aria-label={
+              sidebarCollapsed ? strings.showSidebar : strings.hideSidebar
+            }
             aria-pressed={sidebarCollapsed}
-            title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+            title={sidebarCollapsed ? strings.showSidebar : strings.hideSidebar}
           >
             <span
               className="aegis-shell__sidebar-toggle-glyph"

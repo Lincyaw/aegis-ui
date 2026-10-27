@@ -2,6 +2,7 @@ import { type ReactElement, useEffect, useState } from 'react';
 
 import { Modal } from 'antd';
 
+import { useStrings } from '../../locale';
 import { CodeBlock } from './CodeBlock';
 import {
   type InspectableContent,
@@ -288,6 +289,7 @@ export function ContentInspectorDialog({
   width = 'clamp(36rem, 50vw, 60rem)',
 }: ContentInspectorDialogProps): ReactElement | null {
   const [activeTab, setActiveTab] = useState('rendered');
+  const strings = useStrings();
 
   useEffect(() => {
     if (open) {
@@ -301,8 +303,8 @@ export function ContentInspectorDialog({
 
   const prepared = prepareInspectableContent(content);
   const tabItems: TabItem[] = [
-    { key: 'rendered', label: 'Rendered' },
-    { key: 'raw', label: 'Raw' },
+    { key: 'rendered', label: strings.inspectorRendered },
+    { key: 'raw', label: strings.inspectorRaw },
   ];
 
   return (

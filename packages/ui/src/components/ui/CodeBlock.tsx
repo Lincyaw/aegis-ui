@@ -5,6 +5,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import { useStrings } from '../../locale';
 import './CodeBlock.css';
 
 export type CodeBlockSurface = PrimitiveSurface<{
@@ -36,6 +37,7 @@ export function CodeBlock({
     wrapRef,
   );
   const { copied, copy } = useCopyToClipboard(1500);
+  const strings = useStrings();
 
   const handleCopy = useCallback(() => {
     void copy(code);
@@ -49,14 +51,16 @@ export function CodeBlock({
   return (
     <div ref={wrapRef} className={cls} {...agentAttrs}>
       <div className="aegis-code-block__header">
-        <span className="aegis-code-block__lang">{language}</span>
+        <span className="aegis-code-block__lang">
+          {language === 'text' ? strings.plainTextLanguage : language}
+        </span>
         <button
           type="button"
           className="aegis-code-block__copy"
           onClick={handleCopy}
-          aria-label="Copy to clipboard"
+          aria-label={strings.copyToClipboard}
         >
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? strings.copied : strings.copy}
         </button>
       </div>
       <pre className="aegis-code-block__pre">

@@ -1,5 +1,6 @@
 import { type ComponentType, type ReactElement, type ReactNode } from 'react';
 
+import { useStrings } from '../../locale';
 import './Breadcrumb.css';
 
 export interface BreadcrumbItem {
@@ -42,11 +43,12 @@ export function Breadcrumb({
   className,
   linkComponent,
 }: BreadcrumbProps): ReactElement {
+  const strings = useStrings();
   const cls = ['aegis-breadcrumb', className ?? ''].filter(Boolean).join(' ');
   const LinkImpl = linkComponent ?? DefaultLink;
 
   return (
-    <nav aria-label="Breadcrumb" className={cls}>
+    <nav aria-label={strings.breadcrumb} className={cls}>
       <ol className="aegis-breadcrumb__list">
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1;

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import copyText from 'copy-to-clipboard';
+
 export interface UseCopyToClipboardResult {
   /** True for `resetMs` after a successful copy. */
   copied: boolean;
-  /** Resolves false when the clipboard is unavailable or denied. */
+  /** Resolves false when the browser refuses the copy. */
   copy: (text: string) => Promise<boolean>;
   reset: () => void;
 }
@@ -19,19 +21,19 @@ export function useCopyToClipboard(resetMs: number): UseCopyToClipboardResult {
     [],
   );
 
+  // copy-to-clipboard falls back to execCommand, so copying also works on
+  // plain-HTTP pages where navigator.clipboard is unavailable.
   const copy = useCallback(
-    async (text: string): Promise<boolean> => {
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch {
-        return false;
+    (text: string): Promise<boolean> => {
+      if (!copyText(text)) {
+        return Promise.resolve(false);
       }
       window.clearTimeout(timerRef.current);
       setCopied(true);
       timerRef.current = window.setTimeout(() => {
         setCopied(false);
       }, resetMs);
-      return true;
+      return Promise.resolve(true);
     },
     [resetMs],
   );

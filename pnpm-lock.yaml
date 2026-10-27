@@ -261,6 +261,9 @@ importers:
       chrono-node:
         specifier: ^2.7.7
         version: 2.9.1
+      copy-to-clipboard:
+        specifier: ^3.3.3
+        version: 3.3.3
       fuse.js:
         specifier: ^7.3.0
         version: 7.3.0
@@ -2838,6 +2841,7 @@ packages:
   git-raw-commits@5.0.1:
     resolution: {integrity: sha512-Y+csSm2GD/PCSh6Isd/WiMjNAydu0VBiG9J7EdQsNA5P9uXvLayqjmTsNlK5Gs9IhblFZqOU0yid5Il5JPoLiQ==}
     engines: {node: '>=18'}
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   glob-parent@5.1.2:

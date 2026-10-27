@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 
+import { useStrings } from '../../locale';
 import './Select.css';
 
 export interface SelectOption {
@@ -14,6 +15,8 @@ interface SelectProps {
   onChange: (value: string) => void;
   /** Caption rendered above the control. */
   label?: ReactNode;
+  /** Accessible name for a select shown without a visible caption, e.g. a compact filter. */
+  ariaLabel?: string;
   /** Rendered as a disabled first option when `value` is empty. */
   placeholder?: string;
   /** Shows a clear control once a value is set. */
@@ -29,13 +32,22 @@ export function Select({
   options,
   onChange,
   label,
+  ariaLabel,
   placeholder,
   allowClear = false,
   disabled = false,
   id,
   className,
 }: SelectProps) {
-  const cls = ['aegis-select', className ?? ''].filter(Boolean).join(' ');
+  const strings = useStrings();
+  const clearable = allowClear && value !== '' && !disabled;
+  const cls = [
+    'aegis-select',
+    clearable ? 'aegis-select--clearable' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
     <div className={cls}>
       {label !== undefined && (
@@ -47,7 +59,9 @@ export function Select({
           id={id}
           value={value}
           disabled={disabled}
-          aria-label={typeof label === 'string' ? label : undefined}
+          aria-label={
+            ariaLabel ?? (typeof label === 'string' ? label : undefined)
+          }
           onChange={(event) => {
             onChange(event.target.value);
           }}
@@ -68,11 +82,11 @@ export function Select({
           ))}
         </select>
         <span className="aegis-select__chevron" aria-hidden="true" />
-        {allowClear && value !== '' && !disabled && (
+        {clearable && (
           <button
             type="button"
             className="aegis-select__clear"
-            aria-label="清除选择"
+            aria-label={strings.clearSelection}
             onClick={() => {
               onChange('');
             }}

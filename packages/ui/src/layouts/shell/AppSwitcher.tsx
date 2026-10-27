@@ -3,6 +3,7 @@ import { type ReactElement, useState } from 'react';
 import { Popover } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
+import { useStrings } from '../../locale';
 import { joinPath } from './paths';
 import type { AegisApp } from './types';
 
@@ -24,6 +25,7 @@ export function AppSwitcher({
 }: AppSwitcherProps): ReactElement {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const strings = useStrings();
 
   const handlePick = (app: AegisApp): void => {
     setOpen(false);
@@ -78,7 +80,7 @@ export function AppSwitcher({
       <button
         type="button"
         className="aegis-shell__app-launcher"
-        aria-label="Switch app"
+        aria-label={strings.switchApp}
         aria-haspopup="dialog"
         aria-expanded={open}
       >

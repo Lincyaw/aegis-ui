@@ -31,6 +31,7 @@ import { defaultCommandContextValue } from '../../commands/commandContext';
 import { Chip } from '../../components/ui/Chip';
 import { CommandPalette } from '../../components/ui/CommandPalette';
 import { readStorage, writeStorage } from '../../lib/storage';
+import { useStrings } from '../../locale';
 import { ThemeContext } from '../../theme/themeContext';
 import { PageWrapper } from '../PageWrapper';
 import './AegisShell.css';
@@ -70,6 +71,7 @@ export function AegisShell({
 }: AegisShellProps): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
+  const strings = useStrings();
   const { pathname } = location;
   const auth = useAuth();
   const themeCtx = useContext(ThemeContext);
@@ -317,7 +319,7 @@ export function AegisShell({
           <button
             type="button"
             className="aegis-shell__backdrop"
-            aria-label="Close navigation"
+            aria-label={strings.closeNavigation}
             onClick={closeMobileNav}
           />
           <main className="aegis-shell__main">

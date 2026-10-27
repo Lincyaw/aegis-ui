@@ -1,3 +1,4 @@
+import { useStrings } from '../../locale';
 import { Button } from './Button';
 import { PageSizeSelect } from './PageSizeSelect';
 import './Pagination.css';
@@ -9,7 +10,7 @@ interface PaginationProps {
   total?: number;
   onChange: (page: number, pageSize: number) => void;
   pageSizeOptions?: number[];
-  /** Noun used in the total count, e.g. "个步骤". */
+  /** Noun used in the total count, e.g. "steps"; defaults to the locale's records unit. */
   unit?: string;
   className?: string;
 }
@@ -20,14 +21,17 @@ export function Pagination({
   total = 0,
   onChange,
   pageSizeOptions,
-  unit = '条记录',
+  unit,
   className,
 }: PaginationProps) {
+  const strings = useStrings();
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const cls = ['aegis-pagination', className ?? ''].filter(Boolean).join(' ');
   return (
     <div className={cls}>
-      <span className="aegis-pagination__count">{`共 ${total} ${unit}`}</span>
+      <span className="aegis-pagination__count">
+        {strings.totalCount(total, unit ?? strings.recordsUnit)}
+      </span>
       <PageSizeSelect
         value={pageSize}
         options={pageSizeOptions}
@@ -38,23 +42,21 @@ export function Pagination({
       <Button
         tone="secondary"
         disabled={page <= 1}
-        aria-label="上一页"
         onClick={() => {
           onChange(page - 1, pageSize);
         }}
       >
-        上一页
+        {strings.previousPage}
       </Button>
-      <span className="aegis-pagination__page">{`${page} / ${pages}`}</span>
+      <span className="aegis-pagination__page">{`${String(page)} / ${String(pages)}`}</span>
       <Button
         tone="secondary"
         disabled={page >= pages}
-        aria-label="下一页"
         onClick={() => {
           onChange(page + 1, pageSize);
         }}
       >
-        下一页
+        {strings.nextPage}
       </Button>
     </div>
   );

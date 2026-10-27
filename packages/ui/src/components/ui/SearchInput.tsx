@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { CloseOutlined, SearchOutlined } from '@ant-design/icons';
 
+import { useStrings } from '../../locale';
 import './SearchInput.css';
 
 export interface SearchInputProps {
@@ -22,6 +23,7 @@ export function SearchInput({
   onClear,
   className,
 }: SearchInputProps) {
+  const strings = useStrings();
   const cls = ['aegis-search-input', className ?? ''].filter(Boolean).join(' ');
 
   return (
@@ -40,7 +42,7 @@ export function SearchInput({
           type="button"
           className="aegis-search-input__clear"
           onClick={onClear}
-          aria-label="Clear search"
+          aria-label={strings.clearSearch}
         >
           <CloseOutlined />
         </button>

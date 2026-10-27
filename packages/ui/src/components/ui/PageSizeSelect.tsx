@@ -3,6 +3,7 @@ import { type ReactElement, useId } from 'react';
 import { Popover } from 'antd';
 
 import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { useStrings } from '../../locale';
 import './PageSizeSelect.css';
 
 export interface PageSizeSelectProps {
@@ -10,6 +11,7 @@ export interface PageSizeSelectProps {
   onChange: (next: number) => void;
   options?: number[];
   disabled?: boolean;
+  /** Defaults to the locale's "rows per page"; pass '' to hide the caption. */
   label?: string;
   className?: string;
   /**
@@ -28,10 +30,12 @@ export function PageSizeSelect({
   onChange,
   options = DEFAULT_OPTIONS as number[],
   disabled = false,
-  label = 'Rows per page',
+  label: labelProp,
   className,
   placement = 'top',
 }: PageSizeSelectProps): ReactElement {
+  const strings = useStrings();
+  const label = labelProp ?? strings.rowsPerPage;
   const labelId = useId();
   const menu = useMenuPopover<HTMLUListElement>();
 

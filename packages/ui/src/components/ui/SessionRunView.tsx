@@ -2,6 +2,7 @@ import { type ReactElement, type ReactNode } from 'react';
 
 import { FullscreenOutlined } from '@ant-design/icons';
 
+import { useStrings } from '../../locale';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import {
@@ -137,13 +138,14 @@ function InspectContentButton({
   content: InspectableContent;
   onInspectContent: (content: InspectableContent) => void;
 }): ReactElement {
+  const strings = useStrings();
   return (
     <Button
       type="button"
       tone="ghost"
       className="aegis-session-content__expand"
-      aria-label={`Open ${content.title}`}
-      title="Open in inspector"
+      aria-label={strings.openContent(content.title)}
+      title={strings.openInInspector}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -151,7 +153,7 @@ function InspectContentButton({
       }}
     >
       <FullscreenOutlined />
-      Open
+      {strings.openInInspector}
     </Button>
   );
 }
@@ -307,14 +309,15 @@ export function SessionRunTrajectoryView({
   error,
   onInspectContent,
 }: SessionRunTrajectoryViewProps): ReactElement {
+  const strings = useStrings();
   if (loading) {
-    return <EmptyState title="Loading trajectory…" />;
+    return <EmptyState title={strings.loadingTrajectory} />;
   }
   if (error !== undefined) {
     return (
       <ErrorState
         size="compact"
-        title="Failed to load trajectory"
+        title={strings.trajectoryLoadFailed}
         description={error}
       />
     );
@@ -323,14 +326,22 @@ export function SessionRunTrajectoryView({
     <div className="aegis-session-trajectory">
       <div className="aegis-session-trajectory__summary">
         <Chip tone="ghost">{summary.lineage}</Chip>
-        <TimeDisplay value={summary.startedAt} />
-        <MetricLabel>{summary.inputTokens} in</MetricLabel>
-        <MetricLabel>{summary.outputTokens} out</MetricLabel>
+        {summary.startedAt && <TimeDisplay value={summary.startedAt} />}
+        {summary.inputTokens && (
+          <MetricLabel>
+            {summary.inputTokens} {strings.inputTokens}
+          </MetricLabel>
+        )}
+        {summary.outputTokens && (
+          <MetricLabel>
+            {summary.outputTokens} {strings.outputTokens}
+          </MetricLabel>
+        )}
       </div>
       {messages.length === 0 ? (
         <EmptyState
-          title="No messages"
-          description="This session has no message records."
+          title={strings.noMessages}
+          description={strings.noMessagesDescription}
         />
       ) : (
         messages.map((message, index) => (

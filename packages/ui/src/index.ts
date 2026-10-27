@@ -81,6 +81,10 @@ export type {
 // AntD ConfigProvider theme mapped to aegis-ui tokens.
 export { aegisTheme, getAegisTheme } from './theme/antdTheme';
 
+// Strings primitives render on their own; English unless a LocaleProvider says otherwise.
+export { LocaleProvider, enStrings, useStrings, zhCNStrings } from './locale';
+export type { AegisStrings } from './locale';
+
 // Theme system (light + dark + system, persisted to localStorage).
 export { ThemeProvider } from './theme/ThemeProvider';
 export type { ThemeProviderProps } from './theme/ThemeProvider';

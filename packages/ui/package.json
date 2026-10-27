@@ -59,6 +59,7 @@
     "@uiw/react-codemirror": "^4.25.9",
     "@xyflow/react": "^12.10.2",
     "chrono-node": "^2.7.7",
+    "copy-to-clipboard": "^3.3.3",
     "fuse.js": "^7.3.0",
     "hyparquet": "^1.25.8",
     "hyparquet-compressors": "^1.1.1",

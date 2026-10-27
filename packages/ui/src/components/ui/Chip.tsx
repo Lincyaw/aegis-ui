@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import './Chip.css';
 
 export type ChipSurface = PrimitiveSurface<ReactNode>;
@@ -44,6 +45,7 @@ export function Chip({
   surface,
 }: ChipProps) {
   const wrapRef = useRef<HTMLSpanElement>(null);
+  const strings = useStrings();
   const agentAttrs = usePrimitiveSurface(surface, children, 'tag', wrapRef);
   const cls = [
     'aegis-chip',
@@ -79,7 +81,7 @@ export function Chip({
         <button
           type="button"
           className="aegis-chip__close"
-          aria-label="移除"
+          aria-label={strings.remove}
           onClick={onClose}
         >
           ×

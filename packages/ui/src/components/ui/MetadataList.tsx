@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import { useStrings } from '../../locale';
 import './MetadataList.css';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
@@ -21,6 +22,7 @@ export interface MetadataListProps {
 
 function CopyButton({ text }: { text: string }): ReactNode {
   const { copied, copy } = useCopyToClipboard(1500);
+  const strings = useStrings();
 
   const handleCopy = (): void => {
     void copy(text);
@@ -31,8 +33,8 @@ function CopyButton({ text }: { text: string }): ReactNode {
       type="button"
       className="aegis-metadata-list__copy"
       onClick={handleCopy}
-      aria-label="Copy value"
-      title={copied ? 'Copied!' : 'Copy'}
+      aria-label={strings.copyToClipboard}
+      title={copied ? strings.copied : strings.copy}
     >
       {copied ? '✓' : '⎘'}
     </button>

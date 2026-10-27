@@ -6,7 +6,7 @@ import {
   Breadcrumb,
   type BreadcrumbItem,
 } from '../../components/ui/Breadcrumb';
-import { joinPath } from './paths';
+import { joinPath, pathOf } from './paths';
 import type { AegisApp } from './types';
 
 interface BreadcrumbBarProps {
@@ -29,13 +29,20 @@ export function BreadcrumbBar({
     if (!activeApp) {
       return [];
     }
+    const navItems = (activeApp.sidebar ?? []).flatMap((group) => group.items);
+    // The app-root link keeps the root item's query, e.g. a selected scope.
+    const rootItem = navItems.find(
+      (item) => pathOf(item.to).replace(/^\/+/, '') === '',
+    );
     const trail: BreadcrumbItem[] = [
-      { label: activeApp.label, to: joinPath(activeApp.basePath, '') },
+      {
+        label: activeApp.label,
+        to: joinPath(activeApp.basePath, rootItem?.to ?? ''),
+      },
     ];
 
-    const navItems = (activeApp.sidebar ?? []).flatMap((group) => group.items);
     const match = navItems.find((item) => {
-      const full = joinPath(activeApp.basePath, item.to);
+      const full = joinPath(activeApp.basePath, pathOf(item.to));
       if (item.end) {
         return pathname === full;
       }
