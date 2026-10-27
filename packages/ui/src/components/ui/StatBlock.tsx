@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
+import { useCountUp } from '../../hooks/useCountUp';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
 import './StatBlock.css';
@@ -23,6 +24,12 @@ interface StatBlockProps {
   direction?: 'horizontal' | 'vertical';
   /** Use the larger 18 px mono variant. */
   emphasized?: boolean;
+  /**
+   * When `value` is a number, counts it up from 0 once on mount (about
+   * 600 ms, easing out, keeping its decimal places). Shows the final value
+   * at once under prefers-reduced-motion.
+   */
+  animateValue?: boolean;
   inverted?: boolean;
   className?: string;
   surface?: StatBlockSurface;
@@ -34,6 +41,7 @@ export function StatBlock({
   unit,
   direction = 'horizontal',
   emphasized = false,
+  animateValue = false,
   inverted = false,
   className,
   surface,
@@ -45,6 +53,12 @@ export function StatBlock({
     'metric',
     wrapRef,
   );
+  const numeric = typeof value === 'number';
+  const counted = useCountUp(numeric ? value : 0, animateValue && numeric);
+  const shown =
+    animateValue && numeric
+      ? counted.toFixed((String(value).split('.')[1] ?? '').length)
+      : value;
   const cls = [
     'aegis-stat',
     `aegis-stat--${direction}`,
@@ -60,7 +74,7 @@ export function StatBlock({
       </MetricLabel>
       <span className="aegis-stat__value">
         <MonoValue size={emphasized ? 'lg' : 'sm'} inverted={inverted}>
-          {value}
+          {shown}
         </MonoValue>
         {unit && (
           <span className="aegis-stat__unit">

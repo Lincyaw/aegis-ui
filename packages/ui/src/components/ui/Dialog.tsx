@@ -1,4 +1,10 @@
-import { type ReactNode, useEffect, useRef } from 'react';
+import {
+  type AnimationEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useStrings } from '../../locale';
 import './Dialog.css';
@@ -27,6 +33,12 @@ export function Dialog({
 }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const strings = useStrings();
+  // Stays mounted after `open` turns false until the exit animation ends.
+  const [rendered, setRendered] = useState(open);
+  if (open && !rendered) {
+    setRendered(true);
+  }
+  const closing = rendered && !open;
 
   useEffect(() => {
     if (!open) {
@@ -44,16 +56,28 @@ export function Dialog({
     };
   }, [open, onClose]);
 
-  if (!open) {
+  if (!rendered) {
     return null;
   }
 
   const cls = ['aegis-dialog', `aegis-dialog--${width}`, className ?? '']
     .filter(Boolean)
     .join(' ');
+  const onBackdropAnimationEnd = (event: AnimationEvent<HTMLDivElement>) => {
+    if (closing && event.target === event.currentTarget) {
+      setRendered(false);
+    }
+  };
 
   return (
-    <div className="aegis-dialog__backdrop">
+    <div
+      className={
+        closing
+          ? 'aegis-dialog__backdrop aegis-dialog__backdrop--closing'
+          : 'aegis-dialog__backdrop'
+      }
+      onAnimationEnd={onBackdropAnimationEnd}
+    >
       <div
         ref={panelRef}
         className={cls}

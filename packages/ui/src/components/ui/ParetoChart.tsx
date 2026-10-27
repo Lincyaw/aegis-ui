@@ -1,4 +1,4 @@
-import { type KeyboardEvent, useMemo, useRef } from 'react';
+import { type CSSProperties, type KeyboardEvent, useMemo, useRef } from 'react';
 
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { useStrings } from '../../locale';
@@ -160,6 +160,7 @@ export function ParetoChart({
         viewBox={`0 0 ${width.toString()} ${height.toString()}`}
         role={onSelect ? 'group' : 'img'}
         aria-label={strings.paretoChartLabel(xLabel, yLabel)}
+        style={{ '--aegis-pareto-count': points.length } as CSSProperties}
       >
         {geometry.gridY.map((y) => (
           <line
@@ -206,7 +207,7 @@ export function ParetoChart({
               .join(' ')}
           />
         )}
-        {points.map((point) => (
+        {points.map((point, index) => (
           <circle
             key={point.key}
             className={[
@@ -216,7 +217,12 @@ export function ParetoChart({
             ]
               .filter(Boolean)
               .join(' ')}
-            style={point.color ? { fill: point.color } : undefined}
+            style={
+              {
+                fill: point.color,
+                '--aegis-pareto-index': index,
+              } as CSSProperties
+            }
             cx={sx(point.x)}
             cy={sy(point.y)}
             r={POINT_RADIUS}

@@ -25,10 +25,44 @@
   stroke-dasharray: 4 4;
 }
 
+/* Points pop in one by one; the frontier line and its labels fade in
+ * after the last point. */
+.aegis-pareto__front,
+.aegis-pareto__point-label {
+  animation: aegis-pareto-fade-in var(--motion-chart) backwards;
+  animation-delay: calc(var(--motion-stagger-step) * var(--aegis-pareto-count));
+}
+
 .aegis-pareto__point {
+  transform-box: fill-box;
+  transform-origin: center;
   fill: var(--bg-inverted);
   stroke: var(--bg-panel);
   stroke-width: var(--size-border-thick);
+  animation: aegis-pareto-point-in var(--motion-enter) backwards;
+  animation-delay: calc(var(--motion-stagger-step) * var(--aegis-pareto-index));
+}
+
+@keyframes aegis-pareto-point-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+@keyframes aegis-pareto-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The global reduced-motion rule shortens durations but not delays. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-pareto__front,
+  .aegis-pareto__point-label,
+  .aegis-pareto__point {
+    animation: none;
+  }
 }
 
 .aegis-pareto__point--dominated {

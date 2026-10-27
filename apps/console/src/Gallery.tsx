@@ -1325,7 +1325,10 @@ function App() {
               ariaLabel='7 of 10 checks'
             />
           </Specimen>
-          <Specimen caption='in a numeric DataTable column' span={3}>
+          <Specimen
+            caption='in a numeric DataTable column · staggerIndex per row'
+            span={3}
+          >
             <DataTable
               columns={[
                 GALLERY_MODEL_COLUMNS[0],
@@ -1333,7 +1336,9 @@ function App() {
                   key: 'score',
                   header: 'Mean score',
                   numeric: true,
-                  render: (row) => <ScoreBar value={row.mean} />,
+                  render: (row, index) => (
+                    <ScoreBar value={row.mean} staggerIndex={index} />
+                  ),
                 },
               ]}
               data={GALLERY_MODEL_ROWS}
@@ -1469,6 +1474,18 @@ function App() {
             <div className='gallery__inverted-host'>
               <StatBlock label='throughput' value='9 384' unit='rps' inverted />
             </div>
+          </Specimen>
+          <Specimen caption='animateValue · counts up once on mount'>
+            <StatBlockCountUpSpecimen />
+          </Specimen>
+          <Specimen caption='animateValue · keeps decimals'>
+            <StatBlock
+              label='mean score'
+              value={0.83}
+              direction='vertical'
+              emphasized
+              animateValue
+            />
           </Specimen>
         </div>
 
@@ -5023,8 +5040,33 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
 
 /* ── Commands gallery specimen ─────────────────────────────────────── */
 
+function StatBlockCountUpSpecimen(): ReactNode {
+  const [mount, setMount] = useState(0);
+  return (
+    <div className='gallery__stack'>
+      <StatBlock
+        key={mount}
+        label='runs'
+        value={128}
+        direction='vertical'
+        emphasized
+        animateValue
+      />
+      <AegisButton
+        tone='ghost'
+        onClick={() => {
+          setMount((m) => m + 1);
+        }}
+      >
+        Replay
+      </AegisButton>
+    </div>
+  );
+}
+
 function RankBarSpecimen(): ReactNode {
   const [selected, setSelected] = useState('none');
+  const [round, setRound] = useState(0);
   return (
     <div className='gallery__row'>
       <Specimen
@@ -5041,6 +5083,28 @@ function RankBarSpecimen(): ReactNode {
             }))}
             onSelect={setSelected}
           />
+        </div>
+      </Specimen>
+      <Specimen
+        caption={`values change → widths slide, no replay from 0 · round ${String(round)}`}
+        span={3}
+      >
+        <div className='gallery__stack gallery__stack--fill'>
+          <RankBar
+            items={GALLERY_MODEL_ROWS.map((row, i) => ({
+              key: row.model,
+              label: row.model,
+              value: ((i + round) % GALLERY_MODEL_ROWS.length) / 4 + 0.1,
+            }))}
+          />
+          <AegisButton
+            tone='secondary'
+            onClick={() => {
+              setRound((r) => r + 1);
+            }}
+          >
+            Change values
+          </AegisButton>
         </div>
       </Specimen>
       <Specimen

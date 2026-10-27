@@ -28,11 +28,24 @@
   background: var(--bg-muted);
 }
 
+/* Draws in from the left once; later value changes slide the width. */
 .aegis-score-bar__fill {
   display: block;
   height: 100%;
   border-radius: var(--radius-pill);
   background: var(--score-bar-fill);
+  transition: width var(--motion-chart);
+  animation: aegis-bar-grow var(--motion-chart) backwards;
+  animation-delay: calc(
+    var(--motion-stagger-step) * var(--aegis-score-bar-index)
+  );
+}
+
+/* The global reduced-motion rule shortens durations but not delays. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-score-bar__fill {
+    animation: none;
+  }
 }
 
 /* A zero score still marks the axis start — an empty track reads as missing. */

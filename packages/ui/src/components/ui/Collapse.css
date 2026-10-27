@@ -34,9 +34,40 @@
   min-width: 0;
 }
 
-.aegis-collapse__marker {
+.aegis-collapse__chevron {
   flex-shrink: 0;
+  font-size: var(--size-icon-sm);
   color: var(--text-muted);
+  transition: transform var(--motion-enter);
+}
+
+.aegis-collapse__header[aria-expanded='true'] .aegis-collapse__chevron {
+  transform: rotate(90deg);
+}
+
+/* Expands by animating the row from 0fr to 1fr; visibility flips at the
+ * start of an opening and the end of a closing, so a closed panel is out
+ * of the tab order and the accessibility tree. */
+.aegis-collapse__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows var(--motion-exit),
+    visibility var(--motion-exit);
+}
+
+.aegis-collapse__panel--open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows var(--motion-enter),
+    visibility var(--motion-enter);
+}
+
+.aegis-collapse__clip {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .aegis-collapse__body {

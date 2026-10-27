@@ -1,3 +1,5 @@
+import { type CSSProperties } from 'react';
+
 import { useStrings } from '../../locale';
 import './ScoreBar.css';
 
@@ -12,6 +14,11 @@ interface ScoreBarProps {
   format?: (value: number) => string;
   /** Accessible name; defaults to "<value> of <max>". */
   ariaLabel?: string;
+  /**
+   * Position in a list (e.g. the table row index): delays the draw-in by
+   * that many `--motion-stagger-step`s so rows fill one after another.
+   */
+  staggerIndex?: number;
   className?: string;
 }
 
@@ -21,6 +28,7 @@ export function ScoreBar({
   max = 1,
   format = (score) => score.toFixed(2),
   ariaLabel,
+  staggerIndex = 0,
   className,
 }: ScoreBarProps) {
   const strings = useStrings();
@@ -55,7 +63,12 @@ export function ScoreBar({
                 ? 'aegis-score-bar__fill aegis-score-bar__fill--zero'
                 : 'aegis-score-bar__fill'
             }
-            style={{ width: `${(ratio * 100).toString()}%` }}
+            style={
+              {
+                width: `${(ratio * 100).toString()}%`,
+                '--aegis-score-bar-index': staggerIndex,
+              } as CSSProperties
+            }
           />
         )}
       </span>

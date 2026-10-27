@@ -56,10 +56,24 @@ button.aegis-rank-bar__track:active {
   opacity: 0.8;
 }
 
+/* Bars draw in from the left once, one row after another; later value
+ * changes slide the width instead of replaying from 0. */
 .aegis-rank-bar__fill {
   height: 100%;
   border-radius: var(--radius-sm);
   background: var(--rank-bar-fill);
+  transition: width var(--motion-chart);
+  animation: aegis-bar-grow var(--motion-chart) backwards;
+  animation-delay: calc(
+    var(--motion-stagger-step) * var(--aegis-rank-bar-index)
+  );
+}
+
+/* The global reduced-motion rule shortens durations but not delays. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-rank-bar__fill {
+    animation: none;
+  }
 }
 
 /* A zero score still marks the axis start — an empty track reads as missing. */

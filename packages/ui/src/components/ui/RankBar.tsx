@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type CSSProperties, type ReactNode } from 'react';
 
 import { useStrings } from '../../locale';
 import './RankBar.css';
@@ -43,7 +43,7 @@ export function RankBar({
   const cls = ['aegis-rank-bar', className ?? ''].filter(Boolean).join(' ');
   return (
     <div className={cls}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const { value } = item;
         const fill =
           value === null ? null : (
@@ -54,9 +54,12 @@ export function RankBar({
               ]
                 .filter(Boolean)
                 .join(' ')}
-              style={{
-                width: `${(upperBound > 0 ? (value / upperBound) * 100 : 0).toString()}%`,
-              }}
+              style={
+                {
+                  width: `${(upperBound > 0 ? (value / upperBound) * 100 : 0).toString()}%`,
+                  '--aegis-rank-bar-index': index,
+                } as CSSProperties
+              }
             />
           );
         return (

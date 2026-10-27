@@ -10,6 +10,44 @@
   justify-content: center;
   padding: var(--space-6);
   background: var(--bg-backdrop);
+  animation: aegis-dialog-fade-in var(--motion-enter) backwards;
+}
+
+.aegis-dialog__backdrop--closing {
+  pointer-events: none;
+  animation: aegis-dialog-fade-out var(--motion-exit) forwards;
+}
+
+.aegis-dialog__backdrop--closing .aegis-dialog {
+  animation: aegis-dialog-exit var(--motion-exit) forwards;
+}
+
+/* Enters with a fade, a 0.98 → 1 scale and a small upward shift; exits
+ * the reverse, faster. Fill modes leave no transform behind once open. */
+@keyframes aegis-dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes aegis-dialog-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes aegis-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-enter-offset)) scale(0.98);
+  }
+}
+
+@keyframes aegis-dialog-exit {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 }
 
 .aegis-dialog {
@@ -25,6 +63,7 @@
   font-family: var(--font-ui);
   color: var(--text-main);
   overflow: hidden;
+  animation: aegis-dialog-enter var(--motion-enter) backwards;
 }
 
 .aegis-dialog--sm {
