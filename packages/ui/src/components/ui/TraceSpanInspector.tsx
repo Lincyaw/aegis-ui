@@ -1,3 +1,6 @@
+import type { ReactNode } from 'react';
+
+import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { CodeBlock } from './CodeBlock';
 import { EmptyState } from './EmptyState';
@@ -18,6 +21,8 @@ export interface TraceSpanInspectorProps {
   onSelectRelated?: (span: TraceSpan) => void;
   /** Optional raw OTel attributes from the original span row (for the Raw tab JSON). */
   raw?: unknown;
+  /** The span's content, shown in the Overview tab under its facts. */
+  detail?: ReactNode;
 }
 
 const TITLE_MAX = 80;
@@ -50,14 +55,18 @@ export function TraceSpanInspector({
   spanLookup,
   onSelectRelated,
   raw,
+  detail,
 }: TraceSpanInspectorProps) {
+  const strings = useStrings();
   if (!span) {
     return (
       <ObjectInspector
         open={false}
         onClose={onClose}
         title=""
-        tabs={[{ id: 'overview', label: 'Overview', content: null }]}
+        tabs={[
+          { id: 'overview', label: strings.inspectorOverview, content: null },
+        ]}
       />
     );
   }
@@ -67,15 +76,15 @@ export function TraceSpanInspector({
 
   const overviewItems: KeyValueItem[] = [
     {
-      k: 'name',
+      k: strings.traceSpanField('name'),
       v: <span className="aegis-trace-span-inspector__name">{span.name}</span>,
     },
     {
-      k: 'status',
+      k: strings.traceSpanField('status'),
       v: (
         <span className="aegis-trace-span-inspector__status">
           <StatusDot tone={statusTone(span.status)} size={6} />
-          {span.status ?? 'unset'}
+          {strings.traceSpanStatus(span.status ?? 'unset')}
         </span>
       ),
     },
@@ -87,26 +96,28 @@ export function TraceSpanInspector({
     nodeToString(span.kind) !== ''
   ) {
     overviewItems.push({
-      k: 'kind',
+      k: strings.traceSpanField('kind'),
       v: <Chip tone="ghost">{span.kind}</Chip>,
     });
   }
 
-  overviewItems.push(
-    {
-      k: 'start',
+  if (span.startMs !== undefined) {
+    overviewItems.push({
+      k: strings.traceSpanField('start'),
       v: <MonoValue size="sm">{formatDuration(span.startMs)}</MonoValue>,
-    },
-    {
-      k: 'duration',
+    });
+  }
+  if (span.durationMs !== undefined) {
+    overviewItems.push({
+      k: strings.traceSpanField('duration'),
       v: <MonoValue size="sm">{formatDuration(span.durationMs)}</MonoValue>,
-    },
-  );
+    });
+  }
 
   if (parent && onSelectRelated) {
     const parentSpan = parent;
     overviewItems.push({
-      k: 'parent',
+      k: strings.traceSpanField('parent'),
       v: (
         <button
           type="button"
@@ -121,13 +132,13 @@ export function TraceSpanInspector({
     });
   } else if (span.parentId) {
     overviewItems.push({
-      k: 'parent',
+      k: strings.traceSpanField('parent'),
       v: <MonoValue size="sm">{span.parentId}</MonoValue>,
     });
   }
 
   overviewItems.push({
-    k: 'id',
+    k: strings.traceSpanField('id'),
     v: <MonoValue size="sm">{span.id}</MonoValue>,
   });
 
@@ -159,25 +170,33 @@ export function TraceSpanInspector({
   const tabs: ObjectInspectorTab[] = [
     {
       id: 'overview',
-      label: 'Overview',
-      content: <KeyValueList items={overviewItems} />,
+      label: strings.inspectorOverview,
+      content:
+        detail === undefined ? (
+          <KeyValueList items={overviewItems} />
+        ) : (
+          <div className="aegis-trace-span-inspector__overview">
+            <KeyValueList items={overviewItems} />
+            <div className="aegis-trace-span-inspector__detail">{detail}</div>
+          </div>
+        ),
     },
     {
       id: 'attributes',
-      label: 'Attributes',
+      label: strings.inspectorAttributes,
       content:
         attrItems.length > 0 ? (
           <KeyValueList items={attrItems} />
         ) : (
           <EmptyState
-            title="No attributes"
-            description="No attributes recorded on this span."
+            title={strings.noAttributes}
+            description={strings.noAttributesDescription}
           />
         ),
     },
     {
       id: 'raw',
-      label: 'Raw',
+      label: strings.inspectorRaw,
       content: <CodeBlock code={rawJson} language="json" />,
     },
   ];

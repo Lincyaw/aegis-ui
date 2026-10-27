@@ -65,6 +65,39 @@ export interface AegisStrings {
   shareLinkGenerating: string;
   shareLinkGenerateFailed: string;
   clipboardUnavailable: string;
+  /** The TrajectoryTimeline header when it names no agent. */
+  trajectoryHeading: string;
+  trajectoryStatus: (status: 'running' | 'completed' | 'failed') => string;
+  trajectoryActionType: (type: 'tool_call' | 'message' | 'internal') => string;
+  trajectoryThought: string;
+  trajectoryAction: string;
+  trajectoryTool: string;
+  trajectoryObservation: string;
+  toolCallArguments: string;
+  toolCallResult: string;
+  toolCallError: string;
+  toolCallStatus: (status: 'running' | 'ok' | 'error') => string;
+  expandRow: string;
+  collapseRow: string;
+  resizeNameColumn: string;
+  /** A TraceTree tooltip's timing, e.g. "start +1.2s · dur 300ms". */
+  traceSpanTiming: (start: string, duration: string) => string;
+  traceSpanStatus: (status: 'ok' | 'error' | 'unset') => string;
+  traceSpanField: (
+    field: 'name' | 'status' | 'kind' | 'start' | 'duration' | 'parent' | 'id',
+  ) => string;
+  inspectorOverview: string;
+  inspectorAttributes: string;
+  noAttributes: string;
+  noAttributesDescription: string;
+  inspectorTabs: string;
+  maximizeInspector: string;
+  restoreInspector: string;
+  closeInspector: string;
+  maximize: string;
+  restore: string;
+  timelineEmptyTitle: string;
+  timelineEmptyDescription: string;
 }
 
 export const enStrings: AegisStrings = {
@@ -136,6 +169,35 @@ export const enStrings: AegisStrings = {
   shareLinkGenerating: 'Generating…',
   shareLinkGenerateFailed: 'failed to generate link',
   clipboardUnavailable: 'clipboard unavailable',
+  trajectoryHeading: 'agent trajectory',
+  trajectoryStatus: (status) => status,
+  trajectoryActionType: (type) => type,
+  trajectoryThought: 'thought',
+  trajectoryAction: 'action',
+  trajectoryTool: 'tool',
+  trajectoryObservation: 'observation',
+  toolCallArguments: 'arguments',
+  toolCallResult: 'result',
+  toolCallError: 'error',
+  toolCallStatus: (status) => status,
+  expandRow: 'Expand',
+  collapseRow: 'Collapse',
+  resizeNameColumn: 'Resize name column',
+  traceSpanTiming: (start, duration) => `start +${start} · dur ${duration}`,
+  traceSpanStatus: (status) => status,
+  traceSpanField: (field) => field,
+  inspectorOverview: 'Overview',
+  inspectorAttributes: 'Attributes',
+  noAttributes: 'No attributes',
+  noAttributesDescription: 'No attributes recorded on this span.',
+  inspectorTabs: 'Inspector tabs',
+  maximizeInspector: 'Maximize inspector',
+  restoreInspector: 'Restore inspector',
+  closeInspector: 'Close inspector',
+  maximize: 'Maximize',
+  restore: 'Restore',
+  timelineEmptyTitle: 'No spans',
+  timelineEmptyDescription: 'Nothing to plot yet.',
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -205,4 +267,46 @@ export const zhCNStrings: AegisStrings = {
   shareLinkGenerating: '正在生成…',
   shareLinkGenerateFailed: '无法生成链接',
   clipboardUnavailable: '无法访问剪贴板',
+  trajectoryHeading: '执行轨迹',
+  trajectoryStatus: (status) =>
+    ({ running: '运行中', completed: '已完成', failed: '失败' })[status],
+  trajectoryActionType: (type) =>
+    ({ tool_call: '工具调用', message: '消息', internal: '内部' })[type],
+  trajectoryThought: '思考',
+  trajectoryAction: '行动',
+  trajectoryTool: '工具调用',
+  trajectoryObservation: '观察',
+  toolCallArguments: '参数',
+  toolCallResult: '结果',
+  toolCallError: '错误',
+  toolCallStatus: (status) =>
+    ({ running: '运行中', ok: '正常', error: '失败' })[status],
+  expandRow: '展开',
+  collapseRow: '收起',
+  resizeNameColumn: '调整名称列宽度',
+  traceSpanTiming: (start, duration) => `开始 +${start} · 耗时 ${duration}`,
+  traceSpanStatus: (status) =>
+    ({ ok: '正常', error: '失败', unset: '未标记' })[status],
+  traceSpanField: (field) =>
+    ({
+      name: '名称',
+      status: '状态',
+      kind: '类型',
+      start: '开始',
+      duration: '耗时',
+      parent: '上级',
+      id: '编号',
+    })[field],
+  inspectorOverview: '概览',
+  inspectorAttributes: '属性',
+  noAttributes: '没有属性',
+  noAttributesDescription: '这个节点没有记录属性。',
+  inspectorTabs: '详情标签页',
+  maximizeInspector: '放大详情面板',
+  restoreInspector: '还原详情面板',
+  closeInspector: '关闭详情面板',
+  maximize: '放大',
+  restore: '还原',
+  timelineEmptyTitle: '没有时间区间',
+  timelineEmptyDescription: '暂无可绘制的内容。',
 };

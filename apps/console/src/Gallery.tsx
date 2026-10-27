@@ -404,6 +404,33 @@ const TRAJECTORY_STEPS: TrajectoryStepData[] = [
   },
 ];
 
+const TRAJECTORY_STEP_SEVERAL_CALLS: TrajectoryStepData = {
+  step: 5,
+  timestamp: '14:22:09',
+  durationMs: 2310,
+  summary: 'query_metrics · read_file — two calls in one step',
+  thought: 'Compare the **cache** latency with the pool settings in one round.',
+  actionType: 'tool_call',
+  sections: [
+    { label: 'message', text: 'Checking the metric and the config together.' },
+    {
+      label: 'recorded request body',
+      text: '{"model": "claude-opus-4-7",\n "tools": ["query_metrics", "read_file"]}',
+      format: 'text',
+    },
+  ],
+  toolCalls: [
+    TOOL_QUERY_METRICS,
+    {
+      name: 'read_file',
+      arguments: '{\n  "path": "/etc/redis/pool.conf"\n}',
+      status: 'error',
+      isError: true,
+      result: 'FileNotFoundError: /etc/redis/pool.conf',
+    },
+  ],
+};
+
 const TABLE_DATA = [
   {
     key: 1,
@@ -2189,6 +2216,12 @@ function App() {
               }}
             />
           </Specimen>
+          <Specimen caption='summary · several calls · sections' span={2}>
+            <TrajectoryStep
+              data={TRAJECTORY_STEP_SEVERAL_CALLS}
+              defaultExpanded
+            />
+          </Specimen>
         </div>
 
         <SectionDivider>TrajectoryTimeline</SectionDivider>
@@ -2211,6 +2244,16 @@ function App() {
               }),
             }}
           />
+        </div>
+        <div className='gallery__stack'>
+          <Specimen caption='header={false} · inside a titled Panel' span={3}>
+            <Panel title='Agent steps'>
+              <TrajectoryTimeline
+                header={false}
+                steps={TRAJECTORY_STEPS.slice(0, 2)}
+              />
+            </Panel>
+          </Specimen>
         </div>
 
         <SectionDivider>ContentInspectorDialog · ContentPreview</SectionDivider>
@@ -4324,6 +4367,15 @@ function App() {
           >
             <TraceTreeSpecimen />
           </Specimen>
+          <Specimen
+            caption='timed steps · untimed calls draw no bar · inspector detail'
+            span={3}
+          >
+            <TraceTreeMixedTimingSpecimen />
+          </Specimen>
+          <Specimen caption='no span timed · labels only' span={3}>
+            <TraceTree spans={traceTreeUntimedSpans} />
+          </Specimen>
         </div>
 
         <SectionDivider extra={<MetricLabel>OTel agent traces</MetricLabel>}>
@@ -6090,6 +6142,56 @@ function TraceTreeSpecimen(): ReactNode {
         onClose={() => setSelected(null)}
         spanLookup={lookup}
         onSelectRelated={setSelected}
+      />
+    </>
+  );
+}
+
+const traceTreeMixedSpans: TraceSpan[] = [
+  { id: 'step-1', name: '01 query_metrics', startMs: 0, durationMs: 1240 },
+  {
+    id: 'step-1-call',
+    parentId: 'step-1',
+    name: 'query_metrics service=catalog',
+    status: 'ok',
+    kind: 'tool',
+  },
+  { id: 'step-2', name: '02 read_file', startMs: 1240, durationMs: 890 },
+  {
+    id: 'step-2-call',
+    parentId: 'step-2',
+    name: 'read_file /etc/redis/pool.conf',
+    status: 'error',
+    kind: 'tool',
+  },
+  { id: 'step-3', name: '03 report_rca', startMs: 2130 },
+];
+
+const traceTreeUntimedSpans: TraceSpan[] = [
+  { id: 'r1', name: 'request 1 · claude-opus-4-7', kind: 'request' },
+  { id: 'r1-in', parentId: 'r1', name: 'user: Why is catalog slow?' },
+  { id: 'r1-out', parentId: 'r1', name: 'response: Checking metrics…' },
+  { id: 'r2', name: 'request 2 · claude-opus-4-7', kind: 'request' },
+  { id: 'r2-in', parentId: 'r2', name: 'function_call_output: 482 ms' },
+];
+
+function TraceTreeMixedTimingSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<TraceSpan | null>(null);
+  return (
+    <>
+      <TraceTree
+        spans={traceTreeMixedSpans}
+        selectedId={selected?.id}
+        onSelect={setSelected}
+      />
+      <TraceSpanInspector
+        span={selected}
+        onClose={() => setSelected(null)}
+        detail={
+          selected?.kind === 'tool' ? (
+            <ToolCallCard data={TOOL_QUERY_METRICS} />
+          ) : undefined
+        }
       />
     </>
   );

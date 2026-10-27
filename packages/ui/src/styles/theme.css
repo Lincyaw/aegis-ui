@@ -202,6 +202,7 @@
   --chat-session-menu-min-width: 140px;
   --parquet-created-by-max-width: 200px;
   --service-map-min-height: 360px;
+  --trajectory-step-text-max-height: 320px;
 
   /* ── Component sizing (icons, controls, avatars) ─────────────────── */
   --size-icon-sm: 12px;

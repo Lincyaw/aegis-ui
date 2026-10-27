@@ -51,6 +51,7 @@ export type { MetricCardSurface } from './MetricCard';
 export { TrajectoryStep } from './TrajectoryStep';
 export type {
   TrajectoryStepData,
+  TrajectoryStepSection,
   TrajectoryStepSurface,
 } from './TrajectoryStep';
 export { TrajectoryTimeline } from './TrajectoryTimeline';

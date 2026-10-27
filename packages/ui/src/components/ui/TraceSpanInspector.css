@@ -2,6 +2,22 @@
   font-family: var(--font-mono);
 }
 
+.aegis-trace-span-inspector__overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.aegis-trace-span-inspector__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding-top: var(--space-4);
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
 .aegis-trace-span-inspector__status {
   display: inline-flex;
   align-items: center;

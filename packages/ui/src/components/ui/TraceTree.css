@@ -33,6 +33,16 @@
   background: var(--bg-muted);
 }
 
+/* No span is timed: the rows are the labels alone. */
+.aegis-trace-tree--untimed .aegis-trace-tree__row {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: none;
+}
+
+.aegis-trace-tree--untimed .aegis-trace-tree__label {
+  grid-area: auto;
+}
+
 .aegis-trace-tree__row--selected {
   background: var(--bg-inverted);
   color: var(--text-on-inverted);

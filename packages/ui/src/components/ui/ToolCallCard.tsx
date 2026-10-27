@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
 import './ToolCallCard.css';
@@ -57,6 +58,7 @@ function CodeBlock({ label, code }: { label: string; code: string }) {
 export function ToolCallCard({ data, className, surface }: ToolCallCardProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, data, 'detail', wrapRef);
+  const strings = useStrings();
   const status: ToolCallStatus = data.status ?? 'ok';
   const cls = ['aegis-tool-call', `aegis-tool-call--${status}`, className ?? '']
     .filter(Boolean)
@@ -68,10 +70,12 @@ export function ToolCallCard({ data, className, surface }: ToolCallCardProps) {
         <Chip tone="ink">{data.name}</Chip>
         <StatusChip status={status} />
       </div>
-      <CodeBlock label="arguments" code={data.arguments} />
+      <CodeBlock label={strings.toolCallArguments} code={data.arguments} />
       {data.result && (
         <CodeBlock
-          label={status === 'error' ? 'error' : 'result'}
+          label={
+            status === 'error' ? strings.toolCallError : strings.toolCallResult
+          }
           code={data.result}
         />
       )}
@@ -80,24 +84,25 @@ export function ToolCallCard({ data, className, surface }: ToolCallCardProps) {
 }
 
 function StatusChip({ status }: { status: ToolCallStatus }) {
+  const strings = useStrings();
   if (status === 'running') {
     return (
       <span className="aegis-tool-call__status aegis-tool-call__status--running">
         <span className="aegis-tool-call__spinner" aria-hidden="true" />
-        running
+        {strings.toolCallStatus('running')}
       </span>
     );
   }
   if (status === 'error') {
     return (
       <span className="aegis-tool-call__status aegis-tool-call__status--error">
-        error
+        {strings.toolCallStatus('error')}
       </span>
     );
   }
   return (
     <span className="aegis-tool-call__status aegis-tool-call__status--ok">
-      ok
+      {strings.toolCallStatus('ok')}
     </span>
   );
 }

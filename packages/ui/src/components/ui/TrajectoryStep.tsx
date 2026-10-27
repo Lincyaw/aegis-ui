@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { Markdown } from './Markdown';
 import { MetricLabel } from './MetricLabel';
@@ -12,15 +13,29 @@ import { StatusDot } from './StatusDot';
 import { ToolCallCard, type ToolCallData } from './ToolCallCard';
 import './TrajectoryStep.css';
 
+/** A labelled text of a step beyond its thought, action and observation. */
+export interface TrajectoryStepSection {
+  label: string;
+  text: string;
+  /** `text` keeps the text as recorded, preformatted and scrolling past a cap. */
+  format?: 'markdown' | 'text';
+}
+
 export interface TrajectoryStepData {
   step: number;
   timestamp?: string;
   durationMs?: number;
+  /** The head's one-line preview; defaults to `action`. */
+  summary?: string;
   thought?: string;
   action?: string;
   actionType?: 'tool_call' | 'message' | 'internal';
   toolCall?: ToolCallData;
+  /** Further calls of the step, each a card after `toolCall`. */
+  toolCalls?: ToolCallData[];
   observation?: string;
+  /** Shown after the thought and action, before the tool calls. */
+  sections?: TrajectoryStepSection[];
 }
 
 export type TrajectoryStepSurface = PrimitiveSurface<TrajectoryStepData>;
@@ -57,11 +72,19 @@ export function TrajectoryStep({
 }: TrajectoryStepProps) {
   const wrapRef = useRef<HTMLElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, data, 'detail', wrapRef);
+  const strings = useStrings();
   const [expanded, setExpanded] = useState(defaultExpanded);
 
-  const hasBody = Boolean(
-    data.thought ?? data.action ?? data.observation ?? data.toolCall,
-  );
+  const toolCalls = [
+    ...(data.toolCall ? [data.toolCall] : []),
+    ...(data.toolCalls ?? []),
+  ];
+  const sections = data.sections ?? [];
+  const summary = data.summary ?? data.action;
+  const hasBody =
+    [data.thought, data.action, data.observation].some(Boolean) ||
+    toolCalls.length > 0 ||
+    sections.length > 0;
 
   const actionTone =
     data.actionType === 'tool_call'
@@ -94,12 +117,14 @@ export function TrajectoryStep({
             </MonoValue>
           </span>
           {data.actionType ? (
-            <Chip tone={actionTone}>{data.actionType}</Chip>
+            <Chip tone={actionTone}>
+              {strings.trajectoryActionType(data.actionType)}
+            </Chip>
           ) : (
             <StatusDot size={6} />
           )}
-          {data.action && (
-            <span className="aegis-step__action-preview">{data.action}</span>
+          {summary && (
+            <span className="aegis-step__action-preview">{summary}</span>
           )}
         </div>
         <div className="aegis-step__head-right">
@@ -129,22 +154,35 @@ export function TrajectoryStep({
       {expanded && hasBody && (
         <div className="aegis-step__body">
           {data.thought && (
-            <StepSection label="thought">
+            <StepSection label={strings.trajectoryThought}>
               <Markdown>{data.thought}</Markdown>
             </StepSection>
           )}
           {data.action && (
-            <StepSection label="action">
+            <StepSection label={strings.trajectoryAction}>
               <Markdown>{data.action}</Markdown>
             </StepSection>
           )}
-          {data.toolCall && (
-            <StepSection label="tool">
-              <ToolCallCard data={data.toolCall} />
+          {sections.map((section, index) => (
+            <StepSection key={index} label={section.label}>
+              {section.format === 'text' ? (
+                <pre className="aegis-step__text">{section.text}</pre>
+              ) : (
+                <Markdown>{section.text}</Markdown>
+              )}
+            </StepSection>
+          ))}
+          {toolCalls.length > 0 && (
+            <StepSection label={strings.trajectoryTool}>
+              <div className="aegis-step__tools">
+                {toolCalls.map((call, index) => (
+                  <ToolCallCard key={index} data={call} />
+                ))}
+              </div>
             </StepSection>
           )}
           {data.observation && (
-            <StepSection label="observation">
+            <StepSection label={strings.trajectoryObservation}>
               <Markdown>{data.observation}</Markdown>
             </StepSection>
           )}

@@ -15,6 +15,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
 import { useResizable } from '../../hooks/useResizable';
+import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
@@ -27,14 +28,23 @@ export interface TraceSpan {
   id: string;
   parentId?: string | null;
   name: string;
-  /** Milliseconds since trace start. */
-  startMs: number;
-  durationMs: number;
+  /**
+   * Milliseconds since trace start. Leave `startMs` and `durationMs` out for a
+   * span whose time is not recorded: its row draws no bar, and siblings that are
+   * not all timed keep the order they are given in.
+   */
+  startMs?: number;
+  durationMs?: number;
   status?: 'ok' | 'error' | 'unset';
   /** Short label rendered as a chip on the left of the row. */
   kind?: ReactNode;
   /** Free-form attributes — only used by the inspector pane, not by the row itself. */
   attrs?: Record<string, unknown>;
+}
+
+interface TimedSpan extends TraceSpan {
+  startMs: number;
+  durationMs: number;
 }
 
 interface TraceTreeProps {
@@ -63,6 +73,16 @@ const NAME_COL_MIN = 180;
 const NAME_COL_MAX = 700;
 const NAME_COL_DEFAULT = 320;
 
+function isTimed(span: TraceSpan): span is TimedSpan {
+  return span.startMs !== undefined && span.durationMs !== undefined;
+}
+
+function sortByStart(nodes: Node[]): void {
+  if (nodes.every((n) => n.span.startMs !== undefined)) {
+    nodes.sort((a, b) => (a.span.startMs ?? 0) - (b.span.startMs ?? 0));
+  }
+}
+
 function buildForest(spans: TraceSpan[]): Node[] {
   const byId = new Map<string, Node>();
   spans.forEach((s) => {
@@ -80,10 +100,10 @@ function buildForest(spans: TraceSpan[]): Node[] {
     }
   });
   const sortRec = (n: Node): void => {
-    n.children.sort((a, b) => a.span.startMs - b.span.startMs);
+    sortByStart(n.children);
     n.children.forEach(sortRec);
   };
-  roots.sort((a, b) => a.span.startMs - b.span.startMs);
+  sortByStart(roots);
   roots.forEach(sortRec);
   return roots;
 }
@@ -118,16 +138,21 @@ export function TraceTree({
 }: TraceTreeProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, spans, 'tree', wrapRef);
-  const { roots, traceDuration, traceStart } = useMemo(() => {
+  const strings = useStrings();
+  const { roots, traceDuration, traceStart, timed } = useMemo(() => {
     const r = buildForest(spans);
-    const start = spans.length ? Math.min(...spans.map((s) => s.startMs)) : 0;
-    const end = spans.length
-      ? Math.max(...spans.map((s) => s.startMs + s.durationMs))
+    const timedSpans = spans.filter(isTimed);
+    const start = timedSpans.length
+      ? Math.min(...timedSpans.map((s) => s.startMs))
+      : 0;
+    const end = timedSpans.length
+      ? Math.max(...timedSpans.map((s) => s.startMs + s.durationMs))
       : 1;
     return {
       roots: r,
       traceStart: start,
       traceDuration: Math.max(end - start, 1),
+      timed: timedSpans.length > 0,
     };
   }, [spans]);
 
@@ -186,6 +211,7 @@ export function TraceTree({
     'aegis-trace-tree',
     isDragging ? 'aegis-trace-tree--dragging' : '',
     wrapName ? 'aegis-trace-tree--wrap' : '',
+    timed ? '' : 'aegis-trace-tree--untimed',
     className ?? '',
   ]
     .filter(Boolean)
@@ -207,39 +233,42 @@ export function TraceTree({
         const isCollapsed = collapsed.has(n.span.id);
         const hasChildren = n.children.length > 0;
         const isSelected = selectedId === n.span.id;
-        const offsetPct = ((n.span.startMs - traceStart) / traceDuration) * 100;
-        const widthPct = Math.max(
-          (n.span.durationMs / traceDuration) * 100,
-          0.5,
-        );
-        const handleClick = (): void => onSelect?.(n.span);
+        const span = n.span;
+        const handleClick = (): void => onSelect?.(span);
         const handleKey = (e: KeyboardEvent<HTMLDivElement>): void => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            onSelect?.(n.span);
+            onSelect?.(span);
           }
         };
         const rowCls = [
           'aegis-trace-tree__row',
           isSelected ? 'aegis-trace-tree__row--selected' : '',
-          n.span.status === 'error' ? 'aegis-trace-tree__row--error' : '',
+          span.status === 'error' ? 'aegis-trace-tree__row--error' : '',
         ]
           .filter(Boolean)
           .join(' ');
 
+        const timing = isTimed(span)
+          ? strings.traceSpanTiming(
+              formatDuration(span.startMs - traceStart),
+              formatDuration(span.durationMs),
+            )
+          : '';
+        const kind = span.kind ? nodeToString(span.kind) : '';
+        const meta = [timing, kind].filter(Boolean).join(' · ');
         const tooltipContent = (
           <div className="aegis-trace-tree__tooltip">
-            <div className="aegis-trace-tree__tooltip-name">{n.span.name}</div>
-            <div className="aegis-trace-tree__tooltip-meta">
-              {`start +${formatDuration(n.span.startMs - traceStart)} · dur ${formatDuration(n.span.durationMs)}`}
-              {n.span.kind ? ` · ${nodeToString(n.span.kind)}` : ''}
-            </div>
+            <div className="aegis-trace-tree__tooltip-name">{span.name}</div>
+            {meta && (
+              <div className="aegis-trace-tree__tooltip-meta">{meta}</div>
+            )}
           </div>
         );
 
         return (
           <div
-            key={n.span.id}
+            key={span.id}
             className={rowCls}
             role="treeitem"
             aria-expanded={hasChildren ? !isCollapsed : undefined}
@@ -261,10 +290,12 @@ export function TraceTree({
                 <button
                   type="button"
                   className="aegis-trace-tree__caret"
-                  aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+                  aria-label={
+                    isCollapsed ? strings.expandRow : strings.collapseRow
+                  }
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggle(n.span.id);
+                    toggle(span.id);
                   }}
                 >
                   {isCollapsed ? '▸' : '▾'}
@@ -272,10 +303,10 @@ export function TraceTree({
               ) : (
                 <span className="aegis-trace-tree__caret aegis-trace-tree__caret--leaf" />
               )}
-              <StatusDot tone={statusTone(n.span.status)} size={6} />
-              {n.span.kind ? (
+              <StatusDot tone={statusTone(span.status)} size={6} />
+              {span.kind ? (
                 <Chip tone="ghost" className="aegis-trace-tree__kind">
-                  {n.span.kind}
+                  {span.kind}
                 </Chip>
               ) : null}
               <Tooltip
@@ -284,28 +315,36 @@ export function TraceTree({
                 styles={{ root: { maxWidth: 'var(--tooltip-max-width)' } }}
                 title={tooltipContent}
               >
-                <span className="aegis-trace-tree__name">{n.span.name}</span>
+                <span className="aegis-trace-tree__name">{span.name}</span>
               </Tooltip>
             </div>
-            <div
-              {...handleProps}
-              className="aegis-trace-tree__handle"
-              aria-label="Resize name column"
-            />
-            <div className="aegis-trace-tree__bar-track" aria-hidden="true">
-              <span
-                className="aegis-trace-tree__bar"
-                style={{
-                  left: `${offsetPct.toString()}%`,
-                  width: `${widthPct.toString()}%`,
-                }}
-              />
-            </div>
-            <div className="aegis-trace-tree__duration">
-              <MonoValue size="sm" weight="regular">
-                {formatDuration(n.span.durationMs)}
-              </MonoValue>
-            </div>
+            {timed && (
+              <>
+                <div
+                  {...handleProps}
+                  className="aegis-trace-tree__handle"
+                  aria-label={strings.resizeNameColumn}
+                />
+                <div className="aegis-trace-tree__bar-track" aria-hidden="true">
+                  {isTimed(span) && (
+                    <span
+                      className="aegis-trace-tree__bar"
+                      style={{
+                        left: `${(((span.startMs - traceStart) / traceDuration) * 100).toString()}%`,
+                        width: `${Math.max((span.durationMs / traceDuration) * 100, 0.5).toString()}%`,
+                      }}
+                    />
+                  )}
+                </div>
+                <div className="aegis-trace-tree__duration">
+                  {span.durationMs !== undefined && (
+                    <MonoValue size="sm" weight="regular">
+                      {formatDuration(span.durationMs)}
+                    </MonoValue>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         );
       })}

@@ -104,6 +104,28 @@
 
 .aegis-step__section-body {
   padding-left: var(--space-2);
+  min-width: 0;
+}
+
+.aegis-step__tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-step__text {
+  margin: 0;
+  max-height: var(--trajectory-step-text-max-height);
+  overflow: auto;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  line-height: 1.6;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* ── Timeline connector (visual only) ────────────────────────────── */

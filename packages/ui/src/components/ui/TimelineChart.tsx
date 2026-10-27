@@ -13,6 +13,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Tooltip } from 'antd';
 
+import { useStrings } from '../../locale';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Skeleton';
 import './TimelineChart.css';
@@ -169,6 +170,7 @@ export function TimelineChart({
   className,
 }: TimelineChartProps): ReactNode {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const strings = useStrings();
   const trackHeaderRef = useRef<HTMLDivElement>(null);
   const guideRef = useRef<HTMLDivElement>(null);
   const guideLabelRef = useRef<HTMLDivElement>(null);
@@ -319,7 +321,10 @@ export function TimelineChart({
         </div>
       ) : !hasSpans ? (
         <div className="aegis-timeline-chart__empty">
-          <EmptyState title="No spans" description="Nothing to plot yet." />
+          <EmptyState
+            title={strings.timelineEmptyTitle}
+            description={strings.timelineEmptyDescription}
+          />
         </div>
       ) : (
         <div

@@ -7,6 +7,7 @@ import {
 } from '@ant-design/icons';
 import { Drawer } from 'antd';
 
+import { useStrings } from '../../locale';
 import { MetricLabel } from './MetricLabel';
 import './ObjectInspector.css';
 import { Toolbar } from './Toolbar';
@@ -50,6 +51,7 @@ export function ObjectInspector({
   defaultMaximized = false,
 }: ObjectInspectorProps) {
   const [maximized, setMaximized] = useState<boolean>(defaultMaximized);
+  const strings = useStrings();
   function resolveInitialTabId(): string {
     if (defaultTabId !== undefined) {
       return defaultTabId;
@@ -101,9 +103,9 @@ export function ObjectInspector({
                 setMaximized((m) => !m);
               }}
               aria-label={
-                maximized ? 'Restore inspector' : 'Maximize inspector'
+                maximized ? strings.restoreInspector : strings.maximizeInspector
               }
-              title={maximized ? 'Restore' : 'Maximize'}
+              title={maximized ? strings.restore : strings.maximize}
             >
               {maximized ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
             </button>
@@ -111,7 +113,7 @@ export function ObjectInspector({
               type="button"
               className="aegis-object-inspector__close"
               onClick={onClose}
-              aria-label="Close inspector"
+              aria-label={strings.closeInspector}
             >
               <CloseOutlined />
             </button>
@@ -129,7 +131,7 @@ export function ObjectInspector({
         <div
           className="aegis-object-inspector__tablist"
           role="tablist"
-          aria-label="Inspector tabs"
+          aria-label={strings.inspectorTabs}
         >
           {tabs.map((tab) => (
             <button
