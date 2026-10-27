@@ -246,7 +246,13 @@
   --chip-font-size-md: var(--fs-12);
   --chip-font-size-lg: var(--fs-12);
   --chip-height-sm: auto;
-  --chip-height-md: auto;
+  /* The md chip centres its label without vertical padding, so any fixed
+   * height at least one line tall fits. The default is its natural height
+   * (a 1.4 line, 4 px above and below, the hairline border). */
+  --chip-height-md: calc(
+    var(--chip-font-size-md) * 1.4 + var(--space-1) * 2 + var(--size-hairline) *
+      2
+  );
   --chip-height-lg: 28px;
   --metric-label-transform: uppercase;
   --metric-label-tracking: var(--tracking-label);
