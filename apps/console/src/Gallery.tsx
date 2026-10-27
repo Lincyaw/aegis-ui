@@ -2328,6 +2328,19 @@ function App() {
               ]}
             />
           </Specimen>
+          <Specimen caption='long item truncates with an ellipsis' span={3}>
+            <Breadcrumb
+              items={[
+                { label: 'Results', to: '/results' },
+                {
+                  label:
+                    'external/bench/checkout-latency-regression-under-sustained-write-load-after-the-index-rebuild',
+                  to: '/tasks/3f9c2a1b7d04',
+                },
+                { label: 'Run 3f9c2a1b' },
+              ]}
+            />
+          </Specimen>
         </div>
 
         <SectionDivider>Avatar</SectionDivider>

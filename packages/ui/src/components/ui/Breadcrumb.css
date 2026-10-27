@@ -12,16 +12,22 @@
   flex-wrap: wrap;
 }
 
+/* An item wider than the trail truncates instead of widening the page. */
 .aegis-breadcrumb__item {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .aegis-breadcrumb__link {
+  min-width: 0;
+  overflow: hidden;
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   font-weight: var(--fw-medium);
+  text-overflow: ellipsis;
   color: var(--text-muted);
   text-decoration: none;
   transition: color var(--motion-fast);
@@ -33,9 +39,12 @@
 }
 
 .aegis-breadcrumb__text {
+  min-width: 0;
+  overflow: hidden;
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   font-weight: var(--fw-medium);
+  text-overflow: ellipsis;
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -45,6 +54,7 @@
 }
 
 .aegis-breadcrumb__sep {
+  flex-shrink: 0;
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   color: var(--text-muted);
