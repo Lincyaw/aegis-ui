@@ -64,6 +64,8 @@ export function AegisShell({
   userMenu,
   headerCenter,
   headerActions,
+  appSwitcher = true,
+  elevateHeaderOnScroll = false,
   inboxPath,
   onAppSwitch,
   enableCommandPalette = false,
@@ -80,6 +82,21 @@ export function AegisShell({
     () => readStorage(SIDEBAR_COLLAPSED_KEY) === '1',
   );
   const [inlineSlot, setInlineSlot] = useState<HTMLDivElement | null>(null);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!elevateHeaderOnScroll) {
+      return undefined;
+    }
+    const update = (): void => {
+      setHeaderScrolled(window.scrollY > 0);
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', update);
+    };
+  }, [elevateHeaderOnScroll]);
 
   const resolvedUser = useMemo<AegisUser | undefined>(() => {
     if (user) {
@@ -285,6 +302,8 @@ export function AegisShell({
             apps={visibleApps}
             activeAppId={activeApp?.id}
             onAppSwitch={onAppSwitch}
+            appSwitcher={appSwitcher}
+            scrolled={headerScrolled}
             user={resolvedUser}
             headerCenter={headerCenter}
             headerActions={

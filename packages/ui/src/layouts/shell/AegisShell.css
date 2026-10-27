@@ -46,6 +46,12 @@
   align-items: center;
   background: var(--bg-panel);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
+  transition: box-shadow var(--motion-fast);
+}
+
+/* elevateHeaderOnScroll: the page has scrolled under the header. */
+.aegis-shell__header--scrolled {
+  box-shadow: var(--shadow-popover);
 }
 
 .aegis-shell__header-left {

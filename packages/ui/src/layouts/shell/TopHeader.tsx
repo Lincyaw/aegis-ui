@@ -19,6 +19,10 @@ interface TopHeaderProps {
   apps: AegisApp[];
   activeAppId?: string;
   onAppSwitch?: (appId: string) => void;
+  /** Whether to render the app launcher. */
+  appSwitcher?: boolean;
+  /** The page has scrolled under the header; it gets a shadow. */
+  scrolled?: boolean;
   user?: AegisUser;
   headerCenter?: ReactNode;
   headerActions?: ReactNode;
@@ -53,6 +57,8 @@ export function TopHeader({
   apps,
   activeAppId,
   onAppSwitch,
+  appSwitcher = true,
+  scrolled = false,
   user,
   headerCenter,
   headerActions,
@@ -78,7 +84,13 @@ export function TopHeader({
   );
 
   return (
-    <header className="aegis-shell__header">
+    <header
+      className={
+        scrolled
+          ? 'aegis-shell__header aegis-shell__header--scrolled'
+          : 'aegis-shell__header'
+      }
+    >
       <div className="aegis-shell__header-left">
         {showMobileMenu && onMobileMenuToggle && (
           <button
@@ -123,11 +135,13 @@ export function TopHeader({
             </span>
           </button>
         )}
-        <AppSwitcher
-          apps={apps}
-          activeAppId={activeAppId}
-          onAppSwitch={onAppSwitch}
-        />
+        {appSwitcher ? (
+          <AppSwitcher
+            apps={apps}
+            activeAppId={activeAppId}
+            onAppSwitch={onAppSwitch}
+          />
+        ) : null}
         {brand.href ? (
           <Link to={brand.href} className="aegis-shell__brand">
             {brandInner}

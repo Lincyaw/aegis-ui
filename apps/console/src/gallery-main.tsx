@@ -43,6 +43,8 @@ function Root(): ReactElement {
             apps={apps}
             fallbackPath='/'
             headerActions={<ThemeToggle />}
+            appSwitcher={false}
+            elevateHeaderOnScroll
           />
         </BrowserRouter>
       </AntdApp>

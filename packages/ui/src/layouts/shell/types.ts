@@ -165,6 +165,13 @@ export interface AegisShellProps {
   /** Slot rendered in the top header right side, before the user menu. */
   headerActions?: ReactNode;
   /**
+   * Renders the app launcher in the top header. Default true; a single-app
+   * site sets false, since the launcher would only list that app.
+   */
+  appSwitcher?: boolean;
+  /** Gives the sticky top header a shadow once the page scrolls. */
+  elevateHeaderOnScroll?: boolean;
+  /**
    * When set, a notification bell is rendered in the top header (between
    * `headerActions` and the user menu) and clicking "View all" routes to
    * this path. When omitted, the bell is not rendered — apps without a
