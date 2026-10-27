@@ -18,6 +18,7 @@ import {
 } from '../../agent/usePrimitiveSurface';
 import { readStorage, writeStorage } from '../../lib/storage';
 import { Button } from './Button';
+import { Checkbox } from './Checkbox';
 import './DataTable.css';
 import { EmptyState } from './EmptyState';
 import { PageSizeSelect } from './PageSizeSelect';
@@ -84,11 +85,16 @@ interface DataTableProps<T> {
   persistKey?: string;
   /** Renders a footer with page navigation under the table. */
   pagination?: DataTablePagination;
+  /** Adds a leading checkbox column and drives `selectedKeys`. */
+  selectable?: boolean;
+  selectedKeys?: Array<string | number>;
+  onSelectedKeysChange?: (keys: Array<string | number>) => void;
   surface?: DataTableSurface<T>;
 }
 
 const DEFAULT_MIN_WIDTH = 60;
 const AUTO_COLUMN_MIN_WIDTH = 120;
+const SELECTION_WIDTH = 44;
 
 function toCssWidth(w: number | string | undefined): string | undefined {
   if (w === undefined) {
@@ -132,8 +138,23 @@ export function DataTable<T>({
   className,
   persistKey,
   pagination,
+  selectable = false,
+  selectedKeys,
+  onSelectedKeysChange,
   surface,
 }: DataTableProps<T>) {
+  const selected = selectedKeys ?? [];
+  const keys = data.map((row, index) => rowKey(row, index));
+  const selectedCount = keys.filter((key) => selected.includes(key)).length;
+  const toggleRow = (key: string | number, checked: boolean): void => {
+    onSelectedKeysChange?.(
+      checked ? [...selected, key] : selected.filter((item) => item !== key),
+    );
+  };
+  const selectionCell = (
+    checked: boolean,
+    onToggle: (next: boolean) => void,
+  ) => <Checkbox checked={checked} onChange={onToggle} ariaLabel="选择此行" />;
   const tableRef = useRef<HTMLTableElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -283,6 +304,9 @@ export function DataTable<T>({
         >
           {hasAnyWidth && (
             <colgroup>
+              {selectable && (
+                <col key="__select" style={{ width: SELECTION_WIDTH }} />
+              )}
               {columns.map((col, i) => (
                 <col
                   key={col.key}
@@ -293,6 +317,22 @@ export function DataTable<T>({
           )}
           <thead>
             <tr>
+              {selectable && (
+                <th key="__select" className="aegis-data-table__th">
+                  <span className="aegis-data-table__th-label">
+                    <Checkbox
+                      checked={keys.length > 0 && selectedCount === keys.length}
+                      indeterminate={
+                        selectedCount > 0 && selectedCount < keys.length
+                      }
+                      onChange={(checked) => {
+                        onSelectedKeysChange?.(checked ? keys : []);
+                      }}
+                      ariaLabel="选择全部行"
+                    />
+                  </span>
+                </th>
+              )}
               {columns.map((col, i) => (
                 <th
                   key={col.key}
@@ -319,6 +359,9 @@ export function DataTable<T>({
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={`sk-${i}`} className="aegis-data-table__row">
+                  {selectable && (
+                    <td key="__select" className="aegis-data-table__td" />
+                  )}
                   {columns.map((col) => (
                     <td
                       key={col.key}
@@ -336,7 +379,7 @@ export function DataTable<T>({
             ) : data.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length}
+                  colSpan={columns.length + (selectable ? 1 : 0)}
                   className="aegis-data-table__empty-cell"
                 >
                   <div className="aegis-data-table__empty">
@@ -351,6 +394,16 @@ export function DataTable<T>({
             ) : (
               data.map((row, idx) => (
                 <tr key={rowKey(row, idx)} className="aegis-data-table__row">
+                  {selectable && (
+                    <td key="__select" className="aegis-data-table__td">
+                      {selectionCell(
+                        selected.includes(rowKey(row, idx)),
+                        (checked) => {
+                          toggleRow(rowKey(row, idx), checked);
+                        },
+                      )}
+                    </td>
+                  )}
                   {columns.map((col) => (
                     <td
                       key={col.key}

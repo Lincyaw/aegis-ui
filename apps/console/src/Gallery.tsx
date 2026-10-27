@@ -23,11 +23,13 @@ import {
   Button as AegisButton,
   type AegisNotification,
   type AegisSearchResult,
+  Select as AegisSelect,
   type AgentCommandInvocation,
   type AgentContextValue,
   type AgentMessage,
   AgentPanel,
   AgentProvider,
+  Alert,
   AuthLayout,
   Avatar,
   BlastRadiusBar,
@@ -37,10 +39,12 @@ import {
   ChatMessage,
   ChatMessageList,
   ChatSessionList,
+  Checkbox,
   Chip,
   CodeBlock,
   CodeEditor,
   type CodeEditorField,
+  Collapse,
   type Command,
   CommandInvocationCard,
   CommandPalette,
@@ -54,6 +58,7 @@ import {
   type DataListColumn,
   DataTable,
   type DataTableColumn,
+  Dialog,
   DiffViewer,
   DropdownMenu,
   EmptyState,
@@ -86,14 +91,17 @@ import {
   ObjectInspector,
   PageHeader,
   PageSizeSelect,
+  Pagination,
   Panel,
   PanelTitle,
+  ParetoChart,
   ParquetViewer,
   PasswordField,
   ProjectSelector,
   QueryAutocomplete,
   type QueryAutocompleteFieldSuggestion,
   type QueryAutocompleteValueSuggestion,
+  RankBar,
   RegisterForm,
   ResizableSidePanel,
   Tabs as RosettaTabs,
@@ -1005,6 +1013,218 @@ function App() {
             <Chip leading={<StatusDot pulse size={6} />}>active</Chip>
           </Specimen>
         </div>
+
+        <div className='gallery__row'>
+          <Specimen caption='success'>
+            <Chip tone='success' size='md'>
+              通过
+            </Chip>
+          </Specimen>
+          <Specimen caption='warning · anomaly'>
+            <Chip tone='warning' size='md'>
+              未通过
+            </Chip>
+          </Specimen>
+          <Specimen caption='info'>
+            <Chip tone='info' size='md'>
+              代码验收
+            </Chip>
+          </Specimen>
+          <Specimen caption='caution'>
+            <Chip tone='caution' size='md'>
+              待确认
+            </Chip>
+          </Specimen>
+          <Specimen caption='removable'>
+            <Chip
+              tone='success'
+              size='md'
+              onClose={() => {
+                /* no-op */
+              }}
+            >
+              通过
+            </Chip>
+          </Specimen>
+        </div>
+
+        <SectionDivider>Alert</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='info'>
+            <Alert tone='info'>这条记录不在当前筛选条件中。</Alert>
+          </Specimen>
+          <Specimen caption='warning'>
+            <Alert tone='warning'>3 个案例缺少完整的版本或测量记录。</Alert>
+          </Specimen>
+          <Specimen caption='error'>
+            <Alert tone='error'>无法读取标签建议。</Alert>
+          </Specimen>
+        </div>
+
+        <SectionDivider>Collapse</SectionDivider>
+        <div className='gallery__stack'>
+          <Collapse
+            defaultActiveKeys={['first']}
+            items={[
+              {
+                key: 'first',
+                label: '完整理由与评分要求',
+                children: '展开后的内容。',
+              },
+              {
+                key: 'second',
+                label: '评分干预检查',
+                children: '未展开的内容。',
+              },
+            ]}
+          />
+        </div>
+
+        <SectionDivider>Pagination</SectionDivider>
+        <div className='gallery__stack'>
+          <Pagination
+            page={2}
+            pageSize={10}
+            total={137}
+            unit='个步骤'
+            pageSizeOptions={[1, 5, 10, 25]}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </div>
+
+        <SectionDivider>Checkbox</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='unchecked'>
+            <Checkbox
+              checked={false}
+              label='选择题目'
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+          <Specimen caption='checked'>
+            <Checkbox
+              checked
+              label='选择题目'
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+          <Specimen caption='indeterminate'>
+            <Checkbox
+              checked={false}
+              indeterminate
+              label='选择题目'
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+          <Specimen caption='disabled'>
+            <Checkbox
+              checked={false}
+              disabled
+              label='选择题目'
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>Select</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='with label'>
+            <AegisSelect
+              label='标签'
+              value='first'
+              options={[
+                { value: 'first', label: '第一候选' },
+                { value: 'all', label: '全部题目' },
+              ]}
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+          <Specimen caption='placeholder'>
+            <AegisSelect
+              value=''
+              placeholder='选择横轴指标'
+              options={[{ value: 'score', label: '结果均分' }]}
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+          <Specimen caption='disabled'>
+            <AegisSelect
+              value='v1'
+              disabled
+              options={[{ value: 'v1', label: 'V1 · 当前版本' }]}
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+          <Specimen caption='allowClear'>
+            <AegisSelect
+              value='first'
+              allowClear
+              options={[
+                { value: 'first', label: '第一候选' },
+                { value: 'all', label: '全部题目' },
+              ]}
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>RankBar</SectionDivider>
+        <div className='gallery__stack'>
+          <RankBar
+            direction='越高越好'
+            items={[
+              { key: 'gpt', label: 'GPT 6.1 Sol', value: 1 },
+              { key: 'glm', label: 'GLM 5.3 Flash', value: 0.2 },
+              { key: 'ds', label: 'DeepSeek Flash', value: 0 },
+            ]}
+            onSelect={() => {
+              /* no-op */
+            }}
+          />
+        </div>
+
+        <SectionDivider>ParetoChart</SectionDivider>
+        <div className='gallery__stack'>
+          <ParetoChart
+            xLabel='平均耗时（秒）'
+            yLabel='结果均分'
+            points={[
+              { key: 'gpt', label: 'GPT 6.1 Sol', x: 180, y: 1 },
+              { key: 'glm', label: 'GLM 5.3 Flash', x: 60, y: 0.2 },
+              { key: 'ds', label: 'DeepSeek Flash', x: 40, y: 0 },
+            ]}
+            onSelect={() => {
+              /* no-op */
+            }}
+          />
+          <ParetoChart
+            xLabel='横轴指标'
+            yLabel='纵轴指标'
+            points={[]}
+            emptyDescription='配置两个指标及优化方向后，显示模型点和帕累托前沿。'
+          />
+        </div>
+
+        <SectionDivider>Dialog</SectionDivider>
+        <DialogSpecimen />
 
         <SectionDivider>BlastRadiusBar</SectionDivider>
         <div className='gallery__stack'>
@@ -3600,6 +3820,7 @@ function App() {
         />
 
         <SectionDivider>Table</SectionDivider>
+        <DataTableSelectionSpecimen />
         <Table
           dataSource={TABLE_DATA}
           columns={TABLE_COLUMNS}
@@ -4042,6 +4263,27 @@ const GALLERY_RUN_COLUMNS: Array<DataTableColumn<GalleryRunRow>> = [
   },
 ];
 
+function DataTableSelectionSpecimen(): ReactNode {
+  const [selectedKeys, setSelectedKeys] = useState<Array<string | number>>([]);
+  return (
+    <div className='gallery__stack'>
+      <Panel title='Runs'>
+        <DataTable
+          columns={GALLERY_RUN_COLUMNS}
+          data={GALLERY_RUNS.slice(0, 5)}
+          rowKey={(row) => row.id}
+          selectable
+          selectedKeys={selectedKeys}
+          onSelectedKeysChange={setSelectedKeys}
+        />
+      </Panel>
+      <MetricLabel as='div' size='xs'>
+        {`已选 ${selectedKeys.length.toString()} 行 · header checkbox tracks partial selection`}
+      </MetricLabel>
+    </div>
+  );
+}
+
 function DataTablePaginationSpecimen(): ReactNode {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -4273,6 +4515,45 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
 }
 
 /* ── Commands gallery specimen ─────────────────────────────────────── */
+
+function DialogSpecimen(): ReactNode {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='trigger opens the dialog'>
+        <AegisButton
+          onClick={() => {
+            setOpen(true);
+          }}
+        >
+          发布新版本
+        </AegisButton>
+      </Specimen>
+      <Dialog
+        open={open}
+        title='发布新版本'
+        description='第一候选'
+        footer={
+          <AegisButton
+            tone='primary'
+            onClick={() => {
+              setOpen(false);
+            }}
+          >
+            发布 V2
+          </AegisButton>
+        }
+        onClose={() => {
+          setOpen(false);
+        }}
+      >
+        <MetricLabel as='div' size='xs'>
+          题目清单：当前标签匹配的题目
+        </MetricLabel>
+      </Dialog>
+    </div>
+  );
+}
 
 function CommandGallerySpecimen(): ReactNode {
   const { setPaletteOpen } = useCommands();

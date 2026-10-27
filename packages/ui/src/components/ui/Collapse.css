@@ -1,0 +1,44 @@
+.aegis-collapse {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+}
+
+.aegis-collapse__item + .aegis-collapse__item {
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-collapse__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) 0;
+  border: none;
+  font-family: inherit;
+  font-size: var(--fs-12);
+  text-align: left;
+  color: var(--text-main);
+  background: none;
+  cursor: pointer;
+}
+
+.aegis-collapse__header:hover {
+  color: var(--accent-info);
+}
+
+.aegis-collapse__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.aegis-collapse__marker {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.aegis-collapse__body {
+  padding: 0 0 var(--space-3);
+}

@@ -1,0 +1,17 @@
+.aegis-pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+}
+
+.aegis-pagination__count,
+.aegis-pagination__page {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.aegis-pagination__count {
+  margin-right: auto;
+}

@@ -51,6 +51,29 @@
   color: var(--text-muted);
 }
 
+.aegis-chip--success {
+  background: var(--bg-success-soft);
+  color: var(--accent-success);
+  border-color: var(--bg-success-soft);
+}
+
+.aegis-chip--info {
+  background: var(--bg-info-soft);
+  color: var(--accent-info);
+  border-color: var(--bg-info-soft);
+}
+
+.aegis-chip--caution {
+  background: var(--bg-warn-soft);
+  color: var(--ink-warn);
+  border-color: var(--bg-warn-soft);
+}
+
+.aegis-chip--size-md {
+  font-size: var(--fs-12);
+  padding: var(--space-1) var(--space-2);
+}
+
 .aegis-chip__leading {
   display: inline-flex;
   align-items: center;
@@ -59,4 +82,22 @@
 .aegis-chip__label {
   display: inline-flex;
   align-items: center;
+}
+
+.aegis-chip__close {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  font-family: inherit;
+  font-size: var(--fs-12);
+  line-height: 1;
+  color: inherit;
+  background: none;
+  opacity: 0.65;
+  cursor: pointer;
+}
+
+.aegis-chip__close:hover {
+  opacity: 1;
 }

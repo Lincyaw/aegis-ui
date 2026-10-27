@@ -10,26 +10,47 @@ export type ChipSurface = PrimitiveSurface<ReactNode>;
 
 interface ChipProps {
   children: ReactNode;
-  /** Visual treatment. */
-  tone?: 'default' | 'ink' | 'warning' | 'ghost';
+  /**
+   * Visual treatment. `warning` is the anomaly tone — a failed check or a
+   * rejected run belongs there, not on decorative labels.
+   */
+  tone?:
+    | 'default'
+    | 'ink'
+    | 'warning'
+    | 'success'
+    | 'info'
+    | 'caution'
+    | 'ghost';
+  /** `md` matches the 12px label size used by status badges on dense pages. */
+  size?: 'sm' | 'md';
   /** Optional leading dot/icon node. */
   leading?: ReactNode;
   className?: string;
   onClick?: () => void;
+  /** Renders a trailing dismiss control, e.g. for removable filter chips. */
+  onClose?: () => void;
   surface?: ChipSurface;
 }
 
 export function Chip({
   children,
   tone = 'default',
+  size = 'sm',
   leading,
   className,
   onClick,
+  onClose,
   surface,
 }: ChipProps) {
   const wrapRef = useRef<HTMLSpanElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, children, 'tag', wrapRef);
-  const cls = ['aegis-chip', `aegis-chip--${tone}`, className ?? '']
+  const cls = [
+    'aegis-chip',
+    `aegis-chip--${tone}`,
+    `aegis-chip--size-${size}`,
+    className ?? '',
+  ]
     .filter(Boolean)
     .join(' ');
   const interactive = Boolean(onClick);
@@ -54,6 +75,16 @@ export function Chip({
     >
       {leading && <span className="aegis-chip__leading">{leading}</span>}
       <span className="aegis-chip__label">{children}</span>
+      {onClose && (
+        <button
+          type="button"
+          className="aegis-chip__close"
+          aria-label="移除"
+          onClick={onClose}
+        >
+          ×
+        </button>
+      )}
     </span>
   );
 }

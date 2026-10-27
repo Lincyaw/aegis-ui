@@ -44,12 +44,21 @@
   --accent-info: #2563eb; /* blue-600 — informational env badge */
   --accent-caution: #d97706; /* amber-600 — pre-prod / staging env badge */
 
+  /* ── Outcome tones (pass / neutral-attention) ─────────────────────── */
+  /* Counterpart to --accent-warning: a check or run that came back clean. */
+  --accent-success: #167a62;
+  --bg-success-soft: #edf8f3;
+  --bg-info-soft: #eff6ff;
+
   /* ── Scrollbar ───────────────────────────────────────────────────── */
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.32);
 
   /* ── Overlays ────────────────────────────────────────────────────── */
   --bg-backdrop: rgba(0, 0, 0, 0.4);
+  --overlay-width-sm: 480px;
+  --overlay-width-md: 560px;
+  --overlay-width-lg: 680px;
 
   /* ── Radius ──────────────────────────────────────────────────────── */
   --radius-xs: 2px;
@@ -240,6 +249,11 @@
   /* Environment switcher badge tones — brighter on dark ink */
   --accent-info: #60a5fa;
   --accent-caution: #fbbf24;
+
+  /* Outcome tones — brighter on dark ink */
+  --accent-success: #4ade80;
+  --bg-success-soft: #10241d;
+  --bg-info-soft: #16233d;
 
   /* Avatar palette — lighter for dark surfaces */
   --avatar-hue-1: #64748b;

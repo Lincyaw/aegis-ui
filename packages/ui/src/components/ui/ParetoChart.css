@@ -1,0 +1,45 @@
+.aegis-pareto {
+  width: 100%;
+  font-family: var(--font-ui);
+}
+
+.aegis-pareto__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.aegis-pareto__axis {
+  stroke: var(--border-emphasis);
+  stroke-width: var(--size-hairline);
+}
+
+.aegis-pareto__front {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: var(--size-hairline);
+  stroke-dasharray: 4 4;
+}
+
+.aegis-pareto__point {
+  fill: var(--bg-inverted);
+}
+
+.aegis-pareto__point--interactive {
+  cursor: pointer;
+}
+
+.aegis-pareto__point--interactive:hover {
+  fill: var(--accent-info);
+}
+
+.aegis-pareto__tick {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+}
+
+.aegis-pareto__axis-label {
+  fill: var(--text-muted);
+  font-size: var(--fs-11);
+}
