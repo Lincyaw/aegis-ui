@@ -2811,6 +2811,38 @@ function App() {
               />
             </div>
           </Specimen>
+          <Specimen
+            caption='titleExtra beside the title · description with an avatar'
+            span={3}
+          >
+            <div className='gallery__token-override'>
+              <PageHeader
+                title='Run 3f9c2a1b'
+                titleExtra={
+                  <>
+                    <Chip tone='warning' size='lg'>
+                      Failed
+                    </Chip>
+                    <span>
+                      <MonoValue size='sm'>10/11</MonoValue> checks passed
+                    </span>
+                    <span>
+                      Outcome <MonoValue size='sm'>0.82</MonoValue>
+                    </span>
+                  </>
+                }
+                description={
+                  <IdentityCell
+                    avatar
+                    colorSlot={2}
+                    name='claude-opus-4-1'
+                    secondary='claude-code · 2026-10-27 09:14 UTC'
+                    inline
+                  />
+                }
+              />
+            </div>
+          </Specimen>
         </div>
 
         <SectionDivider>PageWrapper</SectionDivider>
