@@ -77,6 +77,7 @@ import {
   FolderDropzone,
   ForgotPasswordForm,
   FormRow,
+  IdentityCell,
   InboxPage,
   type InspectableContent,
   type KeyValueItem,
@@ -2384,6 +2385,49 @@ function App() {
               <Avatar name={`model ${String(slot)}`} colorSlot={slot} />
             </Specimen>
           ))}
+        </div>
+
+        <SectionDivider
+          extra={<MetricLabel>name · secondary line</MetricLabel>}
+        >
+          IdentityCell
+        </SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='avatar · colorSlot · link · secondary'>
+            <IdentityCell
+              avatar
+              colorSlot={2}
+              name='claude-opus-4-1'
+              secondary='claude-code'
+              to='#identity-cell'
+            />
+          </Specimen>
+          <Specimen caption='no avatar · mono id and path'>
+            <IdentityCell
+              name='checkout-latency-regression'
+              secondary='3f9c2a1b7d04 · external/bench/checkout-latency-regression'
+              to='#identity-cell'
+            />
+          </Specimen>
+          <Specimen caption='inline · plain name'>
+            <IdentityCell
+              avatar
+              colorSlot={4}
+              name='gpt-5'
+              secondary='codex'
+              inline
+            />
+          </Specimen>
+          <Specimen caption='long name and secondary truncate'>
+            <div className='gallery__narrow-cell'>
+              <IdentityCell
+                avatar
+                name='qwen3-coder-480b-a35b-instruct-preview'
+                secondary='openhands-with-a-long-agent-name'
+                to='#identity-cell'
+              />
+            </div>
+          </Specimen>
         </div>
 
         <SectionDivider>TextField</SectionDivider>

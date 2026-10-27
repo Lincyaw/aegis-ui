@@ -8,6 +8,8 @@ import './Avatar.css';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 type AvatarStatus = 'online' | 'offline' | 'busy' | 'away';
+/** Index into `--data-cat-1` … `--data-cat-6`, the chart series colours. */
+export type AvatarColorSlot = 1 | 2 | 3 | 4 | 5 | 6;
 
 export type AvatarSurface = PrimitiveSurface<{
   name: string;
@@ -24,7 +26,7 @@ interface AvatarProps {
    * Colours the initials fallback with `--data-cat-<n>` instead of the
    * name-hashed hue, so it matches that series in charts.
    */
-  colorSlot?: 1 | 2 | 3 | 4 | 5 | 6;
+  colorSlot?: AvatarColorSlot;
   className?: string;
   surface?: AvatarSurface;
 }
