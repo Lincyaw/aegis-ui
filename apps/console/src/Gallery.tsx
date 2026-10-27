@@ -9,6 +9,8 @@ import {
 
 import {
   AppstoreOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
   DeleteOutlined,
   DownloadOutlined,
   InboxOutlined,
@@ -1155,6 +1157,22 @@ function App() {
           <Specimen caption="title · tone='success'" span={3}>
             <Alert tone='success' title='Both readers passed every check'>
               Plan check passed; exported results intact; safety check passed.
+            </Alert>
+          </Specimen>
+        </div>
+        <div className='gallery__row'>
+          <Specimen caption="icon · title · tone='success'" span={3}>
+            <Alert
+              tone='success'
+              icon={<CheckCircleOutlined aria-hidden />}
+              title='Passed 11 of 11 checks'
+            >
+              Outcome restored; no destructive statement ran.
+            </Alert>
+          </Specimen>
+          <Specimen caption="icon · tone='error'" span={3}>
+            <Alert tone='error' icon={<CloseCircleOutlined aria-hidden />}>
+              The run failed the plan check.
             </Alert>
           </Specimen>
         </div>

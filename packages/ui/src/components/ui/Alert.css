@@ -15,6 +15,15 @@
   min-width: 0;
 }
 
+/* Icon in place of the dot, centred on the first line and in the tone ink. */
+.aegis-alert__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: calc(var(--fs-12) * 1.5);
+  font-size: var(--size-icon-base);
+}
+
 .aegis-alert--info {
   border-color: var(--bg-info-soft);
   background: var(--bg-info-soft);

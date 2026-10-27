@@ -10,6 +10,8 @@ interface AlertProps {
   tone?: AlertTone;
   /** Strong heading over a muted body, e.g. a verdict and its summary. */
   title?: ReactNode;
+  /** Leading icon in place of the tone dot, e.g. a verdict glyph. */
+  icon?: ReactNode;
   children: ReactNode;
   className?: string;
 }
@@ -27,6 +29,7 @@ const DOT_TONE: Record<
 export function Alert({
   tone = 'info',
   title,
+  icon,
   children,
   className,
 }: AlertProps) {
@@ -38,18 +41,22 @@ export function Alert({
   ]
     .filter(Boolean)
     .join(' ');
+  const marker =
+    icon === undefined ? (
+      <StatusDot tone={DOT_TONE[tone]} size={6} />
+    ) : (
+      <span className="aegis-alert__icon">{icon}</span>
+    );
   return (
     <div className={cls} role="status">
       {title === undefined ? (
         <>
-          <StatusDot tone={DOT_TONE[tone]} size={6} />
+          {marker}
           <span className="aegis-alert__body">{children}</span>
         </>
       ) : (
         <>
-          <span className="aegis-alert__marker">
-            <StatusDot tone={DOT_TONE[tone]} size={6} />
-          </span>
+          <span className="aegis-alert__marker">{marker}</span>
           <div className="aegis-alert__content">
             <span className="aegis-alert__title">{title}</span>
             <span className="aegis-alert__body">{children}</span>
