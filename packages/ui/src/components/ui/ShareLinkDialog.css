@@ -17,6 +17,12 @@
   border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
+.aegis-share-link__description {
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+}
+
 .aegis-share-link__row {
   display: flex;
   flex-direction: column;

@@ -1,3 +1,5 @@
+export { useCopyToClipboard } from './useCopyToClipboard';
+export type { UseCopyToClipboardResult } from './useCopyToClipboard';
 export { useResizable } from './useResizable';
 export type { UseResizableOptions, UseResizableReturn } from './useResizable';
 export { useSavedQueries } from './useSavedQueries';

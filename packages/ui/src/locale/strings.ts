@@ -47,6 +47,24 @@ export interface AegisStrings {
     pending: number;
     total: number;
   }) => string;
+  shareLinkSharing: string;
+  shareLinkExpiresAfter: string;
+  /** A share link lifetime preset, e.g. "15 min" or "7 days". */
+  shareLinkTtl: (seconds: number) => string;
+  shareLinkDisposition: string;
+  shareLinkForceDownload: string;
+  /** Time left on a generated link, e.g. "expires in 59m 12s". */
+  shareLinkExpiresIn: (remaining: {
+    hours: number;
+    minutes: number;
+    seconds: number;
+  }) => string;
+  shareLinkExpired: string;
+  shareLinkCopy: string;
+  shareLinkGenerate: string;
+  shareLinkGenerating: string;
+  shareLinkGenerateFailed: string;
+  clipboardUnavailable: string;
 }
 
 export const enStrings: AegisStrings = {
@@ -89,6 +107,35 @@ export const enStrings: AegisStrings = {
   paretoEmptyTitle: 'No metrics configured',
   runPipsLabel: ({ passed, failed, errored, pending, total }) =>
     `${String(passed)} of ${String(total)} runs passed, ${String(failed)} failed, ${String(errored)} errored${pending > 0 ? `, ${String(pending)} pending` : ''}`,
+  shareLinkSharing: 'Sharing',
+  shareLinkExpiresAfter: 'Expires after',
+  shareLinkTtl: (seconds) => {
+    if (seconds < 3600) {
+      return `${String(seconds / 60)} min`;
+    }
+    if (seconds < 86400) {
+      return `${String(seconds / 3600)} hr`;
+    }
+    const days = seconds / 86400;
+    return `${String(days)} ${days === 1 ? 'day' : 'days'}`;
+  },
+  shareLinkDisposition: 'Disposition',
+  shareLinkForceDownload: 'Force download (attachment)',
+  shareLinkExpiresIn: ({ hours, minutes, seconds }) => {
+    if (hours > 0) {
+      return `expires in ${String(hours)}h ${String(minutes)}m`;
+    }
+    if (minutes > 0) {
+      return `expires in ${String(minutes)}m ${String(seconds)}s`;
+    }
+    return `expires in ${String(seconds)}s`;
+  },
+  shareLinkExpired: 'expired',
+  shareLinkCopy: 'Copy link',
+  shareLinkGenerate: 'Generate link',
+  shareLinkGenerating: 'Generating…',
+  shareLinkGenerateFailed: 'failed to generate link',
+  clipboardUnavailable: 'clipboard unavailable',
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -130,4 +177,32 @@ export const zhCNStrings: AegisStrings = {
   paretoEmptyTitle: '未配置指标',
   runPipsLabel: ({ passed, failed, errored, pending, total }) =>
     `${String(total)} 次运行：通过 ${String(passed)}，未通过 ${String(failed)}，运行失败 ${String(errored)}${pending > 0 ? `，进行中 ${String(pending)}` : ''}`,
+  shareLinkSharing: '分享',
+  shareLinkExpiresAfter: '有效期',
+  shareLinkTtl: (seconds) => {
+    if (seconds < 3600) {
+      return `${String(seconds / 60)} 分钟`;
+    }
+    if (seconds < 86400) {
+      return `${String(seconds / 3600)} 小时`;
+    }
+    return `${String(seconds / 86400)} 天`;
+  },
+  shareLinkDisposition: '打开方式',
+  shareLinkForceDownload: '强制下载（作为附件）',
+  shareLinkExpiresIn: ({ hours, minutes, seconds }) => {
+    if (hours > 0) {
+      return `${String(hours)} 小时 ${String(minutes)} 分后过期`;
+    }
+    if (minutes > 0) {
+      return `${String(minutes)} 分 ${String(seconds)} 秒后过期`;
+    }
+    return `${String(seconds)} 秒后过期`;
+  },
+  shareLinkExpired: '已过期',
+  shareLinkCopy: '复制链接',
+  shareLinkGenerate: '生成链接',
+  shareLinkGenerating: '正在生成…',
+  shareLinkGenerateFailed: '无法生成链接',
+  clipboardUnavailable: '无法访问剪贴板',
 };

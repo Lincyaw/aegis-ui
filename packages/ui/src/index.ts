@@ -10,9 +10,10 @@ import './index.css';
 export * from './components/ui';
 
 // Hooks
-export { useResizable, useSavedQueries } from './hooks';
+export { useCopyToClipboard, useResizable, useSavedQueries } from './hooks';
 export type {
   SavedQuery,
+  UseCopyToClipboardResult,
   UseResizableOptions,
   UseResizableReturn,
   UseSavedQueriesOptions,

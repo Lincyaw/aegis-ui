@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import { useStrings } from '../../locale';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
@@ -18,49 +25,67 @@ export interface ShareLinkResult {
   expiresAt: string;
 }
 
-interface ShareLinkDialogProps {
+interface ShareLinkDialogBaseProps {
   /** Object key being shared — displayed at the top for context. */
   objectKey: string;
-  /** Available TTL presets shown as chips. */
-  ttlPresets?: Array<{ label: string; seconds: number }>;
-  /** Asked when user clicks "Generate". Resolves to URL + expires. */
-  onGenerate: (opts: ShareLinkOptions) => Promise<ShareLinkResult>;
+  /** Context under the object key, e.g. what the link opens and that it is read-only. */
+  description?: ReactNode;
   /** Optional cancel/close handler — renders a secondary button. */
   onClose?: () => void;
   className?: string;
 }
 
-const DEFAULT_PRESETS = [
-  { label: '15 min', seconds: 15 * 60 },
-  { label: '1 hr', seconds: 60 * 60 },
-  { label: '1 day', seconds: 24 * 60 * 60 },
-  { label: '7 days', seconds: 7 * 24 * 60 * 60 },
-];
+interface ExpiringShareLinkProps extends ShareLinkDialogBaseProps {
+  /** Available TTL presets shown as chips. */
+  ttlPresets?: Array<{ label: string; seconds: number }>;
+  /** Asked when user clicks "Generate". Resolves to URL + expires. */
+  onGenerate: (opts: ShareLinkOptions) => Promise<ShareLinkResult>;
+  url?: undefined;
+}
 
-function formatCountdown(ms: number): string {
-  if (ms <= 0) {
-    return 'expired';
-  }
+interface PlainShareLinkProps extends ShareLinkDialogBaseProps {
+  /**
+   * A link that does not expire, e.g. the current page. It is shown with a
+   * copy button and no TTL presets, download toggle or countdown.
+   */
+  url: string;
+  ttlPresets?: undefined;
+  onGenerate?: undefined;
+}
+
+type ShareLinkDialogProps = ExpiringShareLinkProps | PlainShareLinkProps;
+
+const DEFAULT_TTL_SECONDS = [15 * 60, 60 * 60, 24 * 60 * 60, 7 * 24 * 60 * 60];
+
+function remainingParts(ms: number): {
+  hours: number;
+  minutes: number;
+  seconds: number;
+} {
   const s = Math.floor(ms / 1000);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  if (h > 0) {
-    return `${h.toString()}h ${m.toString()}m`;
-  }
-  if (m > 0) {
-    return `${m.toString()}m ${sec.toString()}s`;
-  }
-  return `${sec.toString()}s`;
+  return {
+    hours: Math.floor(s / 3600),
+    minutes: Math.floor((s % 3600) / 60),
+    seconds: s % 60,
+  };
 }
 
 export function ShareLinkDialog({
   objectKey,
-  ttlPresets = DEFAULT_PRESETS,
+  description,
+  url: plainUrl,
+  ttlPresets: ttlPresetsProp,
   onGenerate,
   onClose,
   className,
 }: ShareLinkDialogProps) {
+  const strings = useStrings();
+  const ttlPresets =
+    ttlPresetsProp ??
+    DEFAULT_TTL_SECONDS.map((seconds) => ({
+      label: strings.shareLinkTtl(seconds),
+      seconds,
+    }));
   const defaultTtl =
     ttlPresets.length > 1
       ? ttlPresets[1].seconds
@@ -74,6 +99,7 @@ export function ShareLinkDialog({
   const [error, setError] = useState<string | null>(null);
   const { copied, copy, reset: resetCopied } = useCopyToClipboard(2000);
   const [now, setNow] = useState<number>(Date.now());
+  const url = plainUrl ?? result?.url;
 
   useEffect(() => {
     if (!result) {
@@ -87,28 +113,33 @@ export function ShareLinkDialog({
     };
   }, [result]);
 
-  const handleGenerate = useCallback(async () => {
-    setGenerating(true);
-    setError(null);
-    resetCopied();
-    try {
-      const r = await onGenerate({ ttlSeconds: ttl, asAttachment });
-      setResult(r);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'failed to generate link');
-    } finally {
-      setGenerating(false);
-    }
-  }, [asAttachment, onGenerate, ttl, resetCopied]);
+  const handleGenerate = useCallback(
+    async (generate: (opts: ShareLinkOptions) => Promise<ShareLinkResult>) => {
+      setGenerating(true);
+      setError(null);
+      resetCopied();
+      try {
+        const r = await generate({ ttlSeconds: ttl, asAttachment });
+        setResult(r);
+      } catch (e) {
+        setError(
+          e instanceof Error ? e.message : strings.shareLinkGenerateFailed,
+        );
+      } finally {
+        setGenerating(false);
+      }
+    },
+    [asAttachment, ttl, resetCopied, strings],
+  );
 
   const handleCopy = useCallback(async () => {
-    if (!result) {
+    if (url === undefined) {
       return;
     }
-    if (!(await copy(result.url))) {
-      setError('clipboard unavailable');
+    if (!(await copy(url))) {
+      setError(strings.clipboardUnavailable);
     }
-  }, [result, copy]);
+  }, [url, copy, strings]);
 
   const cls = ['aegis-share-link', className ?? ''].filter(Boolean).join(' ');
 
@@ -122,47 +153,54 @@ export function ShareLinkDialog({
   return (
     <div className={cls}>
       <header className="aegis-share-link__head">
-        <MetricLabel>Sharing</MetricLabel>
+        <MetricLabel>{strings.shareLinkSharing}</MetricLabel>
         <MonoValue size="sm">{objectKey}</MonoValue>
+        {description !== undefined ? (
+          <span className="aegis-share-link__description">{description}</span>
+        ) : null}
       </header>
 
-      <div className="aegis-share-link__row">
-        <MetricLabel>Expires after</MetricLabel>
-        <div className="aegis-share-link__ttl">
-          {ttlPresets.map((p) => (
-            <button
-              key={p.seconds}
-              type="button"
-              className={
-                p.seconds === ttl
-                  ? 'aegis-share-link__ttl-pill aegis-share-link__ttl-pill--active'
-                  : 'aegis-share-link__ttl-pill'
-              }
-              onClick={() => {
-                setTtl(p.seconds);
-                setResult(null);
-              }}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {onGenerate === undefined ? null : (
+        <>
+          <div className="aegis-share-link__row">
+            <MetricLabel>{strings.shareLinkExpiresAfter}</MetricLabel>
+            <div className="aegis-share-link__ttl">
+              {ttlPresets.map((p) => (
+                <button
+                  key={p.seconds}
+                  type="button"
+                  className={
+                    p.seconds === ttl
+                      ? 'aegis-share-link__ttl-pill aegis-share-link__ttl-pill--active'
+                      : 'aegis-share-link__ttl-pill'
+                  }
+                  onClick={() => {
+                    setTtl(p.seconds);
+                    setResult(null);
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      <div className="aegis-share-link__row">
-        <MetricLabel>Disposition</MetricLabel>
-        <label className="aegis-share-link__toggle">
-          <input
-            type="checkbox"
-            checked={asAttachment}
-            onChange={(e) => {
-              setAsAttachment(e.target.checked);
-              setResult(null);
-            }}
-          />
-          <span>Force download (attachment)</span>
-        </label>
-      </div>
+          <div className="aegis-share-link__row">
+            <MetricLabel>{strings.shareLinkDisposition}</MetricLabel>
+            <label className="aegis-share-link__toggle">
+              <input
+                type="checkbox"
+                checked={asAttachment}
+                onChange={(e) => {
+                  setAsAttachment(e.target.checked);
+                  setResult(null);
+                }}
+              />
+              <span>{strings.shareLinkForceDownload}</span>
+            </label>
+          </div>
+        </>
+      )}
 
       {error !== null ? (
         <div className="aegis-share-link__error">
@@ -170,40 +208,50 @@ export function ShareLinkDialog({
         </div>
       ) : null}
 
-      {result ? (
+      {url !== undefined ? (
         <div className="aegis-share-link__result">
           <div className="aegis-share-link__url">
-            <MonoValue size="sm">{result.url}</MonoValue>
+            <MonoValue size="sm">{url}</MonoValue>
           </div>
-          <div className="aegis-share-link__meta">
-            <Chip tone="ghost">expires in {formatCountdown(remainingMs)}</Chip>
-            {copied ? <Chip tone="ghost">copied</Chip> : null}
-          </div>
+          {result !== null || copied ? (
+            <div className="aegis-share-link__meta">
+              {result !== null ? (
+                <Chip tone="ghost">
+                  {remainingMs > 0
+                    ? strings.shareLinkExpiresIn(remainingParts(remainingMs))
+                    : strings.shareLinkExpired}
+                </Chip>
+              ) : null}
+              {copied ? <Chip tone="ghost">{strings.copied}</Chip> : null}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
       <footer className="aegis-share-link__actions">
         {onClose ? (
           <Button onClick={onClose} tone="ghost">
-            Close
+            {strings.close}
           </Button>
         ) : null}
-        {result ? (
+        {url !== undefined || onGenerate === undefined ? (
           <Button
             onClick={() => {
               void handleCopy();
             }}
           >
-            Copy link
+            {strings.shareLinkCopy}
           </Button>
         ) : (
           <Button
             onClick={() => {
-              void handleGenerate();
+              void handleGenerate(onGenerate);
             }}
             disabled={generating}
           >
-            {generating ? 'Generating…' : 'Generate link'}
+            {generating
+              ? strings.shareLinkGenerating
+              : strings.shareLinkGenerate}
           </Button>
         )}
       </footer>

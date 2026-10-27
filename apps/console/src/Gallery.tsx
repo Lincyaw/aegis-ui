@@ -83,6 +83,7 @@ import {
   type InspectableContent,
   type KeyValueItem,
   KeyValueList,
+  LocaleProvider,
   LoginForm,
   Markdown,
   type MarkdownProps,
@@ -157,8 +158,10 @@ import {
   useAegisSearchProvider,
   useAegisSurface,
   useCommands,
+  useCopyToClipboard,
   useRegisterCommands,
   useTheme,
+  zhCNStrings,
 } from '@lincyaw/aegis-ui';
 import {
   Button,
@@ -3989,6 +3992,33 @@ function App() {
               }
             />
           </Specimen>
+          <Specimen caption='url · a page link that does not expire' span={2}>
+            <ShareLinkDialog
+              objectKey='sre-incidents'
+              description='23 tasks · 6 models · read-only'
+              url='https://cgfs.example.com/dashboard/collections/sre-incidents'
+              onClose={() => undefined}
+            />
+          </Specimen>
+          <Specimen caption='url · zh-CN strings' span={2}>
+            <LocaleProvider strings={zhCNStrings}>
+              <ShareLinkDialog
+                objectKey='sre-incidents'
+                description='23 道题目 · 6 个模型 · 只读'
+                url='https://cgfs.example.com/dashboard/collections/sre-incidents'
+                onClose={() => undefined}
+              />
+            </LocaleProvider>
+          </Specimen>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>hook</MetricLabel>}>
+          useCopyToClipboard
+        </SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='copied for 1.5 s after a successful copy'>
+            <CopyToClipboardSpecimen />
+          </Specimen>
         </div>
 
         <SectionDivider extra={<MetricLabel>mime-aware</MetricLabel>}>
@@ -5082,6 +5112,20 @@ const GALLERY_CHAOS_FAMILIES = [
   'DNS',
   'Time',
 ].map((name) => ({ key: name.toLowerCase(), label: `${name} chaos` }));
+
+function CopyToClipboardSpecimen(): ReactNode {
+  const { copied, copy } = useCopyToClipboard(1500);
+  return (
+    <AegisButton
+      tone='secondary'
+      onClick={() => {
+        void copy('3f9c2a1b7d04');
+      }}
+    >
+      {copied ? 'Copied' : 'Copy 3f9c2a1b7d04'}
+    </AegisButton>
+  );
+}
 
 function TabsViewSwitchSpecimen(): ReactNode {
   const [view, setView] = useState('answer');
