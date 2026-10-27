@@ -39,10 +39,27 @@ button.aegis-rank-bar__label {
   overflow: hidden;
 }
 
+button.aegis-rank-bar__track {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  transition: background var(--motion-fast);
+}
+
+button.aegis-rank-bar__track:hover {
+  background: var(--border-emphasis);
+}
+
+button.aegis-rank-bar__track:active {
+  opacity: 0.8;
+}
+
 .aegis-rank-bar__fill {
   height: 100%;
   border-radius: var(--radius-sm);
-  background: var(--bg-inverted);
+  background: var(--rank-bar-fill);
 }
 
 /* A zero score still marks the axis start — an empty track reads as missing. */
@@ -56,6 +73,10 @@ button.aegis-rank-bar__label {
   font-size: var(--fs-12);
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+
+.aegis-rank-bar__value--empty {
+  color: var(--text-muted);
 }
 
 .aegis-rank-bar__action {

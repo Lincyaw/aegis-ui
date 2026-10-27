@@ -50,6 +50,18 @@
   --bg-success-soft: #edf8f3;
   --bg-info-soft: #eff6ff;
 
+  /* ── Data visualisation ──────────────────────────────────────────── */
+  /* Marks in charts only — never status or links. `seq` is the single hue
+   * for magnitude (score and rank bars); `cat-*` tell series apart (one
+   * per model). All reach 3:1 against --bg-panel in both themes. */
+  --data-seq: #7c3aed;
+  --data-cat-1: #0e7490;
+  --data-cat-2: #c2410c;
+  --data-cat-3: #c026d3;
+  --data-cat-4: #4d7c0f;
+  --data-cat-5: #8b5e34;
+  --data-cat-6: #57534e;
+
   /* ── Scrollbar ───────────────────────────────────────────────────── */
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.32);
@@ -233,6 +245,8 @@
   --page-header-description-color: var(--text-muted);
   --page-header-description-transform: uppercase;
   --page-header-description-tracking: var(--tracking-label);
+  --rank-bar-fill: var(--bg-inverted);
+  --pareto-dominated-opacity: 0.4;
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;
@@ -282,6 +296,15 @@
   --accent-success: #4ade80;
   --bg-success-soft: #10241d;
   --bg-info-soft: #16233d;
+
+  /* Data visualisation — lighter for dark surfaces */
+  --data-seq: #a78bfa;
+  --data-cat-1: #22d3ee;
+  --data-cat-2: #fb923c;
+  --data-cat-3: #e879f9;
+  --data-cat-4: #a3e635;
+  --data-cat-5: #d4a373;
+  --data-cat-6: #a8a29e;
 
   /* Avatar palette — lighter for dark surfaces */
   --avatar-hue-1: #64748b;

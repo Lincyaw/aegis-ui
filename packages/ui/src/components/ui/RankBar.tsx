@@ -1,11 +1,16 @@
 import { type ReactNode } from 'react';
 
+import { useStrings } from '../../locale';
 import './RankBar.css';
 
 export interface RankBarItem {
   key: string;
   label: ReactNode;
-  value: number;
+  /**
+   * `null` is a missing value: an em dash over an empty track, distinct
+   * from a real 0, which keeps a visible endpoint.
+   */
+  value: number | null;
   /** Trailing slot for a per-row link, e.g. "逐题表现". */
   action?: ReactNode;
 }
@@ -17,6 +22,7 @@ interface RankBarProps {
   /** Scale hint rendered at the bottom, e.g. "越高越好". */
   direction?: ReactNode;
   format?: (value: number) => string;
+  /** Makes each row's label and bar track select that row. */
   onSelect?: (key: string) => void;
   className?: string;
 }
@@ -29,13 +35,30 @@ export function RankBar({
   onSelect,
   className,
 }: RankBarProps) {
-  const upperBound = max ?? Math.max(...items.map((item) => item.value), 1);
+  const strings = useStrings();
+  const values = items.flatMap((item) =>
+    item.value === null ? [] : [item.value],
+  );
+  const upperBound = max ?? Math.max(...values, 1);
   const cls = ['aegis-rank-bar', className ?? ''].filter(Boolean).join(' ');
   return (
     <div className={cls}>
       {items.map((item) => {
-        const ratio = upperBound > 0 ? item.value / upperBound : 0;
-        const zero = item.value === 0;
+        const { value } = item;
+        const fill =
+          value === null ? null : (
+            <div
+              className={[
+                'aegis-rank-bar__fill',
+                value === 0 ? 'aegis-rank-bar__fill--zero' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              style={{
+                width: `${(upperBound > 0 ? (value / upperBound) * 100 : 0).toString()}%`,
+              }}
+            />
+          );
         return (
           <div className="aegis-rank-bar__row" key={item.key}>
             {onSelect ? (
@@ -51,22 +74,42 @@ export function RankBar({
             ) : (
               <span className="aegis-rank-bar__label">{item.label}</span>
             )}
-            <div
-              className="aegis-rank-bar__track"
-              role="img"
-              aria-label={`${format(item.value)} of ${format(upperBound)}`}
-            >
+            {onSelect ? (
+              // The label button is the keyboard and screen-reader target;
+              // the track only widens the pointer target.
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-hidden="true"
+                className="aegis-rank-bar__track aegis-rank-bar__track--link"
+                onClick={() => {
+                  onSelect(item.key);
+                }}
+              >
+                {fill}
+              </button>
+            ) : (
               <div
-                className={[
-                  'aegis-rank-bar__fill',
-                  zero ? 'aegis-rank-bar__fill--zero' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                style={{ width: `${(ratio * 100).toString()}%` }}
-              />
-            </div>
-            <span className="aegis-rank-bar__value">{format(item.value)}</span>
+                className="aegis-rank-bar__track"
+                role="img"
+                aria-label={
+                  value === null
+                    ? strings.noValue
+                    : strings.barValue(format(value), format(upperBound))
+                }
+              >
+                {fill}
+              </div>
+            )}
+            <span
+              className={
+                value === null
+                  ? 'aegis-rank-bar__value aegis-rank-bar__value--empty'
+                  : 'aegis-rank-bar__value'
+              }
+            >
+              {value === null ? '—' : format(value)}
+            </span>
             <span className="aegis-rank-bar__action">{item.action}</span>
           </div>
         );

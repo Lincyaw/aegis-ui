@@ -33,6 +33,12 @@ export interface AegisStrings {
   rangeOf: string;
   totalCount: (total: number, unit: string) => string;
   recordsUnit: string;
+  /** Accessible value of a bar, e.g. "0.75 of 1.00". */
+  barValue: (value: string, max: string) => string;
+  /** Accessible text for a missing value (shown as an em dash). */
+  noValue: string;
+  paretoChartLabel: (xLabel: string, yLabel: string) => string;
+  paretoEmptyTitle: string;
 }
 
 export const enStrings: AegisStrings = {
@@ -68,6 +74,11 @@ export const enStrings: AegisStrings = {
   rangeOf: ' of ',
   totalCount: (total, unit) => `${String(total)} ${unit}`,
   recordsUnit: 'records',
+  barValue: (value, max) => `${value} of ${max}`,
+  noValue: 'No value',
+  paretoChartLabel: (xLabel, yLabel) =>
+    `Pareto front of ${yLabel} against ${xLabel}`,
+  paretoEmptyTitle: 'No metrics configured',
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -103,4 +114,8 @@ export const zhCNStrings: AegisStrings = {
   rangeOf: ' / 共 ',
   totalCount: (total, unit) => `共 ${String(total)} ${unit}`,
   recordsUnit: '条记录',
+  barValue: (value, max) => `${value} / ${max}`,
+  noValue: '无数据',
+  paretoChartLabel: (xLabel, yLabel) => `${yLabel} 对 ${xLabel} 的帕累托前沿`,
+  paretoEmptyTitle: '未配置指标',
 };

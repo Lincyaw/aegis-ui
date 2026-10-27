@@ -5,8 +5,12 @@
 
 .aegis-pareto__svg {
   display: block;
-  width: 100%;
-  height: auto;
+  overflow: visible;
+}
+
+.aegis-pareto__grid {
+  stroke: var(--border-hairline);
+  stroke-width: var(--size-hairline);
 }
 
 .aegis-pareto__axis {
@@ -23,23 +27,49 @@
 
 .aegis-pareto__point {
   fill: var(--bg-inverted);
+  stroke: var(--bg-panel);
+  stroke-width: var(--size-border-thick);
+}
+
+.aegis-pareto__point--dominated {
+  opacity: var(--pareto-dominated-opacity);
 }
 
 .aegis-pareto__point--interactive {
   cursor: pointer;
+  transition:
+    stroke var(--motion-fast),
+    opacity var(--motion-fast);
 }
 
-.aegis-pareto__point--interactive:hover {
-  fill: var(--accent-info);
+.aegis-pareto__point--interactive:hover,
+.aegis-pareto__point--interactive:focus-visible {
+  outline: none;
+  stroke: var(--text-main);
+  opacity: 1;
+}
+
+.aegis-pareto__point--interactive:active {
+  opacity: 0.7;
+}
+
+.aegis-pareto__point-label {
+  font-size: var(--fs-11);
+  fill: var(--text-main);
+  stroke: var(--bg-panel);
+  stroke-width: var(--size-border-thick);
+  stroke-linejoin: round;
+  paint-order: stroke;
 }
 
 .aegis-pareto__tick {
-  fill: var(--text-muted);
   font-family: var(--font-mono);
   font-size: var(--fs-11);
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-muted);
 }
 
 .aegis-pareto__axis-label {
-  fill: var(--text-muted);
   font-size: var(--fs-11);
+  fill: var(--text-muted);
 }

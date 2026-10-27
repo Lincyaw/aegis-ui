@@ -584,3 +584,9 @@ select.gallery__demo-input:focus {
 .gallery__table-link {
   color: var(--accent-info);
 }
+
+.gallery__rank-seq {
+  --rank-bar-fill: var(--data-seq);
+
+  width: 100%;
+}

@@ -96,6 +96,7 @@ import {
   Panel,
   PanelTitle,
   ParetoChart,
+  type ParetoPoint,
   ParquetViewer,
   PasswordField,
   ProjectSelector,
@@ -175,6 +176,16 @@ const COLOR_TOKENS: Array<{ name: string; desc: string }> = [
   { name: '--bg-muted', desc: 'Muted surface' },
   { name: '--bg-warning-soft', desc: 'Warning wash' },
   { name: '--accent-warning', desc: 'Anomaly accent' },
+];
+
+const DATA_COLOR_TOKENS: Array<{ name: string; desc: string }> = [
+  { name: '--data-seq', desc: 'Magnitude (score and rank bars)' },
+  { name: '--data-cat-1', desc: 'Series 1' },
+  { name: '--data-cat-2', desc: 'Series 2' },
+  { name: '--data-cat-3', desc: 'Series 3' },
+  { name: '--data-cat-4', desc: 'Series 4' },
+  { name: '--data-cat-5', desc: 'Series 5' },
+  { name: '--data-cat-6', desc: 'Series 6' },
 ];
 
 const MARKDOWN_DOCUMENT_SAMPLE = `# Injection runbook
@@ -781,6 +792,25 @@ function App() {
             </div>
           ))}
         </div>
+
+        <SectionDivider>Data-viz colours</SectionDivider>
+        <div className='gallery__swatches'>
+          {DATA_COLOR_TOKENS.map((t) => (
+            <div className='gallery__swatch' key={t.name}>
+              <div
+                className='gallery__swatch-chip'
+                style={{ background: `var(${t.name})` }}
+              />
+              <div className='gallery__swatch-meta'>
+                <MonoValue size='sm' weight='regular'>
+                  {t.name}
+                </MonoValue>
+                <TokenValue name={t.name} />
+                <span className='gallery__swatch-desc'>{t.desc}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </Panel>
 
       {/* ── Typography ─────────────────────────────────────────────── */}
@@ -1262,10 +1292,12 @@ function App() {
               /* no-op */
             }}
           />
+          <RankBarSpecimen />
         </div>
 
         <SectionDivider>ParetoChart</SectionDivider>
         <div className='gallery__stack'>
+          <ParetoChartSpecimen />
           <ParetoChart
             xLabel='平均耗时（秒）'
             yLabel='结果均分'
@@ -4863,6 +4895,110 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
 }
 
 /* ── Commands gallery specimen ─────────────────────────────────────── */
+
+function RankBarSpecimen(): ReactNode {
+  const [selected, setSelected] = useState('none');
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption={`value: null → em dash · 0 keeps an endpoint · track clickable · last: ${selected}`}
+        span={3}
+      >
+        <div className='gallery__stack gallery__stack--fill'>
+          <RankBar
+            direction='higher is better'
+            items={GALLERY_MODEL_ROWS.map((row) => ({
+              key: row.model,
+              label: row.model,
+              value: row.mean,
+            }))}
+            onSelect={setSelected}
+          />
+        </div>
+      </Specimen>
+      <Specimen
+        caption='counts · format · --rank-bar-fill: var(--data-seq)'
+        span={3}
+      >
+        <div className='gallery__rank-seq'>
+          <RankBar
+            direction='more runs'
+            format={(value) => value.toFixed(0)}
+            items={GALLERY_MODEL_ROWS.map((row) => ({
+              key: row.model,
+              label: row.model,
+              value: row.runs,
+            }))}
+          />
+        </div>
+      </Specimen>
+    </div>
+  );
+}
+
+const GALLERY_PARETO_POINTS: ParetoPoint[] = [
+  {
+    key: 'alpha',
+    label: 'model-alpha',
+    x: 182,
+    y: 0.81,
+    color: 'var(--data-cat-1)',
+  },
+  {
+    key: 'beta',
+    label: 'model-beta',
+    x: 64,
+    y: 0.5263,
+    color: 'var(--data-cat-2)',
+  },
+  {
+    key: 'gamma',
+    label: 'model-gamma',
+    x: 41,
+    y: 0.2,
+    color: 'var(--data-cat-3)',
+  },
+  {
+    key: 'delta',
+    label: 'model-delta',
+    x: 150,
+    y: 0.42,
+    color: 'var(--data-cat-4)',
+  },
+  {
+    key: 'eps',
+    label: 'model-epsilon',
+    x: 95,
+    y: 0.33,
+    color: 'var(--data-cat-5)',
+  },
+  {
+    key: 'zeta',
+    label: 'model-zeta',
+    x: 230,
+    y: 0.6,
+    color: 'var(--data-cat-6)',
+  },
+];
+
+function ParetoChartSpecimen(): ReactNode {
+  const [selected, setSelected] = useState('none');
+  return (
+    <Specimen
+      caption={`formatX · formatY · zero-based axes · per-point color · frontier labels · last: ${selected}`}
+      span={3}
+    >
+      <ParetoChart
+        xLabel='Mean duration (s)'
+        yLabel='Mean result score'
+        formatX={(value) => `${value.toFixed(0)} s`}
+        formatY={(value) => value.toFixed(2)}
+        points={GALLERY_PARETO_POINTS}
+        onSelect={setSelected}
+      />
+    </Specimen>
+  );
+}
 
 function DialogSpecimen(): ReactNode {
   const [open, setOpen] = useState(false);
