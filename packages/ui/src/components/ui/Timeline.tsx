@@ -35,6 +35,11 @@ interface TimelineProps {
    * each description.
    */
   variant?: 'dot' | 'numbered';
+  /**
+   * `compact` keeps each title on one line with an ellipsis (a string title
+   * shows in full on hover) and tightens the rows.
+   */
+  density?: 'comfortable' | 'compact';
   /** Reverse visual order (newest first vs oldest first). Doesn't sort. */
   className?: string;
   style?: CSSProperties;
@@ -44,6 +49,7 @@ interface TimelineProps {
 export function Timeline({
   items,
   variant = 'dot',
+  density = 'comfortable',
   className,
   style,
   surface,
@@ -51,9 +57,11 @@ export function Timeline({
   const wrapRef = useRef<HTMLOListElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, items, 'timeline', wrapRef);
   const numbered = variant === 'numbered';
+  const compact = density === 'compact';
   const rootClass = [
     'aegis-timeline',
     numbered ? 'aegis-timeline--numbered' : '',
+    compact ? 'aegis-timeline--compact' : '',
     className ?? '',
   ]
     .filter(Boolean)
@@ -81,7 +89,14 @@ export function Timeline({
           )}
           <div className="aegis-timeline__body">
             <div className="aegis-timeline__row">
-              <span className="aegis-timeline__title">{it.title}</span>
+              <span
+                className="aegis-timeline__title"
+                title={
+                  compact && typeof it.title === 'string' ? it.title : undefined
+                }
+              >
+                {it.title}
+              </span>
               {it.meta ? (
                 <span className="aegis-timeline__meta">{it.meta}</span>
               ) : null}

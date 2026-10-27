@@ -575,6 +575,12 @@ select.gallery__demo-input:focus {
   max-width: 100%;
 }
 
+/* A card-sized column, to show one-line rows truncating. */
+.gallery__narrow-panel {
+  width: 22rem;
+  max-width: 100%;
+}
+
 .gallery__page-wrapper-content {
   padding: var(--space-2);
   background: var(--bg-panel);

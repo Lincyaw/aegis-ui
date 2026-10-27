@@ -4257,6 +4257,52 @@ function App() {
               ]}
             />
           </Specimen>
+          <Specimen
+            caption="density='compact' · numbered · one-line titles, full title on hover"
+            span={3}
+          >
+            <div className='gallery__narrow-panel'>
+              <Timeline
+                variant='numbered'
+                density='compact'
+                items={[
+                  {
+                    id: 'c-1',
+                    title:
+                      'Call run_sql: {"query": "SELECT id, status FROM orders WHERE created_at > now() - interval 1 hour"}',
+                  },
+                  {
+                    id: 'c-2',
+                    title:
+                      'Call list_pods: {"namespace": "checkout", "label": "app=checkout-api"}',
+                  },
+                  { id: 'c-3', title: 'Submit the final answer' },
+                ]}
+              />
+            </div>
+          </Specimen>
+          <Specimen caption="density='compact' · dot" span={3}>
+            <div className='gallery__narrow-panel'>
+              <Timeline
+                density='compact'
+                items={[
+                  {
+                    id: 'd-1',
+                    title:
+                      'alice@aegis updated db.dsn and rotated the read-replica host for every region',
+                    timestamp: '2026-05-12 09:14:02',
+                    meta: <MonoValue>rev 47</MonoValue>,
+                  },
+                  {
+                    id: 'd-2',
+                    title: 'bob@aegis created namespace ratelimit',
+                    timestamp: '2026-05-11 18:02:11',
+                    meta: <MonoValue>rev 45</MonoValue>,
+                  },
+                ]}
+              />
+            </div>
+          </Specimen>
         </div>
 
         <SectionDivider extra={<MetricLabel>hyparquet</MetricLabel>}>
