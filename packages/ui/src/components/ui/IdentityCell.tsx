@@ -1,22 +1,13 @@
-import type { ComponentType, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { Avatar, type AvatarColorSlot } from './Avatar';
 import './IdentityCell.css';
-
-/**
- * Router link adapter. The contract matches `BreadcrumbLinkComponent`, so one
- * adapter around the router's `<Link>` serves both primitives.
- */
-export type IdentityCellLinkComponent = ComponentType<{
-  to: string;
-  className?: string;
-  children: ReactNode;
-}>;
+import { DefaultLink, type LinkComponent } from './linkComponent';
 
 interface IdentityCellProps {
   /** Primary line, e.g. a model or task name. Truncates; the full name shows on hover. */
   name: string;
-  /** Muted mono line under the name, e.g. the agent or a source path. */
+  /** Muted mono line under the name, e.g. the agent or a source path; a string shows in full on hover. */
   secondary?: ReactNode;
   /** Leads with an Avatar of the name's initials. */
   avatar?: boolean;
@@ -25,21 +16,11 @@ interface IdentityCellProps {
   /** Makes the name a link to this destination. */
   to?: string;
   /** Renders the link. Defaults to an `<a href>`; routed apps pass their Link adapter. */
-  linkComponent?: IdentityCellLinkComponent;
+  linkComponent?: LinkComponent;
   /** Puts the secondary text beside the name on one line. */
   inline?: boolean;
   className?: string;
 }
-
-const DefaultLink: IdentityCellLinkComponent = ({
-  to,
-  className,
-  children,
-}) => (
-  <a href={to} className={className}>
-    {children}
-  </a>
-);
 
 export function IdentityCell({
   name,
@@ -79,7 +60,12 @@ export function IdentityCell({
           </LinkImpl>
         )}
         {secondary ? (
-          <span className="aegis-identity-cell__secondary">{secondary}</span>
+          <span
+            className="aegis-identity-cell__secondary"
+            title={typeof secondary === 'string' ? secondary : undefined}
+          >
+            {secondary}
+          </span>
         ) : null}
       </span>
     </span>

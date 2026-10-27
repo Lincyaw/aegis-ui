@@ -9,6 +9,9 @@ import {
 import { useAegisAction } from '../../agent/hooks';
 import type { AegisAction } from '../../agent/types';
 import './Button.css';
+import { DefaultLink, type LinkComponent } from './linkComponent';
+
+type ButtonTone = 'primary' | 'secondary' | 'ghost';
 
 type NativeButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -18,7 +21,7 @@ type NativeButtonProps = Omit<
 interface ButtonProps extends NativeButtonProps {
   children: ReactNode;
   /** Visual treatment. */
-  tone?: 'primary' | 'secondary' | 'ghost';
+  tone?: ButtonTone;
   /** Optional aegis-ui agent action — also wires the agent runtime. */
   action?: AegisAction<void, unknown>;
   /** Native HTML button type. */
@@ -80,3 +83,32 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   },
 );
 Button.displayName = 'Button';
+
+interface ButtonLinkProps {
+  /** Destination; the control navigates instead of firing a handler. */
+  to: string;
+  children: ReactNode;
+  tone?: ButtonTone;
+  /** Renders the link. Defaults to an `<a href>`; routed apps pass their Link adapter. */
+  linkComponent?: LinkComponent;
+  className?: string;
+}
+
+/** A link that looks like a Button, for actions that open another page. */
+export function ButtonLink({
+  to,
+  children,
+  tone = 'primary',
+  linkComponent,
+  className,
+}: ButtonLinkProps) {
+  const LinkImpl = linkComponent ?? DefaultLink;
+  const cls = ['aegis-button', `aegis-button--${tone}`, className ?? '']
+    .filter(Boolean)
+    .join(' ');
+  return (
+    <LinkImpl to={to} className={cls}>
+      {children}
+    </LinkImpl>
+  );
+}

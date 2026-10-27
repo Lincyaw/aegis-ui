@@ -88,9 +88,10 @@ system CJK fonts.
   no business state. Hosts pass props in.
 - **Every new primitive ships with a Specimen** in the gallery. PRs that
   add a primitive without a gallery entry are incomplete.
-- **Primitives stay router-agnostic where possible.** `Breadcrumb`
-  accepts a `linkComponent` render prop instead of hardcoding
-  `react-router-dom`. Only `layouts/shell/**`, `auth/RequireAuth`, and
+- **Primitives stay router-agnostic where possible.** `Breadcrumb`,
+  `IdentityCell` and `ButtonLink` accept a `linkComponent` render prop
+  (type `LinkComponent`) instead of hardcoding `react-router-dom`. Only
+  `layouts/shell/**`, `auth/RequireAuth`, and
   the `InboxPage` / `NotificationBell` primitives import
   `react-router-dom` directly; don't add new importers outside
   `layouts/shell/`.

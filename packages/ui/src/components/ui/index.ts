@@ -5,7 +5,7 @@
  * '@/components/ui'` without knowing the file layout.
  */
 
-export { Button } from './Button';
+export { Button, ButtonLink } from './Button';
 export { Panel } from './Panel';
 export type { PanelSurface } from './Panel';
 export { PanelTitle } from './PanelTitle';
@@ -126,7 +126,7 @@ export type { BreadcrumbItem } from './Breadcrumb';
 export { Avatar } from './Avatar';
 export type { AvatarColorSlot, AvatarSurface } from './Avatar';
 export { IdentityCell } from './IdentityCell';
-export type { IdentityCellLinkComponent } from './IdentityCell';
+export type { LinkComponent } from './linkComponent';
 export { DropdownMenu } from './DropdownMenu';
 export type { DropdownItem } from './DropdownMenu';
 export { PageSizeSelect } from './PageSizeSelect';

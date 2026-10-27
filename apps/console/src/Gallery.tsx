@@ -38,6 +38,7 @@ import {
   BlastRadiusBar,
   Breadcrumb,
   BucketCard,
+  ButtonLink,
   ChatComposer,
   ChatMessage,
   ChatMessageList,
@@ -2314,6 +2315,29 @@ function App() {
         <SectionDivider>Tabs · view switch</SectionDivider>
         <TabsViewSwitchSpecimen />
 
+        <SectionDivider
+          extra={<MetricLabel>Button look · link behaviour</MetricLabel>}
+        >
+          ButtonLink
+        </SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption="tone='primary' · opens another page">
+            <ButtonLink to='#button-link'>
+              View the representative run
+            </ButtonLink>
+          </Specimen>
+          <Specimen caption="tone='secondary'">
+            <ButtonLink tone='secondary' to='#button-link'>
+              Switch run
+            </ButtonLink>
+          </Specimen>
+          <Specimen caption="tone='ghost'">
+            <ButtonLink tone='ghost' to='#button-link'>
+              All 100 runs
+            </ButtonLink>
+          </Specimen>
+        </div>
+
         <SectionDivider>Breadcrumb</SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='simple'>
@@ -2437,6 +2461,29 @@ function App() {
                 avatar
                 name='qwen3-coder-480b-a35b-instruct-preview'
                 secondary='openhands-with-a-long-agent-name'
+                to='#identity-cell'
+              />
+            </div>
+          </Specimen>
+        </div>
+        <div className='gallery__row'>
+          <Specimen caption='name only · avatar · colorSlot · link'>
+            <IdentityCell
+              avatar
+              colorSlot={1}
+              name='claude-opus-4-1'
+              to='#identity-cell'
+            />
+          </Specimen>
+          <Specimen caption='name only · plain text'>
+            <IdentityCell avatar colorSlot={3} name='deepseek-v3.2' />
+          </Specimen>
+          <Specimen caption='name only · long name truncates'>
+            <div className='gallery__narrow-cell'>
+              <IdentityCell
+                avatar
+                colorSlot={5}
+                name='qwen3-coder-480b-a35b-instruct-preview'
                 to='#identity-cell'
               />
             </div>

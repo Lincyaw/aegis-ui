@@ -1,25 +1,14 @@
-import { type ComponentType, type ReactElement, type ReactNode } from 'react';
+import { type ReactElement, type ReactNode } from 'react';
 
 import { useStrings } from '../../locale';
 import './Breadcrumb.css';
+import { DefaultLink, type LinkComponent } from './linkComponent';
 
 export interface BreadcrumbItem {
   label: ReactNode;
   /** Optional destination. If omitted, the item renders as plain text. */
   to?: string;
 }
-
-/**
- * Render-prop signature for routed links. Sub-apps that use a router
- * (`react-router-dom`, `@tanstack/router`, Next.js) pass a wrapper that
- * forwards to their `<Link>`. Keeping this contract minimal so the primitive
- * has zero router dependency.
- */
-export type BreadcrumbLinkComponent = ComponentType<{
-  to: string;
-  className?: string;
-  children: ReactNode;
-}>;
 
 interface BreadcrumbProps {
   items: BreadcrumbItem[];
@@ -29,14 +18,8 @@ interface BreadcrumbProps {
    * unstyled `<a href>`. Sub-apps using a router should pass their
    * Link adapter here.
    */
-  linkComponent?: BreadcrumbLinkComponent;
+  linkComponent?: LinkComponent;
 }
-
-const DefaultLink: BreadcrumbLinkComponent = ({ to, className, children }) => (
-  <a href={to} className={className}>
-    {children}
-  </a>
-);
 
 export function Breadcrumb({
   items,
