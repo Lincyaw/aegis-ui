@@ -43,6 +43,25 @@
   flex: 1 1 auto;
 }
 
+/* With a description: the label row over a muted line, both inverting. */
+.aegis-control-item__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.aegis-control-item__description {
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.aegis-control-item--active .aegis-control-item__description {
+  color: var(--text-on-inverted-muted);
+}
+
 .aegis-control-item__right {
   display: inline-flex;
   align-items: center;

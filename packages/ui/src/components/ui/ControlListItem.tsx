@@ -7,6 +7,8 @@ import './ControlListItem.css';
 interface ControlListItemProps {
   /** Left-side content (e.g. dot + label). */
   left: ReactNode;
+  /** Muted line under `left`, e.g. what the option does; inverts with `active`. */
+  description?: ReactNode;
   /** Right-side content (e.g. status text or action button). */
   right?: ReactNode;
   /** Inverts the row to ink — used for the currently-active item. */
@@ -21,6 +23,7 @@ interface ControlListItemProps {
 
 export function ControlListItem({
   left,
+  description,
   right,
   active = false,
   onClick,
@@ -40,6 +43,16 @@ export function ControlListItem({
     .filter(Boolean)
     .join(' ');
 
+  const leftContent =
+    description === undefined ? (
+      <span className="aegis-control-item__left">{left}</span>
+    ) : (
+      <span className="aegis-control-item__body">
+        <span className="aegis-control-item__left">{left}</span>
+        <span className="aegis-control-item__description">{description}</span>
+      </span>
+    );
+
   if (onClick ?? action) {
     const handleClick = (): void => {
       onClick?.();
@@ -57,7 +70,7 @@ export function ControlListItem({
         title={isUnavailable ? bound.unavailableReason : undefined}
         data-agent-action-id={action?.id}
       >
-        <span className="aegis-control-item__left">{left}</span>
+        {leftContent}
         {right && <span className="aegis-control-item__right">{right}</span>}
       </button>
     );
@@ -65,7 +78,7 @@ export function ControlListItem({
 
   return (
     <div className={cls} style={style}>
-      <span className="aegis-control-item__left">{left}</span>
+      {leftContent}
       {right && <span className="aegis-control-item__right">{right}</span>}
     </div>
   );

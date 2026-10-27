@@ -1822,6 +1822,9 @@ function App() {
             right={<MetricLabel>Recovering</MetricLabel>}
           />
         </div>
+
+        <SectionDivider>ControlListItem · description</SectionDivider>
+        <ControlListItemDescriptionSpecimen />
       </Panel>
 
       {/* ── Tables & Toolbar ───────────────────────────────────────── */}
@@ -5152,6 +5155,38 @@ function TabsViewSwitchSpecimen(): ReactNode {
           onChange={setView}
         />
       </Specimen>
+    </div>
+  );
+}
+
+function ControlListItemDescriptionSpecimen(): ReactNode {
+  const [chart, setChart] = useState('ranking');
+  const options = [
+    {
+      key: 'ranking',
+      title: 'Model ranking',
+      description: 'One metric per model, sorted, each row opening its model.',
+    },
+    {
+      key: 'pareto',
+      title: 'Pareto front',
+      description:
+        'Two metrics at once; the front marks the models no other beats on both.',
+    },
+  ];
+  return (
+    <div className='gallery__list'>
+      {options.map((option) => (
+        <ControlListItem
+          key={option.key}
+          active={option.key === chart}
+          onClick={() => {
+            setChart(option.key);
+          }}
+          left={option.title}
+          description={option.description}
+        />
+      ))}
     </div>
   );
 }
