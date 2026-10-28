@@ -6737,6 +6737,7 @@ const GALLERY_TOC_STATE_ITEMS: TableOfContentsItem[] = [
     level: 2,
   },
   { id: 'gallery-toc-state-regrade', label: '重新评分', level: 2 },
+  { id: 'gallery-toc-state-regrade-records', label: '读取哪些记录', level: 3 },
   { id: 'gallery-toc-state-bars', label: '结果条怎样读' },
 ];
 
@@ -6765,6 +6766,12 @@ const GALLERY_TOC_SCROLL_SECTIONS: Array<
     body: '重新评分读取记录下来的回答与产物，用新规则评一次；原来的评分保留，新的评分成为当前评分。',
   },
   {
+    id: 'gallery-toc-scroll-regrade-records',
+    label: '读取哪些记录',
+    level: 3,
+    body: '每次运行保存回答、命令输出与评分时读取的文件；重新评分只读这些记录，不再访问运行环境。',
+  },
+  {
     id: 'gallery-toc-scroll-bars',
     label: '结果条怎样读',
     body: '结果条按正确、错误与执行失败分段；执行失败不计入模型结果。',
@@ -6785,7 +6792,7 @@ function TableOfContentsStatesSpecimen(): ReactNode {
           onCurrentChange={setCurrent}
         />
       </Specimen>
-      <Specimen caption='level=2 current · label indents; a long label wraps and its indicator follows'>
+      <Specimen caption='level=2 current · level 2 and 3 labels indent by --space-3 and --space-6; a long label wraps and its indicator follows'>
         <TableOfContents
           items={GALLERY_TOC_STATE_ITEMS}
           currentId='gallery-toc-state-digest'
@@ -6800,7 +6807,7 @@ function TableOfContentsScrollSpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen
-        caption='scrollContainer · the item follows the scroll; a click scrolls smoothly (instantly under reduced motion); at the end of the scroll the short last section becomes current'
+        caption='scrollContainer · the item follows the scroll; a click scrolls smoothly (instantly under reduced motion), puts the section in the URL hash and moves focus to it; at the end of the scroll the short last section becomes current'
         span={3}
       >
         <div className='gallery__toc-demo'>

@@ -204,6 +204,13 @@ export function TableOfContents({
     if (!section) {
       return;
     }
+    // As an in-page link does: the URL names the section, and the next Tab
+    // continues from the section rather than from the contents.
+    window.history.replaceState(window.history.state, '', `#${id}`);
+    if (!section.hasAttribute('tabindex')) {
+      section.tabIndex = -1;
+    }
+    section.focus({ preventScroll: true });
     const top = sectionScrollTop(section, scrollContainer);
     const arrived = isScrolledTo(scrollContainer, top);
     /* Without scrollend support nothing would settle the click. */
