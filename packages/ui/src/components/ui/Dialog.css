@@ -6,10 +6,12 @@
   bottom: 0;
   left: 0;
   display: flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
   padding: var(--space-6);
   background: var(--bg-backdrop);
+  backdrop-filter: blur(var(--backdrop-blur));
   animation: aegis-dialog-fade-in var(--motion-enter) backwards;
 }
 
@@ -22,8 +24,8 @@
   animation: aegis-dialog-exit var(--motion-exit) forwards;
 }
 
-/* Enters with a fade, a 0.98 → 1 scale and a small upward shift; exits
- * the reverse, faster. Fill modes leave no transform behind once open. */
+/* Enters with a fade, a 0.98 → 1 scale and a rise; exits the reverse,
+ * faster. Fill modes leave no transform behind once open. */
 @keyframes aegis-dialog-fade-in {
   from {
     opacity: 0;
@@ -46,7 +48,7 @@
 @keyframes aegis-dialog-exit {
   to {
     opacity: 0;
-    transform: scale(0.98);
+    transform: translateY(var(--motion-enter-offset)) scale(0.98);
   }
 }
 
@@ -57,13 +59,21 @@
   width: 100%;
   max-height: 100%;
   border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--bg-panel);
-  box-shadow: var(--shadow-popover);
+  box-shadow: var(--shadow-overlay);
   font-family: var(--font-ui);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  line-height: var(--type-body-line);
+  letter-spacing: var(--type-body-tracking);
   color: var(--text-main);
   overflow: hidden;
   animation: aegis-dialog-enter var(--motion-enter) backwards;
+}
+
+.aegis-dialog:focus-visible {
+  outline: none;
 }
 
 .aegis-dialog--sm {
@@ -80,6 +90,7 @@
 
 .aegis-dialog__header {
   display: flex;
+  flex-shrink: 0;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
@@ -90,47 +101,86 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  min-width: 0;
 }
 
 .aegis-dialog__title {
-  font-size: var(--fs-16);
-  font-weight: var(--fw-semibold);
-  line-height: 1.4;
+  margin: 0;
+  font-size: var(--type-heading-size);
+  font-weight: var(--type-heading-weight);
+  line-height: var(--type-heading-line);
+  letter-spacing: var(--type-heading-tracking);
+  color: var(--text-main);
+  overflow-wrap: anywhere;
 }
 
 .aegis-dialog__description {
-  font-size: var(--fs-12);
+  font-size: var(--type-small-size);
+  font-weight: var(--type-small-weight);
+  line-height: var(--type-small-line);
+  letter-spacing: var(--type-small-tracking);
   color: var(--text-muted);
 }
 
+/* The padding widens the hit area; the negative margin keeps the text on
+ * the header's padding edge. */
 .aegis-dialog__close {
   flex-shrink: 0;
-  padding: 0;
+  margin: calc(var(--space-1) * -1) calc(var(--space-2) * -1) 0 0;
+  padding: var(--space-1) var(--space-2);
   border: none;
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--text-muted);
+  border-radius: var(--radius-xs);
   background: none;
+  font-family: inherit;
+  font-size: var(--type-small-size);
+  font-weight: var(--type-small-weight);
+  line-height: var(--type-small-line);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
   cursor: pointer;
+  transition: color var(--motion-fast);
 }
 
 .aegis-dialog__close:hover {
   color: var(--text-main);
 }
 
+.aegis-dialog__close:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .aegis-dialog__body {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-4);
+  min-height: 0;
   padding: 0 var(--space-5) var(--space-5);
   overflow-y: auto;
 }
 
 .aegis-dialog__footer {
   display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-4) var(--space-5);
   border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+@media (max-width: 768px) {
+  .aegis-dialog__backdrop {
+    padding: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-dialog__backdrop,
+  .aegis-dialog,
+  .aegis-dialog__backdrop--closing .aegis-dialog {
+    animation: none;
+  }
 }
