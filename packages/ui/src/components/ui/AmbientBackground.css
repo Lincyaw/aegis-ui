@@ -1,0 +1,140 @@
+/* Paints beneath the content of its positioned, isolated container. */
+.aegis-ambient-background {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: inline-size;
+}
+
+.aegis-ambient-background--page {
+  height: var(--ambient-page-height);
+}
+
+.aegis-ambient-background--hero {
+  height: var(--ambient-hero-height);
+}
+
+/* Geometry and drift are in pixels of the 1440-wide design frame, so the
+ * glows scale with the layer's width. */
+.aegis-ambient-background__blob {
+  --aegis-ambient-background-unit: calc(100cqi / 1440);
+  --aegis-ambient-background-drift: var(--aegis-ambient-background-unit);
+  position: absolute;
+  background: radial-gradient(
+    closest-side,
+    var(--aegis-ambient-background-color),
+    transparent
+  );
+  will-change: transform;
+}
+
+.aegis-ambient-background--hero .aegis-ambient-background__blob {
+  --aegis-ambient-background-drift: calc(
+    var(--aegis-ambient-background-unit) * 1.6
+  );
+}
+
+.aegis-ambient-background__blob--blue {
+  animation: aegis-ambient-background-blue var(--motion-ambient) infinite;
+}
+
+.aegis-ambient-background__blob--teal {
+  animation: aegis-ambient-background-teal var(--motion-ambient) infinite;
+}
+
+.aegis-ambient-background__blob--violet {
+  animation: aegis-ambient-background-violet var(--motion-ambient) infinite;
+}
+
+.aegis-ambient-background--page .aegis-ambient-background__blob--blue {
+  --aegis-ambient-background-color: var(--ambient-1);
+  top: calc(-280 * var(--aegis-ambient-background-unit));
+  left: calc(-170 * var(--aegis-ambient-background-unit));
+  width: calc(860 * var(--aegis-ambient-background-unit));
+  height: calc(560 * var(--aegis-ambient-background-unit));
+}
+
+.aegis-ambient-background--page .aegis-ambient-background__blob--teal {
+  --aegis-ambient-background-color: var(--ambient-2);
+  top: calc(-250 * var(--aegis-ambient-background-unit));
+  left: calc(880 * var(--aegis-ambient-background-unit));
+  width: calc(720 * var(--aegis-ambient-background-unit));
+  height: calc(500 * var(--aegis-ambient-background-unit));
+}
+
+.aegis-ambient-background--page .aegis-ambient-background__blob--violet {
+  --aegis-ambient-background-color: var(--ambient-3);
+  top: calc(-120 * var(--aegis-ambient-background-unit));
+  left: calc(440 * var(--aegis-ambient-background-unit));
+  width: calc(640 * var(--aegis-ambient-background-unit));
+  height: calc(360 * var(--aegis-ambient-background-unit));
+}
+
+.aegis-ambient-background--hero .aegis-ambient-background__blob--blue {
+  --aegis-ambient-background-color: var(--ambient-hero-1);
+  top: calc(-460 * var(--aegis-ambient-background-unit));
+  left: calc(-474 * var(--aegis-ambient-background-unit));
+  width: calc(1380 * var(--aegis-ambient-background-unit));
+  height: calc(1240 * var(--aegis-ambient-background-unit));
+}
+
+.aegis-ambient-background--hero .aegis-ambient-background__blob--teal {
+  --aegis-ambient-background-color: var(--ambient-hero-2);
+  top: calc(-440 * var(--aegis-ambient-background-unit));
+  left: calc(717 * var(--aegis-ambient-background-unit));
+  width: calc(1100 * var(--aegis-ambient-background-unit));
+  height: calc(1040 * var(--aegis-ambient-background-unit));
+}
+
+.aegis-ambient-background--hero .aegis-ambient-background__blob--violet {
+  --aegis-ambient-background-color: var(--ambient-hero-3);
+  top: calc(300 * var(--aegis-ambient-background-unit));
+  left: calc(272 * var(--aegis-ambient-background-unit));
+  width: calc(1040 * var(--aegis-ambient-background-unit));
+  height: calc(840 * var(--aegis-ambient-background-unit));
+}
+
+/* Each glow reaches its farthest point at its own time in the loop (10 s,
+ * 9 s and 12 s of 20 s) and returns to rest. */
+@keyframes aegis-ambient-background-blue {
+  50% {
+    transform: translate(
+        calc(80 * var(--aegis-ambient-background-drift)),
+        calc(36 * var(--aegis-ambient-background-drift))
+      )
+      scale(1.1);
+  }
+}
+
+@keyframes aegis-ambient-background-teal {
+  45% {
+    transform: translate(
+        calc(-70 * var(--aegis-ambient-background-drift)),
+        calc(48 * var(--aegis-ambient-background-drift))
+      )
+      scale(0.92);
+  }
+}
+
+@keyframes aegis-ambient-background-violet {
+  60% {
+    transform: translate(
+        calc(60 * var(--aegis-ambient-background-drift)),
+        calc(-30 * var(--aegis-ambient-background-drift))
+      )
+      scale(1.08);
+  }
+}
+
+.aegis-ambient-background--paused .aegis-ambient-background__blob {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-ambient-background__blob {
+    animation: none;
+    will-change: auto;
+  }
+}

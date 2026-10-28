@@ -1,0 +1,31 @@
+.aegis-reveal--waiting {
+  opacity: 0;
+}
+
+/* `backwards` fill holds the start frame through the stagger delay and
+ * drops the transform once the entrance ends, so revealed content does
+ * not stay a stacking context. */
+.aegis-reveal--entered {
+  animation: aegis-reveal-rise var(--motion-reveal) backwards;
+  animation-delay: calc(
+    var(--motion-reveal-stagger) * var(--aegis-reveal-index)
+  );
+}
+
+@keyframes aegis-reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-reveal-offset));
+  }
+}
+
+/* The global reduced-motion rule shortens durations but not delays. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-reveal--waiting {
+    opacity: 1;
+  }
+
+  .aegis-reveal--entered {
+    animation: none;
+  }
+}
