@@ -99,6 +99,8 @@ export interface AegisStrings {
   restore: string;
   timelineEmptyTitle: string;
   timelineEmptyDescription: string;
+  /** Read before an Alert's content to name its tone, e.g. "Error:". */
+  alertTone: (tone: 'info' | 'success' | 'warning' | 'error') => string;
 }
 
 export const enStrings: AegisStrings = {
@@ -200,6 +202,13 @@ export const enStrings: AegisStrings = {
   restore: 'Restore',
   timelineEmptyTitle: 'No spans',
   timelineEmptyDescription: 'Nothing to plot yet.',
+  alertTone: (tone) =>
+    ({
+      info: 'Info:',
+      success: 'Success:',
+      warning: 'Warning:',
+      error: 'Error:',
+    })[tone],
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -312,4 +321,8 @@ export const zhCNStrings: AegisStrings = {
   restore: '还原',
   timelineEmptyTitle: '没有时间区间',
   timelineEmptyDescription: '暂无可绘制的内容。',
+  alertTone: (tone) =>
+    ({ info: '提示：', success: '成功：', warning: '注意：', error: '错误：' })[
+      tone
+    ],
 };

@@ -49,8 +49,18 @@
   letter-spacing: var(--type-strong-tracking);
 }
 
-.aegis-alert--titled .aegis-alert__body {
+.aegis-alert__body {
   color: var(--text-muted);
+}
+
+/* Names the tone to assistive technology; the marker colour is not read. */
+.aegis-alert__tone {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .aegis-alert--info {

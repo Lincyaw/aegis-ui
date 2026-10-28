@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { useStrings } from '../../locale';
 import './Alert.css';
 
 type AlertTone = 'info' | 'success' | 'warning' | 'error';
@@ -22,6 +23,7 @@ export function Alert({
   children,
   className,
 }: AlertProps) {
+  const strings = useStrings();
   const cls = [
     'aegis-alert',
     `aegis-alert--${tone}`,
@@ -36,6 +38,7 @@ export function Alert({
         {icon ?? <span className="aegis-alert__dot" />}
       </span>
       <div className="aegis-alert__content">
+        <span className="aegis-alert__tone">{strings.alertTone(tone)}</span>
         {title !== undefined && (
           <span className="aegis-alert__title">{title}</span>
         )}
