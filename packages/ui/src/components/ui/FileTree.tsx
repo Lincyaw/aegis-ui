@@ -18,16 +18,23 @@ export interface FileTreeFile {
   note?: ReactNode;
 }
 
-interface FileTreeProps {
+export interface FileTreeProps {
   files: FileTreeFile[];
   /** Accessible name of the tree. */
   ariaLabel: string;
-  /** Path of the selected file. Whenever it changes, the directories above it open. */
+  /**
+   * Path of the selected file. Whenever it changes, the directories above
+   * it open, unless `expandedPaths` controls them.
+   */
   selectedPath?: string;
   /** Called with a file's path when it is clicked or activated with Enter or Space. */
   onSelect?: (path: string) => void;
-  /** Directories open on first render, each written with a trailing `/`, e.g. `tests/`. */
+  /** Open directories, each written with a trailing `/`, e.g. `tests/`. Omit it to let the tree track them. */
+  expandedPaths?: string[];
+  /** Directories open on first render when `expandedPaths` is omitted. */
   defaultExpandedPaths?: string[];
+  /** Called with the open directories whenever one opens or closes. */
+  onExpandedPathsChange?: (paths: string[]) => void;
   className?: string;
 }
 
@@ -129,19 +136,25 @@ export function FileTree({
   ariaLabel,
   selectedPath,
   onSelect,
+  expandedPaths,
   defaultExpandedPaths = [],
+  onExpandedPathsChange,
   className,
 }: FileTreeProps) {
   const entries = useMemo(() => buildEntries(files), [files]);
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(
-    () =>
-      new Set([...defaultExpandedPaths, ...ancestorPaths(selectedPath ?? '')]),
-  );
+  const [trackedPaths, setTrackedPaths] = useState<string[]>(() => [
+    ...defaultExpandedPaths,
+    ...ancestorPaths(selectedPath ?? ''),
+  ]);
   const [revealedPath, setRevealedPath] = useState(selectedPath);
   if (selectedPath !== revealedPath) {
     setRevealedPath(selectedPath);
-    setExpanded(new Set([...expanded, ...ancestorPaths(selectedPath ?? '')]));
+    setTrackedPaths([
+      ...new Set([...trackedPaths, ...ancestorPaths(selectedPath ?? '')]),
+    ]);
   }
+  const openPaths = expandedPaths ?? trackedPaths;
+  const expanded = useMemo(() => new Set(openPaths), [openPaths]);
   const [focusedPath, setFocusedPath] = useState<string>();
   const listRef = useRef<HTMLUListElement>(null);
   const rows = useMemo(
@@ -154,15 +167,13 @@ export function FileTree({
     ) ?? rows[0]?.entry.path;
 
   const setDirectoryExpanded = (path: string, open: boolean): void => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (open) {
-        next.add(path);
-      } else {
-        next.delete(path);
-      }
-      return next;
-    });
+    const next = open
+      ? [...openPaths, path]
+      : openPaths.filter((item) => item !== path);
+    if (expandedPaths === undefined) {
+      setTrackedPaths(next);
+    }
+    onExpandedPathsChange?.(next);
   };
 
   const focusRow = (index: number): void => {

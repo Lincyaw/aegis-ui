@@ -3168,6 +3168,12 @@ function App() {
                 />
               </div>
             </Specimen>
+            <Specimen
+              caption='controlled · expandedPaths + onExpandedPathsChange'
+              span={2}
+            >
+              <FileTreeControlledSpecimen />
+            </Specimen>
           </div>
         </div>
       </Panel>
@@ -7969,6 +7975,42 @@ function FileTreeSpecimen(): ReactNode {
           showLineNumbers
         />
       </ColumnLayout>
+    </div>
+  );
+}
+
+const GALLERY_TASK_DIRECTORIES = [
+  'environment/',
+  'environment/app/',
+  'solution/',
+  'tests/',
+  'tests/cases/',
+];
+
+function FileTreeControlledSpecimen(): ReactNode {
+  const [openPaths, setOpenPaths] = useState(['tests/']);
+  return (
+    <div className='gallery__stack gallery__stack--fill'>
+      <div style={{ width: 320 }}>
+        <FileTree
+          files={GALLERY_TASK_FILES}
+          ariaLabel='Task files, controlled'
+          expandedPaths={openPaths}
+          onExpandedPathsChange={setOpenPaths}
+        />
+      </div>
+      <div className='gallery__row'>
+        <AegisButton
+          tone='secondary'
+          onClick={() => setOpenPaths(GALLERY_TASK_DIRECTORIES)}
+        >
+          全部展开
+        </AegisButton>
+        <AegisButton tone='secondary' onClick={() => setOpenPaths([])}>
+          全部收起
+        </AegisButton>
+        <MetricLabel>{openPaths.length} open</MetricLabel>
+      </div>
     </div>
   );
 }
