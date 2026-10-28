@@ -3192,13 +3192,13 @@ function App() {
         <SectionDivider>Carousel</SectionDivider>
         <div className='gallery__row'>
           <Specimen
-            caption='uncontrolled · defaultActiveIndex={1} · hover or focus pauses the progress bar'
+            caption="uncontrolled · defaultActiveKey='replay' · hover or focus pauses the progress bar · the button stops autoplay until pressed again"
             span={3}
           >
             <Carousel
               ariaLabel='首页轮播'
               slides={GALLERY_CAROUSEL_SLIDES}
-              defaultActiveIndex={1}
+              defaultActiveKey='replay'
               className='gallery__stack--fill'
             />
           </Specimen>
@@ -6693,35 +6693,33 @@ const GALLERY_CAROUSEL_SLIDES: CarouselSlide[] = [
 ];
 
 function CarouselControlledSpecimen(): ReactNode {
-  const [index, setIndex] = useState(0);
-  const count = GALLERY_CAROUSEL_SLIDES.length;
+  const keys = GALLERY_CAROUSEL_SLIDES.map((slide) => slide.key);
+  const [activeKey, setActiveKey] = useState(keys[0]);
+  const step = (offset: number) => {
+    const index = keys.indexOf(activeKey);
+    setActiveKey(keys[(index + offset + keys.length) % keys.length]);
+  };
   return (
     <div className='gallery__row'>
       <Specimen
-        caption='controlled · activeIndex + onChange · the tabs and autoplay both report through onChange'
+        caption='controlled · activeKey + onChange · the tabs and autoplay both report through onChange'
         span={3}
       >
         <div className='gallery__stack gallery__stack--fill'>
           <Carousel
             ariaLabel='受控轮播'
             slides={GALLERY_CAROUSEL_SLIDES}
-            activeIndex={index}
-            onChange={setIndex}
+            activeKey={activeKey}
+            onChange={setActiveKey}
           />
           <div className='gallery__row'>
-            <AegisButton
-              tone='secondary'
-              onClick={() => setIndex((index + count - 1) % count)}
-            >
+            <AegisButton tone='secondary' onClick={() => step(-1)}>
               上一张
             </AegisButton>
-            <AegisButton
-              tone='secondary'
-              onClick={() => setIndex((index + 1) % count)}
-            >
+            <AegisButton tone='secondary' onClick={() => step(1)}>
               下一张
             </AegisButton>
-            <MetricLabel>activeIndex {index}</MetricLabel>
+            <MetricLabel>activeKey {activeKey}</MetricLabel>
           </div>
         </div>
       </Specimen>

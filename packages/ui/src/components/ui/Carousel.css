@@ -57,9 +57,23 @@
     aegis-carousel-fade-in var(--motion-hero-fade);
 }
 
+.aegis-carousel__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
 .aegis-carousel__tabs {
   display: flex;
+  flex: 1 1 auto;
   gap: var(--space-6);
+  min-width: 0;
+}
+
+.aegis-carousel__controls .aegis-carousel__toggle {
+  flex: none;
+  width: var(--size-control-base);
+  padding: 0;
 }
 
 .aegis-carousel__tab {
@@ -138,6 +152,7 @@
     padding: var(--space-6);
   }
 
+  .aegis-carousel__controls,
   .aegis-carousel__tabs {
     gap: var(--space-3);
   }

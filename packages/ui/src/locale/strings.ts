@@ -101,6 +101,10 @@ export interface AegisStrings {
   timelineEmptyDescription: string;
   /** Read before an Alert's content to name its tone, e.g. "Error:". */
   alertTone: (tone: 'info' | 'success' | 'warning' | 'error') => string;
+  /** What assistive technology calls a Carousel region. */
+  carouselRoleDescription: string;
+  carouselPause: string;
+  carouselPlay: string;
 }
 
 export const enStrings: AegisStrings = {
@@ -209,6 +213,9 @@ export const enStrings: AegisStrings = {
       warning: 'Warning:',
       error: 'Error:',
     })[tone],
+  carouselRoleDescription: 'carousel',
+  carouselPause: 'Pause autoplay',
+  carouselPlay: 'Resume autoplay',
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -325,4 +332,7 @@ export const zhCNStrings: AegisStrings = {
     ({ info: '提示：', success: '成功：', warning: '注意：', error: '错误：' })[
       tone
     ],
+  carouselRoleDescription: '轮播',
+  carouselPause: '暂停自动播放',
+  carouselPlay: '继续自动播放',
 };
