@@ -5,12 +5,15 @@
 }
 
 .aegis-tabs__list {
+  position: relative;
   display: flex;
   align-items: center;
+  align-self: flex-start;
   gap: var(--space-1);
+  max-width: 100%;
   padding: var(--space-1);
   background: var(--bg-muted);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -21,40 +24,48 @@
   display: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .aegis-tabs__list {
-    scroll-behavior: auto;
-  }
+.aegis-tabs__indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--bg-panel);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-rest);
+  pointer-events: none;
+}
+
+.aegis-tabs__indicator--slide {
+  transition:
+    transform var(--motion-base),
+    width var(--motion-base),
+    height var(--motion-base);
 }
 
 .aegis-tabs__tab {
+  position: relative;
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
   color: var(--text-muted);
   background: none;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    color var(--motion-fast),
-    background var(--motion-fast);
+  transition: color var(--motion-fast);
 }
 
-.aegis-tabs__tab:hover {
-  color: var(--text-main);
-}
-
+.aegis-tabs__tab:hover,
 .aegis-tabs__tab--active {
   color: var(--text-main);
-  background: var(--bg-panel);
-  box-shadow: var(--shadow-panel);
 }
 
 /* With the list's own padding the whole control is --size-control-base. */
@@ -66,4 +77,14 @@
 .aegis-tabs__panel {
   min-width: 0;
   padding-top: var(--space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-tabs__list {
+    scroll-behavior: auto;
+  }
+
+  .aegis-tabs__indicator--slide {
+    transition: none;
+  }
 }

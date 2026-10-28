@@ -30,6 +30,58 @@ interface TabsProps {
   className?: string;
 }
 
+interface TabBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface TabsIndicator extends TabBox {
+  slide: boolean;
+}
+
+function findSelectedTab(list: HTMLElement): HTMLElement | null {
+  return list.querySelector<HTMLElement>(':scope > [aria-selected="true"]');
+}
+
+function measureSelectedTab(list: HTMLElement): TabBox | null {
+  const tab = findSelectedTab(list);
+  if (!tab) {
+    return null;
+  }
+  return {
+    x: tab.offsetLeft,
+    y: tab.offsetTop,
+    width: tab.offsetWidth,
+    height: tab.offsetHeight,
+  };
+}
+
+function isSameTabBox(a: TabBox | null, b: TabBox | null): boolean {
+  if (!a || !b) {
+    return a === b;
+  }
+  return (
+    a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
+  );
+}
+
+function scrollSelectedTabIntoView(list: HTMLElement): void {
+  const tab = findSelectedTab(list);
+  if (!tab) {
+    return;
+  }
+  const inset = parseFloat(getComputedStyle(list).paddingLeft);
+  const listBox = list.getBoundingClientRect();
+  const tabBox = tab.getBoundingClientRect();
+  if (tabBox.left < listBox.left + inset) {
+    list.scrollLeft -= listBox.left + inset - tabBox.left;
+  } else if (tabBox.right > listBox.right - inset) {
+    list.scrollLeft += tabBox.right - (listBox.right - inset);
+  }
+}
+
 export function Tabs({
   items,
   activeKey: controlledKey,
@@ -45,22 +97,44 @@ export function Tabs({
   );
   const activeKey = controlledKey ?? internalKey;
   const listRef = useRef<HTMLDivElement>(null);
+  const placedKeyRef = useRef<string | undefined>(undefined);
+  const [indicator, setIndicator] = useState<TabsIndicator | null>(null);
+  const itemKeys = items.map((item) => item.key).join('\n');
 
   useLayoutEffect(() => {
     const list = listRef.current;
-    const tab = list?.querySelector(':scope > [aria-selected="true"]');
-    if (!list || !tab) {
+    if (!list) {
       return;
     }
-    const inset = parseFloat(getComputedStyle(list).paddingLeft);
-    const listBox = list.getBoundingClientRect();
-    const tabBox = tab.getBoundingClientRect();
-    if (tabBox.left < listBox.left + inset) {
-      list.scrollLeft -= listBox.left + inset - tabBox.left;
-    } else if (tabBox.right > listBox.right - inset) {
-      list.scrollLeft += tabBox.right - (listBox.right - inset);
-    }
+    const slide =
+      placedKeyRef.current !== undefined && placedKeyRef.current !== activeKey;
+    placedKeyRef.current = activeKey;
+    const box = measureSelectedTab(list);
+    setIndicator(box && { ...box, slide });
+    scrollSelectedTabIntoView(list);
   }, [activeKey]);
+
+  // Tab widths change after web fonts load, when a label's count changes and
+  // when a hidden list is first shown; follow them without sliding.
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) {
+      return;
+    }
+    const observer = new ResizeObserver(() => {
+      const box = measureSelectedTab(list);
+      setIndicator((current) =>
+        isSameTabBox(current, box) ? current : box && { ...box, slide: false },
+      );
+    });
+    observer.observe(list);
+    for (const tab of list.querySelectorAll(':scope > [role="tab"]')) {
+      observer.observe(tab);
+    }
+    return () => {
+      observer.disconnect();
+    };
+  }, [itemKeys]);
 
   const handleClick = (key: string) => {
     if (controlledKey === undefined) {
@@ -80,6 +154,21 @@ export function Tabs({
   return (
     <div className={cls}>
       <div ref={listRef} className="aegis-tabs__list" role="tablist">
+        {indicator ? (
+          <span
+            aria-hidden="true"
+            className={
+              indicator.slide
+                ? 'aegis-tabs__indicator aegis-tabs__indicator--slide'
+                : 'aegis-tabs__indicator'
+            }
+            style={{
+              width: indicator.width,
+              height: indicator.height,
+              transform: `translate(${String(indicator.x)}px, ${String(indicator.y)}px)`,
+            }}
+          />
+        ) : null}
         {items.map((item) => (
           <TabsTab
             key={item.key}
