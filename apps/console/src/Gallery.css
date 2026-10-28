@@ -534,22 +534,9 @@ select.gallery__demo-input:focus {
 }
 
 /* ── Component-token overrides ──────────────────────────────────── */
-/* What a host sets to restyle primitives structurally: sentence case,
- * a muted table header, taller rows, a larger page title. */
+/* What a host sets to restyle primitives structurally: a sentence-case
+ * page header with a larger title. */
 .gallery__token-override {
-  --data-table-header-bg: var(--bg-muted);
-  --data-table-header-font-size: var(--fs-12);
-  --data-table-header-transform: none;
-  --data-table-header-tracking: normal;
-  --data-table-row-min-height: calc(var(--space-12) + var(--space-4));
-  --chip-transform: none;
-  --chip-tracking: normal;
-  --chip-height-md: var(--size-control-sm);
-  --metric-label-transform: none;
-  --metric-label-tracking: normal;
-  --search-input-height: var(--size-control-base);
-  --select-height: var(--size-control-base);
-  --stat-block-emphasized-size: var(--fs-28);
   --page-header-margin-bottom: 0;
   --page-header-title-size: var(--fs-28);
   --page-header-title-size-mobile: var(--fs-24);
@@ -611,4 +598,97 @@ select.gallery__demo-input:focus {
 
 .gallery__icon-xl {
   font-size: var(--size-icon-xl);
+}
+
+/* ── TableOfContents ────────────────────────────────────────────── */
+.gallery__toc-demo {
+  display: grid;
+  grid-template-columns: var(--toc-width) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+  width: 100%;
+}
+
+.gallery__toc-scroller {
+  height: 320px;
+  overflow-y: auto;
+  padding-inline: var(--space-6);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}
+
+.gallery__toc-section {
+  min-height: 240px;
+  padding-block: var(--space-4);
+}
+
+/* Shorter than the activation line's reach, so only the end-of-scroll rule makes it current. */
+.gallery__toc-section:last-child {
+  min-height: 0;
+}
+
+.gallery__toc-heading {
+  margin: 0 0 var(--space-2);
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-line);
+  font-weight: var(--type-heading-weight);
+  letter-spacing: var(--type-heading-tracking);
+  color: var(--text-main);
+}
+
+/* ── Carousel specimen slides ───────────────────────────────────── */
+.gallery__carousel-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  max-width: 32.5rem;
+}
+
+.gallery__carousel-eyebrow,
+.gallery__carousel-title,
+.gallery__carousel-lead {
+  margin: 0;
+}
+
+.gallery__carousel-eyebrow {
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-line);
+  font-weight: var(--type-eyebrow-weight);
+  letter-spacing: var(--type-eyebrow-tracking);
+  color: var(--text-muted);
+}
+
+.gallery__carousel-title {
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-line);
+  font-weight: var(--type-display-weight);
+  letter-spacing: var(--type-display-tracking);
+  color: var(--text-main);
+}
+
+.gallery__carousel-lead {
+  font-size: var(--type-article-lead-size);
+  line-height: var(--type-article-lead-line);
+  font-weight: var(--type-article-lead-weight);
+  letter-spacing: var(--type-article-lead-tracking);
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .gallery__toc-demo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery__carousel-title {
+    font-size: var(--type-title-size);
+    line-height: var(--type-title-line);
+    letter-spacing: var(--type-title-tracking);
+  }
+
+  .gallery__carousel-lead {
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-line);
+  }
 }

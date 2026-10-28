@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   type ReactNode,
   useCallback,
   useEffect,
@@ -9,6 +10,7 @@ import {
 
 import {
   AppstoreOutlined,
+  ArrowRightOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   DeleteOutlined,
@@ -34,17 +36,24 @@ import {
   AgentPanel,
   AgentProvider,
   Alert,
+  AmbientBackground,
   AuthLayout,
   Avatar,
   BlastRadiusBar,
   Breadcrumb,
   BucketCard,
   ButtonLink,
+  Carousel,
+  type CarouselSlide,
   ChatComposer,
   ChatMessage,
   ChatMessageList,
   ChatSessionList,
   Checkbox,
+  CheckGrid,
+  type CheckGridCell,
+  type CheckGridColumn,
+  type CheckGridRow,
   Chip,
   CodeBlock,
   CodeEditor,
@@ -77,6 +86,8 @@ import {
   type FieldMapping,
   FileDropzone,
   FilePreview,
+  FileTree,
+  type FileTreeFile,
   FolderDropzone,
   ForgotPasswordForm,
   FormRow,
@@ -116,6 +127,7 @@ import {
   RankBar,
   RegisterForm,
   ResizableSidePanel,
+  Reveal,
   Tabs as RosettaTabs,
   RunPips,
   type SavedQuery,
@@ -134,8 +146,13 @@ import {
   Skeleton,
   SkeletonText,
   SparkLine,
+  StackedBar,
+  type StackedBarRow,
+  type StackedBarSeries,
   StatBlock,
   StatusDot,
+  TableOfContents,
+  type TableOfContentsItem,
   Terminal,
   type TerminalLine,
   TextField,
@@ -183,14 +200,91 @@ import './Gallery.css';
 
 /* ── Static specimen data ──────────────────────────────────────────── */
 
-const COLOR_TOKENS: Array<{ name: string; desc: string }> = [
-  { name: '--bg-page', desc: 'Page surface' },
-  { name: '--bg-panel', desc: 'Panel surface' },
-  { name: '--bg-inverted', desc: 'Active / inverted' },
-  { name: '--bg-muted', desc: 'Muted surface' },
-  { name: '--bg-warning-soft', desc: 'Warning wash' },
-  { name: '--accent-warning', desc: 'Anomaly accent' },
+const COLOR_TOKEN_GROUPS: Array<{
+  label: string;
+  tokens: Array<{ name: string; desc: string }>;
+}> = [
+  {
+    label: 'Surface',
+    tokens: [
+      { name: '--bg-page', desc: 'Page — very light cool grey' },
+      { name: '--bg-panel', desc: 'Cards, tables, dialogs' },
+      { name: '--bg-muted', desc: 'Table header, segmented track, code' },
+      { name: '--bg-tint', desc: 'Cool showcase blocks' },
+      { name: '--bg-brand-soft', desc: 'Featured cards, category tags' },
+      { name: '--bg-glass', desc: 'Top navigation, floating toolbars' },
+      { name: '--bg-glass-strong', desc: 'Dialogs and cards on glass' },
+      { name: '--bg-inverted', desc: 'Active / primary — soft near-black' },
+      { name: '--bg-backdrop', desc: 'Dialog backdrop, blurred' },
+    ],
+  },
+  {
+    label: 'Ink',
+    tokens: [
+      { name: '--text-main', desc: 'Body and titles' },
+      { name: '--text-muted', desc: 'Secondary text, AA on white' },
+      { name: '--text-faint', desc: 'Axis ticks, disabled — not for reading' },
+      { name: '--text-on-inverted', desc: 'Text on --bg-inverted' },
+    ],
+  },
+  {
+    label: 'Border',
+    tokens: [
+      { name: '--border-hairline', desc: 'Dividers, card strokes' },
+      {
+        name: '--border-emphasis',
+        desc: 'Hover, expanded, secondary controls',
+      },
+      { name: '--border-glass', desc: 'Inner stroke of glass surfaces' },
+    ],
+  },
+  {
+    label: 'Brand & status',
+    tokens: [
+      { name: '--accent-brand', desc: 'Brand, hero emphasis, focus, nav' },
+      { name: '--accent-info', desc: 'Links and clickable text' },
+      { name: '--bg-info-soft', desc: 'Info chip, selected row' },
+      { name: '--accent-success', desc: 'Passed' },
+      { name: '--bg-success-soft', desc: 'Success wash' },
+      { name: '--accent-warning', desc: 'Real failures only' },
+      { name: '--bg-warning-soft', desc: 'Failure wash' },
+      { name: '--ink-warn', desc: 'Caution, not counted' },
+      { name: '--bg-warn-soft', desc: 'Caution wash' },
+    ],
+  },
+  {
+    label: 'Ambient',
+    tokens: [
+      { name: '--ambient-1', desc: 'Blue blob centre' },
+      { name: '--ambient-2', desc: 'Teal blob centre' },
+      { name: '--ambient-3', desc: 'Violet blob centre' },
+      { name: '--ambient-hero-1', desc: 'Hero blue blob centre' },
+      { name: '--ambient-hero-2', desc: 'Hero teal blob centre' },
+      { name: '--ambient-hero-3', desc: 'Hero violet blob centre' },
+    ],
+  },
 ];
+
+function TokenSwatch({ name, desc }: { name: string; desc: string }) {
+  return (
+    <div className='gallery__swatch'>
+      <div
+        className='gallery__swatch-chip'
+        style={{
+          background: `var(${name})`,
+          outline: 'var(--size-hairline) solid var(--border-hairline)',
+        }}
+      />
+      <div className='gallery__swatch-meta'>
+        <MonoValue size='sm' weight='regular'>
+          {name}
+        </MonoValue>
+        <TokenValue name={name} />
+        <span className='gallery__swatch-desc'>{desc}</span>
+      </div>
+    </div>
+  );
+}
 
 const DATA_COLOR_TOKENS: Array<{ name: string; desc: string }> = [
   { name: '--data-seq', desc: 'Magnitude (score and rank bars)' },
@@ -252,23 +346,227 @@ const TYPE_SAMPLES: Array<{
 }> = [
   {
     family: 'brand',
-    label: 'Display · Geist',
+    label: 'Brand · Geist',
     sample: 'Resilience under pressure',
-    hint: 'Section voice — panel titles & hero',
+    hint: '--font-brand — brand lockups only',
   },
   {
     family: 'ui',
-    label: 'UI · Inter',
-    sample: 'The quick brown fox jumps over the lazy dog',
-    hint: 'Default body / control text',
+    label: 'UI · Hanken Grotesk + PingFang SC',
+    sample: 'GPT 6.1 Sol · 97.6% · 部署回滚后为批量导出审批执行计划',
+    hint: '--font-ui / --font-numeric — Latin, numbers and Chinese; digits share one width',
   },
   {
     family: 'mono',
-    label: 'Data · JetBrains Mono',
-    sample: '0.142 · 9 384 122 ms · v0.1.0-rc4',
-    hint: 'Numbers, IDs, parameters — tabular nums',
+    label: 'Mono · Google Sans Code',
+    sample: '13c2dea9bcbb · tests/grading.toml',
+    hint: '--font-mono — ids, paths, code and commands; never numbers',
   },
 ];
+
+interface TypeRole {
+  role: string;
+  sample: string;
+  use: string;
+  family?: 'ui' | 'numeric' | 'mono';
+}
+
+const APP_TYPE_ROLES: TypeRole[] = [
+  {
+    role: 'title',
+    sample: '部署回滚后为批量导出审批执行计划',
+    use: 'Page title',
+  },
+  {
+    role: 'heading',
+    sample: '评分标准',
+    use: 'Card, chart and section titles',
+  },
+  {
+    role: 'strong',
+    sample: 'GPT 6.1 Sol',
+    use: 'Primary column, buttons, tabs',
+  },
+  {
+    role: 'body',
+    sample: '两个读端的最终计划都由已批准的 binding 控制才通过。',
+    use: 'Body text',
+  },
+  { role: 'small', sample: '只计入当前规则下的运行', use: 'Secondary notes' },
+  { role: 'label', sample: '计入运行', use: 'Table headers, field labels' },
+  { role: 'micro', sample: '通过', use: 'Small chips, avatar initials' },
+  {
+    role: 'numeric',
+    sample: '97.6%   22.2%   0.00',
+    use: 'Numbers in tables, bars and pips',
+    family: 'numeric',
+  },
+  { role: 'number', sample: '40/41', use: 'Metric figures', family: 'numeric' },
+  {
+    role: 'mono',
+    sample: 'rules:9856f0cb · tests/cases/no_dml.py',
+    use: 'Ids, paths and code',
+    family: 'mono',
+  },
+];
+
+const ARTICLE_TYPE_ROLES: TypeRole[] = [
+  {
+    role: 'display',
+    sample: '可追溯的运维诊断评测',
+    use: 'Overview hero title',
+  },
+  { role: 'article-title', sample: '我们怎么评分', use: 'Article title' },
+  {
+    role: 'article-heading',
+    sample: '一道题怎样算正确',
+    use: 'Article section',
+  },
+  {
+    role: 'article-subheading',
+    sample: '代码检查与评委条目',
+    use: 'Article subsection, large card title',
+  },
+  {
+    role: 'article-lead',
+    sample: '每道题都有一份评分定义，评分器只按它执行。',
+    use: 'Article lead',
+  },
+  {
+    role: 'article-body',
+    sample:
+      '评分项分属结果、安全、诊断三个维度，判定规则写明维度怎样合成结论。',
+    use: 'Article body, 720 column',
+  },
+  {
+    role: 'article-caption',
+    sample: '图 1 · 评分流程：门槛未通过时，后面的评分项不再检查。',
+    use: 'Figure and table captions',
+  },
+  {
+    role: 'eyebrow',
+    sample: '评分方法 · 2026-10-28 · 约 5 分钟',
+    use: 'Category, date and reading time',
+  },
+];
+
+const TYPE_ROLE_FAMILY: Record<NonNullable<TypeRole['family']>, string> = {
+  ui: 'var(--font-ui)',
+  numeric: 'var(--font-numeric)',
+  mono: 'var(--font-mono)',
+};
+
+function TypeRoleRow({ role, sample, use, family = 'ui' }: TypeRole) {
+  return (
+    <div className='gallery__type-row'>
+      <MetricLabel as='div' className='gallery__type-label'>
+        {`--type-${role}-*`}
+      </MetricLabel>
+      <div
+        style={{
+          fontFamily: TYPE_ROLE_FAMILY[family],
+          fontSize: `var(--type-${role}-size)`,
+          lineHeight: `var(--type-${role}-line)`,
+          fontWeight: `var(--type-${role}-weight)`,
+          letterSpacing: `var(--type-${role}-tracking)`,
+          fontVariantNumeric: family === 'numeric' ? 'tabular-nums' : 'normal',
+        }}
+      >
+        {sample}
+      </div>
+      <span className='gallery__type-hint'>
+        {use} · <TokenValue name={`--type-${role}-size`} /> /{' '}
+        <TokenValue name={`--type-${role}-line`} /> ·{' '}
+        <TokenValue name={`--type-${role}-weight`} />
+      </span>
+    </div>
+  );
+}
+
+const RADIUS_TOKENS: Array<{ name: string; use: string }> = [
+  { name: '--radius-xs', use: 'checkboxes' },
+  { name: '--radius-sm', use: 'chip inner corners, check cells' },
+  { name: '--radius-md', use: 'inputs, selects, code blocks' },
+  { name: '--radius-lg', use: 'cards, panels, dialogs' },
+  { name: '--radius-xl', use: 'overview hero, featured cards' },
+  { name: '--radius-pill', use: 'buttons, chips, segmented tabs, bars' },
+];
+
+const ELEVATION_TOKENS: Array<{ name: string; use: string }> = [
+  { name: '--shadow-rest', use: 'cards, panels, selected segment' },
+  { name: '--shadow-raised', use: 'hovered clickable cards and rows' },
+  { name: '--shadow-overlay', use: 'dialogs, menus, tooltips' },
+];
+
+const MOTION_TOKENS: Array<{ name: string; use: string }> = [
+  { name: '--motion-fast', use: 'Hover colour, opacity and lift' },
+  { name: '--motion-base', use: 'Switching, expanding, segmented slider' },
+  { name: '--motion-enter', use: 'Dialog and panel entrance' },
+  { name: '--motion-exit', use: 'Dialog and panel exit' },
+  { name: '--motion-chart', use: 'Bar draw and number roll' },
+  { name: '--motion-stagger-step', use: 'Delay between chart rows' },
+  { name: '--motion-lift', use: 'Hover lift of clickable cards and buttons' },
+  { name: '--motion-reveal', use: 'Overview and article section reveal' },
+  { name: '--motion-reveal-offset', use: 'Reveal rise distance' },
+  { name: '--motion-reveal-stagger', use: 'Delay between revealed siblings' },
+  { name: '--motion-hero', use: 'Hero text position' },
+  { name: '--motion-hero-fade', use: 'Hero text opacity' },
+  { name: '--motion-slide', use: 'Hero carousel slide change' },
+  { name: '--carousel-dwell', use: 'Time each carousel slide stays' },
+  { name: '--motion-ambient', use: 'One loop of the ambient drift' },
+];
+
+const AMBIENT_WASH = [
+  'radial-gradient(ellipse at 15% 20%, var(--ambient-1), transparent 60%)',
+  'radial-gradient(ellipse at 85% 15%, var(--ambient-2), transparent 55%)',
+  'radial-gradient(ellipse at 50% 100%, var(--ambient-3), transparent 60%)',
+  'var(--bg-page)',
+].join(', ');
+
+const GLASS_SURFACE: CSSProperties = {
+  border: 'var(--size-hairline) solid var(--border-glass)',
+  borderRadius: 'var(--radius-lg)',
+  backdropFilter: 'blur(var(--glass-blur))',
+  WebkitBackdropFilter: 'blur(var(--glass-blur))',
+  boxShadow: 'var(--shadow-rest)',
+};
+
+// Busy content under an overlay, so the blur of the layer on top shows.
+function LayeredSurface({ overlay }: { overlay: CSSProperties }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        padding: 'var(--space-5)',
+        borderRadius: 'var(--radius-lg)',
+        background: AMBIENT_WASH,
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+        {DATA_COLOR_TOKENS.map((t) => (
+          <span
+            key={t.name}
+            style={{
+              width: 'var(--space-8)',
+              height: 'var(--space-8)',
+              borderRadius: 'var(--radius-circle)',
+              background: `var(${t.name})`,
+            }}
+          />
+        ))}
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 'var(--space-3) var(--space-3) var(--space-3) 40%',
+          ...overlay,
+        }}
+      />
+    </div>
+  );
+}
 
 const SPARK_RISING = [
   42, 41, 44, 43, 47, 50, 49, 52, 55, 58, 62, 60, 64, 68, 71, 73,
@@ -758,6 +1056,196 @@ function Specimen({ caption, children, span = 1 }: SpecimenProps) {
   );
 }
 
+/* ── Panel, AmbientBackground and Reveal specimens ─────────────────── */
+
+function GlassPanelSpecimen() {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        isolation: 'isolate',
+        overflow: 'hidden',
+        padding: 'var(--space-6)',
+        borderRadius: 'var(--radius-xl)',
+        background: 'var(--bg-tint)',
+      }}
+    >
+      <AmbientBackground variant='hero' height='100%' />
+      <div className='gallery__row gallery__row--panels'>
+        <Panel variant='glass' title='Glass' description="variant='glass'">
+          <p className='gallery__panel-body'>
+            Frosted over a gradient or image: translucent fill, backdrop blur
+            and a light inner edge.
+          </p>
+        </Panel>
+        <Panel
+          variant='glass'
+          to='#panel-glass'
+          title='Glass link'
+          description="variant='glass' · to"
+        >
+          <p className='gallery__panel-body'>
+            A hero card that links somewhere lifts like any linked panel.
+          </p>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function AmbientStage({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        isolation: 'isolate',
+        overflow: 'hidden',
+        width: '100%',
+        height: 'var(--ambient-page-height)',
+        borderRadius: 'var(--radius-lg)',
+        background: 'var(--bg-page)',
+      }}
+    >
+      {children}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-3)',
+          padding: 'var(--space-6)',
+        }}
+      >
+        <PanelTitle size='lg' as='h3'>
+          Traceable SRE diagnosis benchmark
+        </PanelTitle>
+        <Panel title='Content sits above the glow'>
+          <p className='gallery__panel-body'>
+            The layer paints over the stage background and under its content.
+          </p>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+const REVEAL_CARDS: Array<{ title: string; body: string }> = [
+  { title: 'Grading method', body: 'How one run is judged correct.' },
+  { title: 'Version update', body: 'What changed and which runs it affects.' },
+  { title: 'Case study', body: 'One failure traced through its run.' },
+];
+
+function RevealSpecimen() {
+  const [round, setRound] = useState(0);
+  return (
+    <div className='gallery__stack gallery__stack--fill'>
+      <div>
+        <AegisButton tone='secondary' onClick={() => setRound((r) => r + 1)}>
+          Replay
+        </AegisButton>
+      </div>
+      <ColumnLayout key={round} columns='1fr 1fr 1fr' gap='md'>
+        {REVEAL_CARDS.map((card, index) => (
+          <Reveal key={card.title} staggerIndex={index}>
+            <Panel title={card.title}>
+              <p className='gallery__panel-body'>{card.body}</p>
+            </Panel>
+          </Reveal>
+        ))}
+      </ColumnLayout>
+    </div>
+  );
+}
+
+/* ── Button specimens ──────────────────────────────────────────────── */
+
+function ButtonPressedSpecimen() {
+  const [failedOnly, setFailedOnly] = useState(true);
+  const [unreviewed, setUnreviewed] = useState(false);
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+      <AegisButton
+        tone='secondary'
+        aria-pressed={failedOnly}
+        onClick={() => setFailedOnly(!failedOnly)}
+      >
+        Failed only
+      </AegisButton>
+      <AegisButton
+        tone='ghost'
+        aria-pressed={unreviewed}
+        onClick={() => setUnreviewed(!unreviewed)}
+      >
+        Unreviewed
+      </AegisButton>
+    </div>
+  );
+}
+
+interface ButtonGlassStageProps {
+  children: ReactNode;
+}
+
+function ButtonGlassStage({ children }: ButtonGlassStageProps) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 'var(--space-2)',
+        padding: 'var(--space-6)',
+        borderRadius: 'var(--radius-lg)',
+        background:
+          'radial-gradient(circle at 15% 30%, var(--ambient-1), transparent 60%), radial-gradient(circle at 85% 70%, var(--ambient-3), transparent 60%), var(--bg-tint)',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ── Chip and Avatar specimens ─────────────────────────────────────── */
+
+const CHIP_TONES = [
+  'default',
+  'success',
+  'warning',
+  'caution',
+  'info',
+  'ink',
+  'ghost',
+] as const;
+
+const CHIP_SIZES = ['sm', 'md', 'lg'] as const;
+
+const CHIP_TONE_LABELS: Record<(typeof CHIP_TONES)[number], string> = {
+  default: '代码检查',
+  success: '通过',
+  warning: '未通过',
+  caution: '不计入',
+  info: '当前版本',
+  ink: '已选',
+  ghost: '草稿',
+};
+
+const AVATAR_SAMPLE_SRC = `data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#3C56F4"/><circle cx="40" cy="32" r="14" fill="#EEF1FE"/><rect x="16" y="52" width="48" height="40" rx="20" fill="#EEF1FE"/></svg>'
+)}`;
+
+function ChipToggleSpecimen() {
+  const [selected, setSelected] = useState(false);
+  return (
+    <Chip
+      tone={selected ? 'ink' : 'default'}
+      size='md'
+      onClick={() => {
+        setSelected((value) => !value);
+      }}
+    >
+      安全
+    </Chip>
+  );
+}
+
 interface TimeRangePickerSpecimenProps {
   initial: string;
   presets?: TimeRangePickerProps['presets'];
@@ -803,9 +1291,10 @@ function App() {
           </MetricLabel>
         </div>
         <p className='gallery__intro'>
-          Editorial serif paired with measured mono — pure ink against an
-          off‑white surface. Activation is expressed by surface inversion, not
-          accent color. Anomaly red is reserved for actual anomalies.
+          Cool, very light surfaces and soft near-black ink, one brand blue,
+          glass layered over a faint ambient wash, pill controls. Hanken Grotesk
+          sets text and numbers; Google Sans Code sets ids, paths and code.
+          Activation is surface inversion; anomaly red marks real failures only.
         </p>
       </header>
 
@@ -813,44 +1302,39 @@ function App() {
       <Panel
         title={<PanelTitle size='lg'>Color &amp; surface tokens</PanelTitle>}
       >
-        <div className='gallery__swatches'>
-          {COLOR_TOKENS.map((t) => (
-            <div className='gallery__swatch' key={t.name}>
-              <div
-                className='gallery__swatch-chip'
-                style={{
-                  background: `var(${t.name})`,
-                  outline: 'var(--size-hairline) solid var(--border-hairline)',
-                }}
-              />
-              <div className='gallery__swatch-meta'>
-                <MonoValue size='sm' weight='regular'>
-                  {t.name}
-                </MonoValue>
-                <TokenValue name={t.name} />
-                <span className='gallery__swatch-desc'>{t.desc}</span>
-              </div>
+        {COLOR_TOKEN_GROUPS.map((g) => (
+          <div key={g.label} className='gallery__stack'>
+            <SectionDivider>{g.label}</SectionDivider>
+            <div className='gallery__swatches'>
+              {g.tokens.map((t) => (
+                <TokenSwatch key={t.name} name={t.name} desc={t.desc} />
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
 
         <SectionDivider>Data-viz colours</SectionDivider>
         <div className='gallery__swatches'>
           {DATA_COLOR_TOKENS.map((t) => (
-            <div className='gallery__swatch' key={t.name}>
-              <div
-                className='gallery__swatch-chip'
-                style={{ background: `var(${t.name})` }}
-              />
-              <div className='gallery__swatch-meta'>
-                <MonoValue size='sm' weight='regular'>
-                  {t.name}
-                </MonoValue>
-                <TokenValue name={t.name} />
-                <span className='gallery__swatch-desc'>{t.desc}</span>
-              </div>
-            </div>
+            <TokenSwatch key={t.name} name={t.name} desc={t.desc} />
           ))}
+        </div>
+
+        <SectionDivider>Ambient wash</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen
+            caption='--ambient-1 · --ambient-2 · --ambient-3 radial blobs on --bg-page'
+            span={3}
+          >
+            <div
+              style={{
+                width: '100%',
+                height: 'var(--space-12)',
+                borderRadius: 'var(--radius-lg)',
+                background: AMBIENT_WASH,
+              }}
+            />
+          </Specimen>
         </div>
       </Panel>
 
@@ -858,7 +1342,7 @@ function App() {
       <Panel title={<PanelTitle size='lg'>Typography</PanelTitle>}>
         <div className='gallery__type-list'>
           {TYPE_SAMPLES.map((s) => (
-            <div className='gallery__type-row' key={s.family}>
+            <div className='gallery__type-row' key={s.label}>
               <MetricLabel as='div' className='gallery__type-label'>
                 {s.label}
               </MetricLabel>
@@ -872,16 +1356,30 @@ function App() {
           ))}
         </div>
 
+        <SectionDivider>Type roles · app pages</SectionDivider>
+        <div className='gallery__type-list'>
+          {APP_TYPE_ROLES.map((r) => (
+            <TypeRoleRow key={r.role} {...r} />
+          ))}
+        </div>
+
+        <SectionDivider>Type roles · overview and article</SectionDivider>
+        <div className='gallery__type-list'>
+          {ARTICLE_TYPE_ROLES.map((r) => (
+            <TypeRoleRow key={r.role} {...r} />
+          ))}
+        </div>
+
         <SectionDivider>PanelTitle scale</SectionDivider>
         <div className='gallery__stack'>
           <PanelTitle size='hero' as='h2'>
-            Hero · 42
+            Hero · Display 56
           </PanelTitle>
           <PanelTitle size='lg' as='h3'>
-            Large · 24
+            Large · Title 28
           </PanelTitle>
-          <PanelTitle size='base'>Base · 16</PanelTitle>
-          <PanelTitle size='sm'>Small · 14</PanelTitle>
+          <PanelTitle size='base'>Base · Heading 16</PanelTitle>
+          <PanelTitle size='sm'>Small · Strong 13</PanelTitle>
         </div>
 
         <SectionDivider>MonoValue scale</SectionDivider>
@@ -928,26 +1426,22 @@ function App() {
 
         <SectionDivider>MetricLabel</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='sm (default)'>
-            <MetricLabel>last updated</MetricLabel>
+          <Specimen caption="size='sm' (default) · small role">
+            <MetricLabel>Last updated 2h ago</MetricLabel>
           </Specimen>
-          <Specimen caption='xs'>
+          <Specimen caption="size='sm' · CJK">
+            <MetricLabel>只计入当前规则下的运行</MetricLabel>
+          </Specimen>
+          <Specimen caption="size='xs' · micro role">
             <MetricLabel size='xs'>2h ago</MetricLabel>
           </Specimen>
           <Specimen caption='inverted'>
-            <Panel inverted padded={false}>
-              <div style={{ padding: 'var(--space-3)' }}>
-                <MetricLabel inverted>active</MetricLabel>
-              </div>
-            </Panel>
+            <div className='gallery__inverted-host'>
+              <MetricLabel inverted>active</MetricLabel>
+            </div>
           </Specimen>
           <Specimen caption="as='div'">
             <MetricLabel as='div'>block label</MetricLabel>
-          </Specimen>
-          <Specimen caption='--metric-label-transform · --metric-label-tracking'>
-            <div className='gallery__token-override'>
-              <MetricLabel>Last updated</MetricLabel>
-            </div>
           </Specimen>
         </div>
 
@@ -997,12 +1491,144 @@ function App() {
         </div>
       </Panel>
 
+      {/* ── Shape, elevation & motion ──────────────────────────────── */}
+      <Panel
+        title={<PanelTitle size='lg'>Shape, elevation &amp; motion</PanelTitle>}
+      >
+        <SectionDivider>Radius</SectionDivider>
+        <div className='gallery__row'>
+          {RADIUS_TOKENS.map((t) => (
+            <Specimen key={t.name} caption={`${t.name} · ${t.use}`}>
+              <div
+                style={{
+                  width: '100%',
+                  height: 'var(--space-12)',
+                  borderRadius: `var(${t.name})`,
+                  background: 'var(--bg-panel)',
+                  border: 'var(--size-hairline) solid var(--border-emphasis)',
+                }}
+              />
+            </Specimen>
+          ))}
+        </div>
+
+        <SectionDivider>Elevation</SectionDivider>
+        <div className='gallery__row'>
+          {ELEVATION_TOKENS.map((t) => (
+            <Specimen key={t.name} caption={`${t.name} · ${t.use}`}>
+              <div
+                style={{
+                  flex: '1 1 auto',
+                  height: 'var(--space-12)',
+                  margin: 'var(--space-3)',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'var(--bg-panel)',
+                  border: 'var(--size-hairline) solid var(--border-hairline)',
+                  boxShadow: `var(${t.name})`,
+                }}
+              />
+            </Specimen>
+          ))}
+        </div>
+
+        <SectionDivider>Glass &amp; backdrop</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen
+            caption='glass · --bg-glass + blur(--glass-blur) + --border-glass + --shadow-rest'
+            span={2}
+          >
+            <LayeredSurface
+              overlay={{ ...GLASS_SURFACE, background: 'var(--bg-glass)' }}
+            />
+          </Specimen>
+          <Specimen caption='glass strong · --bg-glass-strong' span={2}>
+            <LayeredSurface
+              overlay={{
+                ...GLASS_SURFACE,
+                background: 'var(--bg-glass-strong)',
+              }}
+            />
+          </Specimen>
+          <Specimen
+            caption='dialog backdrop · --bg-backdrop + blur(--backdrop-blur)'
+            span={2}
+          >
+            <LayeredSurface
+              overlay={{
+                inset: 0,
+                background: 'var(--bg-backdrop)',
+                backdropFilter: 'blur(var(--backdrop-blur))',
+                WebkitBackdropFilter: 'blur(var(--backdrop-blur))',
+              }}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>Focus</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='ring · --focus-ring-width solid --focus-ring-color, offset --focus-ring-offset'>
+            <span
+              style={{
+                display: 'inline-block',
+                padding: 'var(--space-1) var(--space-4)',
+                borderRadius: 'var(--radius-pill)',
+                background: 'var(--bg-inverted)',
+                color: 'var(--text-on-inverted)',
+                outline:
+                  'var(--focus-ring-width) solid var(--focus-ring-color)',
+                outlineOffset: 'var(--focus-ring-offset)',
+              }}
+            >
+              按钮
+            </span>
+          </Specimen>
+          <Specimen caption='field · --accent-brand border + --focus-halo'>
+            <span
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: 'var(--space-1) var(--space-3)',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--bg-panel)',
+                border: 'var(--size-hairline) solid var(--accent-brand)',
+                boxShadow: 'var(--focus-halo)',
+                color: 'var(--text-muted)',
+              }}
+            >
+              搜索
+            </span>
+          </Specimen>
+        </div>
+
+        <SectionDivider>Motion</SectionDivider>
+        <div className='gallery__stack'>
+          {MOTION_TOKENS.map((t) => (
+            <div
+              key={t.name}
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'baseline',
+                gap: 'var(--space-2)',
+              }}
+            >
+              <MonoValue size='sm' weight='regular'>
+                {t.name}
+              </MonoValue>
+              <TokenValue name={t.name} />
+              <span className='gallery__type-hint'>{t.use}</span>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
       {/* ── Surface (Panel) ────────────────────────────────────────── */}
       <Panel title={<PanelTitle size='lg'>Surface — Panel</PanelTitle>}>
         <SectionDivider>Panel</SectionDivider>
         <div className='gallery__row gallery__row--panels'>
           <Panel
             title='Default panel'
+            description='Mean result score · higher is better'
             extra={<MetricLabel>label</MetricLabel>}
             surface={{
               id: 'gallery.panel.basic',
@@ -1014,44 +1640,128 @@ function App() {
                   {
                     name: 'shape',
                     type: 'string',
-                    value: 'hairline border, 16px radius',
+                    value: 'hairline border, 20px radius, resting shadow',
                   },
                 ],
               }),
             }}
           >
             <p className='gallery__panel-body'>
-              Hairline border, 16 px radius, ultra-subtle shadow. Title slot
-              accepts string or rich node.
-            </p>
-          </Panel>
-
-          <Panel
-            inverted
-            title={<PanelTitle size='base'>Inverted panel</PanelTitle>}
-            extra={<MetricLabel inverted>active</MetricLabel>}
-          >
-            <p className='gallery__panel-body gallery__panel-body--inverted'>
-              Surface flips to ink. Reserved for the currently-active card, not
-              for accent decoration.
+              Hairline border, 20 px radius, resting shadow. The title accepts a
+              string or a rich node; the description carries the metric and its
+              direction.
             </p>
           </Panel>
 
           <Panel padded={false} title='Unpadded'>
             <div className='gallery__panel-no-pad'>
-              Body without inner padding — host owns the layout.
+              padded=false — the host owns the layout, e.g. a table.
             </div>
           </Panel>
 
           <Panel
-            title='Model ranking'
-            description='Mean result score · higher is better'
-            extra={<MetricLabel>description</MetricLabel>}
+            elevation='raised'
+            title='Raised'
+            description="elevation='raised'"
           >
             <p className='gallery__panel-body'>
-              A muted line under the title carries the metric and its direction.
+              Featured content and hero cards sit one step above the resting
+              cards.
             </p>
           </Panel>
+        </div>
+
+        <SectionDivider extra={<MetricLabel>variant</MetricLabel>}>
+          Panel · variants
+        </SectionDivider>
+        <div className='gallery__row gallery__row--panels'>
+          <Panel variant='tint' title='Tint' description="variant='tint'">
+            <p className='gallery__panel-body'>
+              Showcase blocks on overview and article pages.
+            </p>
+          </Panel>
+
+          <Panel variant='brand' title='Brand' description="variant='brand'">
+            <p className='gallery__panel-body'>
+              Featured content and pinned articles.
+            </p>
+          </Panel>
+
+          <Panel
+            variant='inverted'
+            title='Inverted'
+            extra={<MetricLabel inverted>active</MetricLabel>}
+          >
+            <p className='gallery__panel-body gallery__panel-body--inverted'>
+              Reserved for the currently active card, never for decoration.
+            </p>
+          </Panel>
+        </div>
+        <GlassPanelSpecimen />
+
+        <SectionDivider
+          extra={<MetricLabel>hover · keyboard focus</MetricLabel>}
+        >
+          Panel · link
+        </SectionDivider>
+        <div className='gallery__row gallery__row--panels'>
+          <Panel
+            to='#panel-link'
+            title='How we grade'
+            description='Methods · about 5 min'
+            extra={<AegisButton tone='ghost'>Save</AegisButton>}
+          >
+            <p className='gallery__panel-body'>
+              The whole card links to the title&apos;s destination and lifts on
+              hover; the button in extra stays its own target.
+            </p>
+          </Panel>
+
+          <Panel
+            to='#panel-link'
+            variant='brand'
+            elevation='raised'
+            title='Version update'
+            description='Featured · raised'
+          >
+            <p className='gallery__panel-body'>
+              A featured card starts raised and still lifts on hover.
+            </p>
+          </Panel>
+        </div>
+
+        <SectionDivider>AmbientBackground</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen
+            caption="variant='page' · default height --ambient-page-height"
+            span={3}
+          >
+            <AmbientStage>
+              <AmbientBackground />
+            </AmbientStage>
+          </Specimen>
+          <Specimen
+            caption="variant='hero' · height overridden (default --ambient-hero-height)"
+            span={3}
+          >
+            <AmbientStage>
+              <AmbientBackground
+                variant='hero'
+                height='var(--ambient-page-height)'
+              />
+            </AmbientStage>
+          </Specimen>
+        </div>
+
+        <SectionDivider
+          extra={<MetricLabel>plays once on entering the viewport</MetricLabel>}
+        >
+          Reveal
+        </SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption='staggerIndex 0 · 1 · 2 · Replay remounts' span={3}>
+            <RevealSpecimen />
+          </Specimen>
         </div>
       </Panel>
 
@@ -1080,11 +1790,42 @@ function App() {
         </div>
 
         <SectionDivider>Chip</SectionDivider>
+        {CHIP_SIZES.map((size) => (
+          <div className='gallery__row' key={size}>
+            {CHIP_TONES.map((tone) => (
+              <Specimen key={tone} caption={`${tone} · ${size}`}>
+                <Chip tone={tone} size={size}>
+                  {CHIP_TONE_LABELS[tone]}
+                </Chip>
+              </Specimen>
+            ))}
+          </div>
+        ))}
         <div className='gallery__row'>
-          <Specimen caption='default'>
-            <Chip>queued</Chip>
+          <Specimen caption='leading dot'>
+            <Chip size='md' leading={<StatusDot pulse size={6} />}>
+              运行中
+            </Chip>
           </Specimen>
-          <Specimen caption='ink'>
+          <Specimen caption='leading icon'>
+            <Chip tone='success' size='md' leading={<CheckCircleOutlined />}>
+              通过
+            </Chip>
+          </Specimen>
+          <Specimen caption='removable · onClose'>
+            <Chip
+              size='md'
+              onClose={() => {
+                /* no-op */
+              }}
+            >
+              安全
+            </Chip>
+          </Specimen>
+          <Specimen caption='clickable · ink when selected'>
+            <ChipToggleSpecimen />
+          </Specimen>
+          <Specimen caption='agent surface'>
             <Chip
               tone='ink'
               surface={{
@@ -1101,74 +1842,6 @@ function App() {
             >
               running
             </Chip>
-          </Specimen>
-          <Specimen caption='warning'>
-            <Chip tone='warning'>failed</Chip>
-          </Specimen>
-          <Specimen caption='ghost'>
-            <Chip tone='ghost'>draft</Chip>
-          </Specimen>
-          <Specimen caption='with leading dot'>
-            <Chip leading={<StatusDot pulse size={6} />}>active</Chip>
-          </Specimen>
-        </div>
-
-        <div className='gallery__row'>
-          <Specimen caption='success'>
-            <Chip tone='success' size='md'>
-              通过
-            </Chip>
-          </Specimen>
-          <Specimen caption='warning · anomaly'>
-            <Chip tone='warning' size='md'>
-              未通过
-            </Chip>
-          </Specimen>
-          <Specimen caption='info'>
-            <Chip tone='info' size='md'>
-              代码验收
-            </Chip>
-          </Specimen>
-          <Specimen caption='caution'>
-            <Chip tone='caution' size='md'>
-              待确认
-            </Chip>
-          </Specimen>
-          <Specimen caption='removable'>
-            <Chip
-              tone='success'
-              size='md'
-              onClose={() => {
-                /* no-op */
-              }}
-            >
-              通过
-            </Chip>
-          </Specimen>
-          <Specimen caption="size='lg' · standalone badge">
-            <Chip tone='info' size='lg'>
-              代码验收
-            </Chip>
-          </Specimen>
-        </div>
-
-        <div className='gallery__row'>
-          <Specimen
-            caption='--chip-transform · --chip-tracking · --chip-height-md'
-            span={3}
-          >
-            <div className='gallery__token-override gallery__row'>
-              <Chip tone='success' size='md'>
-                Passed
-              </Chip>
-              <Chip tone='warning' size='md'>
-                Execution failed
-              </Chip>
-              <Chip size='md'>model-alpha</Chip>
-              <Chip tone='info' size='lg'>
-                Code check
-              </Chip>
-            </div>
           </Specimen>
         </div>
 
@@ -1203,14 +1876,14 @@ function App() {
           <Specimen caption="icon · title · tone='success'" span={3}>
             <Alert
               tone='success'
-              icon={<CheckCircleOutlined aria-hidden />}
+              icon={<CheckCircleOutlined />}
               title='Passed 11 of 11 checks'
             >
               Outcome restored; no destructive statement ran.
             </Alert>
           </Specimen>
           <Specimen caption="icon · tone='error'" span={3}>
-            <Alert tone='error' icon={<CloseCircleOutlined aria-hidden />}>
+            <Alert tone='error' icon={<CloseCircleOutlined />}>
               The run failed the plan check.
             </Alert>
           </Specimen>
@@ -1279,9 +1952,28 @@ function App() {
               }}
             />
           </Specimen>
+          <Specimen caption='no label · ariaLabel (row selector)'>
+            <Checkbox
+              checked={false}
+              ariaLabel='选择本行'
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
           <Specimen caption='disabled'>
             <Checkbox
               checked={false}
+              disabled
+              label='选择题目'
+              onChange={() => {
+                /* no-op */
+              }}
+            />
+          </Specimen>
+          <Specimen caption='disabled · checked'>
+            <Checkbox
+              checked
               disabled
               label='选择题目'
               onChange={() => {
@@ -1293,20 +1985,20 @@ function App() {
 
         <SectionDivider>Select</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='with label'>
+          <Specimen caption='label · value'>
             <AegisSelect
               label='标签'
               value='first'
-              options={[
-                { value: 'first', label: '第一候选' },
-                { value: 'all', label: '全部题目' },
-              ]}
+              options={GALLERY_SELECT_OPTIONS}
               onChange={() => {
                 /* no-op */
               }}
             />
           </Specimen>
-          <Specimen caption='placeholder'>
+          <Specimen caption='allowClear · pick, then clear to the placeholder'>
+            <SelectSpecimen />
+          </Specimen>
+          <Specimen caption='placeholder · --text-muted'>
             <AegisSelect
               value=''
               placeholder='选择横轴指标'
@@ -1316,24 +2008,28 @@ function App() {
               }}
             />
           </Specimen>
+          <Specimen caption='long value · ellipsis in a 192 column'>
+            <div style={{ width: 192 }}>
+              <AegisSelect
+                label='比较指标'
+                value='long'
+                options={[
+                  {
+                    value: 'long',
+                    label: '诊断维度的加权均分（只计入当前规则）',
+                  },
+                ]}
+                onChange={() => {
+                  /* no-op */
+                }}
+              />
+            </div>
+          </Specimen>
           <Specimen caption='disabled'>
             <AegisSelect
               value='v1'
               disabled
               options={[{ value: 'v1', label: 'V1 · 当前版本' }]}
-              onChange={() => {
-                /* no-op */
-              }}
-            />
-          </Specimen>
-          <Specimen caption='allowClear'>
-            <AegisSelect
-              value='first'
-              allowClear
-              options={[
-                { value: 'first', label: '第一候选' },
-                { value: 'all', label: '全部题目' },
-              ]}
               onChange={() => {
                 /* no-op */
               }}
@@ -1362,16 +2058,16 @@ function App() {
 
         <SectionDivider>ScoreBar</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='0.75 · max 1'>
-            <ScoreBar value={0.75} />
+          <Specimen caption='value · two decimals'>
+            <ScoreBar value={0.72} />
           </Specimen>
-          <Specimen caption='0.2583 → two decimals'>
+          <Specimen caption='0.2583 → 0.26'>
             <ScoreBar value={0.2583} />
           </Specimen>
-          <Specimen caption='0 keeps an endpoint'>
+          <Specimen caption='zero · 0.00 keeps a 2 px endpoint'>
             <ScoreBar value={0} />
           </Specimen>
-          <Specimen caption='null → em dash, empty track'>
+          <Specimen caption='empty · null → em dash, empty track'>
             <ScoreBar value={null} />
           </Specimen>
           <Specimen caption='max · format · ariaLabel'>
@@ -1383,7 +2079,7 @@ function App() {
             />
           </Specimen>
           <Specimen
-            caption='in a numeric DataTable column · staggerIndex per row'
+            caption='numeric DataTable column · fills draw in staggered by staggerIndex'
             span={3}
           >
             <DataTable
@@ -1406,15 +2102,23 @@ function App() {
 
         <SectionDivider>RunPips</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='passed · failed · execution failed'>
+          <Specimen caption='dots · passed · failed · execution failed'>
             <RunPips counts={{ passed: 3, failed: 1, errored: 1 }} />
           </Specimen>
-          <Specimen caption='with pending'>
+          <Specimen caption='every dot kind · passed · failed · errored · pending'>
             <RunPips
-              counts={{ passed: 2, failed: 0, errored: 0, pending: 3 }}
+              counts={{ passed: 1, failed: 1, errored: 1, pending: 1 }}
             />
           </Specimen>
-          <Specimen caption='beyond maxDots → segmented bar'>
+          <Specimen caption='10 runs · still dots'>
+            <RunPips
+              counts={{ passed: 6, failed: 2, errored: 1, pending: 1 }}
+            />
+          </Specimen>
+          <Specimen caption='bar · above 10 runs, 64 px proportional'>
+            <RunPips counts={{ passed: 12, failed: 6, errored: 2 }} />
+          </Specimen>
+          <Specimen caption='bar · 120 runs'>
             <RunPips counts={{ passed: 31, failed: 80, errored: 9 }} />
           </Specimen>
           <Specimen caption='maxDots={4}'>
@@ -1468,6 +2172,43 @@ function App() {
           </Specimen>
         </div>
 
+        <SectionDivider>CheckGrid</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen
+            caption='rows = checks, columns = runs · passed · missed writes the miss · unchecked em dash · caption'
+            span={3}
+          >
+            <CheckGrid
+              rowHeader='检查'
+              passedLabel='通过'
+              uncheckedLabel='未检查'
+              columns={GALLERY_CHECK_RUNS}
+              rows={GALLERY_CHECK_ROWS}
+              caption='图 1 · 五次运行都没修好 replica 的执行计划；运行 4 没过安全门槛，后面的检查不再执行。示例只列出部分检查。'
+            />
+          </Specimen>
+          <Specimen
+            caption='score deltas as the miss · many runs scroll sideways inside the frame · no caption'
+            span={3}
+          >
+            <CheckGrid
+              rowHeader='Check'
+              passedLabel='Passed'
+              uncheckedLabel='Not checked'
+              columns={GALLERY_CHECK_MANY_RUNS}
+              rows={GALLERY_CHECK_SCORE_ROWS}
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>StackedBar</SectionDivider>
+        <div className='gallery__stack'>
+          <StackedBarSpecimen />
+          <div className='gallery__row'>
+            <StackedBarChangeSpecimen />
+          </div>
+        </div>
+
         <SectionDivider>Dialog</SectionDivider>
         <DialogSpecimen />
 
@@ -1503,7 +2244,18 @@ function App() {
       <Panel title={<PanelTitle size='lg'>Data display</PanelTitle>}>
         <SectionDivider>StatBlock</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='horizontal'>
+          <Specimen caption='vertical · emphasized · number role'>
+            <StatBlock
+              label='运行次数'
+              value={40}
+              direction='vertical'
+              emphasized
+            />
+          </Specimen>
+          <Specimen caption='vertical · numeric role'>
+            <StatBlock label='运行次数' value={40} direction='vertical' />
+          </Specimen>
+          <Specimen caption='horizontal · label left'>
             <StatBlock
               label='latency_p99'
               value='142'
@@ -1535,7 +2287,7 @@ function App() {
               }}
             />
           </Specimen>
-          <Specimen caption='vertical · emphasized'>
+          <Specimen caption='vertical · emphasized · unit'>
             <StatBlock
               label='error_rate'
               value='0.42'
@@ -1549,7 +2301,7 @@ function App() {
               <StatBlock label='throughput' value='9 384' unit='rps' inverted />
             </div>
           </Specimen>
-          <Specimen caption='animateValue · counts up once on mount'>
+          <Specimen caption='animateValue · counts up once over --motion-chart'>
             <StatBlockCountUpSpecimen />
           </Specimen>
           <Specimen caption='animateValue · keeps decimals'>
@@ -1560,16 +2312,6 @@ function App() {
               emphasized
               animateValue
             />
-          </Specimen>
-          <Specimen caption='--stat-block-emphasized-size · 28 px'>
-            <div className='gallery__token-override'>
-              <StatBlock
-                label='Pass rate'
-                value='82.4%'
-                direction='vertical'
-                emphasized
-              />
-            </div>
           </Specimen>
         </div>
 
@@ -1888,8 +2630,43 @@ function App() {
           />
         </Specimen>
 
+        <SectionDivider>DataTable · framed</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen
+            caption='default · own card, header flush and clipped by --radius-lg · IdentityCell main column · numeric columns · no separator under the last row'
+            span={3}
+          >
+            <DataTable
+              columns={GALLERY_TASK_COLUMNS}
+              data={GALLERY_TASK_ROWS}
+              rowKey={(row) => row.id}
+            />
+          </Specimen>
+          <Specimen
+            caption='framed={false} in a titled Panel padded={false}'
+            span={3}
+          >
+            <Panel
+              title='按模型'
+              description='示例只列出部分'
+              padded={false}
+              className='gallery__menu-host'
+            >
+              <DataTable
+                framed={false}
+                columns={GALLERY_MODEL_COLUMNS}
+                data={GALLERY_MODEL_ROWS}
+                rowKey={(row) => row.model}
+              />
+            </Panel>
+          </Specimen>
+        </div>
+
         <SectionDivider>DataTable · with data</SectionDivider>
-        <Specimen caption='sortable columns, hover, alignment' span={3}>
+        <Specimen
+          caption='mono ids · chips · numeric duration · agent surface'
+          span={3}
+        >
           <DataTable
             columns={[
               {
@@ -1910,10 +2687,8 @@ function App() {
               {
                 key: 'duration',
                 header: 'Duration',
-                align: 'right',
-                render: (row) => (
-                  <MonoValue size='sm'>{row.duration}</MonoValue>
-                ),
+                numeric: true,
+                render: (row) => row.duration,
               },
               {
                 key: 'state',
@@ -1971,23 +2746,9 @@ function App() {
           />
         </Specimen>
 
-        <SectionDivider>DataTable · component tokens</SectionDivider>
-        <Specimen
-          caption='--data-table-header-* · --data-table-row-min-height · --data-table-row-separator'
-          span={3}
-        >
-          <div className='gallery__token-override'>
-            <DataTable
-              columns={GALLERY_RUN_COLUMNS}
-              data={GALLERY_RUNS.slice(0, 3)}
-              rowKey={(row) => row.id}
-            />
-          </div>
-        </Specimen>
-
         <SectionDivider>DataTable · numeric columns</SectionDivider>
         <Specimen
-          caption='numeric: true · right-aligned mono tabular figures'
+          caption='numeric: true · right-aligned header and cells · --font-numeric tabular figures · 0.00 and —'
           span={3}
         >
           <DataTable
@@ -1999,6 +2760,9 @@ function App() {
 
         <SectionDivider>DataTable · row click</SectionDivider>
         <DataTableRowClickSpecimen />
+
+        <SectionDivider>DataTable · expandable rows</SectionDivider>
+        <DataTableExpandableSpecimen />
 
         <SectionDivider>
           DataTable · stickyFirstColumn · cellTone · stale
@@ -2377,31 +3141,140 @@ function App() {
             />
           </Specimen>
         </div>
+
+        <SectionDivider extra={<MetricLabel>file browser</MetricLabel>}>
+          FileTree
+        </SectionDivider>
+        <div className='gallery__stack'>
+          <Specimen
+            caption='click or arrow keys · Enter opens a file · Left/Right fold · beside a CodeBlock'
+            span={3}
+          >
+            <FileTreeSpecimen />
+          </Specimen>
+          <div className='gallery__row'>
+            <Specimen
+              caption='directories collapsed · note = file count'
+              span={2}
+            >
+              <div style={{ width: 320 }}>
+                <FileTree
+                  files={GALLERY_TASK_FILES}
+                  ariaLabel='Task files, collapsed'
+                />
+              </div>
+            </Specimen>
+            <Specimen
+              caption='selected · long names end in an ellipsis, the title shows the path'
+              span={2}
+            >
+              <div style={{ width: 240 }}>
+                <FileTree
+                  files={GALLERY_TASK_FILES}
+                  ariaLabel='Task files, narrow'
+                  selectedPath='tests/cases/replica_lag_within_budget_after_rollback.py'
+                  defaultExpandedPaths={['tests/']}
+                />
+              </div>
+            </Specimen>
+          </div>
+        </div>
       </Panel>
 
       {/* ── Navigation & identity primitives ───────────────────────── */}
       <Panel title={<PanelTitle size='lg'>Navigation · Rosetta</PanelTitle>}>
-        <SectionDivider>Tabs</SectionDivider>
-        <RosettaTabs
-          items={[
-            {
-              key: 'overview',
-              label: 'Overview',
-              action: GALLERY_ACTIONS.tabOverview,
-            },
-            { key: 'params', label: 'Parameters' },
-            { key: 'logs', label: 'Logs' },
-          ]}
-          defaultActiveKey='overview'
+        <SectionDivider
+          extra={
+            <MetricLabel>selected indicator slides · --motion-base</MetricLabel>
+          }
         >
-          <p className='gallery__panel-body'>Tab panel content goes here.</p>
-        </RosettaTabs>
+          Tabs
+        </SectionDivider>
+        <TabsSegmentedSpecimen />
 
         <SectionDivider>Tabs · overflow</SectionDivider>
         <TabsOverflowSpecimen />
 
         <SectionDivider>Tabs · view switch</SectionDivider>
         <TabsViewSwitchSpecimen />
+
+        <SectionDivider>Carousel</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen
+            caption='uncontrolled · defaultActiveIndex={1} · hover or focus pauses the progress bar'
+            span={3}
+          >
+            <Carousel
+              ariaLabel='首页轮播'
+              slides={GALLERY_CAROUSEL_SLIDES}
+              defaultActiveIndex={1}
+              className='gallery__stack--fill'
+            />
+          </Specimen>
+        </div>
+
+        <SectionDivider>Carousel · controlled</SectionDivider>
+        <CarouselControlledSpecimen />
+
+        <SectionDivider
+          extra={<MetricLabel>pill · 32 high · lifts on hover</MetricLabel>}
+        >
+          Button
+        </SectionDivider>
+        <div className='gallery__row'>
+          <Specimen caption="tone='primary'">
+            <AegisButton>Run evaluation</AegisButton>
+          </Specimen>
+          <Specimen caption="tone='secondary'">
+            <AegisButton tone='secondary'>Compare models</AegisButton>
+          </Specimen>
+          <Specimen caption="tone='ghost'">
+            <AegisButton tone='ghost'>View script</AegisButton>
+          </Specimen>
+          <Specimen caption="icon · iconPosition='start'">
+            <AegisButton tone='secondary' icon={<DownloadOutlined />}>
+              Download
+            </AegisButton>
+          </Specimen>
+          <Specimen caption="icon · iconPosition='end'">
+            <AegisButton
+              tone='ghost'
+              icon={<ArrowRightOutlined />}
+              iconPosition='end'
+            >
+              All runs
+            </AegisButton>
+          </Specimen>
+          <Specimen caption='aria-pressed · toggle filters' span={2}>
+            <ButtonPressedSpecimen />
+          </Specimen>
+          <Specimen caption='disabled' span={2}>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 'var(--space-2)',
+              }}
+            >
+              <AegisButton disabled>Run evaluation</AegisButton>
+              <AegisButton tone='secondary' disabled>
+                Compare models
+              </AegisButton>
+              <AegisButton tone='ghost' disabled>
+                View script
+              </AegisButton>
+            </div>
+          </Specimen>
+          <Specimen caption="tone='glass' · on a tinted backdrop" span={2}>
+            <ButtonGlassStage>
+              <AegisButton tone='glass'>Read the method</AegisButton>
+              <AegisButton tone='glass' icon={<DownloadOutlined />}>
+                Download
+              </AegisButton>
+              <AegisButton>Open results</AegisButton>
+            </ButtonGlassStage>
+          </Specimen>
+        </div>
 
         <SectionDivider
           extra={<MetricLabel>Button look · link behaviour</MetricLabel>}
@@ -2414,15 +3287,32 @@ function App() {
               View the representative run
             </ButtonLink>
           </Specimen>
-          <Specimen caption="tone='secondary'">
-            <ButtonLink tone='secondary' to='#button-link'>
-              Switch run
+          <Specimen caption="tone='secondary' · icon at the end">
+            <ButtonLink
+              tone='secondary'
+              to='#button-link'
+              icon={<ArrowRightOutlined />}
+              iconPosition='end'
+            >
+              All collections
             </ButtonLink>
           </Specimen>
           <Specimen caption="tone='ghost'">
             <ButtonLink tone='ghost' to='#button-link'>
               All 100 runs
             </ButtonLink>
+          </Specimen>
+          <Specimen caption="tone='glass' · on a tinted backdrop" span={2}>
+            <ButtonGlassStage>
+              <ButtonLink
+                tone='glass'
+                to='#button-link'
+                icon={<ArrowRightOutlined />}
+                iconPosition='end'
+              >
+                How we grade
+              </ButtonLink>
+            </ButtonGlassStage>
           </Specimen>
         </div>
 
@@ -2455,6 +3345,12 @@ function App() {
           </Specimen>
         </div>
 
+        <SectionDivider>TableOfContents · states</SectionDivider>
+        <TableOfContentsStatesSpecimen />
+
+        <SectionDivider>TableOfContents · scroll tracking</SectionDivider>
+        <TableOfContentsScrollSpecimen />
+
         <SectionDivider>Avatar</SectionDivider>
         <div className='gallery__row'>
           <Specimen caption='initials · sm'>
@@ -2485,11 +3381,7 @@ function App() {
             <Avatar size='md' name='User' icon={<UserOutlined />} />
           </Specimen>
           <Specimen caption='from image'>
-            <Avatar
-              size='lg'
-              name='Linus Torvalds'
-              src='https://i.pravatar.cc/80?img=12'
-            />
+            <Avatar size='lg' name='Linus Torvalds' src={AVATAR_SAMPLE_SRC} />
           </Specimen>
           <Specimen caption='status · online'>
             <Avatar size='lg' name='Margaret Hamilton' status='online' />
@@ -2506,31 +3398,35 @@ function App() {
         </div>
         <div className='gallery__row'>
           {([1, 2, 3, 4, 5, 6] as const).map((slot) => (
-            <Specimen key={slot} caption={`colorSlot={${String(slot)}}`}>
-              <Avatar name={`model ${String(slot)}`} colorSlot={slot} />
+            <Specimen key={slot} caption={`colorSlot={${String(slot)}} · sm`}>
+              <Avatar
+                size='sm'
+                name={`model ${String(slot)}`}
+                colorSlot={slot}
+              />
             </Specimen>
           ))}
         </div>
 
         <SectionDivider
-          extra={<MetricLabel>name · secondary line</MetricLabel>}
+          extra={<MetricLabel>body name · mono id or path</MetricLabel>}
         >
           IdentityCell
         </SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='avatar · colorSlot · link · secondary'>
+          <Specimen caption='avatar · colorSlot · link · mono secondary'>
             <IdentityCell
               avatar
               colorSlot={2}
               name='claude-opus-4-1'
-              secondary='claude-code'
+              secondary='13c2dea9bcbb'
               to='#identity-cell'
             />
           </Specimen>
-          <Specimen caption='no avatar · mono id and path'>
+          <Specimen caption='no avatar · link · source path'>
             <IdentityCell
               name='checkout-latency-regression'
-              secondary='3f9c2a1b7d04 · external/bench/checkout-latency-regression'
+              secondary='external / bench / checkout-latency-regression'
               to='#identity-cell'
             />
           </Specimen>
@@ -2539,7 +3435,7 @@ function App() {
               avatar
               colorSlot={4}
               name='gpt-5'
-              secondary='codex'
+              secondary='3f9c2a1b7d04'
               inline
             />
           </Specimen>
@@ -2548,7 +3444,7 @@ function App() {
               <IdentityCell
                 avatar
                 name='qwen3-coder-480b-a35b-instruct-preview'
-                secondary='openhands-with-a-long-agent-name'
+                secondary='external/swe-bench/qwen3-coder-480b-a35b-instruct'
                 to='#identity-cell'
               />
             </div>
@@ -2590,7 +3486,14 @@ function App() {
 
         <SectionDivider>TextField</SectionDivider>
         <div className='gallery__row'>
-          <Specimen caption='default'>
+          <Specimen caption='label · value · helper'>
+            <TextField
+              label='Experiment'
+              defaultValue='checkout-latency'
+              helperText='Shown in run lists.'
+            />
+          </Specimen>
+          <Specimen caption='placeholder · helper'>
             <TextField
               label='Email'
               placeholder='you@example.com'
@@ -3795,7 +4698,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>single-line search</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>pill · brand focus</MetricLabel>}>
           SearchInput
         </SectionDivider>
         <div className='gallery__row'>
@@ -3807,12 +4710,8 @@ function App() {
               kbd='⌘K'
             />
           </Specimen>
-          <Specimen caption='populated with clear'>
-            <SearchInput
-              value='trace-snapshot.json'
-              onChange={() => undefined}
-              onClear={() => undefined}
-            />
+          <Specimen caption='type to filter · clear'>
+            <SearchInputSpecimen />
           </Specimen>
           <Specimen caption='no kbd, no value'>
             <SearchInput
@@ -3832,41 +4731,35 @@ function App() {
             />
           </Specimen>
           <Specimen
-            caption="--search-input-height · --select-height · Tabs size='sm' · one --size-control-base row"
+            caption='one --size-control-base row · SearchInput · Select · PickerField · Button'
             span={3}
           >
-            <div className='gallery__token-override'>
-              <Toolbar
-                left={
-                  <>
-                    <SearchInput
-                      value=''
-                      onChange={() => undefined}
-                      placeholder='Search tasks'
-                    />
-                    <AegisSelect
-                      ariaLabel='Tag'
-                      value='all'
-                      options={[
-                        { value: 'all', label: 'All tags' },
-                        { value: 'sre', label: 'sre · 120' },
-                      ]}
-                      onChange={() => undefined}
-                    />
-                  </>
-                }
-                right={
-                  <RosettaTabs
-                    listOnly
-                    size='sm'
-                    items={[
-                      { key: 'excerpt', label: 'Excerpt' },
-                      { key: 'all', label: 'All 51' },
-                    ]}
+            <Toolbar
+              left={
+                <>
+                  <SearchInput
+                    value=''
+                    onChange={() => undefined}
+                    placeholder='Search tasks'
                   />
-                }
-              />
-            </div>
+                  <AegisSelect
+                    ariaLabel='Tag'
+                    value='all'
+                    options={[
+                      { value: 'all', label: 'All tags' },
+                      { value: 'sre', label: 'sre · 120' },
+                    ]}
+                    onChange={() => undefined}
+                  />
+                  <PickerField
+                    ariaLabel='Compare models'
+                    placeholder='All models'
+                    onClick={() => undefined}
+                  />
+                </>
+              }
+              right={<AegisButton tone='secondary'>Export</AegisButton>}
+            />
           </Specimen>
         </div>
 
@@ -4237,11 +5130,16 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>configcenter audit</MetricLabel>}>
+        <SectionDivider
+          extra={<MetricLabel>configcenter audit · agent steps</MetricLabel>}
+        >
           Timeline
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
-          <Specimen caption='audit log · mixed actors' span={3}>
+          <Specimen
+            caption="variant='dot' · mono meta + timestamp · dotColor override"
+            span={3}
+          >
             <Timeline
               surface={{
                 id: 'gallery.timeline.audit',
@@ -4263,27 +5161,27 @@ function App() {
                   title: 'alice@aegis updated db.dsn',
                   description: 'rotated read-replica host',
                   timestamp: '2026-05-12 09:14:02',
-                  meta: <MonoValue>rev 47</MonoValue>,
+                  meta: 'rev 47',
                 },
                 {
                   id: '2',
                   title: 'service-token (gateway) read auth.jwt_audience',
                   timestamp: '2026-05-12 08:55:31',
-                  meta: <MonoValue>rev 46</MonoValue>,
+                  meta: 'rev 46',
                 },
                 {
                   id: '3',
                   title: 'bob@aegis created namespace ratelimit',
                   description: 'seeded 4 keys from defaults.toml',
                   timestamp: '2026-05-11 18:02:11',
-                  meta: <MonoValue>rev 45</MonoValue>,
-                  dotColor: 'var(--presence-online)',
+                  meta: 'rev 45',
+                  dotColor: 'var(--accent-success)',
                 },
               ]}
             />
           </Specimen>
           <Specimen
-            caption="variant='numbered' · marker column · hairline rows · pre-wrap"
+            caption="variant='numbered' · mono marker (3ch) · strong title · mono meta · body description · hairline rows · pre-wrap"
             span={3}
           >
             <Timeline
@@ -4293,6 +5191,7 @@ function App() {
                   id: 'step-1',
                   marker: '01',
                   title: 'Call list_pods: {"namespace": "checkout"}',
+                  meta: '00:04',
                   description:
                     'Arguments: namespace=checkout\nObservation: 6 pods, 1 in CrashLoopBackOff',
                 },
@@ -4300,18 +5199,20 @@ function App() {
                   id: 'step-2',
                   marker: '02',
                   title: 'Run SQL: SELECT count(*) FROM orders',
+                  meta: '00:09',
                   description: 'Observation: 18 204 rows',
                 },
                 {
                   id: 'step-42',
                   marker: '42',
                   title: 'Submit the final answer',
+                  meta: '01:37',
                 },
               ]}
             />
           </Specimen>
           <Specimen
-            caption="density='compact' · numbered · one-line titles, full title on hover"
+            caption="density='compact' · numbered · default markers · one-line titles, full title on hover"
             span={3}
           >
             <div className='gallery__narrow-panel'>
@@ -4344,13 +5245,13 @@ function App() {
                     title:
                       'alice@aegis updated db.dsn and rotated the read-replica host for every region',
                     timestamp: '2026-05-12 09:14:02',
-                    meta: <MonoValue>rev 47</MonoValue>,
+                    meta: 'rev 47',
                   },
                   {
                     id: 'd-2',
                     title: 'bob@aegis created namespace ratelimit',
                     timestamp: '2026-05-11 18:02:11',
-                    meta: <MonoValue>rev 45</MonoValue>,
+                    meta: 'rev 45',
                   },
                 ]}
               />
@@ -4981,8 +5882,8 @@ const GALLERY_RUN_COLUMNS: Array<DataTableColumn<GalleryRunRow>> = [
   {
     key: 'duration',
     header: 'Duration',
-    align: 'right',
-    render: (row) => <MonoValue size='sm'>{`${row.duration} s`}</MonoValue>,
+    numeric: true,
+    render: (row) => `${row.duration} s`,
   },
   {
     key: 'state',
@@ -5008,8 +5909,9 @@ function DataTableSelectionSpecimen(): ReactNode {
   const [selectedKeys, setSelectedKeys] = useState<Array<string | number>>([]);
   return (
     <div className='gallery__stack'>
-      <Panel title='Runs'>
+      <Panel title='Runs' padded={false}>
         <DataTable
+          framed={false}
           columns={GALLERY_RUN_COLUMNS}
           data={GALLERY_RUNS.slice(0, 5)}
           rowKey={(row) => row.id}
@@ -5264,6 +6166,199 @@ function DataTableRowClickSpecimen(): ReactNode {
   );
 }
 
+interface GalleryTaskRow {
+  id: string;
+  title: string;
+  path: string;
+  runs: number;
+  passRate: number;
+  mean: number | null;
+}
+
+const GALLERY_TASK_ROWS: GalleryTaskRow[] = [
+  {
+    id: '30434932d311',
+    title: '部署回滚后为批量导出审批执行计划',
+    path: 'dba-bench / tidb-binding-approval',
+    runs: 41,
+    passRate: 0.976,
+    mean: 0.72,
+  },
+  {
+    id: '13c2dea9bcbb',
+    title: 'checkout-latency-regression',
+    path: 'external / checkout-latency',
+    runs: 18,
+    passRate: 0.222,
+    mean: 0,
+  },
+  {
+    id: '7f0e5b2a9c41',
+    title: 'replica-lag-after-failover',
+    path: 'cgfs / replica-lag',
+    runs: 3,
+    passRate: 0,
+    mean: null,
+  },
+];
+
+const GALLERY_TASK_COLUMNS: Array<DataTableColumn<GalleryTaskRow>> = [
+  {
+    key: 'task',
+    header: '题目',
+    render: (row) => (
+      <IdentityCell
+        name={row.title}
+        secondary={row.path}
+        to={`#task-${row.id}`}
+      />
+    ),
+  },
+  { key: 'runs', header: '运行', numeric: true, render: (row) => row.runs },
+  {
+    key: 'passRate',
+    header: '通过率',
+    numeric: true,
+    render: (row) => `${(row.passRate * 100).toFixed(1)}%`,
+  },
+  {
+    key: 'mean',
+    header: '结果均分',
+    numeric: true,
+    render: (row) => (row.mean === null ? '—' : row.mean.toFixed(2)),
+  },
+];
+
+interface GalleryGradingRow {
+  id: string;
+  method: string;
+  summary: string;
+  source: string;
+  derivation: string;
+  location: string;
+}
+
+const GALLERY_GRADING_ROWS: GalleryGradingRow[] = [
+  {
+    id: 'binding_controls_all_serving_readers',
+    method: '代码检查',
+    summary: '两个读端的最终计划都由已批准的 binding 控制才通过。',
+    source: 'recorded_verdict · trace',
+    derivation: '未记录',
+    location: 'dba-bench@2df1441+judge.patch:ServingBindingPlanVerifier',
+  },
+  {
+    id: 'no_dml_against_orders',
+    method: '代码检查',
+    summary: '诊断过程中不得对 orders 表执行写操作。',
+    source: 'trace',
+    derivation: '由公开要求推导',
+    location: 'tests/cases/no_dml.py',
+  },
+  {
+    id: 'root_cause_named',
+    method: '评委',
+    summary: '回答指出回滚后 binding 失效是计划变化的原因。',
+    source: 'answer',
+    derivation: '由构造效果推导',
+    location: 'tests/grading.toml',
+  },
+];
+
+const GALLERY_GRADING_COLUMNS: Array<DataTableColumn<GalleryGradingRow>> = [
+  {
+    key: 'id',
+    header: 'ID',
+    width: 240,
+    render: (row) => <MonoValue size='sm'>{row.id}</MonoValue>,
+  },
+  {
+    key: 'method',
+    header: '方式',
+    truncate: false,
+    render: (row) => <Chip size='md'>{row.method}</Chip>,
+  },
+  {
+    key: 'summary',
+    header: '说明',
+    truncate: false,
+    render: (row) => row.summary,
+  },
+];
+
+function renderGalleryGradingDetail(row: GalleryGradingRow): ReactNode {
+  return (
+    <KeyValueList
+      items={[
+        { k: '观察来源', v: row.source },
+        { k: '推导思路', v: row.derivation },
+        { k: '实现位置', v: <MonoValue size='sm'>{row.location}</MonoValue> },
+      ]}
+    />
+  );
+}
+
+function DataTableExpandableSpecimen(): ReactNode {
+  const [expanded, setExpanded] = useState<Array<string | number>>([]);
+  const [selected, setSelected] = useState<Array<string | number>>([]);
+  const [opened, setOpened] = useState('none');
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption='renderExpanded · uncontrolled · defaultExpandedKeys · 16 px chevron toggle · detail under the row'
+        span={3}
+      >
+        <DataTable
+          columns={GALLERY_GRADING_COLUMNS}
+          data={GALLERY_GRADING_ROWS}
+          rowKey={(row) => row.id}
+          renderExpanded={renderGalleryGradingDetail}
+          defaultExpandedKeys={[GALLERY_GRADING_ROWS[0].id]}
+        />
+      </Specimen>
+      <Specimen
+        caption={`controlled expandedKeys · selectable · onRowClick · expanded: ${expanded.length > 0 ? expanded.join(', ') : 'none'} · last click: ${opened}`}
+        span={3}
+      >
+        <div className='gallery__stack gallery__stack--fill'>
+          <div className='gallery__row'>
+            <AegisButton
+              tone='secondary'
+              onClick={() => {
+                setExpanded(GALLERY_GRADING_ROWS.map((row) => row.id));
+              }}
+            >
+              Expand all
+            </AegisButton>
+            <AegisButton
+              tone='ghost'
+              onClick={() => {
+                setExpanded([]);
+              }}
+            >
+              Collapse all
+            </AegisButton>
+          </div>
+          <DataTable
+            columns={GALLERY_GRADING_COLUMNS}
+            data={GALLERY_GRADING_ROWS}
+            rowKey={(row) => row.id}
+            renderExpanded={renderGalleryGradingDetail}
+            expandedKeys={expanded}
+            onExpandedKeysChange={setExpanded}
+            selectable
+            selectedKeys={selected}
+            onSelectedKeysChange={setSelected}
+            onRowClick={(row) => {
+              setOpened(row.id);
+            }}
+          />
+        </div>
+      </Specimen>
+    </div>
+  );
+}
+
 function DataTableMobileCardSpecimen(): ReactNode {
   const [page, setPage] = useState(1);
   const [opened, setOpened] = useState('none');
@@ -5342,6 +6437,87 @@ function CopyToClipboardSpecimen(): ReactNode {
     >
       {copied ? 'Copied' : 'Copy 3f9c2a1b7d04'}
     </AegisButton>
+  );
+}
+
+const GALLERY_TASK_SECTIONS = [
+  { key: 'rubric', label: 'Rubric 12' },
+  { key: 'results', label: 'Results 15' },
+  { key: 'files', label: 'Files 46' },
+  { key: 'versions', label: 'Versions 10' },
+];
+
+const GALLERY_SITE_SECTIONS = [
+  {
+    key: 'overview',
+    label: (
+      <>
+        <AppstoreOutlined />
+        <span>Overview</span>
+      </>
+    ),
+  },
+  {
+    key: 'tasks',
+    label: (
+      <>
+        <InboxOutlined />
+        <span>Tasks</span>
+      </>
+    ),
+  },
+  {
+    key: 'results',
+    label: (
+      <>
+        <DotChartOutlined />
+        <span>Results</span>
+      </>
+    ),
+  },
+];
+
+function TabsSegmentedSpecimen(): ReactNode {
+  const [section, setSection] = useState('rubric');
+  const [site, setSite] = useState('tasks');
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption='default · tabpanel under the list · Overview fires an agent action'
+        span={3}
+      >
+        <RosettaTabs
+          items={[
+            {
+              key: 'overview',
+              label: 'Overview',
+              action: GALLERY_ACTIONS.tabOverview,
+            },
+            { key: 'params', label: 'Parameters' },
+            { key: 'logs', label: 'Logs' },
+          ]}
+          defaultActiveKey='overview'
+        >
+          <p className='gallery__panel-body'>Tab panel content goes here.</p>
+        </RosettaTabs>
+      </Specimen>
+      <Specimen caption='count after the label · controlled' span={2}>
+        <RosettaTabs
+          listOnly
+          items={GALLERY_TASK_SECTIONS}
+          activeKey={section}
+          onChange={setSection}
+        />
+      </Specimen>
+      <Specimen caption='icon + label' span={2}>
+        <RosettaTabs
+          listOnly
+          items={GALLERY_SITE_SECTIONS}
+          activeKey={site}
+          onChange={setSite}
+        />
+      </Specimen>
+    </div>
   );
 }
 
@@ -5451,6 +6627,216 @@ function TabsOverflowSpecimen(): ReactNode {
   );
 }
 
+interface GalleryCarouselCopyProps {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  action: string;
+}
+
+function GalleryCarouselCopy({
+  eyebrow,
+  title,
+  lead,
+  action,
+}: GalleryCarouselCopyProps): ReactNode {
+  return (
+    <div className='gallery__carousel-copy'>
+      <p className='gallery__carousel-eyebrow'>{eyebrow}</p>
+      <p className='gallery__carousel-title'>{title}</p>
+      <p className='gallery__carousel-lead'>{lead}</p>
+      <AegisButton>{action}</AegisButton>
+    </div>
+  );
+}
+
+const GALLERY_CAROUSEL_SLIDES: CarouselSlide[] = [
+  {
+    key: 'benchmark',
+    label: '基准介绍',
+    content: (
+      <GalleryCarouselCopy
+        eyebrow='基准介绍 · 数据更新于 2026-10-28'
+        title='可追溯的运维诊断评测'
+        lead='公开 11 道题，另有未公开题；结果只计入可比的运行。'
+        action='查看展示集'
+      />
+    ),
+  },
+  {
+    key: 'replay',
+    label: '运行回放',
+    content: (
+      <GalleryCarouselCopy
+        eyebrow='运行回放 · 部署回滚后为批量导出审批执行计划'
+        title='看 Agent 一步步定位故障'
+        lead='回放一次真实运行：它查了什么、改了什么，评分怎样逐项判定。'
+        action='查看这次运行'
+      />
+    ),
+  },
+  {
+    key: 'grading',
+    label: '评分过程',
+    content: (
+      <GalleryCarouselCopy
+        eyebrow='评分过程'
+        title='一道题怎样算正确'
+        lead='评分项分属结果、安全、诊断三个维度，判定规则写明维度怎样合成结论。'
+        action='查看评分标准'
+      />
+    ),
+  },
+  {
+    key: 'article',
+    label: '最新文章',
+    content: (
+      <GalleryCarouselCopy
+        eyebrow='评分方法 · 2026-10-28 · 约 5 分钟'
+        title='我们怎么评分'
+        lead='每道题都有一份评分定义，评分器只按它执行。'
+        action='阅读全文'
+      />
+    ),
+  },
+];
+
+function CarouselControlledSpecimen(): ReactNode {
+  const [index, setIndex] = useState(0);
+  const count = GALLERY_CAROUSEL_SLIDES.length;
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption='controlled · activeIndex + onChange · the tabs and autoplay both report through onChange'
+        span={3}
+      >
+        <div className='gallery__stack gallery__stack--fill'>
+          <Carousel
+            ariaLabel='受控轮播'
+            slides={GALLERY_CAROUSEL_SLIDES}
+            activeIndex={index}
+            onChange={setIndex}
+          />
+          <div className='gallery__row'>
+            <AegisButton
+              tone='secondary'
+              onClick={() => setIndex((index + count - 1) % count)}
+            >
+              上一张
+            </AegisButton>
+            <AegisButton
+              tone='secondary'
+              onClick={() => setIndex((index + 1) % count)}
+            >
+              下一张
+            </AegisButton>
+            <MetricLabel>activeIndex {index}</MetricLabel>
+          </div>
+        </div>
+      </Specimen>
+    </div>
+  );
+}
+
+const GALLERY_TOC_STATE_ITEMS: TableOfContentsItem[] = [
+  { id: 'gallery-toc-state-pass', label: '一道题怎样算正确' },
+  { id: 'gallery-toc-state-gate', label: '门槛与评分项' },
+  { id: 'gallery-toc-state-old-runs', label: '旧运行怎样处理' },
+  {
+    id: 'gallery-toc-state-digest',
+    label: '规则摘要改变时，旧运行要重新评分或重新运行',
+    level: 2,
+  },
+  { id: 'gallery-toc-state-regrade', label: '重新评分', level: 2 },
+  { id: 'gallery-toc-state-bars', label: '结果条怎样读' },
+];
+
+const GALLERY_TOC_SCROLL_SECTIONS: Array<
+  TableOfContentsItem & { body: string }
+> = [
+  {
+    id: 'gallery-toc-scroll-pass',
+    label: '一道题怎样算正确',
+    body: '每道题的评分由 tests/grading.toml 定义：先检查门槛，门槛通过后再逐项检查评分项。所有必需的评分项都通过，这道题才算正确。',
+  },
+  {
+    id: 'gallery-toc-scroll-gate',
+    label: '门槛与评分项',
+    body: '门槛检查回答的格式与必需字段；评分项检查回答里的每个结论是否与参考一致。门槛未通过时，后面的评分项不再检查。',
+  },
+  {
+    id: 'gallery-toc-scroll-old-runs',
+    label: '旧运行怎样处理',
+    body: '题目的评分规则改变后，旧运行先按新规则重新评分；记录里缺少新规则所需的测量时，只能重新运行。',
+  },
+  {
+    id: 'gallery-toc-scroll-regrade',
+    label: '重新评分',
+    level: 2,
+    body: '重新评分读取记录下来的回答与产物，用新规则评一次；原来的评分保留，新的评分成为当前评分。',
+  },
+  {
+    id: 'gallery-toc-scroll-bars',
+    label: '结果条怎样读',
+    body: '结果条按正确、错误与执行失败分段；执行失败不计入模型结果。',
+  },
+];
+
+function TableOfContentsStatesSpecimen(): ReactNode {
+  const [current, setCurrent] = useState('gallery-toc-state-pass');
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption='currentId · current item Strong + --accent-brand indicator, others Body + --border-hairline; click to move it'
+        span={2}
+      >
+        <TableOfContents
+          items={GALLERY_TOC_STATE_ITEMS}
+          currentId={current}
+          onCurrentChange={setCurrent}
+        />
+      </Specimen>
+      <Specimen caption='level=2 current · label indents; a long label wraps and its indicator follows'>
+        <TableOfContents
+          items={GALLERY_TOC_STATE_ITEMS}
+          currentId='gallery-toc-state-digest'
+        />
+      </Specimen>
+    </div>
+  );
+}
+
+function TableOfContentsScrollSpecimen(): ReactNode {
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption='scrollContainer · the item follows the scroll; a click scrolls smoothly (instantly under reduced motion); at the end of the scroll the short last section becomes current'
+        span={3}
+      >
+        <div className='gallery__toc-demo'>
+          <TableOfContents
+            items={GALLERY_TOC_SCROLL_SECTIONS}
+            scrollContainer={scroller}
+          />
+          <div ref={setScroller} className='gallery__toc-scroller'>
+            {GALLERY_TOC_SCROLL_SECTIONS.map((section) => (
+              <section
+                key={section.id}
+                id={section.id}
+                className='gallery__toc-section'
+              >
+                <h3 className='gallery__toc-heading'>{section.label}</h3>
+                <p className='gallery__panel-body'>{section.body}</p>
+              </section>
+            ))}
+          </div>
+        </div>
+      </Specimen>
+    </div>
+  );
+}
+
 function PageSizeSelectSpecimen(): ReactNode {
   const [size, setSize] = useState(20);
   const [customSize, setCustomSize] = useState(25);
@@ -5481,8 +6867,9 @@ function PageSizeSelectSpecimen(): ReactNode {
         caption='DataTable footer in a Panel · one row · panel opens above the table'
         span={3}
       >
-        <Panel title='Runs' className='gallery__menu-host'>
+        <Panel title='Runs' padded={false} className='gallery__menu-host'>
           <DataTable
+            framed={false}
             columns={GALLERY_RUN_COLUMNS}
             data={GALLERY_RUNS.slice(0, 1)}
             rowKey={(row) => row.id}
@@ -5738,10 +7125,238 @@ function ParetoChartSpecimen(): ReactNode {
   );
 }
 
+const GALLERY_CHECK_RUNS: Array<CheckGridColumn<string>> = [
+  { key: 'r1', label: '运行 1' },
+  { key: 'r2', label: '运行 2' },
+  { key: 'r3', label: '运行 3' },
+  { key: 'r4', label: '运行 4' },
+  { key: 'r5', label: '运行 5' },
+];
+
+const GALLERY_CHECK_ROWS: Array<CheckGridRow<string>> = [
+  {
+    key: 'binding',
+    label: 'binding_controls_all_serving_readers',
+    cells: {
+      r1: { state: 'missed', value: 'replica' },
+      r2: { state: 'missed', value: 'replica' },
+      r3: { state: 'missed', value: 'replica' },
+      r4: { state: 'unchecked' },
+      r5: { state: 'missed', value: 'replica' },
+    },
+  },
+  {
+    key: 'export',
+    label: 'all_serving_export_results_preserved',
+    cells: {
+      r1: { state: 'passed' },
+      r2: { state: 'passed' },
+      r3: { state: 'passed' },
+      r4: { state: 'unchecked' },
+      r5: { state: 'passed' },
+    },
+  },
+  {
+    key: 'ddl',
+    label: 'no_destructive_ddl',
+    cells: {
+      r1: { state: 'passed' },
+      r2: { state: 'passed' },
+      r3: { state: 'passed' },
+      r4: { state: 'missed', value: 'DROP' },
+      r5: { state: 'passed' },
+    },
+  },
+];
+
+const GALLERY_CHECK_MANY_RUNS: Array<CheckGridColumn<string>> = Array.from(
+  { length: 8 },
+  (_, i) => ({ key: `run-${String(i + 1)}`, label: `Run ${String(i + 1)}` })
+);
+
+function galleryRunCells(
+  cell: (index: number) => CheckGridCell
+): Record<string, CheckGridCell> {
+  return Object.fromEntries(
+    GALLERY_CHECK_MANY_RUNS.map((run, i) => [run.key, cell(i)])
+  );
+}
+
+const GALLERY_CHECK_SCORE_ROWS: Array<CheckGridRow<string>> = [
+  {
+    key: 'diagnosis',
+    label: 'root_cause_names_the_lagging_replica',
+    cells: galleryRunCells((i) =>
+      i % 3 === 0
+        ? { state: 'missed', value: `−${(0.2 + i * 0.1).toFixed(2)}` }
+        : { state: 'passed' }
+    ),
+  },
+  {
+    key: 'safety',
+    label: 'no_dml',
+    cells: galleryRunCells((i) =>
+      i === 5 ? { state: 'unchecked' } : { state: 'passed' }
+    ),
+  },
+];
+
+type GalleryReviewKey = 'model' | 'construction' | 'grading' | 'unreviewed';
+
+const GALLERY_REVIEW_SERIES: Array<StackedBarSeries<GalleryReviewKey>> = [
+  { key: 'model', label: '模型错误', color: 'seq' },
+  { key: 'construction', label: '构造问题', color: 'cat-4' },
+  { key: 'grading', label: '评分错误', color: 'cat-5' },
+  { key: 'unreviewed', label: '未复核', color: 'unknown' },
+];
+
+const GALLERY_REVIEW_ROWS: Array<StackedBarRow<GalleryReviewKey>> = [
+  {
+    key: 'glm',
+    label: 'GLM 5.3 Flash',
+    values: { model: 30, construction: 2, grading: 1, unreviewed: 15 },
+    note: '次未通过 · 已复核 33',
+  },
+  {
+    key: 'ds',
+    label: 'DeepSeek Flash',
+    values: { model: 22, construction: 0, grading: 0, unreviewed: 13 },
+    note: '次未通过 · 已复核 22',
+  },
+  {
+    key: 'gpt',
+    label: 'GPT 6.1 Sol',
+    values: { model: 1, construction: 0, grading: 0, unreviewed: 0 },
+    note: '次未通过 · 已复核 1',
+  },
+];
+
+function StackedBarSpecimen(): ReactNode {
+  const [view, setView] = useState<'chart' | 'table'>('chart');
+  return (
+    <Specimen
+      caption={`in a chart Panel · title, description and 查看数据表 from the host · view: ${view}`}
+      span={3}
+    >
+      <div className='gallery__stack gallery__stack--fill'>
+        <Panel
+          title='失败类型'
+          description='未通过的计入运行按复核结论分类 · 运行失败不计入'
+          extra={
+            <AegisButton
+              tone='ghost'
+              onClick={() => {
+                setView((v) => (v === 'chart' ? 'table' : 'chart'));
+              }}
+            >
+              {view === 'chart' ? '查看数据表' : '查看图表'}
+            </AegisButton>
+          }
+        >
+          <StackedBar
+            series={GALLERY_REVIEW_SERIES}
+            rows={GALLERY_REVIEW_ROWS}
+            view={view}
+            labelHeader='模型'
+            totalHeader='未通过'
+          />
+        </Panel>
+      </div>
+    </Specimen>
+  );
+}
+
+type GalleryTagKey = 'spec' | 'cause' | 'scope' | 'other' | 'untagged';
+
+const GALLERY_TAG_SERIES: Array<StackedBarSeries<GalleryTagKey>> = [
+  { key: 'spec', label: 'Missed a stated requirement', color: 'cat-1' },
+  { key: 'cause', label: 'Wrong root cause', color: 'cat-2' },
+  { key: 'scope', label: 'Out-of-scope change', color: 'cat-3' },
+  { key: 'other', label: 'Other', color: 'cat-6' },
+  { key: 'untagged', label: 'Untagged', color: 'unknown' },
+];
+
+const GALLERY_TAG_VALUES: Array<Record<GalleryTagKey, number>> = [
+  { spec: 12, cause: 8, scope: 3, other: 1, untagged: 4 },
+  { spec: 5, cause: 0, scope: 2, other: 0, untagged: 6 },
+  { spec: 0, cause: 0, scope: 0, other: 0, untagged: 0 },
+];
+
+const GALLERY_TAG_MODELS = ['model-alpha', 'model-beta', 'oracle'];
+
+function StackedBarChangeSpecimen(): ReactNode {
+  const [round, setRound] = useState(0);
+  const rows: Array<StackedBarRow<GalleryTagKey>> = GALLERY_TAG_MODELS.map(
+    (model, i) => ({
+      key: model,
+      label: model,
+      values: GALLERY_TAG_VALUES[(i + round) % GALLERY_TAG_VALUES.length],
+    })
+  );
+  return (
+    <Specimen
+      caption={`cat-* + unknown · zero segments omitted · a 0 row keeps an endpoint · max · direction · values change → widths slide · round ${String(round)}`}
+      span={3}
+    >
+      <div className='gallery__stack gallery__stack--fill'>
+        <StackedBar
+          series={GALLERY_TAG_SERIES}
+          rows={rows}
+          max={40}
+          direction='fewer is better'
+          labelHeader='Model'
+          totalHeader='Failed runs'
+        />
+        <AegisButton
+          tone='secondary'
+          onClick={() => {
+            setRound((r) => r + 1);
+          }}
+        >
+          Change values
+        </AegisButton>
+      </div>
+    </Specimen>
+  );
+}
+
 const GALLERY_CHART_TYPES = [
   { key: 'ranking', label: 'Model ranking' },
   { key: 'pareto', label: 'Pareto front' },
 ];
+
+const GALLERY_SELECT_OPTIONS = [
+  { value: 'first', label: '第一候选' },
+  { value: 'all', label: '全部题目' },
+];
+
+function SelectSpecimen(): ReactNode {
+  const [value, setValue] = useState('first');
+  return (
+    <AegisSelect
+      label='题目范围'
+      value={value}
+      allowClear
+      placeholder='选择题目范围'
+      options={GALLERY_SELECT_OPTIONS}
+      onChange={setValue}
+    />
+  );
+}
+
+function SearchInputSpecimen(): ReactNode {
+  const [query, setQuery] = useState('trace-snapshot.json');
+  return (
+    <SearchInput
+      value={query}
+      onChange={setQuery}
+      onClear={() => {
+        setQuery('');
+      }}
+      placeholder='Search files…'
+    />
+  );
+}
 
 function PickerFieldSpecimen(): ReactNode {
   const [open, setOpen] = useState(false);
@@ -5765,6 +7380,17 @@ function PickerFieldSpecimen(): ReactNode {
             setOpen(true);
           }}
         />
+      </Specimen>
+      <Specimen caption='long value · ellipsis in a 192 column'>
+        <div style={{ width: 192 }}>
+          <PickerField
+            label='Compare models'
+            value='GPT 6.1 Sol, DeepSeek Flash, GLM 5.3 Flash'
+            onClick={() => {
+              setOpen(true);
+            }}
+          />
+        </div>
       </Specimen>
       <Specimen caption='disabled'>
         <PickerField
@@ -5801,40 +7427,108 @@ function PickerFieldSpecimen(): ReactNode {
   );
 }
 
+type GalleryDialogKey = 'sm' | 'md' | 'lg';
+
+const GALLERY_DIALOG_RUNS = Array.from({ length: 40 }, (_, index) => ({
+  k: `run-${String(index + 1).padStart(2, '0')}`,
+  v: index % 7 === 3 ? '错误' : '正确',
+}));
+
 function DialogSpecimen(): ReactNode {
-  const [open, setOpen] = useState(false);
+  const [openKey, setOpenKey] = useState<GalleryDialogKey | null>(null);
+  const [note, setNote] = useState('');
+  const [notify, setNotify] = useState(true);
+  const close = () => {
+    setOpenKey(null);
+  };
   return (
     <div className='gallery__row'>
-      <Specimen caption='trigger opens the dialog'>
+      <Specimen caption='width=sm · body · footer'>
+        <AegisButton
+          tone='secondary'
+          onClick={() => {
+            setOpenKey('sm');
+          }}
+        >
+          移除标签
+        </AegisButton>
+      </Specimen>
+      <Specimen caption='width=md · description · form body · footer'>
         <AegisButton
           onClick={() => {
-            setOpen(true);
+            setOpenKey('md');
           }}
         >
           发布新版本
         </AegisButton>
       </Specimen>
+      <Specimen caption='width=lg · description · long body scrolls, no footer'>
+        <AegisButton
+          tone='secondary'
+          onClick={() => {
+            setOpenKey('lg');
+          }}
+        >
+          查看运行
+        </AegisButton>
+      </Specimen>
       <Dialog
-        open={open}
-        title='发布新版本'
-        description='第一候选'
+        open={openKey === 'sm'}
+        width='sm'
+        title='移除标签'
         footer={
-          <AegisButton
-            tone='primary'
-            onClick={() => {
-              setOpen(false);
-            }}
-          >
-            发布 V2
-          </AegisButton>
+          <>
+            <AegisButton tone='secondary' onClick={close}>
+              取消
+            </AegisButton>
+            <AegisButton tone='primary' onClick={close}>
+              移除
+            </AegisButton>
+          </>
         }
-        onClose={() => {
-          setOpen(false);
-        }}
+        onClose={close}
       >
-        <MetricLabel as='div' size='xs'>
-          题目清单：当前标签匹配的题目
-        </MetricLabel>
+        题目留在数据集中，只是不再出现在这个展示集里。
+      </Dialog>
+      <Dialog
+        open={openKey === 'md'}
+        width='md'
+        title='发布新版本'
+        description='发布后，展示站改用这一版本的题目与评分。'
+        footer={
+          <>
+            <AegisButton tone='secondary' onClick={close}>
+              取消
+            </AegisButton>
+            <AegisButton tone='primary' onClick={close}>
+              发布 V2
+            </AegisButton>
+          </>
+        }
+        onClose={close}
+      >
+        <TextField
+          label='版本说明'
+          placeholder='例如：修正评分说明'
+          value={note}
+          onChange={(event) => {
+            setNote(event.target.value);
+          }}
+        />
+        <Checkbox
+          checked={notify}
+          onChange={setNotify}
+          label='发布后通知订阅者'
+        />
+      </Dialog>
+      <Dialog
+        open={openKey === 'lg'}
+        width='lg'
+        title='运行记录'
+        description='40 次运行 · 当前评分规则'
+        onClose={close}
+      >
+        <KeyValueList items={GALLERY_DIALOG_RUNS} />
       </Dialog>
     </div>
   );
@@ -6204,6 +7898,82 @@ function TraceTreeMixedTimingSpecimen(): ReactNode {
         }
       />
     </>
+  );
+}
+
+interface GalleryTaskFile extends FileTreeFile {
+  language: string;
+  code: string;
+}
+
+const GALLERY_TASK_FILES: GalleryTaskFile[] = [
+  {
+    path: 'instruction.md',
+    note: '2.1 KB',
+    language: 'markdown',
+    code: '# Export latency after a rollback\n\nFind why batch exports stall and submit an answer.',
+  },
+  {
+    path: 'environment/Dockerfile',
+    note: '1.4 KB',
+    language: 'dockerfile',
+    code: 'FROM python:3.13-slim\nCOPY app/ /srv/app/\nCMD ["python", "/srv/app/server.py"]',
+  },
+  {
+    path: 'environment/app/server.py',
+    note: '8.2 KB',
+    language: 'python',
+    code: 'from http.server import ThreadingHTTPServer\n\nserve(ThreadingHTTPServer(("", 8080), Handler))',
+  },
+  {
+    path: 'tests/grading.toml',
+    note: '3.0 KB',
+    language: 'toml',
+    code: '[grading]\nverdict = "all"\n\n[[case]]\nid = "no_dml"\nscript = "cases/no_dml.py"',
+  },
+  {
+    path: 'tests/cases/no_dml.py',
+    note: '1.1 KB',
+    language: 'python',
+    code: 'def check(answer):\n    return "DELETE" not in answer.sql',
+  },
+  {
+    path: 'tests/cases/replica_lag_within_budget_after_rollback.py',
+    note: '2.4 KB',
+    language: 'python',
+    code: 'def check(metrics):\n    return metrics.replica_lag_s < 5',
+  },
+  {
+    path: 'solution/solve.sh',
+    note: '420 B',
+    language: 'bash',
+    code: 'psql -f /solution/fix.sql',
+  },
+];
+
+function FileTreeSpecimen(): ReactNode {
+  const [selected, setSelected] = useState('tests/grading.toml');
+  const file = GALLERY_TASK_FILES.find((row) => row.path === selected);
+  return (
+    <div style={{ width: '100%' }}>
+      <ColumnLayout columns='400fr 712fr' gap='md'>
+        <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+          <FileTree
+            files={GALLERY_TASK_FILES}
+            ariaLabel='Task files'
+            selectedPath={selected}
+            onSelect={setSelected}
+            defaultExpandedPaths={['tests/']}
+          />
+        </div>
+        <CodeBlock
+          code={file?.code ?? ''}
+          language={file?.language}
+          maxHeight={240}
+          showLineNumbers
+        />
+      </ColumnLayout>
+    </div>
   );
 }
 
