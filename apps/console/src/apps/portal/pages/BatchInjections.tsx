@@ -118,6 +118,7 @@ export default function BatchInjections() {
       />
       <Panel title={<PanelTitle size='base'>Drafts</PanelTitle>}>
         <DataTable<BatchRow>
+          framed={false}
           data={rows}
           rowKey={(r) => r.id}
           emptyTitle='No staged drafts'

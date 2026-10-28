@@ -484,6 +484,7 @@ export default function Users() {
             )}
           </div>
           <DataTable<IamUser>
+            framed={false}
             columns={columns}
             data={filtered}
             rowKey={(u) => u.id.toString()}

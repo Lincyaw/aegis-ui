@@ -276,25 +276,19 @@ export default function OidcClients() {
           />
         </Panel>
       ) : (
-        <Panel padded={false}>
-          <DataTable
-            columns={columns}
-            data={clients}
-            rowKey={(row) => row.id.toString()}
-            loading={loading}
-            emptyTitle='No OIDC clients'
-            emptyDescription='Register a client to let a UI or service authenticate users.'
-            emptyAction={
-              <Button
-                type='primary'
-                icon={<PlusOutlined />}
-                onClick={openCreate}
-              >
-                Register client
-              </Button>
-            }
-          />
-        </Panel>
+        <DataTable
+          columns={columns}
+          data={clients}
+          rowKey={(row) => row.id.toString()}
+          loading={loading}
+          emptyTitle='No OIDC clients'
+          emptyDescription='Register a client to let a UI or service authenticate users.'
+          emptyAction={
+            <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>
+              Register client
+            </Button>
+          }
+        />
       )}
 
       <Modal

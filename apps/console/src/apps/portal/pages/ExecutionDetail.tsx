@@ -230,6 +230,7 @@ export default function ExecutionDetail() {
       >
         {detectorResults.length > 0 ? (
           <DataTable
+            framed={false}
             columns={DETECTOR_COLUMNS}
             data={detectorResults}
             rowKey={(row, i) => `${row.span_name}-${String(i)}`}

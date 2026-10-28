@@ -198,6 +198,7 @@ export default function Dashboard(): ReactElement {
             />
           ) : (
             <DataTable<InjectionInjectionResp>
+              framed={false}
               data={injections.slice(0, 6)}
               rowKey={(i) => String(i.id ?? '')}
               columns={[
@@ -257,6 +258,7 @@ export default function Dashboard(): ReactElement {
             />
           ) : (
             <DataTable<TraceTraceResp>
+              framed={false}
               data={traces.slice(0, 6)}
               rowKey={(t) => String(t.id ?? '')}
               columns={[

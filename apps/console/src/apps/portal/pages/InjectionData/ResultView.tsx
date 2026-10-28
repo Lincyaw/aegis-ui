@@ -87,6 +87,7 @@ function TableView({
 
   return (
     <DataTable<Row>
+      framed={false}
       data={rows}
       rowKey={(_r, i) => String(i)}
       columns={tableColumns}

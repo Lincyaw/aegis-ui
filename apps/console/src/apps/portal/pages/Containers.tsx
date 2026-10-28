@@ -85,6 +85,7 @@ export default function Containers({ containerType }: ContainersProps) {
       />
       <Panel>
         <DataTable<ContainerContainerResp>
+          framed={false}
           data={containers}
           loading={isLoading}
           rowKey={(r) => String(r.id ?? r.name ?? '')}

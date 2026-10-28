@@ -310,6 +310,7 @@ export function CaseListPage(): ReactElement {
           <ErrorState title='Failed to read cases root' description={error} />
         ) : (
           <DataTable
+            framed={false}
             columns={columns}
             data={visibleCases}
             rowKey={(r) => r.caseId}

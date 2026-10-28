@@ -191,9 +191,7 @@ export default function SharesPage() {
           />
         </Panel>
       ) : (
-        <Panel padded={false}>
-          <DataTable columns={columns} data={shares} rowKey={(row) => row.id} />
-        </Panel>
+        <DataTable columns={columns} data={shares} rowKey={(row) => row.id} />
       )}
     </>
   );

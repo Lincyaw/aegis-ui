@@ -67,6 +67,7 @@ export function Step5Stage({ mode, setMode }: Props) {
             </Button>
           </div>
           <DataTable<StagedRow>
+            framed={false}
             data={rows}
             rowKey={(r) => r.id}
             emptyTitle='No staged drafts'

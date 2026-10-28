@@ -255,25 +255,19 @@ export default function IdentityProviders() {
           />
         </Panel>
       ) : (
-        <Panel padded={false}>
-          <DataTable
-            columns={columns}
-            data={providers}
-            rowKey={(row) => row.id.toString()}
-            loading={loading}
-            emptyTitle='No identity providers'
-            emptyDescription='Add Google or GitHub to enable social login.'
-            emptyAction={
-              <Button
-                type='primary'
-                icon={<PlusOutlined />}
-                onClick={openCreate}
-              >
-                Add provider
-              </Button>
-            }
-          />
-        </Panel>
+        <DataTable
+          columns={columns}
+          data={providers}
+          rowKey={(row) => row.id.toString()}
+          loading={loading}
+          emptyTitle='No identity providers'
+          emptyDescription='Add Google or GitHub to enable social login.'
+          emptyAction={
+            <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>
+              Add provider
+            </Button>
+          }
+        />
       )}
 
       <Modal

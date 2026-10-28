@@ -152,6 +152,7 @@ export default function ContainerDetail({
       ) : null}
       <Panel title={<PanelTitle size='base'>Versions</PanelTitle>}>
         <DataTable
+          framed={false}
           data={container.versions ?? []}
           rowKey={(v) => String(v.id ?? v.name ?? '')}
           emptyTitle='No versions'

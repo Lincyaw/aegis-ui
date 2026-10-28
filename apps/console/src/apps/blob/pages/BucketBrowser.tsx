@@ -1215,6 +1215,7 @@ export default function BucketBrowser() {
               />
             ) : (
               <DataTable
+                framed={false}
                 columns={columns}
                 data={filteredItems}
                 rowKey={(row) => row.key}

@@ -57,6 +57,7 @@ export function ContainerList(): ReactElement {
         ))}
       </div>
       <DataTable<DemoContainer>
+        framed={false}
         columns={[
           {
             key: 'name',

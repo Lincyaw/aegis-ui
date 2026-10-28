@@ -345,31 +345,25 @@ export default function ApiKeys() {
           />
         </Panel>
       ) : (
-        <Panel padded={false}>
-          <DataTable
-            columns={columns}
-            data={keys}
-            rowKey={(row) => row.id.toString()}
-            loading={loading}
-            emptyTitle='No API keys'
-            emptyDescription='Generate your first key to start using the API.'
-            emptyAction={
-              <Button
-                type='primary'
-                icon={<PlusOutlined />}
-                onClick={openCreate}
-              >
-                Generate key
-              </Button>
-            }
-            pagination={{
-              page,
-              pageSize: PAGE_SIZE,
-              total,
-              onChange: setPage,
-            }}
-          />
-        </Panel>
+        <DataTable
+          columns={columns}
+          data={keys}
+          rowKey={(row) => row.id.toString()}
+          loading={loading}
+          emptyTitle='No API keys'
+          emptyDescription='Generate your first key to start using the API.'
+          emptyAction={
+            <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>
+              Generate key
+            </Button>
+          }
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+            onChange: setPage,
+          }}
+        />
       )}
 
       <Modal

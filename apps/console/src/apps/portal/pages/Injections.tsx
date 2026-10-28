@@ -122,6 +122,7 @@ export default function Injections() {
           />
         ) : (
           <DataTable<InjectionRow>
+            framed={false}
             data={rows}
             rowKey={(r) => String(r.id)}
             loading={isLoading}

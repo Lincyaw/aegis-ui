@@ -95,23 +95,21 @@ export default function PagesPublic() {
           />
         </Panel>
       ) : (
-        <Panel padded={false}>
-          <DataTable
-            columns={columns}
-            data={items}
-            rowKey={(row) => row.id ?? ''}
-            loading={isLoading}
-            pagination={{
-              page,
-              pageSize: size,
-              pageSizeOptions: PAGE_SIZE_OPTIONS,
-              onChange: (nextPage, nextSize) => {
-                setPage(nextPage);
-                setSize(nextSize);
-              },
-            }}
-          />
-        </Panel>
+        <DataTable
+          columns={columns}
+          data={items}
+          rowKey={(row) => row.id ?? ''}
+          loading={isLoading}
+          pagination={{
+            page,
+            pageSize: size,
+            pageSizeOptions: PAGE_SIZE_OPTIONS,
+            onChange: (nextPage, nextSize) => {
+              setPage(nextPage);
+              setSize(nextSize);
+            },
+          }}
+        />
       )}
     </>
   );

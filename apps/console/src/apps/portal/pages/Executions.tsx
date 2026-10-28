@@ -70,6 +70,7 @@ export default function Executions() {
           />
         ) : (
           <DataTable<ExecutionExecutionResp>
+            framed={false}
             loading={isLoading}
             emptyTitle='No executions'
             emptyDescription='Run an algorithm to see results here.'

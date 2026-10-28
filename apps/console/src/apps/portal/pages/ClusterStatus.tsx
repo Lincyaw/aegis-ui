@@ -97,6 +97,7 @@ export default function ClusterStatus() {
           <Chip tone='ink'>All checks green</Chip>
         ) : (
           <DataTable<ClusterClusterCheck>
+            framed={false}
             data={failing}
             rowKey={(c) => c.id ?? c.name ?? ''}
             columns={[

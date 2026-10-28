@@ -47,6 +47,7 @@ export default function Datasets() {
           />
         ) : (
           <DataTable<DatasetDatasetResp>
+            framed={false}
             loading={isLoading}
             emptyTitle='No datasets'
             emptyDescription='Build a dataset from the Injections list.'

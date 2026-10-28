@@ -54,6 +54,7 @@ export default function Pedestals() {
       />
       <Panel>
         <DataTable<PedestalPedestalRelease>
+          framed={false}
           loading={isLoading}
           data={releases}
           rowKey={(r) => `${r.namespace ?? ''}/${r.release ?? ''}`}

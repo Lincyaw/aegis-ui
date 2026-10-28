@@ -230,6 +230,7 @@ export default function AuditLogs() {
             />
           </div>
           <DataTable<AuditLog>
+            framed={false}
             columns={columns}
             data={filtered}
             rowKey={(l) => l.id.toString()}

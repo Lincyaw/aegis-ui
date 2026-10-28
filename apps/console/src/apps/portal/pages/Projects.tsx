@@ -50,6 +50,7 @@ export default function Projects() {
           />
         ) : (
           <DataTable<ProjectProjectResp>
+            framed={false}
             data={projects ?? []}
             rowKey={(r) => String(r.id ?? '')}
             loading={isLoading}

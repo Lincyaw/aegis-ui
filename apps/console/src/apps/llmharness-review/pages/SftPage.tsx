@@ -293,6 +293,7 @@ export function SftPage(): ReactElement {
             />
             <div className='llmh-sft-grid'>
               <DataTable
+                framed={false}
                 columns={columns}
                 data={visibleRows}
                 rowKey={(r) => `${r.root_session_id}#${r.turn_index}`}

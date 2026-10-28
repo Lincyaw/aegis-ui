@@ -48,6 +48,7 @@ export default function Labels() {
           />
         ) : (
           <DataTable<LabelLabelResp>
+            framed={false}
             loading={isLoading}
             emptyTitle='No labels'
             emptyDescription='Create your first label.'

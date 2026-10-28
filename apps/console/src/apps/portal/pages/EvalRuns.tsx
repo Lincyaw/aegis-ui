@@ -57,6 +57,7 @@ export default function EvalRuns() {
           />
         ) : (
           <DataTable<EvaluationResp>
+            framed={false}
             loading={isLoading}
             emptyTitle='No evaluations yet'
             emptyDescription='Kick off a run to see results here.'
