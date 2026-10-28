@@ -113,7 +113,7 @@ export function StackedBar<K extends string>({
   }
 
   const totals = rows.map(rowTotal);
-  const upperBound = max ?? Math.max(...totals, 1);
+  const upperBound = max ?? (Math.max(0, ...totals) || 1);
   const scaleWidth = (value: number): string =>
     `${(upperBound > 0 ? Math.min(value / upperBound, 1) * 100 : 0).toString()}%`;
   return (
