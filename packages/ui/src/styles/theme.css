@@ -390,9 +390,9 @@
   /* Accent mixed into a cellTone wash per step above 1 (step 5 = 4×). */
   --data-table-cell-tone-step: 5%;
   --page-header-margin-bottom: var(--space-6);
-  --page-header-title-size: var(--fs-24);
-  --page-header-title-size-mobile: var(--fs-18);
-  --page-header-title-weight: var(--fw-medium);
+  --page-header-title-size: var(--type-title-size);
+  --page-header-title-size-mobile: var(--type-title-size);
+  --page-header-title-weight: var(--type-title-weight);
   --page-header-description-size: var(--fs-10);
   --page-header-description-color: var(--text-muted);
   --page-header-description-transform: uppercase;

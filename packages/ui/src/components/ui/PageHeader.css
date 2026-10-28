@@ -17,7 +17,8 @@
 .aegis-page-header__text .aegis-page-header__title {
   font-size: var(--page-header-title-size);
   font-weight: var(--page-header-title-weight);
-  line-height: 1.3;
+  line-height: var(--type-title-line);
+  letter-spacing: var(--type-title-tracking);
 }
 
 /* A long title takes its own line and the extra wraps under it. */
