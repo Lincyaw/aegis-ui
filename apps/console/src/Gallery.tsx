@@ -1687,16 +1687,6 @@ function App() {
               Featured content and pinned articles.
             </p>
           </Panel>
-
-          <Panel
-            variant='inverted'
-            title='Inverted'
-            extra={<MetricLabel inverted>active</MetricLabel>}
-          >
-            <p className='gallery__panel-body gallery__panel-body--inverted'>
-              Reserved for the currently active card, never for decoration.
-            </p>
-          </Panel>
         </div>
         <GlassPanelSpecimen />
 

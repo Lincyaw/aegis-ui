@@ -11,10 +11,9 @@ export type PanelSurface = ContainerSurface;
 
 /**
  * `tint` for showcase blocks on overview and article pages, `brand` for
- * featured content, `glass` for a panel laid over a gradient or image,
- * `inverted` for the currently active card.
+ * featured content, `glass` for a panel laid over a gradient or image.
  */
-export type PanelVariant = 'solid' | 'tint' | 'brand' | 'glass' | 'inverted';
+export type PanelVariant = 'solid' | 'tint' | 'brand' | 'glass';
 
 /** `raised` lifts featured and hero cards above the resting cards. */
 export type PanelElevation = 'rest' | 'raised';

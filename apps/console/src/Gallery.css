@@ -209,10 +209,6 @@
   color: var(--text-muted);
 }
 
-.gallery__panel-body--inverted {
-  color: var(--text-on-inverted-muted);
-}
-
 .gallery__panel-no-pad {
   padding: var(--space-4);
   background: var(--bg-muted);

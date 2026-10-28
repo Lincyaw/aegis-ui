@@ -23,11 +23,6 @@
   backdrop-filter: blur(var(--glass-blur));
 }
 
-.aegis-panel--inverted {
-  background: var(--bg-inverted);
-  color: var(--text-on-inverted);
-}
-
 .aegis-panel--raised {
   box-shadow: var(--shadow-raised);
 }
@@ -40,14 +35,17 @@
     transform var(--motion-fast);
 }
 
-.aegis-panel--link:hover {
-  box-shadow: var(--shadow-raised);
-  transform: translateY(calc(var(--motion-lift) * -1));
-}
+/* Touch screens keep :hover after a tap, which would leave the card lifted. */
+@media (hover: hover) {
+  .aegis-panel--link:hover {
+    box-shadow: var(--shadow-raised);
+    transform: translateY(calc(var(--motion-lift) * -1));
+  }
 
-.aegis-panel--link:active {
-  box-shadow: var(--shadow-rest);
-  transform: none;
+  .aegis-panel--link:active {
+    box-shadow: var(--shadow-rest);
+    transform: none;
+  }
 }
 
 .aegis-panel--link:has(.aegis-panel__link:focus-visible) {
@@ -79,10 +77,6 @@
   border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
-.aegis-panel--inverted .aegis-panel__header {
-  border-bottom-color: var(--border-on-inverted);
-}
-
 .aegis-panel__title {
   font-family: var(--font-ui);
   font-size: var(--type-heading-size);
@@ -105,10 +99,6 @@
   line-height: var(--type-small-line);
   letter-spacing: var(--type-small-tracking);
   color: var(--text-muted);
-}
-
-.aegis-panel--inverted .aegis-panel__description {
-  color: var(--text-on-inverted-muted);
 }
 
 .aegis-panel__extra {
@@ -138,5 +128,11 @@
   }
   .aegis-panel__body--padded {
     padding: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-panel--link:hover {
+    transform: none;
   }
 }
