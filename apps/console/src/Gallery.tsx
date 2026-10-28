@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 import {
   AppstoreOutlined,
@@ -96,6 +97,7 @@ import {
   type InspectableContent,
   type KeyValueItem,
   KeyValueList,
+  type LinkComponent,
   LocaleProvider,
   LoginForm,
   Markdown,
@@ -199,6 +201,13 @@ import {
 import './Gallery.css';
 
 /* ── Static specimen data ──────────────────────────────────────────── */
+
+/** The adapter a routed app passes as `linkComponent`: links navigate through the router. */
+const GalleryRouterLink: LinkComponent = ({ to, className, children }) => (
+  <RouterLink to={to} className={className}>
+    {children}
+  </RouterLink>
+);
 
 const COLOR_TOKEN_GROUPS: Array<{
   label: string;
@@ -1717,6 +1726,18 @@ function App() {
           >
             <p className='gallery__panel-body'>
               A featured card starts raised and still lifts on hover.
+            </p>
+          </Panel>
+
+          <Panel
+            to='#panel-router-link'
+            linkComponent={GalleryRouterLink}
+            title='Case analysis'
+            description='linkComponent · react-router Link'
+          >
+            <p className='gallery__panel-body'>
+              A routed app passes its Link adapter, so the card navigates
+              through the router instead of reloading the page.
             </p>
           </Panel>
         </div>
