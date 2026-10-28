@@ -42,7 +42,7 @@
   flex-shrink: 0;
   font-size: var(--size-icon-sm);
   color: var(--text-muted);
-  transition: transform var(--motion-fast);
+  transition: transform var(--motion-base);
 }
 
 .aegis-file-tree__item[aria-expanded='true'] .aegis-file-tree__chevron {
