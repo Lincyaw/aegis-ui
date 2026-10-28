@@ -19,6 +19,9 @@ interface IdentityCellProps {
   linkComponent?: LinkComponent;
   /** Puts the secondary text beside the name on one line. */
   inline?: boolean;
+  /** Wraps the name and the secondary text, breaking anywhere, instead of truncating, so a long
+   * name never widens the card or list it sits in. */
+  wrap?: boolean;
   className?: string;
 }
 
@@ -30,12 +33,14 @@ export function IdentityCell({
   to,
   linkComponent,
   inline = false,
+  wrap = false,
   className,
 }: IdentityCellProps) {
   const LinkImpl = linkComponent ?? DefaultLink;
   const cls = [
     'aegis-identity-cell',
     inline ? 'aegis-identity-cell--inline' : '',
+    wrap ? 'aegis-identity-cell--wrap' : '',
     className ?? '',
   ]
     .filter(Boolean)

@@ -34,6 +34,12 @@
   white-space: nowrap;
 }
 
+.aegis-identity-cell--wrap .aegis-identity-cell__name,
+.aegis-identity-cell--wrap .aegis-identity-cell__secondary {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .aegis-identity-cell__name {
   font-family: var(--font-ui);
   font-size: var(--fs-13);

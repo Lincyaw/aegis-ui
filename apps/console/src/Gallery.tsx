@@ -2576,6 +2576,16 @@ function App() {
               />
             </div>
           </Specimen>
+          <Specimen caption='wrap · long name and secondary wrap'>
+            <div className='gallery__narrow-cell'>
+              <IdentityCell
+                name='部署回滚后为批量导出审批执行计划'
+                secondary='30434932d311 · external/dba-bench/tidb-sql-binding-approval-for-batch-export-after-rollback'
+                to='#identity-cell'
+                wrap
+              />
+            </div>
+          </Specimen>
         </div>
 
         <SectionDivider>TextField</SectionDivider>
