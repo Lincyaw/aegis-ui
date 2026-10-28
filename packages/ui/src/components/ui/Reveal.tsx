@@ -10,7 +10,7 @@ import './Reveal.css';
 
 type RevealState = 'unobserved' | 'waiting' | 'entered';
 
-interface RevealProps {
+export interface RevealProps {
   children: ReactNode;
   /**
    * Position within a group that enters together: delays the entrance by

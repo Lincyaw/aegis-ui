@@ -26,7 +26,7 @@ export interface CheckGridRow<C extends string> {
   cells: Readonly<Record<C, CheckGridCell>>;
 }
 
-interface CheckGridProps<C extends string> {
+export interface CheckGridProps<C extends string> {
   /** Runs, left to right. */
   columns: Array<CheckGridColumn<C>>;
   /** Checks, top to bottom. */

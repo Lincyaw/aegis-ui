@@ -15,6 +15,7 @@ export type {
   AmbientBackgroundVariant,
 } from './AmbientBackground';
 export { Reveal } from './Reveal';
+export type { RevealProps } from './Reveal';
 export { Markdown } from './Markdown';
 export type { MarkdownProps } from './Markdown';
 export { MetricLabel } from './MetricLabel';
@@ -43,10 +44,16 @@ export type { RunPipsCounts } from './RunPips';
 export { ParetoChart } from './ParetoChart';
 export type { ParetoLegendItem, ParetoPoint } from './ParetoChart';
 export { CheckGrid } from './CheckGrid';
-export type { CheckGridCell, CheckGridColumn, CheckGridRow } from './CheckGrid';
+export type {
+  CheckGridCell,
+  CheckGridColumn,
+  CheckGridProps,
+  CheckGridRow,
+} from './CheckGrid';
 export { StackedBar } from './StackedBar';
 export type {
   StackedBarColor,
+  StackedBarProps,
   StackedBarRow,
   StackedBarSeries,
 } from './StackedBar';
@@ -81,7 +88,7 @@ export { TimeDisplay } from './TimeDisplay';
 export { CodeBlock } from './CodeBlock';
 export type { CodeBlockSurface } from './CodeBlock';
 export { FileTree } from './FileTree';
-export type { FileTreeFile } from './FileTree';
+export type { FileTreeFile, FileTreeProps } from './FileTree';
 export {
   ContentInspectorDialog,
   ContentPreview,

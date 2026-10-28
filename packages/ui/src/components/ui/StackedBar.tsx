@@ -35,7 +35,7 @@ export interface StackedBarRow<K extends string> {
   note?: ReactNode;
 }
 
-interface StackedBarProps<K extends string> {
+export interface StackedBarProps<K extends string> {
   /** Categories, stacked left to right in this order. */
   series: Array<StackedBarSeries<K>>;
   rows: Array<StackedBarRow<K>>;
