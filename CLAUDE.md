@@ -98,7 +98,10 @@ Sans SC, so Apple devices render Chinese in the system face.
   `--type-<role>-size / -line / -weight / -tracking` roles (`title`,
   `heading`, `strong`, `body`, `small`, `label`, `micro`, `numeric`,
   `number`, `mono`, and `display` / `article-*` / `eyebrow` for overview
-  and article pages); labels are never uppercase.
+  and article pages). Chips, field labels, table headers, MetricLabel and
+  StatBlock labels are never uppercase; `--tracking-label` is the tracking
+  of the uppercase meta labels that SectionDivider, CodeBlock's language
+  tag and similar primitives draw.
 - **Radius**: `--radius-pill` for buttons, chips, segmented tabs, search
   and bars; `--radius-md` for inputs, selects and code blocks;
   `--radius-lg` for cards, panels and dialogs; `--radius-xl` for heroes
