@@ -3,56 +3,73 @@
   align-items: center;
   gap: var(--space-2);
   font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  color: var(--text-muted);
 }
 
 .aegis-page-size-select__label {
-  font-weight: var(--fw-medium);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
   color: var(--text-muted);
   white-space: nowrap;
 }
 
+/* The field look of Select: control height, --radius-md, brand focus. */
 .aegis-page-size-select__trigger {
   display: inline-flex;
+  box-sizing: border-box;
   align-items: center;
   gap: var(--space-2);
   min-width: 4.5rem;
-  padding: var(--space-1) var(--space-3);
-  background: transparent;
+  height: var(--size-control-base);
+  padding: 0 var(--space-3) 0 var(--space-2);
+  background: var(--bg-panel);
   color: var(--text-main);
-  font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  line-height: 1.4;
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
   border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition:
-    background var(--motion-fast),
-    border-color var(--motion-fast);
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
 }
 
 .aegis-page-size-select__trigger:hover:not(:disabled),
 .aegis-page-size-select__trigger[aria-expanded='true'] {
-  background: var(--bg-muted);
   border-color: var(--border-emphasis);
 }
 
+/* The transparent outline keeps a ring in forced-colors mode. */
+.aegis-page-size-select__trigger:focus-visible {
+  outline: var(--focus-ring-width) solid transparent;
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
+}
+
 .aegis-page-size-select__trigger:disabled {
-  opacity: 0.5;
+  border-color: var(--border-hairline);
+  color: var(--text-faint);
+  background: var(--bg-muted);
   cursor: not-allowed;
 }
 
 .aegis-page-size-select__value {
   flex: 1 1 auto;
-  font-family: var(--font-mono);
   text-align: left;
 }
 
 .aegis-page-size-select__caret {
-  font-size: var(--fs-10);
+  font-size: var(--size-icon-sm);
   color: var(--text-muted);
+}
+
+.aegis-page-size-select__trigger:disabled .aegis-page-size-select__caret {
+  color: var(--text-faint);
 }
 
 /* The panel portals to the body: antd's default popover z-index sits below
@@ -89,9 +106,12 @@
   padding: var(--space-2) var(--space-3);
   background: none;
   color: var(--text-main);
-  font-family: var(--font-mono);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
   text-align: left;
   border: none;
   border-radius: var(--radius-sm);

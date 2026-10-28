@@ -1,5 +1,6 @@
 import { type ReactElement, useId } from 'react';
 
+import { DownOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
 
 import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
@@ -114,9 +115,7 @@ export function PageSizeSelect({
           onKeyDown={menu.onTriggerKeyDown}
         >
           <span className="aegis-page-size-select__value">{value}</span>
-          <span className="aegis-page-size-select__caret" aria-hidden="true">
-            ▾
-          </span>
+          <DownOutlined className="aegis-page-size-select__caret" aria-hidden />
         </button>
       </Popover>
     </div>
