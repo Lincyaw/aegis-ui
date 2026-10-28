@@ -457,27 +457,28 @@ const TYPE_ROLE_FAMILY: Record<NonNullable<TypeRole['family']>, string> = {
 };
 
 function TypeRoleRow({ role, sample, use, family = 'ui' }: TypeRole) {
+  const prefix = `--type-${role}`;
   return (
     <div className='gallery__type-row'>
       <MetricLabel as='div' className='gallery__type-label'>
-        {`--type-${role}-*`}
+        {`${prefix}-*`}
       </MetricLabel>
       <div
         style={{
           fontFamily: TYPE_ROLE_FAMILY[family],
-          fontSize: `var(--type-${role}-size)`,
-          lineHeight: `var(--type-${role}-line)`,
-          fontWeight: `var(--type-${role}-weight)`,
-          letterSpacing: `var(--type-${role}-tracking)`,
+          fontSize: `var(${prefix}-size)`,
+          lineHeight: `var(${prefix}-line)`,
+          fontWeight: `var(${prefix}-weight)`,
+          letterSpacing: `var(${prefix}-tracking)`,
           fontVariantNumeric: family === 'numeric' ? 'tabular-nums' : 'normal',
         }}
       >
         {sample}
       </div>
       <span className='gallery__type-hint'>
-        {use} · <TokenValue name={`--type-${role}-size`} /> /{' '}
-        <TokenValue name={`--type-${role}-line`} /> ·{' '}
-        <TokenValue name={`--type-${role}-weight`} />
+        {use} · <TokenValue name={`${prefix}-size`} /> /{' '}
+        <TokenValue name={`${prefix}-line`} /> ·{' '}
+        <TokenValue name={`${prefix}-weight`} />
       </span>
     </div>
   );
