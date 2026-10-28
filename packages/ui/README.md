@@ -18,8 +18,9 @@ Peer dependencies: `react` 18, `react-dom` 18, `react-router-dom` 6,
 `antd` 5.25 or later, `@ant-design/icons` 5.
 
 Fonts are not bundled. Install `@fontsource-variable/geist`,
-`@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono`, and
-import all three once in the app entry.
+`@fontsource-variable/hanken-grotesk`, `@fontsource-variable/noto-sans-sc`
+and `@fontsource/google-sans-code`, and import them once in the app entry
+(Google Sans Code as its `400.css` and `500.css` weights).
 
 ## Usage
 

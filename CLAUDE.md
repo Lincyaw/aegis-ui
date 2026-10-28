@@ -45,11 +45,11 @@ Anything business lives inside a sub-app in `apps/console/src/apps/`.
 do `import { Panel } from '@lincyaw/aegis-ui'` and
 `import '@lincyaw/aegis-ui/style.css'` — they should never reach into
 internal paths. The library does not bundle fonts: consumers import
-`@fontsource-variable/geist`, `@fontsource-variable/inter` and
-`@fontsource-variable/jetbrains-mono` themselves (the console does this
-in `apps/console/src/main.tsx`). CJK consumers may also import
-`@fontsource-variable/noto-sans-sc`, which `--font-ui` lists ahead of the
-system CJK fonts.
+`@fontsource-variable/geist`, `@fontsource-variable/hanken-grotesk`,
+`@fontsource-variable/noto-sans-sc` and `@fontsource/google-sans-code`
+(`400.css` + `500.css`) themselves (the console does this in
+`apps/console/src/main.tsx`). `--font-ui` lists PingFang SC ahead of Noto
+Sans SC, so Apple devices render Chinese in the system face.
 
 ## Top-down hierarchy — maintain in this order, never invert
 
@@ -77,19 +77,58 @@ system CJK fonts.
   or s (px only as an `@media` breakpoint). Reference a CSS custom
   property from `theme.css`. If a token is missing, add it there first.
   Stylelint (`pnpm lint:css`) enforces this.
+- **Surfaces and ink**: cool, very light surfaces (`--bg-page`,
+  `--bg-panel`, `--bg-muted`, `--bg-tint`, `--bg-brand-soft`) and soft
+  near-black ink (`--text-main`, never pure black). Dark fills appear only
+  on small elements (primary button, inverted chip), never as a page or
+  section background.
 - **Activation = surface inversion** (`--bg-inverted` background +
   `--text-on-inverted` text). Never accent colour.
+- **One brand blue** (`--accent-brand`) for brand marks, hero emphasis,
+  the focus ring and the current navigation item — never status. Links use
+  `--accent-info`, which shares its value.
 - **Anomaly red** (`--accent-warning`, `#E11D48`) is reserved for _actual_
-  anomalies — failures, breaches, alarms. Never decorative.
-- **Type stack**: brand (Geist) for titles, UI (Inter) for body, data
-  (JetBrains Mono) for numbers / IDs / parameters. Use `--font-*` tokens.
+  anomalies — failures, breaches, alarms. Never decorative. Cautions that
+  are not failures use `--ink-warn`.
+- **Type stack**: Geist (`--font-brand`) for brand lockups only; Hanken
+  Grotesk (`--font-ui`, `--font-numeric`) for all text and numbers, with
+  Chinese falling back to PingFang SC / Noto Sans SC; Google Sans Code
+  (`--font-mono`) only for ids, paths and code, never numbers. Numbers
+  render with `font-variant-numeric: tabular-nums`. Sizes come from the
+  `--type-<role>-size / -line / -weight / -tracking` roles (`title`,
+  `heading`, `strong`, `body`, `small`, `label`, `micro`, `numeric`,
+  `number`, `mono`, and `display` / `article-*` / `eyebrow` for overview
+  and article pages); labels are never uppercase.
+- **Radius**: `--radius-pill` for buttons, chips, segmented tabs, search
+  and bars; `--radius-md` for inputs, selects and code blocks;
+  `--radius-lg` for cards, panels and dialogs; `--radius-xl` for heroes
+  and featured cards; `--radius-xs` / `--radius-sm` for checkboxes and
+  check cells.
+- **Elevation and glass**: three shadows — `--shadow-rest` (cards, panels,
+  secondary buttons), `--shadow-raised` (hovered clickable cards and rows,
+  featured content), `--shadow-overlay` (dialogs, menus, tooltips). One
+  shadow per layer; a card never nests another shadowed card. Glass
+  (`--bg-glass` + `backdrop-filter: blur(var(--glass-blur))` +
+  `--border-glass` + `--shadow-rest`) only on surfaces layered over
+  content or the ambient wash, never on tables or body text.
+- **Motion**: `--motion-*` tokens only. Clickable cards and buttons rise
+  `--motion-lift` and step to `--shadow-raised` on hover; nothing scales or
+  rotates; content that cannot be clicked has no hover effect. Overview
+  and article surfaces add `--motion-reveal`, `--motion-hero`,
+  `--motion-slide` / `--carousel-dwell` and the `--motion-ambient` drift.
+  Under `prefers-reduced-motion` everything is instant and nothing
+  autoplays.
+- **Focus**: a `--focus-ring-width` outline in `--focus-ring-color` at
+  `--focus-ring-offset`; fields show an `--accent-brand` border plus
+  `--focus-halo`.
 - **Spacing**: `--space-*` tokens (4 px scale). No raw padding / margin.
 - **Components are presentational.** No API calls, no global store reads,
   no business state. Hosts pass props in.
 - **Every new primitive ships with a Specimen** in the gallery. PRs that
   add a primitive without a gallery entry are incomplete.
 - **Primitives stay router-agnostic where possible.** `Breadcrumb`,
-  `IdentityCell` and `ButtonLink` accept a `linkComponent` render prop
+  `IdentityCell`, `ButtonLink` and a linked `Panel` accept a
+  `linkComponent` render prop
   (type `LinkComponent`) instead of hardcoding `react-router-dom`. Only
   `layouts/shell/**`, `auth/RequireAuth`, and
   the `InboxPage` / `NotificationBell` primitives import

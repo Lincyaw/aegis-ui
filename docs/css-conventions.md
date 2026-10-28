@@ -39,12 +39,13 @@ and the CSS reads that property. Don't copy the number into a token.
 | `--bg-*`                                                   | background colours                                |
 | `--text-*`                                                 | foreground / ink colours                          |
 | `--border-*`                                               | borders + dividers                                |
-| `--accent-*`                                               | semantic accents — anomaly red only               |
+| `--accent-*`                                               | brand, link and status accents (red = anomaly)    |
 | `--ink-*`                                                  | secondary semantic (logs, cautions)               |
 | `--data-*`                                                 | chart marks only (see below)                      |
+| `--ambient-*`                                              | AmbientBackground blob colours and heights        |
 | `--space-*`                                                | margin / padding / gap (4 px scale)               |
 | `--radius-*`                                               | border-radius                                     |
-| `--size-icon-*`                                            | icon glyph sizes (12/16/20/32)                    |
+| `--size-icon-*`                                            | icon glyph sizes (12/14/16/20/32)                 |
 | `--size-control-*`                                         | input/button heights (24/32)                      |
 | `--size-avatar-*`                                          | avatar/dot sizes (24/32/40)                       |
 | `--size-hairline`                                          | 1 px hairline borders                             |
@@ -52,8 +53,11 @@ and the CSS reads that property. Don't copy the number into a token.
 | `--fs-*`                                                   | font-size (`--fs-<px>` steps plus `--fs-display`) |
 | `--fw-*`                                                   | font-weight                                       |
 | `--tracking-*`                                             | letter-spacing                                    |
+| `--type-*`                                                 | type roles: size, line, weight, tracking          |
 | `--motion-*`                                               | transition / animation durations, easing, offsets |
 | `--shadow-*`                                               | box-shadow                                        |
+| `--glass-blur`, `--backdrop-blur`                          | backdrop-filter blur radii                        |
+| `--focus-*`                                                | focus ring and focused-field halo                 |
 | `--z-*`                                                    | z-index scale                                     |
 | `--header-height`, `--sidebar-width-*`, `--page-max-width` | layout constants                                  |
 | `--{component}-*` (e.g. `--ask-panel-width`)               | values owned by a single component                |
@@ -65,11 +69,11 @@ scatter plot and the matching `Avatar colorSlot`. They are never status
 contrast against `--bg-panel` in both themes — check a new value before
 adding it.
 
-Component tokens such as `--data-table-header-bg` or `--chip-transform`
-default to the stock rendering. A host app that needs a different structure
-(sentence case, a tinted table header, taller rows) overrides the token in
-its own stylesheet instead of targeting the component's classes, so other
-consumers keep the stock look.
+Component tokens such as `--data-table-row-min-height` or
+`--page-header-title-size` default to the stock rendering. A host app that
+needs a different structure (a sentence-case page header, a larger title,
+shorter rows) overrides the token in its own stylesheet instead of targeting
+the component's classes, so other consumers keep the stock look.
 
 ## 2. BEM naming, scoped per component
 
@@ -215,14 +219,21 @@ Don't duplicate.
 - All durations / easings come from `--motion-*` tokens: `--motion-enter`
   for things appearing, the shorter `--motion-exit` for things leaving,
   `--motion-chart` for bars and lines drawing in, `--motion-fast` /
-  `--motion-base` for state changes.
+  `--motion-base` for state changes. `--motion-reveal`, `--motion-hero`,
+  `--motion-slide` and `--carousel-dwell` belong to overview and article
+  surfaces (`Reveal`, `Carousel`), not to app pages.
+- Hover feedback is colour, opacity, a shadow step and the
+  `--motion-lift` rise of clickable cards and buttons — never scale or
+  rotation.
 - Respect `prefers-reduced-motion` — the global rule in `theme.css`
   already collapses animations to ~instant; don't override. It does not
   shorten delays, so an animation that holds an element hidden during a
   delay (`backwards` fill, like the `PageWrapper` stagger) must be set
   to `animation: none` under `prefers-reduced-motion: reduce`.
 - No infinite loops unless meaningfully semantic (`StatusDot` pulse is
-  the canonical example).
+  the canonical example). The one decorative loop is the
+  `AmbientBackground` drift: it animates only `transform`, pauses while
+  the page is hidden and stays still under reduced motion.
 
 ## 10. What gets enforced
 

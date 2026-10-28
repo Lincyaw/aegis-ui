@@ -42,22 +42,26 @@ Peer dependencies:
 | `antd`              | 5.25+   |
 | `@ant-design/icons` | 5       |
 
-The type tokens use Geist, Inter and JetBrains Mono. The package does not
-bundle font files; install and import them once in the app entry:
+The type tokens use Geist (brand), Hanken Grotesk (text and numbers),
+Noto Sans SC (Chinese where PingFang SC is not installed) and Google Sans
+Code (ids, paths and code). The package does not bundle font files; install
+and import them once in the app entry:
 
 ```bash
-pnpm add @fontsource-variable/geist @fontsource-variable/inter @fontsource-variable/jetbrains-mono
+pnpm add @fontsource-variable/geist @fontsource-variable/hanken-grotesk @fontsource-variable/noto-sans-sc @fontsource/google-sans-code
 ```
 
 ```ts
 import '@fontsource-variable/geist';
-import '@fontsource-variable/inter';
-import '@fontsource-variable/jetbrains-mono';
+import '@fontsource-variable/hanken-grotesk';
+import '@fontsource-variable/noto-sans-sc';
+import '@fontsource/google-sans-code/400.css';
+import '@fontsource/google-sans-code/500.css';
 ```
 
-Apps with Chinese text may also install and import
-`@fontsource-variable/noto-sans-sc`; `--font-ui` lists Noto Sans SC ahead
-of the system CJK fonts.
+`--font-ui` lists PingFang SC ahead of Noto Sans SC, so Apple devices
+render Chinese in the system face and other platforms fetch only the Noto
+Sans SC subsets a page needs.
 
 ## Usage
 
