@@ -6,15 +6,17 @@
   color: var(--text-main);
 }
 
+/* The content column is minmax(0, 1fr), so a header row wider than the viewport
+   (a long tab list) scrolls inside the header instead of widening the page. */
 .aegis-shell--with-sidebar {
-  grid-template-columns: var(--sidebar-width-expanded) 1fr;
+  grid-template-columns: var(--sidebar-width-expanded) minmax(0, 1fr);
   grid-template-areas:
     'header header'
     'sidebar main';
 }
 
 .aegis-shell--no-sidebar {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
     'header'
     'main';
@@ -23,7 +25,7 @@
 .aegis-shell--with-sidebar.aegis-shell--with-agent-panel {
   grid-template-columns:
     var(--sidebar-width-expanded)
-    1fr
+    minmax(0, 1fr)
     var(--agent-panel-width);
   grid-template-areas:
     'header header header'
@@ -31,7 +33,7 @@
 }
 
 .aegis-shell--no-sidebar.aegis-shell--with-agent-panel {
-  grid-template-columns: 1fr var(--agent-panel-width);
+  grid-template-columns: minmax(0, 1fr) var(--agent-panel-width);
   grid-template-areas:
     'header header'
     'main agent';
@@ -476,14 +478,14 @@
 
 @media (max-width: 768px) {
   .aegis-shell--with-sidebar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'header'
       'main';
   }
 
   .aegis-shell.aegis-shell--with-agent-panel {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'header'
       'main';
