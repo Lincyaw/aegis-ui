@@ -1,8 +1,15 @@
-import { type ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useAegisAction } from '../../agent/hooks';
 import type { AegisAction } from '../../agent/types';
 import './Tabs.css';
+import { tablistKeyTarget } from './tablistKeyboard';
 
 export interface TabItem {
   key: string;
@@ -143,6 +150,30 @@ export function Tabs({
     onChange?.(key);
   };
 
+  // Tab reaches only the selected tab, or the first when none is selected;
+  // arrows, Home and End move between tabs.
+  const tabStopIndex = Math.max(
+    items.findIndex((item) => item.key === activeKey),
+    0,
+  );
+
+  const handleTabKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ): void => {
+    const target = tablistKeyTarget(event.key, index, items.length);
+    if (target === null) {
+      return;
+    }
+    event.preventDefault();
+    const tab = listRef.current?.querySelectorAll<HTMLButtonElement>(
+      ':scope > [role="tab"]',
+    )[target];
+    tab?.focus();
+    // The click runs the tab's own activation, including its agent action.
+    tab?.click();
+  };
+
   const cls = [
     'aegis-tabs',
     size === 'sm' ? 'aegis-tabs--sm' : '',
@@ -169,12 +200,14 @@ export function Tabs({
             }}
           />
         ) : null}
-        {items.map((item) => (
+        {items.map((item, index) => (
           <TabsTab
             key={item.key}
             item={item}
             active={item.key === activeKey}
+            tabStop={index === tabStopIndex}
             onActivate={() => handleClick(item.key)}
+            onKeyDown={(event) => handleTabKeyDown(event, index)}
           />
         ))}
       </div>
@@ -190,10 +223,18 @@ export function Tabs({
 interface TabsTabProps {
   item: TabItem;
   active: boolean;
+  tabStop: boolean;
   onActivate: () => void;
+  onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
 }
 
-function TabsTab({ item, active, onActivate }: TabsTabProps) {
+function TabsTab({
+  item,
+  active,
+  tabStop,
+  onActivate,
+  onKeyDown,
+}: TabsTabProps) {
   const bound = useAegisAction<void, unknown>(item.action);
   const handleClick = (): void => {
     onActivate();
@@ -206,10 +247,12 @@ function TabsTab({ item, active, onActivate }: TabsTabProps) {
       type="button"
       role="tab"
       aria-selected={active}
+      tabIndex={tabStop ? 0 : -1}
       className={
         active ? 'aegis-tabs__tab aegis-tabs__tab--active' : 'aegis-tabs__tab'
       }
       onClick={handleClick}
+      onKeyDown={onKeyDown}
       data-agent-action-id={item.action?.id}
     >
       {item.label}

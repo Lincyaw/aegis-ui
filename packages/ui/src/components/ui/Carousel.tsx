@@ -9,6 +9,7 @@ import {
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { usePageHidden } from '../../hooks/usePageHidden';
 import './Carousel.css';
+import { tablistKeyTarget } from './tablistKeyboard';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -62,7 +63,7 @@ export function Carousel({
     event: KeyboardEvent<HTMLButtonElement>,
     index: number,
   ): void => {
-    const target = keyboardTargetIndex(event.key, index, slides.length);
+    const target = tablistKeyTarget(event.key, index, slides.length);
     if (target === null) {
       return;
     }
@@ -141,23 +142,4 @@ export function Carousel({
       </div>
     </section>
   );
-}
-
-function keyboardTargetIndex(
-  key: string,
-  index: number,
-  count: number,
-): number | null {
-  switch (key) {
-    case 'ArrowRight':
-      return (index + 1) % count;
-    case 'ArrowLeft':
-      return (index - 1 + count) % count;
-    case 'Home':
-      return 0;
-    case 'End':
-      return count - 1;
-    default:
-      return null;
-  }
 }
