@@ -1,0 +1,80 @@
+.aegis-file-tree {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  font-family: var(--font-ui);
+  color: var(--text-main);
+}
+
+/* Each level indents by the chevron and its gap, so a child's first icon
+ * lines up under its directory's folder icon. */
+.aegis-file-tree__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: calc(var(--type-small-line) + 2 * var(--space-1));
+  padding-block: var(--space-1);
+  padding-inline: calc(
+      var(--space-2) + var(--aegis-file-tree-depth, 0) * var(--space-5)
+    )
+    var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--motion-fast);
+}
+
+.aegis-file-tree__item:hover {
+  background: color-mix(in srgb, var(--bg-muted) 50%, transparent);
+}
+
+.aegis-file-tree__item--selected,
+.aegis-file-tree__item--selected:hover {
+  background: var(--bg-muted);
+}
+
+/* Inset, so a scrolling pane around the tree does not clip the ring. */
+.aegis-file-tree__item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.aegis-file-tree__chevron {
+  flex-shrink: 0;
+  font-size: var(--size-icon-sm);
+  color: var(--text-muted);
+  transition: transform var(--motion-fast);
+}
+
+.aegis-file-tree__item[aria-expanded='true'] .aegis-file-tree__chevron {
+  transform: rotate(90deg);
+}
+
+.aegis-file-tree__icon {
+  flex-shrink: 0;
+  font-size: var(--size-icon-md);
+  color: var(--text-muted);
+}
+
+.aegis-file-tree__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-size);
+  line-height: var(--type-mono-line);
+  font-weight: var(--type-mono-weight);
+  letter-spacing: var(--type-mono-tracking);
+}
+
+.aegis-file-tree__note {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
