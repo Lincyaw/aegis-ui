@@ -65,7 +65,7 @@ export function FiringsTimeline({
   if (entries.length === 0) {
     return (
       <div className='llmh-tl llmh-tl--empty'>
-        <MetricLabel size='xs'>no firings</MetricLabel>
+        <MetricLabel size='xs'>No firings</MetricLabel>
       </div>
     );
   }

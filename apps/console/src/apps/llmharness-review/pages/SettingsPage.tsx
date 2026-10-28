@@ -180,7 +180,7 @@ function BlobPathPicker({
   return (
     <>
       <div className='llmh-settings__row'>
-        <MetricLabel size='xs'>bucket</MetricLabel>
+        <MetricLabel size='xs'>Bucket</MetricLabel>
         <DropdownMenu
           align='left'
           trigger={
@@ -221,12 +221,12 @@ function BlobPathPicker({
       {bucket && (
         <div className='llmh-settings__block'>
           <div className='llmh-settings__path'>
-            <MetricLabel size='xs'>path</MetricLabel>
+            <MetricLabel size='xs'>Path</MetricLabel>
             <Breadcrumb items={crumbs} linkComponent={PrefixLink} />
           </div>
           <div className='llmh-settings__subdirs'>
             {browse.kind === 'loading' && (
-              <MetricLabel size='xs'>browsing…</MetricLabel>
+              <MetricLabel size='xs'>Browsing…</MetricLabel>
             )}
             {browse.kind === 'error' && (
               <MetricLabel size='xs'>{browse.message}</MetricLabel>

@@ -1447,11 +1447,11 @@ function App() {
           </Specimen>
           <Specimen caption='inverted'>
             <div className='gallery__inverted-host'>
-              <MetricLabel inverted>active</MetricLabel>
+              <MetricLabel inverted>Active</MetricLabel>
             </div>
           </Specimen>
           <Specimen caption="as='div'">
-            <MetricLabel as='div'>block label</MetricLabel>
+            <MetricLabel as='div'>Block label</MetricLabel>
           </Specimen>
         </div>
 
@@ -1486,7 +1486,7 @@ function App() {
         <SectionDivider>SectionDivider</SectionDivider>
         <div className='gallery__stack'>
           <SectionDivider>Plain label</SectionDivider>
-          <SectionDivider extra={<MetricLabel>extra slot</MetricLabel>}>
+          <SectionDivider extra={<MetricLabel>Extra slot</MetricLabel>}>
             With extra
           </SectionDivider>
           <SectionDivider rule={false}>No rule (rule=false)</SectionDivider>
@@ -1639,7 +1639,7 @@ function App() {
           <Panel
             title='Default panel'
             description='Mean result score · higher is better'
-            extra={<MetricLabel>label</MetricLabel>}
+            extra={<MetricLabel>Label</MetricLabel>}
             surface={{
               id: 'gallery.panel.basic',
               kind: 'panel',
@@ -1681,7 +1681,7 @@ function App() {
           </Panel>
         </div>
 
-        <SectionDivider extra={<MetricLabel>variant</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Variant</MetricLabel>}>
           Panel · variants
         </SectionDivider>
         <div className='gallery__row gallery__row--panels'>
@@ -1700,7 +1700,7 @@ function App() {
         <GlassPanelSpecimen />
 
         <SectionDivider
-          extra={<MetricLabel>hover · keyboard focus</MetricLabel>}
+          extra={<MetricLabel>Hover · keyboard focus</MetricLabel>}
         >
           Panel · link
         </SectionDivider>
@@ -1766,7 +1766,7 @@ function App() {
         </div>
 
         <SectionDivider
-          extra={<MetricLabel>plays once on entering the viewport</MetricLabel>}
+          extra={<MetricLabel>Plays once on entering the viewport</MetricLabel>}
         >
           Reveal
         </SectionDivider>
@@ -2310,7 +2310,7 @@ function App() {
           </Specimen>
           <Specimen caption='inverted'>
             <div className='gallery__inverted-host'>
-              <StatBlock label='throughput' value='9 384' unit='rps' inverted />
+              <StatBlock label='Throughput' value='9 384' unit='rps' inverted />
             </div>
           </Specimen>
           <Specimen caption='animateValue · counts up once over --motion-chart'>
@@ -2318,7 +2318,7 @@ function App() {
           </Specimen>
           <Specimen caption='animateValue · keeps decimals'>
             <StatBlock
-              label='mean score'
+              label='Mean score'
               value={0.83}
               direction='vertical'
               emphasized
@@ -2397,14 +2397,14 @@ function App() {
         <SectionDivider>MetricCard</SectionDivider>
         <div className='gallery__row gallery__row--wide'>
           <Specimen caption='value only'>
-            <MetricCard label='active injections' value='3' />
+            <MetricCard label='Active injections' value='3' />
           </Specimen>
           <Specimen caption='value + unit'>
-            <MetricCard label='latency p99' value='142' unit='ms' />
+            <MetricCard label='Latency p99' value='142' unit='ms' />
           </Specimen>
           <Specimen caption='value + sparkline'>
             <MetricCard
-              label='throughput'
+              label='Throughput'
               value='9 384'
               unit='rps'
               sparkline={SPARK_RISING}
@@ -2437,7 +2437,7 @@ function App() {
           </Specimen>
           <Specimen caption='inverted + sparkline'>
             <MetricCard
-              label='error budget'
+              label='Error budget'
               value='0.42'
               unit='%'
               sparkline={SPARK_DIP}
@@ -2545,7 +2545,7 @@ function App() {
 
       {/* ── Lists / rows ───────────────────────────────────────────── */}
       <Panel title={<PanelTitle size='lg'>Lists &amp; rows</PanelTitle>}>
-        <SectionDivider extra={<MetricLabel>click any row</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Click any row</MetricLabel>}>
           ControlListItem
         </SectionDivider>
         <div className='gallery__list'>
@@ -2889,7 +2889,7 @@ function App() {
       {/* ── Agent trajectory ───────────────────────────────────────── */}
       <Panel
         title={<PanelTitle size='lg'>Agent trajectory</PanelTitle>}
-        extra={<MetricLabel>observation · reasoning · action</MetricLabel>}
+        extra={<MetricLabel>Observation · reasoning · action</MetricLabel>}
       >
         <SectionDivider>ToolCallCard</SectionDivider>
         <div className='gallery__row gallery__row--wide'>
@@ -3154,7 +3154,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>file browser</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>File browser</MetricLabel>}>
           FileTree
         </SectionDivider>
         <div className='gallery__stack'>
@@ -3203,7 +3203,7 @@ function App() {
       <Panel title={<PanelTitle size='lg'>Navigation · Rosetta</PanelTitle>}>
         <SectionDivider
           extra={
-            <MetricLabel>selected indicator slides · --motion-base</MetricLabel>
+            <MetricLabel>Selected indicator slides · --motion-base</MetricLabel>
           }
         >
           Tabs
@@ -3235,7 +3235,7 @@ function App() {
         <CarouselControlledSpecimen />
 
         <SectionDivider
-          extra={<MetricLabel>pill · 32 high · lifts on hover</MetricLabel>}
+          extra={<MetricLabel>Pill · 32 high · lifts on hover</MetricLabel>}
         >
           Button
         </SectionDivider>
@@ -3427,7 +3427,7 @@ function App() {
         </div>
 
         <SectionDivider
-          extra={<MetricLabel>body name · mono id or path</MetricLabel>}
+          extra={<MetricLabel>Body name · mono id or path</MetricLabel>}
         >
           IdentityCell
         </SectionDivider>
@@ -3732,7 +3732,7 @@ function App() {
           >
             <Panel title='Run 4812' className='gallery__menu-host'>
               <div className='gallery__menu-host-foot'>
-                <MetricLabel size='xs'>actions</MetricLabel>
+                <MetricLabel size='xs'>Actions</MetricLabel>
                 <DropdownMenu
                   trigger={<Chip tone='default'>More</Chip>}
                   items={[
@@ -4500,7 +4500,7 @@ function App() {
                   color: 'var(--text-muted)',
                 }}
               >
-                <MetricLabel>underlying content</MetricLabel>
+                <MetricLabel>Underlying content</MetricLabel>
               </div>
               <FileDropzone
                 onDrop={() => undefined}
@@ -4521,7 +4521,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>directory upload</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Directory upload</MetricLabel>}>
           FolderDropzone
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
@@ -4575,7 +4575,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>standalone queue</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Standalone queue</MetricLabel>}>
           UploadQueue
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
@@ -4623,7 +4623,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>blob bucket summary</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Blob bucket summary</MetricLabel>}>
           BucketCard
         </SectionDivider>
         <div className='gallery__row'>
@@ -4716,7 +4716,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>pill · brand focus</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Pill · brand focus</MetricLabel>}>
           SearchInput
         </SectionDivider>
         <div className='gallery__row'>
@@ -4793,7 +4793,7 @@ function App() {
         </SectionDivider>
         <SavedQueryBarSpecimen />
 
-        <SectionDivider extra={<MetricLabel>key/value metadata</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Key/value metadata</MetricLabel>}>
           MetadataList
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
@@ -4826,13 +4826,13 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>object side-panel</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Object side-panel</MetricLabel>}>
           ObjectInspector
         </SectionDivider>
         <ObjectInspectorSpecimen />
 
         <SectionDivider
-          extra={<MetricLabel>prefix tree + table shell</MetricLabel>}
+          extra={<MetricLabel>Prefix tree + table shell</MetricLabel>}
         >
           ObjectBrowser
         </SectionDivider>
@@ -4864,7 +4864,7 @@ function App() {
                   borderRadius: 'var(--radius-sm)',
                 }}
               >
-                <MetricLabel>host renders DataTable here</MetricLabel>
+                <MetricLabel>Host renders DataTable here</MetricLabel>
               </div>
             </ObjectBrowser>
           </Specimen>
@@ -4942,7 +4942,7 @@ function App() {
                   borderRadius: 'var(--radius-sm)',
                 }}
               >
-                <MetricLabel>drag a file over this area</MetricLabel>
+                <MetricLabel>Drag a file over this area</MetricLabel>
               </div>
             </ObjectBrowser>
           </Specimen>
@@ -4962,13 +4962,13 @@ function App() {
                   borderRadius: 'var(--radius-sm)',
                 }}
               >
-                <MetricLabel>collapsed tree</MetricLabel>
+                <MetricLabel>Collapsed tree</MetricLabel>
               </div>
             </ObjectBrowser>
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>presigned GET</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Presigned GET</MetricLabel>}>
           ShareLinkDialog
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
@@ -5003,7 +5003,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>hook</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Hook</MetricLabel>}>
           useCopyToClipboard
         </SectionDivider>
         <div className='gallery__row'>
@@ -5012,7 +5012,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>mime-aware</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>MIME-aware</MetricLabel>}>
           FilePreview
         </SectionDivider>
         <div className='gallery__row gallery__row--wide'>
@@ -5316,7 +5316,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>flame / waterfall</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Flame / waterfall</MetricLabel>}>
           TimelineChart
         </SectionDivider>
         <div className='gallery__stack'>
@@ -5352,7 +5352,7 @@ function App() {
         <SectionDivider
           extra={
             <MetricLabel>
-              drag · keyboard · persist · constrain · reset
+              Drag · keyboard · persist · constrain · reset
             </MetricLabel>
           }
         >
@@ -5513,7 +5513,7 @@ function App() {
           </Specimen>
         </div>
 
-        <SectionDivider extra={<MetricLabel>vertical layout</MetricLabel>}>
+        <SectionDivider extra={<MetricLabel>Vertical layout</MetricLabel>}>
           Form
         </SectionDivider>
         <Form
@@ -5599,7 +5599,7 @@ function App() {
         <SectionDivider>Button · action</SectionDivider>
         <AgentIntegrationSpecimen />
         <SectionDivider
-          extra={<MetricLabel>right-click · Cmd/Ctrl + .</MetricLabel>}
+          extra={<MetricLabel>Right-click · Cmd/Ctrl + .</MetricLabel>}
         >
           AskOverlay · AskPanel
         </SectionDivider>
@@ -6965,7 +6965,7 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
               /* no-op */
             }}
           />
-          <MetricLabel>switcher hidden when ≤1 env</MetricLabel>
+          <MetricLabel>Switcher hidden when ≤1 env</MetricLabel>
         </div>
       </Specimen>
       <Specimen caption='no manifest · hidden state'>
@@ -6983,7 +6983,7 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
               /* no-op */
             }}
           />
-          <MetricLabel>switcher hidden when no envs</MetricLabel>
+          <MetricLabel>Switcher hidden when no envs</MetricLabel>
         </div>
       </Specimen>
     </div>
@@ -6998,7 +6998,7 @@ function StatBlockCountUpSpecimen(): ReactNode {
     <div className='gallery__stack'>
       <StatBlock
         key={mount}
-        label='runs'
+        label='Runs'
         value={128}
         direction='vertical'
         emphasized
@@ -8501,7 +8501,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
       <ResizableSidePanel side='left' defaultWidth={280}>
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
-            left · 280px · non-collapsible
+            Left · 280px · non-collapsible
           </MetricLabel>
           <p>Drag the right edge to resize. Hard min/max enforced.</p>
         </div>
@@ -8514,7 +8514,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
       >
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
-            left · persistKey
+            Left · persistKey
           </MetricLabel>
           <p>Resize then reload — width survives via localStorage.</p>
         </div>
@@ -8531,7 +8531,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
         }}
       >
         <MetricLabel as='div' size='xs'>
-          keyboard-only resize demo
+          Keyboard-only resize demo
         </MetricLabel>
         <p>
           Tab onto either handle (focus ring appears) and press ←/→ to adjust
@@ -8549,7 +8549,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
       >
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
-            right · 360px · collapsible
+            Right · 360px · collapsible
           </MetricLabel>
           <p>
             Drag handle past min-width to collapse. Click thin bar to expand.
@@ -8597,7 +8597,7 @@ function ResizableSidePanelConstrainedSpecimen(): ReactNode {
       >
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
-            left · 360px · max 1200px
+            Left · 360px · max 1200px
           </MetricLabel>
           <p>
             Drag right: the handle stops where the centre would drop below 320
@@ -8618,7 +8618,7 @@ function ResizableSidePanelConstrainedSpecimen(): ReactNode {
         }}
       >
         <MetricLabel as='div' size='xs'>
-          centre · ≥ 320px
+          Centre · ≥ 320px
         </MetricLabel>
       </div>
     </div>
@@ -8637,7 +8637,7 @@ function ResizableSidePanelStackedSpecimen(): ReactNode {
       >
         <div style={{ padding: 'var(--space-3)' }}>
           <MetricLabel as='div' size='xs'>
-            turns · stackOnMobile
+            Turns · stackOnMobile
           </MetricLabel>
           {Array.from({ length: 12 }, (_, i) => (
             <p key={i}>
@@ -8649,7 +8649,7 @@ function ResizableSidePanelStackedSpecimen(): ReactNode {
       </ResizableSidePanel>
       <div className='gallery__resizable-stack-main'>
         <MetricLabel as='div' size='xs'>
-          viewport
+          Viewport
         </MetricLabel>
         <p>
           Desktop: a resizable rail beside the content. Narrow the window to

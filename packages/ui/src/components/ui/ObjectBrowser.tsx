@@ -124,7 +124,7 @@ export function ObjectBrowser({
               ) : null}
               {prefixes.length === 0 && currentPrefix === '' ? (
                 <li className="aegis-object-browser__tree-empty">
-                  <MetricLabel>no sub-prefixes</MetricLabel>
+                  <MetricLabel>No sub-prefixes</MetricLabel>
                 </li>
               ) : null}
               {prefixes.map((p) => {
@@ -154,7 +154,7 @@ export function ObjectBrowser({
             {selectionCount > 0 ? (
               <span className="aegis-object-browser__selection">
                 <MonoValue size="sm">{selectionCount.toString()}</MonoValue>
-                <MetricLabel>selected</MetricLabel>
+                <MetricLabel>Selected</MetricLabel>
               </span>
             ) : null}
             {searchSlot !== undefined ? (

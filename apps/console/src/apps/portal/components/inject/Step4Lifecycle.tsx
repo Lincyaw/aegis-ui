@@ -50,7 +50,7 @@ export function Step4Lifecycle({ spec, update }: Props) {
         <Form.Item label='Estimated blast radius'>
           <BlastRadiusBar value={blastFor(spec)} />
           <MetricLabel size='xs'>
-            heuristic from chaos type · pod &lt; service &lt; namespace
+            Heuristic from chaos type · pod &lt; service &lt; namespace
           </MetricLabel>
         </Form.Item>
 

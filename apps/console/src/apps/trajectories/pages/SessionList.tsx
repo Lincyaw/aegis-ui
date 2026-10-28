@@ -152,7 +152,7 @@ export function SessionList(): ReactElement {
             <MonoValue size='sm'>{r.parentSessionId.slice(0, 12)}</MonoValue>
           </Link>
         ) : (
-          <MetricLabel size='xs'>root</MetricLabel>
+          <MetricLabel size='xs'>Root</MetricLabel>
         ),
     },
     {

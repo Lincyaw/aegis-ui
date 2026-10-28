@@ -409,7 +409,7 @@ function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
           <MetricLabel size='xs'>
             {snapshot
               ? `${snapshot.events.length.toString()} events · ${snapshot.edges.length.toString()} edges (E#${snapshotRef.toString()})`
-              : `snapshot E#${snapshotRef.toString()} missing`}
+              : `Snapshot E#${snapshotRef.toString()} missing`}
           </MetricLabel>
           <div className='llmh-cdp__viewport-spacer' />
           {prev && (
@@ -774,7 +774,7 @@ function DetailRail({ bundle }: DetailRailProps): ReactElement {
       <div className='llmh-insp'>
         <div className='llmh-insp__sticky-head'>
           <div className='llmh-insp__sticky-title'>
-            <MetricLabel size='xs'>turn</MetricLabel>
+            <MetricLabel size='xs'>Turn</MetricLabel>
             <MonoValue size='sm'>#{turn.index}</MonoValue>
             <span className='llmh-cdp__rail-row-role'>{turn.role}</span>
             <MetricLabel size='xs'>
@@ -1044,7 +1044,7 @@ function SftDrawer({
                       >
                         turn {r.turn_index}
                         {r.sequence !== undefined && (
-                          <MetricLabel size='xs'>seq {r.sequence}</MetricLabel>
+                          <MetricLabel size='xs'>Seq {r.sequence}</MetricLabel>
                         )}
                       </button>
                     ))}
@@ -1224,7 +1224,7 @@ function TurnsListModal({
           resolved.map((turn) => (
             <section key={turn.index} className='llmh-cdp__turns-list-item'>
               <header className='llmh-cdp__turns-list-head'>
-                <MetricLabel size='xs'>turn</MetricLabel>
+                <MetricLabel size='xs'>Turn</MetricLabel>
                 <MonoValue size='sm'>#{turn.index}</MonoValue>
                 <span className='llmh-cdp__rail-row-role'>{turn.role}</span>
               </header>

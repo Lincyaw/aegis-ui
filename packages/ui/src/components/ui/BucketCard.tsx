@@ -76,7 +76,7 @@ export function BucketCard({
           {publicRead ? (
             <span className="aegis-bucket-card__public" title="Public read">
               <StatusDot tone="warning" />
-              <MetricLabel>public</MetricLabel>
+              <MetricLabel>Public</MetricLabel>
             </span>
           ) : null}
         </div>

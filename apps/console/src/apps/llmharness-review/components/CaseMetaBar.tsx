@@ -36,12 +36,12 @@ export function CaseMetaBar({ meta }: CaseMetaBarProps) {
       <div className='llmh-case-meta__times'>
         {started && (
           <MetricLabel size='xs'>
-            started <TimeDisplay value={started} />
+            Started <TimeDisplay value={started} />
           </MetricLabel>
         )}
         {ended && started !== ended && (
           <MetricLabel size='xs'>
-            ended <TimeDisplay value={ended} />
+            Ended <TimeDisplay value={ended} />
           </MetricLabel>
         )}
       </div>

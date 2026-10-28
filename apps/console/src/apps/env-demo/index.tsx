@@ -37,7 +37,7 @@ function EnvDemoPage({ appLabel }: { appLabel: string }): ReactElement {
   return (
     <Panel
       title={<PanelTitle size='lg'>{appLabel}</PanelTitle>}
-      extra={<MetricLabel>environment discovery demo</MetricLabel>}
+      extra={<MetricLabel>Environment discovery demo</MetricLabel>}
     >
       <p>
         This page reads <code>useCurrentEnvironment()</code> and listens for the{' '}

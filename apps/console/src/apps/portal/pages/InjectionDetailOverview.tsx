@@ -123,7 +123,7 @@ export default function InjectionDetailOverview() {
 
       <Panel>
         <MetricLabel>
-          live status — refetches every 3s while pending/running
+          Live status — refetches every 3s while pending/running
         </MetricLabel>
       </Panel>
     </>

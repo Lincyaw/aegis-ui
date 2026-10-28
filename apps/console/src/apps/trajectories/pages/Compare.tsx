@@ -141,7 +141,7 @@ function CompareColumn({
           <MonoValue size='sm'>{sessionId.slice(0, 16)}…</MonoValue>
         </Link>
         <Chip onClick={onUnpin}>unpin</Chip>
-        <MetricLabel size='xs'>open ↗</MetricLabel>
+        <MetricLabel size='xs'>Open ↗</MetricLabel>
       </header>
       {error ? (
         <ErrorState

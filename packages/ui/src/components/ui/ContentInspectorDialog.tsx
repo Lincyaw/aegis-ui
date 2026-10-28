@@ -35,6 +35,13 @@ function codeLanguage(kind: InspectableContentKind): 'json' | 'sql' | 'text' {
   return 'text';
 }
 
+const KIND_NAMES: Record<InspectableContentKind, string> = {
+  json: 'JSON',
+  markdown: 'Markdown',
+  sql: 'SQL',
+  text: 'Text',
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -317,7 +324,7 @@ export function ContentInspectorDialog({
       className="aegis-content-inspector-modal"
     >
       <div className="aegis-content-inspector">
-        <MetricLabel>{prepared.kind} content</MetricLabel>
+        <MetricLabel>{KIND_NAMES[prepared.kind]} content</MetricLabel>
         <Tabs items={tabItems} activeKey={activeTab} onChange={setActiveTab}>
           <div className="aegis-content-inspector__body">
             {activeTab === 'rendered' ? (

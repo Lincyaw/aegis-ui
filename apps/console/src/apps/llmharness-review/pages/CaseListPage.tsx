@@ -199,7 +199,7 @@ export function CaseListPage(): ReactElement {
         >
           <MonoValue size='sm'>{r.caseId}</MonoValue>
           {r.meta.sample_id && r.meta.sample_id !== r.caseId && (
-            <MetricLabel size='xs'>sample {r.meta.sample_id}</MetricLabel>
+            <MetricLabel size='xs'>Sample {r.meta.sample_id}</MetricLabel>
           )}
         </Link>
       ),
