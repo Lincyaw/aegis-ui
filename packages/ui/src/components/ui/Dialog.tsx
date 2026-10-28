@@ -25,11 +25,37 @@ interface DialogProps {
   className?: string;
 }
 
+const TABBABLE =
+  'a[href], button:not(:disabled), input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [contenteditable="true"], [tabindex]';
+
+/** Open dialog panels, innermost last; only the innermost answers Escape and Tab. */
+const openPanels: HTMLElement[] = [];
+
+/** Keeps Tab and Shift+Tab cycling through the panel's tabbable elements. */
+function wrapTabFocus(panel: HTMLElement, event: KeyboardEvent): void {
+  const tabbable = Array.from(
+    panel.querySelectorAll<HTMLElement>(TABBABLE),
+  ).filter(
+    (element) => element.tabIndex >= 0 && element.getClientRects().length > 0,
+  );
+  const first = tabbable[0];
+  const last = tabbable[tabbable.length - 1];
+  const active = document.activeElement;
+  const inside =
+    active !== panel && active instanceof Node && panel.contains(active);
+  const atEdge = event.shiftKey ? active === first : active === last;
+  if (!inside || atEdge) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
+  }
+}
+
 /**
  * Portalled to `document.body` so a transformed or glass (backdrop-filter)
  * ancestor cannot become the containing block of the fixed backdrop. Not a
  * native `<dialog>`: its top layer would sit above antd's body-level
- * popups and toasts.
+ * popups and toasts. While open, focus stays inside the panel and the page
+ * behind it does not scroll.
  */
 export function Dialog({
   open,
@@ -54,15 +80,39 @@ export function Dialog({
   const closing = rendered && !open;
 
   useEffect(() => {
-    if (!open) {
+    const panel = panelRef.current;
+    if (!open || !panel) {
       return undefined;
     }
     const returnFocusTo = document.activeElement;
-    panelRef.current?.focus();
+    openPanels.push(panel);
+    panel.focus();
     return () => {
+      openPanels.splice(openPanels.indexOf(panel), 1);
       if (returnFocusTo instanceof HTMLElement) {
         returnFocusTo.focus();
       }
+    };
+  }, [open]);
+
+  // The page behind the backdrop stays put; a kept scrollbar gutter stops
+  // the page from shifting sideways when its scrollbar goes.
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+    const root = document.documentElement;
+    const previous = {
+      overflow: root.style.overflow,
+      scrollbarGutter: root.style.scrollbarGutter,
+    };
+    if (window.innerWidth > root.clientWidth) {
+      root.style.scrollbarGutter = 'stable';
+    }
+    root.style.overflow = 'hidden';
+    return () => {
+      root.style.overflow = previous.overflow;
+      root.style.scrollbarGutter = previous.scrollbarGutter;
     };
   }, [open]);
 
@@ -71,9 +121,15 @@ export function Dialog({
       return undefined;
     }
     const onKeyDown = (event: KeyboardEvent): void => {
+      const panel = panelRef.current;
+      if (!panel || openPanels[openPanels.length - 1] !== panel) {
+        return;
+      }
       // Escape inside an IME composition only cancels the composition.
       if (event.key === 'Escape' && !event.isComposing) {
         onClose();
+      } else if (event.key === 'Tab') {
+        wrapTabFocus(panel, event);
       }
     };
     document.addEventListener('keydown', onKeyDown);
