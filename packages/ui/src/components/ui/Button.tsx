@@ -11,28 +11,74 @@ import type { AegisAction } from '../../agent/types';
 import './Button.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 
-type ButtonTone = 'primary' | 'secondary' | 'ghost';
+type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'glass';
+
+type ButtonIconPosition = 'start' | 'end';
+
+interface ButtonLookProps {
+  children: ReactNode;
+  /**
+   * Visual treatment. `glass` is the secondary button frosted for a tinted,
+   * gradient or image background.
+   */
+  tone?: ButtonTone;
+  /** Icon beside the label, sized to the button's icon slot. */
+  icon?: ReactNode;
+  /** Side of the label the icon sits on. */
+  iconPosition?: ButtonIconPosition;
+}
+
+function buttonClassName(
+  tone: ButtonTone,
+  className: string | undefined,
+): string {
+  return ['aegis-button', `aegis-button--${tone}`, className ?? '']
+    .filter(Boolean)
+    .join(' ');
+}
+
+function ButtonContent({
+  children,
+  icon,
+  iconPosition,
+}: Pick<ButtonLookProps, 'children' | 'icon'> & {
+  iconPosition: ButtonIconPosition;
+}) {
+  const iconSlot =
+    icon === undefined ? null : (
+      <span className="aegis-button__icon" aria-hidden="true">
+        {icon}
+      </span>
+    );
+  return (
+    <>
+      {iconPosition === 'start' && iconSlot}
+      {children}
+      {iconPosition === 'end' && iconSlot}
+    </>
+  );
+}
 
 type NativeButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'type' | 'children'
 >;
 
-interface ButtonProps extends NativeButtonProps {
-  children: ReactNode;
-  /** Visual treatment. */
-  tone?: ButtonTone;
+interface ButtonProps extends NativeButtonProps, ButtonLookProps {
   /** Optional aegis-ui agent action — also wires the agent runtime. */
   action?: AegisAction<void, unknown>;
   /** Native HTML button type. */
   type?: 'button' | 'submit' | 'reset';
 }
 
+/** A toggle button passes `aria-pressed`; the pressed state is the inverted fill. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       children,
       tone = 'primary',
+      icon,
+      iconPosition = 'start',
       action,
       onClick,
       disabled,
@@ -59,10 +105,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       [onClick, action, bound],
     );
 
-    const cls = ['aegis-button', `aegis-button--${tone}`, className ?? '']
-      .filter(Boolean)
-      .join(' ');
-
     const resolvedTitle =
       title ?? (isUnavailable ? bound.unavailableReason : undefined);
 
@@ -70,25 +112,25 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         type={type}
-        className={cls}
+        className={buttonClassName(tone, className)}
         disabled={disabled ?? isUnavailable}
         title={resolvedTitle}
         data-agent-action-id={action?.id}
         onClick={handleClick}
         {...rest}
       >
-        {children}
+        <ButtonContent icon={icon} iconPosition={iconPosition}>
+          {children}
+        </ButtonContent>
       </button>
     );
   },
 );
 Button.displayName = 'Button';
 
-interface ButtonLinkProps {
+interface ButtonLinkProps extends ButtonLookProps {
   /** Destination; the control navigates instead of firing a handler. */
   to: string;
-  children: ReactNode;
-  tone?: ButtonTone;
   /** Renders the link. Defaults to an `<a href>`; routed apps pass their Link adapter. */
   linkComponent?: LinkComponent;
   className?: string;
@@ -99,16 +141,17 @@ export function ButtonLink({
   to,
   children,
   tone = 'primary',
+  icon,
+  iconPosition = 'start',
   linkComponent,
   className,
 }: ButtonLinkProps) {
   const LinkImpl = linkComponent ?? DefaultLink;
-  const cls = ['aegis-button', `aegis-button--${tone}`, className ?? '']
-    .filter(Boolean)
-    .join(' ');
   return (
-    <LinkImpl to={to} className={cls}>
-      {children}
+    <LinkImpl to={to} className={buttonClassName(tone, className)}>
+      <ButtonContent icon={icon} iconPosition={iconPosition}>
+        {children}
+      </ButtonContent>
     </LinkImpl>
   );
 }

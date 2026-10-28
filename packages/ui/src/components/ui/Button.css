@@ -2,59 +2,106 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-sm);
+  gap: var(--space-2);
+  min-height: var(--size-control-base);
+  padding: var(--space-1) var(--space-4);
+  border: var(--size-hairline) solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-main);
   font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  line-height: 1.4;
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
-  border: var(--size-hairline) solid transparent;
-  background: transparent;
-  color: var(--text-main);
   transition:
-    background var(--motion-fast),
-    color var(--motion-fast),
+    transform var(--motion-fast),
+    box-shadow var(--motion-fast),
+    opacity var(--motion-fast),
+    background-color var(--motion-fast),
     border-color var(--motion-fast),
-    transform var(--motion-fast);
+    color var(--motion-fast);
+}
+
+.aegis-button__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: var(--size-icon-base);
 }
 
 .aegis-button:focus-visible {
-  outline: var(--size-hairline) solid var(--border-strong);
-  outline-offset: var(--space-px);
-}
-
-.aegis-button:active:not(:disabled) {
-  transform: scale(0.98);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .aegis-button:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .aegis-button--primary {
   background: var(--bg-inverted);
-  color: var(--text-on-inverted);
   border-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
 }
 
 .aegis-button--secondary {
-  background: transparent;
+  background: var(--bg-panel);
+  border-color: var(--border-hairline);
   color: var(--text-main);
-  border-color: var(--border-emphasis);
+  box-shadow: var(--shadow-rest);
+}
+
+.aegis-button--glass {
+  background: var(--bg-glass-strong);
+  border-color: var(--border-glass);
+  color: var(--text-main);
+  box-shadow: var(--shadow-rest);
+  backdrop-filter: blur(var(--glass-blur));
 }
 
 .aegis-button--ghost {
-  background: transparent;
   color: var(--text-muted);
-  border-color: transparent;
 }
 
-.aegis-button--ghost:hover:not(:disabled) {
-  background: var(--bg-muted);
-  color: var(--text-main);
+.aegis-button[aria-pressed='true'] {
+  background: var(--bg-inverted);
+  border-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+/* Touch screens keep :hover after a tap, which would leave the button lifted. */
+@media (hover: hover) {
+  .aegis-button:hover:not(:disabled) {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+  }
+
+  .aegis-button--primary:hover:not(:disabled),
+  .aegis-button[aria-pressed='true']:hover:not(:disabled) {
+    opacity: 0.88;
+  }
+
+  .aegis-button--secondary:hover:not(:disabled),
+  .aegis-button--glass:hover:not(:disabled) {
+    box-shadow: var(--shadow-raised);
+  }
+
+  .aegis-button--ghost:hover:not(:disabled, [aria-pressed='true']) {
+    background: var(--bg-muted);
+    color: var(--text-main);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-button {
+    transition: none;
+  }
+
+  .aegis-button:hover:not(:disabled) {
+    transform: none;
+  }
 }
