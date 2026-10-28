@@ -1,9 +1,6 @@
 .aegis-panel-title {
-  font-family: var(--font-brand);
-  font-weight: var(--fw-medium);
-  letter-spacing: var(--tracking-brand);
-  line-height: 1.2;
   display: inline-block;
+  font-family: var(--font-ui);
 }
 
 .aegis-panel-title--italic {
@@ -11,26 +8,44 @@
 }
 
 .aegis-panel-title--sm {
-  font-size: var(--fs-14);
+  font-size: var(--type-strong-size);
+  font-weight: var(--type-strong-weight);
+  line-height: var(--type-strong-line);
+  letter-spacing: var(--type-strong-tracking);
 }
 
 .aegis-panel-title--base {
-  font-size: var(--fs-16);
+  font-size: var(--type-heading-size);
+  font-weight: var(--type-heading-weight);
+  line-height: var(--type-heading-line);
+  letter-spacing: var(--type-heading-tracking);
 }
 
 .aegis-panel-title--lg {
-  font-size: var(--fs-24);
+  font-size: var(--type-title-size);
+  font-weight: var(--type-title-weight);
+  line-height: var(--type-title-line);
+  letter-spacing: var(--type-title-tracking);
 }
 
 .aegis-panel-title--hero {
-  font-size: var(--fs-42);
+  font-size: var(--type-display-size);
+  font-weight: var(--type-display-weight);
+  line-height: var(--type-display-line);
+  letter-spacing: var(--type-display-tracking);
 }
 
 @media (max-width: 768px) {
   .aegis-panel-title--hero {
-    font-size: var(--fs-28);
+    font-size: var(--type-title-size);
+    font-weight: var(--type-title-weight);
+    line-height: var(--type-title-line);
+    letter-spacing: var(--type-title-tracking);
   }
   .aegis-panel-title--lg {
-    font-size: var(--fs-18);
+    font-size: var(--type-article-subheading-size);
+    font-weight: var(--type-article-subheading-weight);
+    line-height: var(--type-article-subheading-line);
+    letter-spacing: var(--type-article-subheading-tracking);
   }
 }

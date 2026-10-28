@@ -2,61 +2,35 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  border: var(--size-hairline) solid transparent;
+  border-radius: var(--radius-md);
   font-family: var(--font-ui);
-  font-size: var(--fs-12);
-  line-height: 1.5;
+  font-size: var(--type-small-size);
+  font-weight: var(--type-small-weight);
+  line-height: var(--type-small-line);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-main);
 }
 
-.aegis-alert__body {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* Icon in place of the dot, centred on the first line and in the tone ink. */
-.aegis-alert__icon {
+/* Dot or icon in the tone colour, centred on the first line. */
+.aegis-alert__marker {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  height: calc(var(--fs-12) * 1.5);
+  height: var(--type-small-line);
   font-size: var(--size-icon-base);
 }
 
-.aegis-alert--info {
-  border-color: var(--bg-info-soft);
-  background: var(--bg-info-soft);
-  color: var(--accent-info);
+.aegis-alert--titled .aegis-alert__marker {
+  height: var(--type-strong-line);
 }
 
-.aegis-alert--warning {
-  border-color: var(--bg-warn-soft);
-  background: var(--bg-warn-soft);
-  color: var(--ink-warn);
-}
-
-.aegis-alert--error {
-  border-color: var(--bg-warning-soft);
-  background: var(--bg-warning-soft);
-  color: var(--accent-warning);
-}
-
-.aegis-alert--success {
-  border-color: var(--bg-success-soft);
-  background: var(--bg-success-soft);
-  color: var(--accent-success);
-}
-
-/* Titled: a strong ink heading over a muted body on the soft tone wash. */
-.aegis-alert--titled {
-  padding: var(--space-3) var(--space-4);
-}
-
-.aegis-alert__marker {
-  display: flex;
-  align-items: center;
-  height: calc(var(--fs-13) * 1.5);
+.aegis-alert__dot {
+  width: var(--size-dot);
+  height: var(--size-dot);
+  border-radius: var(--radius-circle);
+  background: currentColor;
 }
 
 .aegis-alert__content {
@@ -65,14 +39,52 @@
   flex-direction: column;
   gap: var(--space-1);
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .aegis-alert__title {
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  color: var(--text-main);
+  font-size: var(--type-strong-size);
+  font-weight: var(--type-strong-weight);
+  line-height: var(--type-strong-line);
+  letter-spacing: var(--type-strong-tracking);
 }
 
 .aegis-alert--titled .aegis-alert__body {
   color: var(--text-muted);
+}
+
+.aegis-alert--info {
+  border-color: var(--bg-info-soft);
+  background: var(--bg-info-soft);
+}
+
+.aegis-alert--info .aegis-alert__marker {
+  color: var(--accent-info);
+}
+
+.aegis-alert--success {
+  border-color: var(--bg-success-soft);
+  background: var(--bg-success-soft);
+}
+
+.aegis-alert--success .aegis-alert__marker {
+  color: var(--accent-success);
+}
+
+.aegis-alert--warning {
+  border-color: var(--bg-warn-soft);
+  background: var(--bg-warn-soft);
+}
+
+.aegis-alert--warning .aegis-alert__marker {
+  color: var(--ink-warn);
+}
+
+.aegis-alert--error {
+  border-color: var(--bg-warning-soft);
+  background: var(--bg-warning-soft);
+}
+
+.aegis-alert--error .aegis-alert__marker {
+  color: var(--accent-warning);
 }

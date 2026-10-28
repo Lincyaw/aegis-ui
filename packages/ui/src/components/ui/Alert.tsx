@@ -1,7 +1,6 @@
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import './Alert.css';
-import { StatusDot } from './StatusDot';
 
 type AlertTone = 'info' | 'success' | 'warning' | 'error';
 
@@ -15,16 +14,6 @@ interface AlertProps {
   children: ReactNode;
   className?: string;
 }
-
-const DOT_TONE: Record<
-  AlertTone,
-  'warning' | 'inverted' | 'muted' | 'success'
-> = {
-  info: 'inverted',
-  success: 'success',
-  warning: 'muted',
-  error: 'warning',
-};
 
 export function Alert({
   tone = 'info',
@@ -41,28 +30,17 @@ export function Alert({
   ]
     .filter(Boolean)
     .join(' ');
-  const marker =
-    icon === undefined ? (
-      <StatusDot tone={DOT_TONE[tone]} size={6} />
-    ) : (
-      <span className="aegis-alert__icon">{icon}</span>
-    );
   return (
     <div className={cls} role="status">
-      {title === undefined ? (
-        <>
-          {marker}
-          <span className="aegis-alert__body">{children}</span>
-        </>
-      ) : (
-        <>
-          <span className="aegis-alert__marker">{marker}</span>
-          <div className="aegis-alert__content">
-            <span className="aegis-alert__title">{title}</span>
-            <span className="aegis-alert__body">{children}</span>
-          </div>
-        </>
-      )}
+      <span className="aegis-alert__marker" aria-hidden="true">
+        {icon ?? <span className="aegis-alert__dot" />}
+      </span>
+      <div className="aegis-alert__content">
+        {title !== undefined && (
+          <span className="aegis-alert__title">{title}</span>
+        )}
+        <span className="aegis-alert__body">{children}</span>
+      </div>
     </div>
   );
 }

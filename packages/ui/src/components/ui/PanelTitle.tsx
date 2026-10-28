@@ -6,6 +6,7 @@ interface PanelTitleProps {
   children: ReactNode;
   as?: 'span' | 'h1' | 'h2' | 'h3' | 'h4';
   italic?: boolean;
+  /** Type roles: sm Strong, base Heading, lg Title, hero Display. */
   size?: 'sm' | 'base' | 'lg' | 'hero';
   className?: string;
 }
