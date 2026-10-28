@@ -2,17 +2,24 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  height: var(--search-input-height);
-  padding: var(--space-1) var(--space-3);
+  height: var(--size-control-base);
+  padding: 0 var(--space-3);
   background: var(--bg-page);
   border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   min-width: 0;
-  transition: border-color var(--motion-fast);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.aegis-search-input:hover {
+  border-color: var(--border-emphasis);
 }
 
 .aegis-search-input:focus-within {
-  border-color: var(--text-main);
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
 }
 
 .aegis-search-input__icon {
@@ -26,7 +33,10 @@
   background: none;
   outline: none;
   font-family: var(--font-ui);
-  font-size: var(--fs-13);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
   color: var(--text-main);
   width: 15rem;
   min-width: 7.5rem;
@@ -57,8 +67,8 @@
   background: none;
   cursor: pointer;
   color: var(--text-muted);
-  font-size: var(--fs-11);
-  border-radius: var(--radius-sm);
+  font-size: var(--size-icon-sm);
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
   transition: color var(--motion-fast);
 }
@@ -76,7 +86,8 @@
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-xs);
   font-family: var(--font-mono);
-  font-size: var(--fs-10);
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
   color: var(--text-muted);
   flex-shrink: 0;
   white-space: nowrap;

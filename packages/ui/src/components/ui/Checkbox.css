@@ -3,7 +3,10 @@
   align-items: center;
   gap: var(--space-2);
   font-family: var(--font-ui);
-  font-size: var(--fs-12);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
   color: var(--text-main);
   cursor: pointer;
   user-select: none;
@@ -62,16 +65,24 @@
 }
 
 .aegis-checkbox__input:focus-visible + .aegis-checkbox__box {
-  outline: var(--size-hairline) solid var(--accent-info);
-  outline-offset: var(--space-px);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .aegis-checkbox--disabled {
-  color: var(--text-muted);
+  color: var(--text-faint);
   cursor: not-allowed;
 }
 
 .aegis-checkbox--disabled .aegis-checkbox__box {
   border-color: var(--border-hairline);
   background: var(--bg-muted);
+}
+
+.aegis-checkbox--disabled .aegis-checkbox__input:checked + .aegis-checkbox__box,
+.aegis-checkbox--disabled
+  .aegis-checkbox__input:indeterminate
+  + .aegis-checkbox__box {
+  border-color: var(--text-faint);
+  background: var(--text-faint);
 }

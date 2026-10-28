@@ -1,5 +1,7 @@
 import { type ReactNode } from 'react';
 
+import { CloseOutlined, DownOutlined } from '@ant-design/icons';
+
 import { useStrings } from '../../locale';
 import './Select.css';
 
@@ -41,9 +43,11 @@ export function Select({
 }: SelectProps) {
   const strings = useStrings();
   const clearable = allowClear && value !== '' && !disabled;
+  const showsPlaceholder = placeholder !== undefined && value === '';
   const cls = [
     'aegis-select',
     clearable ? 'aegis-select--clearable' : '',
+    showsPlaceholder ? 'aegis-select--placeholder' : '',
     className ?? '',
   ]
     .filter(Boolean)
@@ -81,7 +85,7 @@ export function Select({
             </option>
           ))}
         </select>
-        <span className="aegis-select__chevron" aria-hidden="true" />
+        <DownOutlined className="aegis-select__chevron" aria-hidden />
         {clearable && (
           <button
             type="button"
@@ -91,7 +95,7 @@ export function Select({
               onChange('');
             }}
           >
-            ×
+            <CloseOutlined aria-hidden />
           </button>
         )}
       </div>
