@@ -1,0 +1,207 @@
+.aegis-stacked-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  min-width: 0;
+  color: var(--text-main);
+}
+
+.aegis-stacked-bar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  list-style: none;
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
+}
+
+.aegis-stacked-bar__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.aegis-stacked-bar__swatch {
+  flex-shrink: 0;
+  width: var(--size-legend-swatch);
+  height: var(--size-legend-swatch);
+  border-radius: var(--radius-sm);
+}
+
+/* Rows share the columns, so labels, bars and totals line up. */
+.aegis-stacked-bar__rows {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.aegis-stacked-bar--noted .aegis-stacked-bar__rows {
+  grid-template-columns:
+    minmax(0, max-content) minmax(0, 1fr) max-content
+    max-content;
+}
+
+.aegis-stacked-bar__row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.aegis-stacked-bar__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-ui);
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+}
+
+.aegis-stacked-bar__track {
+  min-width: 0;
+  height: var(--space-4);
+}
+
+/* Each bar draws in from the left once, one row after another; later
+ * value changes slide the widths instead of replaying from 0. */
+.aegis-stacked-bar__bar {
+  display: flex;
+  height: 100%;
+  transition: width var(--motion-chart);
+  animation: aegis-bar-grow var(--motion-chart) backwards;
+  animation-delay: calc(
+    var(--motion-stagger-step) * var(--aegis-stacked-bar-index)
+  );
+}
+
+/* The global reduced-motion rule shortens durations but not delays. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-stacked-bar__bar {
+    animation: none;
+  }
+}
+
+/* A zero total still marks the axis start — an empty track reads as missing. */
+.aegis-stacked-bar__bar--zero {
+  min-width: var(--space-px);
+  background: var(--text-muted);
+}
+
+.aegis-stacked-bar__segment {
+  flex: none;
+  min-width: var(--space-px);
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: width var(--motion-chart);
+}
+
+.aegis-stacked-bar__mark--seq {
+  background: var(--data-seq);
+}
+
+.aegis-stacked-bar__mark--cat-1 {
+  background: var(--data-cat-1);
+}
+
+.aegis-stacked-bar__mark--cat-2 {
+  background: var(--data-cat-2);
+}
+
+.aegis-stacked-bar__mark--cat-3 {
+  background: var(--data-cat-3);
+}
+
+.aegis-stacked-bar__mark--cat-4 {
+  background: var(--data-cat-4);
+}
+
+.aegis-stacked-bar__mark--cat-5 {
+  background: var(--data-cat-5);
+}
+
+.aegis-stacked-bar__mark--cat-6 {
+  background: var(--data-cat-6);
+}
+
+.aegis-stacked-bar__mark--unknown {
+  background: var(--bg-muted);
+  box-shadow: inset 0 0 0 var(--size-hairline) var(--border-hairline);
+}
+
+.aegis-stacked-bar__value {
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  line-height: var(--type-numeric-line);
+  font-weight: var(--type-numeric-weight);
+  letter-spacing: var(--type-numeric-tracking);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* The note reads on from the total, so it sits closer than the column gap. */
+.aegis-stacked-bar__note {
+  margin-left: calc(var(--space-2) * -1);
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* The 0 and maximum ticks sit under the bars, closer than the row gap. */
+.aegis-stacked-bar__scale {
+  display: flex;
+  grid-column: 2;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: calc(var(--space-2) * -1);
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.aegis-stacked-bar__direction {
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+}
+
+/* Phones: label and total on one line, the bar full width under them. */
+@media (max-width: 768px) {
+  .aegis-stacked-bar__rows {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    row-gap: var(--space-3);
+  }
+
+  .aegis-stacked-bar--noted .aegis-stacked-bar__rows {
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
+  }
+
+  .aegis-stacked-bar__row {
+    row-gap: var(--space-1);
+  }
+
+  .aegis-stacked-bar__track {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .aegis-stacked-bar__scale {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+}

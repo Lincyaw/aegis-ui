@@ -1,0 +1,120 @@
+/* The table's border spacing adds the other half of the padding around
+ * the cells, so cells and caption both sit --space-4 inside the frame. */
+.aegis-check-grid {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-2);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+}
+
+.aegis-check-grid__scroll {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.aegis-check-grid__table {
+  border-collapse: separate;
+  border-spacing: var(--space-2);
+}
+
+.aegis-check-grid__corner,
+.aegis-check-grid__run {
+  padding: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  color: var(--text-muted);
+  vertical-align: bottom;
+}
+
+.aegis-check-grid__corner {
+  text-align: left;
+}
+
+.aegis-check-grid__run {
+  min-width: var(--check-grid-cell-width);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.aegis-check-grid__check {
+  min-width: 16ch;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-size);
+  line-height: var(--type-mono-line);
+  font-weight: var(--type-mono-weight);
+  letter-spacing: var(--type-mono-tracking);
+  text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.aegis-check-grid__slot {
+  padding: 0;
+  vertical-align: middle;
+}
+
+.aegis-check-grid__cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--check-grid-cell-width);
+  height: var(--check-grid-cell-height);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-tracking);
+  font-variant-numeric: tabular-nums;
+}
+
+.aegis-check-grid__value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aegis-check-grid__cell--passed {
+  background: var(--bg-success-soft);
+  color: var(--accent-success);
+}
+
+.aegis-check-grid__cell--missed {
+  background: var(--bg-warning-soft);
+  color: var(--accent-warning);
+}
+
+.aegis-check-grid__cell--unchecked {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+/* Screen readers say this instead of the decorative em dash. */
+.aegis-check-grid__spoken {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.aegis-check-grid__caption {
+  padding: 0 var(--space-2) var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--type-article-caption-size);
+  line-height: var(--type-article-caption-line);
+  font-weight: var(--type-article-caption-weight);
+  letter-spacing: var(--type-article-caption-tracking);
+  color: var(--text-muted);
+}
