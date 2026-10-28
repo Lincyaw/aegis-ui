@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
 import type { Command } from '../../commands';
+import type { AmbientBackgroundVariant } from '../../components/ui/AmbientBackground';
 import type { AegisAppEnvironmentsConfig } from './environments/types';
 
 /**
@@ -171,6 +172,12 @@ export interface AegisShellProps {
   appSwitcher?: boolean;
   /** Gives the sticky top header a shadow once the page scrolls. */
   elevateHeaderOnScroll?: boolean;
+  /**
+   * Draws an `AmbientBackground` of this variant across the top of the
+   * shell, beneath the glass header and the page content. Omit it for a
+   * plain page background.
+   */
+  ambient?: AmbientBackgroundVariant;
   /**
    * When set, a notification bell is rendered in the top header (between
    * `headerActions` and the user menu) and clicking "View all" routes to

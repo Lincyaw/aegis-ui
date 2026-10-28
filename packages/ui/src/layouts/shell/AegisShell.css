@@ -6,6 +6,12 @@
   color: var(--text-main);
 }
 
+/* The ambient glows paint above the page background and beneath the header and content. */
+.aegis-shell--ambient {
+  position: relative;
+  isolation: isolate;
+}
+
 /* The content column is minmax(0, 1fr), so a header row wider than the viewport
    (a long tab list) scrolls inside the header instead of widening the page. */
 .aegis-shell--with-sidebar {

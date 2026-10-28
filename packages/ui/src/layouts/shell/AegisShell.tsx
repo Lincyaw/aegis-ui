@@ -28,6 +28,7 @@ import { defaultAgentContextValue } from '../../agent/agentContext';
 import { type AegisAuthUser, type AuthStatus, useAuth } from '../../auth';
 import { type Command, useCommands } from '../../commands';
 import { defaultCommandContextValue } from '../../commands/commandContext';
+import { AmbientBackground } from '../../components/ui/AmbientBackground';
 import { Chip } from '../../components/ui/Chip';
 import { CommandPalette } from '../../components/ui/CommandPalette';
 import { readStorage, writeStorage } from '../../lib/storage';
@@ -66,6 +67,7 @@ export function AegisShell({
   headerActions,
   appSwitcher = true,
   elevateHeaderOnScroll = false,
+  ambient,
   inboxPath,
   onAppSwitch,
   enableCommandPalette = false,
@@ -285,6 +287,7 @@ export function AegisShell({
     hasSidebar ? 'aegis-shell--with-sidebar' : 'aegis-shell--no-sidebar',
     mobileNavOpen ? 'aegis-shell--mobile-nav-open' : '',
     agentPanelOpen ? 'aegis-shell--with-agent-panel' : '',
+    ambient ? 'aegis-shell--ambient' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -297,6 +300,7 @@ export function AegisShell({
     >
       <ActiveAppEnvironmentProvider app={activeApp}>
         <div className={shellClass}>
+          {ambient && <AmbientBackground variant={ambient} />}
           <TopHeader
             brand={brand}
             apps={visibleApps}
