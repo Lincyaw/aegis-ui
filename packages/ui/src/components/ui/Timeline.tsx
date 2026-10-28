@@ -12,11 +12,11 @@ export interface TimelineItem {
   title: ReactNode;
   /** Body — optional secondary line. */
   description?: ReactNode;
-  /** Absolute timestamp; rendered with `var(--font-mono)`. */
+  /** Absolute timestamp, in the mono role. */
   timestamp?: ReactNode;
-  /** Slot at the end of the row (e.g. revision chip). */
+  /** Slot at the end of the title row, in the mono role (e.g. a revision). */
   meta?: ReactNode;
-  /** Override dot colour with a CSS custom property name or raw token. */
+  /** CSS colour for the dot, e.g. `var(--accent-success)`. */
   dotColor?: string;
   /**
    * Leading mono label in the `numbered` variant, e.g. a step number.
@@ -40,7 +40,6 @@ interface TimelineProps {
    * shows in full on hover) and tightens the rows.
    */
   density?: 'comfortable' | 'compact';
-  /** Reverse visual order (newest first vs oldest first). Doesn't sort. */
   className?: string;
   style?: CSSProperties;
   surface?: TimelineSurface;
