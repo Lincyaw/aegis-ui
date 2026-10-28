@@ -28,7 +28,7 @@
   background: var(--bg-panel);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-popover);
+  box-shadow: var(--shadow-overlay);
   overflow: hidden;
   animation: page-fade-in var(--motion-base) both;
 }

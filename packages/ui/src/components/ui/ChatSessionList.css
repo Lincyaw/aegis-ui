@@ -152,7 +152,7 @@
   color: var(--text-main);
   border: var(--size-hairline) solid var(--border-emphasis);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-popover);
+  box-shadow: var(--shadow-overlay);
   padding: var(--space-1);
   display: flex;
   flex-direction: column;

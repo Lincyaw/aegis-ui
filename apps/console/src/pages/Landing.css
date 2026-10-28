@@ -14,7 +14,7 @@
   color: var(--text-main);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--shadow-rest);
   text-decoration: none;
   transition:
     box-shadow var(--motion-fast),
@@ -24,7 +24,7 @@
 
 .landing-card:hover {
   border-color: var(--border-emphasis);
-  box-shadow: var(--shadow-popover);
+  box-shadow: var(--shadow-raised);
 }
 
 .landing-card__head {

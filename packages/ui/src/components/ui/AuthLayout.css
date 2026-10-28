@@ -27,7 +27,7 @@
   background: var(--bg-panel);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--shadow-rest);
   padding: var(--space-8);
   display: flex;
   flex-direction: column;

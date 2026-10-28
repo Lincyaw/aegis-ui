@@ -3,8 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate } from 'react-router-dom';
 
 import '@fontsource-variable/geist';
-import '@fontsource-variable/inter';
-import '@fontsource-variable/jetbrains-mono';
+import '@fontsource-variable/hanken-grotesk';
+import '@fontsource-variable/noto-sans-sc';
+import '@fontsource/google-sans-code/400.css';
+import '@fontsource/google-sans-code/500.css';
 import {
   type AegisApp,
   AegisShell,

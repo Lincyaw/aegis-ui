@@ -130,7 +130,7 @@
   color: var(--text-main);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--shadow-overlay);
 }
 
 .aegis-content-inspector-modal .ant-modal-header {

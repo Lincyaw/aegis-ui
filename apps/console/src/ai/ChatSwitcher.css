@@ -50,7 +50,7 @@
   background: var(--bg-panel);
   border: var(--size-hairline) solid var(--border-emphasis);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-popover);
+  box-shadow: var(--shadow-overlay);
   padding: var(--space-1);
   display: flex;
   flex-direction: column;

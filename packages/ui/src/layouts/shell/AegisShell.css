@@ -51,7 +51,7 @@
 
 /* elevateHeaderOnScroll: the page has scrolled under the header. */
 .aegis-shell__header--scrolled {
-  box-shadow: var(--shadow-popover);
+  box-shadow: var(--shadow-rest);
 }
 
 .aegis-shell__header-left {
@@ -574,7 +574,7 @@
     z-index: var(--z-modal);
     transform: translateX(-100%);
     transition: transform var(--motion-base);
-    box-shadow: var(--shadow-popover);
+    box-shadow: var(--shadow-overlay);
   }
 
   .aegis-shell--mobile-nav-open .aegis-shell__sidebar {

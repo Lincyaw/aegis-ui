@@ -1,54 +1,84 @@
 /**
- * AegisLab Design Tokens — "Rosetta" lab-instrument language.
+ * AegisLab Design Tokens.
  *
- * Inspired by the Variant shared design (Rosetta · Chaos Lab):
- *   - Editorial serif (Playfair) for section voice.
- *   - Inter for UI text.
- *   - JetBrains Mono for measured values (numbers, IDs, parameters).
- *   - Pure black ink + warm off-white surface, single warning red.
- *   - Inverted state ("active" = bg flips to ink) instead of accent colors.
+ *   - Cool, very light surfaces: a near-white cool grey page, white panels
+ *     and pale cool tint blocks over a faint blue / teal / violet ambient
+ *     wash. Dark fills appear only on small elements (primary button,
+ *     inverted chip), never as page or section backgrounds.
+ *   - Soft near-black ink instead of pure black; activation is surface
+ *     inversion (--bg-inverted + --text-on-inverted).
+ *   - One brand blue (--accent-brand) for brand marks, hero emphasis, the
+ *     focus ring and the current navigation item; links share its value as
+ *     --accent-info. Anomaly red (--accent-warning) marks real failures only.
+ *   - Glass (--bg-glass, --glass-blur, --border-glass) for surfaces layered
+ *     over content: top navigation, floating toolbars, hero panels.
+ *   - Pill controls (--radius-pill) for buttons, chips, segmented tabs and
+ *     search; cards and dialogs at --radius-lg; three elevations (rest,
+ *     raised, overlay).
+ *   - Hanken Grotesk for Latin text and numbers (its digits share one
+ *     advance width), PingFang SC / Noto Sans SC for Chinese, Google Sans
+ *     Code for ids, paths and code. Text sizes come from the --type-* roles.
  */
 
 :root {
   /* ── Surface ─────────────────────────────────────────────────────── */
-  --bg-page: #f5f5f7;
+  --bg-page: #f7f8fa;
   --bg-panel: #ffffff;
-  --bg-inverted: #000000;
-  --bg-muted: #e8e8ed;
+  --bg-muted: #f1f3f5;
+  --bg-inverted: #1f2328;
+  --bg-tint: #e9eef5;
+  --bg-brand-soft: #eef1fe;
+  --bg-glass: rgba(255, 255, 255, 0.72);
+  --bg-glass-strong: rgba(255, 255, 255, 0.88);
+  --bg-backdrop: rgba(31, 35, 40, 0.28);
+  --bg-info-soft: #eef1fe;
+  --bg-success-soft: #edf8f3;
   --bg-warning-soft: #fef2f2;
+  --bg-warn-soft: #fffbeb;
 
   /* ── Ink ─────────────────────────────────────────────────────────── */
-  --text-main: #000000;
-  --text-muted: #555555;
+  --text-main: #1f2328;
+  --text-muted: #5f6368;
+  /* Axis ticks, disabled text, decorative separators — never text that
+   * must be read, never placeholders (below 4.5:1). */
+  --text-faint: #9aa0a6;
   --text-on-inverted: #ffffff;
   --text-on-inverted-muted: #aaaaaa;
 
   /* ── Border / divider ────────────────────────────────────────────── */
-  --border-hairline: rgba(0, 0, 0, 0.08);
-  /* Mid-weight border used on hover / expanded states. */
-  --border-emphasis: rgba(0, 0, 0, 0.18);
+  --border-hairline: rgba(31, 35, 40, 0.08);
+  /* Hover, expanded and secondary-control borders. */
+  --border-emphasis: rgba(31, 35, 40, 0.16);
+  /* Inner stroke that lights the edge of a glass surface. */
+  --border-glass: rgba(255, 255, 255, 0.6);
   --border-strong: var(--text-main);
   /* Border used on `--bg-inverted` surfaces (inverted state). */
   --border-on-inverted: rgba(255, 255, 255, 0.1);
 
-  /* ── Semantic accent (use sparingly — anomalies only) ────────────── */
+  /* ── Brand + semantic accents ────────────────────────────────────── */
+  /* Brand marks, hero emphasis, focus ring, current navigation — never
+   * status. */
+  --accent-brand: #3c56f4;
+  /* Links and clickable text; same value as the brand. */
+  --accent-info: #3c56f4;
+  --accent-success: #167a62;
+  /* Anomaly red — actual failures, breaches, alarms only. */
   --accent-warning: #e11d48;
   --accent-warning-soft: var(--bg-warning-soft);
+  --ink-warn: #d97706; /* logs & cautions, NOT anomaly red */
+  --accent-caution: #d97706; /* pre-prod / staging env badge */
 
-  /* ── Secondary semantic (logs, non-anomaly attention) ────────────── */
-  --ink-warn: #d97706; /* amber-600 — logs & cautions, NOT anomaly red */
-  --bg-warn-soft: #fffbeb;
-
-  /* ── Environment switcher badge tones ─────────────────────────────── */
-  /* Distinct from --accent-warning (anomaly red) — used to label envs. */
-  --accent-info: #2563eb; /* blue-600 — informational env badge */
-  --accent-caution: #d97706; /* amber-600 — pre-prod / staging env badge */
-
-  /* ── Outcome tones (pass / neutral-attention) ─────────────────────── */
-  /* Counterpart to --accent-warning: a check or run that came back clean. */
-  --accent-success: #167a62;
-  --bg-success-soft: #edf8f3;
-  --bg-info-soft: #eff6ff;
+  /* ── Ambient wash (AmbientBackground blobs) ──────────────────────── */
+  /* Centre colour of each radial blob; the edge fades to transparent. */
+  --ambient-1: rgba(220, 227, 255, 0.45); /* blue */
+  --ambient-2: rgba(221, 242, 238, 0.36); /* teal */
+  --ambient-3: rgba(239, 230, 255, 0.22); /* violet */
+  /* The hero variant's blobs are stronger and slightly different hues. */
+  --ambient-hero-1: rgba(214, 222, 255, 0.95);
+  --ambient-hero-2: rgba(211, 239, 234, 0.85);
+  --ambient-hero-3: rgba(239, 230, 255, 0.6);
+  --ambient-page-height: 520px;
+  --ambient-hero-height: 960px;
 
   /* ── Data visualisation ──────────────────────────────────────────── */
   /* Marks in charts only — never status or links. `seq` is the single hue
@@ -67,18 +97,42 @@
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.32);
 
   /* ── Overlays ────────────────────────────────────────────────────── */
-  --bg-backdrop: rgba(0, 0, 0, 0.4);
   --overlay-width-sm: 480px;
   --overlay-width-md: 560px;
   --overlay-width-lg: 680px;
 
   /* ── Radius ──────────────────────────────────────────────────────── */
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
-  --radius-pill: 20px;
+  --radius-xs: 4px; /* checkboxes, key hints */
+  --radius-sm: 6px; /* chip inner corners, check cells, small controls */
+  --radius-md: 10px; /* inputs, selects, code blocks, file browser */
+  --radius-lg: 20px; /* cards, panels, dialogs */
+  --radius-xl: 28px; /* overview hero, featured cards */
+  --radius-pill: 999px; /* buttons, chips, segmented tabs, bars */
   --radius-circle: 50%;
+
+  /* ── Elevation ───────────────────────────────────────────────────── */
+  /* One elevation per layer; a card never nests another shadowed card. */
+  --shadow-rest:
+    0 1px 2px rgba(31, 35, 40, 0.04), 0 6px 20px -6px rgba(31, 35, 40, 0.08);
+  --shadow-raised:
+    0 2px 4px rgba(31, 35, 40, 0.04), 0 16px 40px -12px rgba(31, 35, 40, 0.16);
+  --shadow-overlay:
+    0 8px 24px -6px rgba(31, 35, 40, 0.12),
+    0 28px 64px -16px rgba(31, 35, 40, 0.2);
+  /* Glass = --bg-glass + backdrop-filter: blur(--glass-blur) +
+   * --border-glass + --shadow-rest. */
+  --glass-blur: 24px;
+  /* Blur under the dialog backdrop. */
+  --backdrop-blur: 8px;
+
+  /* ── Focus ───────────────────────────────────────────────────────── */
+  --focus-ring-color: var(--accent-brand);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  /* Glow around a focused field, outside its brand-coloured border. */
+  --focus-halo: 0 0 0 3px var(--bg-brand-soft);
+  /* The same glow around a focused field in its error state. */
+  --focus-halo-warning: 0 0 0 3px var(--bg-warning-soft);
 
   /* ── Spacing (4px scale + 2px micro) ─────────────────────────────── */
   --space-px: 2px;
@@ -96,13 +150,16 @@
   --font-brand:
     'Geist Variable', 'Geist', 'Inter Variable', 'Inter', -apple-system,
     BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Latin glyphs from Hanken Grotesk; Chinese falls back per glyph to
+   * PingFang SC on Apple devices, then Noto Sans SC, then YaHei. */
   --font-ui:
-    'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    'Noto Sans SC Variable', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', sans-serif;
-  --font-mono:
-    'JetBrains Mono Variable', 'JetBrains Mono', 'SF Mono', Monaco,
-    'Cascadia Code', Consolas, monospace;
+    'Hanken Grotesk Variable', 'Hanken Grotesk', 'PingFang SC',
+    'Noto Sans SC Variable', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  /* Numbers stay in the UI face; render them with
+   * font-variant-numeric: tabular-nums. */
+  --font-numeric: var(--font-ui);
+  /* Ids, paths, code and commands only — never numbers. */
+  --font-mono: 'Google Sans Code', 'PingFang SC', monospace;
 
   /* ── Type scale (px) ─────────────────────────────────────────────── */
   --fs-9: 9px;
@@ -117,6 +174,91 @@
   --fs-28: 28px;
   --fs-42: 42px;
   --fs-display: 96px;
+
+  /* ── Weights ─────────────────────────────────────────────────────── */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* ── Tracking ────────────────────────────────────────────────────── */
+  --tracking-label: 0.05em; /* uppercase meta labels */
+  --tracking-brand: -0.02em; /* serif logo */
+
+  /* ── Type roles (size / line / weight / tracking) ────────────────── */
+  /* App pages. */
+  --type-display-size: 56px;
+  --type-display-line: 64px;
+  --type-display-weight: var(--fw-semibold);
+  --type-display-tracking: -0.01em;
+  --type-title-size: 28px;
+  --type-title-line: 36px;
+  --type-title-weight: var(--fw-semibold);
+  --type-title-tracking: -0.005em;
+  --type-heading-size: 16px;
+  --type-heading-line: 24px;
+  --type-heading-weight: var(--fw-semibold);
+  --type-heading-tracking: 0;
+  --type-strong-size: 13px;
+  --type-strong-line: 22px;
+  --type-strong-weight: var(--fw-medium);
+  --type-strong-tracking: 0;
+  --type-body-size: 13px;
+  --type-body-line: 22px;
+  --type-body-weight: var(--fw-regular);
+  --type-body-tracking: 0;
+  --type-small-size: 12px;
+  --type-small-line: 20px;
+  --type-small-weight: var(--fw-regular);
+  --type-small-tracking: 0;
+  --type-label-size: 12px;
+  --type-label-line: 18px;
+  --type-label-weight: var(--fw-medium);
+  --type-label-tracking: 0;
+  --type-micro-size: 10px;
+  --type-micro-line: 14px;
+  --type-micro-weight: var(--fw-medium);
+  --type-micro-tracking: 0;
+  --type-numeric-size: 13px;
+  --type-numeric-line: 22px;
+  --type-numeric-weight: var(--fw-medium);
+  --type-numeric-tracking: 0;
+  --type-number-size: 28px;
+  --type-number-line: 36px;
+  --type-number-weight: var(--fw-semibold);
+  --type-number-tracking: -0.01em;
+  --type-mono-size: 12px;
+  --type-mono-line: 18px;
+  --type-mono-weight: var(--fw-regular);
+  --type-mono-tracking: 0;
+  /* Overview and article pages. */
+  --type-article-title-size: 40px;
+  --type-article-title-line: 52px;
+  --type-article-title-weight: var(--fw-semibold);
+  --type-article-title-tracking: -0.01em;
+  --type-article-heading-size: 26px;
+  --type-article-heading-line: 36px;
+  --type-article-heading-weight: var(--fw-semibold);
+  --type-article-heading-tracking: -0.005em;
+  --type-article-subheading-size: 20px;
+  --type-article-subheading-line: 30px;
+  --type-article-subheading-weight: var(--fw-semibold);
+  --type-article-subheading-tracking: 0;
+  --type-article-lead-size: 20px;
+  --type-article-lead-line: 34px;
+  --type-article-lead-weight: var(--fw-regular);
+  --type-article-lead-tracking: 0;
+  --type-article-body-size: 17px;
+  --type-article-body-line: 30px;
+  --type-article-body-weight: var(--fw-regular);
+  --type-article-body-tracking: 0;
+  --type-article-caption-size: 14px;
+  --type-article-caption-line: 22px;
+  --type-article-caption-weight: var(--fw-regular);
+  --type-article-caption-tracking: 0;
+  --type-eyebrow-size: 13px;
+  --type-eyebrow-line: 20px;
+  --type-eyebrow-weight: var(--fw-medium);
+  --type-eyebrow-tracking: 0;
 
   /* ── Avatar fallback palette (deterministic, name-hashed) ────────── */
   --avatar-hue-1: #1f2937; /* slate */
@@ -141,19 +283,6 @@
   --diff-removed-gutter: #ffdce0;
   --diff-removed-word: #fdb8c0;
 
-  /* ── Weights ─────────────────────────────────────────────────────── */
-  --fw-regular: 400;
-  --fw-medium: 500;
-  --fw-semibold: 600;
-
-  /* ── Tracking ────────────────────────────────────────────────────── */
-  --tracking-label: 0.05em; /* uppercase meta labels */
-  --tracking-brand: -0.02em; /* serif logo */
-
-  /* ── Shadow ──────────────────────────────────────────────────────── */
-  --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.02);
-  --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.08);
-
   /* ── Terminal surface (always dark in both themes) ───────────────── */
   --bg-terminal: #0d0d0d;
   --bg-terminal-soft: rgba(255, 255, 255, 0.04);
@@ -163,7 +292,9 @@
   --border-terminal: rgba(255, 255, 255, 0.08);
 
   /* ── Motion ──────────────────────────────────────────────────────── */
+  /* Hover colour and opacity, arrow nudges, the hover lift. */
   --motion-fast: 200ms ease;
+  /* Switching, expanding, the segmented-tab slider. */
   --motion-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --motion-skeleton: 1400ms;
   --motion-spin: 800ms;
@@ -176,6 +307,21 @@
   --motion-exit: 160ms cubic-bezier(0.4, 0, 1, 1);
   --motion-chart: 600ms cubic-bezier(0.22, 1, 0.36, 1);
   --motion-enter-offset: 8px;
+  /* Clickable cards and buttons rise this far on hover. */
+  --motion-lift: 2px;
+  /* Overview and article sections fade in and rise once on entering the
+   * viewport, siblings staggered. */
+  --motion-reveal: 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-reveal-offset: 20px;
+  --motion-reveal-stagger: 50ms;
+  /* Hero text: position over --motion-hero, opacity over --motion-hero-fade. */
+  --motion-hero: 800ms cubic-bezier(0.32, 0.94, 0.6, 1);
+  --motion-hero-fade: 600ms cubic-bezier(0.32, 0.94, 0.6, 1);
+  /* Hero carousel: slide change, and how long each slide stays. */
+  --motion-slide: 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  --carousel-dwell: 6s;
+  /* One loop of the ambient blobs' drift. */
+  --motion-ambient: 20s cubic-bezier(0.42, 0, 0.58, 1);
 
   /* ── Aegis highlight (agent "look here" cue) ─────────────────────── */
   --aegis-highlight-ring: rgba(99, 102, 241, 0.55);
@@ -185,7 +331,7 @@
   /* ── Ask-AI affordance — see docs/agent-native-ui.md §7. ─────────── */
   --ask-panel-bg: var(--bg-panel);
   --ask-panel-border: var(--border-emphasis);
-  --ask-panel-shadow: var(--shadow-popover);
+  --ask-panel-shadow: var(--shadow-overlay);
   --ask-panel-width: 360px;
   --ask-panel-max-height: 480px;
   --agent-panel-width: 360px;
@@ -203,9 +349,16 @@
   --parquet-created-by-max-width: 200px;
   --service-map-min-height: 360px;
   --trajectory-step-text-max-height: 320px;
+  /* TableOfContents column (also the article page's left column) and the
+   * height of its current-item indicator on one line. */
+  --toc-width: 240px;
+  --toc-indicator-height: 20px;
+  --check-grid-cell-width: 72px;
+  --check-grid-cell-height: 28px;
 
   /* ── Component sizing (icons, controls, avatars) ─────────────────── */
   --size-icon-sm: 12px;
+  --size-icon-md: 14px;
   --size-icon-base: 16px;
   --size-icon-lg: 20px;
   --size-icon-xl: 32px;
@@ -217,6 +370,7 @@
   --size-hairline: 1px;
   --size-border-thick: 2px;
   --size-dot: 6px;
+  --size-legend-swatch: 10px;
   --size-badge: 16px;
   --size-resize-handle: 6px;
   --size-resize-collapsed: 8px;
@@ -232,34 +386,9 @@
   /* ── Component tokens ────────────────────────────────────────────── */
   /* Defaults reproduce the stock look; a host restyles a primitive by
    * overriding these, never by targeting its internal classes. */
-  --data-table-header-bg: var(--bg-panel);
-  --data-table-header-color: var(--text-muted);
-  --data-table-header-font-size: var(--fs-11);
-  --data-table-header-transform: uppercase;
-  --data-table-header-tracking: var(--tracking-label);
-  --data-table-row-min-height: auto;
-  --data-table-row-separator: var(--border-hairline);
+  --data-table-row-min-height: 64px;
   /* Accent mixed into a cellTone wash per step above 1 (step 5 = 4×). */
   --data-table-cell-tone-step: 5%;
-  --chip-transform: uppercase;
-  --chip-tracking: var(--tracking-label);
-  --chip-font-size-sm: var(--fs-10);
-  --chip-font-size-md: var(--fs-12);
-  --chip-font-size-lg: var(--fs-12);
-  --chip-height-sm: auto;
-  /* The md chip centres its label without vertical padding, so any fixed
-   * height at least one line tall fits. The default is its natural height
-   * (a 1.4 line, 4 px above and below, the hairline border). */
-  --chip-height-md: calc(
-    var(--chip-font-size-md) * 1.4 + var(--space-1) * 2 + var(--size-hairline) *
-      2
-  );
-  --chip-height-lg: 28px;
-  --metric-label-transform: uppercase;
-  --metric-label-tracking: var(--tracking-label);
-  --search-input-height: auto;
-  --select-height: auto;
-  --stat-block-emphasized-size: var(--fs-18);
   --page-header-margin-bottom: var(--space-6);
   --page-header-title-size: var(--fs-24);
   --page-header-title-size-mobile: var(--fs-18);
@@ -291,43 +420,53 @@
  * Everything else (spacing, radius, fonts, sizes, motion, z-index) is shared. */
 [data-theme='dark'] {
   /* Surface */
-  --bg-page: #0d0d10;
-  --bg-panel: #18181b;
-  --bg-inverted: #f5f5f7;
-  --bg-muted: #26262a;
+  --bg-page: #0b0d12;
+  --bg-panel: #15181e;
+  --bg-muted: #1e222a;
+  --bg-inverted: #eef0f3;
+  --bg-tint: #1b2029;
+  --bg-brand-soft: #1a2140;
+  --bg-glass: rgba(21, 24, 30, 0.72);
+  --bg-glass-strong: rgba(21, 24, 30, 0.88);
+  --bg-backdrop: rgba(0, 0, 0, 0.55);
+  --bg-info-soft: #1a2140;
+  --bg-success-soft: #10241d;
   --bg-warning-soft: #2a1218;
+  --bg-warn-soft: #2a200a;
 
   /* Ink */
-  --text-main: #f5f5f7;
-  --text-muted: #a1a1aa;
-  --text-on-inverted: #0d0d10;
+  --text-main: #eef0f3;
+  --text-muted: #9aa0a6;
+  --text-faint: #6b7280;
+  --text-on-inverted: #0b0d12;
   --text-on-inverted-muted: #52525b;
 
   /* Borders */
-  --border-hairline: rgba(255, 255, 255, 0.1);
-  --border-emphasis: rgba(255, 255, 255, 0.22);
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-emphasis: rgba(255, 255, 255, 0.18);
+  --border-glass: rgba(255, 255, 255, 0.08);
   --border-on-inverted: rgba(0, 0, 0, 0.1);
 
-  /* Semantic accents */
-  --accent-warning: #fb7185; /* lighter pink-red — readable on dark ink */
+  /* Brand + semantic accents — lighter for dark surfaces */
+  --accent-brand: #8ea0ff;
+  --accent-info: #8ea0ff;
+  --accent-success: #4ade80;
+  --accent-warning: #fb7185;
+  --ink-warn: #fbbf24;
+  --accent-caution: #fbbf24;
+  /* Brighter accents need less per step to keep muted text at 4.5:1. */
+  --data-table-cell-tone-step: 3%;
+
+  /* Ambient wash — faint brand-hued glows, so the page stays dark. */
+  --ambient-1: rgba(142, 160, 255, 0.1);
+  --ambient-2: rgba(94, 234, 212, 0.08);
+  --ambient-3: rgba(196, 181, 253, 0.05);
+  --ambient-hero-1: rgba(142, 160, 255, 0.2);
+  --ambient-hero-2: rgba(45, 212, 191, 0.14);
+  --ambient-hero-3: rgba(167, 139, 250, 0.14);
 
   /* Aegis highlight (agent "look here" cue) — brighter ring on dark ink. */
   --aegis-highlight-ring: rgba(165, 180, 252, 0.7);
-
-  /* Secondary semantic */
-  --ink-warn: #fbbf24; /* amber-400 — brighter for dark surfaces */
-  --bg-warn-soft: #2a200a;
-
-  /* Environment switcher badge tones — brighter on dark ink */
-  --accent-info: #60a5fa;
-  --accent-caution: #fbbf24;
-
-  /* Outcome tones — brighter on dark ink */
-  --accent-success: #4ade80;
-  --bg-success-soft: #10241d;
-  --bg-info-soft: #16233d;
-  /* Brighter accents need less per step to keep muted text at 4.5:1. */
-  --data-table-cell-tone-step: 3%;
 
   /* Data visualisation — lighter for dark surfaces */
   --data-seq: #a78bfa;
@@ -361,12 +500,17 @@
   --diff-removed-gutter: #361721;
   --diff-removed-word: #5c1f2a;
 
-  /* Shadow + scrollbar */
-  --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.5);
+  /* Elevation — black shadows, deeper so they read on dark surfaces */
+  --shadow-rest:
+    0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px -6px rgba(0, 0, 0, 0.4);
+  --shadow-raised:
+    0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+  --shadow-overlay:
+    0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6);
+
+  /* Scrollbar */
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.32);
-  --bg-backdrop: rgba(0, 0, 0, 0.6);
 }
 
 /* ── Page entrance (subtle — never steals attention) ───────────────── */

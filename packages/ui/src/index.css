@@ -1,4 +1,4 @@
-/* AegisLab — Rosetta design system entry. */
+/* AegisLab design system entry. */
 
 /* 1. Tokens (CSS custom properties + keyframes). */
 @import './styles/theme.css';
@@ -19,8 +19,10 @@ body {
 
 body {
   font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  line-height: 1.5;
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  line-height: var(--type-body-line);
+  letter-spacing: var(--type-body-tracking);
   color: var(--text-main);
   background: var(--bg-page);
   -webkit-font-smoothing: antialiased;
@@ -68,10 +70,10 @@ samp {
   background: var(--scrollbar-thumb-hover);
 }
 
-/* Focus — keyboard-only ring, ink-coloured. */
+/* Focus — keyboard-only ring in the brand colour. */
 :focus-visible {
-  outline: var(--space-px) solid var(--text-main);
-  outline-offset: var(--space-px);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 :focus:not(:focus-visible) {
   outline: none;
