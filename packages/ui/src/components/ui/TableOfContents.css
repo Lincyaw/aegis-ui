@@ -1,0 +1,79 @@
+.aegis-toc {
+  inline-size: var(--toc-width);
+  max-inline-size: 100%;
+}
+
+.aegis-toc__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aegis-toc__link {
+  display: flex;
+  gap: var(--space-3);
+  padding-block: var(--space-1);
+  font-family: var(--font-ui);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: var(--radius-xs);
+  transition: color var(--motion-fast);
+}
+
+.aegis-toc__link:hover {
+  color: var(--text-main);
+}
+
+.aegis-toc__link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Stretches with a wrapped label; on one line it is the indicator height. */
+.aegis-toc__indicator {
+  flex: none;
+  inline-size: var(--size-border-thick);
+  margin-block: calc((var(--type-body-line) - var(--toc-indicator-height)) / 2);
+  background: var(--border-hairline);
+  transition: background var(--motion-fast);
+}
+
+.aegis-toc__label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.aegis-toc__link--level-2 .aegis-toc__label {
+  padding-inline-start: var(--space-3);
+}
+
+.aegis-toc__link--level-3 .aegis-toc__label {
+  padding-inline-start: var(--space-6);
+}
+
+.aegis-toc__link--current {
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  color: var(--text-main);
+}
+
+.aegis-toc__link--current .aegis-toc__indicator {
+  margin-block: calc(
+    (var(--type-strong-line) - var(--toc-indicator-height)) / 2
+  );
+  background: var(--accent-brand);
+}
+
+@media (max-width: 768px) {
+  .aegis-toc {
+    inline-size: 100%;
+  }
+}

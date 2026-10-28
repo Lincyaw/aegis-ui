@@ -19,6 +19,7 @@ export interface AegisStrings {
   remove: string;
   close: string;
   breadcrumb: string;
+  tableOfContents: string;
   switchApp: string;
   openNavigation: string;
   closeNavigation: string;
@@ -120,6 +121,7 @@ export const enStrings: AegisStrings = {
   remove: 'Remove',
   close: 'Close',
   breadcrumb: 'Breadcrumb',
+  tableOfContents: 'Table of contents',
   switchApp: 'Switch app',
   openNavigation: 'Open navigation',
   closeNavigation: 'Close navigation',
@@ -220,6 +222,7 @@ export const zhCNStrings: AegisStrings = {
   remove: '移除',
   close: '关闭',
   breadcrumb: '页面导航',
+  tableOfContents: '本文目录',
   switchApp: '切换应用',
   openNavigation: '打开导航',
   closeNavigation: '关闭导航',
