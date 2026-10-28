@@ -1,12 +1,16 @@
-import { type ReactNode, useRef } from 'react';
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/usePrimitiveSurface';
-import { useCountUp } from '../../hooks/useCountUp';
 import { MetricLabel } from './MetricLabel';
-import { MonoValue } from './MonoValue';
 import './StatBlock.css';
 
 export type StatBlockSurface = PrimitiveSurface<{
@@ -22,17 +26,61 @@ interface StatBlockProps {
   unit?: ReactNode;
   /** Layout direction. Default: horizontal (label · value, baseline). */
   direction?: 'horizontal' | 'vertical';
-  /** Use the larger mono value, `--stat-block-emphasized-size` (18 px by default). */
+  /** Value in the number type role instead of the numeric role. */
   emphasized?: boolean;
   /**
-   * When `value` is a number, counts it up from 0 once on mount (about
-   * 600 ms, easing out, keeping its decimal places). Shows the final value
-   * at once under prefers-reduced-motion.
+   * When `value` is a number, counts it up from 0 once on mount over
+   * `--motion-chart`, keeping its decimal places. Shows the final value at
+   * once under prefers-reduced-motion.
    */
   animateValue?: boolean;
   inverted?: boolean;
   className?: string;
   surface?: StatBlockSurface;
+}
+
+const COUNT_PROGRESS = '--aegis-stat-count-progress';
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+
+/**
+ * Counts from 0 to `target` once, on mount. The pace comes from the CSS
+ * animation of COUNT_PROGRESS on `valueRef` (timed by `--motion-chart`
+ * while `counting` is true); the count ends when that progress reads 1.
+ */
+function useStatCountUp(
+  target: number,
+  enabled: boolean,
+  valueRef: RefObject<HTMLSpanElement | null>,
+): { counting: boolean; current: number } {
+  const [counting, setCounting] = useState(
+    () => enabled && !window.matchMedia(REDUCED_MOTION).matches,
+  );
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const node = valueRef.current;
+    if (!counting || node === null) {
+      return undefined;
+    }
+    let frame = 0;
+    const step = (): void => {
+      const next = Number.parseFloat(
+        getComputedStyle(node).getPropertyValue(COUNT_PROGRESS),
+      );
+      if (next < 1) {
+        setProgress(next);
+        frame = requestAnimationFrame(step);
+      } else {
+        setCounting(false);
+      }
+    };
+    frame = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(frame);
+    };
+  }, [counting, valueRef]);
+
+  return { counting, current: counting ? target * progress : target };
 }
 
 export function StatBlock({
@@ -47,6 +95,7 @@ export function StatBlock({
   surface,
 }: StatBlockProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const valueRef = useRef<HTMLSpanElement>(null);
   const agentAttrs = usePrimitiveSurface(
     surface,
     { label, value, unit },
@@ -54,14 +103,19 @@ export function StatBlock({
     wrapRef,
   );
   const numeric = typeof value === 'number';
-  const counted = useCountUp(numeric ? value : 0, animateValue && numeric);
-  const shown =
-    animateValue && numeric
-      ? counted.toFixed((String(value).split('.')[1] ?? '').length)
-      : value;
+  const { counting, current } = useStatCountUp(
+    numeric ? value : 0,
+    animateValue && numeric,
+    valueRef,
+  );
+  const shown = counting
+    ? current.toFixed((String(value).split('.')[1] ?? '').length)
+    : value;
   const cls = [
     'aegis-stat',
     `aegis-stat--${direction}`,
+    emphasized ? 'aegis-stat--emphasized' : '',
+    counting ? 'aegis-stat--counting' : '',
     inverted ? 'aegis-stat--inverted' : '',
     className ?? '',
   ]
@@ -72,14 +126,14 @@ export function StatBlock({
       <MetricLabel inverted={inverted} className="aegis-stat__label">
         {label}
       </MetricLabel>
-      <span className="aegis-stat__value">
-        <MonoValue size={emphasized ? 'lg' : 'sm'} inverted={inverted}>
+      <span className="aegis-stat__measure">
+        <span ref={valueRef} className="aegis-stat__value">
           {shown}
-        </MonoValue>
+        </span>
         {unit && (
-          <span className="aegis-stat__unit">
-            <MetricLabel inverted={inverted}>{unit}</MetricLabel>
-          </span>
+          <MetricLabel inverted={inverted} className="aegis-stat__unit">
+            {unit}
+          </MetricLabel>
         )}
       </span>
     </div>

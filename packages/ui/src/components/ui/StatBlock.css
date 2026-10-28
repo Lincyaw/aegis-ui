@@ -11,17 +11,49 @@
   gap: var(--space-1);
 }
 
-.aegis-stat__value {
+.aegis-stat__measure {
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-1);
 }
 
-/* emphasized: the large mono value, sized by the host through the token. */
-.aegis-stat__value .aegis-mono--lg {
-  font-size: var(--stat-block-emphasized-size);
+.aegis-stat__value {
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  line-height: var(--type-numeric-line);
+  font-weight: var(--type-numeric-weight);
+  letter-spacing: var(--type-numeric-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
 }
 
-.aegis-stat__unit {
-  margin-left: var(--space-px);
+.aegis-stat--emphasized .aegis-stat__value {
+  font-size: var(--type-number-size);
+  line-height: var(--type-number-line);
+  font-weight: var(--type-number-weight);
+  letter-spacing: var(--type-number-tracking);
+}
+
+.aegis-stat--inverted .aegis-stat__value {
+  color: var(--text-on-inverted);
+}
+
+/* StatBlock.tsx reads this progress every frame to pace the count-up. */
+@property --aegis-stat-count-progress {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+.aegis-stat--counting .aegis-stat__value {
+  animation: aegis-stat-count var(--motion-chart) backwards;
+}
+
+@keyframes aegis-stat-count {
+  from {
+    --aegis-stat-count-progress: 0;
+  }
+  to {
+    --aegis-stat-count-progress: 1;
+  }
 }

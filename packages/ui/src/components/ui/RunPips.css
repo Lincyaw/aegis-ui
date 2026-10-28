@@ -7,7 +7,11 @@
 }
 
 .aegis-run-pips__count {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  line-height: var(--type-numeric-line);
+  font-weight: var(--type-numeric-weight);
+  letter-spacing: var(--type-numeric-tracking);
   font-variant-numeric: tabular-nums;
   color: var(--text-main);
 }

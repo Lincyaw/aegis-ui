@@ -6,6 +6,7 @@ interface MetricLabelProps {
   children: ReactNode;
   as?: 'span' | 'div' | 'label';
   inverted?: boolean;
+  /** `sm` is the small type role (secondary text), `xs` the micro role. */
   size?: 'xs' | 'sm';
   className?: string;
   style?: CSSProperties;

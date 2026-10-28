@@ -23,10 +23,10 @@ interface RunPipsProps {
 type RunKind = 'passed' | 'failed' | 'errored' | 'pending';
 
 /**
- * Per-run outcome strip: "passed/total" in mono, then one dot per run
- * (passed, failed, execution failed as a hollow ring, pending). The text
- * and the accessible name always carry the counts, so colour is never the
- * only signal.
+ * Per-run outcome strip: "passed/total" in the numeric type role, then one
+ * dot per run (passed, failed, execution failed as a hollow ring, pending).
+ * The text and the accessible name always carry the counts, so colour is
+ * never the only signal.
  */
 export function RunPips({
   counts,

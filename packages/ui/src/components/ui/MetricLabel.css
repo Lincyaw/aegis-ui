@@ -1,17 +1,20 @@
 .aegis-metric-label {
-  text-transform: var(--metric-label-transform);
-  letter-spacing: var(--metric-label-tracking);
+  font-family: var(--font-ui);
   color: var(--text-muted);
-  line-height: 1.2;
-  font-weight: var(--fw-regular);
-}
-
-.aegis-metric-label--xs {
-  font-size: var(--fs-9);
 }
 
 .aegis-metric-label--sm {
-  font-size: var(--fs-10);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+}
+
+.aegis-metric-label--xs {
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-tracking);
 }
 
 .aegis-metric-label--inverted {
