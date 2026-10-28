@@ -1,0 +1,144 @@
+.aegis-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Every slide sits in the one grid cell, so the viewport keeps the height
+ * of the tallest slide and slides cross-fade in place. */
+.aegis-carousel__viewport {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+  border: var(--size-hairline) solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(50% 90% at 12% 10%, var(--ambient-1), transparent),
+    radial-gradient(40% 80% at 90% 20%, var(--ambient-2), transparent),
+    radial-gradient(45% 60% at 60% 105%, var(--ambient-3), transparent),
+    var(--bg-tint);
+  box-shadow: var(--shadow-rest);
+}
+
+.aegis-carousel__slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  grid-area: 1 / 1;
+  padding: var(--space-12);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--motion-slide),
+    visibility var(--motion-slide);
+}
+
+.aegis-carousel__slide--active {
+  opacity: 1;
+  visibility: visible;
+}
+
+@keyframes aegis-carousel-rise {
+  from {
+    transform: translateY(var(--motion-reveal-offset));
+  }
+}
+
+@keyframes aegis-carousel-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.aegis-carousel__slide--active > .aegis-carousel__content {
+  animation:
+    aegis-carousel-rise var(--motion-hero),
+    aegis-carousel-fade-in var(--motion-hero-fade);
+}
+
+.aegis-carousel__tabs {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.aegis-carousel__tab {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  color: var(--text-muted);
+  text-align: start;
+  overflow-wrap: anywhere;
+  background: none;
+  border: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: color var(--motion-fast);
+}
+
+.aegis-carousel__tab:hover {
+  color: var(--text-main);
+}
+
+.aegis-carousel__tab--active {
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  color: var(--text-main);
+}
+
+.aegis-carousel__track {
+  display: block;
+  height: var(--size-border-thick);
+  overflow: hidden;
+  background: var(--border-hairline);
+  border-radius: var(--radius-pill);
+}
+
+@keyframes aegis-carousel-progress {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* The slide advances when this animation ends, so pausing it pauses
+ * autoplay where it stands. */
+.aegis-carousel__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent-brand);
+  border-radius: inherit;
+  transform-origin: left center;
+  animation: aegis-carousel-progress var(--carousel-dwell) linear;
+}
+
+.aegis-carousel--paused .aegis-carousel__fill,
+.aegis-carousel:focus-within .aegis-carousel__fill {
+  animation-play-state: paused;
+}
+
+@media (hover: hover) {
+  .aegis-carousel:hover .aegis-carousel__fill {
+    animation-play-state: paused;
+  }
+}
+
+@media (max-width: 768px) {
+  .aegis-carousel__slide {
+    padding: var(--space-6);
+  }
+
+  .aegis-carousel__tabs {
+    gap: var(--space-3);
+  }
+}
