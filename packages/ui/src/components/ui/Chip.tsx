@@ -1,5 +1,7 @@
 import { type KeyboardEvent, type ReactNode, useRef } from 'react';
 
+import { CloseOutlined } from '@ant-design/icons';
+
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
@@ -24,11 +26,11 @@ interface ChipProps {
     | 'caution'
     | 'ghost';
   /**
-   * `md` matches the 12px label size used by status badges on dense pages;
-   * `lg` is the taller standalone badge (`--chip-height-lg`).
+   * `sm` is 20 high with the micro type role; `md` and `lg` are 28 high
+   * with the label role, `lg` without vertical padding.
    */
   size?: 'sm' | 'md' | 'lg';
-  /** Optional leading dot/icon node. */
+  /** Optional leading dot or icon; icons render at `--size-icon-sm`. */
   leading?: ReactNode;
   className?: string;
   onClick?: () => void;
@@ -87,7 +89,7 @@ export function Chip({
           aria-label={strings.remove}
           onClick={onClose}
         >
-          ×
+          <CloseOutlined />
         </button>
       )}
     </span>

@@ -98,7 +98,7 @@ export function Avatar({
       return content;
     }
     return (
-      <span ref={wrapRef} className="aegis-avatar-wrap" {...agentAttrs}>
+      <span ref={wrapRef} className={wrapperCls} {...agentAttrs}>
         {content}
       </span>
     );

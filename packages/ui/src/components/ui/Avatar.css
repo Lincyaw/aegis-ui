@@ -16,13 +16,14 @@
 .aegis-avatar-wrap--sm {
   width: var(--size-avatar-sm);
   height: var(--size-avatar-sm);
-  font-size: var(--fs-11);
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-tracking);
 }
 
 .aegis-avatar--md,
-.aegis-avatar--base,
-.aegis-avatar-wrap--md,
-.aegis-avatar-wrap--base {
+.aegis-avatar-wrap--md {
   width: var(--size-avatar-base);
   height: var(--size-avatar-base);
   font-size: var(--fs-13);
