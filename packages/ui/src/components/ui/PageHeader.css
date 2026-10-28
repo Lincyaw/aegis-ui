@@ -41,6 +41,7 @@
 
 .aegis-page-header__text .aegis-page-header__description {
   font-size: var(--page-header-description-size);
+  line-height: var(--page-header-description-line);
   letter-spacing: var(--page-header-description-tracking);
   text-transform: var(--page-header-description-transform);
   color: var(--page-header-description-color);
