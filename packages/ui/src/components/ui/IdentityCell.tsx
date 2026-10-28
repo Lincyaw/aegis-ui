@@ -7,7 +7,7 @@ import { DefaultLink, type LinkComponent } from './linkComponent';
 interface IdentityCellProps {
   /** Primary line, e.g. a model or task name. Truncates; the full name shows on hover. */
   name: string;
-  /** Muted mono line under the name, e.g. the agent or a source path; a string shows in full on hover. */
+  /** Muted `--font-mono` line under the name for an id or path, e.g. `source / task`; a string shows in full on hover. */
   secondary?: ReactNode;
   /** Leads with an Avatar of the name's initials. */
   avatar?: boolean;

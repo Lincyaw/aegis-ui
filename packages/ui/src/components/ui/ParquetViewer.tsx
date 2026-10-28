@@ -317,6 +317,7 @@ export function ParquetViewer({
       ) : null}
       <div className="aegis-parquet-viewer__table">
         <DataTable<Row>
+          framed={false}
           columns={tableColumns}
           data={rows}
           rowKey={(_row, i) => `${page.toString()}-${i.toString()}`}

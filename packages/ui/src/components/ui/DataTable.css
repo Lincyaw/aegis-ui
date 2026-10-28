@@ -3,6 +3,15 @@
   min-width: 0;
 }
 
+/* framed: the table is its own card; the radius clips the header. */
+.aegis-data-table--framed {
+  overflow: hidden;
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-rest);
+}
+
 .aegis-data-table__scroll {
   overflow-x: auto;
   min-width: 0;
@@ -19,7 +28,11 @@
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-ui);
-  font-size: var(--fs-13);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  color: var(--text-main);
 }
 
 .aegis-data-table__table--fixed {
@@ -29,21 +42,20 @@
 .aegis-data-table__th {
   position: relative;
   padding: var(--space-2) var(--space-3);
-  font-weight: var(--fw-medium);
-  font-size: var(--data-table-header-font-size);
-  text-transform: var(--data-table-header-transform);
-  letter-spacing: var(--data-table-header-tracking);
-  color: var(--data-table-header-color);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  color: var(--text-muted);
   text-align: left;
-  border-bottom: var(--size-hairline) solid var(--data-table-row-separator);
   white-space: nowrap;
-  background: var(--data-table-header-bg);
+  background: var(--bg-muted);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
   z-index: 1;
 }
 
 .aegis-data-table__th-label {
-  display: inline-block;
-  vertical-align: middle;
+  display: block;
 }
 
 .aegis-data-table__resizer {
@@ -80,17 +92,17 @@
   transition: background var(--motion-fast);
 }
 
-.aegis-data-table__row:hover {
-  background: var(--bg-muted);
-}
-
 /* A table cell's height is a minimum: taller content still grows the row. */
 .aegis-data-table__td {
   height: var(--data-table-row-min-height);
   padding: var(--space-2) var(--space-3);
-  border-bottom: var(--size-hairline) solid var(--data-table-row-separator);
-  color: var(--text-main);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
   vertical-align: middle;
+}
+
+/* The card's edge closes the table, so the last row draws no separator. */
+.aegis-data-table__table > tbody > tr:last-child > td {
+  border-bottom: none;
 }
 
 /* Inner cell wrapper: lets us truncate text without clipping interactive
@@ -132,15 +144,19 @@
 }
 
 .aegis-data-table__cell--numeric {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  line-height: var(--type-numeric-line);
+  font-weight: var(--type-numeric-weight);
+  letter-spacing: var(--type-numeric-tracking);
   font-variant-numeric: tabular-nums;
 }
 
-/* stickyFirstColumn: the first column stays put while the rest scroll. */
+/* stickyFirstColumn: the leading columns and the first data column stay put
+ * while the rest scroll; each cell's `left` is set inline. */
 .aegis-data-table__th--sticky,
 .aegis-data-table__td--sticky {
   position: sticky;
-  left: 0;
   z-index: 1;
 }
 
@@ -152,21 +168,11 @@
   background: var(--bg-panel);
 }
 
-.aegis-data-table__row:hover
+.aegis-data-table__row--clickable:hover
   > .aegis-data-table__td--sticky:not(.aegis-data-table__td--tone),
 .aegis-data-table__row--clickable:focus-visible
   > .aegis-data-table__td--sticky:not(.aegis-data-table__td--tone) {
   background: var(--bg-muted);
-}
-
-/* Beside a sticky selection column, whose width the root sets. */
-.aegis-data-table__select-cell {
-  width: var(--aegis-data-table-select-width);
-}
-
-.aegis-data-table__th--sticky-offset,
-.aegis-data-table__td--sticky-offset {
-  left: var(--aegis-data-table-select-width);
 }
 
 /* cellTone: the tone's soft background, mixed with more of its accent per
@@ -215,13 +221,18 @@
   --aegis-cell-tone-mix: calc(var(--data-table-cell-tone-step) * 4);
 }
 
+/* Only clickable rows react to hover. */
 .aegis-data-table__row--clickable {
   cursor: pointer;
 }
 
+.aegis-data-table__row--clickable:hover {
+  background: var(--bg-muted);
+}
+
 .aegis-data-table__row--clickable:focus-visible {
-  outline: var(--space-px) solid var(--text-main);
-  outline-offset: calc(var(--space-px) * -1);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-width) * -1);
   background: var(--bg-muted);
 }
 
@@ -241,14 +252,95 @@
     transform var(--motion-fast);
 }
 
-.aegis-data-table__row--clickable:hover .aegis-data-table__chevron,
-.aegis-data-table__row--clickable:focus-visible .aegis-data-table__chevron {
+.aegis-data-table__row--clickable:hover
+  > .aegis-data-table__chevron-cell
+  > .aegis-data-table__chevron,
+.aegis-data-table__row--clickable:focus-visible
+  > .aegis-data-table__chevron-cell
+  > .aegis-data-table__chevron {
   opacity: 1;
   transform: translateX(0);
 }
 
-.aegis-data-table__row--clickable:active .aegis-data-table__chevron {
+.aegis-data-table__row--clickable:active
+  > .aegis-data-table__chevron-cell
+  > .aegis-data-table__chevron {
   transform: translateX(var(--space-px));
+}
+
+/* Expandable rows: a 16 px chevron toggle in a leading column, inset so the
+ * chevron lines up with the header text and sits a --space-4 gap before
+ * the first column's text. */
+.aegis-data-table__toggle-cell {
+  padding-right: 0;
+  padding-left: var(--space-2);
+}
+
+.aegis-data-table__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--motion-fast);
+}
+
+.aegis-data-table__toggle:hover {
+  color: var(--text-main);
+}
+
+.aegis-data-table__toggle-icon {
+  font-size: var(--size-icon-base);
+  transition: transform var(--motion-base);
+}
+
+.aegis-data-table__toggle[aria-expanded='true']
+  > .aegis-data-table__toggle-icon {
+  transform: rotate(90deg);
+}
+
+/* The detail row under an expandable row draws the separator, so a
+ * collapsed row reads like any other. Its content opens by animating from
+ * 0fr to 1fr; visibility flips with it, so a closed detail is out of the
+ * tab order and the accessibility tree. */
+.aegis-data-table__row--expandable > .aegis-data-table__td {
+  border-bottom: none;
+}
+
+.aegis-data-table__detail-cell {
+  padding: 0;
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-data-table__detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows var(--motion-base),
+    visibility var(--motion-base);
+}
+
+.aegis-data-table__detail-row--open
+  > .aegis-data-table__detail-cell
+  > .aegis-data-table__detail {
+  grid-template-rows: 1fr;
+  visibility: visible;
+}
+
+.aegis-data-table__detail-clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.aegis-data-table__detail-body {
+  padding: 0 var(--space-3) var(--space-3);
 }
 
 /* Card mode (renderMobileCard at ≤768 px): one full-width cell per row. */
@@ -257,7 +349,11 @@
 }
 
 /* Touch screens have no hover, so the chevron always marks a tappable card. */
-.aegis-data-table__table--cards .aegis-data-table__chevron {
+.aegis-data-table__table--cards
+  > tbody
+  > tr
+  > .aegis-data-table__chevron-cell
+  > .aegis-data-table__chevron {
   opacity: 1;
   transform: translateX(0);
 }
@@ -281,6 +377,7 @@
   align-items: center;
   gap: var(--space-2) var(--space-3);
   padding: var(--space-2) var(--space-3);
+  border-top: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-data-table__pager {
@@ -293,14 +390,16 @@
 .aegis-data-table__range {
   margin-right: var(--space-2);
   font-family: var(--font-ui);
-  font-size: var(--fs-13);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
   color: var(--text-muted);
   white-space: nowrap;
 }
 
 .aegis-data-table__range-num {
-  font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums;
   color: var(--text-main);
 }
