@@ -7,8 +7,14 @@
 
 export { Button, ButtonLink } from './Button';
 export { Panel } from './Panel';
-export type { PanelSurface } from './Panel';
+export type { PanelElevation, PanelSurface, PanelVariant } from './Panel';
 export { PanelTitle } from './PanelTitle';
+export { AmbientBackground } from './AmbientBackground';
+export type {
+  AmbientBackgroundProps,
+  AmbientBackgroundVariant,
+} from './AmbientBackground';
+export { Reveal } from './Reveal';
 export { Markdown } from './Markdown';
 export type { MarkdownProps } from './Markdown';
 export { MetricLabel } from './MetricLabel';
@@ -36,6 +42,14 @@ export { RunPips } from './RunPips';
 export type { RunPipsCounts } from './RunPips';
 export { ParetoChart } from './ParetoChart';
 export type { ParetoLegendItem, ParetoPoint } from './ParetoChart';
+export { CheckGrid } from './CheckGrid';
+export type { CheckGridCell, CheckGridColumn, CheckGridRow } from './CheckGrid';
+export { StackedBar } from './StackedBar';
+export type {
+  StackedBarColor,
+  StackedBarRow,
+  StackedBarSeries,
+} from './StackedBar';
 export { ColumnLayout } from './ColumnLayout';
 export { PickerField } from './PickerField';
 export { Dialog } from './Dialog';
@@ -66,6 +80,8 @@ export { Skeleton, SkeletonText } from './Skeleton';
 export { TimeDisplay } from './TimeDisplay';
 export { CodeBlock } from './CodeBlock';
 export type { CodeBlockSurface } from './CodeBlock';
+export { FileTree } from './FileTree';
+export type { FileTreeFile } from './FileTree';
 export {
   ContentInspectorDialog,
   ContentPreview,
@@ -123,8 +139,15 @@ export type {
 } from './ObjectInspector';
 export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
+export { Carousel } from './Carousel';
+export type { CarouselProps, CarouselSlide } from './Carousel';
 export { Breadcrumb } from './Breadcrumb';
 export type { BreadcrumbItem } from './Breadcrumb';
+export { TableOfContents } from './TableOfContents';
+export type {
+  TableOfContentsItem,
+  TableOfContentsProps,
+} from './TableOfContents';
 export { Avatar } from './Avatar';
 export type { AvatarColorSlot, AvatarSurface } from './Avatar';
 export { IdentityCell } from './IdentityCell';
