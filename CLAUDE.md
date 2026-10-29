@@ -101,12 +101,26 @@ Sans SC, so Apple devices render Chinese in the system face.
   and article pages). Chips, field labels, table headers, MetricLabel and
   StatBlock labels are never uppercase; `--tracking-label` is the tracking
   of the uppercase meta labels that SectionDivider, CodeBlock's language
-  tag and similar primitives draw.
+  tag and similar primitives draw. No interface text is italic: emphasis
+  comes from weight or ink, and only rendered Markdown keeps an author's
+  `em`.
+- **Line breaking**: headings take `text-wrap: balance` and prose
+  `text-wrap: pretty`, so no line ends on a lone word. `index.css` sets
+  both for semantic headings and paragraphs, and each primitive's title and
+  description classes set them for text in other elements.
 - **Radius**: `--radius-pill` for buttons, chips, segmented tabs, search
   and bars; `--radius-md` for inputs, selects and code blocks;
   `--radius-lg` for cards, panels and dialogs; `--radius-xl` for heroes
   and featured cards; `--radius-xs` / `--radius-sm` for checkboxes and
-  check cells.
+  check cells. A rounded shape inside another, less than `--space-8` from
+  its edge, takes the outer radius minus that gap: menu items sit
+  `--space-1` inside a `--radius-md` panel and take `--radius-sm`; a gap
+  with no matching token is written `calc(var(--radius-…) - var(--space-…))`.
+  When the difference is 2 px or less the inner shape keeps its own radius.
+- **Borders**: a card, panel or row has a border all the way round or none.
+  A one-sided hairline only divides rows or sections or marks the edge of a
+  docked panel; a state such as unread or selected shows through the
+  surface or a dot, never a coloured side bar.
 - **Elevation and glass**: three shadows — `--shadow-rest` (cards, panels,
   secondary buttons), `--shadow-raised` (hovered clickable cards and rows,
   featured content), `--shadow-overlay` (dialogs, menus, tooltips). One
@@ -114,16 +128,24 @@ Sans SC, so Apple devices render Chinese in the system face.
   (`--bg-glass` + `backdrop-filter: blur(var(--glass-blur))` +
   `--border-glass` + `--shadow-rest`) only on surfaces layered over
   content or the ambient wash, never on tables or body text.
-- **Motion**: `--motion-*` tokens only. Clickable cards and buttons rise
-  `--motion-lift` and step to `--shadow-raised` on hover; nothing scales or
-  rotates; content that cannot be clicked has no hover effect. Overview
-  and article surfaces add `--motion-reveal`, `--motion-hero`,
-  `--motion-slide` / `--carousel-dwell` and the `--motion-ambient` drift.
-  Under `prefers-reduced-motion` everything is instant and nothing
-  autoplays.
+- **Motion**: `--motion-*` tokens only. Every state change decelerates
+  into place: the token curves decelerate and no transition names `ease`,
+  `linear` or `ease-in-out`; only constant loops (spinners, shimmer, the
+  carousel progress) run linear, and the ambient drift swings both ways.
+  Clickable cards and buttons rise `--motion-lift` and step to
+  `--shadow-raised` on hover and settle back into place when pressed;
+  nothing scales or rotates; content that cannot be clicked has no hover
+  effect. Overview and article surfaces add `--motion-reveal`,
+  `--motion-hero`, `--motion-slide` / `--carousel-dwell` and the
+  `--motion-ambient` drift. Under `prefers-reduced-motion` everything is
+  instant and nothing autoplays.
 - **Focus**: a `--focus-ring-width` outline in `--focus-ring-color` at
   `--focus-ring-offset`; fields show an `--accent-brand` border plus
-  `--focus-halo`.
+  `--focus-halo`. Every interactive element shows it on `:focus-visible`,
+  and a row or item inside a container draws it inset
+  (`outline-offset: calc(-1 * var(--focus-ring-width))`); a background
+  change alone is not a focus state. `AegisShell` opens with a skip link
+  that moves focus past the header to `main`.
 - **Spacing**: `--space-*` tokens (4 px scale). No raw padding / margin.
 - **Components are presentational.** No API calls, no global store reads,
   no business state. Hosts pass props in.
