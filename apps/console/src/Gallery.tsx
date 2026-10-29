@@ -102,6 +102,8 @@ import {
   LoginForm,
   Markdown,
   type MarkdownProps,
+  MdxDocument,
+  mdxTableOfContents,
   MetadataList,
   MetricCard,
   MetricLabel,
@@ -197,6 +199,10 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
+
+import GalleryDocument, {
+  tableOfContents as galleryDocumentToc,
+} from './GalleryDocument.mdx';
 
 import './Gallery.css';
 
@@ -330,6 +336,8 @@ await client.injections.create({ family: 'network', durationSec: 300 });
 
 > Traces land in ClickHouse within a minute of the run finishing.
 `;
+
+const GALLERY_DOCUMENT_TOC = mdxTableOfContents(galleryDocumentToc);
 
 function TokenValue({ name }: { name: string }): ReactNode {
   const { resolved } = useTheme();
@@ -1480,6 +1488,22 @@ function App() {
           </Specimen>
           <Specimen caption="variant='document' · heading scale" span={3}>
             <Markdown variant='document'>{MARKDOWN_DOCUMENT_SAMPLE}</Markdown>
+          </Specimen>
+        </div>
+
+        <SectionDivider>MdxDocument</SectionDivider>
+        <div className='gallery__row'>
+          <Specimen
+            caption='an .mdx module compiled by aegisMdx() · article type roles · fences render as CodeBlock · /… links through linkComponent · imported components in the flow · mdxTableOfContents beside it'
+            span={3}
+          >
+            <div className='gallery__toc-demo'>
+              <TableOfContents items={GALLERY_DOCUMENT_TOC} />
+              <MdxDocument
+                content={GalleryDocument}
+                linkComponent={GalleryRouterLink}
+              />
+            </div>
           </Specimen>
         </div>
 

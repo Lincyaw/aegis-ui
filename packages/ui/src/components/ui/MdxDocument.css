@@ -1,0 +1,122 @@
+/* Long-form documents: the article type roles, Markdown elements in the
+ * document flow, and room above each section heading. */
+.aegis-mdx {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-article-body-size);
+  line-height: var(--type-article-body-line);
+  font-weight: var(--type-article-body-weight);
+  letter-spacing: var(--type-article-body-tracking);
+  color: var(--text-main);
+  overflow-wrap: anywhere;
+}
+
+.aegis-mdx h2,
+.aegis-mdx h3 {
+  margin: 0;
+  scroll-margin-top: calc(var(--header-height) + var(--space-6));
+}
+
+.aegis-mdx h2 {
+  font-size: var(--type-article-heading-size);
+  line-height: var(--type-article-heading-line);
+  font-weight: var(--type-article-heading-weight);
+  letter-spacing: var(--type-article-heading-tracking);
+}
+
+.aegis-mdx h3 {
+  font-size: var(--type-article-subheading-size);
+  line-height: var(--type-article-subheading-line);
+  font-weight: var(--type-article-subheading-weight);
+  letter-spacing: var(--type-article-subheading-tracking);
+}
+
+/* A section heading after content opens a new section. */
+.aegis-mdx > * + h2 {
+  margin-top: var(--space-6);
+}
+
+.aegis-mdx > * + h3 {
+  margin-top: var(--space-2);
+}
+
+.aegis-mdx p,
+.aegis-mdx li {
+  margin: 0;
+}
+
+.aegis-mdx ul,
+.aegis-mdx ol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.aegis-mdx strong {
+  font-weight: var(--fw-semibold);
+}
+
+.aegis-mdx__link {
+  color: var(--accent-info);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+.aegis-mdx__link:hover {
+  color: var(--text-main);
+}
+
+.aegis-mdx__link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-xs);
+}
+
+.aegis-mdx :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: var(--type-article-caption-size);
+  padding: var(--size-hairline) var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.aegis-mdx blockquote {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--bg-tint);
+  color: var(--text-muted);
+}
+
+.aegis-mdx table {
+  border-collapse: collapse;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+}
+
+.aegis-mdx th,
+.aegis-mdx td {
+  padding: var(--space-2) var(--space-3);
+  border: var(--size-hairline) solid var(--border-hairline);
+  text-align: left;
+}
+
+.aegis-mdx th {
+  background: var(--bg-muted);
+  font-weight: var(--fw-semibold);
+}
+
+.aegis-mdx hr {
+  border: none;
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-mdx img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+}

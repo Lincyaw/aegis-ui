@@ -159,6 +159,13 @@ Sans SC, so Apple devices render Chinese in the system face.
   the `InboxPage` / `NotificationBell` primitives import
   `react-router-dom` directly; don't add new importers outside
   `layouts/shell/`.
+- **Long documents are MDX.** Articles, reports and other long-form pages
+  are written as `.mdx` files and rendered by `MdxDocument`, with
+  `mdxTableOfContents` over the module's `tableOfContents` export for the
+  page's `TableOfContents`. The host lists `aegisMdx()` from
+  `@lincyaw/aegis-ui/vite` before `@vitejs/plugin-react` (whose `include`
+  takes `.mdx`) and references `@lincyaw/aegis-ui/mdx-modules` in its
+  `vite-env.d.ts`. `Markdown` stays for short text that arrives at runtime.
 
 ## AegisApp contract (for adding a sub-app)
 
@@ -212,6 +219,7 @@ themselves render content only, never the layout chrome.
 | `packages/ui/src/agent/`                                | AgentM channel client, Ask overlay/panel, MCP tool catalogue                                              |
 | `packages/ui/src/theme/antdTheme.ts`                    | Ant Design `ConfigProvider` mapped to our tokens                                                          |
 | `packages/ui/src/index.ts`                              | Library public API barrel                                                                                 |
+| `packages/ui/src/vite.ts`                               | Build-time Vite preset (`aegisMdx`), published as `@lincyaw/aegis-ui/vite`                                |
 | `packages/ui/src/index.css`                             | Global reset + scrollbar + focus ring                                                                     |
 | `packages/ui/package.json`                              | Library publish config — name, version, exports                                                           |
 | `packages/ui/vite.config.ts`                            | Library build (ESM + CJS + d.ts + style.css)                                                              |

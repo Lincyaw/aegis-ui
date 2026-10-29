@@ -35,14 +35,21 @@ export default defineConfig({
       entryRoot: 'src',
       include: ['src/**/*.ts', 'src/**/*.tsx'],
       tsconfigPath: 'tsconfig.build.json',
+      // Ships src/mdx-modules.d.ts, the `.mdx` module types hosts reference.
+      copyDtsFiles: true,
     }),
   ],
   build: {
     target: 'esnext',
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
+      // `vite` is the build-time preset (aegisMdx) that hosts load in their Vite config.
+      entry: {
+        index: path.resolve(__dirname, 'src/index.ts'),
+        vite: path.resolve(__dirname, 'src/vite.ts'),
+      },
       formats: ['es', 'cjs'],
-      fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
+      fileName: (format, entryName) =>
+        `${entryName}.${format === 'es' ? 'js' : 'cjs'}`,
       cssFileName: 'style',
     },
     rollupOptions: {

@@ -1,0 +1,36 @@
+import { ScoreBar } from '@lincyaw/aegis-ui';
+
+Run a fault injection against a staging namespace and collect the traces
+the RCA agents read. The steps follow the [component gallery](/gallery)
+layout; the chaos families are described in the
+[Chaos Mesh documentation](https://chaos-mesh.org/docs/).
+
+## Prepare the target
+
+1. Pick a pedestal that is **healthy** in the cluster view.
+2. Confirm the namespace has no injection in flight.
+
+### Configure the fault
+
+| Field    | Example         | Notes                        |
+| -------- | --------------- | ---------------------------- |
+| Family   | Network chaos   | Partition, delay or loss     |
+| Duration | `300s`          | Shorter runs miss slow drift |
+
+## Submit the run
+
+```typescript
+await client.injections.create({ family: 'network', durationSec: 300 });
+```
+
+- The run starts within a few seconds.
+- Its traces land in ClickHouse within a minute of the run finishing.
+
+> A run that never reaches the target pods is an execution failure, not a
+> model result.
+
+### Read the score
+
+The share of checks the run passed:
+
+<ScoreBar value={0.72} />

@@ -1,3 +1,4 @@
+import { aegisMdx } from '@lincyaw/aegis-ui/vite';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import react from '@vitejs/plugin-react';
 import fs from 'node:fs';
@@ -28,7 +29,8 @@ export default defineConfig(({ mode }) => {
   return {
     base: pages ? env.VITE_PAGES_BASE || '/aegis-ui/' : '/',
     plugins: [
-      react(),
+      aegisMdx(),
+      react({ include: /\.(mdx|[jt]sx?)$/ }),
       ...(useHttps ? [basicSsl()] : []),
       ...(pages ? [galleryPagesIndex()] : []),
     ],

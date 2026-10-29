@@ -4,6 +4,7 @@ import type { Components, ExtraProps, Options } from 'react-markdown';
 
 import { CodeBlock } from './CodeBlock';
 import './Markdown.css';
+import { fenceLanguage } from './codeFence';
 
 // GitHub-flavoured Markdown (tables, task lists, strikethrough) is on by
 // default. Both packages are ESM-only, so they load lazily to keep the CJS
@@ -42,15 +43,6 @@ export interface MarkdownProps extends Pick<
 
 type HastNode = NonNullable<ExtraProps['node']>['children'][number];
 
-const FENCE_ALIASES: Partial<Record<string, string>> = {
-  jsonc: 'json',
-  yml: 'yaml',
-  sh: 'bash',
-  shell: 'bash',
-  zsh: 'bash',
-  console: 'bash',
-};
-
 function textOf(node: HastNode): string {
   if (node.type === 'text') {
     return node.value;
@@ -59,17 +51,6 @@ function textOf(node: HastNode): string {
     return node.children.map(textOf).join('');
   }
   return '';
-}
-
-function fenceLanguage(className: unknown): string {
-  const classes = Array.isArray(className) ? className : [];
-  for (const c of classes) {
-    if (typeof c === 'string' && c.startsWith('language-')) {
-      const name = c.slice('language-'.length);
-      return FENCE_ALIASES[name] ?? name;
-    }
-  }
-  return 'text';
 }
 
 function FencedCode({
@@ -81,11 +62,14 @@ function FencedCode({
   if (code?.type !== 'element' || code.tagName !== 'code') {
     return <pre {...rest}>{children}</pre>;
   }
+  const classes = code.properties.className;
   return (
     <CodeBlock
       className="aegis-markdown__code-block"
       code={textOf(code).replace(/\n$/, '')}
-      language={fenceLanguage(code.properties.className)}
+      language={fenceLanguage(
+        Array.isArray(classes) ? classes.join(' ') : undefined,
+      )}
     />
   );
 }

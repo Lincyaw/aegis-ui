@@ -95,9 +95,8 @@
 .aegis-markdown blockquote {
   margin: 0 0 var(--space-2) 0;
   padding: var(--space-2) var(--space-3);
-  border-left: var(--space-px) solid var(--border-hairline);
-  background: var(--bg-page);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--bg-tint);
+  border-radius: var(--radius-md);
 }
 
 .aegis-markdown blockquote p:last-child {

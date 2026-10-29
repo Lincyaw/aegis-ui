@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="@lincyaw/aegis-ui/mdx-modules" />
 
 interface ImportMetaEnv {
   readonly VITE_PORT?: string;
