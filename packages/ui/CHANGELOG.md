@@ -1,5 +1,69 @@
 # @lincyaw/aegis-ui
 
+## 0.6.0
+
+### Minor Changes
+
+- 4597728: Add the knobs the CGFS display pages had worked around, plus `IdentityCell` and `ButtonLink`. Every default keeps the current rendering.
+  - New primitives: `IdentityCell` (an optional Avatar with `colorSlot`, a name that can be a link through `linkComponent`, and an optional muted mono secondary line, stacked or `inline`; with a name alone it is one line centred on the avatar) and `ButtonLink` (a link with the Button look). Both take the router adapter type `LinkComponent`, which `Breadcrumb` now uses too.
+  - `Alert` `icon` replaces the tone dot. `Tabs` `listOnly` drops the tabpanel and `size="sm"` makes the list `--size-control-base` tall. `PageHeader` `titleExtra` sits beside the title, `description` accepts any node, and `--page-header-margin-bottom` sets the space under it.
+  - `Breadcrumb` items that are wider than the trail truncate with an ellipsis instead of widening the page.
+  - `SearchInput` `block` fills its container; `--search-input-height` and `--select-height` let a host line SearchInput and Select up at `--size-control-base`.
+  - `ShareLinkDialog` `url` shows a link that does not expire (no TTL presets, download toggle or countdown) and `description` adds a context line; its built-in text goes through the locale strings (`shareLink*`, `clipboardUnavailable`).
+  - `useCopyToClipboard` is exported from the package root.
+  - `DataTable` `stickyFirstColumn` keeps the first column (and the selection column) in view, column `cellTone` washes a cell in a tone graded in five steps (`--data-table-cell-tone-step`), and `stale` dims out-of-date rows and marks the table busy.
+  - `ParetoChart` `legend` lists series swatches under the plot and `empty` replaces the plot at its minimum height while there are no points.
+  - `Timeline` `density="compact"` keeps titles on one line with an ellipsis and tightens the rows.
+  - `Chip` size `md` centres its label without vertical padding, so a fixed `--chip-height-md` such as 24 px no longer overflows its content box.
+  - `ControlListItem` `description` adds a muted line that inverts with `active`.
+  - Tokens `--metric-label-transform` / `--metric-label-tracking` (MetricLabel) and `--stat-block-emphasized-size` (StatBlock `emphasized`).
+  - Shell: `AegisShell` `appSwitcher={false}` hides the app launcher and `elevateHeaderOnScroll` gives the sticky header a shadow once the page scrolls.
+
+- 44b8651: Add Checkbox, Select, RankBar, ParetoChart and Dialog primitives for the CGFS display site, extend Chip with success / info / caution tones plus an `md` size, and add the outcome colour tokens (`--accent-success`, `--bg-success-soft`, `--bg-info-soft`) and overlay width tokens those primitives need.
+- 6517e6e: Add opt-in knobs, component tokens and primitives for the CGFS display site. Defaults keep the current rendering.
+  - New primitives: `ScoreBar` (inline value plus a short bar), `RunPips` (passed/total plus one dot per run, collapsing to a proportional bar), `ColumnLayout` (column template that stacks at 768 px and below) and `PickerField` (a closed-Select look that opens a dialog).
+  - Shell: `AegisApp.breadcrumbBar: false` drops the breadcrumb bar for apps that render their own `Breadcrumb`.
+  - Component tokens: `--data-table-header-{bg,color,font-size,transform,tracking}`, `--data-table-row-{min-height,separator}`, `--chip-{transform,tracking}`, `--chip-font-size-{sm,md,lg}`, `--chip-height-{sm,md,lg}`, `--page-header-title-{size,size-mobile,weight}`, `--page-header-description-{size,color,transform,tracking}`, `--page-padding-inline(-mobile)`, `--rank-bar-fill`, `--pareto-dominated-opacity`, `--score-bar-*` and `--run-pips-*`.
+  - Theme: data-viz colours `--data-seq` and `--data-cat-1` … `--data-cat-6` (light and dark), motion tokens `--motion-enter`, `--motion-exit`, `--motion-chart`, `--motion-enter-offset`, `--size-icon-xl`, and Noto Sans SC in `--font-ui`.
+  - `DataTable`: column `numeric`, `renderMobileCard` for card rows at 768 px and below, and `onRowClick` with a hover chevron and Enter activation.
+  - `Chip` size `lg`; `MonoValue` `tone`; `Panel` `description`; `Alert` `success` tone and `title`; `StatusDot` `success` tone; `PageHeader` `meta`; `Timeline` `variant="numbered"` with item `marker`; `CodeBlock` `maxHeight`; `Avatar` `colorSlot`; `StatBlock` `animateValue`.
+  - `RankBar`: `value: null` renders an em dash over an empty track and the bar track is clickable with `onSelect`. `ParetoChart`: `formatX` / `formatY`, axes anchored at 0, ticks and labels at their CSS size at any width, gridlines, labelled frontier points, dimmed dominated points and an optional per-point `color`.
+  - Motion: bars draw in with a per-row stagger and slide between values, chart points stagger in, `Dialog` animates in and out, and `Collapse` expands smoothly with a rotating chevron. `prefers-reduced-motion` turns it all off.
+
+- a9d44d9: Fit the trajectory and trace primitives to recorded agent runs. Every default keeps the current rendering.
+  - The text that `TrajectoryTimeline`, `TrajectoryStep`, `ToolCallCard`, `TraceTree`, `TraceSpanInspector`, `ObjectInspector` and `TimelineChart` render on their own goes through the locale strings (`trajectory*`, `toolCall*`, `traceSpan*`, `inspector*`, `expandRow` / `collapseRow`, `resizeNameColumn`, `noAttributes*`, `maximize*` / `restore*` / `closeInspector`, `timelineEmpty*`), with `zhCNStrings` values.
+  - `TrajectoryStepData` gains `summary` (the head's preview, defaulting to `action`), `toolCalls` (further calls of the step, each a card after `toolCall`) and `sections` (`TrajectoryStepSection`: labelled texts after the thought and action, as Markdown or, with `format: 'text'`, preformatted and capped at `--trajectory-step-text-max-height`).
+  - `TrajectoryTimeline` `header={false}` drops the agent, status and duration header.
+  - `TraceSpan.startMs` and `durationMs` are optional: a span without them draws no bar and no duration, siblings that are not all timed keep their given order, and a tree with no timed span shows its labels alone. `TraceSpanInspector` omits the missing timing and takes `detail`, the span's content under the facts in the Overview tab.
+  - `TimelineChart` reads its label column from `--timeline-chart-label-width` (280 px, as before) and narrows it to 40% at 768 px and below, so the bars keep most of a phone's width.
+
+- ecd7441: Move the library to the CGFS visual language: cool, very light surfaces, soft near-black ink, one brand blue, glass over a faint ambient wash, pill controls and larger radii.
+  - Tokens: the colours follow the Figma variables in both themes and add `--bg-tint`, `--bg-brand-soft`, `--bg-glass`, `--bg-glass-strong`, `--text-faint`, `--border-glass`, `--accent-brand` and the `--ambient-*` blobs. The radius scale is now 4 / 6 / 10 / 20 / 28 / pill. Elevation is `--shadow-rest`, `--shadow-raised` and `--shadow-overlay` with `--glass-blur` and `--backdrop-blur`; `--shadow-panel` and `--shadow-popover` are removed. Focus uses `--focus-ring-*`, `--focus-halo` and `--focus-halo-warning`. Text sizes come from the `--type-<role>-*` roles, and the overview motion tokens (`--motion-lift`, `--motion-reveal*`, `--motion-hero*`, `--motion-slide`, `--carousel-dwell`, `--motion-ambient`) are new.
+  - Fonts: `--font-ui` and `--font-numeric` are Hanken Grotesk with PingFang SC / Noto Sans SC for Chinese, and `--font-mono` is Google Sans Code. Import `@fontsource-variable/hanken-grotesk`, `@fontsource-variable/noto-sans-sc` and `@fontsource/google-sans-code` (`400.css`, `500.css`) next to Geist; Inter and JetBrains Mono are no longer used.
+  - Removed component tokens, now built into the primitives: `--chip-transform`, `--chip-tracking`, `--chip-font-size-*`, `--chip-height-*`, `--metric-label-transform`, `--metric-label-tracking`, `--search-input-height`, `--select-height`, `--stat-block-emphasized-size`, `--data-table-header-*` and `--data-table-row-separator`. `--data-table-row-min-height` now defaults to 64px.
+  - Breaking API changes: `Panel` drops the boolean `inverted` for `variant` (`solid` | `tint` | `brand` | `glass`) and adds `elevation` plus a linked form (`to`, `linkComponent`). `DataTable` draws its own card by default; pass `framed={false}` inside a container that already frames it. `Dialog` renders into `document.body`.
+  - Restyled primitives: Button and ButtonLink (pill, hover lift, `tone='glass'`, `icon`, `iconPosition`, styled `aria-pressed`), Chip, Avatar, Tabs (segmented track with a sliding indicator), SearchInput, Select, PickerField, TextField, Checkbox, PanelTitle, Alert, StatBlock, MetricLabel (no uppercase), ScoreBar, RunPips, DataTable (expandable rows through `renderExpanded`), IdentityCell and Timeline.
+  - New primitives: `AmbientBackground`, `Reveal`, `Carousel`, `CheckGrid`, `StackedBar`, `TableOfContents` and `FileTree`.
+
+- 2cad7c9: Line breaking, motion curves, focus rings and a skip link follow the design conventions.
+  - Headings balance their lines and prose avoids a lone last word: `index.css` sets `text-wrap: balance` on `h1`–`h6` and `text-wrap: pretty` on paragraphs, list items, definitions, quotes and captions, and the title and description classes of `PanelTitle`, `PageHeader`, `Panel`, `Dialog`, `Alert`, `EmptyState` and `ErrorState` do the same.
+  - `--motion-fast` and `--motion-base` decelerate into place (`cubic-bezier(0.22, 1, 0.36, 1)`) instead of `ease` and the standard curve, and the agent highlight ring uses the same curve.
+  - A pressed button settles back from its hover lift.
+  - `InboxPage` rows, `NotificationBell` and its items, `PageSizeSelect` items and `TraceTree` rows show the focus ring on `:focus-visible` instead of a background change alone. Unread inbox rows keep their dot and drop the left bar.
+  - `AegisShell` opens with a skip link (`skipToContent` in the locale strings) that moves focus to `main` without a URL fragment.
+  - `PanelTitle` drops the `italic` prop and `SavedQueryBar`'s hint is no longer italic; no interface text is italic.
+
+- 5092695: `IdentityCell` gains `wrap`: the name and the secondary text wrap, breaking anywhere, instead of truncating, so a long name never widens the card or list it sits in. Without it the cell truncates as before.
+- f6c6836: Add `LocaleProvider` with `enStrings` (default) and `zhCNStrings`, and route the strings that primitives and the shell render on their own through it. `useCopyToClipboard` now uses `copy-to-clipboard`, so copying works on plain-HTTP pages. `joinPath` keeps a query string on app-relative links and the breadcrumb matches sidebar items by path. `SessionRunTrajectoryView` hides empty start-time and token fields. `Select` gains `ariaLabel` and truncates long options; the `DataTable` header checkbox keeps selections made on other pages.
+- 9ca8d52: Add `MdxDocument` for long-form documents written in MDX, such as articles and reports, with `mdxTableOfContents` for their headings, the `aegisMdx()` Vite plugin under `@lincyaw/aegis-ui/vite` that compiles them, and the `.mdx` module types under `@lincyaw/aegis-ui/mdx-modules`. `Markdown` block quotes now sit on a tinted block with every corner rounded, in place of a one-sided rule.
+- 84721ff: `AegisShell` takes `ambient` (`'page'` or `'hero'`), which draws an `AmbientBackground` across the top of the shell, beneath the glass header and the page content.
+
+### Patch Changes
+
+- d062438: `--page-header-description-line` sets the line height of the `PageHeader` description beside its size, defaulting to the small type role's 20.
+- 7c70dc0: `PageHeader` titles use the title type role, 28 / 36 semibold with its tracking, on phones too, in place of 24 medium (18 on phones).
+- 1721e7e: `AegisShell` sizes its content column `minmax(0, 1fr)`, so a header row wider than the viewport, such as a long list of app tabs on a phone, scrolls inside the header instead of widening the page.
+
 ## 0.5.0
 
 ### Packaging
