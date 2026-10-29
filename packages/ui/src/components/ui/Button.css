@@ -94,6 +94,11 @@
     background: var(--bg-muted);
     color: var(--text-main);
   }
+
+  /* A press settles the lifted button back into place. */
+  .aegis-button:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

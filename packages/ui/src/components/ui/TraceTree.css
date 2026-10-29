@@ -33,6 +33,11 @@
   background: var(--bg-muted);
 }
 
+.aegis-trace-tree__row:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
 /* No span is timed: the rows are the labels alone. */
 .aegis-trace-tree--untimed .aegis-trace-tree__row {
   grid-template-columns: minmax(0, 1fr);

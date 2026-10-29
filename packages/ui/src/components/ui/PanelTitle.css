@@ -1,10 +1,7 @@
 .aegis-panel-title {
   display: inline-block;
   font-family: var(--font-ui);
-}
-
-.aegis-panel-title--italic {
-  font-style: italic;
+  text-wrap: balance;
 }
 
 .aegis-panel-title--sm {

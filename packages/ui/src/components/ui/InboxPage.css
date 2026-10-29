@@ -26,7 +26,6 @@
   padding: var(--space-4);
   background: transparent;
   border: none;
-  border-left: var(--size-border-thick) solid transparent;
   text-align: left;
   cursor: pointer;
   color: var(--text-main);
@@ -38,11 +37,14 @@
 .aegis-inbox__row:hover,
 .aegis-inbox__row:focus-visible {
   background: var(--bg-muted);
-  outline: none;
+}
+
+.aegis-inbox__row:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-inbox__row--unread {
-  border-left-color: var(--text-main);
   background: var(--bg-panel);
 }
 

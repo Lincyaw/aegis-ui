@@ -41,6 +41,24 @@ a {
   text-decoration: none;
 }
 
+/* Headings balance their lines and prose never ends on a lone word. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
+p,
+li,
+dd,
+blockquote,
+figcaption {
+  text-wrap: pretty;
+}
+
 code,
 pre,
 kbd,

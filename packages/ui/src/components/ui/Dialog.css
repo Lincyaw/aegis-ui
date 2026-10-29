@@ -112,6 +112,7 @@
   letter-spacing: var(--type-heading-tracking);
   color: var(--text-main);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .aegis-dialog__description {
@@ -120,6 +121,7 @@
   line-height: var(--type-small-line);
   letter-spacing: var(--type-small-tracking);
   color: var(--text-muted);
+  text-wrap: pretty;
 }
 
 /* The padding widens the hit area; the negative margin keeps the text on

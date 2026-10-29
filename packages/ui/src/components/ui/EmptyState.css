@@ -26,6 +26,7 @@
   font-size: var(--fs-13);
   font-weight: var(--fw-medium);
   color: var(--text-main);
+  text-wrap: balance;
 }
 
 .aegis-empty-state__desc {
@@ -34,6 +35,7 @@
   color: var(--text-muted);
   max-width: 20rem;
   line-height: 1.5;
+  text-wrap: pretty;
 }
 
 .aegis-empty-state__action {

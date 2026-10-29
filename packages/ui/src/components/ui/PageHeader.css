@@ -45,6 +45,7 @@
   letter-spacing: var(--page-header-description-tracking);
   text-transform: var(--page-header-description-transform);
   color: var(--page-header-description-color);
+  text-wrap: pretty;
 }
 
 .aegis-page-header__meta {

@@ -329,6 +329,34 @@
   flex-direction: column;
 }
 
+/* The skip link's target takes focus without drawing a ring around the page. */
+.aegis-shell__main:focus {
+  outline: none;
+}
+
+/* Waits above the viewport until keyboard focus reaches it. */
+.aegis-shell__skip {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-popover);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  font-size: var(--type-strong-size);
+  font-weight: var(--type-strong-weight);
+  line-height: var(--type-strong-line);
+  transform: translateY(calc(-100% - var(--space-4)));
+  transition: transform var(--motion-fast);
+}
+
+.aegis-shell__skip:focus-visible {
+  transform: none;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .aegis-shell__agent-panel {
   grid-area: agent;
   position: sticky;

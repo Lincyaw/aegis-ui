@@ -10,7 +10,6 @@
 .aegis-sqb__hint {
   font-size: var(--fs-11);
   color: var(--text-muted);
-  font-style: italic;
 }
 
 .aegis-sqb__list {

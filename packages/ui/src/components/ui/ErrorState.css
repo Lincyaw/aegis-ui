@@ -33,6 +33,7 @@
   font-size: var(--fs-24);
   font-weight: var(--fw-semibold);
   color: var(--text-main);
+  text-wrap: balance;
 }
 
 .aegis-error-state__desc {
@@ -40,6 +41,7 @@
   color: var(--text-muted);
   max-width: 28rem;
   line-height: 1.5;
+  text-wrap: pretty;
 }
 
 .aegis-error-state__action {

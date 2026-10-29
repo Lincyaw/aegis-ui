@@ -124,7 +124,11 @@
 .aegis-page-size-select__item:hover,
 .aegis-page-size-select__item:focus-visible {
   background: var(--bg-muted);
-  outline: none;
+}
+
+.aegis-page-size-select__item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-page-size-select__item--selected {

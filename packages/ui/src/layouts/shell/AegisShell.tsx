@@ -85,6 +85,7 @@ export function AegisShell({
   );
   const [inlineSlot, setInlineSlot] = useState<HTMLDivElement | null>(null);
   const [headerScrolled, setHeaderScrolled] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!elevateHeaderOnScroll) {
@@ -300,6 +301,17 @@ export function AegisShell({
     >
       <ActiveAppEnvironmentProvider app={activeApp}>
         <div className={shellClass}>
+          {/* Moves focus without a URL fragment, so a shared page link stays as it was. */}
+          <a
+            className="aegis-shell__skip"
+            href="#aegis-main"
+            onClick={(event) => {
+              event.preventDefault();
+              mainRef.current?.focus();
+            }}
+          >
+            {strings.skipToContent}
+          </a>
           {ambient && <AmbientBackground variant={ambient} />}
           <TopHeader
             brand={brand}
@@ -345,7 +357,12 @@ export function AegisShell({
             aria-label={strings.closeNavigation}
             onClick={closeMobileNav}
           />
-          <main className="aegis-shell__main">
+          <main
+            id="aegis-main"
+            ref={mainRef}
+            tabIndex={-1}
+            className="aegis-shell__main"
+          >
             {renderAppRegion(
               activeApp,
               activeAppValue,

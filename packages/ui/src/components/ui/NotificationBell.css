@@ -24,8 +24,8 @@
 }
 
 .aegis-notif-bell:focus-visible {
-  outline: none;
-  border-color: var(--border-strong);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .aegis-notif-bell__icon {
@@ -110,7 +110,11 @@
 .aegis-notif-pop__item:hover,
 .aegis-notif-pop__item:focus-visible {
   background: var(--bg-muted);
-  outline: none;
+}
+
+.aegis-notif-pop__item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-notif-pop__dot {

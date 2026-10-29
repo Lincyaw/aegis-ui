@@ -23,6 +23,8 @@ export interface AegisStrings {
   switchApp: string;
   openNavigation: string;
   closeNavigation: string;
+  /** The shell's first link, which moves keyboard focus past the header to the page. */
+  skipToContent: string;
   showSidebar: string;
   hideSidebar: string;
   selectRow: string;
@@ -131,6 +133,7 @@ export const enStrings: AegisStrings = {
   switchApp: 'Switch app',
   openNavigation: 'Open navigation',
   closeNavigation: 'Close navigation',
+  skipToContent: 'Skip to content',
   showSidebar: 'Show sidebar',
   hideSidebar: 'Hide sidebar',
   selectRow: 'Select row',
@@ -242,6 +245,7 @@ export const zhCNStrings: AegisStrings = {
   switchApp: '切换应用',
   openNavigation: '打开导航',
   closeNavigation: '关闭导航',
+  skipToContent: '跳到正文',
   showSidebar: '显示侧边导航',
   hideSidebar: '隐藏侧边导航',
   selectRow: '选择此行',
