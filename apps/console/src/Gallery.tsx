@@ -1494,13 +1494,14 @@ function App() {
         <SectionDivider>MdxDocument</SectionDivider>
         <div className='gallery__row'>
           <Specimen
-            caption='an .mdx module compiled by aegisMdx() · article type roles · fences render as CodeBlock · /… links through linkComponent · imported components in the flow · mdxTableOfContents beside it'
+            caption='an .mdx module compiled by aegisMdx() · article type roles · fences render as CodeBlock · /… links through linkComponent · imported components and components={…} in the flow keep their own styles · mdxTableOfContents beside it'
             span={3}
           >
             <div className='gallery__toc-demo'>
               <TableOfContents items={GALLERY_DOCUMENT_TOC} />
               <MdxDocument
                 content={GalleryDocument}
+                components={GALLERY_DOCUMENT_COMPONENTS}
                 linkComponent={GalleryRouterLink}
               />
             </div>
@@ -7215,6 +7216,21 @@ const GALLERY_CHECK_ROWS: Array<CheckGridRow<string>> = [
     },
   },
 ];
+
+/** The host component the MdxDocument sample names; its grid keeps the CheckGrid styles inside the document. */
+function GalleryRunChecks(): ReactNode {
+  return (
+    <CheckGrid
+      rowHeader='Check'
+      passedLabel='Passed'
+      uncheckedLabel='Not checked'
+      columns={GALLERY_CHECK_RUNS}
+      rows={GALLERY_CHECK_ROWS}
+    />
+  );
+}
+
+const GALLERY_DOCUMENT_COMPONENTS = { RunChecks: GalleryRunChecks };
 
 const GALLERY_CHECK_MANY_RUNS: Array<CheckGridColumn<string>> = Array.from(
   { length: 8 },

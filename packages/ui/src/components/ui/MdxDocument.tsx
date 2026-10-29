@@ -1,6 +1,7 @@
 import {
   type ComponentProps,
   type ReactNode,
+  createElement,
   isValidElement,
   useMemo,
 } from 'react';
@@ -39,6 +40,50 @@ function FencedCode({ children, ...rest }: ComponentProps<'pre'>) {
   );
 }
 
+type MarkdownTag =
+  | 'h2'
+  | 'h3'
+  | 'p'
+  | 'ul'
+  | 'ol'
+  | 'strong'
+  | 'code'
+  | 'blockquote'
+  | 'table'
+  | 'hr'
+  | 'img';
+
+/**
+ * A Markdown element under its document class. The document styles only these
+ * classes, so the components it embeds, such as a DataTable, keep their own.
+ */
+function markdownElement(tag: MarkdownTag, documentClass: string) {
+  return function MarkdownElement({
+    className,
+    ...rest
+  }: ComponentProps<MarkdownTag>) {
+    return createElement(tag, {
+      ...rest,
+      className: [documentClass, className ?? ''].filter(Boolean).join(' '),
+    });
+  };
+}
+
+const MARKDOWN_ELEMENTS: MDXComponents = {
+  h2: markdownElement('h2', 'aegis-mdx__heading'),
+  h3: markdownElement('h3', 'aegis-mdx__subheading'),
+  p: markdownElement('p', 'aegis-mdx__paragraph'),
+  ul: markdownElement('ul', 'aegis-mdx__list'),
+  ol: markdownElement('ol', 'aegis-mdx__list'),
+  strong: markdownElement('strong', 'aegis-mdx__strong'),
+  code: markdownElement('code', 'aegis-mdx__code'),
+  blockquote: markdownElement('blockquote', 'aegis-mdx__quote'),
+  table: markdownElement('table', 'aegis-mdx__table'),
+  hr: markdownElement('hr', 'aegis-mdx__rule'),
+  img: markdownElement('img', 'aegis-mdx__image'),
+  pre: FencedCode,
+};
+
 /** A document link: through the router within the site, a plain anchor elsewhere. */
 function documentLink(Link: LinkComponent) {
   return function DocumentLink({ href = '', children }: ComponentProps<'a'>) {
@@ -67,7 +112,7 @@ export function MdxDocument({
 }: MdxDocumentProps) {
   const mapped = useMemo<MDXComponents>(
     () => ({
-      pre: FencedCode,
+      ...MARKDOWN_ELEMENTS,
       a: documentLink(linkComponent ?? DefaultLink),
       ...components,
     }),
