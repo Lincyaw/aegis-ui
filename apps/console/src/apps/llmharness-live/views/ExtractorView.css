@@ -1,0 +1,49 @@
+.lh-ext {
+  display: grid;
+  grid-template-rows: auto 1fr 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+.lh-ext__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  font-size: 12px;
+  background: var(--bg-muted, #fafafa);
+}
+
+.lh-ext__tag {
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.lh-ext__phase {
+  font-size: 11px;
+  color: var(--text-muted, #555);
+}
+
+.lh-ext__stat {
+  font-size: 11px;
+  color: var(--text-muted, #555);
+  margin-left: auto;
+  font-family: var(--font-mono, monospace);
+}
+
+.lh-ext__chat {
+  border-bottom: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  min-height: 0;
+}
+
+.lh-ext__graph {
+  overflow: hidden;
+  min-height: 0;
+}

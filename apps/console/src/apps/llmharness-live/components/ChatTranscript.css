@@ -1,0 +1,143 @@
+.lh-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  overflow-y: auto;
+  height: 100%;
+  font-family: var(--font-sans, system-ui), sans-serif;
+  font-size: 13px;
+}
+
+.lh-chat__empty {
+  padding: 24px;
+  color: var(--text-muted, #888);
+  text-align: center;
+}
+
+.lh-chat__msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  background: var(--bg-surface, #fafafa);
+}
+
+.lh-chat__msg--user {
+  background: var(--bg-accent-soft, #f0f4ff);
+}
+
+.lh-chat__msg--assistant {
+  background: var(--bg-surface, #fff);
+}
+
+.lh-chat__msg--tool,
+.lh-chat__msg--tool_result {
+  background: var(--bg-muted, #f6f6f6);
+}
+
+.lh-chat__role {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #888);
+}
+
+.lh-chat__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.lh-chat__thinking,
+.lh-chat__tool,
+.lh-chat__unknown {
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.1));
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: var(--bg-elevated, #fff);
+}
+
+.lh-chat__thinking summary,
+.lh-chat__tool summary,
+.lh-chat__unknown summary {
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-muted, #666);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.lh-chat__tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--bg-tag, #e8e8e8);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lh-chat__tool--call .lh-chat__tag {
+  background: #dde7ff;
+  color: #1c3ea0;
+}
+
+.lh-chat__tool--result .lh-chat__tag {
+  background: #ddf4dd;
+  color: #1e6a1e;
+}
+
+.lh-chat__tool--error .lh-chat__tag {
+  background: #fcd9d9;
+  color: #8a1a1a;
+}
+
+.lh-chat__tool-name {
+  font-weight: 600;
+  color: var(--text-strong, #222);
+}
+
+.lh-chat__tool-id {
+  color: var(--text-muted, #888);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+}
+
+.lh-chat__tool pre,
+.lh-chat__thinking pre,
+.lh-chat__unknown pre {
+  margin: 6px 0 0;
+  padding: 8px;
+  background: var(--bg-code, #0e0e10);
+  color: var(--text-code, #eaeaea);
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.lh-chat__reminder {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: #f3e8ff;
+  color: #5b21b6;
+  border: 1px solid #d8b4fe;
+  font-size: 12px;
+  align-self: flex-start;
+}
+
+.lh-chat__reminder-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}

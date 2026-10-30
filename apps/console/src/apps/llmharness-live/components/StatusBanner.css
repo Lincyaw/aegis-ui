@@ -1,0 +1,45 @@
+.lh-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+}
+
+.lh-banner--green {
+  background: #ecfdf5;
+  color: #065f46;
+}
+.lh-banner--amber {
+  background: #fffbeb;
+  color: #92400e;
+}
+.lh-banner--red {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.lh-banner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.lh-banner__label {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+.lh-banner__warn,
+.lh-banner__error {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.lh-banner__error {
+  font-family: var(--font-mono, monospace);
+}
