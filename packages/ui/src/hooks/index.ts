@@ -8,3 +8,9 @@ export type {
   UseSavedQueriesOptions,
   UseSavedQueriesReturn,
 } from './useSavedQueries';
+export { useScrollProgress } from './useScrollProgress';
+export type {
+  ScrollProgressRange,
+  UseScrollProgressOptions,
+  UseScrollProgressResult,
+} from './useScrollProgress';

@@ -1,0 +1,137 @@
+.aegis-scroll-story {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: var(--space-12);
+  align-items: start;
+}
+
+.aegis-scroll-story__steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Tall enough that each step holds the panel for a stretch of scrolling. */
+.aegis-scroll-story__step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: var(--scroll-story-step-min-height);
+  padding-block: var(--space-8) var(--space-12);
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+/* The last step stops where its text ends, so the story does not trail
+ * empty space before the next section. */
+.aegis-scroll-story__step:last-child {
+  min-height: 0;
+}
+
+.aegis-scroll-story__index {
+  font-family: var(--font-numeric);
+  font-size: var(--type-number-size);
+  line-height: var(--type-number-line);
+  font-weight: var(--type-number-weight);
+  letter-spacing: var(--type-number-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  transition: color var(--motion-base);
+}
+
+.aegis-scroll-story__title {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-article-subheading-size);
+  line-height: var(--type-article-subheading-line);
+  font-weight: var(--type-article-subheading-weight);
+  letter-spacing: var(--type-article-subheading-tracking);
+  text-wrap: balance;
+  color: var(--text-muted);
+  transition: color var(--motion-base);
+}
+
+.aegis-scroll-story__body {
+  font-family: var(--font-ui);
+  font-size: var(--type-article-body-size);
+  line-height: var(--type-article-body-line);
+  font-weight: var(--type-article-body-weight);
+  letter-spacing: var(--type-article-body-tracking);
+  text-wrap: pretty;
+  color: var(--text-muted);
+  transition: color var(--motion-base);
+}
+
+.aegis-scroll-story__step--current .aegis-scroll-story__index {
+  color: var(--accent-brand);
+}
+
+.aegis-scroll-story__step--current .aegis-scroll-story__title,
+.aegis-scroll-story__step--current .aegis-scroll-story__body,
+.aegis-scroll-story--stacked .aegis-scroll-story__title,
+.aegis-scroll-story--stacked .aegis-scroll-story__body {
+  color: var(--text-main);
+}
+
+.aegis-scroll-story__aside {
+  position: sticky;
+  top: var(--scroll-story-sticky-top);
+}
+
+/* A visual taller than the view scrolls inside the panel body rather than
+ * running past the bottom of the view while the panel is pinned. */
+.aegis-scroll-story__panel {
+  max-height: calc(
+    var(--scroll-story-view-height) - var(--scroll-story-sticky-top) -
+      var(--space-6)
+  );
+}
+
+.aegis-scroll-story__dots {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.aegis-scroll-story__dot {
+  inline-size: var(--size-dot);
+  block-size: var(--size-dot);
+  border-radius: var(--radius-pill);
+  background: var(--border-emphasis);
+  transition: background var(--motion-base);
+}
+
+.aegis-scroll-story__dot--current {
+  background: var(--text-main);
+}
+
+/* Every visual shares one cell, so the panel keeps the tallest one's
+ * height and does not jump when the step changes. */
+.aegis-scroll-story__visuals {
+  display: grid;
+}
+
+/* A shorter visual sits in the middle of the shared cell. */
+.aegis-scroll-story__visual {
+  grid-area: 1 / 1;
+  align-self: center;
+  min-inline-size: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--motion-base),
+    visibility var(--motion-base);
+}
+
+.aegis-scroll-story__visual--current {
+  opacity: 1;
+  visibility: visible;
+}
+
+.aegis-scroll-story--stacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.aegis-scroll-story--stacked .aegis-scroll-story__step {
+  min-height: 0;
+  padding-block: var(--space-6) var(--space-8);
+}

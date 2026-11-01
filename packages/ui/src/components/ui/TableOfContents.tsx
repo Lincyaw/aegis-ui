@@ -8,6 +8,12 @@ import {
   useState,
 } from 'react';
 
+import {
+  activationRootMargin,
+  findCurrentIndex,
+  scrollerOf,
+  viewBoundsOf,
+} from '../../lib/scrollView';
 import { useStrings } from '../../locale';
 import './TableOfContents.css';
 
@@ -35,11 +41,6 @@ export interface TableOfContentsProps {
 const ACTIVATION_PERCENT = 25;
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
-interface ViewBounds {
-  top: number;
-  bottom: number;
-}
-
 /**
  * The section a click scrolled to keeps the highlight while the scroll
  * runs (`settled` false until scrollend) and afterwards for as long as the
@@ -50,45 +51,8 @@ interface ClickScroll {
   settled: boolean;
 }
 
-function scrollerOf(container: HTMLElement | null): HTMLElement {
-  return container ?? document.documentElement;
-}
-
-function viewBoundsOf(container: HTMLElement | null): ViewBounds {
-  if (!container) {
-    return { top: 0, bottom: document.documentElement.clientHeight };
-  }
-  const top = container.getBoundingClientRect().top + container.clientTop;
-  return { top, bottom: top + container.clientHeight };
-}
-
 function isScrolledTo(container: HTMLElement | null, top: number): boolean {
   return Math.abs(scrollerOf(container).scrollTop - top) < 1;
-}
-
-/**
- * The last section whose top has passed the activation line; at the end of
- * the scroll, the last section in view, so a short final section can still
- * become current.
- */
-function findCurrentSection(
-  sections: HTMLElement[],
-  container: HTMLElement | null,
-): HTMLElement {
-  const view = viewBoundsOf(container);
-  const line = view.top + ((view.bottom - view.top) * ACTIVATION_PERCENT) / 100;
-  const scroller = scrollerOf(container);
-  const atEnd =
-    Math.ceil(scroller.scrollTop + scroller.clientHeight) >=
-    scroller.scrollHeight;
-  let current = sections[0];
-  for (const section of sections) {
-    const { top } = section.getBoundingClientRect();
-    if (top <= line || (atEnd && top < view.bottom)) {
-      current = section;
-    }
-  }
-  return current;
 }
 
 /** The scroll offset that puts the section's top, less its scroll-margin, at the top of the view. */
@@ -156,7 +120,11 @@ export function TableOfContents({
         }
         clickScrollRef.current = null;
       }
-      track(findCurrentSection(sections, scrollContainer).id);
+      track(
+        sections[
+          findCurrentIndex(sections, scrollContainer, ACTIVATION_PERCENT)
+        ].id,
+      );
     };
     /* A jump can skip the activation band without an intersection change,
      * so the settled position is checked again. */
@@ -168,7 +136,7 @@ export function TableOfContents({
     };
     const observer = new IntersectionObserver(sync, {
       root: scrollContainer,
-      rootMargin: `0% 0% -${100 - ACTIVATION_PERCENT}% 0%`,
+      rootMargin: activationRootMargin(ACTIVATION_PERCENT),
     });
     for (const section of sections) {
       observer.observe(section);

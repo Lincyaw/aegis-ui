@@ -107,6 +107,8 @@ export interface AegisStrings {
   carouselRoleDescription: string;
   carouselPause: string;
   carouselPlay: string;
+  /** Heading of a ScrollStory's pinned panel, e.g. "Step 2 of 4". */
+  scrollStoryPosition: (step: number, total: number) => string;
 }
 
 export const enStrings: AegisStrings = {
@@ -219,6 +221,7 @@ export const enStrings: AegisStrings = {
   carouselRoleDescription: 'carousel',
   carouselPause: 'Pause autoplay',
   carouselPlay: 'Resume autoplay',
+  scrollStoryPosition: (step, total) => `Step ${step} of ${total}`,
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -339,4 +342,5 @@ export const zhCNStrings: AegisStrings = {
   carouselRoleDescription: '轮播',
   carouselPause: '暂停自动播放',
   carouselPlay: '继续自动播放',
+  scrollStoryPosition: (step, total) => `第 ${step} 步 · 共 ${total} 步`,
 };

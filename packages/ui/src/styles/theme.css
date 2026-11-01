@@ -356,6 +356,13 @@
    * height of its current-item indicator on one line. */
   --toc-width: 240px;
   --toc-indicator-height: 20px;
+  /* ScrollStory: where its pinned panel stops under the header, the
+   * height of the view it pins in (a host with a scroll container sets
+   * the container's height), and the shortest a step may be, so each step
+   * holds the panel for a stretch of scrolling. */
+  --scroll-story-sticky-top: calc(var(--header-height) + var(--space-6));
+  --scroll-story-view-height: 100vh;
+  --scroll-story-step-min-height: 60vh;
   --check-grid-cell-width: 72px;
   --check-grid-cell-height: 28px;
 

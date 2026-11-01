@@ -596,6 +596,102 @@ select.gallery__demo-input:focus {
   font-size: var(--size-icon-xl);
 }
 
+/* ── Scroll ─────────────────────────────────────────────────────── */
+.gallery__scroll-progress-demo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+  gap: var(--space-6);
+  align-items: center;
+  width: 100%;
+}
+
+.gallery__scroll-progress-scroller {
+  height: 320px;
+  overflow-y: auto;
+  padding: var(--space-6);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}
+
+/* Taller than the frame, so the chart starts below it and leaves above it. */
+.gallery__scroll-progress-spacer {
+  min-height: 360px;
+  margin: 0;
+}
+
+.gallery__scroll-progress-target {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  height: 160px;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--bg-tint);
+}
+
+.gallery__scroll-progress-bar {
+  flex: 1;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+  background: var(--data-seq);
+}
+
+.gallery__scroll-progress-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) 2.5rem;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.gallery__scroll-progress-track {
+  height: var(--score-bar-track-height);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+}
+
+.gallery__scroll-progress-fill {
+  height: 100%;
+  background: var(--text-main);
+}
+
+.gallery__scroll-progress-value {
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* The frame has no header, so the panel pins at its top edge, and steps
+ * are shorter than in a full-height page. */
+.gallery__scroll-story-scroller {
+  --scroll-story-sticky-top: var(--space-6);
+  --scroll-story-view-height: 560px;
+  --scroll-story-step-min-height: 320px;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  height: var(--scroll-story-view-height);
+  overflow-y: auto;
+  padding: var(--space-6);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+}
+
+.gallery__scroll-story-scroller > .gallery__panel-body {
+  margin: 0;
+}
+
+.gallery__scroll-story-run {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
 /* ── TableOfContents ────────────────────────────────────────────── */
 .gallery__toc-demo {
   display: grid;
@@ -674,6 +770,10 @@ select.gallery__demo-input:focus {
 
 @media (max-width: 768px) {
   .gallery__toc-demo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery__scroll-progress-demo {
     grid-template-columns: minmax(0, 1fr);
   }
 

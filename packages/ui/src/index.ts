@@ -10,14 +10,22 @@ import './index.css';
 export * from './components/ui';
 
 // Hooks
-export { useCopyToClipboard, useResizable, useSavedQueries } from './hooks';
+export {
+  useCopyToClipboard,
+  useResizable,
+  useSavedQueries,
+  useScrollProgress,
+} from './hooks';
 export type {
   SavedQuery,
+  ScrollProgressRange,
   UseCopyToClipboardResult,
   UseResizableOptions,
   UseResizableReturn,
   UseSavedQueriesOptions,
   UseSavedQueriesReturn,
+  UseScrollProgressOptions,
+  UseScrollProgressResult,
 } from './hooks';
 
 export { formatBytes } from './lib/format';

@@ -16,6 +16,8 @@ export type {
 } from './AmbientBackground';
 export { Reveal } from './Reveal';
 export type { RevealProps } from './Reveal';
+export { ScrollStory } from './ScrollStory';
+export type { ScrollStoryProps, ScrollStoryStep } from './ScrollStory';
 export { Markdown } from './Markdown';
 export type { MarkdownProps } from './Markdown';
 export { MdxDocument } from './MdxDocument';
