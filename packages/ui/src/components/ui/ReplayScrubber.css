@@ -93,8 +93,12 @@
   transform: translateX(-50%);
 }
 
-.aegis-replay-scrubber__end:last-child {
+.aegis-replay-scrubber__end--last {
   transform: translateX(50%);
+}
+
+.aegis-replay-scrubber__end--hidden {
+  visibility: hidden;
 }
 
 .aegis-replay-scrubber__at {

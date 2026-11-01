@@ -1,4 +1,4 @@
-.aegis-replay-strip {
+.aegis-replay-step-strip {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -6,19 +6,28 @@
   min-width: 0;
 }
 
-/* Moments, bars and ticks share one column per step. */
-.aegis-replay-strip__moments,
-.aegis-replay-strip__bars,
-.aegis-replay-strip__ticks {
+/* Moments, bars and ticks share one column per step. The gap is at most
+ * a quarter of a step's share of the width, so a run of hundreds of
+ * steps still draws every bar. */
+.aegis-replay-step-strip__moments,
+.aegis-replay-step-strip__bars,
+.aegis-replay-step-strip__ticks {
   display: grid;
-  column-gap: var(--replay-strip-gap);
+  grid-template-columns: repeat(
+    var(--aegis-replay-step-strip-count),
+    minmax(0, 1fr)
+  );
+  column-gap: min(
+    var(--replay-step-strip-gap),
+    100% / var(--aegis-replay-step-strip-count) / 4
+  );
 }
 
-.aegis-replay-strip__moments {
+.aegis-replay-step-strip__moments {
   height: var(--size-control-sm);
 }
 
-.aegis-replay-strip__moment {
+.aegis-replay-step-strip__moment {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -34,29 +43,29 @@
   color: var(--text-main);
 }
 
-.aegis-replay-strip__moment--current {
+.aegis-replay-step-strip__moment--current {
   border-color: var(--bg-inverted);
   background: var(--bg-inverted);
   color: var(--text-on-inverted);
 }
 
 /* Bars stand on a common baseline; a step that changes the course is taller. */
-.aegis-replay-strip__bars {
+.aegis-replay-step-strip__bars {
   align-items: end;
-  height: var(--replay-strip-bar-emphasis);
+  height: var(--replay-step-strip-bar-emphasis);
 }
 
-.aegis-replay-strip__step {
+.aegis-replay-step-strip__step {
   display: block;
-  height: var(--replay-strip-bar);
+  height: var(--replay-step-strip-bar);
   min-width: 0;
   padding: 0;
   border: 0;
   border-radius: var(--radius-xs);
-  background: var(--aegis-replay-strip-color);
+  background: var(--aegis-replay-step-strip-color);
 }
 
-button.aegis-replay-strip__step {
+button.aegis-replay-step-strip__step {
   cursor: pointer;
   transition:
     transform var(--motion-fast),
@@ -64,31 +73,31 @@ button.aegis-replay-strip__step {
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  button.aegis-replay-strip__step:hover {
+  button.aegis-replay-step-strip__step:hover {
     transform: translateY(calc(-1 * var(--motion-lift)));
   }
 
-  button.aegis-replay-strip__step:active {
+  button.aegis-replay-step-strip__step:active {
     transform: none;
   }
 }
 
-.aegis-replay-strip__step--emphasis {
-  height: var(--replay-strip-bar-emphasis);
+.aegis-replay-step-strip__step--emphasis {
+  height: var(--replay-step-strip-bar-emphasis);
 }
 
 /* The current step: a ring in the main ink just outside the bar. */
-.aegis-replay-strip__step--current {
+.aegis-replay-step-strip__step--current {
   outline: var(--size-border-thick) solid var(--text-main);
   outline-offset: var(--size-border-thick);
 }
 
-button.aegis-replay-strip__step:focus-visible {
+button.aegis-replay-step-strip__step:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
 }
 
-.aegis-replay-strip__ticks {
+.aegis-replay-step-strip__ticks {
   font-family: var(--font-numeric);
   font-size: var(--type-small-size);
   line-height: var(--type-small-line);
@@ -97,12 +106,13 @@ button.aegis-replay-strip__step:focus-visible {
 }
 
 /* A tick label may run wider than its step's column. */
-.aegis-replay-strip__tick {
+.aegis-replay-step-strip__tick {
   min-width: 0;
   overflow: visible;
   white-space: nowrap;
 }
 
-.aegis-replay-strip__tick:last-child {
-  direction: rtl;
+/* The last tick ends at the strip's edge and runs leftwards. */
+.aegis-replay-step-strip__tick--last {
+  justify-self: end;
 }

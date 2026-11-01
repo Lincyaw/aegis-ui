@@ -4,13 +4,14 @@ import {
   type ReactElement,
   type ReactNode,
   useRef,
+  useState,
 } from 'react';
 
 import { type ChartColor, chartColorValue } from '../../lib/chart';
 import { useStrings } from '../../locale';
 import './ReplayStepStrip.css';
 
-export interface ReplayStripStep {
+export interface ReplayStepStripItem {
   key: string;
   /** The step kind's colour, e.g. thinking, tool call, failure. */
   color: ChartColor;
@@ -21,7 +22,7 @@ export interface ReplayStripStep {
 }
 
 export interface ReplayStepStripProps {
-  steps: ReplayStripStep[];
+  steps: ReplayStepStripItem[];
   /** The step shown elsewhere on the page; outlined. */
   currentIndex?: number;
   /** Makes each step a button that selects it. */
@@ -36,9 +37,26 @@ export interface ReplayStepStripProps {
 }
 
 /**
+ * The steps that get a tick: the first, the last, and every `every`
+ * steps between, leaving out one that would crowd the last.
+ */
+function tickedSteps(count: number, every: number): Set<number> {
+  const last = count - 1;
+  const ticks = new Set<number>(count > 0 ? [0, last] : []);
+  for (let index = every - 1; index < last; index += every) {
+    if (last - index >= every / 2) {
+      ticks.add(index);
+    }
+  }
+  return ticks;
+}
+
+/**
  * Every step of a run as a bar coloured by its kind, with the key
  * moments numbered above it and step ticks below. With `onSelect`, a bar
- * selects its step; arrow keys move between steps.
+ * selects its step; arrow keys move between steps with one tab stop.
+ * The gap between bars narrows as steps are added, so a long run still
+ * draws every step.
  */
 export function ReplayStepStrip({
   steps,
@@ -52,13 +70,14 @@ export function ReplayStepStrip({
   const strings = useStrings();
   const barsRef = useRef<HTMLDivElement>(null);
   const count = steps.length;
-  const every = tickEvery ?? Math.max(1, Math.ceil(count / 4 / 5) * 5 || 1);
-  const ticks = new Set<number>([0, Math.max(count - 1, 0)]);
-  for (let index = every - 1; index < count - 1; index += every) {
-    ticks.add(index);
-  }
+  const every = tickEvery ?? Math.max(1, Math.ceil(count / 20) * 5);
+  const ticks = tickedSteps(count, every);
   const momentNumber = new Map(keyMoments.map((step, n) => [step, n + 1]));
-  const focusIndex = currentIndex ?? 0;
+
+  // The roving tab stop follows the current step, or the last step the
+  // keyboard reached when the host does not mark one.
+  const [ownFocus, setOwnFocus] = useState(0);
+  const focusIndex = Math.min(currentIndex ?? ownFocus, Math.max(count - 1, 0));
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (!onSelect || count === 0) {
@@ -75,26 +94,25 @@ export function ReplayStepStrip({
     }
     event.preventDefault();
     const next = Math.min(Math.max(target[event.key], 0), count - 1);
+    setOwnFocus(next);
     onSelect(next);
     barsRef.current
-      ?.querySelectorAll<HTMLButtonElement>('.aegis-replay-strip__step')
-      [next]?.focus();
+      ?.querySelectorAll<HTMLButtonElement>('.aegis-replay-step-strip__step')
+      .item(next)
+      .focus();
   };
 
-  const columns = {
-    gridTemplateColumns: `repeat(${String(Math.max(count, 1))}, minmax(0, 1fr))`,
-  };
+  const style = {
+    '--aegis-replay-step-strip-count': Math.max(count, 1),
+  } as CSSProperties;
   return (
     <div
-      className={['aegis-replay-strip', className ?? '']
+      className={['aegis-replay-step-strip', className ?? '']
         .filter(Boolean)
         .join(' ')}
+      style={style}
     >
-      <div
-        className="aegis-replay-strip__moments"
-        style={columns}
-        aria-hidden="true"
-      >
+      <div className="aegis-replay-step-strip__moments" aria-hidden="true">
         {steps.map((step, index) => {
           const n = momentNumber.get(index);
           return n === undefined ? (
@@ -103,9 +121,9 @@ export function ReplayStepStrip({
             <span
               key={step.key}
               className={[
-                'aegis-replay-strip__moment',
+                'aegis-replay-step-strip__moment',
                 index === currentIndex
-                  ? 'aegis-replay-strip__moment--current'
+                  ? 'aegis-replay-step-strip__moment--current'
                   : '',
               ]
                 .filter(Boolean)
@@ -118,9 +136,8 @@ export function ReplayStepStrip({
       </div>
       <div
         ref={barsRef}
-        className="aegis-replay-strip__bars"
-        style={columns}
-        role={onSelect ? 'toolbar' : 'img'}
+        className="aegis-replay-step-strip__bars"
+        role={onSelect ? 'toolbar' : 'list'}
         aria-label={strings.replaySteps}
         onKeyDown={onKeyDown}
       >
@@ -130,13 +147,15 @@ export function ReplayStepStrip({
             n === undefined
               ? step.label
               : `${step.label} · ${strings.replayKeyMoment(n)}`;
-          const style = {
-            '--aegis-replay-strip-color': chartColorValue(step.color),
+          const barStyle = {
+            '--aegis-replay-step-strip-color': chartColorValue(step.color),
           } as CSSProperties;
           const cls = [
-            'aegis-replay-strip__step',
-            step.emphasis ? 'aegis-replay-strip__step--emphasis' : '',
-            index === currentIndex ? 'aegis-replay-strip__step--current' : '',
+            'aegis-replay-step-strip__step',
+            step.emphasis ? 'aegis-replay-step-strip__step--emphasis' : '',
+            index === currentIndex
+              ? 'aegis-replay-step-strip__step--current'
+              : '',
           ]
             .filter(Boolean)
             .join(' ');
@@ -145,27 +164,39 @@ export function ReplayStepStrip({
               key={step.key}
               type="button"
               className={cls}
-              style={style}
+              style={barStyle}
               title={label}
               aria-label={label}
               aria-current={index === currentIndex ? 'step' : undefined}
               tabIndex={index === focusIndex ? 0 : -1}
               onClick={() => {
+                setOwnFocus(index);
                 onSelect(index);
               }}
             />
           ) : (
-            <span key={step.key} className={cls} style={style} title={label} />
+            <span
+              key={step.key}
+              role="listitem"
+              className={cls}
+              style={barStyle}
+              title={label}
+              aria-label={label}
+              aria-current={index === currentIndex ? 'step' : undefined}
+            />
           );
         })}
       </div>
-      <div
-        className="aegis-replay-strip__ticks"
-        style={columns}
-        aria-hidden="true"
-      >
+      <div className="aegis-replay-step-strip__ticks" aria-hidden="true">
         {steps.map((step, index) => (
-          <span key={step.key} className="aegis-replay-strip__tick">
+          <span
+            key={step.key}
+            className={
+              index === count - 1 && count > 1
+                ? 'aegis-replay-step-strip__tick aegis-replay-step-strip__tick--last'
+                : 'aegis-replay-step-strip__tick'
+            }
+          >
             {ticks.has(index) ? formatStep(index) : null}
           </span>
         ))}

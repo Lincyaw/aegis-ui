@@ -54,7 +54,10 @@ export type {
   ReplayScrubberProps,
 } from './ReplayScrubber';
 export { ReplayStepStrip } from './ReplayStepStrip';
-export type { ReplayStepStripProps, ReplayStripStep } from './ReplayStepStrip';
+export type {
+  ReplayStepStripItem,
+  ReplayStepStripProps,
+} from './ReplayStepStrip';
 export { ReplayTransport } from './ReplayTransport';
 export type { ReplayTransportProps } from './ReplayTransport';
 export type { ChartLegendItem, ChartLegendProps } from './ChartLegend';

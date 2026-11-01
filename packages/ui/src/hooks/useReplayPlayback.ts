@@ -8,7 +8,11 @@ const DEFAULT_STEP_MS = 1000;
 export interface UseReplayPlaybackOptions {
   /** How many steps the replay has. */
   count: number;
-  /** The current step, controlled; omit to let the hook hold it. */
+  /**
+   * The current step, controlled; omit to let the hook hold it. A
+   * controlled host must set `index` from `onIndexChange`, or playback
+   * cannot advance. An index past the end shows the last step.
+   */
   index?: number;
   defaultIndex?: number;
   onIndexChange?: (index: number) => void;
@@ -34,6 +38,10 @@ export interface UseReplayPlaybackResult {
   play: () => void;
   pause: () => void;
   toggle: () => void;
+  /** Suspends advancing without pausing, e.g. while the reader drags the scrubber. */
+  hold: () => void;
+  /** Ends a `hold`; playback, if on, continues where the step left off. */
+  release: () => void;
 }
 
 /**
@@ -56,6 +64,11 @@ export function useReplayPlayback({
   const [ownIndex, setOwnIndex] = useState(defaultIndex);
   const index = Math.min(Math.max(controlledIndex ?? ownIndex, 0), last);
   const [playing, setPlaying] = useState(false);
+  const [held, setHeld] = useState(false);
+  // Base milliseconds of `consumedIndexRef`'s step already played, so a
+  // pause, hold or speed change continues the step instead of restarting.
+  const consumedRef = useRef(0);
+  const consumedIndexRef = useRef(index);
   const onIndexChangeRef = useRef(onIndexChange);
   onIndexChangeRef.current = onIndexChange;
   const durationRef = useRef(stepDurationMs);
@@ -92,18 +105,28 @@ export function useReplayPlayback({
   }
 
   useEffect(() => {
-    if (!playing || pageHidden || atEnd) {
+    if (!playing || pageHidden || held || atEnd) {
       return undefined;
     }
+    if (consumedIndexRef.current !== index) {
+      consumedIndexRef.current = index;
+      consumedRef.current = 0;
+    }
     const base = durationRef.current?.(index) ?? DEFAULT_STEP_MS;
-    const delay = Math.max(base, 0) / Math.max(speed, 0.01);
-    const timer = window.setTimeout(() => {
-      seek(index + 1);
-    }, delay);
+    const rate = Math.max(speed, 0.01);
+    const startedAt = performance.now();
+    const timer = window.setTimeout(
+      () => {
+        consumedRef.current = 0;
+        seek(index + 1);
+      },
+      Math.max(base - consumedRef.current, 0) / rate,
+    );
     return () => {
       window.clearTimeout(timer);
+      consumedRef.current += (performance.now() - startedAt) * rate;
     };
-  }, [playing, pageHidden, atEnd, index, speed, seek]);
+  }, [playing, pageHidden, held, atEnd, index, speed, seek]);
 
   const play = useCallback(() => {
     if (index >= last) {
@@ -128,5 +151,23 @@ export function useReplayPlayback({
     seek(index + 1);
   }, [index, seek]);
 
-  return { index, playing, seek, previous, next, play, pause, toggle };
+  const hold = useCallback(() => {
+    setHeld(true);
+  }, []);
+  const release = useCallback(() => {
+    setHeld(false);
+  }, []);
+
+  return {
+    index,
+    playing,
+    seek,
+    previous,
+    next,
+    play,
+    pause,
+    toggle,
+    hold,
+    release,
+  };
 }

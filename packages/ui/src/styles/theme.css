@@ -395,17 +395,19 @@
   --page-padding-inline: var(--space-6);
   --page-padding-inline-mobile: var(--space-4);
   /* Public site (SiteLayout): sections centre --site-column, the content
-   * column. The side gutter is 120 from a 1280 window up (1200 at 1440,
+   * column. The side gutter is 120 from a 1280-wide page up (1200 at 1440,
    * 1040 at 1280); below, it shrinks so the column holds 1040 until the
    * gutter reaches --space-6, then the column narrows, with no jump at any
    * width. At 768 and narrower the gutter is --space-4 (media query at the
-   * end of this file). */
+   * end of this file). `100%` is the width of the element that sets its
+   * width from the column: the page, without the scrollbar. Override the
+   * inputs on :root or on the SiteLayout root, which recomputes these. */
   --site-content-width: 1200px;
   --site-content-width-narrow: 1040px;
   --site-gutter-wide: 120px;
   --site-gutter: clamp(
     var(--space-6),
-    (100vw - var(--site-content-width-narrow)) / 2,
+    (100% - var(--site-content-width-narrow)) / 2,
     var(--site-gutter-wide)
   );
   --site-column: min(100% - 2 * var(--site-gutter), var(--site-content-width));
@@ -429,10 +431,10 @@
   --replay-transport-button: 36px;
   --replay-transport-play: 44px;
   /* ReplayStepStrip: a step's bar, a course-changing step's taller bar, and
-   * the gap between steps (narrow it for runs of hundreds of steps). */
-  --replay-strip-bar: var(--space-10);
-  --replay-strip-bar-emphasis: var(--space-16);
-  --replay-strip-gap: var(--space-1);
+   * the widest gap between steps (it narrows for long runs). */
+  --replay-step-strip-bar: var(--space-10);
+  --replay-step-strip-bar-emphasis: var(--space-16);
+  --replay-step-strip-gap: var(--space-1);
 
   /* ── Component tokens ────────────────────────────────────────────── */
   /* Defaults reproduce the stock look; a host restyles a primitive by

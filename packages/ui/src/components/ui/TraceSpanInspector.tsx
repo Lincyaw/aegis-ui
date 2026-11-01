@@ -202,7 +202,7 @@ export function TraceSpanInspector({
       open
       onClose={onClose}
       title={truncate(span.name, TITLE_MAX)}
-      subtitle={span.kind ?? undefined}
+      subtitle={span.kind === '' ? undefined : span.kind}
       tabs={tabs}
     />
   );

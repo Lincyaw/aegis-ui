@@ -46,18 +46,18 @@
   color: var(--text-on-inverted);
 }
 
-.aegis-replay-transport__button:disabled {
+.aegis-replay-transport__button[aria-disabled='true'] {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .aegis-replay-transport__button:hover:not(:disabled) {
+  .aegis-replay-transport__button:hover:not([aria-disabled='true']) {
     transform: translateY(calc(-1 * var(--motion-lift)));
     box-shadow: var(--shadow-raised);
   }
 
-  .aegis-replay-transport__button:active:not(:disabled) {
+  .aegis-replay-transport__button:active:not([aria-disabled='true']) {
     transform: none;
     box-shadow: var(--shadow-rest);
   }
@@ -70,4 +70,46 @@
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+/* Speed: a segmented switch, the chosen speed lifted onto the panel. */
+.aegis-replay-transport__speeds {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+}
+
+.aegis-replay-transport__speed {
+  height: var(--size-control-sm);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-family: var(--font-numeric);
+  font-size: var(--type-strong-size);
+  font-weight: var(--type-strong-weight);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast),
+    color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.aegis-replay-transport__speed:hover {
+  color: var(--text-main);
+}
+
+.aegis-replay-transport__speed[aria-checked='true'] {
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-rest);
+  color: var(--text-main);
+}
+
+.aegis-replay-transport__speed:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }

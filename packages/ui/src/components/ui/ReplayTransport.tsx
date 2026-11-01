@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { KeyboardEvent, ReactElement, ReactNode } from 'react';
 
 import {
   CaretRightOutlined,
@@ -9,7 +9,6 @@ import {
 
 import { useStrings } from '../../locale';
 import './ReplayTransport.css';
-import { Tabs } from './Tabs';
 
 export interface ReplayTransportProps {
   playing: boolean;
@@ -52,6 +51,26 @@ export function ReplayTransport({
   const strings = useStrings();
   const speedTabs =
     speed !== undefined && speeds !== undefined && onSpeedChange !== undefined;
+  // Arrow keys move the choice within the group, which is one tab stop.
+  const onSpeedKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    if (!speedTabs) {
+      return;
+    }
+    const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[
+      event.key
+    ];
+    if (step === undefined) {
+      return;
+    }
+    event.preventDefault();
+    const at = speeds.indexOf(speed);
+    const next = speeds[(at + step + speeds.length) % speeds.length];
+    onSpeedChange(next);
+    event.currentTarget.parentElement
+      ?.querySelectorAll<HTMLButtonElement>('[role="radio"]')
+      .item(speeds.indexOf(next))
+      .focus();
+  };
   return (
     <div
       className={['aegis-replay-transport', className ?? '']
@@ -59,12 +78,14 @@ export function ReplayTransport({
         .join(' ')}
     >
       <div className="aegis-replay-transport__buttons">
+        {/* aria-disabled rather than disabled keeps focus on the button
+         * when stepping reaches an end. */}
         <button
           type="button"
           className="aegis-replay-transport__button"
           aria-label={strings.replayPreviousStep}
-          disabled={!canPrevious}
-          onClick={onPrevious}
+          aria-disabled={!canPrevious}
+          onClick={canPrevious ? onPrevious : undefined}
         >
           <StepBackwardOutlined aria-hidden />
         </button>
@@ -84,8 +105,8 @@ export function ReplayTransport({
           type="button"
           className="aegis-replay-transport__button"
           aria-label={strings.replayNextStep}
-          disabled={!canNext}
-          onClick={onNext}
+          aria-disabled={!canNext}
+          onClick={canNext ? onNext : undefined}
         >
           <StepForwardOutlined aria-hidden />
         </button>
@@ -96,19 +117,27 @@ export function ReplayTransport({
       {(speedTabs || extra !== undefined) && (
         <div className="aegis-replay-transport__end">
           {speedTabs && (
-            <div role="group" aria-label={strings.replaySpeed}>
-              <Tabs
-                listOnly
-                size="sm"
-                items={speeds.map((value) => ({
-                  key: String(value),
-                  label: `${String(value)}×`,
-                }))}
-                activeKey={String(speed)}
-                onChange={(key) => {
-                  onSpeedChange(Number(key));
-                }}
-              />
+            <div
+              className="aegis-replay-transport__speeds"
+              role="radiogroup"
+              aria-label={strings.replaySpeed}
+            >
+              {speeds.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={value === speed}
+                  tabIndex={value === speed ? 0 : -1}
+                  onKeyDown={onSpeedKeyDown}
+                  className="aegis-replay-transport__speed"
+                  onClick={() => {
+                    onSpeedChange(value);
+                  }}
+                >
+                  {`${String(value)}×`}
+                </button>
+              ))}
             </div>
           )}
           {extra}

@@ -128,6 +128,8 @@ function ReplayPlayerSpecimen(): ReactNode {
             count={TRAJECTORY_STEPS.length}
             index={playback.index}
             onIndexChange={playback.seek}
+            onScrubStart={playback.hold}
+            onScrubEnd={playback.release}
             formatStep={(index) => `T${String(index + 1)}`}
             markers={[
               { index: 0, color: 'cat-3', label: 'T1 · first query' },
@@ -197,10 +199,25 @@ const REPLAY_STRIP_STEPS = Array.from({ length: 38 }, (_, index) => {
   };
 });
 
+const REPLAY_LONG_STEPS = Array.from({ length: 300 }, (_, index) => {
+  const kind: ReplayKind =
+    index % 47 === 46
+      ? 'fail'
+      : index === 299
+        ? 'goal'
+        : REPLAY_PATTERN[index % 10];
+  return {
+    key: `long-${String(index + 1)}`,
+    color: REPLAY_KINDS[kind].color,
+    label: `#${String(index + 1)} · ${REPLAY_KINDS[kind].label}`,
+    emphasis: kind === 'fail' || kind === 'goal',
+  };
+});
+
 function ReplayStepStripSpecimen(): ReactNode {
   const [current, setCurrent] = useState(11);
   return (
-    <div className='gallery__row'>
+    <div className='gallery__stack'>
       <Specimen
         caption={`bars by kind · course-changing steps taller · key moments numbered · the current step outlined · arrows move · #${String(current + 1)}`}
         span={3}
@@ -221,6 +238,15 @@ function ReplayStepStripSpecimen(): ReactNode {
             keyMoments={[3, 11, 22, 37]}
           />
         </div>
+      </Specimen>
+      <Specimen
+        caption='300 steps · the gap narrows so every bar still draws · not selectable: a list of labelled steps'
+        span={3}
+      >
+        <ReplayStepStrip
+          steps={REPLAY_LONG_STEPS}
+          keyMoments={[46, 140, 299]}
+        />
       </Specimen>
     </div>
   );

@@ -15,6 +15,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
 import { useResizable } from '../../hooks/useResizable';
+import type { ChartColor } from '../../lib/chart';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { MonoValue } from './MonoValue';
@@ -37,10 +38,15 @@ export interface TraceSpan {
   durationMs?: number;
   status?: 'ok' | 'error' | 'unset';
   /**
-   * The span's category: a chip on the left of its `TraceTree` row, and
-   * the colour of its `TimelineChart` bar (one colour per kind).
+   * The span's category: a chip on the left of its `TraceTree` row, and,
+   * without `color`, the colour of its `TimelineChart` bar (one per kind).
    */
   kind?: string;
+  /**
+   * The colour of its `TimelineChart` bar. Set it from a stable key when
+   * `kind` is translated, so the colour does not follow the language.
+   */
+  color?: ChartColor;
   /** Drawn at the end of the span's `TimelineChart` bar. */
   badge?: ReactNode;
   /** Free-form attributes — only used by the inspector pane, not by the row itself. */

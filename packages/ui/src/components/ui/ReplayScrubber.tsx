@@ -30,8 +30,17 @@ export interface ReplayScrubberProps {
   formatStep?: (index: number) => ReactNode;
   /** Names the slider; defaults to "Replay position". */
   ariaLabel?: string;
+  /**
+   * A pointer drag starts and ends: hold playback in between, e.g. with
+   * `useReplayPlayback`'s `hold` and `release`.
+   */
+  onScrubStart?: () => void;
+  onScrubEnd?: () => void;
   className?: string;
 }
+
+/** A label within this share of the track from an end hides that end's label. */
+const END_CLEARANCE = 0.08;
 
 /**
  * The replay's position: a track from the first step to the last with a
@@ -46,6 +55,8 @@ export function ReplayScrubber({
   markers = [],
   formatStep = (step) => step + 1,
   ariaLabel,
+  onScrubStart,
+  onScrubEnd,
   className,
 }: ReplayScrubberProps): ReactElement {
   const strings = useStrings();
@@ -69,12 +80,16 @@ export function ReplayScrubber({
       return;
     }
     event.currentTarget.setPointerCapture(event.pointerId);
+    onScrubStart?.();
     seekToPointer(event.clientX);
   };
   const onPointerMove = (event: PointerEvent<HTMLDivElement>): void => {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       seekToPointer(event.clientX);
     }
+  };
+  const onPointerEnd = (): void => {
+    onScrubEnd?.();
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
@@ -96,6 +111,16 @@ export function ReplayScrubber({
   };
 
   const position = { '--aegis-replay-scrubber-position': share(index) };
+  const total = Math.max(count, 0);
+  const here = markers
+    .filter((marker) => marker.index === index)
+    .map((marker) => marker.label);
+  const valueText = [
+    strings.replayStepOf(total === 0 ? 0 : index + 1, total),
+    ...here,
+  ].join(' · ');
+  const nearStart = index > 0 && share(index) < END_CLEARANCE;
+  const nearEnd = index < last && share(index) > 1 - END_CLEARANCE;
   return (
     <div
       className={['aegis-replay-scrubber', className ?? '']
@@ -104,9 +129,9 @@ export function ReplayScrubber({
       style={position as CSSProperties}
     >
       <div className="aegis-replay-scrubber__markers" aria-hidden="true">
-        {markers.map((marker) => (
+        {markers.map((marker, position) => (
           <span
-            key={`${String(marker.index)}-${marker.label}`}
+            key={position}
             className="aegis-replay-scrubber__marker"
             title={marker.label}
             style={
@@ -124,12 +149,14 @@ export function ReplayScrubber({
         role="slider"
         tabIndex={0}
         aria-label={ariaLabel ?? strings.replayPosition}
-        aria-valuemin={1}
-        aria-valuemax={Math.max(count, 1)}
-        aria-valuenow={index + 1}
-        aria-valuetext={strings.replayStepOf(index + 1, Math.max(count, 1))}
+        aria-valuemin={total === 0 ? 0 : 1}
+        aria-valuemax={total}
+        aria-valuenow={total === 0 ? 0 : index + 1}
+        aria-valuetext={valueText}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
         onKeyDown={onKeyDown}
       >
         <span className="aegis-replay-scrubber__played" />
@@ -137,28 +164,34 @@ export function ReplayScrubber({
       </div>
       <div className="aegis-replay-scrubber__labels" aria-hidden="true">
         <span
-          className={
-            index === 0
-              ? 'aegis-replay-scrubber__end aegis-replay-scrubber__label--current'
-              : 'aegis-replay-scrubber__end'
-          }
+          className={[
+            'aegis-replay-scrubber__end',
+            index === 0 ? 'aegis-replay-scrubber__label--current' : '',
+            nearStart ? 'aegis-replay-scrubber__end--hidden' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
         >
-          {formatStep(0)}
+          {total === 0 ? null : formatStep(0)}
         </span>
         {index > 0 && index < last && (
           <span className="aegis-replay-scrubber__at aegis-replay-scrubber__label--current">
             {formatStep(index)}
           </span>
         )}
-        <span
-          className={
-            index === last && last > 0
-              ? 'aegis-replay-scrubber__end aegis-replay-scrubber__label--current'
-              : 'aegis-replay-scrubber__end'
-          }
-        >
-          {formatStep(last)}
-        </span>
+        {last > 0 && (
+          <span
+            className={[
+              'aegis-replay-scrubber__end aegis-replay-scrubber__end--last',
+              index === last ? 'aegis-replay-scrubber__label--current' : '',
+              nearEnd ? 'aegis-replay-scrubber__end--hidden' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {formatStep(last)}
+          </span>
+        )}
       </div>
     </div>
   );

@@ -415,7 +415,10 @@ export function TimelineChart({
                         style={{
                           left: `${leftPct.toFixed(4)}%`,
                           width: `max(${widthPct.toFixed(4)}%, var(--size-hairline))`,
-                          background: colorForKind(span.kind),
+                          background:
+                            span.color === undefined
+                              ? colorForKind(span.kind)
+                              : chartColorValue(span.color),
                         }}
                       >
                         {span.badge ? (
