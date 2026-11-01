@@ -5,7 +5,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { useStrings } from '../../locale';
 import './Chip.css';
 

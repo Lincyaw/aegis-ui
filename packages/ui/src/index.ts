@@ -124,21 +124,12 @@ export {
 } from './commands';
 export type { Command, CommandContextValue } from './commands';
 
-// Agent context contract (presentational — host wires the LLM round-trip).
-export {
-  AgentmChannelClient,
-  AgentmChannelProvider,
-  AgentProvider,
-  AGENTM_WIRE_VERSION,
-  useAgent,
-} from './agent';
+// Agent chat contract (presentational — host wires the LLM round-trip;
+// the AgentM transport is in `@lincyaw/aegis-ui/transports`).
+export { AgentChatProvider, useAgentChat } from './agent';
 export type {
-  AgentContextValue,
+  AgentChatValue,
   AgentCommandInvocation,
-  AgentmChannelClientOptions,
-  AgentmConnectionStatus,
-  AgentmEnvelope,
-  AgentmEnvelopeKind,
   AgentMessage,
   AgentMessageRole,
   AgentToolCallRecord,
@@ -146,7 +137,7 @@ export type {
 
 // Agent-native UI substrate — runtime + hooks + provider.
 export {
-  AegisAgentProvider,
+  AegisRuntimeProvider,
   AskOverlay,
   AskPanel,
   buildAskContext,
@@ -182,8 +173,6 @@ export type {
   InvocationSource,
   ListActionsFilter,
   McpToolDefinition,
-  RegisteredAction,
-  RegisteredSurface,
   RuntimeDeps,
   SearchOptions,
   SearchProvider,

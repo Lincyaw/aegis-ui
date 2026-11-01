@@ -1,6 +1,6 @@
 {
   "_generated": true,
-  "_source": "packages/ui/src/agent/mcpToolCatalogue.ts",
+  "_source": "packages/ui/src/agent/core/mcpToolCatalogue.ts",
   "_regenerate": "pnpm gen:mcp-tools",
   "tools": [
     {

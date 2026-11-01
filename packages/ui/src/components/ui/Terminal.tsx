@@ -3,7 +3,7 @@ import { type ReactNode, useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './Terminal.css';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';

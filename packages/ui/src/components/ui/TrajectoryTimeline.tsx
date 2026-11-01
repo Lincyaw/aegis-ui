@@ -3,7 +3,7 @@ import { type ReactNode, useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';

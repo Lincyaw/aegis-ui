@@ -3,7 +3,7 @@ import { useCallback, useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { useStrings } from '../../locale';
 import './CodeBlock.css';

@@ -7,7 +7,7 @@ import {
   useRef,
 } from 'react';
 
-import { AegisAgentContext } from './aegisAgentContext';
+import { AegisRuntimeContext } from './aegisRuntimeContext';
 import type {
   AegisAction,
   SearchProvider,
@@ -24,7 +24,7 @@ export interface UseAegisActionResult<P, R> {
 export function useAegisAction<P = void, R = unknown>(
   action: AegisAction<P, R> | null | undefined,
 ): UseAegisActionResult<P, R> {
-  const ctx = useContext(AegisAgentContext);
+  const ctx = useContext(AegisRuntimeContext);
   const actionRef = useRef(action);
   actionRef.current = action;
 
@@ -47,7 +47,7 @@ export function useAegisAction<P = void, R = unknown>(
       const current = actionRef.current;
       if (!ctx || !current) {
         throw new Error(
-          'useAegisAction.invoke called without an AegisAgentProvider or action',
+          'useAegisAction.invoke called without an AegisRuntimeProvider or action',
         );
       }
       const result = await ctx.runtime.dispatch<R>(current.id, params, {
@@ -86,7 +86,7 @@ export interface UseAegisSurfaceResult {
 export function useAegisSurface<T>(
   opts: UseAegisSurfaceOptions<T>,
 ): UseAegisSurfaceResult {
-  const ctx = useContext(AegisAgentContext);
+  const ctx = useContext(AegisRuntimeContext);
   const dataRef = useRef(opts.data);
   dataRef.current = opts.data;
   const projectRef = useRef(opts.project);
@@ -132,7 +132,7 @@ export function useAegisSurface<T>(
 }
 
 export function useAegisSearchProvider(provider: SearchProvider): void {
-  const ctx = useContext(AegisAgentContext);
+  const ctx = useContext(AegisRuntimeContext);
   const providerRef = useRef(provider);
   providerRef.current = provider;
   useEffect(() => {

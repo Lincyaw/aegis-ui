@@ -178,5 +178,89 @@ module.exports = {
     'jsx-a11y/anchor-is-valid': 'error',
     'jsx-a11y/no-static-element-interactions': 'warn',
     'jsx-a11y/click-events-have-key-events': 'warn',
+
+    // Layers of packages/ui/src (CLAUDE.md "Top-down hierarchy"): a layer
+    // imports only from the layers below it.
+    'import/no-restricted-paths': [
+      'error',
+      {
+        // Lint runs from packages/ui; zones are written from the repo root.
+        basePath: __dirname,
+        zones: [
+          {
+            target: './packages/ui/src/{lib,locale}/**',
+            from: './packages/ui/src/!(lib|locale)/**',
+            message: 'lib and locale are the bottom layer.',
+          },
+          // The barrels re-export the upper layers, so they are banned
+          // sources too.
+          {
+            target:
+              './packages/ui/src/{hooks,theme,notifications,auth,commands,agent/core,agent/chat}/**',
+            from: [
+              './packages/ui/src/{components,layouts,agent/ask,transports}/**',
+              './packages/ui/src/{agent/index,index}.ts',
+            ],
+            message:
+              'Hooks, theme, providers and the agent core sit below the primitives.',
+          },
+          {
+            target: './packages/ui/src/components',
+            from: [
+              './packages/ui/src/{layouts,agent/ask,transports}/**',
+              './packages/ui/src/{agent/index,index}.ts',
+            ],
+            message:
+              'Primitives may not import the shell, the Ask UI or the transports.',
+          },
+          {
+            target: './packages/ui/src/transports/**',
+            from: [
+              './packages/ui/src/{components,layouts,agent/ask}/**',
+              './packages/ui/src/{agent/index,index}.ts',
+            ],
+            message:
+              'Transports build on the agent core only, so the transports entry stays small.',
+          },
+          {
+            target: [
+              './packages/ui/src/!(transports)/**',
+              './packages/ui/src/*.{ts,tsx}',
+            ],
+            from: './packages/ui/src/transports',
+            message:
+              'The main entry opens no connections; transports are published as @lincyaw/aegis-ui/transports.',
+          },
+        ],
+      },
+    ],
   },
+  overrides: [
+    {
+      // CLAUDE.md: only the shell, RequireAuth and the routed inbox
+      // primitives know about the router; everything else takes a
+      // linkComponent.
+      files: ['packages/ui/src/**/*.{ts,tsx}'],
+      excludedFiles: [
+        'packages/ui/src/layouts/shell/**',
+        'packages/ui/src/auth/RequireAuth.tsx',
+        'packages/ui/src/components/ui/InboxPage.tsx',
+        'packages/ui/src/components/ui/NotificationBell.tsx',
+      ],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: [
+              {
+                name: 'react-router-dom',
+                message:
+                  'Take a linkComponent (type LinkComponent) instead of importing the router.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
 };

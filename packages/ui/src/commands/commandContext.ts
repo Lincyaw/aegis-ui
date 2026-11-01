@@ -1,6 +1,6 @@
 import { type ReactNode, createContext } from 'react';
 
-import type { AegisAction } from '../agent/types';
+import type { AegisAction } from '../agent/core/types';
 
 /**
  * A single executable action surfaced through the command palette and,

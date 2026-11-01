@@ -4,8 +4,8 @@ import { BellOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { useAegisAction } from '../../agent/hooks';
-import type { AegisAction } from '../../agent/types';
+import { useAegisAction } from '../../agent/core/hooks';
+import type { AegisAction } from '../../agent/core/types';
 import { type AegisNotification, useNotifications } from '../../notifications';
 import './NotificationBell.css';
 import { relativeTime } from './relativeTime';

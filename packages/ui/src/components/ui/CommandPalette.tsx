@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 
-import { useAegisAction } from '../../agent/hooks';
+import { useAegisAction } from '../../agent/core/hooks';
 import { type Command, formatShortcut, useCommands } from '../../commands';
 import './CommandPalette.css';
 

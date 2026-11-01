@@ -1,50 +1,37 @@
-export { AgentProvider } from './AgentProvider';
-export { useAgent } from './useAgent';
-export { AgentmChannelProvider } from './AgentmChannelProvider';
-export {
-  AgentmChannelClient,
-  WIRE_VERSION as AGENTM_WIRE_VERSION,
-} from './agentmChannelClient';
+export { AgentChatProvider } from './chat/AgentChatProvider';
+export { useAgentChat } from './chat/useAgentChat';
 export type {
-  AgentmChannelClientOptions,
-  ConnectionStatus as AgentmConnectionStatus,
-  Envelope as AgentmEnvelope,
-  EnvelopeKind as AgentmEnvelopeKind,
-} from './agentmChannelClient';
-export type {
-  AgentContextValue,
+  AgentChatValue,
   AgentMessage,
   AgentMessageRole,
   AgentCommandInvocation,
   AgentToolCallRecord,
-} from './agentContext';
+} from './chat/chat';
 
 // Agent-native UI substrate (docs/agent-native-ui.md).
-export { AegisAgentProvider } from './AegisAgentProvider';
+export { AegisRuntimeProvider } from './core/AegisRuntimeProvider';
 export {
   useAegisAction,
   useAegisSearchProvider,
   useAegisSurface,
-} from './hooks';
+} from './core/hooks';
 export type {
   UseAegisActionResult,
   UseAegisSurfaceOptions,
   UseAegisSurfaceResult,
-} from './hooks';
-export { AskOverlay } from './AskOverlay';
-export { AskPanel } from './AskPanel';
-export type { AskPanelProps } from './AskPanel';
-export { buildAskContext } from './buildAskContext';
-export type { AskTrigger } from './buildAskContext';
-export { createAegisRuntime } from './runtime';
+} from './core/hooks';
+export { AskOverlay } from './ask/AskOverlay';
+export { AskPanel } from './ask/AskPanel';
+export type { AskPanelProps } from './ask/AskPanel';
+export { buildAskContext } from './ask/buildAskContext';
+export type { AskTrigger } from './ask/buildAskContext';
+export { createAegisRuntime } from './core/runtime';
 export type {
   AegisRuntime,
   ListActionsFilter,
-  RegisteredAction,
-  RegisteredSurface,
   RuntimeDeps,
   SearchOptions,
-} from './runtime';
+} from './core/runtime';
 export type {
   ActionContext,
   ActionPreview,
@@ -73,4 +60,4 @@ export type {
   SnapshotDiff,
   SurfaceKind,
   SurfaceSnapshot,
-} from './types';
+} from './core/types';

@@ -334,8 +334,7 @@ func buildConfigJS(cfg config, br *bridge, host string) []byte {
 	buf.WriteString(";\n")
 	if br != nil {
 		bridgePayload := map[string]any{
-			"url":         fmt.Sprintf("ws://%s%s", host, bridgeWSPath),
-			"autoConnect": true,
+			"url": fmt.Sprintf("ws://%s%s", host, bridgeWSPath),
 		}
 		if !br.noAuth {
 			bridgePayload["authToken"] = br.browserToken

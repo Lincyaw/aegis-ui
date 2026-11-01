@@ -9,7 +9,7 @@ import {
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { MetricLabel } from './MetricLabel';
 import './StatBlock.css';
 

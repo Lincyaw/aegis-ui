@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './SparkLine.css';
 
 export type SparkLineSurface = PrimitiveSurface<number[]>;

@@ -6,8 +6,8 @@ import {
   useState,
 } from 'react';
 
-import { useAegisAction } from '../../agent/hooks';
-import type { AegisAction } from '../../agent/types';
+import { useAegisAction } from '../../agent/core/hooks';
+import type { AegisAction } from '../../agent/core/types';
 import './Tabs.css';
 import { tablistKeyTarget } from './tablistKeyboard';
 

@@ -5,7 +5,7 @@ import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer-continued';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './DiffViewer.css';
 
 export type DiffViewerSurface = PrimitiveSurface<{

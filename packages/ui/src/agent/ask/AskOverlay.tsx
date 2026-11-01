@@ -7,11 +7,11 @@ import {
   useState,
 } from 'react';
 
+import { AegisRuntimeContext } from '../core/aegisRuntimeContext';
+import type { AskContext, AskOrigin } from '../core/types';
 import './AskOverlay.css';
 import { AskPanel } from './AskPanel';
-import { AegisAgentContext } from './aegisAgentContext';
 import { type AskTrigger, buildAskContext } from './buildAskContext';
-import type { AskContext, AskOrigin } from './types';
 
 interface PanelState {
   context: AskContext;
@@ -62,7 +62,7 @@ function findTrigger(target: EventTarget | null): TriggerInfo | null {
 }
 
 export function AskOverlay(): ReactElement | null {
-  const ctx = useContext(AegisAgentContext);
+  const ctx = useContext(AegisRuntimeContext);
   const runtime = ctx?.runtime ?? null;
   const [panel, setPanel] = useState<PanelState | null>(null);
 

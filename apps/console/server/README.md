@@ -126,7 +126,7 @@ from.
 
 The tool list served by `tools/list` is `mcp_tools.generated.json`,
 embedded at build time. It is generated from
-`packages/ui/src/agent/mcpToolCatalogue.ts`; regenerate it with
+`packages/ui/src/agent/core/mcpToolCatalogue.ts`; regenerate it with
 `pnpm gen:mcp-tools` (the library build does this too) and do not edit
 it by hand. `pnpm check:mcp-tools` fails when the committed file is out
 of date.

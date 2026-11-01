@@ -38,9 +38,9 @@ export interface AgentMessage {
 /**
  * Contract every agent-chat integration implements. The library does
  * not own state — callers wire their own LLM / tool-calling adapter and
- * pass the resulting value through `<AgentProvider value={...}>`.
+ * pass the resulting value through `<AgentChatProvider value={...}>`.
  */
-export interface AgentContextValue {
+export interface AgentChatValue {
   messages: AgentMessage[];
   /** True while the assistant is generating a response. */
   sending: boolean;
@@ -51,19 +51,19 @@ export interface AgentContextValue {
   /**
    * Optional: whether AegisShell's `agentPanel` is shown. Pass it with
    * `setPanelOpen` to own the state; leave it undefined and
-   * <AgentProvider/> keeps it instead.
+   * <AgentChatProvider/> keeps it instead.
    */
   panelOpen?: boolean;
   /** Optional: open or close the agent panel (AegisShell's header toggle). */
   setPanelOpen?: (open: boolean) => void;
 }
 
-export const defaultAgentContextValue: AgentContextValue = {
+export const defaultAgentChatValue: AgentChatValue = {
   messages: [],
   sending: false,
   send: () => undefined,
 };
 
-export const AgentContext = createContext<AgentContextValue>(
-  defaultAgentContextValue,
+export const AgentChatContext = createContext<AgentChatValue>(
+  defaultAgentChatValue,
 );

@@ -2,11 +2,10 @@ import { createContext } from 'react';
 
 import type { AegisRuntime } from './runtime';
 
-export interface AegisAgentContextValue {
+export interface AegisRuntimeContextValue {
   runtime: AegisRuntime;
   appId: string | null;
 }
 
-export const AegisAgentContext = createContext<AegisAgentContextValue | null>(
-  null,
-);
+export const AegisRuntimeContext =
+  createContext<AegisRuntimeContextValue | null>(null);

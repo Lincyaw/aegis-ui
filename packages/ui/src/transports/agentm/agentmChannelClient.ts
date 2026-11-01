@@ -8,7 +8,7 @@
 // outbound | ack | ack_batch | ping | pong | error | bye | delivery_batch.
 //
 // This module is transport-only: no React, no DOM.
-import { uniqueId } from '../lib/id';
+import { uniqueId } from '../../lib/id';
 
 export const WIRE_VERSION = 1;
 

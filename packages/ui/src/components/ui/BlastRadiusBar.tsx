@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './BlastRadiusBar.css';
 
 export type BlastRadiusBarSurface = PrimitiveSurface<{

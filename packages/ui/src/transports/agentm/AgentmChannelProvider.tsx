@@ -8,15 +8,15 @@ import {
   useState,
 } from 'react';
 
-import { uniqueId } from '../lib/id';
-import { getOrCreateStored } from '../lib/storage';
-import { AgentProvider } from './AgentProvider';
+import { AgentChatProvider } from '../../agent/chat/AgentChatProvider';
 import type {
-  AgentContextValue,
+  AgentChatValue,
   AgentMessage,
   AgentMessageRole,
   AgentToolCallRecord,
-} from './agentContext';
+} from '../../agent/chat/chat';
+import { uniqueId } from '../../lib/id';
+import { getOrCreateStored } from '../../lib/storage';
 import {
   AgentmChannelClient,
   type AgentmChannelClientOptions,
@@ -127,7 +127,7 @@ function parseToolCall(metadata: unknown): AgentToolCallRecord | null {
 /**
  * Connects to an AgentM channels gateway (contrib/channels) as a
  * `chat_client` peer over WebSocket and exposes the conversation as
- * an `AgentContextValue` consumable by `<AgentPanel>` / `useAgent`.
+ * an `AgentChatValue` consumable by `<AgentPanel>` / `useAgentChat`.
  *
  * The client owns the round-trip: `send(content)` emits an `inbound`
  * envelope; `outbound` envelopes from the gateway become assistant
@@ -289,7 +289,7 @@ export function AgentmChannelProvider({
     setMessages([]);
   }, []);
 
-  const value = useMemo<AgentContextValue & { status: ConnectionStatus }>(
+  const value = useMemo<AgentChatValue & { status: ConnectionStatus }>(
     () => ({
       messages,
       sending,
@@ -300,7 +300,7 @@ export function AgentmChannelProvider({
     [messages, sending, send, clear, status],
   );
 
-  return <AgentProvider value={value}>{children}</AgentProvider>;
+  return <AgentChatProvider value={value}>{children}</AgentChatProvider>;
 }
 
 function appendOutbound(

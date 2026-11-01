@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { type AegisNotification, useNotifications } from '../../notifications';
 import { Avatar } from './Avatar';
 import { Button } from './Button';

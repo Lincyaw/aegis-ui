@@ -216,7 +216,10 @@ themselves render content only, never the layout chrome.
 | `packages/ui/src/layouts/PageWrapper.{tsx,css}`         | Page root container                                                                                       |
 | `packages/ui/src/layouts/shell/`                        | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar)                                        |
 | `packages/ui/src/auth/`                                 | `AuthProvider` / `useAuth` contract + `RequireAuth` route guard                                           |
-| `packages/ui/src/agent/`                                | AgentM channel client, Ask overlay/panel, MCP tool catalogue                                              |
+| `packages/ui/src/agent/core/`                           | Agent runtime, hooks, MCP tool catalogue — below the primitives, no I/O                                   |
+| `packages/ui/src/agent/chat/`                           | Agent chat contract (`AgentChatProvider`, `useAgentChat`) — below the primitives, no I/O                  |
+| `packages/ui/src/agent/ask/`                            | Ask overlay/panel — above the primitives                                                                  |
+| `packages/ui/src/transports/`                           | AgentM chat channel + MCP bridge client, published as `@lincyaw/aegis-ui/transports`                      |
 | `packages/ui/src/theme/antdTheme.ts`                    | Ant Design `ConfigProvider` mapped to our tokens                                                          |
 | `packages/ui/src/index.ts`                              | Library public API barrel                                                                                 |
 | `packages/ui/src/vite.ts`                               | Build-time Vite preset (`aegisMdx`), published as `@lincyaw/aegis-ui/vite`                                |

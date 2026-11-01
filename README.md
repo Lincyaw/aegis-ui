@@ -153,7 +153,7 @@ Two optional features need a provider above the shell:
   shell in `CommandProvider`. Commands listed in an app's `commands` field
   appear only while that app is active.
 - `agentPanel` renders the given node as a right-hand column, or as a
-  full-screen overlay at 768 px and below. Wrap the shell in `AgentProvider`
+  full-screen overlay at 768 px and below. Wrap the shell in `AgentChatProvider`
   (or `AgentmChannelProvider`); a toggle appears in the header.
   Per-app environment switching is described in
   [`environments/README.md`](packages/ui/src/layouts/shell/environments/README.md).

@@ -16,7 +16,7 @@
  * `AskOverlay` and `AskPanel` (and any future `Ask*.tsx` UI exports) while
  * skipping types, runtime methods (`AegisRuntime`, `createAegisRuntime`,
  * `buildAskContext`, …), hooks (`useAegis*`), and context providers
- * (`AegisAgentProvider`, `AgentProvider`).
+ * (`AegisRuntimeProvider`, `AgentChatProvider`).
  *
  * A primitive is considered "covered" if its name appears in the text of any
  * `<SectionDivider>…</SectionDivider>` block — including multi-line dividers
@@ -30,7 +30,7 @@
  * not to ship a Gallery specimen — every entry needs a justification comment.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -81,7 +81,7 @@ function collectIdentifierExports(src) {
 
   // Form A: `export … from './Source'` where the brace block lists names.
   const reBraced =
-    /export\s+(type\s+)?\{([^}]*)\}\s+from\s+['"]\.\/([A-Za-z0-9_]+)['"]/g;
+    /export\s+(type\s+)?\{([^}]*)\}\s+from\s+['"]\.\/([A-Za-z0-9_/]+)['"]/g;
   let m;
   while ((m = reBraced.exec(src)) !== null) {
     const isType = Boolean(m[1]);
@@ -138,7 +138,7 @@ function isAgentUiExport(exp) {
     return false;
   }
   // Skip Context/Provider wrappers regardless of the .tsx suffix.
-  if (/(Provider|Context)$/.test(exp.sourceModule)) {
+  if (/(Provider|Context)$/.test(basename(exp.sourceModule))) {
     return false;
   }
   if (/(Provider|Context)$/.test(exp.name)) {

@@ -3,7 +3,7 @@ import { type ReactNode, useRef } from 'react';
 import {
   type ContainerSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './AgentPanel.css';
 
 export type AgentPanelSurface = ContainerSurface;

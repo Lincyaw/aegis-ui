@@ -13,7 +13,7 @@ import { Tooltip } from 'antd';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { useResizable } from '../../hooks/useResizable';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';

@@ -3,7 +3,7 @@ import { type CSSProperties, type ReactNode, useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './MonoValue.css';
 
 export type MonoValueSurface = PrimitiveSurface<ReactNode>;

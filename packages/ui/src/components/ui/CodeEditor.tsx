@@ -11,7 +11,7 @@ import CodeMirror, { type Extension } from '@uiw/react-codemirror';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './CodeEditor.css';
 
 export type CodeEditorLanguage = 'json' | 'yaml' | 'sql' | 'text';

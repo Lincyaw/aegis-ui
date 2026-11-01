@@ -6,10 +6,10 @@ import {
   useState,
 } from 'react';
 
-import { AgentContext, type AgentContextValue } from './agentContext';
+import { AgentChatContext, type AgentChatValue } from './chat';
 
-interface AgentProviderProps {
-  value: AgentContextValue;
+interface AgentChatProviderProps {
+  value: AgentChatValue;
   children: ReactNode;
 }
 
@@ -22,10 +22,10 @@ interface AgentProviderProps {
  * leaves it undefined, the provider keeps it (starting closed) and still
  * forwards changes to the host's `setPanelOpen`, if any.
  */
-export function AgentProvider({
+export function AgentChatProvider({
   value,
   children,
-}: AgentProviderProps): ReactElement {
+}: AgentChatProviderProps): ReactElement {
   const [ownPanelOpen, setOwnPanelOpen] = useState(false);
   const { panelOpen, setPanelOpen } = value;
 
@@ -37,7 +37,7 @@ export function AgentProvider({
     [setPanelOpen],
   );
 
-  const resolved = useMemo<AgentContextValue>(
+  const resolved = useMemo<AgentChatValue>(
     () =>
       panelOpen === undefined
         ? {
@@ -50,6 +50,8 @@ export function AgentProvider({
   );
 
   return (
-    <AgentContext.Provider value={resolved}>{children}</AgentContext.Provider>
+    <AgentChatContext.Provider value={resolved}>
+      {children}
+    </AgentChatContext.Provider>
   );
 }

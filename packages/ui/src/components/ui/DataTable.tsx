@@ -19,7 +19,7 @@ import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { readStorage, writeStorage } from '../../lib/storage';
 import { useStrings } from '../../locale';

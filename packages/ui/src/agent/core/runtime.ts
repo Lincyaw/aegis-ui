@@ -2,7 +2,7 @@
 // v0 deliberately ignores `confirm`, `dryRun`, and `availability` enforcement:
 // every dispatch goes straight through `run()`. Those gates land in a later
 // slice once the human-trigger / Ask-overlay layer is wired.
-import { uniqueId } from '../lib/id';
+import { uniqueId } from '../../lib/id';
 import { MCP_TOOL_CATALOGUE } from './mcpToolCatalogue';
 import type {
   ActionContext,
@@ -86,12 +86,19 @@ export interface AegisRuntime {
   emitAskTriggered(ctx: AskContext): void;
   /** Emit an ask-submit event. Env-only — there is no transport yet. */
   emitAskSubmit(req: AskRequest): void;
-  // Internal — used by hooks / shell, not part of the agent-facing API.
+  /** Tell the runtime what the user has selected; it shows in snapshot().selection. */
+  setSelection(refs: EntityRef[]): void;
+  // Used by the library's hooks and providers; left out of the published
+  // declarations (`stripInternal`).
+  /** @internal */
   _register(entry: RegisteredAction): () => void;
+  /** @internal */
   _registerSurface(entry: RegisteredSurface): () => void;
+  /** @internal */
   _registerSearchProvider(provider: SearchProvider): () => void;
-  _setSelection(refs: EntityRef[]): void;
+  /** @internal */
   _setShellSnapshot(getter: () => ShellSnapshot): void;
+  /** @internal */
   _setNavigate(nav: (to: string) => void): void;
 }
 
@@ -327,7 +334,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     };
   };
 
-  const _setSelection: AegisRuntime['_setSelection'] = (refs) => {
+  const setSelection: AegisRuntime['setSelection'] = (refs) => {
     selection = [...refs];
   };
 
@@ -767,7 +774,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     _register,
     _registerSurface,
     _registerSearchProvider,
-    _setSelection,
+    setSelection,
     _setShellSnapshot,
     _setNavigate,
   };

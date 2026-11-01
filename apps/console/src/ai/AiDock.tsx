@@ -9,7 +9,7 @@ import {
   ChatMessageList,
   Markdown,
   ToolCallCard,
-  useAgent,
+  useAgentChat,
 } from '@lincyaw/aegis-ui';
 
 import { useChatStore } from './chatStore';
@@ -25,7 +25,7 @@ interface AiDockProps {
 }
 
 export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
-  const { messages, sending, send, clear } = useAgent();
+  const { messages, sending, send, clear } = useAgentChat();
   const { currentId, saveMessages, maybeAutoTitle, touchActive } =
     useChatStore();
 

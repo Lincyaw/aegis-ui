@@ -3,7 +3,7 @@ import { Children, type ReactNode, useEffect, useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './ChatMessageList.css';
 
 export type ChatMessageListSurface = PrimitiveSurface<number>;

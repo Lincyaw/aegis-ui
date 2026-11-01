@@ -1,10 +1,10 @@
 import { type ReactNode, useRef } from 'react';
 
-import type { AgentMessageRole } from '../../agent/agentContext';
+import type { AgentMessageRole } from '../../agent/chat/chat';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './ChatMessage.css';
 
 export type ChatMessageSurface = PrimitiveSurface<{

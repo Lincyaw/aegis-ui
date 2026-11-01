@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 
 import { Popover } from 'antd';
 
-import { useAegisAction } from '../../agent/hooks';
-import type { AegisAction } from '../../agent/types';
+import { useAegisAction } from '../../agent/core/hooks';
+import type { AegisAction } from '../../agent/core/types';
 import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
 import './DropdownMenu.css';
 

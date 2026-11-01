@@ -12,6 +12,7 @@
  * same host). A user running the SPA locally against a remote gateway
  * fills in absolute URLs.
  */
+import type { AegisBridgeConfig } from '@lincyaw/aegis-ui/transports';
 
 export interface RuntimeConfig {
   /** Base URL for `/api/*`, `/v1/*`, `/.well-known/*`, etc. Empty = same origin. */
@@ -36,6 +37,8 @@ export interface RuntimeConfig {
 declare global {
   interface Window {
     __AEGIS_CONFIG__?: Partial<RuntimeConfig>;
+    /** Set by the Go server's /config.js when it runs with --bridge. */
+    __AEGIS_BRIDGE__?: AegisBridgeConfig;
   }
 }
 

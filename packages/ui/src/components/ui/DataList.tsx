@@ -3,7 +3,7 @@ import { type ReactNode, useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './DataList.css';
 
 export interface DataListColumn<T> {

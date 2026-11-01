@@ -42,9 +42,12 @@ export default defineConfig({
   build: {
     target: 'esnext',
     lib: {
-      // `vite` is the build-time preset (aegisMdx) that hosts load in their Vite config.
+      // `vite` is the build-time preset (aegisMdx) that hosts load in their
+      // Vite config; `transports` holds the agent connections, kept out of
+      // the main entry so it opens none.
       entry: {
         index: path.resolve(__dirname, 'src/index.ts'),
+        transports: path.resolve(__dirname, 'src/transports/index.ts'),
         vite: path.resolve(__dirname, 'src/vite.ts'),
       },
       formats: ['es', 'cjs'],

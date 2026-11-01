@@ -9,7 +9,7 @@ import {
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { formatBytes } from '../../lib/format';
 import './FilePreview.css';
 

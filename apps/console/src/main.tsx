@@ -6,13 +6,9 @@ import '@fontsource-variable/hanken-grotesk';
 import '@fontsource-variable/noto-sans-sc';
 import '@fontsource/google-sans-code/400.css';
 import '@fontsource/google-sans-code/500.css';
-import {
-  AgentmChannelProvider,
-  getAegisTheme,
-  ThemeProvider,
-  useTheme,
-} from '@lincyaw/aegis-ui';
+import { getAegisTheme, ThemeProvider, useTheme } from '@lincyaw/aegis-ui';
 import '@lincyaw/aegis-ui/style.css';
+import { AgentmChannelProvider } from '@lincyaw/aegis-ui/transports';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App as AntdApp, ConfigProvider } from 'antd';
 

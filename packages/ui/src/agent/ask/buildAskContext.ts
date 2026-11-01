@@ -1,5 +1,5 @@
-import { type AegisRuntime, findSurfaceContaining } from './runtime';
-import type { AskContext, AskOrigin } from './types';
+import { type AegisRuntime, findSurfaceContaining } from '../core/runtime';
+import type { AskContext, AskOrigin } from '../core/types';
 
 export interface AskTrigger {
   origin: AskOrigin;

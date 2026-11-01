@@ -121,7 +121,7 @@ function AgentIntegrationSpecimen(): ReactNode {
     if (!rt) {
       return;
     }
-    rt._setSelection(selectedId ? [{ id: selectedId, type: 'dataset' }] : []);
+    rt.setSelection(selectedId ? [{ id: selectedId, type: 'dataset' }] : []);
   }, [selectedId]);
 
   const columns: Array<DataListColumn<DemoDataset>> = [

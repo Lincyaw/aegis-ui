@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import { AegisShell, InboxPage } from '@lincyaw/aegis-ui';
+import { AegisShell, createAegisRuntime, InboxPage } from '@lincyaw/aegis-ui';
+import { connectAegisBridge } from '@lincyaw/aegis-ui/transports';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v6';
 
 import { AiDockHost } from './ai/AiDockHost';
@@ -17,6 +18,13 @@ import { ServerError } from './pages/errors/ServerError';
 import { Landing } from './pages/Landing';
 
 import { registeredApps } from './registry';
+
+const agentRuntime = createAegisRuntime();
+// The Go server sets __AEGIS_BRIDGE__ only when started with --bridge.
+const bridge = window.__AEGIS_BRIDGE__;
+if (bridge) {
+  connectAegisBridge(agentRuntime, bridge);
+}
 
 export function ConsoleApp(): ReactElement {
   return (
@@ -47,6 +55,7 @@ export function ConsoleApp(): ReactElement {
                       { path: '/error/server', element: <ServerError /> },
                     ]}
                     headerActions={<AiDockHost />}
+                    agentRuntime={agentRuntime}
                     inboxPath='/inbox'
                     userMenu={[
                       {

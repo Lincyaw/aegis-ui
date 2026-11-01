@@ -1,9 +1,9 @@
 import {
+  AgentChatProvider,
+  type AgentChatValue,
   type AgentCommandInvocation,
-  type AgentContextValue,
   type AgentMessage,
   AgentPanel,
-  AgentProvider,
   Avatar,
   ChatComposer,
   ChatMessage,
@@ -67,7 +67,7 @@ const MOCK_AGENT_MESSAGES: AgentMessage[] = [
   },
 ];
 
-const MOCK_AGENT_VALUE: AgentContextValue = {
+const MOCK_AGENT_VALUE: AgentChatValue = {
   messages: MOCK_AGENT_MESSAGES,
   sending: false,
   send: () => undefined,
@@ -325,7 +325,7 @@ export function AgentSection() {
       </div>
 
       <SectionDivider>AgentPanel · full composition</SectionDivider>
-      <AgentProvider value={MOCK_AGENT_VALUE}>
+      <AgentChatProvider value={MOCK_AGENT_VALUE}>
         <div className='gallery__agent-frame'>
           <AgentPanel
             title='Aegis Assistant'
@@ -371,7 +371,7 @@ export function AgentSection() {
             </ChatMessageList>
           </AgentPanel>
         </div>
-      </AgentProvider>
+      </AgentChatProvider>
     </Panel>
   );
 }

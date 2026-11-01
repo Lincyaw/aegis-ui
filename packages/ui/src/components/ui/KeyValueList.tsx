@@ -3,7 +3,7 @@ import { type ReactNode, useRef } from 'react';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './KeyValueList.css';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';

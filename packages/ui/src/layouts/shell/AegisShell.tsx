@@ -19,12 +19,12 @@ import {
 } from 'react-router-dom';
 
 import {
-  AegisAgentProvider,
+  AegisRuntimeProvider,
   AskOverlay,
   type ShellSnapshot,
-  useAgent,
+  useAgentChat,
 } from '../../agent';
-import { defaultAgentContextValue } from '../../agent/agentContext';
+import { defaultAgentChatValue } from '../../agent/chat/chat';
 import { type AegisAuthUser, type AuthStatus, useAuth } from '../../auth';
 import { type Command, useCommands } from '../../commands';
 import { defaultCommandContextValue } from '../../commands/commandContext';
@@ -72,6 +72,7 @@ export function AegisShell({
   onAppSwitch,
   enableCommandPalette = false,
   agentPanel,
+  agentRuntime,
 }: AegisShellProps): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
@@ -166,12 +167,12 @@ export function AegisShell({
     'AegisShell: enableCommandPalette needs a <CommandProvider> above the shell; the command palette is not mounted.',
   );
 
-  const agent = useAgent();
-  const hasAgentProvider = agent !== defaultAgentContextValue;
+  const agent = useAgentChat();
+  const hasAgentProvider = agent !== defaultAgentChatValue;
   const hasAgentPanel = Boolean(agentPanel);
   useWarnOnce(
     hasAgentPanel && !hasAgentProvider,
-    'AegisShell: agentPanel needs an <AgentProvider> above the shell; the agent panel is not rendered.',
+    'AegisShell: agentPanel needs an <AgentChatProvider> above the shell; the agent panel is not rendered.',
   );
   const agentPanelEnabled = hasAgentPanel && hasAgentProvider;
   const agentPanelOpen = agentPanelEnabled && agent.panelOpen === true;
@@ -294,7 +295,8 @@ export function AegisShell({
     .join(' ');
 
   return (
-    <AegisAgentProvider
+    <AegisRuntimeProvider
+      runtime={agentRuntime}
       appId={activeApp?.id ?? null}
       shellSnapshot={shellSnapshot}
       navigate={navigate}
@@ -384,7 +386,7 @@ export function AegisShell({
           {showCommandPalette && <CommandPalette />}
         </div>
       </ActiveAppEnvironmentProvider>
-    </AegisAgentProvider>
+    </AegisRuntimeProvider>
   );
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Emits apps/console/server/mcp_tools.generated.json from the TypeScript
-// source of truth at packages/ui/src/agent/mcpToolCatalogue.ts.
+// source of truth at packages/ui/src/agent/core/mcpToolCatalogue.ts.
 //
 // Strategy: load the project-local `typescript` devDep, transpile the
 // catalogue file (which only imports `type` from sibling files, so it has
@@ -13,7 +13,14 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..', '..');
-const catalogueTs = join(here, '..', 'src', 'agent', 'mcpToolCatalogue.ts');
+const catalogueTs = join(
+  here,
+  '..',
+  'src',
+  'agent',
+  'core',
+  'mcpToolCatalogue.ts',
+);
 const outPath = join(
   repoRoot,
   'apps',
@@ -48,7 +55,7 @@ if (!Array.isArray(catalogue) || catalogue.length === 0) {
 
 const payload = {
   _generated: true,
-  _source: 'packages/ui/src/agent/mcpToolCatalogue.ts',
+  _source: 'packages/ui/src/agent/core/mcpToolCatalogue.ts',
   _regenerate: 'pnpm gen:mcp-tools',
   tools: catalogue,
 };

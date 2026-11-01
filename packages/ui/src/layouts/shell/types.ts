@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import type { RouteObject } from 'react-router-dom';
 
+import type { AegisRuntime } from '../../agent/core/runtime';
 import type { Command } from '../../commands';
 import type { AmbientBackgroundVariant } from '../../components/ui/AmbientBackground';
 import type { AegisAppEnvironmentsConfig } from './environments/types';
@@ -197,11 +198,18 @@ export interface AegisShellProps {
   enableCommandPalette?: boolean;
   /**
    * When provided, AegisShell renders the node (typically <AgentPanel/>
-   * filled from useAgent()) as a right-side column while the agent
+   * filled from useAgentChat()) as a right-side column while the agent
    * context's `panelOpen` is true — at ≤768 px as an overlay below the
    * header. A header toggle flips it through `setPanelOpen`. Requires
-   * <AgentProvider/> above the shell; without one nothing renders and a
+   * <AgentChatProvider/> above the shell; without one nothing renders and a
    * warning is logged.
    */
   agentPanel?: ReactNode;
+  /**
+   * The agent runtime the shell's primitives register with. Pass one you
+   * created with `createAegisRuntime()` to connect it to a transport such
+   * as `connectAegisBridge` from `@lincyaw/aegis-ui/transports`; omitted,
+   * the shell creates its own. Read once when the shell mounts.
+   */
+  agentRuntime?: AegisRuntime;
 }

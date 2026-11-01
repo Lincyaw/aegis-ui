@@ -10,11 +10,15 @@ import {
   useState,
 } from 'react';
 
-import { Button } from '../components/ui/Button';
-import { Chip } from '../components/ui/Chip';
+import { Button } from '../../components/ui/Button';
+import { Chip } from '../../components/ui/Chip';
+import { AegisRuntimeContext } from '../core/aegisRuntimeContext';
+import type {
+  AegisActionDescriptor,
+  AskContext,
+  AskRequest,
+} from '../core/types';
 import './AskPanel.css';
-import { AegisAgentContext } from './aegisAgentContext';
-import type { AegisActionDescriptor, AskContext, AskRequest } from './types';
 
 export interface AskPanelProps {
   context: AskContext;
@@ -90,7 +94,7 @@ export function AskPanel({
   onClose,
   popover = true,
 }: AskPanelProps): ReactElement {
-  const ctx = useContext(AegisAgentContext);
+  const ctx = useContext(AegisRuntimeContext);
   const runtime = ctx?.runtime ?? null;
   const rootRef = useRef<HTMLDivElement>(null);
   const [placement, setPlacement] = useState<Placement | null>(null);

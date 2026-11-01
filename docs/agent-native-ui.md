@@ -55,8 +55,8 @@ Three principles to maintain in this order:
 
 ## 3. Core types
 
-Lives in `packages/ui/src/agent/types.ts`. Public from
-`@lincyaw/aegis-ui` under the `agent/*` subpath.
+Lives in `packages/ui/src/agent/core/types.ts`. Public from
+`@lincyaw/aegis-ui`.
 
 ### 3.1 Action
 
@@ -386,8 +386,9 @@ export interface AppSnapshotHelpers {
 
 ## 6. Runtime
 
-`packages/ui/src/agent/runtime.ts`. `AegisShell` constructs one and
-mounts it on `window.__aegis`.
+`packages/ui/src/agent/core/runtime.ts`. `AegisShell` constructs one,
+or takes the host's through its `agentRuntime` prop, and
+`AegisRuntimeProvider` mounts it on `window.__aegis`.
 
 ```ts
 export interface AegisRuntime {
@@ -646,18 +647,18 @@ clicks (via the same `dispatch` path) and agent calls (`by: 'agent'`)
 land in one stream, distinguished by `by`. This is also the audit log
 for security review of agent actions.
 
-## 9. MCP bridge — deferred
+## 9. MCP bridge
 
-`runtime.toMcpTools()` is a pure function over the registry. When ready:
+The Go console binary runs the bridge with `--bridge` (see
+`apps/console/server/README.md`); `aegis-console mcp` is the stdio MCP
+server an editor or agent registers. A tool call reaches the browser
+session over a WebSocket and ends in the runtime (`snapshot`, `search`,
+`dispatch(id, params, { by: 'agent' })`, …).
 
-- The Go console binary (`apps/console` build) hosts an SSE MCP server.
-- An incoming tool call is forwarded to the browser session over a
-  WebSocket (or BroadcastChannel for same-origin), terminating in
-  `runtime.dispatch(id, params, { by: 'agent' })`.
-- The snapshot is exposed as an MCP resource at
-  `aegis://snapshot/current`, refreshed on `snapshot.changed`.
-
-Front-end code does not change for this step.
+The browser side is `connectAegisBridge(runtime, config)` from
+`@lincyaw/aegis-ui/transports`. The host creates the runtime with
+`createAegisRuntime()`, connects it, and passes it to `AegisShell` as
+`agentRuntime`; the main entry opens no connections.
 
 ## 10. Design judgements (non-obvious)
 

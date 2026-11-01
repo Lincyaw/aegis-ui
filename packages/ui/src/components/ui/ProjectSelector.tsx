@@ -2,7 +2,7 @@ import { type ReactNode, useMemo, useState } from 'react';
 
 import { FolderOutlined, SearchOutlined } from '@ant-design/icons';
 
-import type { AegisAction } from '../../agent/types';
+import type { AegisAction } from '../../agent/core/types';
 import { type DropdownItem, DropdownMenu } from './DropdownMenu';
 import './ProjectSelector.css';
 

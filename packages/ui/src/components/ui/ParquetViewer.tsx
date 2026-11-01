@@ -11,7 +11,7 @@ import type { AsyncBuffer, FileMetaData } from 'hyparquet';
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import { Chip } from './Chip';
 import { DataTable, type DataTableColumn } from './DataTable';
 import './ParquetViewer.css';

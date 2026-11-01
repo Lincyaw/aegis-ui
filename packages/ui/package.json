@@ -24,6 +24,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./transports": {
+      "types": "./dist/transports/index.d.ts",
+      "import": "./dist/transports.js",
+      "require": "./dist/transports.cjs"
+    },
     "./vite": {
       "types": "./dist/vite.d.ts",
       "import": "./dist/vite.js"

@@ -3,7 +3,7 @@ import { type CSSProperties, type ReactNode, useRef } from 'react';
 import {
   type ContainerSurface,
   usePrimitiveSurface,
-} from '../../agent/usePrimitiveSurface';
+} from '../../agent/core/usePrimitiveSurface';
 import './Panel.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 

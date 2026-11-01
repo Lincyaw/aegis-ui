@@ -6,8 +6,8 @@ import {
   useCallback,
 } from 'react';
 
-import { useAegisAction } from '../../agent/hooks';
-import type { AegisAction } from '../../agent/types';
+import { useAegisAction } from '../../agent/core/hooks';
+import type { AegisAction } from '../../agent/core/types';
 import './Button.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 
