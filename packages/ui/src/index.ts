@@ -38,19 +38,10 @@ export {
 } from './lib/timeRange';
 export type { RelativeTimePreset, TimeRange } from './lib/timeRange';
 
-// LuceneQL — pure helpers used by QueryAutocomplete + sub-apps that
-// need to compile a search box value into ClickHouse SQL.
-export {
-  compileLuceneToSql,
-  replaceTokenAtCursor,
-  tokenizeAtCursor,
-} from './lib/luceneQuery';
-export type {
-  CompileOptions,
-  CompileResult,
-  CursorToken,
-  FieldMapping,
-} from './lib/luceneQuery';
+// LuceneQL cursor helpers used by QueryAutocomplete; hosts compile the
+// query into their own backend's language.
+export { replaceTokenAtCursor, tokenizeAtCursor } from './lib/luceneQuery';
+export type { CursorToken } from './lib/luceneQuery';
 
 // Layouts
 export { PageWrapper } from './layouts/PageWrapper';

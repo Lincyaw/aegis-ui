@@ -21,7 +21,7 @@ export type FilePreviewSurface = PrimitiveSurface<{
 }>;
 
 interface FilePreviewProps {
-  /** Public URL or signed `/blob/raw/:token` link. */
+  /** URL the browser can load the file from, as for `<img src>`. */
   src: string;
   /** MIME type; chooses the renderer. Unknown ⇒ binary fallback. */
   mimeType?: string;
@@ -39,6 +39,31 @@ interface FilePreviewProps {
 }
 
 const TEXT_FETCH_LIMIT = 256 * 1024;
+
+/**
+ * Reads at most `limit` bytes of the body and cancels the rest, so a large
+ * file is not downloaded to show its first lines.
+ */
+async function readTextPrefix(res: Response, limit: number): Promise<string> {
+  if (!res.body) {
+    return (await res.blob()).slice(0, limit).text();
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let text = '';
+  let read = 0;
+  while (read < limit) {
+    const { done, value } = await reader.read();
+    if (done) {
+      return text + decoder.decode();
+    }
+    const chunk = value.subarray(0, limit - read);
+    read += chunk.byteLength;
+    text += decoder.decode(chunk, { stream: true });
+  }
+  await reader.cancel();
+  return text + decoder.decode();
+}
 
 export function FilePreview({
   src,
@@ -103,10 +128,7 @@ function TextPreview({ src }: { src: string }) {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status.toString()}`);
         }
-        const blob = await res.blob();
-        const slice = blob.slice(0, TEXT_FETCH_LIMIT);
-        const text = await slice.text();
-        setBody(text);
+        setBody(await readTextPrefix(res, TEXT_FETCH_LIMIT));
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') {
           return;

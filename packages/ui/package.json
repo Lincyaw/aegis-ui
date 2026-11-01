@@ -71,7 +71,6 @@
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.42.1",
     "@dagrejs/dagre": "^3.0.0",
-    "@hyperdx/lucene": "^3.1.1",
     "@mdx-js/rollup": "^3.1.1",
     "@stefanprobst/rehype-extract-toc": "^3.0.0",
     "@tanstack/react-table": "^8.20.5",

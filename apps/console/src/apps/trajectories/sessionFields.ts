@@ -1,7 +1,6 @@
-import type {
-  FieldMapping,
-  QueryAutocompleteFieldSuggestion,
-} from '@lincyaw/aegis-ui';
+import type { QueryAutocompleteFieldSuggestion } from '@lincyaw/aegis-ui';
+
+import type { FieldMapping } from './api/luceneToSql';
 
 /**
  * Lucene → ClickHouse column map for the SessionList search box.

@@ -148,7 +148,9 @@ Sans SC, so Apple devices render Chinese in the system face.
   that moves focus past the header to `main`.
 - **Spacing**: `--space-*` tokens (4 px scale). No raw padding / margin.
 - **Components are presentational.** No API calls, no global store reads,
-  no business state. Hosts pass props in.
+  no business state. Hosts pass props in. A viewer may load the file URL
+  its host passes (`FilePreview`, `ParquetViewer`), as `<img>` and
+  `<video>` do; it never knows a backend route or builds a query.
 - **Every new primitive ships with a Specimen** in the gallery. PRs that
   add a primitive without a gallery entry are incomplete.
 - **Primitives stay router-agnostic where possible.** `Breadcrumb`,

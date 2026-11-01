@@ -65,7 +65,7 @@ function clickHouseType(kind: FieldMapping['kind']): string {
 
 function coerce(
   raw: string,
-  kind: FieldMapping['kind'],
+  kind: FieldMapping['kind']
 ): string | number | boolean {
   switch (kind) {
     case 'number': {
@@ -152,7 +152,7 @@ function compileTerm(ctx: CompileCtx, node: lucene.NodeTerm): string {
     // Bare term with no field — no way to map without a schema. Emit a
     // no-op and explain.
     ctx.explanationParts.push(
-      `bare term "${node.term}" has no field — skipped`,
+      `bare term "${node.term}" has no field — skipped`
     );
     return '';
   }
@@ -175,7 +175,7 @@ function compileTerm(ctx: CompileCtx, node: lucene.NodeTerm): string {
   if (range && (mapping.kind === 'number' || mapping.kind === 'date')) {
     const p = addParam(
       ctx,
-      coerce(unescapeLuceneTerm(range.value), mapping.kind),
+      coerce(unescapeLuceneTerm(range.value), mapping.kind)
     );
     const expr = `${mapping.sqlExpr} ${range.op} ${placeholder(p, chType)}`;
     return negated ? `NOT (${expr})` : expr;
@@ -200,7 +200,7 @@ function compileTerm(ctx: CompileCtx, node: lucene.NodeTerm): string {
 
 function compileRangedTerm(
   ctx: CompileCtx,
-  node: lucene.NodeRangedTerm,
+  node: lucene.NodeRangedTerm
 ): string {
   const mapping = findField(ctx, node.field);
   if (!mapping) {
@@ -222,13 +222,13 @@ function compileRangedTerm(
   if (lo !== '*') {
     const p = addParam(ctx, coerce(lo, mapping.kind));
     parts.push(
-      `${mapping.sqlExpr} ${inclusiveLeft ? '>=' : '>'} ${placeholder(p, chType)}`,
+      `${mapping.sqlExpr} ${inclusiveLeft ? '>=' : '>'} ${placeholder(p, chType)}`
     );
   }
   if (hi !== '*') {
     const p = addParam(ctx, coerce(hi, mapping.kind));
     parts.push(
-      `${mapping.sqlExpr} ${inclusiveRight ? '<=' : '<'} ${placeholder(p, chType)}`,
+      `${mapping.sqlExpr} ${inclusiveRight ? '<=' : '<'} ${placeholder(p, chType)}`
     );
   }
   if (parts.length === 0) {
@@ -307,7 +307,7 @@ function compileNode(ctx: CompileCtx, node: lucene.Node): string {
 
 export function compileLuceneToSql(
   input: string,
-  opts: CompileOptions,
+  opts: CompileOptions
 ): CompileResult {
   const trimmed = input.trim();
   const params: Record<string, string | number | boolean> = {};
@@ -347,7 +347,7 @@ export function compileLuceneToSql(
 
   if (ctx.unknownFields.size > 0) {
     ctx.explanationParts.push(
-      `unknown field(s) skipped: ${[...ctx.unknownFields].join(', ')}`,
+      `unknown field(s) skipped: ${[...ctx.unknownFields].join(', ')}`
     );
   }
   const explanation =

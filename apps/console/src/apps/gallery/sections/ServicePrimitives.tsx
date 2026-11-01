@@ -14,9 +14,7 @@ import {
   Chip,
   CodeEditor,
   type CodeEditorField,
-  compileLuceneToSql,
   DiffViewer,
-  type FieldMapping,
   FileDropzone,
   FilePreview,
   FolderDropzone,
@@ -69,15 +67,6 @@ const QUERY_AC_FIELDS: QueryAutocompleteFieldSuggestion[] = [
   { value: 'error', hint: 'bool' },
 ];
 
-const QUERY_AC_FIELD_MAPPINGS: FieldMapping[] = [
-  { field: 'service.name', sqlExpr: 'ServiceName' },
-  { field: 'service.version', sqlExpr: "SpanAttributes['service.version']" },
-  { field: 'http.status', sqlExpr: 'HttpStatus', kind: 'number' },
-  { field: 'http.method', sqlExpr: "SpanAttributes['http.method']" },
-  { field: 'duration', sqlExpr: 'Duration', kind: 'number' },
-  { field: 'error', sqlExpr: 'IsError', kind: 'bool' },
-];
-
 const QUERY_AC_VALUE_POOL: Record<string, QueryAutocompleteValueSuggestion[]> =
   {
     'service.name': [
@@ -110,13 +99,6 @@ function QueryAutocompleteSpecimen(): ReactNode {
       QUERY_AC_VALUE_POOL[field] ?? [],
     []
   );
-  const compiled = useMemo(
-    () =>
-      compileLuceneToSql(prefilled, {
-        fields: QUERY_AC_FIELD_MAPPINGS,
-      }),
-    [prefilled]
-  );
   return (
     <div className='gallery__row gallery__row--wide'>
       <Specimen caption='empty · field-name suggestions on focus' span={2}>
@@ -127,33 +109,13 @@ function QueryAutocompleteSpecimen(): ReactNode {
           valueSuggestions={valueSuggestions}
         />
       </Specimen>
-      <Specimen caption='pre-filled · compiled WHERE updates live' span={2}>
+      <Specimen caption='pre-filled' span={2}>
         <QueryAutocomplete
           value={prefilled}
           onChange={setPrefilled}
           fieldSuggestions={QUERY_AC_FIELDS}
           valueSuggestions={valueSuggestions}
         />
-        <pre
-          style={{
-            marginTop: 'var(--space-2)',
-            padding: 'var(--space-2) var(--space-3)',
-            background: 'var(--bg-muted)',
-            border: 'var(--size-hairline) solid var(--border-hairline)',
-            borderRadius: 'var(--radius-sm)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 'var(--fs-12)',
-            color: 'var(--text-main)',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-          }}
-        >
-          {`WHERE ${compiled.sql || '(no filter)'}\n\nparams = ${JSON.stringify(
-            compiled.params,
-            null,
-            2
-          )}\nreferencedFields = ${JSON.stringify(compiled.referencedFields)}`}
-        </pre>
       </Specimen>
     </div>
   );

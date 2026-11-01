@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 
 import {
   Chip,
-  compileLuceneToSql,
   ErrorState,
   EventTable,
   type EventTableColumn,
@@ -20,6 +19,7 @@ import {
 import { parseAsString, useQueryState } from 'nuqs';
 
 import { listSessionRows, type SessionRow } from '../api/clickhouse';
+import { compileLuceneToSql } from '../api/luceneToSql';
 import { useCompareList } from '../compareList';
 import { formatTokens } from '../conversation';
 import {
