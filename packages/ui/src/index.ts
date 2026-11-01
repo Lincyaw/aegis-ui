@@ -2,7 +2,7 @@
  * @lincyaw/aegis-ui — public API.
  *
  * Add a new primitive ⇒ export it here AND add a specimen to
- * `apps/console/src/Gallery.tsx`. The gallery is the live spec.
+ * `apps/console/src/apps/gallery/`. The gallery is the live spec.
  */
 import './index.css';
 

@@ -64,7 +64,7 @@ Sans SC, so Apple devices render Chinese in the system face.
 4. **Shell** (`src/layouts/shell/`) — TopHeader + Sidebar + BreadcrumbBar +
    route composition over `AegisApp[]`. Router-aware (peer-deps
    `react-router-dom`); presentation still comes from primitives + tokens.
-5. **Gallery** (`apps/console/src/Gallery.tsx`, mounted by the gallery
+5. **Gallery** (`apps/console/src/apps/gallery/`, mounted by the gallery
    sub-app) — the live spec. If a primitive isn't in the gallery, the
    team doesn't know it exists.
 6. **Consumer apps** compose pages from primitives + `PageWrapper` and plug
@@ -223,7 +223,7 @@ themselves render content only, never the layout chrome.
 | `packages/ui/src/index.css`                             | Global reset + scrollbar + focus ring                                                                     |
 | `packages/ui/package.json`                              | Library publish config — name, version, exports                                                           |
 | `packages/ui/vite.config.ts`                            | Library build (ESM + CJS + d.ts + style.css)                                                              |
-| `apps/console/src/Gallery.{tsx,css}`                    | Live spec — every primitive's specimen                                                                    |
+| `apps/console/src/apps/gallery/`                        | Live spec — `sections/<Group>.tsx` per gallery section, `shared.tsx` / `fixtures.ts` / `columns.tsx`      |
 | `apps/console/src/apps/*`                               | Sub-apps, registered with AegisShell in `apps/console/src/registry.ts`                                    |
 | `apps/console/src/main.tsx`                             | Console entry (not part of the npm package)                                                               |
 | `apps/console/index.html`                               | Vite HTML entry for the dev server                                                                        |
@@ -352,7 +352,7 @@ Apply this concretely:
    Look in `packages/ui/src/components/ui/` or `packages/ui/src/layouts/`
    before editing the page.
 2. If the primitive is missing a knob, add the knob to the primitive,
-   update its specimen in `Gallery.tsx`, and verify in both themes. Then
+   update its specimen in its gallery section, and verify in both themes. Then
    use it from the page.
 3. Never use raw antd components without going through `getAegisTheme`.
    If a token is missing for an antd component in dark mode, add it in
@@ -408,7 +408,7 @@ Full text: `/home/ddq/.claude/plugins/cache/autoharness/autoharness/1.1.3/refere
    Measure: agent review on every page-touching change. Compare new pages against the gallery's primitive inventory and the "First principle" section.
    Mechanism: **agent**. Baseline: judged per change by review.
 
-2. **Gallery specimen coverage = 100%** — every export from `packages/ui/src/components/ui/index.ts`, plus the UI component exports of `packages/ui/src/agent/index.ts`, has a live specimen in `apps/console/src/Gallery.tsx`.
+2. **Gallery specimen coverage = 100%** — every export from `packages/ui/src/components/ui/index.ts`, plus the UI component exports of `packages/ui/src/agent/index.ts`, has a live specimen in the gallery (`apps/console/src/apps/gallery/sections/*.tsx`).
    Measure: `pnpm check:gallery` (runs `scripts/check-gallery-coverage.mjs` — parses both barrels, walks every `<SectionDivider>…</SectionDivider>` block including multi-line dividers and ones carrying an `extra={…}` prop, exits non-zero with the missing-primitive list when coverage < 100%). Also runs as part of `pnpm check`.
    Mechanism: **script** + **agent** confirmation (visual review in `pnpm dev` that the specimen actually renders the variants worth shipping, not just an empty placeholder). Baseline: measure with `pnpm check:gallery`.
 

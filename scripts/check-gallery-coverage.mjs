@@ -5,7 +5,8 @@
  * Compares public primitive exports of:
  *   - `packages/ui/src/components/ui/index.ts`
  *   - `packages/ui/src/agent/index.ts`        (UI components only — see UI_RULE)
- * against the labelled specimens in `apps/console/src/Gallery.tsx`.
+ * against the labelled specimens in the gallery sub-app
+ * (every `.tsx` file under `apps/console/src/apps/gallery/`).
  *
  * UI_RULE for `agent/`: only exports whose source file matches
  *   - PascalCase + `.tsx`
@@ -28,8 +29,8 @@
  * Add a primitive to the IGNORED set only if there is a deliberate decision
  * not to ship a Gallery specimen — every entry needs a justification comment.
  */
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -37,7 +38,7 @@ const INDEX_PATH = resolve(repoRoot, 'packages/ui/src/components/ui/index.ts');
 const UI_DIR = resolve(repoRoot, 'packages/ui/src/components/ui');
 const AGENT_INDEX_PATH = resolve(repoRoot, 'packages/ui/src/agent/index.ts');
 const AGENT_DIR = resolve(repoRoot, 'packages/ui/src/agent');
-const GALLERY_PATH = resolve(repoRoot, 'apps/console/src/Gallery.tsx');
+const GALLERY_DIR = resolve(repoRoot, 'apps/console/src/apps/gallery');
 
 /** Primitives intentionally omitted from the gallery. Keep small. */
 const IGNORED = new Set([
@@ -207,7 +208,10 @@ function isCovered(name, dividerTexts) {
 function main() {
   const indexSrc = readSource(INDEX_PATH);
   const agentSrc = readSource(AGENT_INDEX_PATH);
-  const gallerySrc = readSource(GALLERY_PATH);
+  const gallerySrc = readdirSync(GALLERY_DIR, { recursive: true })
+    .filter((file) => file.endsWith('.tsx'))
+    .map((file) => readSource(join(GALLERY_DIR, file)))
+    .join('\n');
 
   // From `components/ui/index.ts`: module name = required specimen. Modules
   // without a `.tsx` source are data helpers, not primitives.
@@ -258,7 +262,7 @@ function main() {
     }
     console.log(
       `\nAction: add a <SectionDivider>${missing[0]}</SectionDivider>` +
-        ` block in apps/console/src/Gallery.tsx with a working specimen,` +
+        ` block in apps/console/src/apps/gallery/ with a working specimen,` +
         ` then verify in light + dark at desktop + ≤768 px.`,
     );
     process.exit(1);

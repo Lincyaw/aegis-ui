@@ -190,7 +190,7 @@ This is a pnpm workspace. Only `packages/ui` is published.
 | `packages/ui/src/agent/`           | Agent context, AgentM channel client and the agent-native runtime                         |
 | `packages/ui/src/index.ts`         | Public API; anything not exported here is internal                                        |
 | `apps/console/`                    | Private Vite app that hosts the gallery and the AegisLab sub-applications                 |
-| `apps/console/src/Gallery.tsx`     | Gallery specimens for every primitive                                                     |
+| `apps/console/src/apps/gallery/`   | Gallery specimens for every primitive, one file per section                               |
 | `apps/console/server/`             | Go binary that serves the built console (see its [README](apps/console/server/README.md)) |
 | `docs/`                            | [CSS conventions](docs/css-conventions.md) and the agent-native UI design                 |
 

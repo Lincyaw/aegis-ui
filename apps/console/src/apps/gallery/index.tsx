@@ -1,7 +1,7 @@
 import { AppstoreOutlined } from '@ant-design/icons';
 import type { AegisApp } from '@lincyaw/aegis-ui';
 
-import Gallery from '../../Gallery';
+import Gallery from './Gallery';
 
 export const galleryApp: AegisApp = {
   id: 'gallery',
