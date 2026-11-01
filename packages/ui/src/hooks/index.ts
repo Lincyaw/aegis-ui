@@ -14,3 +14,8 @@ export type {
   UseScrollProgressOptions,
   UseScrollProgressResult,
 } from './useScrollProgress';
+export { useReplayPlayback } from './useReplayPlayback';
+export type {
+  UseReplayPlaybackOptions,
+  UseReplayPlaybackResult,
+} from './useReplayPlayback';

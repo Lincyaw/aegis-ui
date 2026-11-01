@@ -101,6 +101,15 @@ export interface AegisStrings {
   carouselRoleDescription: string;
   carouselPause: string;
   carouselPlay: string;
+  replayPlay: string;
+  replayPause: string;
+  replayPreviousStep: string;
+  replayNextStep: string;
+  replaySpeed: string;
+  replayPosition: string;
+  replayStepOf: (step: number, total: number) => string;
+  replayKeyMoment: (n: number) => string;
+  replaySteps: string;
   /** Heading of a ScrollStory's pinned panel, e.g. "Step 2 of 4". */
   scrollStoryPosition: (step: number, total: number) => string;
 }
@@ -209,6 +218,15 @@ export const enStrings: AegisStrings = {
   carouselRoleDescription: 'carousel',
   carouselPause: 'Pause autoplay',
   carouselPlay: 'Resume autoplay',
+  replayPlay: 'Play',
+  replayPause: 'Pause',
+  replayPreviousStep: 'Previous step',
+  replayNextStep: 'Next step',
+  replaySpeed: 'Playback speed',
+  replayPosition: 'Replay position',
+  replayStepOf: (step, total) => `Step ${step} of ${total}`,
+  replayKeyMoment: (n) => `Key moment ${n}`,
+  replaySteps: 'Steps',
   scrollStoryPosition: (step, total) => `Step ${step} of ${total}`,
 };
 
@@ -324,5 +342,14 @@ export const zhCNStrings: AegisStrings = {
   carouselRoleDescription: '轮播',
   carouselPause: '暂停自动播放',
   carouselPlay: '继续自动播放',
+  replayPlay: '播放',
+  replayPause: '暂停',
+  replayPreviousStep: '上一步',
+  replayNextStep: '下一步',
+  replaySpeed: '播放速度',
+  replayPosition: '回放位置',
+  replayStepOf: (step, total) => `第 ${step} 步 · 共 ${total} 步`,
+  replayKeyMoment: (n) => `关键时刻 ${n}`,
+  replaySteps: '步骤',
   scrollStoryPosition: (step, total) => `第 ${step} 步 · 共 ${total} 步`,
 };

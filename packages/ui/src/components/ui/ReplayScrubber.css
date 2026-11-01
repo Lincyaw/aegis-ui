@@ -1,0 +1,110 @@
+.aegis-replay-scrubber {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+}
+
+/* Markers and thumb share the track's inline range: the thumb's half
+ * width on each side keeps the first and last step inside the box. */
+.aegis-replay-scrubber__markers,
+.aegis-replay-scrubber__track {
+  position: relative;
+  margin-inline: calc(var(--replay-scrubber-thumb) / 2);
+}
+
+.aegis-replay-scrubber__markers {
+  height: var(--size-dot);
+}
+
+.aegis-replay-scrubber__marker {
+  position: absolute;
+  top: 0;
+  width: var(--size-dot);
+  height: var(--size-dot);
+  border-radius: var(--radius-circle);
+  transform: translateX(-50%);
+}
+
+/* The hit area is taller than the drawn track. */
+.aegis-replay-scrubber__track {
+  height: var(--replay-scrubber-thumb);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.aegis-replay-scrubber__track::before,
+.aegis-replay-scrubber__played {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: var(--replay-scrubber-track);
+  border-radius: var(--radius-pill);
+  transform: translateY(-50%);
+  content: '';
+}
+
+.aegis-replay-scrubber__track::before {
+  right: 0;
+  background: var(--bg-muted);
+}
+
+.aegis-replay-scrubber__played {
+  width: calc(var(--aegis-replay-scrubber-position) * 100%);
+  background: var(--text-main);
+}
+
+.aegis-replay-scrubber__thumb {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--aegis-replay-scrubber-position) * 100%);
+  width: var(--replay-scrubber-thumb);
+  height: var(--replay-scrubber-thumb);
+  border: var(--size-border-thick) solid var(--text-main);
+  border-radius: var(--radius-circle);
+  background: var(--bg-panel);
+  transform: translate(-50%, -50%);
+}
+
+.aegis-replay-scrubber__track:focus-visible {
+  outline: none;
+}
+
+.aegis-replay-scrubber__track:focus-visible .aegis-replay-scrubber__thumb {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* The first and last steps at the ends, the current one under the thumb. */
+.aegis-replay-scrubber__labels {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-inline: calc(var(--replay-scrubber-thumb) / 2);
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.aegis-replay-scrubber__end {
+  transform: translateX(-50%);
+}
+
+.aegis-replay-scrubber__end:last-child {
+  transform: translateX(50%);
+}
+
+.aegis-replay-scrubber__at {
+  position: absolute;
+  top: 0;
+  left: calc(var(--aegis-replay-scrubber-position) * 100%);
+  transform: translateX(-50%);
+}
+
+.aegis-replay-scrubber__label--current {
+  font-weight: var(--fw-semibold);
+  color: var(--text-main);
+}

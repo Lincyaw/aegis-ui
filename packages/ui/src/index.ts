@@ -13,6 +13,7 @@ export * from './components/ui';
 export {
   useCopyToClipboard,
   useResizable,
+  useReplayPlayback,
   useSavedQueries,
   useScrollProgress,
 } from './hooks';
@@ -23,6 +24,8 @@ export type {
   UseResizableOptions,
   UseResizableReturn,
   UseSavedQueriesOptions,
+  UseReplayPlaybackOptions,
+  UseReplayPlaybackResult,
   UseSavedQueriesReturn,
   UseScrollProgressOptions,
   UseScrollProgressResult,

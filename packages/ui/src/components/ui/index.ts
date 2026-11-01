@@ -48,6 +48,15 @@ export { ScoreBar } from './ScoreBar';
 export { RunPips } from './RunPips';
 export type { RunPipsCounts } from './RunPips';
 export { ChartLegend } from './ChartLegend';
+export { ReplayScrubber } from './ReplayScrubber';
+export type {
+  ReplayScrubberMarker,
+  ReplayScrubberProps,
+} from './ReplayScrubber';
+export { ReplayStepStrip } from './ReplayStepStrip';
+export type { ReplayStepStripProps, ReplayStripStep } from './ReplayStepStrip';
+export { ReplayTransport } from './ReplayTransport';
+export type { ReplayTransportProps } from './ReplayTransport';
 export type { ChartLegendItem, ChartLegendProps } from './ChartLegend';
 export { ParetoChart } from './ParetoChart';
 export type { ParetoLegendItem, ParetoPoint } from './ParetoChart';

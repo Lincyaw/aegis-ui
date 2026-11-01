@@ -2,18 +2,24 @@ import { type ReactNode, useState } from 'react';
 
 import {
   Button as AegisButton,
+  ChartLegend,
   ContentInspectorDialog,
   ContentPreview,
   type InspectableContent,
   MetricLabel,
   Panel,
   PanelTitle,
+  ReplayScrubber,
+  ReplayStepStrip,
+  ReplayTransport,
   SectionDivider,
+  Tabs,
   ToolCallCard,
   type ToolCallData,
   TrajectoryStep,
   type TrajectoryStepData,
   TrajectoryTimeline,
+  useReplayPlayback,
 } from '@lincyaw/aegis-ui';
 
 import { TOOL_QUERY_METRICS } from '../fixtures';
@@ -90,6 +96,135 @@ const TRAJECTORY_STEPS: TrajectoryStepData[] = [
     toolCall: TOOL_REPORT_RCA,
   },
 ];
+
+const REPLAY_SPEEDS = [0.5, 1, 2, 4];
+const REPLAY_VIEWS = [
+  { key: 'all', label: 'All' },
+  { key: 'red', label: 'Red' },
+  { key: 'blue', label: 'Blue' },
+];
+
+/** One replay of the four steps above: frame, scrubber with event markers and transport. */
+function ReplayPlayerSpecimen(): ReactNode {
+  const [speed, setSpeed] = useState(1);
+  const [view, setView] = useState('all');
+  const playback = useReplayPlayback({
+    count: TRAJECTORY_STEPS.length,
+    speed,
+    stepDurationMs: (index) => TRAJECTORY_STEPS[index]?.durationMs ?? 1000,
+  });
+  const step = TRAJECTORY_STEPS[playback.index];
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption={`play advances one step per recorded duration ÷ speed and stops at the end · arrows / Page Up / Home on the slider · view: ${view}`}
+        span={3}
+      >
+        <div className='gallery__stack gallery__stack--fill'>
+          <Panel title={`Step ${String(step.step)}`}>
+            <TrajectoryStep data={step} defaultExpanded />
+          </Panel>
+          <ReplayScrubber
+            count={TRAJECTORY_STEPS.length}
+            index={playback.index}
+            onIndexChange={playback.seek}
+            formatStep={(index) => `T${String(index + 1)}`}
+            markers={[
+              { index: 0, color: 'cat-3', label: 'T1 · first query' },
+              { index: 2, color: 'cat-1', label: 'T3 · traces' },
+              { index: 3, color: 'cat-4', label: 'T4 · report' },
+            ]}
+          />
+          <ReplayTransport
+            playing={playback.playing}
+            onPlayToggle={playback.toggle}
+            onPrevious={playback.previous}
+            onNext={playback.next}
+            canPrevious={playback.index > 0}
+            canNext={playback.index < TRAJECTORY_STEPS.length - 1}
+            position={`T${String(playback.index + 1)} / ${String(TRAJECTORY_STEPS.length)} · ${step.timestamp ?? ''}`}
+            speed={speed}
+            speeds={REPLAY_SPEEDS}
+            onSpeedChange={setSpeed}
+            extra={
+              <Tabs
+                listOnly
+                size='sm'
+                items={REPLAY_VIEWS}
+                activeKey={view}
+                onChange={setView}
+              />
+            }
+          />
+        </div>
+      </Specimen>
+    </div>
+  );
+}
+
+const REPLAY_KINDS = {
+  think: { label: 'Thinking', color: 'cat-6' },
+  tool: { label: 'Tool call', color: 'cat-1' },
+  edit: { label: 'Edit', color: 'cat-3' },
+  check: { label: 'Check', color: 'cat-2' },
+  fail: { label: 'Failure', color: 'seq' },
+  goal: { label: 'Goal', color: 'cat-4' },
+} as const;
+
+type ReplayKind = keyof typeof REPLAY_KINDS;
+
+const REPLAY_PATTERN: ReplayKind[] = [
+  'think',
+  'tool',
+  'think',
+  'think',
+  'tool',
+  'check',
+  'think',
+  'tool',
+  'edit',
+  'check',
+];
+
+const REPLAY_STRIP_STEPS = Array.from({ length: 38 }, (_, index) => {
+  const kind: ReplayKind =
+    index === 11 ? 'fail' : index === 37 ? 'goal' : REPLAY_PATTERN[index % 10];
+  return {
+    key: `step-${String(index + 1)}`,
+    color: REPLAY_KINDS[kind].color,
+    label: `#${String(index + 1)} · ${REPLAY_KINDS[kind].label}`,
+    emphasis: kind === 'check' || kind === 'fail' || kind === 'goal',
+  };
+});
+
+function ReplayStepStripSpecimen(): ReactNode {
+  const [current, setCurrent] = useState(11);
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption={`bars by kind · course-changing steps taller · key moments numbered · the current step outlined · arrows move · #${String(current + 1)}`}
+        span={3}
+      >
+        <div className='gallery__stack gallery__stack--fill'>
+          <ChartLegend
+            shape='dot'
+            items={Object.entries(REPLAY_KINDS).map(([key, kind]) => ({
+              key,
+              label: kind.label,
+              color: kind.color,
+            }))}
+          />
+          <ReplayStepStrip
+            steps={REPLAY_STRIP_STEPS}
+            currentIndex={current}
+            onSelect={setCurrent}
+            keyMoments={[3, 11, 22, 37]}
+          />
+        </div>
+      </Specimen>
+    </div>
+  );
+}
 
 const TRAJECTORY_STEP_SEVERAL_CALLS: TrajectoryStepData = {
   step: 5,
@@ -308,6 +443,16 @@ export function AgentTrajectorySection() {
           </Panel>
         </Specimen>
       </div>
+
+      <SectionDivider
+        extra={<MetricLabel>useReplayPlayback drives the step</MetricLabel>}
+      >
+        ReplayScrubber · ReplayTransport
+      </SectionDivider>
+      <ReplayPlayerSpecimen />
+
+      <SectionDivider>ReplayStepStrip</SectionDivider>
+      <ReplayStepStripSpecimen />
 
       <SectionDivider>ContentInspectorDialog · ContentPreview</SectionDivider>
       <ContentInspectorSpecimen />

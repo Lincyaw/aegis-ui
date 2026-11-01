@@ -422,6 +422,17 @@
   --site-wordmark-tracking: -0.03em;
   /* Narrowest footer link column on a phone; the columns wrap below it. */
   --site-footer-column-min: 7rem;
+  /* ReplayScrubber: the drawn track and the thumb (also the hit height). */
+  --replay-scrubber-track: var(--space-1);
+  --replay-scrubber-thumb: var(--space-4);
+  /* ReplayTransport: the step buttons and the larger play button. */
+  --replay-transport-button: 36px;
+  --replay-transport-play: 44px;
+  /* ReplayStepStrip: a step's bar, a course-changing step's taller bar, and
+   * the gap between steps (narrow it for runs of hundreds of steps). */
+  --replay-strip-bar: var(--space-10);
+  --replay-strip-bar-emphasis: var(--space-16);
+  --replay-strip-gap: var(--space-1);
 
   /* ── Component tokens ────────────────────────────────────────────── */
   /* Defaults reproduce the stock look; a host restyles a primitive by

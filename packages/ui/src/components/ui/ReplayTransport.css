@@ -1,0 +1,73 @@
+.aegis-replay-transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+}
+
+.aegis-replay-transport__buttons,
+.aegis-replay-transport__end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Round transport buttons, drawn like Button: secondary at rest,
+ * inverted for play, rising on hover and settling when pressed. */
+.aegis-replay-transport__button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--replay-transport-button);
+  height: var(--replay-transport-button);
+  padding: 0;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-circle);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-rest);
+  font-size: var(--size-icon-base);
+  color: var(--text-main);
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast),
+    box-shadow var(--motion-fast),
+    opacity var(--motion-fast);
+}
+
+.aegis-replay-transport__button--play {
+  width: var(--replay-transport-play);
+  height: var(--replay-transport-play);
+  border-color: var(--bg-inverted);
+  background: var(--bg-inverted);
+  font-size: var(--size-icon-lg);
+  color: var(--text-on-inverted);
+}
+
+.aegis-replay-transport__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-replay-transport__button:hover:not(:disabled) {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+    box-shadow: var(--shadow-raised);
+  }
+
+  .aegis-replay-transport__button:active:not(:disabled) {
+    transform: none;
+    box-shadow: var(--shadow-rest);
+  }
+}
+
+.aegis-replay-transport__position {
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  line-height: var(--type-numeric-line);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
