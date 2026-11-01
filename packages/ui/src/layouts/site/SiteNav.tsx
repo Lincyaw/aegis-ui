@@ -75,24 +75,34 @@ export function SiteNav({
   const scrolled = useWindowScrolled();
   const floating = variant === 'floating' || (variant === 'auto' && scrolled);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Navigating to another section closes the menu.
+  const [menuKey, setMenuKey] = useState(activeKey);
+  if (menuKey !== activeKey) {
+    setMenuKey(activeKey);
+    setMenuOpen(false);
+  }
   const menuId = useId();
   const menuRef = useRef<HTMLElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Following a link or pressing Escape closes the menu.
+  // A click anywhere but the menu's own background, or Escape, closes
+  // the menu; the button toggles it itself.
   useEffect(() => {
     if (!menuOpen) {
       return undefined;
     }
     const onClick = (event: MouseEvent): void => {
       const target = event.target;
-      if (
-        target instanceof Element &&
-        target.closest('a') &&
-        menuRef.current?.contains(target)
-      ) {
-        setMenuOpen(false);
+      if (!(target instanceof Element)) {
+        return;
       }
+      if (buttonRef.current?.contains(target)) {
+        return;
+      }
+      if (menuRef.current?.contains(target) && !target.closest('a')) {
+        return;
+      }
+      setMenuOpen(false);
     };
     const onKeyDown = (event: globalThis.KeyboardEvent): void => {
       if (event.key === 'Escape') {

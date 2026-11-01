@@ -394,21 +394,34 @@
   --page-max-width: none;
   --page-padding-inline: var(--space-6);
   --page-padding-inline-mobile: var(--space-4);
-  /* Public site (SiteLayout): sections centre a content column with a
-   * fixed side gutter, so a 1440 window gives 1200 and a 1280 one 1040. */
+  /* Public site (SiteLayout): sections centre --site-column, the content
+   * column. The side gutter is 120 from a 1280 window up (1200 at 1440,
+   * 1040 at 1280); below, it shrinks so the column holds 1040 until the
+   * gutter reaches --space-6, then the column narrows, with no jump at any
+   * width. At 768 and narrower the gutter is --space-4 (media query at the
+   * end of this file). */
   --site-content-width: 1200px;
-  --site-gutter: 120px;
-  --site-gutter-mobile: var(--space-4);
+  --site-content-width-narrow: 1040px;
+  --site-gutter-wide: 120px;
+  --site-gutter: clamp(
+    var(--space-6),
+    (100vw - var(--site-content-width-narrow)) / 2,
+    var(--site-gutter-wide)
+  );
+  --site-column: min(100% - 2 * var(--site-gutter), var(--site-content-width));
   --site-nav-height: 72px;
   --site-nav-height-mobile: 56px;
   /* How far the glass nav floats below the top of the window. */
   --site-nav-float-offset: var(--space-3);
   --site-section-padding: var(--space-16);
   --site-section-padding-mobile: var(--space-10);
-  /* The footer's outlined wordmark: a share of the footer column's width
-   * (container units), so it fills the column at any width, up to 188px. */
+  /* The footer's outlined wordmark, as a share of the footer column's
+   * width (container units). 15.6cqi fills the column with an eleven-letter
+   * wordmark in Geist; a host with another wordmark sets its own share. */
   --site-wordmark-size: min(15.6cqi, 188px);
   --site-wordmark-tracking: -0.03em;
+  /* Narrowest footer link column on a phone; the columns wrap below it. */
+  --site-footer-column-min: 7rem;
 
   /* ── Component tokens ────────────────────────────────────────────── */
   /* Defaults reproduce the stock look; a host restyles a primitive by
@@ -613,6 +626,13 @@
   animation: aegis-highlight-ring var(--aegis-highlight-duration)
     cubic-bezier(0.22, 1, 0.36, 1);
   border-radius: var(--radius-md);
+}
+
+/* ── Site column gutter ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --site-gutter: var(--space-4);
+  }
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────── */

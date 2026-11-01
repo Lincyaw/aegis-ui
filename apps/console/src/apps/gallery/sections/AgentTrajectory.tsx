@@ -9,8 +9,6 @@ import {
   Panel,
   PanelTitle,
   SectionDivider,
-  SessionRunOutputView,
-  SessionRunTrajectoryView,
   ToolCallCard,
   type ToolCallData,
   TrajectoryStep,
@@ -156,122 +154,6 @@ function ContentInspectorSpecimen(): ReactNode {
             </div>
           </Specimen>
         ))}
-      </div>
-      <ContentInspectorDialog
-        open={open !== null}
-        content={open}
-        onClose={() => setOpen(null)}
-      />
-    </>
-  );
-}
-
-function SessionRunViewSpecimen(): ReactNode {
-  const [open, setOpen] = useState<InspectableContent | null>(null);
-  return (
-    <>
-      <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='SessionRunTrajectoryView' span={2}>
-          <div className='gallery__stack--fill'>
-            <SessionRunTrajectoryView
-              summary={{
-                lineage: 'root · 2 children',
-                startedAt: '2026-10-21T02:14:00Z',
-                inputTokens: '18.4k',
-                outputTokens: '2.1k',
-              }}
-              messages={[
-                {
-                  id: 'msg_01system00',
-                  role: 'system',
-                  content: [
-                    { type: 'text', text: 'You are an RCA agent. Use tools.' },
-                  ],
-                },
-                {
-                  id: 'msg_02assist00',
-                  role: 'assistant',
-                  highlighted: true,
-                  content: [
-                    {
-                      type: 'text',
-                      text: 'Checking error rates for the **payment** service first.',
-                    },
-                    {
-                      type: 'tool_call',
-                      name: 'query_sql',
-                      arguments: {
-                        sql: "SELECT count(*) FROM spans WHERE status = 'error'",
-                      },
-                    },
-                  ],
-                },
-                {
-                  id: 'msg_03tool000',
-                  role: 'tool',
-                  content: [{ type: 'tool_result', output: { count: 1284 } }],
-                },
-              ]}
-              onInspectContent={setOpen}
-            />
-          </div>
-        </Specimen>
-        <Specimen caption='SessionRunOutputView' span={2}>
-          <div className='gallery__stack--fill'>
-            <SessionRunOutputView
-              facts={[
-                { key: 'agent', label: 'Agent', value: 'rca-agent' },
-                { key: 'model', label: 'Model', value: 'claude-opus-5-5' },
-                { key: 'duration', label: 'Duration', value: '4m 12s' },
-              ]}
-              acceptedSubmission={{
-                tool: 'submit_rca',
-                payload: { root_causes: ['payment'] },
-                result: { accepted: true },
-                summary: 'payment — connection pool exhausted',
-              }}
-              tools={[
-                {
-                  id: 't1',
-                  tool: 'query_sql',
-                  duration: '312ms',
-                  args: { sql: 'SELECT 1' },
-                  result: { rows: 1 },
-                },
-                {
-                  id: 't2',
-                  tool: 'submit_rca',
-                  duration: '48ms',
-                  args: { root_causes: [] },
-                  result: { error: 'empty root_causes' },
-                  errored: true,
-                },
-              ]}
-              onInspectContent={setOpen}
-            />
-          </div>
-        </Specimen>
-        <Specimen caption='loading'>
-          <SessionRunTrajectoryView
-            summary={{
-              lineage: '',
-              startedAt: '',
-              inputTokens: '',
-              outputTokens: '',
-            }}
-            messages={[]}
-            loading
-            onInspectContent={setOpen}
-          />
-        </Specimen>
-        <Specimen caption='error'>
-          <SessionRunOutputView
-            facts={[]}
-            tools={[]}
-            error='trajectory store unreachable'
-            onInspectContent={setOpen}
-          />
-        </Specimen>
       </div>
       <ContentInspectorDialog
         open={open !== null}
@@ -429,9 +311,6 @@ export function AgentTrajectorySection() {
 
       <SectionDivider>ContentInspectorDialog · ContentPreview</SectionDivider>
       <ContentInspectorSpecimen />
-
-      <SectionDivider>SessionRunView</SectionDivider>
-      <SessionRunViewSpecimen />
     </Panel>
   );
 }

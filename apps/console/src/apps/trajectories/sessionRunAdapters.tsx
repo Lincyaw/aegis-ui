@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import {
-  MonoValue,
-  type SessionRunFact,
-  type SessionRunMessage,
-  type SessionRunSubmission,
-  type SessionRunSummary,
-  type SessionRunToolCall,
-} from '@lincyaw/aegis-ui';
+import { MonoValue } from '@lincyaw/aegis-ui';
 
 import {
   listMessagesBySession,
@@ -18,6 +11,13 @@ import {
 } from './api/clickhouse';
 
 import { formatDurationMs, formatTokens } from './conversation';
+import type {
+  SessionRunFact,
+  SessionRunMessage,
+  SessionRunSubmission,
+  SessionRunSummary,
+  SessionRunToolCall,
+} from './SessionRunView';
 
 export type SessionDataState =
   | { kind: 'idle' }

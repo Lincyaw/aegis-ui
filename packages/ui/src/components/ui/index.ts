@@ -110,19 +110,6 @@ export type {
   InspectableContentKind,
   PreparedInspectableContent,
 } from './ContentInspectorContent';
-export {
-  SessionRunOutputView,
-  SessionRunTrajectoryView,
-} from './SessionRunView';
-export type {
-  SessionRunFact,
-  SessionRunMessage,
-  SessionRunOutputViewProps,
-  SessionRunSubmission,
-  SessionRunSummary,
-  SessionRunToolCall,
-  SessionRunTrajectoryViewProps,
-} from './SessionRunView';
 export { DataTable } from './DataTable';
 export type {
   DataTableCellTone,
@@ -224,7 +211,7 @@ export type { TraceSpan, TraceTreeSurface } from './TraceTree';
 export { TraceSpanInspector } from './TraceSpanInspector';
 export type { TraceSpanInspectorProps } from './TraceSpanInspector';
 export { TimelineChart } from './TimelineChart';
-export type { TimelineChartProps, TimelineSpan } from './TimelineChart';
+export type { TimelineChartProps } from './TimelineChart';
 export { BucketCard } from './BucketCard';
 export { ObjectBrowser } from './ObjectBrowser';
 export { ShareLinkDialog } from './ShareLinkDialog';

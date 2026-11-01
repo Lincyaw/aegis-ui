@@ -4,7 +4,7 @@ import {
   AmbientBackground,
   type AmbientBackgroundVariant,
 } from '../../components/ui/AmbientBackground';
-import { useStrings } from '../../locale';
+import { SkipLink } from '../SkipLink';
 import './SiteLayout.css';
 
 export interface SiteLayoutProps {
@@ -30,22 +30,11 @@ export function SiteLayout({
   className,
   children,
 }: SiteLayoutProps): ReactElement {
-  const strings = useStrings();
   const mainId = useId();
   const mainRef = useRef<HTMLElement>(null);
   return (
     <div className={['aegis-site', className ?? ''].join(' ').trim()}>
-      {/* Moves focus without a URL fragment, so a shared page link stays as it was. */}
-      <a
-        className="aegis-site__skip"
-        href={`#${mainId}`}
-        onClick={(event) => {
-          event.preventDefault();
-          mainRef.current?.focus();
-        }}
-      >
-        {strings.skipToContent}
-      </a>
+      <SkipLink targetId={mainId} targetRef={mainRef} />
       {ambient && <AmbientBackground variant={ambient} />}
       {nav}
       <main

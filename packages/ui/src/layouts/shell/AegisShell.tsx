@@ -31,10 +31,12 @@ import { defaultCommandContextValue } from '../../commands/commandContext';
 import { AmbientBackground } from '../../components/ui/AmbientBackground';
 import { Chip } from '../../components/ui/Chip';
 import { CommandPalette } from '../../components/ui/CommandPalette';
+import { useWindowScrolled } from '../../hooks/useWindowScrolled';
 import { readStorage, writeStorage } from '../../lib/storage';
 import { useStrings } from '../../locale';
 import { ThemeContext } from '../../theme/themeContext';
 import { PageWrapper } from '../PageWrapper';
+import { SkipLink } from '../SkipLink';
 import './AegisShell.css';
 import { AuthRequiredCard } from './AuthRequiredCard';
 import { BreadcrumbBar } from './BreadcrumbBar';
@@ -85,22 +87,9 @@ export function AegisShell({
     () => readStorage(SIDEBAR_COLLAPSED_KEY) === '1',
   );
   const [inlineSlot, setInlineSlot] = useState<HTMLDivElement | null>(null);
-  const [headerScrolled, setHeaderScrolled] = useState(false);
+  const windowScrolled = useWindowScrolled();
+  const headerScrolled = elevateHeaderOnScroll && windowScrolled;
   const mainRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (!elevateHeaderOnScroll) {
-      return undefined;
-    }
-    const update = (): void => {
-      setHeaderScrolled(window.scrollY > 0);
-    };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', update);
-    };
-  }, [elevateHeaderOnScroll]);
 
   const resolvedUser = useMemo<AegisUser | undefined>(() => {
     if (user) {
@@ -303,17 +292,7 @@ export function AegisShell({
     >
       <ActiveAppEnvironmentProvider app={activeApp}>
         <div className={shellClass}>
-          {/* Moves focus without a URL fragment, so a shared page link stays as it was. */}
-          <a
-            className="aegis-shell__skip"
-            href="#aegis-main"
-            onClick={(event) => {
-              event.preventDefault();
-              mainRef.current?.focus();
-            }}
-          >
-            {strings.skipToContent}
-          </a>
+          <SkipLink targetId="aegis-main" targetRef={mainRef} />
           {ambient && <AmbientBackground variant={ambient} />}
           <TopHeader
             brand={brand}

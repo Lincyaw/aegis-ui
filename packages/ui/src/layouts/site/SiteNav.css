@@ -19,10 +19,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-10);
-  width: calc(
-    min(100% - 2 * var(--site-gutter), var(--site-content-width)) + 2 *
-      var(--site-nav-inset)
-  );
+  width: calc(var(--site-column) + 2 * var(--site-nav-inset));
   height: var(--site-nav-height);
   margin-inline: auto;
   padding-inline: var(--site-nav-inset);
@@ -120,11 +117,24 @@
   background: transparent;
   color: var(--text-main);
   cursor: pointer;
-  transition: background-color var(--motion-fast);
+  transition:
+    background-color var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .aegis-site-nav__menu-button:hover {
   background: var(--bg-muted);
+}
+
+/* Rises like the shell's header buttons and settles when pressed. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-site-nav__menu-button:hover {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+  }
+
+  .aegis-site-nav__menu-button:active {
+    transform: none;
+  }
 }
 
 .aegis-site-nav__menu-icon {
@@ -143,15 +153,15 @@
 
 @media (max-width: 768px) {
   .aegis-site-nav {
-    --site-nav-inset: 0;
-
     height: var(--site-nav-height-mobile);
   }
 
+  /* The bar is the column itself: it never floats as a pill on a phone. */
   .aegis-site-nav__bar {
     gap: var(--space-2);
-    width: calc(100% - 2 * var(--site-gutter-mobile));
+    width: var(--site-column);
     height: var(--site-nav-height-mobile);
+    padding-inline: 0;
   }
 
   .aegis-site-nav__nav {
@@ -187,7 +197,7 @@
   .aegis-site-nav__menu-links {
     display: flex;
     flex-direction: column;
-    padding: var(--space-2) var(--site-gutter-mobile) var(--space-4);
+    padding: var(--space-2) var(--site-gutter) var(--space-4);
   }
 
   .aegis-site-nav__menu-links .aegis-site-nav__link {

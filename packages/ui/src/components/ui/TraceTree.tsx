@@ -20,7 +20,7 @@ import { Chip } from './Chip';
 import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
 import './TraceTree.css';
-import { formatDuration, nodeToString, statusTone } from './traceFormat';
+import { formatDuration, statusTone } from './traceFormat';
 
 export type TraceTreeSurface = PrimitiveSurface<TraceSpan[]>;
 
@@ -36,8 +36,13 @@ export interface TraceSpan {
   startMs?: number;
   durationMs?: number;
   status?: 'ok' | 'error' | 'unset';
-  /** Short label rendered as a chip on the left of the row. */
-  kind?: ReactNode;
+  /**
+   * The span's category: a chip on the left of its `TraceTree` row, and
+   * the colour of its `TimelineChart` bar (one colour per kind).
+   */
+  kind?: string;
+  /** Drawn at the end of the span's `TimelineChart` bar. */
+  badge?: ReactNode;
   /** Free-form attributes — only used by the inspector pane, not by the row itself. */
   attrs?: Record<string, unknown>;
 }
@@ -255,7 +260,7 @@ export function TraceTree({
               formatDuration(span.durationMs),
             )
           : '';
-        const kind = span.kind ? nodeToString(span.kind) : '';
+        const kind = span.kind ?? '';
         const meta = [timing, kind].filter(Boolean).join(' · ');
         const tooltipContent = (
           <div className="aegis-trace-tree__tooltip">

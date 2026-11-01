@@ -1,0 +1,21 @@
+.aegis-skip-link {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-popover);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  font-size: var(--type-strong-size);
+  font-weight: var(--type-strong-weight);
+  line-height: var(--type-strong-line);
+  transform: translateY(calc(-100% - var(--space-4)));
+  transition: transform var(--motion-fast);
+}
+
+.aegis-skip-link:focus-visible {
+  transform: none;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}

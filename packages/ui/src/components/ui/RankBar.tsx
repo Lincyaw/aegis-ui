@@ -99,7 +99,9 @@ export function RankBar({
                       }),
                 } as CSSProperties
               }
-            />
+            >
+              <span className="aegis-rank-bar__ink" />
+            </div>
           );
         return (
           <div className="aegis-rank-bar__row" key={item.key}>

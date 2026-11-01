@@ -78,6 +78,7 @@
 
 .aegis-pareto--scroll .aegis-pareto__point {
   opacity: var(--aegis-pareto-point-progress);
+  transition: stroke var(--motion-fast);
 }
 
 .aegis-pareto--scroll .aegis-pareto__point--dominated {

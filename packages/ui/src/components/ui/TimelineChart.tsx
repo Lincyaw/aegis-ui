@@ -18,28 +18,61 @@ import { useStrings } from '../../locale';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Skeleton';
 import './TimelineChart.css';
-
-export interface TimelineSpan {
-  id: string;
-  label: string;
-  startNs: number;
-  durationNs: number;
-  depth?: number;
-  kind?: string;
-  badge?: ReactNode;
-  status?: 'ok' | 'error' | 'warn';
-}
+import type { TraceSpan } from './TraceTree';
 
 export interface TimelineChartProps {
-  spans: TimelineSpan[];
-  minNs?: number;
-  maxNs?: number;
+  /**
+   * The spans `TraceTree` takes. A span draws a bar when it has `startMs`
+   * and `durationMs`; its depth follows `parentId`.
+   */
+  spans: TraceSpan[];
+  /** Start of the axis in ms; defaults to the earliest span. */
+  minMs?: number;
+  /** End of the axis in ms; defaults to the latest span end. */
+  maxMs?: number;
   rowHeight?: number;
   maxVisibleRows?: number;
-  onSpanClick?: (span: TimelineSpan) => void;
+  onSelect?: (span: TraceSpan) => void;
   selectedId?: string;
   loading?: boolean;
   className?: string;
+}
+
+const NS_PER_MS = 1_000_000;
+
+/** A timed span on the chart's nanosecond axis, with its nesting depth. */
+interface TimelineRow {
+  span: TraceSpan;
+  startNs: number;
+  durationNs: number;
+  depth: number;
+}
+
+function timelineRows(spans: TraceSpan[]): TimelineRow[] {
+  const parents = new Map(spans.map((span) => [span.id, span.parentId]));
+  const depthOf = (span: TraceSpan): number => {
+    let depth = 0;
+    let parent = span.parentId;
+    const seen = new Set<string>();
+    while (parent && parents.has(parent) && !seen.has(parent)) {
+      seen.add(parent);
+      depth += 1;
+      parent = parents.get(parent);
+    }
+    return depth;
+  };
+  return spans.flatMap((span) =>
+    span.startMs === undefined || span.durationMs === undefined
+      ? []
+      : [
+          {
+            span,
+            startNs: span.startMs * NS_PER_MS,
+            durationNs: span.durationMs * NS_PER_MS,
+            depth: depthOf(span),
+          },
+        ],
+  );
 }
 
 const INDENT_PX = 12;
@@ -134,11 +167,11 @@ function emptyDeriveBounds(): { minNs: number; maxNs: number } {
 
 export function TimelineChart({
   spans,
-  minNs: minNsProp,
-  maxNs: maxNsProp,
+  minMs,
+  maxMs,
   rowHeight = DEFAULT_ROW_HEIGHT,
   maxVisibleRows = DEFAULT_MAX_VISIBLE_ROWS,
-  onSpanClick,
+  onSelect,
   selectedId,
   loading = false,
   className,
@@ -148,19 +181,20 @@ export function TimelineChart({
   const trackHeaderRef = useRef<HTMLDivElement>(null);
   const guideRef = useRef<HTMLDivElement>(null);
   const guideLabelRef = useRef<HTMLDivElement>(null);
-  const [hasSpans, setHasSpans] = useState(spans.length > 0);
+  const rows = useMemo(() => timelineRows(spans), [spans]);
+  const [hasSpans, setHasSpans] = useState(rows.length > 0);
 
-  if (hasSpans !== spans.length > 0) {
-    setHasSpans(spans.length > 0);
+  if (hasSpans !== rows.length > 0) {
+    setHasSpans(rows.length > 0);
   }
 
   const derived = useMemo(() => {
-    if (spans.length === 0) {
+    if (rows.length === 0) {
       return emptyDeriveBounds();
     }
     let min = Number.POSITIVE_INFINITY;
     let max = Number.NEGATIVE_INFINITY;
-    for (const s of spans) {
+    for (const s of rows) {
       if (s.startNs < min) {
         min = s.startNs;
       }
@@ -173,22 +207,22 @@ export function TimelineChart({
       return { minNs: 0, maxNs: 1 };
     }
     return { minNs: min, maxNs: max };
-  }, [spans]);
+  }, [rows]);
 
-  const minNs = minNsProp ?? derived.minNs;
-  const maxNs = maxNsProp ?? derived.maxNs;
+  const minNs = minMs === undefined ? derived.minNs : minMs * NS_PER_MS;
+  const maxNs = maxMs === undefined ? derived.maxNs : maxMs * NS_PER_MS;
   const range = Math.max(maxNs - minNs, 1);
 
   const ticks = useMemo(() => buildTicks(minNs, maxNs), [minNs, maxNs]);
 
   const virtualizer = useVirtualizer({
-    count: spans.length,
+    count: rows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => rowHeight,
     overscan: 8,
   });
 
-  const bodyHeight = Math.min(spans.length, maxVisibleRows) * rowHeight;
+  const bodyHeight = Math.min(rows.length, maxVisibleRows) * rowHeight;
 
   const handleMouseMove = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -220,14 +254,14 @@ export function TimelineChart({
   }, []);
 
   const handleRowActivate = useCallback(
-    (span: TimelineSpan) => {
-      onSpanClick?.(span);
+    (span: TraceSpan) => {
+      onSelect?.(span);
     },
-    [onSpanClick],
+    [onSelect],
   );
 
   const handleRowKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLDivElement>, span: TimelineSpan) => {
+    (event: ReactKeyboardEvent<HTMLDivElement>, span: TraceSpan) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         handleRowActivate(span);
@@ -323,10 +357,9 @@ export function TimelineChart({
               />
             </div>
             {virtualizer.getVirtualItems().map((item) => {
-              const span = spans[item.index];
-              const depth = span.depth ?? 0;
-              const leftPct = ((span.startNs - minNs) / range) * 100;
-              const widthPct = (span.durationNs / range) * 100;
+              const { span, startNs, durationNs, depth } = rows[item.index];
+              const leftPct = ((startNs - minNs) / range) * 100;
+              const widthPct = (durationNs / range) * 100;
               const isSelected = selectedId === span.id;
               const classes = [
                 'aegis-timeline-chart__row',
@@ -366,15 +399,15 @@ export function TimelineChart({
                     style={{
                       paddingLeft: `calc(var(--space-3) + ${depth * INDENT_PX}px)`,
                     }}
-                    title={span.label}
+                    title={span.name}
                   >
                     <span className="aegis-timeline-chart__label-text">
-                      {span.label}
+                      {span.name}
                     </span>
                   </div>
                   <div className="aegis-timeline-chart__track">
                     <Tooltip
-                      title={`${span.label} · ${formatDuration(span.durationNs)}`}
+                      title={`${span.name} · ${formatDuration(durationNs)}`}
                       mouseEnterDelay={0.2}
                     >
                       <div

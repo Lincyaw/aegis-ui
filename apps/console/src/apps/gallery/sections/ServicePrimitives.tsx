@@ -42,7 +42,6 @@ import {
   ShareLinkDialog,
   Timeline,
   TimelineChart,
-  type TimelineSpan,
   Toolbar,
   ToolCallCard,
   type TraceSpan,
@@ -611,78 +610,76 @@ function TraceSpanInspectorSpecimen(): ReactNode {
   );
 }
 
-const NS_PER_MS = 1_000_000;
-
-const timelineDepthSpans: TimelineSpan[] = [
+/** The same spans TraceTree takes: ms from the start, nesting by parentId. */
+const timelineDepthSpans: TraceSpan[] = [
   {
     id: 'root',
-    label: 'http.request POST /v1/sessions',
-    startNs: 0,
-    durationNs: 1800 * NS_PER_MS,
-    depth: 0,
+    name: 'http.request POST /v1/sessions',
+    startMs: 0,
+    durationMs: 1800,
     kind: 'http',
     status: 'ok',
   },
   {
     id: 'auth',
-    label: 'auth.verify_jwt',
-    startNs: 12 * NS_PER_MS,
-    durationNs: 84 * NS_PER_MS,
-    depth: 1,
+    parentId: 'root',
+    name: 'auth.verify_jwt',
+    startMs: 12,
+    durationMs: 84,
     kind: 'compute',
     status: 'ok',
   },
   {
     id: 'db.session.lookup',
-    label: 'db.session.lookup',
-    startNs: 110 * NS_PER_MS,
-    durationNs: 220 * NS_PER_MS,
-    depth: 1,
+    parentId: 'root',
+    name: 'db.session.lookup',
+    startMs: 110,
+    durationMs: 220,
     kind: 'db',
     status: 'ok',
   },
   {
     id: 'db.session.lookup.query',
-    label: 'pg.exec SELECT * FROM sessions',
-    startNs: 130 * NS_PER_MS,
-    durationNs: 180 * NS_PER_MS,
-    depth: 2,
+    parentId: 'db.session.lookup',
+    name: 'pg.exec SELECT * FROM sessions',
+    startMs: 130,
+    durationMs: 180,
     kind: 'db',
     status: 'ok',
   },
   {
     id: 'llm.call',
-    label: 'llm.call gpt-5',
-    startNs: 340 * NS_PER_MS,
-    durationNs: 1200 * NS_PER_MS,
-    depth: 1,
+    parentId: 'root',
+    name: 'llm.call gpt-5',
+    startMs: 340,
+    durationMs: 1200,
     kind: 'compute',
     status: 'ok',
   },
   {
     id: 'llm.call.tokenize',
-    label: 'tokenize',
-    startNs: 350 * NS_PER_MS,
-    durationNs: 40 * NS_PER_MS,
-    depth: 2,
+    parentId: 'llm.call',
+    name: 'tokenize',
+    startMs: 350,
+    durationMs: 40,
     kind: 'compute',
     status: 'ok',
   },
   {
     id: 'llm.call.network',
-    label: 'http.fetch openai',
-    startNs: 400 * NS_PER_MS,
-    durationNs: 1130 * NS_PER_MS,
-    depth: 2,
+    parentId: 'llm.call',
+    name: 'http.fetch openai',
+    startMs: 400,
+    durationMs: 1130,
     kind: 'http',
     status: 'error',
   },
   {
     id: 'persist',
-    label: 'db.session.update',
-    startNs: 1560 * NS_PER_MS,
-    durationNs: 220 * NS_PER_MS,
-    depth: 1,
+    parentId: 'root',
+    name: 'db.session.update',
+    startMs: 1560,
+    durationMs: 220,
     kind: 'db',
     status: 'ok',
   },
@@ -692,20 +689,21 @@ function TimelineChartDepthSpecimen(): ReactNode {
   return <TimelineChart spans={timelineDepthSpans} maxVisibleRows={10} />;
 }
 
-function makeLargeTimeline(): TimelineSpan[] {
+function makeLargeTimeline(): TraceSpan[] {
   const kinds = ['http', 'db', 'compute'] as const;
-  const spans: TimelineSpan[] = [];
+  const spans: TraceSpan[] = [];
   let cursor = 0;
   for (let i = 0; i < 500; i++) {
     const kind = kinds[i % kinds.length] ?? 'compute';
     const base = kind === 'http' ? 30 : kind === 'db' ? 12 : 5;
-    const dur = base * NS_PER_MS * (1 + (i % 7) * 0.15);
+    const dur = base * (1 + (i % 7) * 0.15);
     spans.push({
       id: `s-${i}`,
-      label: `${kind}.op[${i}]`,
-      startNs: cursor,
-      durationNs: dur,
-      depth: i % 4,
+      // Every fourth span starts a new root; the next three nest under it.
+      parentId: i % 4 === 0 ? null : `s-${i - 1}`,
+      name: `${kind}.op[${i}]`,
+      startMs: cursor,
+      durationMs: dur,
       kind,
       status: i % 53 === 0 ? 'error' : 'ok',
     });
@@ -726,9 +724,8 @@ function TimelineChartSelectableSpecimen(): ReactNode {
       spans={timelineDepthSpans}
       selectedId={selected}
       maxVisibleRows={10}
-      onSpanClick={(s) => {
+      onSelect={(s) => {
         setSelected(s.id);
-        console.warn('TimelineChart click:', s.id, s.label);
       }}
     />
   );

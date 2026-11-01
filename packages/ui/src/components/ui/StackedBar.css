@@ -62,12 +62,29 @@
   }
 }
 
-/* Drawn by scroll position: the host's progress scales each bar from the
- * left, so the bars follow the scroll both ways instead of playing once. */
+/* The segments of one bar, laid out across its full width. */
+.aegis-stacked-bar__segments {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* Drawn by scroll position: the bar (clipping) slides left by the part
+ * not drawn yet while its segments slide back right, so the bar reveals
+ * from the left, follows the scroll both ways and moves only by
+ * transform. The track clips what lies left of it. */
+.aegis-stacked-bar--scroll .aegis-stacked-bar__track {
+  overflow: hidden;
+}
+
 .aegis-stacked-bar--scroll .aegis-stacked-bar__bar {
-  transform: scaleX(var(--aegis-stacked-bar-progress));
-  transform-origin: left;
+  overflow: hidden;
+  transform: translateX(calc((var(--aegis-stacked-bar-progress) - 1) * 100%));
   animation: none;
+}
+
+.aegis-stacked-bar--scroll .aegis-stacked-bar__segments {
+  transform: translateX(calc((1 - var(--aegis-stacked-bar-progress)) * 100%));
 }
 
 /* A zero total still marks the axis start — an empty track reads as missing. */

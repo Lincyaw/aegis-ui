@@ -1,21 +1,20 @@
 import { type ReactElement, type ReactNode } from 'react';
 
 import { FullscreenOutlined } from '@ant-design/icons';
-
-import { useStrings } from '../../locale';
-import { Button } from './Button';
-import { Chip } from './Chip';
 import {
+  Button,
+  Chip,
+  ContentPreview,
+  EmptyState,
+  ErrorState,
   type InspectableContent,
+  MetricLabel,
+  MonoValue,
   prepareInspectableContent,
-} from './ContentInspectorContent';
-import { ContentPreview } from './ContentInspectorDialog';
-import { EmptyState } from './EmptyState';
-import { ErrorState } from './ErrorState';
-import { MetricLabel } from './MetricLabel';
-import { MonoValue } from './MonoValue';
+  TimeDisplay,
+} from '@lincyaw/aegis-ui';
+
 import './SessionRunView.css';
-import { TimeDisplay } from './TimeDisplay';
 
 const EXCERPT_LIMIT = 140;
 
@@ -138,14 +137,13 @@ function InspectContentButton({
   content: InspectableContent;
   onInspectContent: (content: InspectableContent) => void;
 }): ReactElement {
-  const strings = useStrings();
   return (
     <Button
-      type="button"
-      tone="ghost"
-      className="aegis-session-content__expand"
-      aria-label={strings.openContent(content.title)}
-      title={strings.openInInspector}
+      type='button'
+      tone='ghost'
+      className='aegis-session-content__expand'
+      aria-label={`Open ${content.title}`}
+      title='Open in inspector'
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -153,7 +151,7 @@ function InspectContentButton({
       }}
     >
       <FullscreenOutlined />
-      {strings.openInInspector}
+      Open in inspector
     </Button>
   );
 }
@@ -173,9 +171,9 @@ function InspectableRunContent({
       className={`aegis-session-content aegis-session-content--${prepared.kind}`}
     >
       {showHeader && (
-        <div className="aegis-session-content__toolbar">
-          <span className="aegis-session-content__title">{content.title}</span>
-          <MetricLabel size="xs">{prepared.kind}</MetricLabel>
+        <div className='aegis-session-content__toolbar'>
+          <span className='aegis-session-content__title'>{content.title}</span>
+          <MetricLabel size='xs'>{prepared.kind}</MetricLabel>
           <InspectContentButton
             content={content}
             onInspectContent={onInspectContent}
@@ -237,10 +235,10 @@ function MessageBlock({
     kind: 'json' as const,
   };
   return (
-    <details className="aegis-session-message__tool">
+    <details className='aegis-session-message__tool'>
       <summary>
         <span>{String(obj.type ?? 'block')}</span>
-        <MonoValue size="sm">{blockTitle(obj)}</MonoValue>
+        <MonoValue size='sm'>{blockTitle(obj)}</MonoValue>
         <InspectContentButton
           content={content}
           onInspectContent={onInspectContent}
@@ -272,15 +270,15 @@ function MessageCard({
         message.highlighted ? ' aegis-session-message--highlighted' : ''
       }`}
     >
-      <summary className="aegis-session-message__head">
-        <span className="aegis-session-message__fold" aria-hidden="true" />
+      <summary className='aegis-session-message__head'>
+        <span className='aegis-session-message__fold' aria-hidden='true' />
         <Chip tone={message.role === 'assistant' ? 'ink' : 'ghost'}>
           {message.role}
         </Chip>
-        <MonoValue size="sm">
+        <MonoValue size='sm'>
           {message.id ? message.id.slice(0, 12) : 'message'}
         </MonoValue>
-        <span className="aegis-session-message__excerpt">
+        <span className='aegis-session-message__excerpt'>
           {contentExcerpt(message)}
         </span>
         <InspectContentButton
@@ -288,7 +286,7 @@ function MessageCard({
           onInspectContent={onInspectContent}
         />
       </summary>
-      <div className="aegis-session-message__body">
+      <div className='aegis-session-message__body'>
         {message.content.map((block, index) => (
           <MessageBlock
             key={`${message.id ?? 'message'}-${index.toString()}`}
@@ -309,39 +307,34 @@ export function SessionRunTrajectoryView({
   error,
   onInspectContent,
 }: SessionRunTrajectoryViewProps): ReactElement {
-  const strings = useStrings();
   if (loading) {
-    return <EmptyState title={strings.loadingTrajectory} />;
+    return <EmptyState title='Loading trajectory…' />;
   }
   if (error !== undefined) {
     return (
       <ErrorState
-        size="compact"
-        title={strings.trajectoryLoadFailed}
+        size='compact'
+        title='Failed to load trajectory'
         description={error}
       />
     );
   }
   return (
-    <div className="aegis-session-trajectory">
-      <div className="aegis-session-trajectory__summary">
-        <Chip tone="ghost">{summary.lineage}</Chip>
+    <div className='aegis-session-trajectory'>
+      <div className='aegis-session-trajectory__summary'>
+        <Chip tone='ghost'>{summary.lineage}</Chip>
         {summary.startedAt && <TimeDisplay value={summary.startedAt} />}
         {summary.inputTokens && (
-          <MetricLabel>
-            {summary.inputTokens} {strings.inputTokens}
-          </MetricLabel>
+          <MetricLabel>{summary.inputTokens} in</MetricLabel>
         )}
         {summary.outputTokens && (
-          <MetricLabel>
-            {summary.outputTokens} {strings.outputTokens}
-          </MetricLabel>
+          <MetricLabel>{summary.outputTokens} out</MetricLabel>
         )}
       </div>
       {messages.length === 0 ? (
         <EmptyState
-          title={strings.noMessages}
-          description={strings.noMessagesDescription}
+          title='No messages'
+          description='This session has no message records.'
         />
       ) : (
         messages.map((message, index) => (
@@ -365,13 +358,13 @@ export function SessionRunOutputView({
   onInspectContent,
 }: SessionRunOutputViewProps): ReactElement {
   if (loading) {
-    return <EmptyState title="Loading output…" />;
+    return <EmptyState title='Loading output…' />;
   }
   if (error !== undefined) {
     return (
       <ErrorState
-        size="compact"
-        title="Failed to load output"
+        size='compact'
+        title='Failed to load output'
         description={error}
       />
     );
@@ -379,10 +372,10 @@ export function SessionRunOutputView({
 
   const erroredTools = tools.filter((tool) => tool.errored === true);
   const querySqlCount = tools.filter(
-    (tool) => tool.tool === 'query_sql',
+    (tool) => tool.tool === 'query_sql'
   ).length;
   const submitErrors = tools.filter(
-    (tool) => tool.tool.startsWith('submit_') && tool.errored === true,
+    (tool) => tool.tool.startsWith('submit_') && tool.errored === true
   ).length;
   const acceptedSubmissionContent =
     acceptedSubmission == null
@@ -398,35 +391,35 @@ export function SessionRunOutputView({
         };
 
   return (
-    <div className="aegis-session-output">
-      <section className="aegis-session-output__section">
+    <div className='aegis-session-output'>
+      <section className='aegis-session-output__section'>
         <h3>Session</h3>
-        <dl className="aegis-session-output__facts">
+        <dl className='aegis-session-output__facts'>
           {facts.map((fact) => (
-            <div key={fact.key} className="aegis-session-output__fact">
+            <div key={fact.key} className='aegis-session-output__fact'>
               <dt>{fact.label}</dt>
               <dd>{fact.value}</dd>
             </div>
           ))}
         </dl>
       </section>
-      <section className="aegis-session-output__section">
+      <section className='aegis-session-output__section'>
         <h3>Output</h3>
         {acceptedSubmission != null && (
-          <Chip tone="ghost">{acceptedSubmission.tool}</Chip>
+          <Chip tone='ghost'>{acceptedSubmission.tool}</Chip>
         )}
         {acceptedSubmission?.summary ? (
-          <div className="aegis-session-output__roots">
+          <div className='aegis-session-output__roots'>
             {acceptedSubmission.summary}
           </div>
         ) : (
           <MetricLabel>No accepted submit payload</MetricLabel>
         )}
         {submitErrors > 0 && (
-          <Chip tone="warning">{submitErrors.toString()} failed submit</Chip>
+          <Chip tone='warning'>{submitErrors.toString()} failed submit</Chip>
         )}
         {acceptedSubmissionContent != null && (
-          <details className="aegis-session-output__json">
+          <details className='aegis-session-output__json'>
             <summary>
               <span>raw payload</span>
               <InspectContentButton
@@ -442,16 +435,16 @@ export function SessionRunOutputView({
           </details>
         )}
       </section>
-      <section className="aegis-session-output__section">
+      <section className='aegis-session-output__section'>
         <h3>Tools</h3>
-        <div className="aegis-session-output__chips">
-          <Chip tone="ghost">{tools.length.toString()} calls</Chip>
-          <Chip tone="ghost">{querySqlCount.toString()} SQL</Chip>
+        <div className='aegis-session-output__chips'>
+          <Chip tone='ghost'>{tools.length.toString()} calls</Chip>
+          <Chip tone='ghost'>{querySqlCount.toString()} SQL</Chip>
           {erroredTools.length > 0 && (
-            <Chip tone="warning">{erroredTools.length.toString()} errors</Chip>
+            <Chip tone='warning'>{erroredTools.length.toString()} errors</Chip>
           )}
         </div>
-        <div className="aegis-session-output__tool-list">
+        <div className='aegis-session-output__tool-list'>
           {tools.map((tool) => {
             const content = {
               title: `${tool.tool} call`,
@@ -469,7 +462,7 @@ export function SessionRunOutputView({
               >
                 <summary>
                   <span>{tool.tool}</span>
-                  <MonoValue size="sm">{tool.duration}</MonoValue>
+                  <MonoValue size='sm'>{tool.duration}</MonoValue>
                   <InspectContentButton
                     content={content}
                     onInspectContent={onInspectContent}

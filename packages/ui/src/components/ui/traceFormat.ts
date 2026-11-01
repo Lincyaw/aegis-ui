@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 import type { TraceSpan } from './TraceTree';
 
 export function formatDuration(ms: number): string {
@@ -22,11 +20,4 @@ export function statusTone(
     return 'ink';
   }
   return 'muted';
-}
-
-export function nodeToString(node: ReactNode): string {
-  if (typeof node === 'string' || typeof node === 'number') {
-    return String(node);
-  }
-  return '';
 }

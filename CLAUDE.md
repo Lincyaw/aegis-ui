@@ -55,9 +55,12 @@ Sans SC, so Apple devices render Chinese in the system face.
 
 1. **Design tokens** (`src/styles/theme.css`) — colour, type, spacing,
    motion, radius, shadow. Tokens are the only source of visual truth.
-2. **Layout system** (`src/layouts/PageWrapper.tsx`) — owns `max-width`,
-   `margin`, `padding`, and the staggered fade-in. Consumers compose pages
-   inside `<PageWrapper>`; nobody else redefines those properties.
+2. **Layout system** — owns `max-width`, `margin`, `padding`, and the
+   staggered fade-in. Console pages compose inside `<PageWrapper>`
+   (`src/layouts/PageWrapper.tsx`); public-site pages compose
+   `<SiteSection>` bands inside `<SiteLayout>` (`src/layouts/site/`), whose
+   content column is `--site-column`. Nobody else redefines those
+   properties.
 3. **Primitives** (`src/components/ui/`) — one `.tsx` + one `.css` per
    primitive, plain CSS, no business logic. Exported through
    `src/components/ui/index.ts` and re-exported by the root `src/index.ts`.
@@ -154,9 +157,11 @@ Sans SC, so Apple devices render Chinese in the system face.
 - **Every new primitive ships with a Specimen** in the gallery. PRs that
   add a primitive without a gallery entry are incomplete.
 - **Primitives stay router-agnostic where possible.** `Breadcrumb`,
-  `IdentityCell`, `ButtonLink` and a linked `Panel` accept a
-  `linkComponent` render prop
-  (type `LinkComponent`) instead of hardcoding `react-router-dom`. Only
+  `IdentityCell`, `ButtonLink`, a linked `Panel`, `SiteNav` and
+  `SiteFooter` accept a `linkComponent` render prop
+  (type `LinkComponent`) instead of hardcoding `react-router-dom`. An
+  adapter passes `aria-current` on to the anchor, which navigation uses
+  to mark the current page. Only
   `layouts/shell/**`, `auth/RequireAuth`, and
   the `InboxPage` / `NotificationBell` primitives import
   `react-router-dom` directly; don't add new importers outside
@@ -217,6 +222,7 @@ themselves render content only, never the layout chrome.
 | `packages/ui/src/components/ui/index.ts`                | Primitive barrel — public API of the UI kit                                                               |
 | `packages/ui/src/layouts/PageWrapper.{tsx,css}`         | Page root container                                                                                       |
 | `packages/ui/src/layouts/shell/`                        | Router-aware shell (AegisShell, TopHeader, Sidebar, BreadcrumbBar)                                        |
+| `packages/ui/src/layouts/site/`                         | Public-site frame (SiteLayout, SiteNav, SiteSection, SiteFooter) — router-agnostic                        |
 | `packages/ui/src/auth/`                                 | `AuthProvider` / `useAuth` contract + `RequireAuth` route guard                                           |
 | `packages/ui/src/agent/core/`                           | Agent runtime, hooks, MCP tool catalogue — below the primitives, no I/O                                   |
 | `packages/ui/src/agent/chat/`                           | Agent chat contract (`AgentChatProvider`, `useAgentChat`) — below the primitives, no I/O                  |

@@ -1,8 +1,6 @@
-/* Anchors land below the floating nav, not under it. */
+/* Anchors land below the nav, which SiteLayout's --header-height measures. */
 .aegis-site-section {
-  scroll-margin-top: calc(
-    var(--site-nav-height) + var(--site-nav-float-offset) + var(--space-4)
-  );
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
 }
 
 .aegis-site-section--tint {
@@ -10,7 +8,7 @@
 }
 
 .aegis-site-section__inner {
-  width: min(100% - 2 * var(--site-gutter), var(--site-content-width));
+  width: var(--site-column);
   margin-inline: auto;
   padding-block: var(--site-section-padding);
 }
@@ -23,12 +21,7 @@
 }
 
 @media (max-width: 768px) {
-  .aegis-site-section {
-    scroll-margin-top: calc(var(--site-nav-height-mobile) + var(--space-4));
-  }
-
   .aegis-site-section__inner {
-    width: calc(100% - 2 * var(--site-gutter-mobile));
     padding-block: var(--site-section-padding-mobile);
   }
 }

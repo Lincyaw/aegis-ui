@@ -6,14 +6,6 @@ export interface AegisStrings {
   plainTextLanguage: string;
   inspectorRendered: string;
   inspectorRaw: string;
-  openInInspector: string;
-  openContent: (title: string) => string;
-  inputTokens: string;
-  outputTokens: string;
-  loadingTrajectory: string;
-  trajectoryLoadFailed: string;
-  noMessages: string;
-  noMessagesDescription: string;
   clearSearch: string;
   clearSelection: string;
   remove: string;
@@ -120,14 +112,6 @@ export const enStrings: AegisStrings = {
   plainTextLanguage: 'text',
   inspectorRendered: 'Rendered',
   inspectorRaw: 'Raw',
-  openInInspector: 'Open in inspector',
-  openContent: (title) => `Open ${title}`,
-  inputTokens: 'in',
-  outputTokens: 'out',
-  loadingTrajectory: 'Loading trajectory…',
-  trajectoryLoadFailed: 'Failed to load trajectory',
-  noMessages: 'No messages',
-  noMessagesDescription: 'This session has no message records.',
   clearSearch: 'Clear search',
   clearSelection: 'Clear selection',
   remove: 'Remove',
@@ -235,14 +219,6 @@ export const zhCNStrings: AegisStrings = {
   plainTextLanguage: '文本',
   inspectorRendered: '阅读视图',
   inspectorRaw: '原始内容',
-  openInInspector: '展开阅读',
-  openContent: (title) => `展开阅读：${title}`,
-  inputTokens: '输入 token',
-  outputTokens: '输出 token',
-  loadingTrajectory: '正在读取执行过程…',
-  trajectoryLoadFailed: '无法读取执行过程',
-  noMessages: '没有消息',
-  noMessagesDescription: '这次会话没有保存消息记录。',
   clearSearch: '清除搜索',
   clearSelection: '清除选择',
   remove: '移除',

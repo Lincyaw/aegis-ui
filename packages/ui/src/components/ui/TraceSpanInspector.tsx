@@ -10,7 +10,7 @@ import { ObjectInspector, type ObjectInspectorTab } from './ObjectInspector';
 import { StatusDot } from './StatusDot';
 import './TraceSpanInspector.css';
 import type { TraceSpan } from './TraceTree';
-import { formatDuration, nodeToString, statusTone } from './traceFormat';
+import { formatDuration, statusTone } from './traceFormat';
 
 export interface TraceSpanInspectorProps {
   span: TraceSpan | null;
@@ -90,11 +90,7 @@ export function TraceSpanInspector({
     },
   ];
 
-  if (
-    span.kind !== undefined &&
-    span.kind !== null &&
-    nodeToString(span.kind) !== ''
-  ) {
+  if (span.kind !== undefined && span.kind !== '') {
     overviewItems.push({
       k: strings.traceSpanField('kind'),
       v: <Chip tone="ghost">{span.kind}</Chip>,
@@ -206,7 +202,7 @@ export function TraceSpanInspector({
       open
       onClose={onClose}
       title={truncate(span.name, TITLE_MAX)}
-      subtitle={nodeToString(span.kind) || undefined}
+      subtitle={span.kind ?? undefined}
       tabs={tabs}
     />
   );

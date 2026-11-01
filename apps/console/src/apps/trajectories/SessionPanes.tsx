@@ -1,10 +1,6 @@
 import type { ReactElement } from 'react';
 
-import {
-  type InspectableContent,
-  SessionRunOutputView,
-  SessionRunTrajectoryView,
-} from '@lincyaw/aegis-ui';
+import type { InspectableContent } from '@lincyaw/aegis-ui';
 
 import type { SessionRow } from './api/clickhouse';
 
@@ -16,6 +12,10 @@ import {
   toSessionRunSummary,
   toSessionRunTools,
 } from './sessionRunAdapters';
+import {
+  SessionRunOutputView,
+  SessionRunTrajectoryView,
+} from './SessionRunView';
 
 interface SessionPaneProps {
   row: SessionRow;

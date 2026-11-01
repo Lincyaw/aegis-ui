@@ -76,12 +76,26 @@ button.aegis-rank-bar__track:active {
   }
 }
 
-/* Drawn by scroll position: the host's progress scales each bar from the
- * left, so the bars follow the scroll both ways instead of playing once. */
+/* The fill's colour, which the scroll draw slides inside the fill. */
+.aegis-rank-bar__ink {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: inherit;
+}
+
+/* Drawn by scroll position: the fill (rounded, clipping) slides left by
+ * the part not drawn yet while its ink slides back right, so the bar
+ * reveals from the left with a rounded leading edge, follows the scroll
+ * both ways and moves only by transform. */
 .aegis-rank-bar--scroll .aegis-rank-bar__fill {
-  transform: scaleX(var(--aegis-rank-bar-progress));
-  transform-origin: left;
+  overflow: hidden;
+  transform: translateX(calc((var(--aegis-rank-bar-progress) - 1) * 100%));
   animation: none;
+}
+
+.aegis-rank-bar--scroll .aegis-rank-bar__ink {
+  transform: translateX(calc((1 - var(--aegis-rank-bar-progress)) * 100%));
 }
 
 /* A zero score still marks the axis start — an empty track reads as missing. */

@@ -162,25 +162,27 @@ export function StackedBar<K extends string>({
                     } as CSSProperties
                   }
                 >
-                  {series
-                    .filter((item) => row.values[item.key] > 0)
-                    .map((item) => (
-                      <span
-                        key={item.key}
-                        className={[
-                          'aegis-stacked-bar__segment',
-                          item.color === 'unknown'
-                            ? 'aegis-stacked-bar__segment--unknown'
-                            : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                        style={{
-                          width: `${((row.values[item.key] / total) * 100).toString()}%`,
-                          background: chartColorValue(item.color),
-                        }}
-                      />
-                    ))}
+                  <div className="aegis-stacked-bar__segments">
+                    {series
+                      .filter((item) => row.values[item.key] > 0)
+                      .map((item) => (
+                        <span
+                          key={item.key}
+                          className={[
+                            'aegis-stacked-bar__segment',
+                            item.color === 'unknown'
+                              ? 'aegis-stacked-bar__segment--unknown'
+                              : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                          style={{
+                            width: `${((row.values[item.key] / total) * 100).toString()}%`,
+                            background: chartColorValue(item.color),
+                          }}
+                        />
+                      ))}
+                  </div>
                 </div>
               </div>
               <span className="aegis-stacked-bar__value">{format(total)}</span>

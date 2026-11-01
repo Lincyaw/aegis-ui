@@ -12,7 +12,6 @@ import {
   type TerminalLine,
   TimeDisplay,
   TimelineChart,
-  type TimelineSpan,
   type TraceSpan,
   TraceSpanInspector,
   TraceTree,
@@ -116,9 +115,8 @@ const PHASE_ORDER: Array<keyof InjectionInjectionTimelineResp> = [
 ];
 
 interface PhaseGantt {
-  spans: TimelineSpan[];
-  minNs: number;
-  maxNs: number;
+  spans: TraceSpan[];
+  maxMs: number;
   totalMs: number;
 }
 
@@ -154,7 +152,7 @@ function buildPhaseGantt(
   }
   const traceStartMs = Math.min(...startsMs);
   let traceEndMs = traceStartMs;
-  const spans: TimelineSpan[] = phases.map((p, i) => {
+  const spans: TraceSpan[] = phases.map((p, i) => {
     const startMs = Date.parse(p.window.start ?? '');
     const endStr = p.window.end ?? '';
     const endMs = endStr ? Date.parse(endStr) : Date.now();
@@ -167,17 +165,16 @@ function buildPhaseGantt(
     }
     return {
       id: `phase-${p.key}-${String(i)}`,
-      label: p.key,
-      startNs: (safeStart - traceStartMs) * 1_000_000,
-      durationNs: Math.max(1, safeEnd - safeStart) * 1_000_000,
+      name: p.key,
+      startMs: safeStart - traceStartMs,
+      durationMs: Math.max(1, safeEnd - safeStart),
       kind: p.key,
     };
   });
   const totalMs = traceEndMs - traceStartMs;
   return {
     spans,
-    minNs: 0,
-    maxNs: Math.max(totalMs, 1) * 1_000_000,
+    maxMs: Math.max(totalMs, 1),
     totalMs,
   };
 }
@@ -519,8 +516,8 @@ export default function InjectionProcess() {
         {phaseGantt ? (
           <TimelineChart
             spans={phaseGantt.spans}
-            minNs={phaseGantt.minNs}
-            maxNs={phaseGantt.maxNs}
+            minMs={0}
+            maxMs={phaseGantt.maxMs}
           />
         ) : (
           <EmptyState
