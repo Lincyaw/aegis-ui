@@ -1,11 +1,6 @@
-import {
-  type CSSProperties,
-  type ReactNode,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type CSSProperties, type ReactNode, useRef, useState } from 'react';
 
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import './Reveal.css';
 
 type RevealState = 'unobserved' | 'waiting' | 'entered';
@@ -30,7 +25,7 @@ export function Reveal({ children, staggerIndex = 0, className }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<RevealState>('unobserved');
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === 'undefined') {
       return undefined;

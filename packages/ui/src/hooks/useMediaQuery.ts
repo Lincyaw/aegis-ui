@@ -1,22 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
-/** Tracks whether `query` (e.g. `(max-width: 768px)`) currently matches. */
+/**
+ * Tracks whether `query` (e.g. `(max-width: 768px)`) currently matches.
+ * A server render, which has no viewport, reads it as not matching.
+ */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(
-    () => window.matchMedia(query).matches,
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const mql = window.matchMedia(query);
+      mql.addEventListener('change', onChange);
+      return () => {
+        mql.removeEventListener('change', onChange);
+      };
+    },
+    [query],
   );
+  const getSnapshot = useCallback(
+    () => window.matchMedia(query).matches,
+    [query],
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
 
-  useEffect(() => {
-    const mql = window.matchMedia(query);
-    const onChange = (): void => {
-      setMatches(mql.matches);
-    };
-    onChange();
-    mql.addEventListener('change', onChange);
-    return () => {
-      mql.removeEventListener('change', onChange);
-    };
-  }, [query]);
-
-  return matches;
+function getServerSnapshot(): boolean {
+  return false;
 }

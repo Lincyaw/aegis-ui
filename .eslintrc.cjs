@@ -75,7 +75,10 @@ module.exports = {
       { allowConstantExport: true },
     ],
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'error',
+    'react-hooks/exhaustive-deps': [
+      'error',
+      { additionalHooks: '(useIsomorphicLayoutEffect)' },
+    ],
 
     // TypeScript — strictest practical
     '@typescript-eslint/no-unused-vars': [

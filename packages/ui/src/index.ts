@@ -87,6 +87,7 @@ export type { AegisStrings } from './locale';
 
 // Theme system (light + dark + system, persisted to localStorage).
 export { ThemeProvider } from './theme/ThemeProvider';
+export { themeInitScript } from './theme/themeInitScript';
 export type { ThemeProviderProps } from './theme/ThemeProvider';
 export { useTheme } from './theme/useTheme';
 export type {

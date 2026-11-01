@@ -1,10 +1,12 @@
-import { type RefObject, useLayoutEffect, useState } from 'react';
+import { type RefObject, useState } from 'react';
+
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
 
 /** Content-box width of `ref`'s element in CSS px, kept current on resize. */
 export function useElementWidth(ref: RefObject<HTMLElement>): number {
   const [width, setWidth] = useState(0);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const el = ref.current;
     if (!el) {
       return undefined;

@@ -1217,12 +1217,12 @@ export function ServicePrimitivesSection() {
               {
                 id: 'u1',
                 file: new File(
-                  new Array(50 * 1024 * 1024).fill(0),
+                  [new Uint8Array(5 * 1024 * 1024)],
                   'corpus-2026-04.tar.gz'
                 ),
                 status: 'uploading',
                 progress: 0.5,
-                bytesUploaded: 25 * 1024 * 1024,
+                bytesUploaded: 2.5 * 1024 * 1024,
                 speedBps: 2.4 * 1024 * 1024,
                 etaSeconds: 12,
                 onCancel: () => undefined,

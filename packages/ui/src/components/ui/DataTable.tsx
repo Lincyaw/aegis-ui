@@ -8,7 +8,6 @@ import {
   useCallback,
   useEffect,
   useId,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -20,6 +19,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { readStorage, writeStorage } from '../../lib/storage';
 import { useStrings } from '../../locale';
@@ -388,7 +388,7 @@ export function DataTable<T>({
   );
 
   // When the persisted layout changes (e.g. cross-tab), refresh.
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!persistKey || typeof window === 'undefined') {
       return undefined;
     }

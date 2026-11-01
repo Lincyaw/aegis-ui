@@ -3,13 +3,13 @@ import {
   type ReactNode,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
 
 import { createPortal } from 'react-dom';
 
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { useStrings } from '../../locale';
 import './Dialog.css';
 
@@ -138,7 +138,7 @@ export function Dialog({
     };
   }, [open, onClose]);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     // Without an exit animation (reduced motion) no animationend arrives.
     if (closing && backdropRef.current?.getAnimations().length === 0) {
       setRendered(false);

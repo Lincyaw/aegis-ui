@@ -2,11 +2,12 @@ import {
   type ReactElement,
   type ReactNode,
   useCallback,
-  useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
 } from 'react';
 
+import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { readStorage, writeStorage } from '../lib/storage';
 import {
   ThemeContext,
@@ -14,32 +15,50 @@ import {
   type ThemePreference,
   type ThemeState,
 } from './themeContext';
+import { DARK_QUERY, STORAGE_KEY } from './themeInitScript';
 
 export type { ThemeMode, ThemePreference, ThemeState } from './themeContext';
 
-const STORAGE_KEY = 'aegis-ui:theme';
+const listeners = new Set<() => void>();
+// Holds the choice when storage is blocked, so the toggle still works.
+let unstoredPreference: ThemePreference | null = null;
 
 function readPreference(): ThemePreference | null {
   const stored = readStorage(STORAGE_KEY);
   if (stored === 'light' || stored === 'dark' || stored === 'system') {
     return stored;
   }
-  return null;
+  return unstoredPreference;
 }
 
-function systemPrefersDark(): boolean {
-  if (typeof window === 'undefined') {
-    return false;
+function writePreference(next: ThemePreference): void {
+  unstoredPreference = next;
+  writeStorage(STORAGE_KEY, next);
+  for (const listener of listeners) {
+    listener();
   }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
-function resolve(preference: ThemePreference): ThemeMode {
-  if (preference === 'system') {
-    return systemPrefersDark() ? 'dark' : 'light';
-  }
-  return preference;
+function subscribePreference(onChange: () => void): () => void {
+  listeners.add(onChange);
+  // Another tab changing the theme.
+  const onStorage = (event: StorageEvent): void => {
+    if (event.key === STORAGE_KEY) {
+      onChange();
+    }
+  };
+  window.addEventListener('storage', onStorage);
+  return () => {
+    listeners.delete(onChange);
+    window.removeEventListener('storage', onStorage);
+  };
 }
+
+const NEXT_PREFERENCE: Record<ThemePreference, ThemePreference> = {
+  light: 'dark',
+  dark: 'system',
+  system: 'light',
+};
 
 export interface ThemeProviderProps {
   children: ReactNode;
@@ -50,61 +69,43 @@ export interface ThemeProviderProps {
 /**
  * Owns theme state for the document. Reads/writes `data-theme` on
  * `document.documentElement`, persists user choice in localStorage, and
- * listens for system theme changes when preference is 'system'.
+ * follows system theme changes when preference is 'system'. A server
+ * render and the hydration that follows use `defaultPreference`; the
+ * stored choice applies right after.
  */
 export function ThemeProvider({
   children,
   defaultPreference = 'system',
 }: ThemeProviderProps): ReactElement {
-  const [preference, setPreferenceState] = useState<ThemePreference>(
+  const getSnapshot = useCallback(
     () => readPreference() ?? defaultPreference,
+    [defaultPreference],
   );
-  const [resolved, setResolved] = useState<ThemeMode>(() =>
-    resolve(preference),
+  const getServerSnapshot = useCallback(
+    () => defaultPreference,
+    [defaultPreference],
   );
+  const preference = useSyncExternalStore(
+    subscribePreference,
+    getSnapshot,
+    getServerSnapshot,
+  );
+  const systemDark = useMediaQuery(DARK_QUERY);
+  const resolved: ThemeMode =
+    preference === 'system' ? (systemDark ? 'dark' : 'light') : preference;
 
-  useEffect(() => {
-    setResolved(resolve(preference));
-    writeStorage(STORAGE_KEY, preference);
-  }, [preference]);
-
-  // Track system changes while preference is 'system'.
-  useEffect(() => {
-    if (preference !== 'system' || typeof window === 'undefined') {
-      return;
-    }
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (): void => {
-      setResolved(mql.matches ? 'dark' : 'light');
-    };
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, [preference]);
-
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', resolved);
     document.documentElement.style.colorScheme = resolved;
   }, [resolved]);
 
-  const setPreference = useCallback((next: ThemePreference) => {
-    setPreferenceState(next);
-  }, []);
-
   const toggle = useCallback(() => {
-    setPreferenceState((prev) => {
-      if (prev === 'light') {
-        return 'dark';
-      }
-      if (prev === 'dark') {
-        return 'system';
-      }
-      return 'light';
-    });
-  }, []);
+    writePreference(NEXT_PREFERENCE[getSnapshot()]);
+  }, [getSnapshot]);
 
   const value = useMemo<ThemeState>(
-    () => ({ preference, resolved, setPreference, toggle }),
-    [preference, resolved, setPreference, toggle],
+    () => ({ preference, resolved, setPreference: writePreference, toggle }),
+    [preference, resolved, toggle],
   );
 
   return (

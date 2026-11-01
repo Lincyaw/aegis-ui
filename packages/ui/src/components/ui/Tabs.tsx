@@ -1,13 +1,8 @@
-import {
-  type KeyboardEvent,
-  type ReactNode,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import './Tabs.css';
 import { tablistKeyTarget } from './tablistKeyboard';
 
@@ -108,7 +103,7 @@ export function Tabs({
   const [indicator, setIndicator] = useState<TabsIndicator | null>(null);
   const itemKeys = items.map((item) => item.key).join('\n');
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const list = listRef.current;
     if (!list) {
       return;
@@ -123,7 +118,7 @@ export function Tabs({
 
   // Tab widths change after web fonts load, when a label's count changes and
   // when a hidden list is first shown; follow them without sliding.
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const list = listRef.current;
     if (!list) {
       return;

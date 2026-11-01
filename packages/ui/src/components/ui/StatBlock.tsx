@@ -10,6 +10,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { MetricLabel } from './MetricLabel';
 import './StatBlock.css';
 
@@ -46,16 +47,22 @@ const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
  * Counts from 0 to `target` once, on mount. The pace comes from the CSS
  * animation of COUNT_PROGRESS on `valueRef` (timed by `--motion-chart`
  * while `counting` is true); the count ends when that progress reads 1.
+ * The first render shows `target`, so a prerendered page carries the real
+ * number; the count starts before the browser paints.
  */
 function useStatCountUp(
   target: number,
   enabled: boolean,
   valueRef: RefObject<HTMLSpanElement | null>,
 ): { counting: boolean; current: number } {
-  const [counting, setCounting] = useState(
-    () => enabled && !window.matchMedia(REDUCED_MOTION).matches,
-  );
+  const [counting, setCounting] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  useIsomorphicLayoutEffect(() => {
+    if (enabled && !window.matchMedia(REDUCED_MOTION).matches) {
+      setCounting(true);
+    }
+  }, [enabled]);
 
   useEffect(() => {
     const node = valueRef.current;

@@ -1,12 +1,7 @@
-import {
-  type RefCallback,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
+import { type RefCallback, useCallback, useEffect, useState } from 'react';
 
 import { viewBoundsOf } from '../lib/scrollView';
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
 import { useMediaQuery } from './useMediaQuery';
 
 /**
@@ -108,7 +103,7 @@ export function useScrollProgress<T extends HTMLElement = HTMLElement>({
   }, [element, range, scrollContainer]);
 
   // Measured before paint, so content below the fold never flashes its final state.
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (reducedMotion) {
       setProgress(1);
       return;

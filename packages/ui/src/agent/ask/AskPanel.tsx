@@ -4,7 +4,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -12,6 +11,7 @@ import {
 
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { AegisRuntimeContext } from '../core/aegisRuntimeContext';
 import type {
   AegisActionDescriptor,
@@ -165,7 +165,7 @@ export function AskPanel({
     };
   }, [onClose]);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!popover) {
       setPlacement(null);
       return;
