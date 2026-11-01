@@ -17,6 +17,6 @@ window.__AEGIS_CONFIG__ = {
   // clickhouseDatabase: 'otel',
   // clickhouseTracesTable: 'otel_traces',
   // clickhouseLogsTable: 'otel_logs',
-  // clickhouseUser: 'default',
-  // clickhousePassword: '',
+  // Anything set here is public. ClickHouse credentials belong to the
+  // proxy in front of ClickHouse, never to this file.
 };

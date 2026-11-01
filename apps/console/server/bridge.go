@@ -57,27 +57,37 @@ type bridgeError struct {
 	Message string `json:"message"`
 }
 
+// The browser token reaches the SPA through /config.js, which anyone who
+// can load the page can read; it only lets a browser session register.
+// The control token, which drives those sessions, is kept in the 0600
+// lock file for the mcp subcommand and is never served.
 type bridge struct {
-	authToken string
-	noAuth    bool
-	port      int
-	pid       int
+	browserToken string
+	controlToken string
+	noAuth       bool
+	port         int
+	pid          int
 
 	mu       sync.Mutex
 	sessions map[string]*session
 }
 
 func newBridge(port int, noAuth bool) *bridge {
-	tok, err := newToken()
+	browserToken, err := newToken()
+	if err != nil {
+		log.Fatalf("bridge: token: %v", err)
+	}
+	controlToken, err := newToken()
 	if err != nil {
 		log.Fatalf("bridge: token: %v", err)
 	}
 	return &bridge{
-		authToken: tok,
-		noAuth:    noAuth,
-		port:      port,
-		pid:       os.Getpid(),
-		sessions:  map[string]*session{},
+		browserToken: browserToken,
+		controlToken: controlToken,
+		noAuth:       noAuth,
+		port:         port,
+		pid:          os.Getpid(),
+		sessions:     map[string]*session{},
 	}
 }
 
@@ -94,27 +104,36 @@ func (b *bridge) checkAuth(r *http.Request) bool {
 		return true
 	}
 	got := r.Header.Get("Authorization")
-	expected := "Bearer " + b.authToken
+	expected := "Bearer " + b.controlToken
 	if got == expected {
 		return true
 	}
-	if r.URL.Query().Get("token") == b.authToken {
+	if r.URL.Query().Get("token") == b.controlToken {
 		return true
 	}
 	return false
 }
 
-// handleBrowserWS handles a connection from a browser session.
+// handleBrowserWS handles a connection from a browser session or, with
+// ?as=mcp, from the control client. A control connection drives the
+// user's logged-in console, so it must carry the control token before it
+// is accepted; browser sessions present the browser token in
+// session.hello.
 func (b *bridge) handleBrowserWS(w http.ResponseWriter, r *http.Request) {
-	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		OriginPatterns:     []string{"*"},
-		InsecureSkipVerify: true, // local-only bridge
-	})
+	role := r.URL.Query().Get("as")
+	if role == "mcp" && !b.checkAuth(r) {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	// With no OriginPatterns, a browser is accepted only from the page's
+	// own origin; /config.js builds the bridge URL from the request's
+	// Host, so the console always connects that way. The control client
+	// sends no Origin.
+	conn, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		log.Printf("bridge: ws accept: %v", err)
 		return
 	}
-	role := r.URL.Query().Get("as")
 	if role == "mcp" {
 		b.serveControl(conn)
 		return
@@ -144,7 +163,7 @@ func (b *bridge) serveBrowser(conn *websocket.Conn) {
 		conn.Close(websocket.StatusPolicyViolation, "expected session.hello")
 		return
 	}
-	if !b.noAuth && hello.AuthToken != b.authToken {
+	if !b.noAuth && hello.AuthToken != b.browserToken {
 		conn.Close(websocket.StatusPolicyViolation, "auth")
 		return
 	}
@@ -412,7 +431,7 @@ func (b *bridge) writeLock() error {
 	}
 	lf := lockFile{
 		Port:         b.port,
-		AuthToken:    b.authToken,
+		AuthToken:    b.controlToken,
 		Version:      version,
 		ShellName:    defaultBridgeShellName,
 		PID:          b.pid,

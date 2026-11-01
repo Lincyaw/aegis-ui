@@ -28,13 +28,9 @@ async function chQuery<TRow = unknown>(
   for (const [k, v] of Object.entries(params)) {
     search.set(`param_${k}`, String(v));
   }
+  // No ClickHouse credentials here: the proxy in front of ClickHouse adds
+  // them, so they never reach the browser.
   const headers: Record<string, string> = { 'Content-Type': 'text/plain' };
-  if (cfg.clickhouseUser) {
-    headers['X-ClickHouse-User'] = cfg.clickhouseUser;
-  }
-  if (cfg.clickhousePassword) {
-    headers['X-ClickHouse-Key'] = cfg.clickhousePassword;
-  }
   const path = `${clickhouseBase()}/?${search.toString()}`;
   // Route through apiFetch when going via the gateway proxy so the SSO
   // bearer + gateway base prefix are attached uniformly. For an

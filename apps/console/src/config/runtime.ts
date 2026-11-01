@@ -25,8 +25,6 @@ export interface RuntimeConfig {
   clickhouseDatabase: string;
   clickhouseTracesTable: string;
   clickhouseLogsTable: string;
-  clickhouseUser?: string;
-  clickhousePassword?: string;
   /** OpenAI-compatible chat completions base URL (no trailing slash). Empty disables AI. */
   aiBaseUrl: string;
   /** Model id for chat completions. */

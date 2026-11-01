@@ -80,9 +80,13 @@ Config file keys are the camelCase flag names: `port`, `host`,
 - `GET /healthz` → `ok`.
 - `GET /config.js` → `window.__AEGIS_CONFIG__` generated from the flags
   (plus `window.__AEGIS_BRIDGE__` when the bridge is on). The SPA reads
-  it at startup.
+  it at startup. It never carries the ClickHouse credentials, and a
+  browser loading it for a page on any other origin (`Sec-Fetch-Site`
+  other than `same-origin` or `none`) gets `403`.
 - `/api/v2/clickhouse/*` → reverse proxy to `--clickhouse`, prefix
-  stripped.
+  stripped. The proxy adds `--clickhouse-user` / `--clickhouse-password`
+  as `X-ClickHouse-User` / `X-ClickHouse-Key` and refuses requests from
+  other origins the same way.
 - `/api/`, `/v1/`, `/.well-known/`, `/authorize`, `/login`, `/token`,
   `/userinfo` → reverse proxy to `--gateway`; `503` when no gateway is
   set.
@@ -94,15 +98,23 @@ Config file keys are the camelCase flag names: `port`, `host`,
 The bridge lets an MCP client (an editor or agent) drive the console UI
 open in a browser.
 
-1. Start the server with `--bridge`. It generates an auth token, serves
-   the WebSocket at `/aegis-bridge/ws`, and keeps a lock file at
-   `~/.aegis/ide/<port>.lock` with the port, path, token and connected
-   sessions. `/config.js` hands the URL and token to the SPA, which
-   connects as a browser session.
+1. Start the server with `--bridge`. It generates a browser token and a
+   control token, serves the WebSocket at `/aegis-bridge/ws`, and keeps
+   a lock file at `~/.aegis/ide/<port>.lock` with the port, path,
+   control token and connected sessions. `/config.js` hands the URL and
+   the browser token to the SPA, which connects as a browser session.
 2. Register `aegis-console mcp` as a stdio MCP server in your client.
    It picks the most recently active bridge from `~/.aegis/ide`,
-   connects with the token, and forwards `tools/call` requests to the
+   connects with the control token, and forwards `tools/call` requests to the
    most recently active browser session.
+
+The bridge has two tokens. The browser token reaches the SPA through
+`/config.js` and only lets a browser session register; the control token
+is written only to the lock file (mode 0600) and is required for a
+control connection (`?as=mcp`), as `Authorization: Bearer <token>` or
+`?token=`. A browser connects only from the console's own origin:
+`/config.js` builds the bridge URL from the host the page was loaded
+from.
 
 `aegis-console mcp` flags:
 

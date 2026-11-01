@@ -188,8 +188,6 @@ func serve(cfg config) error {
 		br = newBridge(cfg.Port, cfg.BridgeNoAuth)
 	}
 
-	configJS := buildConfigJS(cfg, br)
-
 	gatewayProxy := mustProxy(cfg.Gateway)
 	chProxy := mustProxy(cfg.Clickhouse)
 
@@ -200,30 +198,43 @@ func serve(cfg config) error {
 	})
 
 	mux.HandleFunc("/config.js", func(w http.ResponseWriter, r *http.Request) {
+		// It carries the bridge's browser token, which a <script> on
+		// another origin could otherwise read.
+		if !fromSameOrigin(r) {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
 		w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
-		_, _ = w.Write(configJS)
+		_, _ = w.Write(buildConfigJS(cfg, br, r.Host))
 	})
 
-	mux.HandleFunc("/api/v2/clickhouse/", func(w http.ResponseWriter, r *http.Request) {
+	// The proxy adds the ClickHouse credentials itself, so they never
+	// reach the browser, and refuses requests from a page on another
+	// origin, which would otherwise run queries with them.
+	serveClickhouse := func(w http.ResponseWriter, r *http.Request) {
 		if chProxy == nil {
 			http.Error(w, "ClickHouse not configured", http.StatusServiceUnavailable)
+			return
+		}
+		if !fromSameOrigin(r) {
+			http.Error(w, "forbidden", http.StatusForbidden)
 			return
 		}
 		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v2/clickhouse")
 		if r.URL.Path == "" {
 			r.URL.Path = "/"
 		}
-		chProxy.ServeHTTP(w, r)
-	})
-	mux.HandleFunc("/api/v2/clickhouse", func(w http.ResponseWriter, r *http.Request) {
-		if chProxy == nil {
-			http.Error(w, "ClickHouse not configured", http.StatusServiceUnavailable)
-			return
+		if cfg.ClickhouseUser != "" {
+			r.Header.Set("X-ClickHouse-User", cfg.ClickhouseUser)
 		}
-		r.URL.Path = "/"
+		if cfg.ClickhousePassword != "" {
+			r.Header.Set("X-ClickHouse-Key", cfg.ClickhousePassword)
+		}
 		chProxy.ServeHTTP(w, r)
-	})
+	}
+	mux.HandleFunc("/api/v2/clickhouse/", serveClickhouse)
+	mux.HandleFunc("/api/v2/clickhouse", serveClickhouse)
 
 	gatewayPaths := []string{"/api/", "/v1/", "/.well-known/", "/authorize", "/login", "/token", "/userinfo"}
 	for _, prefix := range gatewayPaths {
@@ -257,7 +268,7 @@ func serve(cfg config) error {
 		br.startLockWriter(ctx)
 		log.Printf("  bridge       : enabled at ws://%s%s (auth=%t)", addr, bridgeWSPath, !cfg.BridgeNoAuth)
 		if !cfg.BridgeNoAuth {
-			log.Printf("  bridge token : %s (in %s)", br.authToken, br.lockPath())
+			log.Printf("  bridge token : in %s", br.lockPath())
 		}
 	}
 	go func() {
@@ -303,7 +314,9 @@ func mustProxy(target string) *httputil.ReverseProxy {
 	return rp
 }
 
-func buildConfigJS(cfg config, br *bridge) []byte {
+// buildConfigJS points the bridge at host, the address the browser
+// loaded the page from, so the WebSocket's origin always matches it.
+func buildConfigJS(cfg config, br *bridge, host string) []byte {
 	payload := map[string]any{
 		"gatewayUrl":            "",
 		"ssoOrigin":             "",
@@ -314,12 +327,6 @@ func buildConfigJS(cfg config, br *bridge) []byte {
 		"clickhouseTracesTable": cfg.ClickhouseTable,
 		"clickhouseLogsTable":   cfg.ClickhouseLogsTable,
 	}
-	if cfg.ClickhouseUser != "" {
-		payload["clickhouseUser"] = cfg.ClickhouseUser
-	}
-	if cfg.ClickhousePassword != "" {
-		payload["clickhousePassword"] = cfg.ClickhousePassword
-	}
 	body, _ := json.MarshalIndent(payload, "", "  ")
 	var buf bytes.Buffer
 	buf.WriteString("window.__AEGIS_CONFIG__ = ")
@@ -327,11 +334,11 @@ func buildConfigJS(cfg config, br *bridge) []byte {
 	buf.WriteString(";\n")
 	if br != nil {
 		bridgePayload := map[string]any{
-			"url":         fmt.Sprintf("ws://%s:%d%s", cfg.Host, cfg.Port, bridgeWSPath),
+			"url":         fmt.Sprintf("ws://%s%s", host, bridgeWSPath),
 			"autoConnect": true,
 		}
 		if !br.noAuth {
-			bridgePayload["authToken"] = br.authToken
+			bridgePayload["authToken"] = br.browserToken
 		}
 		bbody, _ := json.MarshalIndent(bridgePayload, "", "  ")
 		buf.WriteString("window.__AEGIS_BRIDGE__ = ")
@@ -339,6 +346,19 @@ func buildConfigJS(cfg config, br *bridge) []byte {
 		buf.WriteString(";\n")
 	}
 	return buf.Bytes()
+}
+
+// fromSameOrigin reports whether r came from the console's own pages, the
+// user typing the address, or a client that is not a browser (which sends
+// no Sec-Fetch-Site). A page on another port of the same host is
+// "same-site" and is refused like any other origin.
+func fromSameOrigin(r *http.Request) bool {
+	switch r.Header.Get("Sec-Fetch-Site") {
+	case "", "same-origin", "none":
+		return true
+	default:
+		return false
+	}
 }
 
 // newStaticHandler serves embedded files; for any non-asset GET that does

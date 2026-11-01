@@ -86,8 +86,10 @@ Endpoints that differ per deployment are read at runtime by
 
 The keys are `gatewayUrl`, `ssoOrigin`, `ssoClientId`, `ssoScope`,
 `clickhouseUrl`, `clickhouseDatabase`, `clickhouseTracesTable`,
-`clickhouseLogsTable`, `clickhouseUser`, `clickhousePassword`,
-`aiBaseUrl` and `aiModel`. The AI API key (`aiApiKey`) is accepted only
+`clickhouseLogsTable`, `aiBaseUrl` and `aiModel`. `/config.js` is public,
+so it carries no secrets: ClickHouse credentials are added by the proxy in
+front of ClickHouse (the Go binary's `--clickhouse-user` /
+`--clickhouse-password`, or the gateway). The AI API key (`aiApiKey`) is accepted only
 from the `localStorage` override.
 
 ## Deploy
