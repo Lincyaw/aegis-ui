@@ -1,5 +1,40 @@
 # @lincyaw/aegis-ui
 
+## 0.8.0
+
+### Minor Changes
+
+- fba96c0: The chart primitives share one foundation:
+  - `ChartColor` colours a series with a palette colour (`seq`, `cat-1`…`cat-6`, `unknown`) or a host token such as `var(--series-openai)`, so a vendor keeps one colour on every chart. `StackedBarSeries.color`, `ParetoPoint.color` and `ParetoLegendItem.color` take it, and `RankBarItem` gains `color`. Breaking: `StackedBarColor` is gone (use `ChartColor`), and `ParetoChart` colours no longer accept arbitrary CSS, only palette names or `var(--…)` tokens.
+  - `ChartLegend` is the legend `StackedBar` and `ParetoChart` draw, with `square` or `dot` swatches, for a host's own charts too.
+  - `RankBar`, `StackedBar` and `ParetoChart` take `progress` (0–1, e.g. from `useScrollProgress`): bars draw in from the left row by row and Pareto points fade in from left to right, following the scroll both ways instead of playing once.
+  - Breaking: `RankBar`'s scale defaults to the largest value, as documented (it treated anything up to 1 as out of 1); pass `max={1}` for a share or a 0–1 score.
+  - `TimelineChart` ticks sit at round offsets from the start (0, 0.5 s, 1 s) instead of round absolute times, cannot stall on nanosecond timestamps, and span kinds take the data palette.
+  - Chart numbers (`RankBar` values and ticks, `ParetoChart` ticks, `TimelineChart` labels) use the tabular UI face instead of the mono face, which is for ids and code; Pareto points fade in rather than scaling.
+  - `chartColorValue`, `zeroAnchoredDomain`, `niceTicks` and `staggeredProgress` are exported for host charts.
+
+- 0377798: `DataTable` sorts. A column with `sortable` turns its header into a sort control with `aria-sort`; with `sortValue` the table orders the rows itself (a `null` value last in either direction, ties keeping their order), and without it the host orders `data`, for instance from a URL parameter, and the header only shows the state. The table takes `sort` (controlled), `defaultSort` and `onSortChange`; a first click sorts numeric columns high first unless the column sets `firstSortDirection`. Row indices passed to `render` and the other callbacks count in the sorted order.
+- 12e657d: Breaking: one span model and one trajectory model.
+  - `TimelineChart` takes the `TraceSpan[]` that `TraceTree` and `TraceSpanInspector` take, in milliseconds: a span draws a bar when it has `startMs` and `durationMs`, and its depth follows `parentId`. Its props become `minMs` / `maxMs` and `onSelect` (was `minNs` / `maxNs` and `onSpanClick`), and `TimelineSpan` is gone. `TraceSpan.kind` is a string, which labels the tree chip and, without `color`, colours the timeline bar; `TraceSpan` gains `color` (a `ChartColor`, so a translated kind can keep one colour) and `badge` for the bar.
+  - `SessionRunTrajectoryView`, `SessionRunOutputView` and their `SessionRun*` types leave the library: they rendered raw message blocks for one console app, beside the library's trajectory model (`TrajectoryStepData`, `ToolCallData`). The console keeps them with its trajectories app; their locale strings are gone too.
+
+- d29dd58: Add the replay parts, for replaying an agent run or a game step by step:
+  - `useReplayPlayback` holds the current step and plays a replay one step at a time (each step lasting `stepDurationMs` at speed 1, divided by `speed`; a speed change rescales what is left of the step), stopping at the last step and pausing while the page is hidden; `autoPlay` stays off under reduced motion. It returns `index`, `playing`, `seek`, `previous`, `next`, `play`, `pause`, `toggle`, and `hold` / `release` to suspend advancing while the reader drags, controlled or uncontrolled.
+  - `ReplayScrubber` is the position: a slider from the first step to the last with event markers above it (`ChartColor` dots, whose labels the slider's value text reads at their step), the first, current and last step labels below, dragging (`onScrubStart` / `onScrubEnd`), and arrow / Page Up / Page Down / Home / End keys.
+  - `ReplayTransport` holds step back, play or pause and step forward, the position text, an optional speed switch (a radio group) and an `extra` slot for further controls such as a players' view switch.
+  - `ReplayStepStrip` draws every step (`ReplayStepStripItem`) as a bar in its kind's colour (taller for `emphasis` steps), numbers the key moments above it and ticks steps below; the gap between bars narrows for long runs, so hundreds of steps still draw. With `onSelect`, bars select their step and arrow keys move between them with one tab stop; without it the steps are a list with their labels.
+
+  New tokens `--replay-scrubber-track`, `--replay-scrubber-thumb`, `--replay-transport-button`, `--replay-transport-play`, `--replay-step-strip-bar`, `--replay-step-strip-bar-emphasis` and `--replay-step-strip-gap`, and locale strings for the controls.
+
+- 12e657d: Fixes to the public-site frame and the chart foundation:
+  - `--site-column` is the site's content column, used by `SiteNav`, `SiteSection` and `SiteFooter`. Its gutter is 120 from a 1280 window up, then shrinks so the column holds 1040 and narrows without a jump, and is `--space-4` at 768 and narrower. Breaking: `--site-gutter` is now that computed gutter and `--site-gutter-mobile` is gone; set `--site-gutter-wide` or `--site-content-width` to change the column.
+  - `SiteLayout` sets `--header-height` and `--scroll-story-sticky-top` from the site nav, so article headings, anchors and a pinned `ScrollStory` panel stop below the floating nav instead of under it.
+  - The `SiteNav` menu closes on any click outside it and when `activeKey` changes, and its button rises on hover like the shell's.
+  - The footer's mobile link columns wrap by `--site-footer-column-min` instead of a fixed three; `--site-wordmark-size` is documented as tuned for an eleven-letter wordmark.
+  - `RankBar` and `StackedBar` draw by scroll with a clipped slide instead of `scaleX`, so the leading edge keeps its rounded corners. Pareto points drop their opacity transition while scroll-driven.
+  - `niceTicks` keeps the top tick when the end is a multiple of the step (0.6 by 0.2), rounds ticks to the step's decimals and never returns `-0`.
+  - `AegisShell` and `SiteLayout` share one skip link; the shell's skip link class is now `aegis-skip-link`.
+
 ## 0.7.0
 
 ### Minor Changes
