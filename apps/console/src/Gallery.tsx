@@ -745,7 +745,6 @@ const TRAJECTORY_STEP_SEVERAL_CALLS: TrajectoryStepData = {
       name: 'read_file',
       arguments: '{\n  "path": "/etc/redis/pool.conf"\n}',
       status: 'error',
-      isError: true,
       result: 'FileNotFoundError: /etc/redis/pool.conf',
     },
   ],
@@ -3205,7 +3204,6 @@ function App() {
                 name: 'read_file',
                 arguments: '{\n  "path": "/etc/missing.conf"\n}',
                 status: 'error',
-                isError: true,
                 result:
                   'Traceback (most recent call last):\n  File "read_file.py", line 12\nFileNotFoundError: /etc/missing.conf',
               }}

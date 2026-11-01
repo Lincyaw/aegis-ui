@@ -19,7 +19,6 @@ export interface AgentToolCallRecord {
   args: unknown;
   status: 'running' | 'ok' | 'error';
   resultText?: string;
-  isError?: boolean;
   startedAt?: number;
   endedAt?: number;
 }

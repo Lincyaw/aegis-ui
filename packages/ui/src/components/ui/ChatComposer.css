@@ -66,8 +66,16 @@
     opacity var(--motion-fast);
 }
 
-.aegis-composer__send:active:not(:disabled) {
-  transform: scale(0.97);
+/* Rises like a primary Button and settles back into place when pressed. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-composer__send:hover:not(:disabled) {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+    opacity: 0.88;
+  }
+
+  .aegis-composer__send:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 .aegis-composer__send:disabled {

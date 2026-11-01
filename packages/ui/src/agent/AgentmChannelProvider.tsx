@@ -99,10 +99,13 @@ function parseToolCall(metadata: unknown): AgentToolCallRecord | null {
   if (typeof toolCallId !== 'string' || typeof name !== 'string') {
     return null;
   }
+  // The gateway can report a finished call as `ok` with is_error set.
   const normalizedStatus: AgentToolCallRecord['status'] =
-    status === 'running' || status === 'ok' || status === 'error'
-      ? status
-      : 'running';
+    m.is_error === true
+      ? 'error'
+      : status === 'running' || status === 'ok' || status === 'error'
+        ? status
+        : 'running';
   const record: AgentToolCallRecord = {
     toolCallId,
     name,
@@ -111,9 +114,6 @@ function parseToolCall(metadata: unknown): AgentToolCallRecord | null {
   };
   if (typeof m.result_text === 'string') {
     record.resultText = m.result_text;
-  }
-  if (typeof m.is_error === 'boolean') {
-    record.isError = m.is_error;
   }
   if (typeof m.started_at === 'number') {
     record.startedAt = m.started_at;

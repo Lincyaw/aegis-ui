@@ -103,16 +103,13 @@
   cursor: pointer;
   transition:
     background var(--motion-fast),
-    border-color var(--motion-fast);
+    border-color var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .aegis-shell__app-launcher:hover {
   background: var(--bg-muted);
   border-color: var(--border-emphasis);
-}
-
-.aegis-shell__app-launcher:active {
-  transform: scale(0.96);
 }
 
 .aegis-shell__app-launcher-glyph {
@@ -410,18 +407,14 @@
   transition:
     background var(--motion-fast),
     border-color var(--motion-fast),
-    color var(--motion-fast);
+    color var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .aegis-shell__sidebar-toggle:hover,
 .aegis-shell__agent-toggle:hover {
   background: var(--bg-muted);
   border-color: var(--border-emphasis);
-}
-
-.aegis-shell__sidebar-toggle:active,
-.aegis-shell__agent-toggle:active {
-  transform: scale(0.96);
 }
 
 .aegis-shell__sidebar-toggle[aria-pressed='true'],
@@ -452,15 +445,32 @@
   border-radius: var(--radius-md);
   color: var(--text-main);
   cursor: pointer;
-  transition: background var(--motion-fast);
+  transition:
+    background var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .aegis-shell__menu-toggle:hover {
   background: var(--bg-muted);
 }
 
-.aegis-shell__menu-toggle:active {
-  transform: scale(0.96);
+/* The header's icon buttons move like Button: they rise on hover and a
+ * press settles them back into place. Touch screens keep :hover after a
+ * tap, so the lift needs a hovering pointer. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-shell__app-launcher:hover,
+  .aegis-shell__sidebar-toggle:hover,
+  .aegis-shell__agent-toggle:hover,
+  .aegis-shell__menu-toggle:hover {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+  }
+
+  .aegis-shell__app-launcher:active,
+  .aegis-shell__sidebar-toggle:active,
+  .aegis-shell__agent-toggle:active,
+  .aegis-shell__menu-toggle:active {
+    transform: none;
+  }
 }
 
 .aegis-shell__menu-toggle-glyph {

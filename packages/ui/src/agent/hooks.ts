@@ -5,7 +5,6 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 
 import { AegisAgentContext } from './aegisAgentContext';
@@ -93,15 +92,17 @@ export function useAegisSurface<T>(
   const projectRef = useRef(opts.project);
   projectRef.current = opts.project;
   const { ref, enabled = true } = opts;
-
-  const [bbox, setBBox] = useState<SurfaceSnapshot['bbox']>(undefined);
-  const [inViewport, setInViewport] = useState<boolean>(true);
+  const refRef = useRef(ref);
+  refRef.current = ref;
 
   useEffect(() => {
     if (!ctx || !enabled) {
       return;
     }
     const appId = ctx.appId ?? 'unknown';
+    // Measured when the runtime takes a snapshot, not on every scroll.
+    const rect = (): DOMRect | undefined =>
+      refRef.current?.current?.getBoundingClientRect();
     const unregister = ctx.runtime._registerSurface({
       id: opts.id,
       kind: opts.kind,
@@ -109,45 +110,23 @@ export function useAegisSurface<T>(
       label: opts.label,
       askSuggestions: opts.askSuggestions,
       getProjection: () => projectRef.current(dataRef.current),
-      getBBox: () => bbox,
-      getInViewport: () => inViewport,
+      getBBox: () => {
+        const r = rect();
+        return r && { x: r.x, y: r.y, width: r.width, height: r.height };
+      },
+      getInViewport: () => {
+        const r = rect();
+        return (
+          !r ||
+          (r.bottom > 0 &&
+            r.right > 0 &&
+            r.top < window.innerHeight &&
+            r.left < window.innerWidth)
+        );
+      },
     });
     return unregister;
-  }, [
-    ctx,
-    enabled,
-    opts.id,
-    opts.kind,
-    opts.label,
-    opts.askSuggestions,
-    bbox,
-    inViewport,
-  ]);
-
-  // bbox + inViewport — measured on mount + window resize for v0.
-  useEffect(() => {
-    const el = ref?.current;
-    if (!el || typeof window === 'undefined') {
-      return;
-    }
-    const measure = (): void => {
-      const r = el.getBoundingClientRect();
-      setBBox({ x: r.x, y: r.y, width: r.width, height: r.height });
-      setInViewport(
-        r.bottom > 0 &&
-          r.right > 0 &&
-          r.top < window.innerHeight &&
-          r.left < window.innerWidth,
-      );
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    window.addEventListener('scroll', measure, true);
-    return () => {
-      window.removeEventListener('resize', measure);
-      window.removeEventListener('scroll', measure, true);
-    };
-  }, [ref]);
+  }, [ctx, enabled, opts.id, opts.kind, opts.label, opts.askSuggestions]);
 
   return { surfaceId: opts.id };
 }

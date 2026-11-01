@@ -16,7 +16,6 @@ export interface ToolCallData {
   arguments: string;
   result?: string;
   status?: ToolCallStatus;
-  isError?: boolean;
 }
 
 export type ToolCallCardSurface = PrimitiveSurface<ToolCallData>;

@@ -172,7 +172,6 @@ function renderToolCallData(message: AgentMessage): {
   arguments: string;
   result?: string;
   status: 'running' | 'ok' | 'error';
-  isError?: boolean;
 } {
   const tc = message.toolCall;
   if (!tc) {
@@ -189,7 +188,6 @@ function renderToolCallData(message: AgentMessage): {
     arguments: argsText,
     result: tc.resultText,
     status: tc.status,
-    isError: tc.isError,
   };
 }
 

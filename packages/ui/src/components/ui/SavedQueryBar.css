@@ -52,15 +52,24 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background var(--motion-fast);
+  transition:
+    background var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .aegis-sqb__chip:hover {
   background: var(--bg-muted);
 }
 
-.aegis-sqb__chip:active {
-  transform: scale(0.98);
+/* A saved query is a button: it rises on hover and settles when pressed. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-sqb__chip:hover {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+  }
+
+  .aegis-sqb__chip:active {
+    transform: none;
+  }
 }
 
 .aegis-sqb__chip--ghost {

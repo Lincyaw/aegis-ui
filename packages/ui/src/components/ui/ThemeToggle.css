@@ -15,15 +15,24 @@
   transition:
     background var(--motion-fast),
     color var(--motion-fast),
-    border-color var(--motion-fast);
+    border-color var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .aegis-theme-toggle:hover {
   background: var(--bg-muted);
 }
 
-.aegis-theme-toggle:active {
-  transform: scale(0.96);
+/* Moves like the shell's header buttons: it rises on hover and a press
+ * settles it back into place. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-theme-toggle:hover {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+  }
+
+  .aegis-theme-toggle:active {
+    transform: none;
+  }
 }
 
 .aegis-theme-toggle__glyph {

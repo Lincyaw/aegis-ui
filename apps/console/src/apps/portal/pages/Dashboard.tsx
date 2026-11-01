@@ -29,6 +29,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import { errMsg } from '../../../api/apiClient';
 import { projectsApi } from '../api/portal-client';
+import { useActiveProjectIdNum } from '../hooks/useActiveProject';
+import { useProjectsList } from '../hooks/useProjects';
 
 import './Dashboard.css';
 
@@ -80,16 +82,14 @@ const DEMO_TERMINAL_LINES: TerminalLine[] = [
 ];
 
 export default function Dashboard(): ReactElement {
-  const projectsQuery = useQuery({
-    queryKey: ['portal', 'projects', 'first-page'],
-    queryFn: async () => {
-      const res = await projectsApi.listProjects({ page: 1, size: 20 });
-      return res.data.data?.items ?? [];
-    },
-  });
-
-  const firstProject = projectsQuery.data?.[0];
-  const projectId = firstProject?.id;
+  const projectsQuery = useProjectsList();
+  const activeProjectId = useActiveProjectIdNum();
+  const projects = projectsQuery.data ?? [];
+  // Like the header's ProjectSwitcher, the first project until one is
+  // chosen.
+  const selectedProject =
+    projects.find((p) => p.id === activeProjectId) ?? projects[0];
+  const projectId = selectedProject?.id;
 
   const dashboardQuery = useQuery({
     queryKey: ['portal', 'dashboard', projectId],
@@ -103,7 +103,7 @@ export default function Dashboard(): ReactElement {
   });
 
   const dash = dashboardQuery.data;
-  const activeProject = dash?.project ?? firstProject;
+  const activeProject = dash?.project ?? selectedProject;
   const injections: InjectionInjectionResp[] = dash?.recent_injections ?? [];
   const traces: TraceTraceResp[] = dash?.recent_traces ?? [];
   const executions: ExecutionExecutionResp[] = dash?.recent_executions ?? [];
