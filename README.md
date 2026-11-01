@@ -16,10 +16,11 @@ and plugs into the shell through the `AegisApp` contract.
 | Primitives           | Presentational React components: panels, tables, forms, charts, code and diff viewers, trace and trajectory views, chat, file browsers |
 | `PageWrapper`        | Page root that owns width, padding and the entry animation                                                                             |
 | `AegisShell`         | Router-aware chrome (header, sidebar, breadcrumb, app switcher) composed from an `AegisApp[]` list                                     |
+| Site layout          | `SiteLayout`, `SiteNav`, `SiteSection`, `SiteFooter`: the frame of a public site, which is not a console                               |
 | Theming              | `ThemeProvider` (light, dark, system) and `getAegisTheme(scheme)` for the Ant Design `ConfigProvider`                                  |
 | Context contracts    | Auth, notifications, command palette and agent providers; the host supplies the implementation                                         |
 | Agent-native runtime | `useAegisAction`, `useAegisSurface`, `AskPanel` and related types; see [docs/agent-native-ui.md](docs/agent-native-ui.md)              |
-| Headless helpers     | Relative time-range parsing and a Lucene-to-SQL compiler used by the query components                                                  |
+| Headless helpers     | Relative time-range parsing and the query cursor helpers `QueryAutocomplete` uses                                                      |
 
 The live catalogue of every component is the gallery, published at
 <https://profile.aoyangfang.top/aegis-ui/>. Locally, run `pnpm dev` and open
