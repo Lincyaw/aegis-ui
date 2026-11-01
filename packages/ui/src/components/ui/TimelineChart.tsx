@@ -13,6 +13,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Tooltip } from 'antd';
 
+import { type ChartColor, chartColorValue, niceTicks } from '../../lib/chart';
 import { useStrings } from '../../locale';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Skeleton';
@@ -46,13 +47,13 @@ const DEFAULT_ROW_HEIGHT = 24;
 const DEFAULT_MAX_VISIBLE_ROWS = 20;
 const APPROX_TICK_COUNT = 6;
 
-const PALETTE = [
-  'var(--avatar-hue-1)',
-  'var(--avatar-hue-2)',
-  'var(--avatar-hue-3)',
-  'var(--avatar-hue-4)',
-  'var(--avatar-hue-5)',
-  'var(--bg-inverted)',
+const KIND_COLORS: ChartColor[] = [
+  'cat-1',
+  'cat-2',
+  'cat-3',
+  'cat-4',
+  'cat-5',
+  'cat-6',
 ];
 
 function hashString(input: string): number {
@@ -63,11 +64,12 @@ function hashString(input: string): number {
   return Math.abs(hash);
 }
 
+/** A span kind keeps one data colour wherever it appears. */
 function colorForKind(kind: string | undefined): string {
   if (kind === undefined || kind.length === 0) {
     return 'var(--bg-inverted)';
   }
-  return PALETTE[hashString(kind) % PALETTE.length] ?? 'var(--bg-inverted)';
+  return chartColorValue(KIND_COLORS[hashString(kind) % KIND_COLORS.length]);
 }
 
 interface DurationUnit {
@@ -112,45 +114,18 @@ interface TickSpec {
   label: string;
 }
 
-function niceStep(rawStep: number): number {
-  if (rawStep <= 0) {
-    return 1;
-  }
-  const exponent = Math.floor(Math.log10(rawStep));
-  const base = Math.pow(10, exponent);
-  const normalized = rawStep / base;
-  let nice: number;
-  if (normalized <= 1) {
-    nice = 1;
-  } else if (normalized <= 2) {
-    nice = 2;
-  } else if (normalized <= 5) {
-    nice = 5;
-  } else {
-    nice = 10;
-  }
-  return nice * base;
-}
-
+/** Ticks at round offsets from the start: 0, 1 ms, 2 ms, … */
 function buildTicks(minNs: number, maxNs: number): TickSpec[] {
   const range = maxNs - minNs;
-  if (range <= 0) {
-    return [];
-  }
-  const step = niceStep(range / APPROX_TICK_COUNT);
   const unit = pickUnit(range);
-  const ticks: TickSpec[] = [];
-  const first = Math.ceil(minNs / step) * step;
-  for (let v = first; v <= maxNs; v += step) {
-    const relative = v - minNs;
-    const value = relative / unit.perNs;
+  return niceTicks(0, range, APPROX_TICK_COUNT).map((offset) => {
+    const value = offset / unit.perNs;
     const fractionDigits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
-    ticks.push({
-      ns: v,
+    return {
+      ns: minNs + offset,
       label: `${formatThousands(value, fractionDigits)} ${unit.label}`,
-    });
-  }
-  return ticks;
+    };
+  });
 }
 
 function emptyDeriveBounds(): { minNs: number; maxNs: number } {

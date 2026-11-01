@@ -1,29 +1,21 @@
 import { type CSSProperties, type ReactNode } from 'react';
 
+import {
+  type ChartColor,
+  chartColorValue,
+  staggeredProgress,
+  zeroAnchoredDomain,
+} from '../../lib/chart';
+import { ChartLegend } from './ChartLegend';
 import { DataTable, type DataTableColumn } from './DataTable';
 import './StackedBar.css';
-
-/**
- * Segment colour from the data palette: `seq` for a single magnitude,
- * `cat-1`…`cat-6` to tell categories apart, `unknown` a neutral muted fill
- * with a hairline edge for a share not classified yet.
- */
-export type StackedBarColor =
-  | 'seq'
-  | 'cat-1'
-  | 'cat-2'
-  | 'cat-3'
-  | 'cat-4'
-  | 'cat-5'
-  | 'cat-6'
-  | 'unknown';
 
 /** One category stacked in every bar, listed in the legend. */
 export interface StackedBarSeries<K extends string> {
   key: K;
   /** Legend text; also names the segment in each bar's accessible label. */
   label: string;
-  color: StackedBarColor;
+  color: ChartColor;
 }
 
 export interface StackedBarRow<K extends string> {
@@ -53,6 +45,12 @@ export interface StackedBarProps<K extends string> {
   labelHeader: ReactNode;
   /** Table header of the row total column, e.g. "合计". */
   totalHeader: ReactNode;
+  /**
+   * How far the bars are drawn, 0 to 1, for a chart that draws as its
+   * section scrolls in (`useScrollProgress`). Omitted, the bars draw in
+   * once when they mount.
+   */
+  progress?: number;
   className?: string;
 }
 
@@ -69,6 +67,7 @@ export function StackedBar<K extends string>({
   view = 'chart',
   labelHeader,
   totalHeader,
+  progress,
   className,
 }: StackedBarProps<K>) {
   const rowTotal = (row: StackedBarRow<K>): number =>
@@ -77,6 +76,7 @@ export function StackedBar<K extends string>({
   const cls = [
     'aegis-stacked-bar',
     noted ? 'aegis-stacked-bar--noted' : '',
+    progress === undefined ? '' : 'aegis-stacked-bar--scroll',
     className ?? '',
   ]
     .filter(Boolean)
@@ -113,22 +113,18 @@ export function StackedBar<K extends string>({
   }
 
   const totals = rows.map(rowTotal);
-  const upperBound = max ?? (Math.max(0, ...totals) || 1);
+  const [, upperBound] = zeroAnchoredDomain(totals, max);
   const scaleWidth = (value: number): string =>
     `${(upperBound > 0 ? Math.min(value / upperBound, 1) * 100 : 0).toString()}%`;
   return (
     <div className={cls}>
-      <ul className="aegis-stacked-bar__legend">
-        {series.map((item) => (
-          <li key={item.key} className="aegis-stacked-bar__legend-item">
-            <span
-              className={`aegis-stacked-bar__swatch aegis-stacked-bar__mark--${item.color}`}
-              aria-hidden="true"
-            />
-            {item.label}
-          </li>
-        ))}
-      </ul>
+      <ChartLegend
+        items={series.map((item) => ({
+          key: item.key,
+          label: item.label,
+          color: item.color,
+        }))}
+      />
       <div className="aegis-stacked-bar__rows">
         {rows.map((row, index) => {
           const total = totals[index];
@@ -154,6 +150,15 @@ export function StackedBar<K extends string>({
                     {
                       width: scaleWidth(total),
                       '--aegis-stacked-bar-index': index,
+                      ...(progress === undefined
+                        ? {}
+                        : {
+                            '--aegis-stacked-bar-progress': staggeredProgress(
+                              progress,
+                              index,
+                              rows.length,
+                            ),
+                          }),
                     } as CSSProperties
                   }
                 >
@@ -162,9 +167,17 @@ export function StackedBar<K extends string>({
                     .map((item) => (
                       <span
                         key={item.key}
-                        className={`aegis-stacked-bar__segment aegis-stacked-bar__mark--${item.color}`}
+                        className={[
+                          'aegis-stacked-bar__segment',
+                          item.color === 'unknown'
+                            ? 'aegis-stacked-bar__segment--unknown'
+                            : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
                         style={{
                           width: `${((row.values[item.key] / total) * 100).toString()}%`,
+                          background: chartColorValue(item.color),
                         }}
                       />
                     ))}

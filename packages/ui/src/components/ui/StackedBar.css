@@ -7,33 +7,6 @@
   color: var(--text-main);
 }
 
-.aegis-stacked-bar__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  list-style: none;
-  font-family: var(--font-ui);
-  font-size: var(--type-small-size);
-  line-height: var(--type-small-line);
-  font-weight: var(--type-small-weight);
-  letter-spacing: var(--type-small-tracking);
-  color: var(--text-muted);
-}
-
-.aegis-stacked-bar__legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  min-width: 0;
-}
-
-.aegis-stacked-bar__swatch {
-  flex-shrink: 0;
-  width: var(--size-legend-swatch);
-  height: var(--size-legend-swatch);
-  border-radius: var(--radius-sm);
-}
-
 /* Rows share the columns, so labels, bars and totals line up. */
 .aegis-stacked-bar__rows {
   display: grid;
@@ -89,6 +62,14 @@
   }
 }
 
+/* Drawn by scroll position: the host's progress scales each bar from the
+ * left, so the bars follow the scroll both ways instead of playing once. */
+.aegis-stacked-bar--scroll .aegis-stacked-bar__bar {
+  transform: scaleX(var(--aegis-stacked-bar-progress));
+  transform-origin: left;
+  animation: none;
+}
+
 /* A zero total still marks the axis start — an empty track reads as missing. */
 .aegis-stacked-bar__bar--zero {
   min-width: var(--space-px);
@@ -103,36 +84,7 @@
   transition: width var(--motion-chart);
 }
 
-.aegis-stacked-bar__mark--seq {
-  background: var(--data-seq);
-}
-
-.aegis-stacked-bar__mark--cat-1 {
-  background: var(--data-cat-1);
-}
-
-.aegis-stacked-bar__mark--cat-2 {
-  background: var(--data-cat-2);
-}
-
-.aegis-stacked-bar__mark--cat-3 {
-  background: var(--data-cat-3);
-}
-
-.aegis-stacked-bar__mark--cat-4 {
-  background: var(--data-cat-4);
-}
-
-.aegis-stacked-bar__mark--cat-5 {
-  background: var(--data-cat-5);
-}
-
-.aegis-stacked-bar__mark--cat-6 {
-  background: var(--data-cat-6);
-}
-
-.aegis-stacked-bar__mark--unknown {
-  background: var(--bg-muted);
+.aegis-stacked-bar__segment--unknown {
   box-shadow: inset 0 0 0 var(--size-hairline) var(--border-hairline);
 }
 

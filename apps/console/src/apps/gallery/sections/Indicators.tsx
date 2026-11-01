@@ -10,6 +10,7 @@ import {
   Select as AegisSelect,
   Alert,
   BlastRadiusBar,
+  ChartLegend,
   Checkbox,
   CheckGrid,
   type CheckGridCell,
@@ -21,6 +22,7 @@ import {
   Dialog,
   EmptyState,
   KeyValueList,
+  MetricLabel,
   Pagination,
   Panel,
   PanelTitle,
@@ -36,6 +38,7 @@ import {
   type StackedBarSeries,
   StatusDot,
   TextField,
+  useScrollProgress,
 } from '@lincyaw/aegis-ui';
 
 import {
@@ -91,11 +94,12 @@ function RankBarSpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen
-        caption={`value: null → em dash · 0 keeps an endpoint · track clickable · last: ${selected}`}
+        caption={`max={1} for a 0–1 score · value: null → em dash · 0 keeps an endpoint · track clickable · last: ${selected}`}
         span={3}
       >
         <div className='gallery__stack gallery__stack--fill'>
           <RankBar
+            max={1}
             direction='higher is better'
             items={GALLERY_MODEL_ROWS.map((row) => ({
               key: row.model,
@@ -154,42 +158,42 @@ const GALLERY_PARETO_POINTS: ParetoPoint[] = [
     label: 'model-alpha',
     x: 182,
     y: 0.81,
-    color: 'var(--data-cat-1)',
+    color: 'cat-1',
   },
   {
     key: 'beta',
     label: 'model-beta',
     x: 64,
     y: 0.5263,
-    color: 'var(--data-cat-2)',
+    color: 'cat-2',
   },
   {
     key: 'gamma',
     label: 'model-gamma',
     x: 41,
     y: 0.2,
-    color: 'var(--data-cat-3)',
+    color: 'cat-3',
   },
   {
     key: 'delta',
     label: 'model-delta',
     x: 150,
     y: 0.42,
-    color: 'var(--data-cat-4)',
+    color: 'cat-4',
   },
   {
     key: 'eps',
     label: 'model-epsilon',
     x: 95,
     y: 0.33,
-    color: 'var(--data-cat-5)',
+    color: 'cat-5',
   },
   {
     key: 'zeta',
     label: 'model-zeta',
     x: 230,
     y: 0.6,
-    color: 'var(--data-cat-6)',
+    color: 'cat-6',
   },
 ];
 
@@ -365,6 +369,69 @@ function StackedBarChangeSpecimen(): ReactNode {
         </AegisButton>
       </div>
     </Specimen>
+  );
+}
+
+const GALLERY_LEGEND_ITEMS = GALLERY_TAG_SERIES.map((item) => ({
+  key: item.key,
+  label: item.label,
+  color: item.color,
+}));
+
+const GALLERY_RANK_COLORS = ['cat-1', 'cat-2', 'cat-3', 'cat-4'] as const;
+
+function ChartsScrollSpecimen(): ReactNode {
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const { ref, progress } = useScrollProgress<HTMLDivElement>({
+    range: 'entry',
+    scrollContainer: scroller,
+  });
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption={`progress from useScrollProgress · the charts follow the scroll both ways · progress ${progress.toFixed(2)}`}
+        span={3}
+      >
+        <div ref={setScroller} className='gallery__chart-scroller'>
+          <p className='gallery__chart-scroller-spacer'>
+            Scroll down: the charts draw as they come into view.
+          </p>
+          <div ref={ref} className='gallery__stack gallery__stack--fill'>
+            <RankBar
+              max={1}
+              direction='higher is better'
+              progress={progress}
+              items={GALLERY_MODEL_ROWS.map((row, i) => ({
+                key: row.model,
+                label: row.model,
+                value: row.mean,
+                color: GALLERY_RANK_COLORS[i % GALLERY_RANK_COLORS.length],
+              }))}
+            />
+            <StackedBar
+              series={GALLERY_TAG_SERIES}
+              rows={GALLERY_TAG_MODELS.map((model, i) => ({
+                key: model,
+                label: model,
+                values: GALLERY_TAG_VALUES[i],
+              }))}
+              progress={progress}
+              labelHeader='Model'
+              totalHeader='Failed runs'
+            />
+            <ParetoChart
+              xLabel='Mean duration (s)'
+              yLabel='Mean result score'
+              formatX={(value) => `${value.toFixed(0)} s`}
+              formatY={(value) => value.toFixed(2)}
+              points={GALLERY_PARETO_POINTS}
+              progress={progress}
+            />
+          </div>
+          <div className='gallery__chart-scroller-spacer' />
+        </div>
+      </Specimen>
+    </div>
   );
 }
 
@@ -1005,6 +1072,31 @@ export function IndicatorsSection() {
           <StackedBarChangeSpecimen />
         </div>
       </div>
+
+      <SectionDivider>ChartLegend</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen caption="shape='square' for bars · cat-* · unknown has a hairline edge">
+          <ChartLegend items={GALLERY_LEGEND_ITEMS} />
+        </Specimen>
+        <Specimen caption="shape='dot' for points · a host token, e.g. var(--data-seq)">
+          <ChartLegend
+            shape='dot'
+            items={[
+              { key: 'seq', label: 'Series token', color: 'var(--data-seq)' },
+              { key: 'cat-2', label: 'model-beta', color: 'cat-2' },
+            ]}
+          />
+        </Specimen>
+      </div>
+
+      <SectionDivider
+        extra={
+          <MetricLabel>RankBar · StackedBar · ParetoChart progress</MetricLabel>
+        }
+      >
+        Charts drawn by scroll
+      </SectionDivider>
+      <ChartsScrollSpecimen />
 
       <SectionDivider>Dialog</SectionDivider>
       <DialogSpecimen />

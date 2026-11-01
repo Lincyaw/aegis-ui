@@ -45,7 +45,8 @@
   position: absolute;
   bottom: var(--space-1);
   left: var(--space-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-10);
   color: var(--text-muted);
   white-space: nowrap;
@@ -126,8 +127,9 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0 var(--space-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-10);
+  font-variant-numeric: tabular-nums;
   color: var(--text-on-inverted);
   background: var(--bg-inverted);
   overflow: hidden;
@@ -158,8 +160,9 @@
   top: var(--space-1);
   left: var(--space-1);
   padding: var(--space-px) var(--space-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-10);
+  font-variant-numeric: tabular-nums;
   color: var(--text-on-inverted);
   background: var(--bg-inverted);
   border-radius: var(--radius-sm);

@@ -7,7 +7,14 @@ import {
 } from 'react';
 
 import { useElementWidth } from '../../hooks/useElementWidth';
+import {
+  type ChartColor,
+  chartColorValue,
+  staggeredProgress,
+  zeroAnchoredDomain,
+} from '../../lib/chart';
 import { useStrings } from '../../locale';
+import { ChartLegend } from './ChartLegend';
 import { EmptyState } from './EmptyState';
 import './ParetoChart.css';
 
@@ -16,8 +23,8 @@ export interface ParetoPoint {
   label: string;
   x: number;
   y: number;
-  /** Point fill, e.g. `var(--data-cat-2)` to match the series elsewhere. */
-  color?: string;
+  /** Point fill, e.g. `cat-2` or a series token, to match the series elsewhere. */
+  color?: ChartColor;
 }
 
 /** One series in the legend under the plot, e.g. a model and its colour. */
@@ -25,7 +32,7 @@ export interface ParetoLegendItem {
   key: string;
   label: ReactNode;
   /** Swatch fill; the same value its points use. */
-  color?: string;
+  color?: ChartColor;
 }
 
 interface ParetoChartProps {
@@ -49,6 +56,12 @@ interface ParetoChartProps {
   empty?: ReactNode;
   emptyTitle?: string;
   emptyDescription?: string;
+  /**
+   * How far the chart is drawn, 0 to 1, for a chart that draws as its
+   * section scrolls in (`useScrollProgress`): points fade in from left to
+   * right, then the frontier. Omitted, they fade in once on mount.
+   */
+  progress?: number;
   className?: string;
 }
 
@@ -69,13 +82,6 @@ function better(a: number, b: number, direction: Direction): boolean {
   return direction === 'lower' ? a < b : a > b;
 }
 
-/** Axis span from 0 (or the data minimum when negative) to the maximum. */
-function zeroAnchoredDomain(values: number[]): [number, number] {
-  const lo = Math.min(0, ...values);
-  const hi = Math.max(0, ...values);
-  return hi === lo ? [lo, lo + 1] : [lo, hi];
-}
-
 export function ParetoChart({
   points,
   xLabel,
@@ -89,12 +95,19 @@ export function ParetoChart({
   empty,
   emptyTitle,
   emptyDescription,
+  progress,
   className,
 }: ParetoChartProps) {
   const strings = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(wrapRef);
-  const cls = ['aegis-pareto', className ?? ''].filter(Boolean).join(' ');
+  const cls = [
+    'aegis-pareto',
+    progress === undefined ? '' : 'aegis-pareto--scroll',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const geometry = useMemo(() => {
     if (points.length === 0 || width === 0) {
@@ -132,8 +145,15 @@ export function ParetoChart({
       { length: GRID_STEPS },
       (_, i) => (i + 1) / GRID_STEPS,
     );
+    // Points draw in from left to right; the frontier comes last.
+    const order = new Map(
+      [...points]
+        .sort((a, b) => sx(a.x) - sx(b.x))
+        .map((point, rank) => [point.key, rank]),
+    );
     return {
       height,
+      order,
       left,
       right,
       top,
@@ -197,7 +217,20 @@ export function ParetoChart({
         viewBox={`0 0 ${width.toString()} ${height.toString()}`}
         role={onSelect ? 'group' : 'img'}
         aria-label={strings.paretoChartLabel(xLabel, yLabel)}
-        style={{ '--aegis-pareto-count': points.length } as CSSProperties}
+        style={
+          {
+            '--aegis-pareto-count': points.length,
+            ...(progress === undefined
+              ? {}
+              : {
+                  '--aegis-pareto-front-progress': staggeredProgress(
+                    progress,
+                    points.length,
+                    points.length + 1,
+                  ),
+                }),
+          } as CSSProperties
+        }
       >
         {geometry.gridY.map((y) => (
           <line
@@ -256,8 +289,20 @@ export function ParetoChart({
               .join(' ')}
             style={
               {
-                fill: point.color,
+                fill:
+                  point.color === undefined
+                    ? undefined
+                    : chartColorValue(point.color),
                 '--aegis-pareto-index': index,
+                ...(progress === undefined
+                  ? {}
+                  : {
+                      '--aegis-pareto-point-progress': staggeredProgress(
+                        progress,
+                        geometry.order.get(point.key) ?? index,
+                        points.length + 1,
+                      ),
+                    }),
               } as CSSProperties
             }
             cx={sx(point.x)}
@@ -352,25 +397,15 @@ export function ParetoChart({
         </text>
       </svg>
       {legend !== undefined && legend.length > 0 ? (
-        <ul
+        <ChartLegend
           className="aegis-pareto__legend"
-          style={
-            {
-              '--aegis-pareto-swatch': `${(POINT_RADIUS * 2).toString()}px`,
-            } as CSSProperties
-          }
-        >
-          {legend.map((item) => (
-            <li key={item.key} className="aegis-pareto__legend-item">
-              <span
-                className="aegis-pareto__swatch"
-                style={item.color ? { background: item.color } : undefined}
-                aria-hidden="true"
-              />
-              {item.label}
-            </li>
-          ))}
-        </ul>
+          shape="dot"
+          items={legend.map((item) => ({
+            key: item.key,
+            label: item.label,
+            color: item.color ?? 'var(--bg-inverted)',
+          }))}
+        />
       ) : null}
     </div>
   );

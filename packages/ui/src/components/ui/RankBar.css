@@ -76,6 +76,14 @@ button.aegis-rank-bar__track:active {
   }
 }
 
+/* Drawn by scroll position: the host's progress scales each bar from the
+ * left, so the bars follow the scroll both ways instead of playing once. */
+.aegis-rank-bar--scroll .aegis-rank-bar__fill {
+  transform: scaleX(var(--aegis-rank-bar-progress));
+  transform-origin: left;
+  animation: none;
+}
+
 /* A zero score still marks the axis start — an empty track reads as missing. */
 .aegis-rank-bar__fill--zero {
   min-width: var(--space-px);
@@ -83,8 +91,11 @@ button.aegis-rank-bar__track:active {
 }
 
 .aegis-rank-bar__value {
-  font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  line-height: var(--type-numeric-line);
+  font-weight: var(--type-numeric-weight);
+  letter-spacing: var(--type-numeric-tracking);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -102,8 +113,10 @@ button.aegis-rank-bar__track:active {
 .aegis-rank-bar__ticks {
   display: flex;
   justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: var(--fs-11);
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
 

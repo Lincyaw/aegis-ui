@@ -47,6 +47,8 @@ export type { RankBarItem } from './RankBar';
 export { ScoreBar } from './ScoreBar';
 export { RunPips } from './RunPips';
 export type { RunPipsCounts } from './RunPips';
+export { ChartLegend } from './ChartLegend';
+export type { ChartLegendItem, ChartLegendProps } from './ChartLegend';
 export { ParetoChart } from './ParetoChart';
 export type { ParetoLegendItem, ParetoPoint } from './ParetoChart';
 export { CheckGrid } from './CheckGrid';
@@ -58,7 +60,6 @@ export type {
 } from './CheckGrid';
 export { StackedBar } from './StackedBar';
 export type {
-  StackedBarColor,
   StackedBarProps,
   StackedBarRow,
   StackedBarSeries,

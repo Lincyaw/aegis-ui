@@ -1,5 +1,11 @@
 import { type CSSProperties, type ReactNode } from 'react';
 
+import {
+  type ChartColor,
+  chartColorValue,
+  staggeredProgress,
+  zeroAnchoredDomain,
+} from '../../lib/chart';
 import { useStrings } from '../../locale';
 import './RankBar.css';
 
@@ -13,17 +19,31 @@ export interface RankBarItem {
   value: number | null;
   /** Trailing slot for a per-row link, e.g. "逐题表现". */
   action?: ReactNode;
+  /**
+   * The bar's colour, e.g. the series colour of the model's vendor.
+   * Defaults to `--rank-bar-fill`.
+   */
+  color?: ChartColor;
 }
 
 interface RankBarProps {
   items: RankBarItem[];
-  /** Upper bound of the scale. Defaults to the largest value, or 1 when all are 0. */
+  /**
+   * Upper bound of the scale. Defaults to the largest value, or 1 when all
+   * are 0; pass `1` for a share or a 0–1 score.
+   */
   max?: number;
   /** Scale hint rendered at the bottom, e.g. "越高越好". */
   direction?: ReactNode;
   format?: (value: number) => string;
   /** Makes each row's label and bar track select that row. */
   onSelect?: (key: string) => void;
+  /**
+   * How far the bars are drawn, 0 to 1, for a chart that draws as its
+   * section scrolls in (`useScrollProgress`). Omitted, the bars draw in
+   * once when they mount.
+   */
+  progress?: number;
   className?: string;
 }
 
@@ -33,14 +53,21 @@ export function RankBar({
   direction,
   format = (value) => value.toFixed(2),
   onSelect,
+  progress,
   className,
 }: RankBarProps) {
   const strings = useStrings();
   const values = items.flatMap((item) =>
     item.value === null ? [] : [item.value],
   );
-  const upperBound = max ?? Math.max(...values, 1);
-  const cls = ['aegis-rank-bar', className ?? ''].filter(Boolean).join(' ');
+  const [, upperBound] = zeroAnchoredDomain(values, max);
+  const cls = [
+    'aegis-rank-bar',
+    progress === undefined ? '' : 'aegis-rank-bar--scroll',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
     <div className={cls}>
       {items.map((item, index) => {
@@ -58,6 +85,18 @@ export function RankBar({
                 {
                   width: `${(upperBound > 0 ? (value / upperBound) * 100 : 0).toString()}%`,
                   '--aegis-rank-bar-index': index,
+                  ...(item.color === undefined || value === 0
+                    ? {}
+                    : { background: chartColorValue(item.color) }),
+                  ...(progress === undefined
+                    ? {}
+                    : {
+                        '--aegis-rank-bar-progress': staggeredProgress(
+                          progress,
+                          index,
+                          items.length,
+                        ),
+                      }),
                 } as CSSProperties
               }
             />

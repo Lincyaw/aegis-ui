@@ -42,6 +42,14 @@ export type { RelativeTimePreset, TimeRange } from './lib/timeRange';
 // query into their own backend's language.
 export { replaceTokenAtCursor, tokenizeAtCursor } from './lib/luceneQuery';
 export type { CursorToken } from './lib/luceneQuery';
+// Chart scale and colour helpers the chart primitives share.
+export {
+  chartColorValue,
+  niceTicks,
+  staggeredProgress,
+  zeroAnchoredDomain,
+} from './lib/chart';
+export type { ChartColor, ChartPaletteColor } from './lib/chart';
 
 // Layouts
 export { PageWrapper } from './layouts/PageWrapper';

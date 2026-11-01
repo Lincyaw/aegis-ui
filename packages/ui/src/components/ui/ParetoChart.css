@@ -25,7 +25,7 @@
   stroke-dasharray: 4 4;
 }
 
-/* Points pop in one by one; the frontier line and its labels fade in
+/* Points fade in one by one; the frontier line and its labels fade in
  * after the last point. */
 .aegis-pareto__front,
 .aegis-pareto__point-label {
@@ -46,7 +46,6 @@
 @keyframes aegis-pareto-point-in {
   from {
     opacity: 0;
-    transform: scale(0.4);
   }
 }
 
@@ -67,6 +66,29 @@
 
 .aegis-pareto__point--dominated {
   opacity: var(--pareto-dominated-opacity);
+}
+
+/* Drawn by scroll position: the host's progress fades the points in from
+ * left to right and then the frontier, following the scroll both ways. */
+.aegis-pareto--scroll .aegis-pareto__point,
+.aegis-pareto--scroll .aegis-pareto__front,
+.aegis-pareto--scroll .aegis-pareto__point-label {
+  animation: none;
+}
+
+.aegis-pareto--scroll .aegis-pareto__point {
+  opacity: var(--aegis-pareto-point-progress);
+}
+
+.aegis-pareto--scroll .aegis-pareto__point--dominated {
+  opacity: calc(
+    var(--aegis-pareto-point-progress) * var(--pareto-dominated-opacity)
+  );
+}
+
+.aegis-pareto--scroll .aegis-pareto__front,
+.aegis-pareto--scroll .aegis-pareto__point-label {
+  opacity: var(--aegis-pareto-front-progress);
 }
 
 .aegis-pareto__point--interactive {
@@ -97,7 +119,7 @@
 }
 
 .aegis-pareto__tick {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-11);
   font-variant-numeric: tabular-nums;
   fill: var(--text-muted);
@@ -117,27 +139,5 @@
 }
 
 .aegis-pareto__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  margin: var(--space-3) 0 0;
-  padding: 0;
-  font-size: var(--fs-12);
-  color: var(--text-muted);
-  list-style: none;
-}
-
-.aegis-pareto__legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.aegis-pareto__swatch {
-  flex-shrink: 0;
-  width: var(--aegis-pareto-swatch);
-  height: var(--aegis-pareto-swatch);
-  border-radius: var(--radius-circle);
-  background: var(--bg-inverted);
+  margin-top: var(--space-3);
 }
