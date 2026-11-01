@@ -1,5 +1,45 @@
 # @lincyaw/aegis-ui
 
+## 0.7.0
+
+### Minor Changes
+
+- 4d08365: Breaking: the agent code is split into layers, and the connections an outside agent uses move to a separate entry, so the main entry opens none.
+  - The AgentM chat channel and the MCP bridge client move to `@lincyaw/aegis-ui/transports`: import `AgentmChannelProvider`, `AgentmChannelClient`, `AGENTM_WIRE_VERSION`, their types and the new `connectAegisBridge` / `AegisBridgeConfig` from there.
+  - Renames: `AgentProvider` → `AgentChatProvider`, `useAgent` → `useAgentChat`, `AgentContextValue` → `AgentChatValue`, `AegisAgentProvider` → `AegisRuntimeProvider`.
+  - `AegisRuntimeProvider` no longer connects to the MCP bridge or reads `window.__AEGIS_BRIDGE__`, and drops `bridgeUrl`, `bridgeAuthToken` and `bridgeAutoConnect`. To keep the bridge, create the runtime yourself and pass it to the shell:
+
+    ```ts
+    const agentRuntime = createAegisRuntime();
+    connectAegisBridge(agentRuntime, { url, authToken });
+    <AegisShell agentRuntime={agentRuntime} … />
+    ```
+
+  - `AegisRuntime` gains a public `setSelection(refs)` (it was `_setSelection`); the other `_`-prefixed methods are internal and no longer in the published types.
+
+- 688a930: Breaking: `compileLuceneToSql` and its `CompileOptions`, `CompileResult` and `FieldMapping` types leave the library, which no longer depends on `@hyperdx/lucene`. Turning a search box into ClickHouse SQL is the host's business; the console keeps the compiler with the trajectories app. `tokenizeAtCursor` and `replaceTokenAtCursor`, which `QueryAutocomplete` uses, stay.
+
+  `FilePreview` reads only the first 256 KB of a text file and cancels the rest of the download, instead of downloading the whole file before cutting it.
+
+- 987c87e: The build emits one file per source module (`preserveModules`), so a bundler keeps only the primitives a host imports: `import { Panel, PageWrapper }` now costs about 3 KB minified instead of 1.1 MB, and CodeMirror, the diff viewer and the flow-graph library arrive only with the primitives that use them. Entry points and `style.css` are unchanged.
+- b246f83: Add `ScrollStory`, which tells a story in steps: the steps scroll as ordinary text while a panel beside them stays pinned and shows the current step's visual, and at 768px and narrower each visual follows its own step. Add `useScrollProgress`, which reports how far an element has travelled through the view as a number from 0 to 1 over a CSS `animation-range` style range (`entry`, `exit`, `cover` or `contain`), for motion tied to the scroll position such as a chart that draws as it comes into view; it stays at 1 under prefers-reduced-motion. New tokens `--scroll-story-sticky-top`, `--scroll-story-view-height` and `--scroll-story-step-min-height` set where the panel pins, the height of the view it pins in (set it to the container's height when passing `scrollContainer`) and how tall each step is.
+- b0d65a6: The library renders on the server, so a site can prerender its pages:
+  - `useMediaQuery` and `usePageHidden` read as not matching / visible on the server, and `StatBlock` with `animateValue` renders its final value first and starts counting after mount, so prerendered HTML carries the real number.
+  - Primitives use layout effects only in the browser, so a server render logs no `useLayoutEffect` warnings from the library.
+  - `ThemeProvider` renders with `defaultPreference` on the server and while hydrating, then applies the stored choice; it follows other tabs' changes. New `themeInitScript(defaultPreference?)` returns an inline `<head>` script that sets `data-theme` before the first paint, so a prerendered page opens in the visitor's theme.
+
+- 56ec3cd: `ToolCallData` and `AgentToolCallRecord` drop `isError`: `status` alone says how a call ended, and `AgentmChannelProvider` turns a call the gateway reports as `ok` with `is_error` into `status: 'error'`, so `ToolCallCard` no longer shows a failed call as ok. Pass `status: 'error'` where you passed `isError: true`.
+
+  The shell's header icon buttons, `ThemeToggle`, the `ChatComposer` send button and `SavedQueryBar` chips rise on hover and settle back when pressed, like `Button`, instead of shrinking. Agent surfaces measure their element when the runtime takes a snapshot rather than on every scroll, so primitives without a `surface` no longer re-render while the page scrolls.
+
+- b007da4: Add the public site's frame, for sites that are not a console:
+  - `SiteLayout` holds a skip link, the nav, the page and the footer, with no sidebar and no padding of its own.
+  - `SiteNav` lies flat at the top of the page and floats as a glass bar once the page scrolls (`variant` pins either look); at 768px and narrower its links fold into a menu.
+  - `SiteSection` is a band whose background runs the full width and whose content sits in the site's content column; plain neighbours are divided by a hairline, `tone="tint"` fills the band.
+  - `SiteFooter` shows the brand, link columns, a note and a large outlined wordmark.
+
+  New tokens `--site-content-width`, `--site-gutter`, `--site-gutter-mobile`, `--site-nav-height`, `--site-nav-height-mobile`, `--site-nav-float-offset`, `--site-section-padding`, `--site-section-padding-mobile`, `--site-wordmark-size`, `--site-wordmark-tracking`, `--space-16` and `--size-control-lg`. `LinkComponent` gains an optional `aria-current`, which `DefaultLink` passes on; pass it to your router link in your adapter too.
+
 ## 0.6.0
 
 ### Minor Changes
