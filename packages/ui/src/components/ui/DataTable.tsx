@@ -74,7 +74,24 @@ export interface DataTableColumn<T> {
   numeric?: boolean;
   /** Washes a cell's background in a tone. Table rows only, not mobile cards. */
   cellTone?: (row: T, index: number) => DataTableCellTone | undefined;
+  /**
+   * Makes the header a sort control. With `sortValue` the table orders
+   * the rows itself; without it the host orders `data` (for instance the
+   * server, from a URL parameter) and the header only shows the state.
+   */
+  sortable?: boolean;
+  /** The value the table sorts this column by; `null` sorts last either way. */
+  sortValue?: (row: T) => number | string | null;
+  /** The direction of a first click. Defaults to `desc` for numeric columns, `asc` otherwise. */
+  firstSortDirection?: DataTableSortDirection;
   render: (row: T, index: number) => ReactNode;
+}
+
+export type DataTableSortDirection = 'asc' | 'desc';
+
+export interface DataTableSort {
+  key: string;
+  direction: DataTableSortDirection;
 }
 
 /** Server-side pagination: `data` is the current page, never sliced here. */
@@ -152,6 +169,15 @@ interface DataTableProps<T> {
    * loads: they stay in place, dimmed, and the table is marked busy.
    */
   stale?: boolean;
+  /**
+   * The sorted column and direction. Omit to let the table track it,
+   * starting from `defaultSort`. Row indices passed to `render`,
+   * `cellTone` and the other callbacks count in the sorted order.
+   */
+  sort?: DataTableSort | null;
+  defaultSort?: DataTableSort;
+  /** Called with the sort a header click asks for. */
+  onSortChange?: (sort: DataTableSort) => void;
   surface?: DataTableSurface<T>;
 }
 
@@ -175,6 +201,66 @@ function isOwnedByControl(event: MouseEvent<HTMLElement>): boolean {
   }
   const control = target.closest(CONTROL_SELECTOR);
   return control !== null && event.currentTarget.contains(control);
+}
+
+/**
+ * The rows ordered by `column`'s sort value, ties and nulls (last in
+ * either direction) keeping their order; unchanged when the column has no
+ * sort value, because then the host ordered them.
+ */
+function sortRows<T>(
+  data: T[],
+  column: DataTableColumn<T> | undefined,
+  direction: DataTableSortDirection,
+): T[] {
+  const value = column?.sortValue;
+  if (!value) {
+    return data;
+  }
+  const sign = direction === 'asc' ? 1 : -1;
+  return data
+    .map((row, index) => {
+      const v = value(row);
+      return { row, index, v: typeof v === 'number' && isNaN(v) ? null : v };
+    })
+    .sort((a, b) => {
+      if (a.v === null || b.v === null) {
+        return a.v === b.v ? a.index - b.index : a.v === null ? 1 : -1;
+      }
+      const order =
+        typeof a.v === 'number' && typeof b.v === 'number'
+          ? a.v - b.v
+          : String(a.v).localeCompare(String(b.v));
+      return order === 0 ? a.index - b.index : order * sign;
+    })
+    .map((entry) => entry.row);
+}
+
+function SortIcon({
+  direction,
+}: {
+  direction: DataTableSortDirection | null;
+}): ReactNode {
+  return (
+    <svg
+      className="aegis-data-table__sort-icon"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+    >
+      <path
+        className={
+          direction === 'asc' ? 'aegis-data-table__sort-mark--on' : undefined
+        }
+        d="M3.5 5L6 2.5 8.5 5"
+      />
+      <path
+        className={
+          direction === 'desc' ? 'aegis-data-table__sort-mark--on' : undefined
+        }
+        d="M3.5 7L6 9.5 8.5 7"
+      />
+    </svg>
+  );
 }
 
 function toCssWidth(w: number | string | undefined): string | undefined {
@@ -231,14 +317,44 @@ export function DataTable<T>({
   onRowClick,
   stickyFirstColumn = false,
   stale = false,
+  sort,
+  defaultSort,
+  onSortChange,
   surface,
 }: DataTableProps<T>) {
   const strings = useStrings();
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const detailIdPrefix = useId();
   const cardMode = renderMobileCard !== undefined && isMobile;
+
+  const [uncontrolledSort, setUncontrolledSort] =
+    useState<DataTableSort | null>(defaultSort ?? null);
+  const activeSort = sort === undefined ? uncontrolledSort : sort;
+  const sortColumn = columns.find((col) => col.key === activeSort?.key);
+  const rows = useMemo(
+    () => sortRows(data, sortColumn, activeSort?.direction ?? 'asc'),
+    [data, sortColumn, activeSort?.direction],
+  );
+  const requestSort = (col: DataTableColumn<T>): void => {
+    const first: DataTableSortDirection =
+      col.firstSortDirection ?? (col.numeric ? 'desc' : 'asc');
+    const next: DataTableSort = {
+      key: col.key,
+      direction:
+        activeSort?.key === col.key
+          ? activeSort.direction === 'asc'
+            ? 'desc'
+            : 'asc'
+          : first,
+    };
+    if (sort === undefined) {
+      setUncontrolledSort(next);
+    }
+    onSortChange?.(next);
+  };
+
   const selected = selectedKeys ?? [];
-  const keys = data.map((row, index) => rowKey(row, index));
+  const keys = rows.map((row, index) => rowKey(row, index));
   const selectedCount = keys.filter((key) => selected.includes(key)).length;
   const toggleRow = (key: string | number, checked: boolean): void => {
     onSelectedKeysChange?.(
@@ -682,10 +798,40 @@ export function DataTable<T>({
                       key={col.key}
                       className={cellClass('th', i)}
                       style={cellStyle(col, i)}
+                      aria-sort={
+                        col.sortable
+                          ? activeSort?.key === col.key
+                            ? activeSort.direction === 'asc'
+                              ? 'ascending'
+                              : 'descending'
+                            : 'none'
+                          : undefined
+                      }
                     >
-                      <span className="aegis-data-table__th-label">
-                        {col.header}
-                      </span>
+                      {col.sortable ? (
+                        <button
+                          type="button"
+                          className="aegis-data-table__sort"
+                          onClick={() => {
+                            requestSort(col);
+                          }}
+                        >
+                          <span className="aegis-data-table__th-label">
+                            {col.header}
+                          </span>
+                          <SortIcon
+                            direction={
+                              activeSort?.key === col.key
+                                ? activeSort.direction
+                                : null
+                            }
+                          />
+                        </button>
+                      ) : (
+                        <span className="aegis-data-table__th-label">
+                          {col.header}
+                        </span>
+                      )}
                       {col.resizable && (
                         <span
                           role="separator"
@@ -718,7 +864,7 @@ export function DataTable<T>({
                   {clickable && <td className="aegis-data-table__td" />}
                 </tr>
               ))
-            ) : data.length === 0 ? (
+            ) : rows.length === 0 ? (
               <tr>
                 <td
                   colSpan={columnCount}
@@ -734,7 +880,7 @@ export function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              data.map((row, idx) => {
+              rows.map((row, idx) => {
                 const key = rowKey(row, idx);
                 const detailId = `${detailIdPrefix}-detail-${String(idx)}`;
                 return (

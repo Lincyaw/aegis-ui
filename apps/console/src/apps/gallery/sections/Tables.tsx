@@ -7,6 +7,7 @@ import {
   DataTable,
   type DataTableCellTone,
   type DataTableColumn,
+  type DataTableSort,
   EventTable,
   type EventTableColumn,
   IdentityCell,
@@ -27,6 +28,36 @@ import {
   type GalleryModelRow,
 } from '../fixtures';
 import { Specimen } from '../shared';
+
+const GALLERY_SORTABLE_COLUMNS: Array<DataTableColumn<GalleryModelRow>> =
+  GALLERY_MODEL_COLUMNS.map((col) => ({
+    ...col,
+    sortable: true,
+    sortValue: (row: GalleryModelRow) =>
+      col.key === 'model'
+        ? row.model
+        : (row[col.key as 'runs' | 'passed' | 'failed' | 'mean'] ?? null),
+  }));
+
+function DataTableSortSpecimen(): ReactNode {
+  const [sort, setSort] = useState<DataTableSort | null>(null);
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption={`sortable + sortValue · the table orders the rows · numeric columns sort high first · — (null) last either way · ${sort ? `${sort.key} ${sort.direction}` : 'unsorted'}`}
+        span={3}
+      >
+        <DataTable
+          columns={GALLERY_SORTABLE_COLUMNS}
+          data={GALLERY_MODEL_ROWS}
+          rowKey={(row) => row.model}
+          defaultSort={{ key: 'mean', direction: 'desc' }}
+          onSortChange={setSort}
+        />
+      </Specimen>
+    </div>
+  );
+}
 
 function DataTablePaginationSpecimen(): ReactNode {
   const [page, setPage] = useState(1);
@@ -738,6 +769,9 @@ export function TablesSection() {
           rowKey={(row) => row.model}
         />
       </Specimen>
+
+      <SectionDivider>DataTable · sorting</SectionDivider>
+      <DataTableSortSpecimen />
 
       <SectionDivider>DataTable · row click</SectionDivider>
       <DataTableRowClickSpecimen />

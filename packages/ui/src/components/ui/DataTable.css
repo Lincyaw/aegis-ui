@@ -58,6 +58,49 @@
   display: block;
 }
 
+/* A sortable header: the label and a pair of carets, the active one inked. */
+.aegis-data-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  transition: color var(--motion-fast);
+}
+
+.aegis-data-table__sort:hover,
+.aegis-data-table__th[aria-sort='ascending'] .aegis-data-table__sort,
+.aegis-data-table__th[aria-sort='descending'] .aegis-data-table__sort {
+  color: var(--text-main);
+}
+
+.aegis-data-table__sort .aegis-data-table__th-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aegis-data-table__sort-icon {
+  flex-shrink: 0;
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.aegis-data-table__sort-icon .aegis-data-table__sort-mark--on {
+  stroke: var(--text-main);
+}
+
 .aegis-data-table__resizer {
   position: absolute;
   top: 0;

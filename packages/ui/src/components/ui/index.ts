@@ -128,6 +128,8 @@ export type {
   DataTableCellTone,
   DataTableColumn,
   DataTablePagination,
+  DataTableSort,
+  DataTableSortDirection,
   DataTableSurface,
 } from './DataTable';
 export { EventTable } from './EventTable';
