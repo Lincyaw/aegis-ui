@@ -25,6 +25,8 @@ export interface AegisStrings {
   closeNavigation: string;
   /** The shell's first link, which moves keyboard focus past the header to the page. */
   skipToContent: string;
+  siteNavigation: string;
+  siteFooterNavigation: string;
   showSidebar: string;
   hideSidebar: string;
   selectRow: string;
@@ -136,6 +138,8 @@ export const enStrings: AegisStrings = {
   openNavigation: 'Open navigation',
   closeNavigation: 'Close navigation',
   skipToContent: 'Skip to content',
+  siteNavigation: 'Site',
+  siteFooterNavigation: 'Footer',
   showSidebar: 'Show sidebar',
   hideSidebar: 'Hide sidebar',
   selectRow: 'Select row',
@@ -249,6 +253,8 @@ export const zhCNStrings: AegisStrings = {
   openNavigation: '打开导航',
   closeNavigation: '关闭导航',
   skipToContent: '跳到正文',
+  siteNavigation: '站点导航',
+  siteFooterNavigation: '页脚导航',
   showSidebar: '显示侧边导航',
   hideSidebar: '隐藏侧边导航',
   selectRow: '选择此行',

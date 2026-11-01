@@ -46,6 +46,17 @@ export type { CursorToken } from './lib/luceneQuery';
 // Layouts
 export { PageWrapper } from './layouts/PageWrapper';
 export type { PageWrapperProps } from './layouts/PageWrapper';
+// Public site frame: nav, bands and footer (AegisShell is the console's).
+export { SiteFooter, SiteLayout, SiteNav, SiteSection } from './layouts/site';
+export type {
+  SiteFooterColumn,
+  SiteFooterLink,
+  SiteFooterProps,
+  SiteLayoutProps,
+  SiteNavItem,
+  SiteNavProps,
+  SiteSectionProps,
+} from './layouts/site';
 
 // Shell (router-aware)
 export {

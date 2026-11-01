@@ -20,9 +20,10 @@ import {
 export const GalleryRouterLink: LinkComponent = ({
   to,
   className,
+  'aria-current': ariaCurrent,
   children,
 }) => (
-  <RouterLink to={to} className={className}>
+  <RouterLink to={to} className={className} aria-current={ariaCurrent}>
     {children}
   </RouterLink>
 );

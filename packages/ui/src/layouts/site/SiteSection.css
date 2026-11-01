@@ -1,0 +1,34 @@
+/* Anchors land below the floating nav, not under it. */
+.aegis-site-section {
+  scroll-margin-top: calc(
+    var(--site-nav-height) + var(--site-nav-float-offset) + var(--space-4)
+  );
+}
+
+.aegis-site-section--tint {
+  background: var(--bg-tint);
+}
+
+.aegis-site-section__inner {
+  width: min(100% - 2 * var(--site-gutter), var(--site-content-width));
+  margin-inline: auto;
+  padding-block: var(--site-section-padding);
+}
+
+/* Plain neighbours are divided by a hairline across the content column. */
+.aegis-site-section--plain
+  + .aegis-site-section--plain
+  > .aegis-site-section__inner {
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+@media (max-width: 768px) {
+  .aegis-site-section {
+    scroll-margin-top: calc(var(--site-nav-height-mobile) + var(--space-4));
+  }
+
+  .aegis-site-section__inner {
+    width: calc(100% - 2 * var(--site-gutter-mobile));
+    padding-block: var(--site-section-padding-mobile);
+  }
+}

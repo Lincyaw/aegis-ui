@@ -596,6 +596,50 @@ select.gallery__demo-input:focus {
   font-size: var(--size-icon-xl);
 }
 
+/* ── Site layout ────────────────────────────────────────────────── */
+.gallery__site-brand {
+  font-family: var(--font-brand);
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-line);
+  font-weight: var(--fw-semibold);
+  color: var(--accent-brand);
+}
+
+/* The nav is sticky; the frame gives it a stretch of page to sit on. */
+.gallery__site-frame {
+  width: 100%;
+  overflow: hidden;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+}
+
+.gallery__site-frame--wash {
+  padding-bottom: var(--space-6);
+  background:
+    radial-gradient(circle at 20% 0%, var(--ambient-hero-1), transparent 60%),
+    radial-gradient(circle at 80% 20%, var(--ambient-hero-3), transparent 55%),
+    var(--bg-page);
+}
+
+.gallery__site-scroller {
+  width: 100%;
+  height: 560px;
+  overflow-y: auto;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+}
+
+.gallery__site-scroller .aegis-site {
+  min-height: 100%;
+}
+
+.gallery__site-copy {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--text-muted);
+}
+
 /* ── Scroll ─────────────────────────────────────────────────────── */
 .gallery__scroll-progress-demo {
   display: grid;

@@ -1,0 +1,196 @@
+/* The bar extends --site-nav-inset past the content column on each side,
+ * so the brand stays on the column edge when the glass pill appears. */
+.aegis-site-nav {
+  --site-nav-inset: var(--space-6);
+
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  height: var(--site-nav-height);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  background: var(--bg-page);
+  transition:
+    background-color var(--motion-base),
+    border-color var(--motion-base);
+}
+
+.aegis-site-nav__bar {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  width: calc(
+    min(100% - 2 * var(--site-gutter), var(--site-content-width)) + 2 *
+      var(--site-nav-inset)
+  );
+  height: var(--site-nav-height);
+  margin-inline: auto;
+  padding-inline: var(--site-nav-inset);
+  border: var(--size-hairline) solid transparent;
+  border-radius: var(--radius-pill);
+  transition:
+    transform var(--motion-base),
+    background-color var(--motion-base),
+    border-color var(--motion-base),
+    box-shadow var(--motion-base);
+}
+
+/* Floats below the top of the window as a glass pill once the page scrolls. */
+.aegis-site-nav--floating {
+  border-bottom-color: transparent;
+  background: transparent;
+}
+
+.aegis-site-nav--floating .aegis-site-nav__bar {
+  transform: translateY(var(--site-nav-float-offset));
+  border-color: var(--border-glass);
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-rest);
+}
+
+.aegis-site-nav__brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.aegis-site-nav__nav {
+  min-width: 0;
+}
+
+.aegis-site-nav__links,
+.aegis-site-nav__menu-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aegis-site-nav__links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.aegis-site-nav__link {
+  display: inline-flex;
+  padding: var(--space-2) var(--space-1);
+  border-bottom: var(--size-border-thick) solid transparent;
+  font-family: var(--font-ui);
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.aegis-site-nav__link:hover {
+  color: var(--text-main);
+}
+
+.aegis-site-nav__link--current {
+  border-bottom-color: var(--accent-brand);
+  color: var(--text-main);
+}
+
+.aegis-site-nav__end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.aegis-site-nav__menu-button {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-lg);
+  height: var(--size-control-lg);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background-color var(--motion-fast);
+}
+
+.aegis-site-nav__menu-button:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-site-nav__menu-icon {
+  width: var(--size-icon-lg);
+  height: var(--size-icon-lg);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+/* The menu exists for narrow screens only; wider ones show the links inline. */
+.aegis-site-nav__menu {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .aegis-site-nav {
+    --site-nav-inset: 0;
+
+    height: var(--site-nav-height-mobile);
+  }
+
+  .aegis-site-nav__bar {
+    gap: var(--space-2);
+    width: calc(100% - 2 * var(--site-gutter-mobile));
+    height: var(--site-nav-height-mobile);
+  }
+
+  .aegis-site-nav__nav {
+    display: none;
+  }
+
+  .aegis-site-nav__menu-button {
+    display: inline-flex;
+  }
+
+  /* On a phone the whole bar turns to glass instead of floating. */
+  .aegis-site-nav--floating {
+    border-bottom-color: var(--border-glass);
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .aegis-site-nav--floating .aegis-site-nav__bar {
+    transform: none;
+    border-color: transparent;
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+
+  .aegis-site-nav__menu:not([hidden]) {
+    display: block;
+    border-bottom: var(--size-hairline) solid var(--border-hairline);
+    background: var(--bg-panel);
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .aegis-site-nav__menu-links {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2) var(--site-gutter-mobile) var(--space-4);
+  }
+
+  .aegis-site-nav__menu-links .aegis-site-nav__link {
+    padding-block: var(--space-3);
+  }
+}

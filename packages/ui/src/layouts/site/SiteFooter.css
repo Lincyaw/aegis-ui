@@ -1,0 +1,120 @@
+.aegis-site-footer {
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-site-footer__inner {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  width: min(100% - 2 * var(--site-gutter), var(--site-content-width));
+  margin-inline: auto;
+  padding-block: var(--space-12) var(--space-16);
+}
+
+.aegis-site-footer__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.aegis-site-footer__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.aegis-site-footer__tagline,
+.aegis-site-footer__note {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  text-wrap: pretty;
+  color: var(--text-muted);
+}
+
+.aegis-site-footer__columns {
+  display: flex;
+  gap: var(--space-16);
+}
+
+.aegis-site-footer__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-site-footer__title {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  color: var(--text-main);
+}
+
+.aegis-site-footer__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aegis-site-footer__link {
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--motion-fast);
+}
+
+.aegis-site-footer__link:hover {
+  color: var(--text-main);
+}
+
+/* Outlined letters in the brand face; the ink stays faint because the
+ * wordmark only closes the page. */
+.aegis-site-footer__wordmark {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-brand);
+  font-size: var(--site-wordmark-size);
+  line-height: 1;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--site-wordmark-tracking);
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: var(--size-hairline) var(--border-emphasis);
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .aegis-site-footer__inner {
+    gap: var(--space-8);
+    width: calc(100% - 2 * var(--site-gutter-mobile));
+    padding-block: var(--space-10) var(--space-12);
+  }
+
+  .aegis-site-footer__top {
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .aegis-site-footer__columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+    width: 100%;
+  }
+}

@@ -145,6 +145,7 @@
   --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
+  --space-16: 64px;
 
   /* ── Type families ───────────────────────────────────────────────── */
   --font-brand:
@@ -374,6 +375,7 @@
   --size-icon-xl: 32px;
   --size-control-sm: 24px;
   --size-control-base: 32px;
+  --size-control-lg: 40px;
   --size-avatar-sm: 24px;
   --size-avatar-base: 32px;
   --size-avatar-lg: 40px;
@@ -392,6 +394,21 @@
   --page-max-width: none;
   --page-padding-inline: var(--space-6);
   --page-padding-inline-mobile: var(--space-4);
+  /* Public site (SiteLayout): sections centre a content column with a
+   * fixed side gutter, so a 1440 window gives 1200 and a 1280 one 1040. */
+  --site-content-width: 1200px;
+  --site-gutter: 120px;
+  --site-gutter-mobile: var(--space-4);
+  --site-nav-height: 72px;
+  --site-nav-height-mobile: 56px;
+  /* How far the glass nav floats below the top of the window. */
+  --site-nav-float-offset: var(--space-3);
+  --site-section-padding: var(--space-16);
+  --site-section-padding-mobile: var(--space-10);
+  /* The footer's outlined wordmark: a share of the footer column's width
+   * (container units), so it fills the column at any width, up to 188px. */
+  --site-wordmark-size: min(15.6cqi, 188px);
+  --site-wordmark-tracking: -0.03em;
 
   /* ── Component tokens ────────────────────────────────────────────── */
   /* Defaults reproduce the stock look; a host restyles a primitive by

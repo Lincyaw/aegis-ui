@@ -4,6 +4,7 @@ import {
   DangerZone,
   FormRow,
   IdentityCell,
+  MetricLabel,
   MonoValue,
   PageHeader,
   PageWrapper,
@@ -11,9 +12,85 @@ import {
   PanelTitle,
   SectionDivider,
   SettingsSection,
+  SiteFooter,
+  type SiteFooterColumn,
+  SiteLayout,
+  SiteNav,
+  type SiteNavItem,
+  SiteSection,
+  ThemeToggle,
 } from '@lincyaw/aegis-ui';
 
-import { Specimen } from '../shared';
+import { GalleryRouterLink, Specimen } from '../shared';
+
+const SITE_NAV_ITEMS: SiteNavItem[] = [
+  { key: 'benchmarks', label: 'Benchmarks', to: '/gallery' },
+  { key: 'leaderboard', label: '排行榜', to: '/gallery' },
+  { key: 'replays', label: '回放', to: '/gallery' },
+  { key: 'reports', label: '报告', to: '/gallery' },
+  { key: 'method', label: '方法', to: '/gallery' },
+];
+
+const SITE_FOOTER_COLUMNS: SiteFooterColumn[] = [
+  {
+    key: 'benchmarks',
+    title: 'Benchmarks',
+    links: [
+      { key: 'dba', label: 'DBA Bench', to: '/gallery' },
+      { key: 'swe', label: 'SWE-chat', to: '/gallery' },
+      { key: 'arena', label: 'Agent Arena', to: '/gallery' },
+    ],
+  },
+  {
+    key: 'resources',
+    title: '资源',
+    links: [
+      { key: 'reports', label: '报告', to: '/gallery' },
+      { key: 'method', label: '方法', to: '/gallery' },
+      { key: 'changes', label: '更新记录', to: '/gallery' },
+    ],
+  },
+  {
+    key: 'about',
+    title: '关于',
+    links: [
+      { key: 'team', label: '团队', to: '/gallery' },
+      { key: 'submit', label: '提交模型', to: '/gallery' },
+      { key: 'contact', label: '联系我们', to: '/gallery' },
+    ],
+  },
+];
+
+function GallerySiteBrand() {
+  return <span className='gallery__site-brand'>AEGIS</span>;
+}
+
+function GallerySiteNav({ variant }: { variant: 'flat' | 'floating' }) {
+  return (
+    <SiteNav
+      brand={<GallerySiteBrand />}
+      brandHref='/gallery'
+      items={SITE_NAV_ITEMS}
+      activeKey='benchmarks'
+      actions={<ThemeToggle />}
+      variant={variant}
+      linkComponent={GalleryRouterLink}
+    />
+  );
+}
+
+function GallerySiteFooter() {
+  return (
+    <SiteFooter
+      brand={<GallerySiteBrand />}
+      tagline='Aegis Bench · 可回放的 Agent 评测'
+      columns={SITE_FOOTER_COLUMNS}
+      note='数据更新于 2026-10-28'
+      wordmark='AEGIS BENCH'
+      linkComponent={GalleryRouterLink}
+    />
+  );
+}
 
 export function LayoutsSection() {
   return (
@@ -224,6 +301,66 @@ export function LayoutsSection() {
           </label>
         </FormRow>
       </SettingsSection>
+
+      <SectionDivider
+        extra={
+          <MetricLabel>public site · AegisShell is for the console</MetricLabel>
+        }
+      >
+        SiteLayout · SiteNav · SiteSection · SiteFooter
+      </SectionDivider>
+      <div className='gallery__row'>
+        <Specimen
+          caption="SiteNav variant='flat' — the top of a page · current item underlined in --accent-brand"
+          span={3}
+        >
+          <div className='gallery__site-frame'>
+            <GallerySiteNav variant='flat' />
+          </div>
+        </Specimen>
+      </div>
+      <div className='gallery__row'>
+        <Specimen
+          caption="variant='floating' — after the page scrolls, a glass pill over the content (variant='auto' switches by itself)"
+          span={3}
+        >
+          <div className='gallery__site-frame gallery__site-frame--wash'>
+            <GallerySiteNav variant='floating' />
+          </div>
+        </Specimen>
+      </div>
+      <div className='gallery__row'>
+        <Specimen
+          caption='SiteLayout — nav, plain bands divided by a hairline, a tint band edge to edge, footer with outlined wordmark'
+          span={3}
+        >
+          <div className='gallery__site-scroller'>
+            <SiteLayout
+              nav={<GallerySiteNav variant='flat' />}
+              footer={<GallerySiteFooter />}
+            >
+              <SiteSection>
+                <PageHeader
+                  title='DBA Bench'
+                  description='48 production incidents, five runs each.'
+                />
+              </SiteSection>
+              <SiteSection>
+                <p className='gallery__site-copy'>
+                  A plain band. Its content sits in the site content column; the
+                  hairline above divides it from the band before.
+                </p>
+              </SiteSection>
+              <SiteSection tone='tint'>
+                <p className='gallery__site-copy'>
+                  A tint band runs edge to edge; its content stays in the
+                  column.
+                </p>
+              </SiteSection>
+            </SiteLayout>
+          </div>
+        </Specimen>
+      </div>
 
       <SectionDivider>DangerZone</SectionDivider>
       <DangerZone description='Once you delete a project, all associated data will be permanently removed. This action cannot be undone.'>
