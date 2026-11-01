@@ -919,7 +919,14 @@ export function IndicatorsSection() {
             { key: 'gpt', label: 'GPT 6.1 Sol', value: 1 },
             { key: 'glm', label: 'GLM 5.3 Flash', value: 0.2 },
             { key: 'ds', label: 'DeepSeek Flash', value: 0 },
-          ]}
+          ].map((item) => ({
+            ...item,
+            action: (
+              <a className='gallery__table-link' href={`#rank-${item.key}`}>
+                逐题表现
+              </a>
+            ),
+          }))}
           onSelect={() => {
             /* no-op */
           }}

@@ -137,3 +137,39 @@ button.aegis-rank-bar__track:active {
 .aegis-rank-bar__direction {
   font-family: var(--font-ui);
 }
+
+/* On a phone the bar takes a line of its own under the label, value and
+ * action, so a long label or a row link cannot squeeze it. Dense placement
+ * puts each row's value and action back beside its label. */
+@media (max-width: 768px) {
+  .aegis-rank-bar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-auto-flow: row dense;
+    row-gap: var(--space-1);
+  }
+
+  .aegis-rank-bar__label {
+    grid-column: 1;
+  }
+
+  .aegis-rank-bar__track,
+  .aegis-rank-bar__ticks {
+    grid-column: 1 / -1;
+  }
+
+  .aegis-rank-bar__track {
+    margin-bottom: var(--space-2);
+  }
+
+  .aegis-rank-bar__value {
+    grid-column: 2;
+  }
+
+  .aegis-rank-bar__action {
+    grid-column: 3;
+  }
+
+  .aegis-rank-bar__spacer {
+    display: none;
+  }
+}
