@@ -58,6 +58,10 @@ export default defineConfig({
     rollupOptions: {
       external: isExternal,
       output: {
+        // One file per source module: package.json marks the JS free of
+        // side effects, so a consumer's bundler keeps only what it imports.
+        preserveModules: true,
+        preserveModulesRoot: 'src',
         assetFileNames: (assetInfo) =>
           assetInfo.name === 'style.css'
             ? 'style.css'
