@@ -1,5 +1,24 @@
 # @lincyaw/aegis-ui
 
+## 0.9.0
+
+### Minor Changes
+
+- c0e86a0: Primitives for a public results site.
+  - New: `SiteAnchorNav`, `SiteSectionHeader`, `HeadlineStat`, `SeriesLabel`, `KeyMomentCard`, `ThoughtCard`, `AgentHud`, `ResultMatrix`, `Heatmap`, `ColumnChart`, `DotRangeChart` and `LineChart`.
+  - `RankBar`: `interval` on an item and `size='sm'`.
+  - `StackedBar`: `normalize`, `onSegmentSelect` and `isSegmentSelectable`.
+  - `ParetoChart`: `xScale='log'`, `xDomain`, `yDomain`, `xTicks`, `yTicks`, `labels='all'`, `fadeDominated`, `highlightKeys`, `maxHeight` and `frontProgress`. Scroll progress now traces the frontier instead of fading it in.
+  - `ReplayStepStrip`: `size='sm'`, `playhead` and a per-step `weight`. The row of key moments is left out when there are none.
+  - `ChartLegend`: `hollow` on an item.
+  - `ScrollStory`: `panelSide='start'` pins the panel on the leading side.
+  - Exports: `useMediaQuery` and `stageProgress`.
+  - Tokens: `--series-<vendor>` for model vendors, `--replay-<kind>` for replay steps and the `--type-number-display-*` role.
+
+### Patch Changes
+
+- 82f103d: RankBar: at 768 px and below, each row puts the bar on a line of its own under the label, value and action, so a long label or a row link no longer squeezes the bar.
+
 ## 0.8.0
 
 ### Minor Changes
