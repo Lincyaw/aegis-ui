@@ -1,5 +1,11 @@
 # @lincyaw/aegis-ui
 
+## 0.9.1
+
+### Patch Changes
+
+- 624e26e: SiteFooter: the outlined wordmark no longer shows the seams where a variable font's overlapping contours cross, such as the bar of an H across its stems.
+
 ## 0.9.0
 
 ### Minor Changes
