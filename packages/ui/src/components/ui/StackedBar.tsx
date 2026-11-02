@@ -53,6 +53,11 @@ export interface StackedBarProps<K extends string> {
   /** Makes each segment a button, e.g. one that opens that row's runs of the series. */
   onSegmentSelect?: (rowKey: string, seriesKey: K) => void;
   /**
+   * Whether a segment has something to open; the rest stay plain bars, so
+   * no button leads nowhere. Defaults to every segment.
+   */
+  isSegmentSelectable?: (rowKey: string, seriesKey: K) => boolean;
+  /**
    * How far the bars are drawn, 0 to 1, for a chart that draws as its
    * section scrolls in (`useScrollProgress`). Omitted, the bars draw in
    * once when they mount.
@@ -76,6 +81,7 @@ export function StackedBar<K extends string>({
   totalHeader,
   normalize = false,
   onSegmentSelect,
+  isSegmentSelectable = () => true,
   progress,
   className,
 }: StackedBarProps<K>) {
@@ -193,7 +199,8 @@ export function StackedBar<K extends string>({
                           width: `${((row.values[item.key] / total) * 100).toString()}%`,
                           background: chartColorValue(item.color),
                         };
-                        return onSegmentSelect ? (
+                        return onSegmentSelect &&
+                          isSegmentSelectable(row.key, item.key) ? (
                           <button
                             key={item.key}
                             type="button"

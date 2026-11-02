@@ -640,7 +640,7 @@ export function SiteChartsSection() {
           </div>
         </Specimen>
         <Specimen
-          caption={`normalize · each row its own composition · segments are buttons · last: ${segment}`}
+          caption={`normalize · each row its own composition · segments are buttons, but Kimi's out-of-steps share opens nothing · last: ${segment}`}
         >
           <div className='gallery__stack gallery__stack--fill'>
             <StackedBar
@@ -652,6 +652,9 @@ export function SiteChartsSection() {
               onSegmentSelect={(row, series) => {
                 setSegment(`${row} · ${series}`);
               }}
+              isSegmentSelectable={(row, series) =>
+                !(row === 'kimi' && series === 'budget')
+              }
               rows={[
                 {
                   key: 'opus',
