@@ -69,7 +69,8 @@
 }
 
 /* Drawn by scroll position: the host's progress fades the points in from
- * left to right and then the frontier, following the scroll both ways. */
+ * left to right and then traces the frontier with a clip, which keeps its
+ * dashes, following the scroll both ways. */
 .aegis-pareto--scroll .aegis-pareto__point,
 .aegis-pareto--scroll .aegis-pareto__front,
 .aegis-pareto--scroll .aegis-pareto__point-label {
@@ -87,7 +88,6 @@
   );
 }
 
-/* A clip traces the frontier, so it keeps its dashes while it draws. */
 .aegis-pareto--scroll .aegis-pareto__point-label {
   opacity: var(--aegis-pareto-front-progress, 1);
 }

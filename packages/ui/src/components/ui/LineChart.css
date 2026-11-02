@@ -39,6 +39,7 @@
 }
 
 .aegis-line-chart__end-label {
+  font-variant-numeric: tabular-nums;
   font-size: var(--type-label-size);
   font-weight: var(--type-label-weight);
   stroke: var(--bg-panel);
@@ -53,6 +54,7 @@
 }
 
 .aegis-line-chart__playhead-label {
+  font-variant-numeric: tabular-nums;
   font-size: var(--type-label-size);
   font-weight: var(--type-label-weight);
   fill: var(--text-main);

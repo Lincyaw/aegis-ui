@@ -18,10 +18,15 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SCAN = ['packages/ui/src', 'apps/console/src'];
 const THIRD_PARTY = /^--(xy|ant)-/;
 
-const files = execFileSync('git', ['ls-files', ...SCAN], {
-  cwd: repoRoot,
-  encoding: 'utf8',
-})
+// Untracked files count too, so a new file fails before it is committed.
+const files = execFileSync(
+  'git',
+  ['ls-files', '--cached', '--others', '--exclude-standard', ...SCAN],
+  {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  },
+)
   .split('\n')
   .filter((f) => /\.(css|tsx?)$/.test(f));
 

@@ -57,7 +57,8 @@ export interface HeatmapProps {
 /**
  * A table whose cells are tinted by how strong their reading is. Host code
  * sets each cell's level, usually normalised within its column. On a phone
- * every row folds into its label over a grid of labelled cells.
+ * every row folds into its label over a grid of labelled cells, so it is
+ * built from ARIA table roles, which keep their meaning through that.
  */
 export function Heatmap({
   columns,
@@ -70,17 +71,23 @@ export function Heatmap({
   className,
 }: HeatmapProps): ReactElement {
   return (
-    <table
+    <div
+      role="table"
       aria-label={label}
       className={['aegis-heatmap', className ?? ''].filter(Boolean).join(' ')}
+      style={{ '--aegis-heatmap-columns': columns.length } as CSSProperties}
     >
-      <thead>
-        <tr>
-          <th scope="col" className="aegis-heatmap__corner">
+      <div role="rowgroup" className="aegis-heatmap__head">
+        <div role="row" className="aegis-heatmap__row">
+          <div role="columnheader" className="aegis-heatmap__corner">
             {corner}
-          </th>
+          </div>
           {columns.map((column) => (
-            <th key={column.key} scope="col" className="aegis-heatmap__column">
+            <div
+              key={column.key}
+              role="columnheader"
+              className="aegis-heatmap__column"
+            >
               <span className="aegis-heatmap__column-label">
                 {column.label}
               </span>
@@ -89,16 +96,16 @@ export function Heatmap({
                   {column.detail}
                 </span>
               )}
-            </th>
+            </div>
           ))}
-        </tr>
-      </thead>
-      <tbody>
+        </div>
+      </div>
+      <div role="rowgroup" className="aegis-heatmap__body">
         {rows.map((row) => (
-          <tr key={row.key} className="aegis-heatmap__row">
-            <th scope="row" className="aegis-heatmap__row-label">
+          <div key={row.key} role="row" className="aegis-heatmap__row">
+            <div role="rowheader" className="aegis-heatmap__row-label">
               {row.label}
-            </th>
+            </div>
             {row.cells.map((cell, index) => {
               const column = columns[index];
               const content = (
@@ -118,8 +125,9 @@ export function Heatmap({
                 .filter(Boolean)
                 .join(' ');
               return (
-                <td
+                <div
                   key={column.key}
+                  role="cell"
                   className="aegis-heatmap__slot"
                   style={
                     {
@@ -144,12 +152,12 @@ export function Heatmap({
                       {content}
                     </Link>
                   )}
-                </td>
+                </div>
               );
             })}
-          </tr>
+          </div>
         ))}
-      </tbody>
-    </table>
+      </div>
+    </div>
   );
 }

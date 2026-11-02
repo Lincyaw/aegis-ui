@@ -12,8 +12,9 @@ export type ChartPaletteColor =
 /**
  * How a chart colours a series: a palette colour (`seq` for one
  * magnitude, `cat-1`…`cat-6` to tell series apart, `unknown` a neutral
- * fill for a share not classified yet), or a `var(…)` reference to a host
- * token, so one vendor keeps its colour on every chart.
+ * fill for a share not classified yet), or a `var(…)` reference to a
+ * token, such as a `--series-*` vendor colour, so one vendor keeps its
+ * colour on every chart.
  */
 export type ChartColor = ChartPaletteColor | `var(--${string})`;
 

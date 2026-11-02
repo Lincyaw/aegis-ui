@@ -141,7 +141,7 @@ function labelWidth(text: string): number {
  */
 function placeLabels(
   labelled: Array<{ key: string; label: string; x: number; y: number }>,
-  allPoints: Array<{ x: number; y: number }>,
+  allPoints: Array<{ key: string; x: number; y: number }>,
   bounds: { left: number; right: number; top: number; bottom: number },
 ): Map<string, LabelBox> {
   const placed: Array<{ l: number; r: number; t: number; b: number }> = [];
@@ -164,19 +164,25 @@ function placeLabels(
         b: candidate.y,
       };
     };
-    const clear = (candidate: LabelBox): boolean => {
+    const onPlot = (candidate: LabelBox): boolean => {
       const { l, r, t, b } = box(candidate);
       return (
         l >= bounds.left &&
         r <= bounds.right &&
-        t >= bounds.top - LABEL_GAP &&
-        b <= bounds.bottom &&
+        t >= bounds.top &&
+        b <= bounds.bottom
+      );
+    };
+    const clear = (candidate: LabelBox): boolean => {
+      const { l, r, t, b } = box(candidate);
+      return (
+        onPlot(candidate) &&
         placed.every(
           (other) => r < other.l || l > other.r || b < other.t || t > other.b,
         ) &&
         allPoints.every(
           (other) =>
-            other.x === point.x ||
+            other.key === point.key ||
             other.x + POINT_RADIUS < l ||
             other.x - POINT_RADIUS > r ||
             other.y + POINT_RADIUS < t ||
@@ -184,7 +190,11 @@ function placeLabels(
         )
       );
     };
-    const chosen = candidates.find(clear) ?? candidates[0];
+    // With no side free the label still stays on the plot, towards its middle.
+    const chosen =
+      candidates.find(clear) ??
+      candidates.find(onPlot) ??
+      candidates[point.x > (bounds.left + bounds.right) / 2 ? 1 : 0];
     placed.push(box(chosen));
     result.set(point.key, chosen);
   }
@@ -239,10 +249,16 @@ export function ParetoChart({
       Math.min(maxHeight, Math.max(MIN_HEIGHT, width / 2)),
     );
     const xValues = points.map((point) => point.x);
+    const logLo = Math.min(...xValues);
+    const logHi = Math.max(...xValues);
     const [xLo, xHi] =
       xDomain ??
       (xScale === 'log'
-        ? ([Math.min(...xValues), Math.max(...xValues)] as const)
+        ? // One value has no span to divide, so it sits mid-axis.
+          ([
+            logHi > logLo ? logLo : logLo / 2,
+            logHi > logLo ? logHi : logHi * 2,
+          ] as const)
         : zeroAnchoredDomain(xValues));
     const [yLo, yHi] =
       yDomain ?? zeroAnchoredDomain(points.map((point) => point.y));
@@ -293,7 +309,8 @@ export function ParetoChart({
       sy,
       front,
       frontKeys: new Set(front.map((point) => point.key)),
-      gridX: xTicks?.map(sx) ?? steps.map((t) => sx(xLo + (xHi - xLo) * t)),
+      // Even shares of the plot, which on a log axis are even ratios.
+      gridX: xTicks?.map(sx) ?? steps.map((t) => left + (right - left) * t),
       gridY: yTicks?.map(sy) ?? steps.map((t) => sy(yLo + (yHi - yLo) * t)),
       xLabels: xTicks ?? [xLo, xHi],
       yLabels: yTicks ?? [yLo, yHi],
@@ -360,8 +377,13 @@ export function ParetoChart({
         x: sx(point.x),
         y: sy(point.y),
       })),
-    points.map((point) => ({ x: sx(point.x), y: sy(point.y) })),
-    { left, right, top, bottom },
+    points.map((point) => ({
+      key: point.key,
+      x: sx(point.x),
+      y: sy(point.y),
+    })),
+    // A label may run up into the space above the plot.
+    { left, right, top: 0, bottom },
   );
   // A plot too narrow to name every point names them under it instead, so
   // none is left to a tooltip a phone cannot show.

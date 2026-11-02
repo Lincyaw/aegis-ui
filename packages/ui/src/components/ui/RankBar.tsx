@@ -32,8 +32,8 @@ export interface RankBarItem {
 interface RankBarProps {
   items: RankBarItem[];
   /**
-   * Upper bound of the scale. Defaults to the largest value, or 1 when all
-   * are 0; pass `1` for a share or a 0–1 score.
+   * Upper bound of the scale. Defaults to the largest value or interval
+   * end, or 1 when all are 0; pass `1` for a share or a 0–1 score.
    */
   max?: number;
   /** Scale hint rendered at the bottom, e.g. "越高越好". */
@@ -63,9 +63,10 @@ export function RankBar({
   className,
 }: RankBarProps) {
   const strings = useStrings();
-  const values = items.flatMap((item) =>
-    item.value === null ? [] : [item.value],
-  );
+  const values = items.flatMap((item) => [
+    ...(item.value === null ? [] : [item.value]),
+    ...(item.interval ?? []),
+  ]);
   const [, upperBound] = zeroAnchoredDomain(values, max);
   const cls = [
     'aegis-rank-bar',

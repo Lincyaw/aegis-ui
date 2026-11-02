@@ -78,33 +78,35 @@ export function ColumnChart({
     ...(item.interval ?? []),
   ]);
   const [, upperBound] = zeroAnchoredDomain(values, max);
-  const scale = (value: number): string =>
-    `${(Math.min(Math.max(value / upperBound, 0), 1) * 100).toString()}%`;
+  const share = (value: number): number =>
+    Math.min(Math.max(value / upperBound, 0), 1) * 100;
+  const scale = (value: number): string => `${share(value).toString()}%`;
 
   if (narrow) {
     return (
-      <RankBar
-        className={className}
-        size="sm"
-        max={upperBound}
-        format={format}
-        progress={progress}
-        items={items.map((item) => ({
-          key: item.key,
-          label: (
-            <SeriesLabel
-              name={item.label}
-              detail={item.detail}
-              color={item.color ?? DEFAULT_COLOR}
-              to={item.to}
-              linkComponent={Link}
-            />
-          ),
-          value: item.value,
-          interval: item.interval,
-          color: item.color,
-        }))}
-      />
+      <div role="group" aria-label={label} className={className}>
+        <RankBar
+          size="sm"
+          max={upperBound}
+          format={format}
+          progress={progress}
+          items={items.map((item) => ({
+            key: item.key,
+            label: (
+              <SeriesLabel
+                name={item.label}
+                detail={item.detail}
+                color={item.color ?? DEFAULT_COLOR}
+                to={item.to}
+                linkComponent={Link}
+              />
+            ),
+            value: item.value,
+            interval: item.interval,
+            color: item.color,
+          }))}
+        />
+      </div>
     );
   }
 
@@ -123,8 +125,8 @@ export function ColumnChart({
         .join(' ')}
       style={{ '--aegis-column-chart-count': columnCount } as CSSProperties}
     >
-      <div className="aegis-column-chart__plot">
-        <div className="aegis-column-chart__grid" aria-hidden="true">
+      <div className="aegis-column-chart__plot" aria-hidden="true">
+        <div className="aegis-column-chart__grid">
           {gridlines.map((tick) => (
             <span
               key={tick}
@@ -187,9 +189,8 @@ export function ColumnChart({
                     className="aegis-column-chart__interval"
                     style={{
                       bottom: scale(interval[0]),
-                      height: `${(((interval[1] - interval[0]) / upperBound) * 100).toString()}%`,
+                      height: `${(share(interval[1]) - share(interval[0])).toString()}%`,
                     }}
-                    aria-hidden="true"
                   />
                 )}
                 <span
@@ -223,6 +224,13 @@ export function ColumnChart({
             {item.detail !== undefined && (
               <span className="aegis-column-chart__detail">{item.detail}</span>
             )}
+            {/* The plot is hidden from screen readers, so each name reads its value. */}
+            <span className="aegis-column-chart__reading">
+              {item.value === null ? '—' : format(item.value)}
+              {item.interval === undefined
+                ? ''
+                : ` (${format(item.interval[0])}–${format(item.interval[1])})`}
+            </span>
           </div>
         ))}
       </div>

@@ -1,17 +1,34 @@
 .aegis-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
   width: 100%;
-  border-collapse: separate;
-  border-spacing: var(--space-1);
-  table-layout: fixed;
+  min-width: 0;
   font-family: var(--font-ui);
   color: var(--text-main);
 }
 
+.aegis-heatmap__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Every row has the same columns, so the cells line up down the table. */
+.aegis-heatmap__row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, var(--heatmap-row-label-width))
+    repeat(var(--aegis-heatmap-columns), minmax(0, 1fr));
+  align-items: center;
+  gap: var(--space-1);
+}
+
 .aegis-heatmap__corner,
 .aegis-heatmap__row-label {
-  width: var(--heatmap-row-label-width);
-  padding: 0 var(--space-3) 0 0;
-  font-weight: inherit;
+  display: flex;
+  min-width: 0;
+  padding-right: var(--space-3);
   text-align: left;
 }
 
@@ -27,7 +44,6 @@
 .aegis-heatmap__column {
   padding: var(--space-2);
   text-align: center;
-  vertical-align: bottom;
 }
 
 .aegis-heatmap__column-label {
@@ -43,7 +59,7 @@
 }
 
 .aegis-heatmap__slot {
-  padding: 0;
+  min-width: 0;
 }
 
 .aegis-heatmap__cell {
@@ -131,22 +147,17 @@
 
 /* Phones: each row is its label over a grid of cells that name their column. */
 @media (max-width: 768px) {
-  .aegis-heatmap,
-  .aegis-heatmap tbody,
-  .aegis-heatmap__row,
-  .aegis-heatmap__row-label {
-    display: block;
-    width: auto;
-  }
-
-  .aegis-heatmap thead {
+  .aegis-heatmap__head {
     display: none;
   }
 
+  .aegis-heatmap__body {
+    gap: 0;
+  }
+
   .aegis-heatmap__row {
-    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-1);
+    align-items: stretch;
     padding-block: var(--space-3);
     border-top: var(--size-hairline) solid var(--border-hairline);
   }
@@ -161,19 +172,14 @@
     padding: 0 0 var(--space-1);
   }
 
-  .aegis-heatmap__slot {
-    display: block;
-    min-width: 0;
-  }
-
   /* The cell names its column above its reading, so neither is cut off. */
   .aegis-heatmap__cell {
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
+    box-sizing: border-box;
     height: 100%;
     min-height: var(--heatmap-cell-height);
-    box-sizing: border-box;
     padding: var(--space-2);
   }
 

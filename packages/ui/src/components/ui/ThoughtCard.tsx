@@ -81,8 +81,6 @@ export function ThoughtCard({
       {body}
     </button>
   ) : (
-    <div className={cls} aria-current={current ? 'step' : undefined}>
-      {body}
-    </div>
+    <div className={cls}>{body}</div>
   );
 }

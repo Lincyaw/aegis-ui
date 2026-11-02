@@ -5,6 +5,15 @@
   align-items: start;
 }
 
+.aegis-scroll-story--panel-start {
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+}
+
+.aegis-scroll-story--panel-start .aegis-scroll-story__aside {
+  grid-row: 1;
+  grid-column: 1;
+}
+
 .aegis-scroll-story__steps {
   margin: 0;
   padding: 0;

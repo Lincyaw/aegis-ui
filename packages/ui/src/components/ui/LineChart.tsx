@@ -3,12 +3,12 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type ReactElement,
-  useMemo,
   useRef,
 } from 'react';
 
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { type ChartColor, chartColorValue, niceTicks } from '../../lib/chart';
+import { useStrings } from '../../locale';
 import './LineChart.css';
 
 export interface LineChartPoint {
@@ -28,7 +28,7 @@ export interface LineChartMarker {
   key: string;
   x: number;
   color: ChartColor;
-  /** Names the event, in its tooltip and to a screen reader. */
+  /** Names the event in its tooltip. */
   label: string;
 }
 
@@ -83,13 +83,11 @@ export function LineChart({
   progress,
   className,
 }: LineChartProps): ReactElement {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(wrapRef);
   const points = series.flatMap((line) => line.points);
-  const xs = useMemo(
-    () => [...new Set(points.map((point) => point.x))].sort((a, b) => a - b),
-    [points],
-  );
+  const xs = [...new Set(points.map((point) => point.x))].sort((a, b) => a - b);
   const cls = ['aegis-line-chart', className ?? ''].filter(Boolean).join(' ');
   if (width === 0 || xs.length === 0) {
     return <div ref={wrapRef} className={cls} />;
@@ -105,10 +103,11 @@ export function LineChart({
   const top = PAD_TOP;
   const bottom = HEIGHT - PAD_BOTTOM;
   const sx = (x: number): number =>
-    left + ((x - xLo) / Math.max(xHi - xLo, 1)) * (right - left);
+    left + (xHi > xLo ? (x - xLo) / (xHi - xLo) : 0) * (right - left);
   const sy = (y: number): number => bottom - (y / yHi) * (bottom - top);
 
-  // The end labels stack upwards when two lines finish close together.
+  // The end labels stack upwards when two lines finish close together, so
+  // the lowest stays where its line ends and none runs into the x axis.
   const ends = series
     .flatMap((line) => {
       const last = line.points[line.points.length - 1] as
@@ -116,10 +115,10 @@ export function LineChart({
         | undefined;
       return last === undefined ? [] : [{ line, last, y: sy(last.y) }];
     })
-    .sort((a, b) => a.y - b.y);
+    .sort((a, b) => b.y - a.y);
   for (let i = 1; i < ends.length; i += 1) {
-    if (ends[i].y - ends[i - 1].y < END_LABEL_LINE) {
-      ends[i].y = ends[i - 1].y + END_LABEL_LINE;
+    if (ends[i - 1].y - ends[i].y < END_LABEL_LINE) {
+      ends[i].y = ends[i - 1].y - END_LABEL_LINE;
     }
   }
 
@@ -199,18 +198,6 @@ export function LineChart({
             }
           />
         ))}
-        {markers.map((marker) => (
-          <circle
-            key={marker.key}
-            className="aegis-line-chart__marker"
-            cx={sx(marker.x)}
-            cy={bottom}
-            r={MARKER_RADIUS}
-            style={{ fill: chartColorValue(marker.color) }}
-          >
-            <title>{marker.label}</title>
-          </circle>
-        ))}
         {ends.map(({ line, last, y }) => (
           <text
             key={line.key}
@@ -277,7 +264,7 @@ export function LineChart({
             height={bottom - top}
             role="slider"
             tabIndex={0}
-            aria-label={label}
+            aria-label={strings.replayPosition}
             aria-valuemin={xLo}
             aria-valuemax={xHi}
             aria-valuenow={playhead ?? xLo}
@@ -286,6 +273,25 @@ export function LineChart({
             onKeyDown={seekFromKey}
           />
         )}
+        {markers.map((marker) => (
+          <circle
+            key={marker.key}
+            className="aegis-line-chart__marker"
+            cx={sx(marker.x)}
+            cy={bottom}
+            r={MARKER_RADIUS}
+            style={{ fill: chartColorValue(marker.color) }}
+            onClick={
+              onSeek
+                ? () => {
+                    onSeek(marker.x);
+                  }
+                : undefined
+            }
+          >
+            <title>{marker.label}</title>
+          </circle>
+        ))}
       </svg>
     </div>
   );

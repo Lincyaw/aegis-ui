@@ -38,6 +38,8 @@ export interface ScrollStoryProps {
   onCurrentChange?: (index: number) => void;
   /** The element that scrolls the story; omitted or null means the viewport. */
   scrollContainer?: HTMLElement | null;
+  /** Which side the pinned panel stands on. Defaults to `end`. */
+  panelSide?: 'start' | 'end';
   className?: string;
 }
 
@@ -56,6 +58,7 @@ export function ScrollStory({
   currentIndex,
   onCurrentChange,
   scrollContainer = null,
+  panelSide = 'end',
   className,
 }: ScrollStoryProps): ReactElement {
   const strings = useStrings();
@@ -117,6 +120,7 @@ export function ScrollStory({
   const rootClass = [
     'aegis-scroll-story',
     stacked ? 'aegis-scroll-story--stacked' : '',
+    panelSide === 'start' ? 'aegis-scroll-story--panel-start' : '',
     className ?? '',
   ]
     .filter(Boolean)

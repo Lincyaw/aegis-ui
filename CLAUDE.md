@@ -100,7 +100,7 @@ Sans SC, so Apple devices render Chinese in the system face.
   render with `font-variant-numeric: tabular-nums`. Sizes come from the
   `--type-<role>-size / -line / -weight / -tracking` roles (`title`,
   `heading`, `strong`, `body`, `small`, `label`, `micro`, `numeric`,
-  `number`, `mono`, and `display` / `article-*` / `eyebrow` for overview
+  `number`, `number-display`, `mono`, and `display` / `article-*` / `eyebrow` for overview
   and article pages). Chips, field labels, table headers, MetricLabel and
   StatBlock labels are never uppercase; `--tracking-label` is the tracking
   of the uppercase meta labels that SectionDivider, CodeBlock's language

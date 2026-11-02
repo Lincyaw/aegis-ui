@@ -113,18 +113,26 @@ button.aegis-replay-step-strip__step {
   );
 }
 
-/* Spans the strip, so a percentage of its own width is one of the strip;
- * the strip clips it where it passes the end. */
-.aegis-replay-step-strip--playhead .aegis-replay-step-strip__bars {
-  overflow-x: clip;
+/* The head spans the strip, so a percentage of its own width is one of the
+ * strip; less its own line, so at 1 the line stands on the strip's end. Only
+ * its own layer clips, so the current step's and the focus rings stay whole. */
+.aegis-replay-step-strip__head-track {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
 }
 
 .aegis-replay-step-strip__head {
   position: absolute;
   inset: 0;
   border-left: var(--replay-step-strip-playhead) solid var(--text-main);
-  pointer-events: none;
-  transform: translateX(calc(var(--aegis-replay-step-strip-head) * 100%));
+  transform: translateX(
+    calc(
+      var(--aegis-replay-step-strip-head) *
+        (100% - var(--replay-step-strip-playhead))
+    )
+  );
 }
 
 /* The current step: a ring in the main ink just outside the bar. */

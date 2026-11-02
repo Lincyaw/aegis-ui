@@ -59,7 +59,7 @@ export function KeyMomentCard({
       type="button"
       className={cls}
       style={style}
-      aria-pressed={selected}
+      aria-current={selected ? 'step' : undefined}
       onClick={onSelect}
     >
       {body}

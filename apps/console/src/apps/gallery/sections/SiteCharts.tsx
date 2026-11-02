@@ -97,16 +97,87 @@ const ENTRANTS: GalleryEntrant[] = [
   },
 ];
 
-const VENDORS = [
-  'anthropic',
-  'openai',
-  'google',
-  'deepseek',
-  'zhipu',
-  'moonshot',
-  'qwen',
-  'other',
-] as const;
+const VENDORS: Array<{ name: string; color: ChartColor }> = [
+  { name: 'anthropic', color: 'var(--series-anthropic)' },
+  { name: 'openai', color: 'var(--series-openai)' },
+  { name: 'google', color: 'var(--series-google)' },
+  { name: 'deepseek', color: 'var(--series-deepseek)' },
+  { name: 'zhipu', color: 'var(--series-zhipu)' },
+  { name: 'moonshot', color: 'var(--series-moonshot)' },
+  { name: 'qwen', color: 'var(--series-qwen)' },
+  { name: 'other', color: 'var(--series-other)' },
+];
+
+interface DumbbellRow {
+  name: string;
+  color: ChartColor;
+  from: number;
+  to: number;
+}
+
+const HARNESS_ROWS: DumbbellRow[] = [
+  {
+    name: 'GPT-6.1 Sol',
+    color: 'var(--series-openai)',
+    from: 0.793,
+    to: 0.976,
+  },
+  {
+    name: 'Gemini 4 Carbon',
+    color: 'var(--series-google)',
+    from: 0.502,
+    to: 0.81,
+  },
+  {
+    name: 'DeepSeek V4.1 Flash',
+    color: 'var(--series-deepseek)',
+    from: 0.259,
+    to: 0.222,
+  },
+];
+
+interface EloRow {
+  name: string;
+  color: ChartColor;
+  elo: number;
+  spread: number;
+}
+
+const ELO_ROWS: EloRow[] = [
+  {
+    name: 'Gemini 4 Carbon',
+    color: 'var(--series-google)',
+    elo: 1412,
+    spread: 34,
+  },
+  {
+    name: 'Claude Opus 5.5',
+    color: 'var(--series-anthropic)',
+    elo: 1395,
+    spread: 32,
+  },
+  {
+    name: 'Kimi K3.1 Pro',
+    color: 'var(--series-moonshot)',
+    elo: 1251,
+    spread: 40,
+  },
+  {
+    name: 'GLM 5.3 Flash',
+    color: 'var(--series-zhipu)',
+    elo: 1104,
+    spread: 46,
+  },
+];
+
+const ELO_ITEMS = ELO_ROWS.map((row) => ({
+  key: row.name,
+  label: <SeriesLabel name={row.name} color={row.color} />,
+  range: [row.elo - row.spread, row.elo + row.spread] as [number, number],
+  dots: [{ value: row.elo }],
+  color: row.color,
+  value: row.elo.toLocaleString('en-US'),
+}));
 
 const COLUMN_ITEMS: ColumnChartItem[] = ENTRANTS.map((entrant) => ({
   key: entrant.key,
@@ -242,22 +313,7 @@ function DrawnChartsSpecimen(): ReactNode {
               domain={[1000, 1500]}
               motion='slide'
               progress={progress}
-              items={[
-                { name: 'Gemini 4 Carbon', elo: 1412, c: 'google', r: 34 },
-                { name: 'Claude Opus 5.5', elo: 1395, c: 'anthropic', r: 32 },
-              ].map((row) => ({
-                key: row.name,
-                label: (
-                  <SeriesLabel
-                    name={row.name}
-                    color={`var(--series-${row.c})`}
-                  />
-                ),
-                range: [row.elo - row.r, row.elo + row.r] as [number, number],
-                dots: [{ value: row.elo }],
-                color: `var(--series-${row.c})` as ChartColor,
-                value: row.elo.toLocaleString('en-US'),
-              }))}
+              items={ELO_ITEMS.slice(0, 2)}
             />
             <LineChart
               label='Cumulative score'
@@ -388,9 +444,9 @@ export function SiteChartsSection() {
           <div className='gallery__stack'>
             {VENDORS.map((vendor) => (
               <SeriesLabel
-                key={vendor}
-                name={vendor}
-                color={`var(--series-${vendor})`}
+                key={vendor.name}
+                name={vendor.name}
+                color={vendor.color}
               />
             ))}
           </div>
@@ -512,23 +568,14 @@ export function SiteChartsSection() {
             <DotRangeChart
               label='Pass rate by harness'
               domain={[0, 1]}
-              items={[
-                ['GPT-6.1 Sol', 'openai', 0.793, 0.976],
-                ['Gemini 4 Carbon', 'google', 0.502, 0.81],
-                ['DeepSeek V4.1 Flash', 'deepseek', 0.259, 0.222],
-              ].map(([name, vendor, generic, own]) => {
-                const from = generic as number;
-                const to = own as number;
-                const color = `var(--series-${String(vendor)})` as ChartColor;
-                return {
-                  key: String(name),
-                  label: <SeriesLabel name={String(name)} color={color} />,
-                  range: [from, to] as [number, number],
-                  dots: [{ value: from, hollow: true }, { value: to }],
-                  color,
-                  value: `${to >= from ? '+' : '−'}${(Math.abs(to - from) * 100).toFixed(1)}`,
-                };
-              })}
+              items={HARNESS_ROWS.map((row) => ({
+                key: row.name,
+                label: <SeriesLabel name={row.name} color={row.color} />,
+                range: [row.from, row.to] as [number, number],
+                dots: [{ value: row.from, hollow: true }, { value: row.to }],
+                color: row.color,
+                value: `${row.to >= row.from ? '+' : '−'}${(Math.abs(row.to - row.from) * 100).toFixed(1)}`,
+              }))}
             />
             <ChartLegend
               shape='dot'
@@ -554,23 +601,7 @@ export function SiteChartsSection() {
               label='Elo with its 95% interval'
               domain={[1000, 1500]}
               motion='slide'
-              items={[
-                ['Gemini 4 Carbon', 'google', 1412, 34],
-                ['Kimi K3.1 Pro', 'moonshot', 1251, 40],
-                ['GLM 5.3 Flash', 'zhipu', 1104, 46],
-              ].map(([name, vendor, elo, spread]) => {
-                const reading = elo as number;
-                const half = spread as number;
-                const color = `var(--series-${String(vendor)})` as ChartColor;
-                return {
-                  key: String(name),
-                  label: <SeriesLabel name={String(name)} color={color} />,
-                  range: [reading - half, reading + half] as [number, number],
-                  dots: [{ value: reading }],
-                  color,
-                  value: reading.toLocaleString('en-US'),
-                };
-              })}
+              items={ELO_ITEMS}
             />
           </div>
         </Specimen>

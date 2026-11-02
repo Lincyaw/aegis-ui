@@ -58,9 +58,10 @@
 }
 
 .aegis-key-moment__step {
-  font-family: var(--font-mono);
-  font-size: var(--type-mono-size);
-  line-height: var(--type-mono-line);
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
 

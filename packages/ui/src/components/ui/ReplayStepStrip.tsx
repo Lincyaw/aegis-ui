@@ -218,7 +218,12 @@ export function ReplayStepStrip({
           );
         })}
         {playhead !== undefined && (
-          <span className="aegis-replay-step-strip__head" aria-hidden="true" />
+          <span
+            className="aegis-replay-step-strip__head-track"
+            aria-hidden="true"
+          >
+            <span className="aegis-replay-step-strip__head" />
+          </span>
         )}
       </div>
       {size === 'md' && (

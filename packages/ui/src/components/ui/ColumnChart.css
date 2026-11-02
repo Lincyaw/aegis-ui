@@ -189,3 +189,12 @@
   text-wrap: balance;
   color: var(--text-muted);
 }
+
+.aegis-column-chart__reading {
+  position: absolute;
+  width: var(--space-px);
+  height: var(--space-px);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
