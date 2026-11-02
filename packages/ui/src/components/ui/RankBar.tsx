@@ -3,6 +3,7 @@ import { type CSSProperties, type ReactNode } from 'react';
 import {
   type ChartColor,
   chartColorValue,
+  stageProgress,
   staggeredProgress,
   zeroAnchoredDomain,
 } from '../../lib/chart';
@@ -17,6 +18,8 @@ export interface RankBarItem {
    * from a real 0, which keeps a visible endpoint.
    */
   value: number | null;
+  /** The value's confidence interval, drawn as a line over the bar. */
+  interval?: [number, number];
   /** Trailing slot for a per-row link, e.g. "逐题表现". */
   action?: ReactNode;
   /**
@@ -36,6 +39,8 @@ interface RankBarProps {
   /** Scale hint rendered at the bottom, e.g. "越高越好". */
   direction?: ReactNode;
   format?: (value: number) => string;
+  /** `sm` is a thin bar, for rows that lead with their label. Defaults to `md`. */
+  size?: 'md' | 'sm';
   /** Makes each row's label and bar track select that row. */
   onSelect?: (key: string) => void;
   /**
@@ -52,6 +57,7 @@ export function RankBar({
   max,
   direction,
   format = (value) => value.toFixed(2),
+  size = 'md',
   onSelect,
   progress,
   className,
@@ -63,6 +69,7 @@ export function RankBar({
   const [, upperBound] = zeroAnchoredDomain(values, max);
   const cls = [
     'aegis-rank-bar',
+    size === 'sm' ? 'aegis-rank-bar--sm' : '',
     progress === undefined ? '' : 'aegis-rank-bar--scroll',
     className ?? '',
   ]
@@ -71,7 +78,23 @@ export function RankBar({
   return (
     <div className={cls}>
       {items.map((item, index) => {
-        const { value } = item;
+        const { value, interval } = item;
+        const share = (part: number): string =>
+          `${(upperBound > 0 ? (part / upperBound) * 100 : 0).toString()}%`;
+        const drawn =
+          progress === undefined
+            ? 1
+            : staggeredProgress(progress, index, items.length);
+        const intervalMark = interval && (
+          <span
+            className="aegis-rank-bar__interval"
+            style={{
+              left: share(interval[0]),
+              width: share(interval[1] - interval[0]),
+              opacity: `calc(var(--chart-interval-opacity) * ${stageProgress(drawn, 0.8, 1).toString()})`,
+            }}
+          />
+        );
         const fill =
           value === null ? null : (
             <div
@@ -83,7 +106,7 @@ export function RankBar({
                 .join(' ')}
               style={
                 {
-                  width: `${(upperBound > 0 ? (value / upperBound) * 100 : 0).toString()}%`,
+                  width: share(value),
                   '--aegis-rank-bar-index': index,
                   ...(item.color === undefined || value === 0
                     ? {}
@@ -91,10 +114,10 @@ export function RankBar({
                   ...(progress === undefined
                     ? {}
                     : {
-                        '--aegis-rank-bar-progress': staggeredProgress(
-                          progress,
-                          index,
-                          items.length,
+                        '--aegis-rank-bar-progress': stageProgress(
+                          drawn,
+                          0,
+                          interval ? 0.8 : 1,
                         ),
                       }),
                 } as CSSProperties
@@ -131,6 +154,7 @@ export function RankBar({
                 }}
               >
                 {fill}
+                {intervalMark}
               </button>
             ) : (
               <div
@@ -139,10 +163,15 @@ export function RankBar({
                 aria-label={
                   value === null
                     ? strings.noValue
-                    : strings.barValue(format(value), format(upperBound))
+                    : `${strings.barValue(format(value), format(upperBound))}${
+                        interval
+                          ? ` (${format(interval[0])}–${format(interval[1])})`
+                          : ''
+                      }`
                 }
               >
                 {fill}
+                {intervalMark}
               </div>
             )}
             <span

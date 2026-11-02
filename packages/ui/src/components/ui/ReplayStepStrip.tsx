@@ -19,6 +19,11 @@ export interface ReplayStepStripItem {
   label: string;
   /** A step that changes the course (a check, a failure, the goal): taller. */
   emphasis?: boolean;
+  /**
+   * The bar's height as a share of the strip, 0 to 1, for a host that
+   * grades its kinds more finely than `emphasis`; it wins over `emphasis`.
+   */
+  weight?: number;
 }
 
 export interface ReplayStepStripProps {
@@ -33,6 +38,13 @@ export interface ReplayStepStripProps {
   formatStep?: (index: number) => ReactNode;
   /** A tick every this many steps; defaults to about five ticks. */
   tickEvery?: number;
+  /** `sm` is a shorter strip without ticks, for a card or a list row. Defaults to `md`. */
+  size?: 'md' | 'sm';
+  /**
+   * Draws a playhead this share of the way along the strip, 0 to 1, and
+   * dims the steps past it, e.g. for a strip that plays as the page scrolls.
+   */
+  playhead?: number;
   className?: string;
 }
 
@@ -65,6 +77,8 @@ export function ReplayStepStrip({
   keyMoments = [],
   formatStep = (index) => `#${String(index + 1)}`,
   tickEvery,
+  size = 'md',
+  playhead,
   className,
 }: ReplayStepStripProps): ReactElement {
   const strings = useStrings();
@@ -104,36 +118,49 @@ export function ReplayStepStrip({
 
   const style = {
     '--aegis-replay-step-strip-count': Math.max(count, 1),
+    ...(playhead === undefined
+      ? {}
+      : {
+          '--aegis-replay-step-strip-head': playhead,
+          '--aegis-replay-step-strip-head-step': playhead * count,
+        }),
   } as CSSProperties;
   return (
     <div
-      className={['aegis-replay-step-strip', className ?? '']
+      className={[
+        'aegis-replay-step-strip',
+        `aegis-replay-step-strip--${size}`,
+        playhead === undefined ? '' : 'aegis-replay-step-strip--playhead',
+        className ?? '',
+      ]
         .filter(Boolean)
         .join(' ')}
       style={style}
     >
-      <div className="aegis-replay-step-strip__moments" aria-hidden="true">
-        {steps.map((step, index) => {
-          const n = momentNumber.get(index);
-          return n === undefined ? (
-            <span key={step.key} />
-          ) : (
-            <span
-              key={step.key}
-              className={[
-                'aegis-replay-step-strip__moment',
-                index === currentIndex
-                  ? 'aegis-replay-step-strip__moment--current'
-                  : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-            >
-              {n}
-            </span>
-          );
-        })}
-      </div>
+      {keyMoments.length > 0 && (
+        <div className="aegis-replay-step-strip__moments" aria-hidden="true">
+          {steps.map((step, index) => {
+            const n = momentNumber.get(index);
+            return n === undefined ? (
+              <span key={step.key} />
+            ) : (
+              <span
+                key={step.key}
+                className={[
+                  'aegis-replay-step-strip__moment',
+                  index === currentIndex
+                    ? 'aegis-replay-step-strip__moment--current'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                {n}
+              </span>
+            );
+          })}
+        </div>
+      )}
       <div
         ref={barsRef}
         className="aegis-replay-step-strip__bars"
@@ -149,6 +176,10 @@ export function ReplayStepStrip({
               : `${step.label} · ${strings.replayKeyMoment(n)}`;
           const barStyle = {
             '--aegis-replay-step-strip-color': chartColorValue(step.color),
+            '--aegis-replay-step-strip-index': index,
+            ...(step.weight === undefined
+              ? {}
+              : { height: `${(step.weight * 100).toString()}%` }),
           } as CSSProperties;
           const cls = [
             'aegis-replay-step-strip__step',
@@ -186,21 +217,26 @@ export function ReplayStepStrip({
             />
           );
         })}
+        {playhead !== undefined && (
+          <span className="aegis-replay-step-strip__head" aria-hidden="true" />
+        )}
       </div>
-      <div className="aegis-replay-step-strip__ticks" aria-hidden="true">
-        {steps.map((step, index) => (
-          <span
-            key={step.key}
-            className={
-              index === count - 1 && count > 1
-                ? 'aegis-replay-step-strip__tick aegis-replay-step-strip__tick--last'
-                : 'aegis-replay-step-strip__tick'
-            }
-          >
-            {ticks.has(index) ? formatStep(index) : null}
-          </span>
-        ))}
-      </div>
+      {size === 'md' && (
+        <div className="aegis-replay-step-strip__ticks" aria-hidden="true">
+          {steps.map((step, index) => (
+            <span
+              key={step.key}
+              className={
+                index === count - 1 && count > 1
+                  ? 'aegis-replay-step-strip__tick aegis-replay-step-strip__tick--last'
+                  : 'aegis-replay-step-strip__tick'
+              }
+            >
+              {ticks.has(index) ? formatStep(index) : null}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

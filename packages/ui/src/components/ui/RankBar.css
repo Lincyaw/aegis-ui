@@ -32,6 +32,7 @@ button.aegis-rank-bar__label {
 }
 
 .aegis-rank-bar__track {
+  position: relative;
   box-sizing: border-box;
   height: var(--space-6);
   border-radius: var(--radius-sm);
@@ -96,6 +97,24 @@ button.aegis-rank-bar__track:active {
 
 .aegis-rank-bar--scroll .aegis-rank-bar__ink {
   transform: translateX(calc((1 - var(--aegis-rank-bar-progress)) * 100%));
+}
+
+.aegis-rank-bar--sm .aegis-rank-bar__track {
+  height: var(--rank-bar-height-sm);
+  border-radius: var(--radius-pill);
+}
+
+.aegis-rank-bar--sm .aegis-rank-bar__fill {
+  border-radius: var(--radius-pill);
+}
+
+/* The value's interval: a thin line through the middle of the bar. */
+.aegis-rank-bar__interval {
+  position: absolute;
+  top: 50%;
+  height: var(--chart-interval-weight);
+  margin-top: calc(var(--chart-interval-weight) / -2);
+  background: var(--text-main);
 }
 
 /* A zero score still marks the axis start — an empty track reads as missing. */

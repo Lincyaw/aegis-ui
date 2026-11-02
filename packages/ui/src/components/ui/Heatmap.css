@@ -1,0 +1,190 @@
+.aegis-heatmap {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: var(--space-1);
+  table-layout: fixed;
+  font-family: var(--font-ui);
+  color: var(--text-main);
+}
+
+.aegis-heatmap__corner,
+.aegis-heatmap__row-label {
+  width: var(--heatmap-row-label-width);
+  padding: 0 var(--space-3) 0 0;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.aegis-heatmap__corner,
+.aegis-heatmap__column-detail {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
+}
+
+.aegis-heatmap__column {
+  padding: var(--space-2);
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.aegis-heatmap__column-label {
+  display: block;
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+}
+
+.aegis-heatmap__column-detail {
+  display: block;
+}
+
+.aegis-heatmap__slot {
+  padding: 0;
+}
+
+.aegis-heatmap__cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--heatmap-cell-height);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.aegis-heatmap__cell--empty {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.aegis-heatmap__tint {
+  position: absolute;
+  inset: 0;
+  background: var(--aegis-heatmap-color);
+  opacity: calc(
+    (
+        var(--heatmap-tint-min) + var(--aegis-heatmap-level) *
+          (var(--heatmap-tint-max) - var(--heatmap-tint-min))
+      ) *
+      var(--aegis-heatmap-progress)
+  );
+}
+
+.aegis-heatmap__cell--empty .aegis-heatmap__tint {
+  display: none;
+}
+
+.aegis-heatmap__text {
+  position: relative;
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  line-height: var(--type-numeric-line);
+  font-weight: var(--type-numeric-weight);
+  letter-spacing: var(--type-numeric-tracking);
+  font-variant-numeric: tabular-nums;
+}
+
+.aegis-heatmap__cell--empty .aegis-heatmap__text {
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+}
+
+.aegis-heatmap__cell--emphasis .aegis-heatmap__text {
+  font-weight: var(--fw-semibold);
+}
+
+/* The cell's column on a phone, where the header row is gone. */
+.aegis-heatmap__cell-label {
+  display: none;
+}
+
+.aegis-heatmap__cell--link {
+  transition:
+    transform var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-heatmap__cell--link:hover {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+    box-shadow: var(--shadow-raised);
+  }
+
+  .aegis-heatmap__cell--link:active {
+    transform: none;
+  }
+}
+
+.aegis-heatmap__cell--link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Phones: each row is its label over a grid of cells that name their column. */
+@media (max-width: 768px) {
+  .aegis-heatmap,
+  .aegis-heatmap tbody,
+  .aegis-heatmap__row,
+  .aegis-heatmap__row-label {
+    display: block;
+    width: auto;
+  }
+
+  .aegis-heatmap thead {
+    display: none;
+  }
+
+  .aegis-heatmap__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-1);
+    padding-block: var(--space-3);
+    border-top: var(--size-hairline) solid var(--border-hairline);
+  }
+
+  .aegis-heatmap__row:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .aegis-heatmap__row-label {
+    grid-column: 1 / -1;
+    padding: 0 0 var(--space-1);
+  }
+
+  .aegis-heatmap__slot {
+    display: block;
+    min-width: 0;
+  }
+
+  /* The cell names its column above its reading, so neither is cut off. */
+  .aegis-heatmap__cell {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    height: 100%;
+    min-height: var(--heatmap-cell-height);
+    box-sizing: border-box;
+    padding: var(--space-2);
+  }
+
+  .aegis-heatmap__cell-label {
+    position: relative;
+    display: block;
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line);
+    font-weight: var(--type-small-weight);
+    letter-spacing: var(--type-small-tracking);
+    text-wrap: balance;
+    color: var(--text-muted);
+  }
+}

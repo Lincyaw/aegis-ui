@@ -1,6 +1,8 @@
-/* Anchors land below the nav, which SiteLayout's --header-height measures. */
+/* Anchors land below the nav and any anchor band, which SiteLayout measures. */
 .aegis-site-section {
-  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+  scroll-margin-top: calc(
+    var(--header-height) + var(--site-anchor-offset) + var(--space-4)
+  );
 }
 
 .aegis-site-section--tint {

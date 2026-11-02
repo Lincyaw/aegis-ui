@@ -1,0 +1,87 @@
+.aegis-key-moment {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  font-family: var(--font-ui);
+  text-align: left;
+}
+
+.aegis-key-moment--interactive {
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast),
+    box-shadow var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-key-moment--interactive:hover {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+    box-shadow: var(--shadow-raised);
+  }
+
+  .aegis-key-moment--interactive:active {
+    transform: none;
+  }
+}
+
+.aegis-key-moment--interactive:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.aegis-key-moment--selected {
+  border-color: var(--border-emphasis);
+  box-shadow: var(--shadow-rest);
+}
+
+.aegis-key-moment__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.aegis-key-moment__dot {
+  flex-shrink: 0;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-circle);
+  background: var(--aegis-key-moment-color);
+}
+
+.aegis-key-moment__step {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-size);
+  line-height: var(--type-mono-line);
+  color: var(--text-muted);
+}
+
+.aegis-key-moment__kind,
+.aegis-key-moment__detail {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
+}
+
+.aegis-key-moment__title {
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  text-wrap: balance;
+  color: var(--text-main);
+}
+
+.aegis-key-moment__detail {
+  text-wrap: pretty;
+}

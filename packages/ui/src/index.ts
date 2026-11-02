@@ -58,14 +58,24 @@ export type { ChartColor, ChartPaletteColor } from './lib/chart';
 export { PageWrapper } from './layouts/PageWrapper';
 export type { PageWrapperProps } from './layouts/PageWrapper';
 // Public site frame: nav, bands and footer (AegisShell is the console's).
-export { SiteFooter, SiteLayout, SiteNav, SiteSection } from './layouts/site';
+export {
+  SiteAnchorNav,
+  SiteFooter,
+  SiteLayout,
+  SiteNav,
+  SiteSection,
+  SiteSectionHeader,
+} from './layouts/site';
 export type {
+  SiteAnchorNavItem,
+  SiteAnchorNavProps,
   SiteFooterColumn,
   SiteFooterLink,
   SiteFooterProps,
   SiteLayoutProps,
   SiteNavItem,
   SiteNavProps,
+  SiteSectionHeaderProps,
   SiteSectionProps,
 } from './layouts/site';
 

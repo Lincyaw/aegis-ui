@@ -1,0 +1,111 @@
+/* Rows share the columns, so labels, plots and readings line up. */
+.aegis-dot-range {
+  display: grid;
+  grid-template-columns:
+    minmax(0, var(--dot-range-label-width)) minmax(0, 1fr)
+    max-content;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-ui);
+  color: var(--text-main);
+}
+
+.aegis-dot-range__row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.aegis-dot-range__label {
+  display: flex;
+  min-width: 0;
+}
+
+.aegis-dot-range__plot {
+  position: relative;
+  height: var(--dot-range-row-height);
+  min-width: 0;
+  /* The dots' halves past the scale's ends stay on the plot. */
+  margin-inline: calc(var(--dot-range-dot) / 2);
+}
+
+.aegis-dot-range__track {
+  position: absolute;
+  inset-inline: calc(var(--dot-range-dot) / -2);
+  top: 50%;
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-dot-range__line {
+  position: absolute;
+  top: 50%;
+  height: var(--dot-range-line);
+  margin-top: calc(var(--dot-range-line) / -2);
+  border-radius: var(--radius-pill);
+  background: var(--aegis-dot-range-color);
+}
+
+/* A before and after: the line only joins the dots, which carry the reading. */
+.aegis-dot-range--extend .aegis-dot-range__line {
+  opacity: var(--chart-interval-opacity);
+}
+
+/* Spans the plot, so a percentage of its own width is one of the scale. */
+.aegis-dot-range__mover {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.aegis-dot-range__dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  box-sizing: border-box;
+  width: var(--dot-range-dot);
+  height: var(--dot-range-dot);
+  margin: calc(var(--dot-range-dot) / -2) 0 0 calc(var(--dot-range-dot) / -2);
+  border: var(--size-border-thick) solid var(--aegis-dot-range-color);
+  border-radius: var(--radius-circle);
+  background: var(--aegis-dot-range-color);
+}
+
+.aegis-dot-range__dot--hollow {
+  background: var(--bg-panel);
+}
+
+.aegis-dot-range__value {
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  line-height: var(--type-numeric-line);
+  font-weight: var(--type-numeric-weight);
+  letter-spacing: var(--type-numeric-tracking);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Phones: label and reading on one line, the plot full width under them. */
+@media (max-width: 768px) {
+  .aegis-dot-range {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    row-gap: var(--space-4);
+  }
+
+  .aegis-dot-range__row {
+    row-gap: var(--space-1);
+  }
+
+  .aegis-dot-range__plot {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .aegis-dot-range__value {
+    grid-row: 1;
+    grid-column: 2;
+  }
+}

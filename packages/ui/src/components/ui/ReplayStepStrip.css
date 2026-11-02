@@ -51,8 +51,13 @@
 
 /* Bars stand on a common baseline; a step that changes the course is taller. */
 .aegis-replay-step-strip__bars {
+  position: relative;
   align-items: end;
   height: var(--replay-step-strip-bar-emphasis);
+}
+
+.aegis-replay-step-strip--sm .aegis-replay-step-strip__bars {
+  height: var(--replay-step-strip-bar-emphasis-sm);
 }
 
 .aegis-replay-step-strip__step {
@@ -84,6 +89,42 @@ button.aegis-replay-step-strip__step {
 
 .aegis-replay-step-strip__step--emphasis {
   height: var(--replay-step-strip-bar-emphasis);
+}
+
+.aegis-replay-step-strip--sm .aegis-replay-step-strip__step {
+  height: var(--replay-step-strip-bar-sm);
+}
+
+.aegis-replay-step-strip--sm .aegis-replay-step-strip__step--emphasis {
+  height: var(--replay-step-strip-bar-emphasis-sm);
+}
+
+/* Steps past the playhead dim. The clamp is 1 for a step before the head
+ * and the dim level from the head on, so only one variable moves. */
+.aegis-replay-step-strip--playhead .aegis-replay-step-strip__step {
+  opacity: clamp(
+    var(--replay-step-strip-dim),
+    (
+        var(--aegis-replay-step-strip-head-step) -
+          var(--aegis-replay-step-strip-index)
+      ) *
+      1000,
+    1
+  );
+}
+
+/* Spans the strip, so a percentage of its own width is one of the strip;
+ * the strip clips it where it passes the end. */
+.aegis-replay-step-strip--playhead .aegis-replay-step-strip__bars {
+  overflow-x: clip;
+}
+
+.aegis-replay-step-strip__head {
+  position: absolute;
+  inset: 0;
+  border-left: var(--replay-step-strip-playhead) solid var(--text-main);
+  pointer-events: none;
+  transform: translateX(calc(var(--aegis-replay-step-strip-head) * 100%));
 }
 
 /* The current step: a ring in the main ink just outside the bar. */

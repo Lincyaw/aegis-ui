@@ -12,12 +12,14 @@ import {
   PanelTitle,
   SectionDivider,
   SettingsSection,
+  SiteAnchorNav,
   SiteFooter,
   type SiteFooterColumn,
   SiteLayout,
   SiteNav,
   type SiteNavItem,
   SiteSection,
+  SiteSectionHeader,
   ThemeToggle,
 } from '@lincyaw/aegis-ui';
 
@@ -357,6 +359,66 @@ export function LayoutsSection() {
                   column.
                 </p>
               </SiteSection>
+            </SiteLayout>
+          </div>
+        </Specimen>
+      </div>
+
+      <SectionDivider>SiteSectionHeader · SiteAnchorNav</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen
+          caption='the noun in the eyebrow, the conclusion as the title · actions beside it'
+          span={3}
+        >
+          <div className='gallery__stack gallery__stack--fill'>
+            <SiteSectionHeader
+              eyebrow='排行榜'
+              title='GPT-6.1 Sol 几乎每次都通过，GLM 5.3 Flash 一次也没有'
+              lead='通过率 = 通过全部检查的运行 / 总运行。误差线为 90% 区间。'
+            />
+            <SiteSectionHeader
+              eyebrow='报告'
+              title='最新发现'
+              actions={<a href='#reports'>全部报告 →</a>}
+            />
+          </div>
+        </Specimen>
+      </div>
+      <div className='gallery__row'>
+        <Specimen
+          caption='sticks under the nav, follows the scroll, and a click scrolls to the section · chips that scroll sideways on a phone · the nav here is the frame, so scroll inside it'
+          span={3}
+        >
+          <div className='gallery__site-scroller'>
+            <SiteLayout nav={<GallerySiteNav variant='flat' />}>
+              <SiteSection>
+                <SiteSectionHeader as='h3' title='CGFS' />
+              </SiteSection>
+              <SiteAnchorNav
+                items={[
+                  { id: 'gallery-anchor-board', label: '排行榜' },
+                  { id: 'gallery-anchor-cost', label: '成本与效率' },
+                  { id: 'gallery-anchor-models', label: '模型与 Harness' },
+                  { id: 'gallery-anchor-failures', label: '失败类型' },
+                  { id: 'gallery-anchor-tasks', label: '题目' },
+                  { id: 'gallery-anchor-replays', label: '回放' },
+                ]}
+              />
+              {[
+                ['gallery-anchor-board', '排行榜'],
+                ['gallery-anchor-cost', '成本与效率'],
+                ['gallery-anchor-models', '模型与 Harness'],
+                ['gallery-anchor-failures', '失败类型'],
+                ['gallery-anchor-tasks', '题目'],
+                ['gallery-anchor-replays', '回放'],
+              ].map(([id, title]) => (
+                <SiteSection key={id} id={id}>
+                  <SiteSectionHeader as='h3' eyebrow={title} title={title} />
+                  <p className='gallery__site-copy'>
+                    A section tall enough to scroll past.
+                  </p>
+                </SiteSection>
+              ))}
             </SiteLayout>
           </div>
         </Specimen>

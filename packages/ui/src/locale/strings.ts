@@ -18,6 +18,8 @@ export interface AegisStrings {
   /** The shell's first link, which moves keyboard focus past the header to the page. */
   skipToContent: string;
   siteNavigation: string;
+  /** Names a SiteAnchorNav, e.g. "On this page". */
+  pageSections: string;
   siteFooterNavigation: string;
   showSidebar: string;
   hideSidebar: string;
@@ -132,6 +134,7 @@ export const enStrings: AegisStrings = {
   closeNavigation: 'Close navigation',
   skipToContent: 'Skip to content',
   siteNavigation: 'Site',
+  pageSections: 'On this page',
   siteFooterNavigation: 'Footer',
   showSidebar: 'Show sidebar',
   hideSidebar: 'Hide sidebar',
@@ -248,6 +251,7 @@ export const zhCNStrings: AegisStrings = {
   closeNavigation: '关闭导航',
   skipToContent: '跳到正文',
   siteNavigation: '站点导航',
+  pageSections: '本页章节',
   siteFooterNavigation: '页脚导航',
   showSidebar: '显示侧边导航',
   hideSidebar: '隐藏侧边导航',

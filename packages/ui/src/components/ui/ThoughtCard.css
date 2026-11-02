@@ -1,0 +1,96 @@
+.aegis-thought-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  font-family: var(--font-ui);
+  text-align: left;
+  transition: border-color var(--motion-fast);
+}
+
+.aegis-thought-card--current {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-thought-card--interactive {
+  cursor: pointer;
+}
+
+.aegis-thought-card--interactive:hover {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-thought-card--interactive:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.aegis-thought-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.aegis-thought-card__turn,
+.aegis-thought-card__clock,
+.aegis-thought-card__action {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-size);
+  line-height: var(--type-mono-line);
+}
+
+.aegis-thought-card__turn {
+  color: var(--text-main);
+}
+
+.aegis-thought-card__clock {
+  color: var(--text-faint);
+}
+
+.aegis-thought-card__thought {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  text-wrap: pretty;
+  color: var(--text-muted);
+}
+
+.aegis-thought-card--current .aegis-thought-card__thought {
+  color: var(--text-main);
+}
+
+.aegis-thought-card__action {
+  max-width: 100%;
+  padding: var(--space-1) var(--space-2);
+  overflow-wrap: anywhere;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.aegis-thought-card__outcome {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
+}
+
+.aegis-thought-card__dot {
+  flex-shrink: 0;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-circle);
+  background: var(--aegis-thought-card-color);
+}

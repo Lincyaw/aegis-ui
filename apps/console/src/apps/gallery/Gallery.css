@@ -614,6 +614,47 @@ select.gallery__demo-input:focus {
   color: var(--text-muted);
 }
 
+.gallery__story-scroller {
+  width: 100%;
+  height: 520px;
+  overflow-y: auto;
+  padding: var(--space-6);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+  --scroll-story-sticky-top: var(--space-4);
+  --scroll-story-view-height: 480px;
+}
+
+.gallery__series-narrow {
+  width: 200px;
+}
+
+.gallery__headline-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.gallery__moment-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+  width: 100%;
+}
+
+/* A board's colour behind glass, so the HUD's glass reads. */
+.gallery__hud-stage {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--bg-tint);
+}
+
 /* ── Site layout ────────────────────────────────────────────────── */
 .gallery__site-brand {
   font-family: var(--font-brand);

@@ -46,6 +46,13 @@ export interface StackedBarProps<K extends string> {
   /** Table header of the row total column, e.g. "合计". */
   totalHeader: ReactNode;
   /**
+   * Draws every bar across the full width, so a row reads as its own
+   * composition rather than against the others; the scale is left out.
+   */
+  normalize?: boolean;
+  /** Makes each segment a button, e.g. one that opens that row's runs of the series. */
+  onSegmentSelect?: (rowKey: string, seriesKey: K) => void;
+  /**
    * How far the bars are drawn, 0 to 1, for a chart that draws as its
    * section scrolls in (`useScrollProgress`). Omitted, the bars draw in
    * once when they mount.
@@ -67,6 +74,8 @@ export function StackedBar<K extends string>({
   view = 'chart',
   labelHeader,
   totalHeader,
+  normalize = false,
+  onSegmentSelect,
   progress,
   className,
 }: StackedBarProps<K>) {
@@ -133,12 +142,17 @@ export function StackedBar<K extends string>({
               <div className="aegis-stacked-bar__label">{row.label}</div>
               <div
                 className="aegis-stacked-bar__track"
-                role="img"
-                aria-label={series
-                  .map(
-                    (item) => `${item.label} ${format(row.values[item.key])}`,
-                  )
-                  .join(', ')}
+                {...(onSegmentSelect
+                  ? {}
+                  : {
+                      role: 'img',
+                      'aria-label': series
+                        .map(
+                          (item) =>
+                            `${item.label} ${format(row.values[item.key])}`,
+                        )
+                        .join(', '),
+                    })}
               >
                 <div
                   className={
@@ -148,7 +162,8 @@ export function StackedBar<K extends string>({
                   }
                   style={
                     {
-                      width: scaleWidth(total),
+                      width:
+                        normalize && total > 0 ? '100%' : scaleWidth(total),
                       '--aegis-stacked-bar-index': index,
                       ...(progress === undefined
                         ? {}
@@ -165,23 +180,39 @@ export function StackedBar<K extends string>({
                   <div className="aegis-stacked-bar__segments">
                     {series
                       .filter((item) => row.values[item.key] > 0)
-                      .map((item) => (
-                        <span
-                          key={item.key}
-                          className={[
-                            'aegis-stacked-bar__segment',
-                            item.color === 'unknown'
-                              ? 'aegis-stacked-bar__segment--unknown'
-                              : '',
-                          ]
-                            .filter(Boolean)
-                            .join(' ')}
-                          style={{
-                            width: `${((row.values[item.key] / total) * 100).toString()}%`,
-                            background: chartColorValue(item.color),
-                          }}
-                        />
-                      ))}
+                      .map((item) => {
+                        const segmentClass = [
+                          'aegis-stacked-bar__segment',
+                          item.color === 'unknown'
+                            ? 'aegis-stacked-bar__segment--unknown'
+                            : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ');
+                        const segmentStyle = {
+                          width: `${((row.values[item.key] / total) * 100).toString()}%`,
+                          background: chartColorValue(item.color),
+                        };
+                        return onSegmentSelect ? (
+                          <button
+                            key={item.key}
+                            type="button"
+                            className={`${segmentClass} aegis-stacked-bar__segment--button`}
+                            style={segmentStyle}
+                            aria-label={`${item.label} ${format(row.values[item.key])}`}
+                            title={`${item.label} ${format(row.values[item.key])}`}
+                            onClick={() => {
+                              onSegmentSelect(row.key, item.key);
+                            }}
+                          />
+                        ) : (
+                          <span
+                            key={item.key}
+                            className={segmentClass}
+                            style={segmentStyle}
+                          />
+                        );
+                      })}
                   </div>
                 </div>
               </div>
@@ -192,13 +223,15 @@ export function StackedBar<K extends string>({
             </div>
           );
         })}
-        <div className="aegis-stacked-bar__scale">
-          <span>{format(0)}</span>
-          {direction !== undefined && (
-            <span className="aegis-stacked-bar__direction">{direction}</span>
-          )}
-          <span>{format(upperBound)}</span>
-        </div>
+        {!normalize && (
+          <div className="aegis-stacked-bar__scale">
+            <span>{format(0)}</span>
+            {direction !== undefined && (
+              <span className="aegis-stacked-bar__direction">{direction}</span>
+            )}
+            <span>{format(upperBound)}</span>
+          </div>
+        )}
       </div>
     </div>
   );

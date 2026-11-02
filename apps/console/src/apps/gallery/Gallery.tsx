@@ -15,6 +15,7 @@ import { NavigationSection } from './sections/Navigation';
 import { NotificationsSection } from './sections/Notifications';
 import { ServicePrimitivesSection } from './sections/ServicePrimitives';
 import { ShapeMotionSection } from './sections/ShapeMotion';
+import { SiteChartsSection } from './sections/SiteCharts';
 import { SurfacesSection } from './sections/Surfaces';
 import { TablesSection } from './sections/Tables';
 import { TypographySection } from './sections/Typography';
@@ -45,6 +46,7 @@ export default function Gallery() {
       <ShapeMotionSection />
       <SurfacesSection />
       <IndicatorsSection />
+      <SiteChartsSection />
       <DataDisplaySection />
       <ListsRowsSection />
       <TablesSection />

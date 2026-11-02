@@ -4,7 +4,11 @@
  * the nav and the gap it floats at. */
 .aegis-site {
   --header-height: calc(var(--site-nav-height) + var(--site-nav-float-offset));
-  --scroll-story-sticky-top: calc(var(--header-height) + var(--space-6));
+  /* How far a SiteAnchorNav, if the page has one, pushes both of these down. */
+  --site-anchor-offset: 0rem;
+  --scroll-story-sticky-top: calc(
+    var(--header-height) + var(--site-anchor-offset) + var(--space-6)
+  );
   /* Recomputed here so overrides of their inputs on this element apply. */
   --site-gutter: clamp(
     var(--space-6),
@@ -20,6 +24,10 @@
   min-height: 100vh;
   background: var(--bg-page);
   color: var(--text-main);
+}
+
+.aegis-site:has(.aegis-site-anchor-nav) {
+  --site-anchor-offset: var(--site-anchor-nav-height);
 }
 
 @media (max-width: 768px) {

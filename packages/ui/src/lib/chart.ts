@@ -104,3 +104,15 @@ export function staggeredProgress(
   const span = 1 + STAGGER * Math.max(count - 1, 0);
   return Math.min(1, Math.max(0, progress * span - STAGGER * index));
 }
+
+/**
+ * Where `progress` is within one stage, `from` to `to`, of a chart's draw:
+ * 0 before the stage, 1 after it.
+ */
+export function stageProgress(
+  progress: number,
+  from: number,
+  to: number,
+): number {
+  return Math.min(1, Math.max(0, (progress - from) / (to - from)));
+}

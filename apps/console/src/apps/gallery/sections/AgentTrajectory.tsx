@@ -2,10 +2,12 @@ import { type ReactNode, useState } from 'react';
 
 import {
   Button as AegisButton,
+  AgentHud,
   ChartLegend,
   ContentInspectorDialog,
   ContentPreview,
   type InspectableContent,
+  KeyMomentCard,
   MetricLabel,
   Panel,
   PanelTitle,
@@ -13,13 +15,16 @@ import {
   ReplayStepStrip,
   ReplayTransport,
   SectionDivider,
+  SeriesLabel,
   Tabs,
+  ThoughtCard,
   ToolCallCard,
   type ToolCallData,
   TrajectoryStep,
   type TrajectoryStepData,
   TrajectoryTimeline,
   useReplayPlayback,
+  useScrollProgress,
 } from '@lincyaw/aegis-ui';
 
 import { TOOL_QUERY_METRICS } from '../fixtures';
@@ -252,6 +257,97 @@ function ReplayStepStripSpecimen(): ReactNode {
   );
 }
 
+/* One height per kind on a compact strip, from a quiet thought to a failure. */
+const REPLAY_WEIGHTS: Record<ReplayKind, number> = {
+  think: 0.44,
+  tool: 0.56,
+  edit: 0.68,
+  check: 0.8,
+  fail: 1,
+  goal: 1,
+};
+
+const REPLAY_WEIGHTED_STEPS = REPLAY_STRIP_STEPS.map((step, index) => {
+  const kind: ReplayKind =
+    index === 11 ? 'fail' : index === 37 ? 'goal' : REPLAY_PATTERN[index % 10];
+  return { ...step, emphasis: false, weight: REPLAY_WEIGHTS[kind] };
+});
+
+function ReplayStripCompactSpecimen(): ReactNode {
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const { ref, progress } = useScrollProgress<HTMLDivElement>({
+    range: 'cover',
+    scrollContainer: scroller,
+  });
+  return (
+    <div className='gallery__row'>
+      <Specimen caption="size='sm' · no ticks · weight grades the bars by kind">
+        <div className='gallery__stack gallery__stack--fill'>
+          <ReplayStepStrip size='sm' steps={REPLAY_WEIGHTED_STEPS} />
+        </div>
+      </Specimen>
+      <Specimen
+        caption={`playhead follows the scroll · later steps dim · ${progress.toFixed(2)}`}
+      >
+        <div ref={setScroller} className='gallery__chart-scroller'>
+          <p className='gallery__chart-scroller-spacer'>Scroll down.</p>
+          <div ref={ref}>
+            <ReplayStepStrip
+              size='sm'
+              steps={REPLAY_WEIGHTED_STEPS}
+              playhead={progress}
+            />
+          </div>
+          <div className='gallery__chart-scroller-spacer' />
+        </div>
+      </Specimen>
+    </div>
+  );
+}
+
+function KeyMomentSpecimen(): ReactNode {
+  const [moment, setMoment] = useState('t31');
+  return (
+    <div className='gallery__moment-row'>
+      <KeyMomentCard
+        step='#113'
+        kind='执行报错'
+        color='var(--replay-error)'
+        title='声称“已验证”后，执行计划在 replica 上报错'
+        detail='#57 写下“binding 已生效”，但 #113 的 EXPLAIN 仍走旧计划。'
+      />
+      {[
+        {
+          key: 't23',
+          step: 'T23',
+          kind: '受挫',
+          color: 'var(--replay-setback)',
+          title: '北线一次失败的强攻',
+        },
+        {
+          key: 't31',
+          step: 'T31',
+          kind: '关键决策',
+          color: 'var(--replay-milestone)',
+          title: '决定绕开主力去切补给',
+        },
+      ].map((item) => (
+        <KeyMomentCard
+          key={item.key}
+          step={item.step}
+          kind={item.kind}
+          color={item.color as `var(--${string})`}
+          title={item.title}
+          selected={moment === item.key}
+          onSelect={() => {
+            setMoment(item.key);
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 const TRAJECTORY_STEP_SEVERAL_CALLS: TrajectoryStepData = {
   step: 5,
   timestamp: '14:22:09',
@@ -479,6 +575,87 @@ export function AgentTrajectorySection() {
 
       <SectionDivider>ReplayStepStrip</SectionDivider>
       <ReplayStepStripSpecimen />
+      <ReplayStripCompactSpecimen />
+
+      <SectionDivider>KeyMomentCard</SectionDivider>
+      <KeyMomentSpecimen />
+
+      <SectionDivider>ThoughtCard</SectionDivider>
+      <div className='gallery__moment-row'>
+        <ThoughtCard
+          turn='T41'
+          clock='06:01'
+          thought='渡口 E5 无人防守；若占住，蓝方南线补给要多走 6 格。'
+          action='scout(unit=3, to="D4")'
+          outcome='发现 E5 空虚'
+          outcomeColor='var(--replay-tool)'
+        />
+        <ThoughtCard
+          current
+          turn='T42'
+          clock='06:12'
+          thought='右翼兵力薄弱，先占 E5 渡口切断补给，再回防主城。'
+          action='move(unit=7, to="E5")'
+          outcome='占领 E5 · +12 分'
+          outcomeColor='var(--replay-milestone)'
+        />
+      </div>
+
+      <SectionDivider>AgentHud</SectionDivider>
+      <div className='gallery__hud-stage'>
+        {[
+          {
+            name: 'Claude Opus 5.5',
+            side: '红方',
+            color: 'var(--series-anthropic)',
+            score: '128',
+            troops: 0.7,
+            troopsText: '14 / 20',
+            funds: 0.46,
+            fundsText: '320',
+            status: '思考中 · 已用 2.4 s / 10 s',
+          },
+          {
+            name: 'GPT-6.1 Sol',
+            side: '蓝方',
+            color: 'var(--series-openai)',
+            score: '96',
+            troops: 0.45,
+            troopsText: '9 / 20',
+            funds: 0.3,
+            fundsText: '210',
+            status: '等待对手',
+          },
+        ].map((side) => (
+          <AgentHud
+            key={side.name}
+            color={side.color as `var(--${string})`}
+            agent={
+              <SeriesLabel
+                name={side.name}
+                detail={side.side}
+                color={side.color as `var(--${string})`}
+              />
+            }
+            score={side.score}
+            status={side.status}
+            meters={[
+              {
+                key: 'troops',
+                label: '兵力',
+                value: side.troopsText,
+                share: side.troops,
+              },
+              {
+                key: 'funds',
+                label: '资源',
+                value: side.fundsText,
+                share: side.funds,
+              },
+            ]}
+          />
+        ))}
+      </div>
 
       <SectionDivider>ContentInspectorDialog · ContentPreview</SectionDivider>
       <ContentInspectorSpecimen />

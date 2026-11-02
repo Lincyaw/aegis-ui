@@ -1,0 +1,38 @@
+.aegis-result-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  min-width: 0;
+}
+
+.aegis-result-matrix__row {
+  display: grid;
+  grid-template-columns: repeat(
+    var(--aegis-result-matrix-columns),
+    minmax(0, 1fr)
+  );
+  gap: var(--space-1);
+}
+
+.aegis-result-matrix__cell {
+  display: block;
+  border-radius: var(--radius-xs);
+  background: var(--aegis-result-matrix-color);
+  opacity: calc(
+    var(--aegis-result-matrix-level) * var(--aegis-result-matrix-progress)
+  );
+}
+
+.aegis-result-matrix__cell--empty {
+  background: var(--bg-muted);
+  opacity: var(--aegis-result-matrix-progress);
+}
+
+.aegis-result-matrix--square .aegis-result-matrix__cell {
+  aspect-ratio: 1;
+}
+
+.aegis-result-matrix--bar .aegis-result-matrix__cell {
+  height: var(--result-matrix-bar);
+}

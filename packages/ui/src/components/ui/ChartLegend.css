@@ -39,3 +39,9 @@
 .aegis-chart-legend__swatch--unknown {
   box-shadow: inset 0 0 0 var(--size-hairline) var(--border-hairline);
 }
+
+.aegis-chart-legend__swatch--hollow {
+  box-sizing: border-box;
+  border: var(--size-border-thick) solid var(--aegis-chart-legend-color);
+  background: var(--bg-panel);
+}

@@ -7,6 +7,8 @@ export interface ChartLegendItem {
   key: string;
   label: ReactNode;
   color: ChartColor;
+  /** An outlined swatch, for a series its chart draws as a hollow dot. */
+  hollow?: boolean;
 }
 
 export interface ChartLegendProps {
@@ -37,6 +39,7 @@ export function ChartLegend({
               item.color === 'unknown'
                 ? 'aegis-chart-legend__swatch--unknown'
                 : '',
+              item.hollow ? 'aegis-chart-legend__swatch--hollow' : '',
             ]
               .filter(Boolean)
               .join(' ')}

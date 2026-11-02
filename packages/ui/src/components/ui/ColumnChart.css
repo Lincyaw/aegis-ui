@@ -1,0 +1,191 @@
+.aegis-column-chart {
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-ui);
+  color: var(--text-main);
+}
+
+.aegis-column-chart__plot {
+  position: relative;
+  height: var(--column-chart-plot-height);
+  margin-top: var(--space-8);
+  border-bottom: var(--size-hairline) solid var(--border-emphasis);
+}
+
+.aegis-column-chart__grid {
+  position: absolute;
+  inset: 0;
+}
+
+.aegis-column-chart__tick {
+  position: absolute;
+  inset-inline: 0;
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-column-chart__tick-label {
+  position: absolute;
+  bottom: var(--space-1);
+  left: 0;
+  font-family: var(--font-numeric);
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+/* Columns and their names share one track per item. */
+.aegis-column-chart__columns,
+.aegis-column-chart__labels {
+  display: grid;
+  grid-template-columns: repeat(
+    var(--aegis-column-chart-count),
+    minmax(0, 1fr)
+  );
+  column-gap: var(--space-3);
+  padding-inline-start: var(--column-chart-axis-width);
+}
+
+.aegis-column-chart__columns {
+  position: absolute;
+  inset: 0;
+}
+
+.aegis-column-chart__column {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* Bars stand on the baseline and are revealed upwards from it. */
+.aegis-column-chart__bar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: min(var(--column-chart-bar-width), 100%);
+  overflow: hidden;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transform: translateX(-50%);
+  animation: aegis-column-chart-grow var(--motion-chart) backwards;
+  animation-delay: calc(
+    var(--motion-stagger-step) * var(--aegis-column-chart-index)
+  );
+}
+
+.aegis-column-chart__ink {
+  display: block;
+  height: 100%;
+  background: var(--aegis-column-chart-color);
+}
+
+@keyframes aegis-column-chart-grow {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+/* A zero value still marks the baseline; an empty slot reads as missing. */
+.aegis-column-chart__bar--zero {
+  min-height: var(--space-px);
+}
+
+.aegis-column-chart__interval {
+  position: absolute;
+  left: 50%;
+  width: var(--chart-interval-weight);
+  background: var(--text-main);
+  opacity: var(--chart-interval-opacity);
+  transform: translateX(-50%);
+}
+
+.aegis-column-chart__value {
+  position: absolute;
+  left: 50%;
+  padding-bottom: var(--space-1);
+  font-family: var(--font-numeric);
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.aegis-column-chart__value--empty {
+  color: var(--text-muted);
+}
+
+/* Drawn by scroll position: a clip reveals the bar from the baseline and
+ * follows the scroll both ways. The value and then the interval appear
+ * once it has grown. */
+.aegis-column-chart--scroll .aegis-column-chart__bar {
+  clip-path: inset(calc((1 - var(--aegis-column-chart-grow)) * 100%) 0 0 0);
+  animation: none;
+}
+
+.aegis-column-chart--scroll .aegis-column-chart__value {
+  opacity: var(--aegis-column-chart-value);
+}
+
+.aegis-column-chart--scroll .aegis-column-chart__interval {
+  opacity: calc(
+    var(--chart-interval-opacity) * var(--aegis-column-chart-interval)
+  );
+}
+
+/* The global reduced-motion rule shortens durations but not delays. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-column-chart__bar {
+    animation: none;
+  }
+}
+
+.aegis-column-chart__labels {
+  margin-top: var(--space-3);
+}
+
+.aegis-column-chart__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-px);
+  min-width: 0;
+  text-align: center;
+}
+
+.aegis-column-chart__name {
+  max-width: 100%;
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  text-wrap: balance;
+  color: var(--text-main);
+}
+
+.aegis-column-chart__name--link {
+  text-decoration: none;
+}
+
+.aegis-column-chart__name--link:hover {
+  text-decoration: underline;
+}
+
+.aegis-column-chart__name--link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.aegis-column-chart__detail {
+  max-width: 100%;
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  text-wrap: balance;
+  color: var(--text-muted);
+}

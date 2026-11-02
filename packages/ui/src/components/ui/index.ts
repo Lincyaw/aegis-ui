@@ -47,7 +47,41 @@ export type { RankBarItem } from './RankBar';
 export { ScoreBar } from './ScoreBar';
 export { RunPips } from './RunPips';
 export type { RunPipsCounts } from './RunPips';
+export { AgentHud } from './AgentHud';
+export type { AgentHudMeter, AgentHudProps } from './AgentHud';
 export { ChartLegend } from './ChartLegend';
+export { ColumnChart } from './ColumnChart';
+export type { ColumnChartItem, ColumnChartProps } from './ColumnChart';
+export { DotRangeChart } from './DotRangeChart';
+export type {
+  DotRangeChartDot,
+  DotRangeChartItem,
+  DotRangeChartProps,
+} from './DotRangeChart';
+export { HeadlineStat } from './HeadlineStat';
+export type { HeadlineStatProps } from './HeadlineStat';
+export { Heatmap } from './Heatmap';
+export type {
+  HeatmapCell,
+  HeatmapColumn,
+  HeatmapProps,
+  HeatmapRow,
+} from './Heatmap';
+export { KeyMomentCard } from './KeyMomentCard';
+export type { KeyMomentCardProps } from './KeyMomentCard';
+export { LineChart } from './LineChart';
+export type {
+  LineChartMarker,
+  LineChartPoint,
+  LineChartProps,
+  LineChartSeries,
+} from './LineChart';
+export { ResultMatrix } from './ResultMatrix';
+export type { ResultMatrixProps } from './ResultMatrix';
+export { SeriesLabel } from './SeriesLabel';
+export type { SeriesLabelProps } from './SeriesLabel';
+export { ThoughtCard } from './ThoughtCard';
+export type { ThoughtCardProps } from './ThoughtCard';
 export { ReplayScrubber } from './ReplayScrubber';
 export type {
   ReplayScrubberMarker,

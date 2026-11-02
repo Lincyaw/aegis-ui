@@ -91,6 +91,23 @@
   --data-cat-4: #4d7c0f;
   --data-cat-5: #8b5e34;
   --data-cat-6: #57534e;
+  /* One hue per model vendor, the same on every chart of the public site. */
+  --series-anthropic: #c15f3c;
+  --series-openai: #1f2328;
+  --series-google: #188038;
+  --series-deepseek: #2f5bd3;
+  --series-zhipu: #0e7490;
+  --series-moonshot: #52525b;
+  --series-qwen: #6d4fd8;
+  --series-other: #a8a29e;
+  /* One colour per replay step kind; error stays the real failure red. */
+  --replay-think: var(--data-cat-6);
+  --replay-tool: var(--data-cat-1);
+  --replay-edit: var(--data-cat-3);
+  --replay-test: var(--data-cat-2);
+  --replay-error: var(--accent-warning);
+  --replay-milestone: var(--accent-success);
+  --replay-setback: var(--ink-warn);
 
   /* ── Scrollbar ───────────────────────────────────────────────────── */
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
@@ -227,6 +244,10 @@
   --type-number-line: 36px;
   --type-number-weight: var(--fw-semibold);
   --type-number-tracking: -0.01em;
+  --type-number-display-size: 48px;
+  --type-number-display-line: 56px;
+  --type-number-display-weight: var(--fw-semibold);
+  --type-number-display-tracking: -0.015em;
   --type-mono-size: 12px;
   --type-mono-line: 18px;
   --type-mono-weight: var(--fw-regular);
@@ -435,6 +456,45 @@
   --replay-step-strip-bar: var(--space-10);
   --replay-step-strip-bar-emphasis: var(--space-16);
   --replay-step-strip-gap: var(--space-1);
+  /* size='sm': the strip inside a card or a list row. */
+  --replay-step-strip-bar-sm: var(--space-5);
+  --replay-step-strip-bar-emphasis-sm: var(--space-8);
+  /* Steps past the playhead. */
+  --replay-step-strip-dim: 0.22;
+  --replay-step-strip-playhead: var(--size-border-thick);
+  /* SiteAnchorNav: the sticky band, which anchors and pinned panels clear. */
+  --site-anchor-nav-height: 49px;
+  /* SiteSectionHeader: the widths at which a title and a lead stop. */
+  --site-heading-width: 800px;
+  --site-lead-width: 720px;
+  /* SeriesLabel: the dot before a model's name. */
+  --series-label-dot: 10px;
+  /* Thin bars: RankBar size='sm', ResultMatrix shape='bar'. */
+  --rank-bar-height-sm: var(--space-2);
+  --result-matrix-bar: 7px;
+  /* A bar's confidence interval, drawn over it in the main ink. */
+  --chart-interval-weight: var(--size-border-thick);
+  --chart-interval-opacity: 0.35;
+  /* ColumnChart: the plot, a bar and the space its axis labels sit in. */
+  --column-chart-plot-height: 320px;
+  --column-chart-bar-width: var(--space-16);
+  --column-chart-axis-width: var(--space-10);
+  /* Heatmap: a cell, and how strongly the lowest and highest levels tint it. */
+  --heatmap-cell-height: 44px;
+  --heatmap-row-label-width: 280px;
+  --heatmap-tint-min: 0.08;
+  --heatmap-tint-max: 0.5;
+  /* DotRangeChart: a row's plot, its dots and the line between them. */
+  --dot-range-row-height: 28px;
+  --dot-range-dot: 14px;
+  --dot-range-line: 3px;
+  --dot-range-label-width: 240px;
+  /* LineChart: a line's weight. */
+  --line-chart-stroke: var(--size-border-thick);
+  /* ParetoChart: the points highlightKeys leaves out. */
+  --pareto-dimmed-opacity: 0.18;
+  /* AgentHud: its meters. */
+  --agent-hud-meter: var(--space-1);
 
   /* ── Component tokens ────────────────────────────────────────────── */
   /* Defaults reproduce the stock look; a host restyles a primitive by
@@ -530,6 +590,14 @@
   --data-cat-4: #a3e635;
   --data-cat-5: #d4a373;
   --data-cat-6: #a8a29e;
+  --series-anthropic: #e8916f;
+  --series-openai: #e6e8eb;
+  --series-google: #5bc27a;
+  --series-deepseek: #86a0f7;
+  --series-zhipu: #22d3ee;
+  --series-moonshot: #a1a1aa;
+  --series-qwen: #a78bfa;
+  --series-other: #78716c;
 
   /* Avatar palette — lighter for dark surfaces */
   --avatar-hue-1: #64748b;

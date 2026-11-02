@@ -101,6 +101,21 @@
   transition: width var(--motion-chart);
 }
 
+.aegis-stacked-bar__segment--button {
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.aegis-stacked-bar__segment--button:hover {
+  opacity: 0.8;
+}
+
+.aegis-stacked-bar__segment--button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .aegis-stacked-bar__segment--unknown {
   box-shadow: inset 0 0 0 var(--size-hairline) var(--border-hairline);
 }

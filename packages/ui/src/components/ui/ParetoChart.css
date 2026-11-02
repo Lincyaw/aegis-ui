@@ -87,9 +87,24 @@
   );
 }
 
-.aegis-pareto--scroll .aegis-pareto__front,
+/* A clip traces the frontier, so it keeps its dashes while it draws. */
 .aegis-pareto--scroll .aegis-pareto__point-label {
-  opacity: var(--aegis-pareto-front-progress);
+  opacity: var(--aegis-pareto-front-progress, 1);
+}
+
+/* A finding picks out some points; the rest fade behind them. */
+.aegis-pareto__point--dimmed,
+.aegis-pareto--scroll .aegis-pareto__point--dimmed {
+  opacity: calc(
+    var(--aegis-pareto-point-progress) * var(--pareto-dimmed-opacity)
+  );
+  transition: opacity var(--motion-base);
+}
+
+.aegis-pareto__point-label--dimmed,
+.aegis-pareto--scroll .aegis-pareto__point-label--dimmed {
+  opacity: var(--pareto-dimmed-opacity);
+  transition: opacity var(--motion-base);
 }
 
 .aegis-pareto__point--interactive {
