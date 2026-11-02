@@ -84,7 +84,11 @@
 }
 
 /* Outlined letters in the brand face; the ink stays faint because the
- * wordmark only closes the page. */
+ * wordmark only closes the page. A variable font draws a letter from
+ * overlapping contours, such as the bar of an H across its stems, and a
+ * stroke alone shows where they cross. So the stroke is twice the width
+ * and painted first, and the fill in the page's colour covers its inner
+ * half, seams included. */
 .aegis-site-footer__wordmark {
   margin: 0;
   overflow: hidden;
@@ -94,8 +98,9 @@
   font-weight: var(--fw-semibold);
   letter-spacing: var(--site-wordmark-tracking);
   white-space: nowrap;
-  color: transparent;
-  -webkit-text-stroke: var(--size-hairline) var(--border-emphasis);
+  color: var(--bg-page);
+  -webkit-text-stroke: calc(2 * var(--size-hairline)) var(--border-emphasis);
+  paint-order: stroke fill;
   user-select: none;
 }
 
