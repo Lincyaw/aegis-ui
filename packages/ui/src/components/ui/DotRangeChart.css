@@ -28,6 +28,7 @@
   position: relative;
   height: var(--dot-range-row-height);
   min-width: 0;
+  container-type: inline-size;
   /* The dots' halves past the scale's ends stay on the plot. */
   margin-inline: calc(var(--dot-range-dot) / 2);
 }
@@ -53,10 +54,14 @@
   opacity: var(--chart-interval-opacity);
 }
 
-/* Spans the plot, so a percentage of its own width is one of the scale. */
+/* Moved by a share of the plot's width, measured in container units, so it
+ * takes up no width of its own that could overflow the plot. */
 .aegis-dot-range__mover {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
   pointer-events: none;
 }
 

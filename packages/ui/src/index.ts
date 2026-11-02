@@ -12,6 +12,7 @@ export * from './components/ui';
 // Hooks
 export {
   useCopyToClipboard,
+  useMediaQuery,
   useResizable,
   useReplayPlayback,
   useSavedQueries,
@@ -49,6 +50,7 @@ export type { CursorToken } from './lib/luceneQuery';
 export {
   chartColorValue,
   niceTicks,
+  stageProgress,
   staggeredProgress,
   zeroAnchoredDomain,
 } from './lib/chart';

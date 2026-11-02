@@ -116,7 +116,7 @@ export function DotRangeChart({
                   key={dotIndex}
                   className="aegis-dot-range__mover"
                   style={{
-                    transform: `translateX(${(share(dot.value) * dotsDrawn * 100).toString()}%)`,
+                    transform: `translateX(${(share(dot.value) * dotsDrawn * 100).toString()}cqi)`,
                     opacity:
                       motion === 'extend' && dotIndex > 0
                         ? stageProgress(drawn, 0.85, 1)

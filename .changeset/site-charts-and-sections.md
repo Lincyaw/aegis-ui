@@ -11,4 +11,5 @@ Primitives for a public results site.
 - `ReplayStepStrip`: `size='sm'`, `playhead` and a per-step `weight`. The row of key moments is left out when there are none.
 - `ChartLegend`: `hollow` on an item.
 - `ScrollStory`: `panelSide='start'` pins the panel on the leading side.
+- Exports: `useMediaQuery` and `stageProgress`.
 - Tokens: `--series-<vendor>` for model vendors, `--replay-<kind>` for replay steps and the `--type-number-display-*` role.
