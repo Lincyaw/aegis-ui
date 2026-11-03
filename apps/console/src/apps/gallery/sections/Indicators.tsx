@@ -761,14 +761,25 @@ export function IndicatorsSection() {
       </div>
 
       <SectionDivider>Collapse</SectionDivider>
-      <div className='gallery__stack'>
+      <div className='gallery__stack' id='collapse-specimen'>
         <Collapse
           defaultActiveKeys={['first']}
           items={[
             {
               key: 'first',
               label: '完整理由与评分要求',
-              children: '展开后的内容。',
+              children: (
+                <Collapse
+                  defaultActiveKeys={['detail']}
+                  items={[
+                    {
+                      key: 'detail',
+                      label: '详细评分要求',
+                      children: <a href='#collapse-specimen'>返回折叠示例</a>,
+                    },
+                  ]}
+                />
+              ),
             },
             {
               key: 'second',

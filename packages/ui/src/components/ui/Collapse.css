@@ -46,8 +46,7 @@
 }
 
 /* Expands by animating the row from 0fr to 1fr; visibility flips at the
- * start of an opening and the end of a closing, so a closed panel is out
- * of the tab order and the accessibility tree. */
+ * start of an opening and the end of a closing. */
 .aegis-collapse__panel {
   display: grid;
   grid-template-rows: 0fr;

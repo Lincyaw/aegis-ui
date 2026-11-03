@@ -64,6 +64,11 @@ export function Collapse({
               <RightOutlined className="aegis-collapse__chevron" aria-hidden />
             </button>
             <div
+              ref={(element) => {
+                if (element !== null) {
+                  element.inert = !expanded;
+                }
+              }}
               id={`aegis-collapse-${item.key}`}
               className={
                 expanded
