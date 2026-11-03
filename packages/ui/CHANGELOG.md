@@ -1,5 +1,11 @@
 # @lincyaw/aegis-ui
 
+## 0.9.3
+
+### Patch Changes
+
+- 63b0451: Distinguish same-colour chart series with solid, dashed and dotted lines and matching SeriesLabel swatches.
+
 ## 0.9.2
 
 ### Patch Changes
