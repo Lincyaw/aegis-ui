@@ -1,6 +1,11 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
 
-import { type ChartColor, chartColorValue } from '../../lib/chart';
+import {
+  type ChartColor,
+  type ChartLineStyle,
+  chartColorValue,
+  chartLineDash,
+} from '../../lib/chart';
 import './SeriesLabel.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 
@@ -11,6 +16,7 @@ export interface SeriesLabelProps {
   detail?: ReactNode;
   /** The series' colour, the same as its marks on the page's charts. */
   color: ChartColor;
+  lineStyle?: ChartLineStyle;
   /** Makes the name a link. */
   to?: string;
   /** Renders the link. Defaults to an `<a href>`; routed apps pass their Link adapter. */
@@ -26,6 +32,7 @@ export function SeriesLabel({
   name,
   detail,
   color,
+  lineStyle,
   to,
   linkComponent: Link = DefaultLink,
   className,
@@ -41,7 +48,23 @@ export function SeriesLabel({
         } as CSSProperties
       }
     >
-      <span className="aegis-series-label__dot" aria-hidden="true" />
+      {lineStyle === undefined ? (
+        <span className="aegis-series-label__dot" aria-hidden="true" />
+      ) : (
+        <svg
+          className="aegis-series-label__line"
+          aria-hidden="true"
+          viewBox="0 0 32 10"
+        >
+          <line
+            x1={0}
+            x2={32}
+            y1={5}
+            y2={5}
+            style={{ strokeDasharray: chartLineDash(lineStyle) }}
+          />
+        </svg>
+      )}
       {to === undefined ? (
         <span className="aegis-series-label__name">{name}</span>
       ) : (

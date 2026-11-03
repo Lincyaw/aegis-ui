@@ -14,6 +14,16 @@
   background: var(--aegis-series-label-color);
 }
 
+.aegis-series-label__line {
+  flex-shrink: 0;
+  width: var(--size-icon-md);
+  height: var(--series-label-dot);
+  overflow: visible;
+  stroke: var(--aegis-series-label-color);
+  stroke-width: var(--line-chart-stroke);
+  stroke-linecap: round;
+}
+
 .aegis-series-label__name {
   min-width: 0;
   overflow: hidden;

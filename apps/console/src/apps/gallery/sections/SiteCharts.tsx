@@ -3,6 +3,7 @@ import { type ReactNode, useState } from 'react';
 import {
   type ChartColor,
   ChartLegend,
+  type ChartLineStyle,
   ColumnChart,
   type ColumnChartItem,
   DotRangeChart,
@@ -331,6 +332,11 @@ function DrawnChartsSpecimen(): ReactNode {
 
 function LineChartSpecimen(): ReactNode {
   const [turn, setTurn] = useState(42);
+  const styledLines = SCORE_LINES.map((line, index) => ({
+    ...line,
+    color: 'cat-1' as const,
+    lineStyle: (['dotted', 'dashed', 'solid'] as ChartLineStyle[])[index % 3],
+  }));
   return (
     <div className='gallery__row'>
       <Specimen
@@ -367,18 +373,23 @@ function LineChartSpecimen(): ReactNode {
           ]}
         />
       </Specimen>
-      <Specimen caption='Separate legend without end labels' span={3}>
-        <ChartLegend
-          items={SCORE_LINES.map((line) => ({
-            key: line.key,
-            label: line.label,
-            color: line.color,
-          }))}
-        />
+      <Specimen
+        caption='Line patterns and matching labels · progress follows the playhead above'
+        span={3}
+      >
+        {styledLines.map((line) => (
+          <SeriesLabel
+            key={line.key}
+            name={line.label}
+            color={line.color}
+            lineStyle={line.lineStyle}
+          />
+        ))}
         <LineChart
           label='Cumulative score with separate legend'
-          series={[...SCORE_LINES]}
+          series={styledLines}
           endLabels={false}
+          progress={turn / 80}
           yTicks={[0, 50, 100, 150, 200]}
         />
       </Specimen>

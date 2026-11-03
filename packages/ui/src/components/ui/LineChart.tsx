@@ -3,11 +3,18 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type ReactElement,
+  useId,
   useRef,
 } from 'react';
 
 import { useElementWidth } from '../../hooks/useElementWidth';
-import { type ChartColor, chartColorValue, niceTicks } from '../../lib/chart';
+import {
+  type ChartColor,
+  type ChartLineStyle,
+  chartColorValue,
+  chartLineDash,
+  niceTicks,
+} from '../../lib/chart';
 import { useStrings } from '../../locale';
 import './LineChart.css';
 
@@ -21,6 +28,7 @@ export interface LineChartSeries {
   /** Written at the end of the line, with its last value. */
   label: string;
   color: ChartColor;
+  lineStyle?: ChartLineStyle;
   points: LineChartPoint[];
 }
 
@@ -87,6 +95,7 @@ export function LineChart({
   className,
 }: LineChartProps): ReactElement {
   const strings = useStrings();
+  const maskId = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(wrapRef);
   const points = series.flatMap((line) => line.points);
@@ -181,25 +190,70 @@ export function LineChart({
           </g>
         ))}
         {series.map((line) => (
-          <polyline
-            key={line.key}
-            className="aegis-line-chart__line"
-            pathLength={1}
-            points={line.points
-              .map(
-                (point) =>
-                  `${sx(point.x).toString()},${sy(point.y).toString()}`,
-              )
-              .join(' ')}
-            style={
-              {
-                stroke: chartColorValue(line.color),
-                ...(progress === undefined
-                  ? {}
-                  : { '--aegis-line-chart-progress': progress }),
-              } as CSSProperties
-            }
-          />
+          <g key={line.key}>
+            {line.lineStyle &&
+              line.lineStyle !== 'solid' &&
+              progress !== undefined && (
+                <mask
+                  id={`${maskId}-${line.key}`}
+                  maskUnits="userSpaceOnUse"
+                  x={0}
+                  y={0}
+                  width={width}
+                  height={HEIGHT}
+                >
+                  <polyline
+                    className="aegis-line-chart__line"
+                    pathLength={1}
+                    points={line.points
+                      .map(
+                        (point) =>
+                          `${sx(point.x).toString()},${sy(point.y).toString()}`,
+                      )
+                      .join(' ')}
+                    style={
+                      {
+                        stroke: 'white',
+                        '--aegis-line-chart-progress': progress,
+                      } as CSSProperties
+                    }
+                  />
+                </mask>
+              )}
+            <polyline
+              className="aegis-line-chart__line"
+              pathLength={
+                !line.lineStyle || line.lineStyle === 'solid' ? 1 : undefined
+              }
+              mask={
+                line.lineStyle &&
+                line.lineStyle !== 'solid' &&
+                progress !== undefined
+                  ? `url(#${maskId}-${line.key})`
+                  : undefined
+              }
+              points={line.points
+                .map(
+                  (point) =>
+                    `${sx(point.x).toString()},${sy(point.y).toString()}`,
+                )
+                .join(' ')}
+              style={
+                {
+                  stroke: chartColorValue(line.color),
+                  ...(line.lineStyle && line.lineStyle !== 'solid'
+                    ? {
+                        strokeDasharray: chartLineDash(line.lineStyle),
+                        strokeDashoffset: 0,
+                      }
+                    : {}),
+                  ...(progress === undefined
+                    ? {}
+                    : { '--aegis-line-chart-progress': progress }),
+                } as CSSProperties
+              }
+            />
+          </g>
         ))}
         {endLabels &&
           ends.map(({ line, last, y }) => (

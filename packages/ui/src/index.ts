@@ -54,7 +54,11 @@ export {
   staggeredProgress,
   zeroAnchoredDomain,
 } from './lib/chart';
-export type { ChartColor, ChartPaletteColor } from './lib/chart';
+export type {
+  ChartColor,
+  ChartLineStyle,
+  ChartPaletteColor,
+} from './lib/chart';
 
 // Layouts
 export { PageWrapper } from './layouts/PageWrapper';

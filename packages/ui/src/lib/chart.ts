@@ -18,6 +18,16 @@ export type ChartPaletteColor =
  */
 export type ChartColor = ChartPaletteColor | `var(--${string})`;
 
+export type ChartLineStyle = 'solid' | 'dashed' | 'dotted';
+
+export function chartLineDash(style: ChartLineStyle): string | undefined {
+  return {
+    solid: undefined,
+    dashed: 'var(--space-2) var(--space-1)',
+    dotted: 'var(--size-hairline) var(--space-1)',
+  }[style];
+}
+
 const PALETTE_VALUES: Record<ChartPaletteColor, string> = {
   seq: 'var(--data-seq)',
   'cat-1': 'var(--data-cat-1)',
