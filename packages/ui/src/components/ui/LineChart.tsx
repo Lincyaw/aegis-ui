@@ -36,6 +36,8 @@ export interface LineChartProps {
   series: LineChartSeries[];
   /** Names the chart for a screen reader. */
   label: string;
+  /** False when the host supplies a separate series legend. */
+  endLabels?: boolean;
   /** Names the horizontal axis, e.g. "回合". */
   xLabel?: string;
   /** The gridlines. Defaults to about five round values. */
@@ -73,6 +75,7 @@ const MARKER_RADIUS = 4;
 export function LineChart({
   series,
   label,
+  endLabels = true,
   xLabel,
   yTicks,
   formatX = String,
@@ -198,18 +201,19 @@ export function LineChart({
             }
           />
         ))}
-        {ends.map(({ line, last, y }) => (
-          <text
-            key={line.key}
-            className="aegis-line-chart__end-label"
-            x={right}
-            y={y - END_LABEL_GAP}
-            textAnchor="end"
-            style={{ fill: chartColorValue(line.color) }}
-          >
-            {`${line.label} ${formatY(last.y)}`}
-          </text>
-        ))}
+        {endLabels &&
+          ends.map(({ line, last, y }) => (
+            <text
+              key={line.key}
+              className="aegis-line-chart__end-label"
+              x={right}
+              y={y - END_LABEL_GAP}
+              textAnchor="end"
+              style={{ fill: chartColorValue(line.color) }}
+            >
+              {`${line.label} ${formatY(last.y)}`}
+            </text>
+          ))}
         {playhead !== undefined && (
           <g>
             <line

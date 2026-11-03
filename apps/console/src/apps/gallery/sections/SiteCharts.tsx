@@ -367,6 +367,21 @@ function LineChartSpecimen(): ReactNode {
           ]}
         />
       </Specimen>
+      <Specimen caption='Separate legend without end labels' span={3}>
+        <ChartLegend
+          items={SCORE_LINES.map((line) => ({
+            key: line.key,
+            label: line.label,
+            color: line.color,
+          }))}
+        />
+        <LineChart
+          label='Cumulative score with separate legend'
+          series={[...SCORE_LINES]}
+          endLabels={false}
+          yTicks={[0, 50, 100, 150, 200]}
+        />
+      </Specimen>
     </div>
   );
 }
