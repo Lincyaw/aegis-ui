@@ -1,5 +1,11 @@
 # @lincyaw/aegis-ui
 
+## 0.9.2
+
+### Patch Changes
+
+- 83e51da: Allow LineChart hosts to use a separate legend by disabling end labels.
+
 ## 0.9.1
 
 ### Patch Changes
