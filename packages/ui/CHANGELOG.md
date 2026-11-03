@@ -1,5 +1,11 @@
 # @lincyaw/aegis-ui
 
+## 0.9.4
+
+### Patch Changes
+
+- a721b8d: Keep nested content out of keyboard navigation and the accessibility tree while an ancestor Collapse panel is closed.
+
 ## 0.9.3
 
 ### Patch Changes
