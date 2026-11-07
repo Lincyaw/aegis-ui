@@ -1,15 +1,17 @@
 /**
- * Tiny shared fetch wrapper for the standalone aegis-* microservices
- * (SSO admin, notification inbox, blob). Pulls the access token from
- * the SSO session store and attaches `Authorization: Bearer …`.
+ * Fetch transport for the console. `authFetch` attaches the session's
+ * access token and, on a 401, renews the token once and retries;
+ * `apiFetch` resolves gateway paths on top of it. The portal SDK's axios
+ * instance (`portal-client.ts`) authenticates through the same session.
  *
  * Each surface routes through its own vite proxy prefix (see
  * vite.config.ts), so callers stay on relative paths.
  */
 import { isAxiosError } from 'axios';
 
-import { readTokens } from '../auth/tokenStore';
 import { gatewayUrlFor } from '../config/runtime';
+
+import { getAccessToken, renewAfterUnauthorized } from './session';
 
 export interface ApiFetchOptions extends RequestInit {
   /** Skip Authorization header (e.g. for the SSO token endpoint). */
@@ -46,18 +48,32 @@ async function readError(
   return { body, msg };
 }
 
+export async function authFetch(
+  url: string,
+  init: RequestInit = {}
+): Promise<Response> {
+  const send = (token: string | null): Promise<Response> => {
+    const headers = new Headers(init.headers);
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+    return fetch(url, { ...init, headers });
+  };
+  const token = await getAccessToken();
+  const res = await send(token);
+  if (res.status !== 401 || !token) {
+    return res;
+  }
+  const renewed = await renewAfterUnauthorized(token);
+  return renewed ? send(renewed) : res;
+}
+
 export async function apiFetch(
   path: string,
   init: ApiFetchOptions = {}
 ): Promise<Response> {
   const { anonymous, tolerateMissing, headers, ...rest } = init;
   const merged = new Headers(headers ?? undefined);
-  if (!anonymous) {
-    const tokens = readTokens();
-    if (tokens) {
-      merged.set('authorization', `Bearer ${tokens.accessToken}`);
-    }
-  }
   if (
     !merged.has('content-type') &&
     rest.body !== undefined &&
@@ -67,7 +83,11 @@ export async function apiFetch(
   ) {
     merged.set('content-type', 'application/json');
   }
-  const res = await fetch(gatewayUrlFor(path), { ...rest, headers: merged });
+  const url = gatewayUrlFor(path);
+  const request = { ...rest, headers: merged };
+  const res = anonymous
+    ? await fetch(url, request)
+    : await authFetch(url, request);
   if (res.ok) {
     return res;
   }

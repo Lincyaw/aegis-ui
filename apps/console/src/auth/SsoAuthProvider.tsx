@@ -4,7 +4,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 
@@ -15,6 +14,9 @@ import {
   type AuthStatus,
 } from '@lincyaw/aegis-ui';
 
+import { authFetch } from '../api/apiClient';
+import { onSessionEnded, tokensFromResponse } from '../api/session';
+
 import { randomUrlSafe, s256Challenge } from './pkce';
 import { type SsoAuthHandle, SsoCallbackContext } from './ssoCallbackContext';
 import {
@@ -22,7 +24,6 @@ import {
   exchangeCode,
   fetchUserInfo,
   logoutSso,
-  refreshTokens,
   type UserInfo,
 } from './ssoClient';
 import { loadSsoConfig } from './ssoConfig';
@@ -30,7 +31,6 @@ import {
   type PendingAuth,
   readPending,
   readTokens,
-  type TokenSet,
   writePending,
   writeTokens,
 } from './tokenStore';
@@ -48,18 +48,6 @@ function userInfoToAuthUser(u: UserInfo): AegisAuthUser {
   };
 }
 
-function tokensFromResponse(resp: {
-  access_token: string;
-  refresh_token?: string;
-  expires_in: number;
-}): TokenSet {
-  return {
-    accessToken: resp.access_token,
-    refreshToken: resp.refresh_token,
-    expiresAt: Date.now() + resp.expires_in * 1000,
-  };
-}
-
 interface SsoAuthProviderProps {
   children: ReactNode;
 }
@@ -70,36 +58,32 @@ export function SsoAuthProvider({
   const cfg = useMemo(() => loadSsoConfig(), []);
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<AegisAuthUser | null>(null);
-  const tokensRef = useRef<TokenSet | null>(null);
 
-  const setTokens = useCallback((t: TokenSet | null): void => {
-    tokensRef.current = t;
-    writeTokens(t);
-  }, []);
+  useEffect(
+    () =>
+      onSessionEnded(() => {
+        setUser(null);
+        setStatus('unauthenticated');
+      }),
+    []
+  );
 
   const hydrate = useCallback(async (): Promise<void> => {
-    const stored = readTokens();
-    if (!stored) {
+    if (!readTokens()) {
       setStatus('unauthenticated');
       return;
     }
-    tokensRef.current = stored;
     try {
-      let access = stored.accessToken;
-      if (stored.expiresAt - 30_000 < Date.now() && stored.refreshToken) {
-        const refreshed = await refreshTokens(cfg, stored.refreshToken);
-        const next = tokensFromResponse(refreshed);
-        setTokens(next);
-        access = next.accessToken;
-      }
-      const u = await fetchUserInfo(access);
+      const u = await fetchUserInfo(authFetch);
       setUser(userInfoToAuthUser(u));
       setStatus('authenticated');
-    } catch {
-      setTokens(null);
+    } catch (err) {
+      // The stored tokens stay unless the token endpoint rejected them, so
+      // a network or discovery outage does not cost the session.
+      console.error('Could not restore the SSO session', err);
       setStatus('unauthenticated');
     }
-  }, [cfg, setTokens]);
+  }, []);
 
   useEffect(() => {
     void hydrate();
@@ -136,8 +120,8 @@ export function SsoAuthProvider({
   );
 
   const signOut = useCallback(async (): Promise<void> => {
-    const t = tokensRef.current;
-    setTokens(null);
+    const t = readTokens();
+    writeTokens(null);
     writePending(null);
     setUser(null);
     setStatus('unauthenticated');
@@ -148,7 +132,7 @@ export function SsoAuthProvider({
         // sign-out is best-effort; tokens are already cleared locally
       }
     }
-  }, [setTokens]);
+  }, []);
 
   // Exposed for the /auth/callback route to finish the exchange.
   const completeCallback = useCallback(
@@ -158,15 +142,14 @@ export function SsoAuthProvider({
         throw new Error('Auth state mismatch');
       }
       const tok = await exchangeCode(cfg, code, pending.codeVerifier);
-      const next = tokensFromResponse(tok);
-      setTokens(next);
+      writeTokens(tokensFromResponse(tok));
       writePending(null);
-      const u = await fetchUserInfo(next.accessToken);
+      const u = await fetchUserInfo(authFetch);
       setUser(userInfoToAuthUser(u));
       setStatus('authenticated');
       return pending.redirectAfter;
     },
-    [cfg, setTokens]
+    [cfg]
   );
 
   const value = useMemo<AuthContextValue<AegisAuthUser>>(

@@ -2,7 +2,7 @@ import { ssoUrlFor } from '../config/runtime';
 
 import type { SsoConfig } from './ssoConfig';
 
-interface TokenResponse {
+export interface TokenResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
@@ -22,6 +22,17 @@ interface OidcEndpoints {
   token_endpoint: string;
   userinfo_endpoint: string;
   end_session_endpoint?: string;
+}
+
+/**
+ * The token endpoint refused the refresh token: RFC 6749 answers an
+ * invalid grant with 400 and an unknown client with 401.
+ */
+export class RefreshRejectedError extends Error {
+  constructor(status: number) {
+    super(`refresh token rejected (${status})`);
+    this.name = 'RefreshRejectedError';
+  }
 }
 
 let cachedEndpoints: OidcEndpoints | null = null;
@@ -78,17 +89,21 @@ export async function refreshTokens(
     refresh_token: refreshToken,
     client_id: cfg.clientId,
   });
+  if (res.status === 400 || res.status === 401) {
+    throw new RefreshRejectedError(res.status);
+  }
   if (!res.ok) {
     throw new Error(`refresh failed (${res.status})`);
   }
   return (await res.json()) as TokenResponse;
 }
 
-export async function fetchUserInfo(accessToken: string): Promise<UserInfo> {
+/** `send` attaches the access token; pass the session's `authFetch`. */
+export async function fetchUserInfo(
+  send: (url: string) => Promise<Response>
+): Promise<UserInfo> {
   const endpoints = await discoverOidc();
-  const res = await fetch(endpoints.userinfo_endpoint, {
-    headers: { authorization: `Bearer ${accessToken}` },
-  });
+  const res = await send(endpoints.userinfo_endpoint);
   if (!res.ok) {
     throw new Error(`userinfo failed (${res.status})`);
   }
