@@ -568,13 +568,14 @@
   }
 
   /* An app's own header (project switcher, tabs) stays reachable: it
-     wraps onto a full-width row under the brand and actions. */
+     wraps onto a full-width row under the brand and actions, inset like
+     the page content. */
   .aegis-shell__header-center--app {
     display: flex;
     order: 1;
     flex: 1 0 100%;
     min-height: calc(var(--size-control-base) + var(--space-3));
-    padding: 0;
+    padding: 0 var(--page-padding-inline-mobile);
     border-top: var(--size-hairline) solid var(--border-hairline);
   }
 
@@ -621,12 +622,18 @@
     width: min(80vw, 18rem);
     z-index: var(--z-modal);
     transform: translateX(-100%);
-    transition: transform var(--motion-base);
     box-shadow: var(--shadow-overlay);
+    /* Once it has slid out, a closed drawer is hidden: it casts no shadow
+       at the edge and its links leave the tab order. */
+    visibility: hidden;
+    transition:
+      transform var(--motion-base),
+      visibility var(--motion-base);
   }
 
   .aegis-shell--mobile-nav-open .aegis-shell__sidebar {
     transform: translateX(0);
+    visibility: visible;
   }
 
   .aegis-shell--mobile-nav-open .aegis-shell__backdrop {
