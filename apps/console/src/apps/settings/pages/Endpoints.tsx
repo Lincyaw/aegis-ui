@@ -23,7 +23,7 @@ import {
   setLocalOverride,
 } from '../../../config/runtime';
 
-import './Setup.css';
+import './Endpoints.css';
 
 interface FieldDef {
   key: keyof ReturnType<typeof getRuntimeConfig>;
@@ -85,7 +85,7 @@ const FIELDS: FieldDef[] = [
   },
 ];
 
-export function Setup(): ReactElement {
+export default function Endpoints(): ReactElement {
   const nav = useNavigate();
   const current = getRuntimeConfig();
   const [draft, setDraft] = useState<Record<string, string>>({
@@ -140,7 +140,7 @@ export function Setup(): ReactElement {
         </MetricLabel>
       }
     >
-      <form onSubmit={submit} className='setup-form'>
+      <form onSubmit={submit} className='endpoints-form'>
         {FIELDS.map((f) => {
           const fieldProps = {
             label: f.label,
@@ -157,7 +157,7 @@ export function Setup(): ReactElement {
             <TextField key={f.key} {...fieldProps} />
           );
         })}
-        <div className='setup-form__actions'>
+        <div className='endpoints-form__actions'>
           <Button type='submit'>
             {saved ? 'Saved · reloading' : 'Save & reload'}
           </Button>
@@ -174,5 +174,3 @@ export function Setup(): ReactElement {
     </Panel>
   );
 }
-
-export default Setup;

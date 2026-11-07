@@ -17,12 +17,12 @@ import type { AegisApp } from '@lincyaw/aegis-ui';
 
 import ApiKeys from './pages/ApiKeys';
 import AuditLogs from './pages/AuditLogs';
+import Endpoints from './pages/Endpoints';
 import IdentityProviders from './pages/IdentityProviders';
 import Notifications from './pages/Notifications';
 import OidcClients from './pages/OidcClients';
 import Profile from './pages/Profile';
 import Roles from './pages/Roles';
-import { Setup } from './pages/Setup';
 import Teams from './pages/Teams';
 import Users from './pages/Users';
 
@@ -75,6 +75,6 @@ export const settingsApp: AegisApp = {
     { path: 'oidc-clients', element: <OidcClients /> },
     { path: 'identity-providers', element: <IdentityProviders /> },
     { path: 'audit', element: <AuditLogs /> },
-    { path: 'endpoints', element: <Setup /> },
+    { path: 'endpoints', element: <Endpoints /> },
   ],
 };
