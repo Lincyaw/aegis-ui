@@ -23,7 +23,8 @@ export interface CommandPaletteProps {
   onClose: () => void;
   /**
    * Group labels in display order. Groups it doesn't list follow in
-   * alphabetical order, and commands without a group come last.
+   * alphabetical order; commands without a group join 'Other', which
+   * comes last unless listed here.
    */
   groupOrder?: string[];
   title?: string;
@@ -70,23 +71,24 @@ function groupCommands(
       (a, b) => b.score - a.score || a.cmd.label.localeCompare(b.cmd.label),
     );
 
-  const byGroup = new Map<string | undefined, Command[]>();
+  const byGroup = new Map<string, Command[]>();
   for (const { cmd } of matches) {
-    const list = byGroup.get(cmd.group) ?? [];
+    const group = cmd.group ?? UNGROUPED;
+    const list = byGroup.get(group) ?? [];
     list.push(cmd);
-    byGroup.set(cmd.group, list);
+    byGroup.set(group, list);
   }
 
-  const rank = (group: string | undefined): number => {
-    if (group === undefined) {
-      return Number.MAX_SAFE_INTEGER;
-    }
+  const rank = (group: string): number => {
     const listed = groupOrder.indexOf(group);
-    return listed === -1 ? groupOrder.length : listed;
+    if (listed !== -1) {
+      return listed;
+    }
+    return group === UNGROUPED ? Number.MAX_SAFE_INTEGER : groupOrder.length;
   };
   return Array.from(byGroup.entries())
-    .sort(([a], [b]) => rank(a) - rank(b) || (a ?? '').localeCompare(b ?? ''))
-    .map(([group, list]) => ({ label: group ?? UNGROUPED, commands: list }));
+    .sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b))
+    .map(([label, list]) => ({ label, commands: list }));
 }
 
 const NO_GROUP_ORDER: string[] = [];
@@ -133,6 +135,7 @@ export function CommandPalette({
     [commands, query, groupOrder],
   );
   const flat = useMemo(() => groups.flatMap((g) => g.commands), [groups]);
+  const hasIcons = flat.some((cmd) => Boolean(cmd.icon));
   const active =
     flat.length === 0 ? -1 : Math.min(activeIndex, flat.length - 1);
 
@@ -248,7 +251,7 @@ export function CommandPalette({
                         }
                       }}
                     >
-                      {cmd.icon && (
+                      {hasIcons && (
                         <span className="aegis-cmdk__option-icon" aria-hidden>
                           {cmd.icon}
                         </span>
