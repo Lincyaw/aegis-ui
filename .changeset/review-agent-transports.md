@@ -47,9 +47,11 @@ Added:
 - A `signal` option on `dispatch` and `preview`, passed to the action as
   `ctx.signal`; the MCP bridge aborts it when its socket closes. A
   `dryRun` gets a `ctx.navigate` that does nothing.
-- `AskOverlay`'s `scope` prop (`AskOverlayProps`): a scoped overlay
-  answers only inside its element, under its own chat, and the page's
-  overlay leaves that element alone.
+- `AskOverlay`'s `scope` prop (`AskOverlayProps`), the element itself
+  rather than a ref, so the overlay follows an element that mounts late
+  or is replaced: a scoped overlay answers only inside its element, under
+  its own chat, and the page's overlay leaves that element alone. Opening
+  one overlay's panel closes any other overlay's panel.
 
 Fixed:
 

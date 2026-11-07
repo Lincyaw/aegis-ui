@@ -545,7 +545,8 @@ The shell mounts a single `<AskOverlay>` that listens (delegated) for
 these triggers on any element with `data-agent-surface-id`,
 `data-agent-entity-id`, or `data-agent-action-id`. A page that needs its
 own chat, such as a demo, mounts a second overlay with `scope` set to its
-element; the shell's overlay leaves that element to it.
+element, held in state through a callback ref; the shell's overlay leaves
+that element to it. Opening one overlay's panel closes any other.
 
 | Trigger           | Gesture                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------- |

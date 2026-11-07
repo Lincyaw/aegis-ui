@@ -1,6 +1,5 @@
 import {
   type ReactElement,
-  type RefObject,
   useCallback,
   useContext,
   useEffect,
@@ -34,6 +33,7 @@ interface AskWindow extends Window {
 interface Opener {
   owns: (el: Element | null) => boolean;
   open: (trigger: AskTrigger, anchorEl: HTMLElement | null) => void;
+  close: () => void;
 }
 
 const SCOPE_ATTRIBUTE = 'data-aegis-ask-scope';
@@ -41,6 +41,15 @@ const SCOPE_ATTRIBUTE = 'data-aegis-ask-scope';
 // Every listening overlay, so the window helper reaches the one that owns
 // its anchor rather than whichever overlay mounted last.
 const openers = new Set<Opener>();
+
+// One Ask panel is open at a time, whichever overlay opened it.
+function closeOtherPanels(keep: () => void): void {
+  for (const opener of openers) {
+    if (opener.close !== keep) {
+      opener.close();
+    }
+  }
+}
 
 function openFromScript(
   trigger: AskTrigger,
@@ -116,10 +125,13 @@ function describeContext(context: AskContext): string {
 
 export interface AskOverlayProps {
   /**
-   * Limits the overlay to this element. An overlay without a scope serves
-   * the rest of the page and leaves scoped elements to their own overlay.
+   * Limits the overlay to this element. Keep the element in state through
+   * a callback ref, such as a `useState` setter, so the overlay follows it
+   * when it mounts or is replaced; while it is `null` the overlay answers
+   * nowhere. An overlay without a scope serves the rest of the page and
+   * leaves scoped elements to their own overlay.
    */
-  scope?: RefObject<HTMLElement | null>;
+  scope?: HTMLElement | null;
 }
 
 /**
@@ -137,40 +149,40 @@ export function AskOverlay({
     chat === defaultAgentChatValue ? null : (ctx?.runtime ?? null);
   const [panel, setPanel] = useState<PanelState | null>(null);
 
+  const close = useCallback(() => {
+    setPanel(null);
+  }, []);
+
   const open = useCallback(
     (
       context: AskContext,
       anchor: DOMRect | null,
       point: { x: number; y: number } | null,
     ) => {
+      closeOtherPanels(close);
       setPanel({ context, anchor, point });
     },
-    [],
+    [close],
   );
-
-  const close = useCallback(() => {
-    setPanel(null);
-  }, []);
 
   const owns = useCallback(
     (el: Element | null): boolean => {
       const owner = el?.closest(`[${SCOPE_ATTRIBUTE}]`) ?? null;
-      if (!scope) {
+      if (scope === undefined) {
         return owner === null;
       }
-      return scope.current !== null && owner === scope.current;
+      return scope !== null && owner === scope;
     },
     [scope],
   );
 
   useEffect(() => {
-    const el = scope?.current;
-    if (!runtime || !el) {
+    if (!runtime || !scope) {
       return;
     }
-    el.setAttribute(SCOPE_ATTRIBUTE, '');
+    scope.setAttribute(SCOPE_ATTRIBUTE, '');
     return () => {
-      el.removeAttribute(SCOPE_ATTRIBUTE);
+      scope.removeAttribute(SCOPE_ATTRIBUTE);
     };
   }, [runtime, scope]);
 
@@ -249,6 +261,7 @@ export function AskOverlay({
         runtime.emitAskTriggered(askContext);
         open(askContext, anchorEl?.getBoundingClientRect() ?? null, null);
       },
+      close,
     };
     const w = window as AskWindow;
     openers.add(opener);
@@ -259,7 +272,7 @@ export function AskOverlay({
         delete w.__aegisOpenAskPanel;
       }
     };
-  }, [runtime, open, owns]);
+  }, [runtime, open, close, owns]);
 
   const portalled = useMemo(() => {
     if (!panel) {

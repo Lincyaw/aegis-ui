@@ -3,7 +3,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 
@@ -347,7 +346,7 @@ interface AskWindow extends Window {
 function AskAffordanceSpecimen(): ReactNode {
   const [log, setLog] = useState<string[]>([]);
   const [inlineOpen, setInlineOpen] = useState(true);
-  const scopeRef = useRef<HTMLDivElement>(null);
+  const [scope, setScope] = useState<HTMLDivElement | null>(null);
 
   const appendLog = useCallback((line: string) => {
     const stamp = new Date().toISOString().slice(11, 19);
@@ -441,9 +440,9 @@ function AskAffordanceSpecimen(): ReactNode {
 
   return (
     <AgentChatProvider value={demoChat}>
-      <AskOverlay scope={scopeRef} />
+      <AskOverlay scope={scope} />
       <div
-        ref={scopeRef}
+        ref={setScope}
         className='gallery__row gallery__row--wide'
         style={{ alignItems: 'flex-start' }}
       >
