@@ -561,6 +561,64 @@ const traceTreeUntimedSpans: TraceSpan[] = [
   { id: 'r2-in', parentId: 'r2', name: 'function_call_output: 482 ms' },
 ];
 
+/** Children before their parents, as OTel exports rows, and a parent cycle. */
+const traceTreeUnorderedSpans: TraceSpan[] = [
+  {
+    id: 'q-row',
+    parentId: 'q',
+    name: 'pg.fetch row',
+    startMs: 41,
+    durationMs: 12,
+    status: 'ok',
+    kind: 'db',
+  },
+  {
+    id: 'q',
+    parentId: 'h',
+    name: 'pg.exec SELECT * FROM spans',
+    startMs: 30,
+    durationMs: 40,
+    status: 'ok',
+    kind: 'db',
+  },
+  {
+    id: 'h',
+    name: 'GET /api/v2/traces',
+    startMs: 0,
+    durationMs: 120,
+    status: 'ok',
+    kind: 'http',
+  },
+  {
+    id: 'loop-a',
+    parentId: 'loop-b',
+    name: 'retry.attempt · parent is retry.backoff',
+    startMs: 80,
+    durationMs: 22,
+    status: 'error',
+    kind: 'retry',
+  },
+  {
+    id: 'loop-b',
+    parentId: 'loop-a',
+    name: 'retry.backoff · parent is retry.attempt',
+    startMs: 90,
+    durationMs: 0.4,
+    kind: 'retry',
+  },
+];
+
+function TraceTreeUnorderedSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string | undefined>();
+  return (
+    <TraceTree
+      spans={traceTreeUnorderedSpans}
+      selectedId={selected}
+      onSelect={(span) => setSelected(span.id)}
+    />
+  );
+}
+
 function TraceTreeMixedTimingSpecimen(): ReactNode {
   const [selected, setSelected] = useState<TraceSpan | null>(null);
   return (
@@ -1998,6 +2056,12 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <ResizableSidePanelStackedSpecimen />
+        </Specimen>
+        <Specimen
+          caption='children listed before parents nest at their depth · a parent cycle is cut, not dropped · one tab stop: ↑ ↓ move, → expands then enters, ← collapses then leaves, Enter selects'
+          span={3}
+        >
+          <TraceTreeUnorderedSpecimen />
         </Specimen>
       </div>
     </Panel>

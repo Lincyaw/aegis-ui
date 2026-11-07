@@ -1,9 +1,15 @@
 .aegis-trace-tree {
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  width: 100%;
+  min-width: 0;
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   color: var(--text-main);
+}
+
+.aegis-trace-tree__rows {
+  display: flex;
+  flex-direction: column;
 }
 
 .aegis-trace-tree--dragging,
@@ -71,13 +77,11 @@
 
 .aegis-trace-tree__caret {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: var(--size-icon-base);
   height: var(--size-icon-base);
-  background: transparent;
-  border: 0;
-  padding: 0;
   cursor: pointer;
   color: var(--text-muted);
   font-size: var(--fs-10);
@@ -111,8 +115,13 @@
   text-overflow: clip;
 }
 
+/* One handle for every row, over the gutter column between name and bar:
+ * past the row's padding, the name column and the grid gap. */
 .aegis-trace-tree__handle {
-  align-self: stretch;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--space-3) + var(--aegis-trace-tree-name-w) + var(--space-3));
   width: var(--space-1);
   cursor: col-resize;
   background: transparent;
@@ -196,7 +205,8 @@
   .aegis-trace-tree__label {
     grid-area: label;
   }
-  .aegis-trace-tree__handle {
+  .aegis-trace-tree__handle,
+  .aegis-trace-tree__gutter {
     display: none;
   }
   .aegis-trace-tree__bar-track {
