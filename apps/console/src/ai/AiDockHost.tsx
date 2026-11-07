@@ -1,12 +1,24 @@
-import { type ReactElement, useCallback, useEffect, useState } from 'react';
+import {
+  type ReactElement,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
 
-import { ThemeToggle } from '@lincyaw/aegis-ui';
+import { Button } from '@lincyaw/aegis-ui';
+import { AgentmChannelProvider } from '@lincyaw/aegis-ui/transports';
 
 import { AiDock } from './AiDock';
+import { useChatStore } from './chatStore';
 
-// main.tsx always mounts AgentmChannelProvider (with a localhost default
-// when VITE_AGENTM_GATEWAY_URL is unset), so AgentChatProvider is no
-// longer needed as the chat backend here.
+interface AgentmConnection {
+  /** AgentM gateway WebSocket URL. */
+  url: string;
+  /** Token sent to the gateway, if it requires one. */
+  token?: string;
+}
 
 const OPEN_KEY = 'aegis.ai.dock.open.v1';
 
@@ -26,7 +38,26 @@ function writeOpen(value: boolean): void {
   }
 }
 
-export function AiDockHost(): ReactElement {
+function AgentmChatProvider({
+  url,
+  token,
+  children,
+}: AgentmConnection & { children: ReactNode }): ReactElement {
+  const { currentId, loadMessages } = useChatStore();
+  // Why: remount on chat switch so the provider's messages and stream state
+  // reset; it seeds from initialMessages only when it mounts.
+  return (
+    <AgentmChannelProvider
+      key={currentId}
+      channel={{ url, token, chatId: currentId }}
+      initialMessages={loadMessages(currentId)}
+    >
+      {children}
+    </AgentmChannelProvider>
+  );
+}
+
+export function AiDockHost({ url, token }: AgentmConnection): ReactElement {
   const [open, setOpen] = useState<boolean>(() =>
     typeof window === 'undefined' ? false : readOpen()
   );
@@ -59,27 +90,20 @@ export function AiDockHost(): ReactElement {
 
   return (
     <>
-      <button
-        type='button'
-        className='aegis-ai-dock-toggle'
+      <Button
+        tone='ghost'
         onClick={toggle}
-        aria-label='Toggle AI assistant'
+        aria-label='AI assistant'
         aria-pressed={open}
         title='AI assistant (Ctrl/Cmd+K)'
-        style={{
-          font: 'inherit',
-          color: open ? 'var(--text-on-inverted)' : 'var(--text-muted)',
-          background: open ? 'var(--bg-inverted)' : 'transparent',
-          border: 'var(--size-hairline) solid var(--border-hairline)',
-          borderRadius: 'var(--radius-sm)',
-          padding: 'var(--space-1) var(--space-3)',
-          cursor: 'pointer',
-        }}
       >
         AI
-      </button>
-      <ThemeToggle />
-      <AiDock open={open} onClose={close} />
+      </Button>
+      <AgentmChatProvider url={url} token={token}>
+        {/* Why: the glass header's backdrop-filter is the containing block
+            for fixed descendants, which would clip the dock to the header. */}
+        {createPortal(<AiDock open={open} onClose={close} />, document.body)}
+      </AgentmChatProvider>
     </>
   );
 }

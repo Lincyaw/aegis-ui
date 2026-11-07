@@ -71,22 +71,16 @@ const FIELDS: FieldDef[] = [
     hint: 'Table holding AgentM session logs and message bodies. Default: otel_logs.',
   },
   {
-    key: 'aiBaseUrl',
-    label: 'AI base URL',
-    placeholder: 'https://api.openai.com/v1',
-    hint: 'OpenAI-compatible chat completions endpoint. Empty disables the in-app AI panel.',
+    key: 'agentmUrl',
+    label: 'AgentM gateway URL',
+    placeholder: 'ws://127.0.0.1:7777/agentm',
+    hint: 'WebSocket endpoint of the AgentM gateway behind the AI assistant. Empty hides the assistant.',
   },
   {
-    key: 'aiModel',
-    label: 'AI model',
-    placeholder: 'gpt-4o-mini',
-    hint: 'Model id passed to the chat completions endpoint.',
-  },
-  {
-    key: 'aiApiKey',
-    label: 'AI API key',
-    placeholder: 'sk-…',
-    hint: 'Bearer token. Stored only in this browser (localStorage); never injected from /config.js.',
+    key: 'agentmToken',
+    label: 'AgentM token',
+    placeholder: '(none)',
+    hint: 'Token sent to the AgentM gateway, if it requires one. Stored only in this browser (localStorage); never injected from /config.js.',
     secret: true,
   },
 ];
@@ -102,9 +96,8 @@ export function Setup(): ReactElement {
     clickhouseDatabase: current.clickhouseDatabase,
     clickhouseTracesTable: current.clickhouseTracesTable,
     clickhouseLogsTable: current.clickhouseLogsTable,
-    aiBaseUrl: current.aiBaseUrl,
-    aiModel: current.aiModel,
-    aiApiKey: current.aiApiKey,
+    agentmUrl: current.agentmUrl,
+    agentmToken: current.agentmToken,
   });
   const [saved, setSaved] = useState(false);
 
@@ -120,9 +113,8 @@ export function Setup(): ReactElement {
         draft.clickhouseTracesTable?.trim() || DEFAULTS.clickhouseTracesTable,
       clickhouseLogsTable:
         draft.clickhouseLogsTable?.trim() || DEFAULTS.clickhouseLogsTable,
-      aiBaseUrl: draft.aiBaseUrl?.trim() ?? '',
-      aiModel: draft.aiModel?.trim() || DEFAULTS.aiModel,
-      aiApiKey: draft.aiApiKey ?? '',
+      agentmUrl: draft.agentmUrl?.trim() ?? '',
+      agentmToken: draft.agentmToken ?? '',
     });
     setSaved(true);
     window.setTimeout(() => {

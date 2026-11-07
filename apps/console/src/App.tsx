@@ -1,12 +1,18 @@
 import type { ReactElement } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import { AegisShell, createAegisRuntime, InboxPage } from '@lincyaw/aegis-ui';
+import {
+  AegisShell,
+  createAegisRuntime,
+  InboxPage,
+  ThemeToggle,
+} from '@lincyaw/aegis-ui';
 import { connectAegisBridge } from '@lincyaw/aegis-ui/transports';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v6';
 
 import { AiDockHost } from './ai/AiDockHost';
 import { SsoAuthProvider } from './auth/SsoAuthProvider';
+import { getRuntimeConfig } from './config/runtime';
 import { RealNotificationProvider } from './notifications/RealNotificationProvider';
 import { Callback } from './pages/auth/Callback';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
@@ -27,6 +33,7 @@ if (bridge) {
 }
 
 export function ConsoleApp(): ReactElement {
+  const { agentmUrl, agentmToken } = getRuntimeConfig();
   return (
     <BrowserRouter>
       <NuqsAdapter>
@@ -54,7 +61,17 @@ export function ConsoleApp(): ReactElement {
                       { path: '/error/forbidden', element: <Forbidden /> },
                       { path: '/error/server', element: <ServerError /> },
                     ]}
-                    headerActions={<AiDockHost />}
+                    headerActions={
+                      <>
+                        {agentmUrl && (
+                          <AiDockHost
+                            url={agentmUrl}
+                            token={agentmToken || undefined}
+                          />
+                        )}
+                        <ThemeToggle />
+                      </>
+                    }
                     agentRuntime={agentRuntime}
                     inboxPath='/inbox'
                     userMenu={[
