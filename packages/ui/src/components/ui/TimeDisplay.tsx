@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { formatDuration } from '../../lib/format';
+import { useStrings } from '../../locale';
 import './TimeDisplay.css';
 import { relativeTime } from './relativeTime';
 
 interface TimeDisplayProps {
-  /** ISO string, timestamp ms, or Date object. */
-  value: string | number | Date;
+  /**
+   * ISO string, timestamp ms, or Date object. An empty or unreadable value
+   * shows an em dash, read out as the locale's `noValue`.
+   */
+  value: string | number | Date | null | undefined;
   /** 'absolute' = full timestamp, 'relative' = "2m ago", 'duration' = elapsed time. */
   mode?: 'absolute' | 'relative' | 'duration';
   /** For relative mode: refresh interval in ms (default 60 000). */
@@ -36,10 +40,14 @@ export function TimeDisplay({
   refreshMs = 60_000,
   className,
 }: TimeDisplayProps) {
-  const d = useMemo(
-    () => (value instanceof Date ? value : new Date(value)),
-    [value],
-  );
+  const strings = useStrings();
+  const d = useMemo(() => {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    const date = value instanceof Date ? value : new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }, [value]);
 
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -56,8 +64,13 @@ export function TimeDisplay({
 
   const display = useMemo(() => {
     if (mode === 'duration') {
-      const ms = typeof value === 'number' ? value : d.getTime();
-      return formatDuration(ms);
+      const ms = typeof value === 'number' ? value : d?.getTime();
+      return ms !== undefined && Number.isFinite(ms)
+        ? formatDuration(ms)
+        : null;
+    }
+    if (d === null) {
+      return null;
     }
     if (mode === 'relative') {
       return relativeTime(d, now);
@@ -66,13 +79,22 @@ export function TimeDisplay({
   }, [d, mode, value, now]);
 
   const tooltip = useMemo(() => {
-    if (mode === 'absolute') {
+    if (mode === 'absolute' || d === null) {
       return undefined;
     }
     return formatAbsolute(d);
   }, [d, mode]);
 
   const cls = ['aegis-time-display', className ?? ''].filter(Boolean).join(' ');
+
+  if (display === null) {
+    return (
+      <span className={cls}>
+        <span aria-hidden="true">—</span>
+        <span className="aegis-time-display__no-value">{strings.noValue}</span>
+      </span>
+    );
+  }
 
   return (
     <span className={cls} title={tooltip}>

@@ -380,6 +380,9 @@ export function DataDisplaySection() {
         <Specimen caption='duration'>
           <TimeDisplay value={2840} mode='duration' />
         </Specimen>
+        <Specimen caption="empty or unreadable value · an em dash, read out as the locale's no-value text">
+          <TimeDisplay value='not a date' />
+        </Specimen>
         <Specimen caption="formatDuration(ms) · the library's one duration format, also behind TraceTree, TimelineChart and the trajectory primitives">
           <KeyValueList
             items={DURATION_SAMPLES.map((ms) => ({

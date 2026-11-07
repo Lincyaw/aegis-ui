@@ -118,8 +118,16 @@
   flex-shrink: 0;
 }
 
-.aegis-object-browser__selection :is(.aegis-mono, .aegis-metric-label) {
+.aegis-object-browser__selection .aegis-metric-label {
   color: var(--text-on-inverted);
+}
+
+.aegis-object-browser__count {
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--fw-medium);
+  font-variant-numeric: tabular-nums;
 }
 
 .aegis-object-browser__search-slot {

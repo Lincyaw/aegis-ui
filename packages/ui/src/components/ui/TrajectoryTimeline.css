@@ -29,6 +29,10 @@
   flex-shrink: 0;
 }
 
+.aegis-trajectory-timeline__duration {
+  font-variant-numeric: tabular-nums;
+}
+
 .aegis-trajectory-timeline__agent-name {
   font-family: var(--font-brand);
   font-weight: var(--fw-semibold);

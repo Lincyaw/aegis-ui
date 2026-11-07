@@ -155,7 +155,9 @@ export function ObjectBrowser({
           <div className="aegis-object-browser__toolbar">
             {selectionCount > 0 ? (
               <span className="aegis-object-browser__selection">
-                <MonoValue size="sm">{selectionCount.toString()}</MonoValue>
+                <span className="aegis-object-browser__count">
+                  {selectionCount.toString()}
+                </span>
                 <MetricLabel>Selected</MetricLabel>
               </span>
             ) : null}

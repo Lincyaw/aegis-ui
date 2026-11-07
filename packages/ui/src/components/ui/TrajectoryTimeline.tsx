@@ -8,7 +8,6 @@ import { formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
-import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
 import { TrajectoryStep, type TrajectoryStepData } from './TrajectoryStep';
 import './TrajectoryTimeline.css';
@@ -66,10 +65,11 @@ export function TrajectoryTimeline({
           </div>
           <div className="aegis-trajectory-timeline__header-right">
             {totalDurationMs !== undefined && (
-              <MetricLabel size="sm">
-                <MonoValue size="sm" weight="regular">
-                  {formatDuration(totalDurationMs)}
-                </MonoValue>
+              <MetricLabel
+                size="sm"
+                className="aegis-trajectory-timeline__duration"
+              >
+                {formatDuration(totalDurationMs)}
               </MetricLabel>
             )}
             {extra}

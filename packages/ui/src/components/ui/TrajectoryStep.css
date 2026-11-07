@@ -57,7 +57,16 @@
   align-items: center;
   justify-content: center;
   min-width: 1.75rem;
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--fw-medium);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
+}
+
+.aegis-step__meta-number {
+  font-variant-numeric: tabular-nums;
 }
 
 .aegis-step__action-preview {

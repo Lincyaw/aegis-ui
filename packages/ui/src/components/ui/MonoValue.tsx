@@ -21,6 +21,11 @@ interface MonoValueProps {
   surface?: MonoValueSurface;
 }
 
+/**
+ * An id, a path or a piece of code in the mono face. Numbers, durations and
+ * times are not set in it: they take the numeric face (`--font-numeric`) with
+ * tabular figures.
+ */
 export function MonoValue({
   children,
   size = 'base',
