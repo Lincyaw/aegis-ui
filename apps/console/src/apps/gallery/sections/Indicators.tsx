@@ -652,6 +652,9 @@ export function IndicatorsSection() {
         <Specimen caption='warning · pulse'>
           <StatusDot tone='warning' pulse />
         </Specimen>
+        <Specimen caption='caution · --ink-warn, not a failure'>
+          <StatusDot tone='caution' />
+        </Specimen>
         <Specimen caption='size 10'>
           <StatusDot size={10} />
         </Specimen>

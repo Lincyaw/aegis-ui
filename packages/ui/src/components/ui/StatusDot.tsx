@@ -2,7 +2,11 @@ import './StatusDot.css';
 
 interface StatusDotProps {
   pulse?: boolean;
-  tone?: 'ink' | 'inverted' | 'warning' | 'muted' | 'success';
+  /**
+   * Fill colour. `warning` is the anomaly red, for failures only; `caution`
+   * is `--ink-warn`, for what needs attention but has not failed.
+   */
+  tone?: 'ink' | 'inverted' | 'warning' | 'caution' | 'muted' | 'success';
   size?: number;
   className?: string;
 }
