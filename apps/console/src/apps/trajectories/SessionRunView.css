@@ -1,4 +1,4 @@
-.aegis-session-trajectory {
+.trajectories-session-trajectory {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
@@ -9,7 +9,7 @@
   background: var(--bg-page);
 }
 
-.aegis-session-trajectory__summary {
+.trajectories-session-trajectory__summary {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -20,7 +20,7 @@
   background: var(--bg-panel);
 }
 
-.aegis-session-message {
+.trajectories-session-message {
   flex: 0 0 auto;
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
@@ -28,11 +28,11 @@
   overflow: hidden;
 }
 
-.aegis-session-message--highlighted {
+.trajectories-session-message--highlighted {
   border-color: var(--accent-warning);
 }
 
-.aegis-session-message__head {
+.trajectories-session-message__head {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -44,11 +44,11 @@
   list-style: none;
 }
 
-.aegis-session-message__head::-webkit-details-marker {
+.trajectories-session-message__head::-webkit-details-marker {
   display: none;
 }
 
-.aegis-session-message__fold {
+.trajectories-session-message__fold {
   width: 1ch;
   color: var(--text-muted);
   font-family: var(--font-mono);
@@ -56,15 +56,16 @@
   flex-shrink: 0;
 }
 
-.aegis-session-message__fold::before {
+.trajectories-session-message__fold::before {
   content: '▾';
 }
 
-.aegis-session-message:not([open]) .aegis-session-message__fold::before {
+.trajectories-session-message:not([open])
+  .trajectories-session-message__fold::before {
   content: '▸';
 }
 
-.aegis-session-message__excerpt {
+.trajectories-session-message__excerpt {
   color: var(--text-muted);
   font-size: var(--fs-12);
   white-space: nowrap;
@@ -72,7 +73,7 @@
   text-overflow: ellipsis;
 }
 
-.aegis-session-message__body {
+.trajectories-session-message__body {
   padding: var(--space-3);
   display: flex;
   flex-direction: column;
@@ -82,17 +83,17 @@
   min-width: 0;
 }
 
-.aegis-session-message__tool,
-.aegis-session-output__json,
-.aegis-session-output__tool {
+.trajectories-session-message__tool,
+.trajectories-session-output__json,
+.trajectories-session-output__tool {
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-sm);
   background: var(--bg-muted);
 }
 
-.aegis-session-message__tool summary,
-.aegis-session-output__json summary,
-.aegis-session-output__tool summary {
+.trajectories-session-message__tool summary,
+.trajectories-session-output__json summary,
+.trajectories-session-output__tool summary {
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -103,29 +104,35 @@
   font-weight: var(--fw-medium);
 }
 
-.aegis-session-message__head .aegis-session-content__expand,
-.aegis-session-message__tool summary .aegis-session-content__expand,
-.aegis-session-output__json summary .aegis-session-content__expand,
-.aegis-session-output__tool summary .aegis-session-content__expand {
+.trajectories-session-message__head .trajectories-session-content__expand,
+.trajectories-session-message__tool
+  summary
+  .trajectories-session-content__expand,
+.trajectories-session-output__json
+  summary
+  .trajectories-session-content__expand,
+.trajectories-session-output__tool
+  summary
+  .trajectories-session-content__expand {
   margin-left: auto;
   flex-shrink: 0;
 }
 
-.aegis-session-message__tool > .aegis-session-content,
-.aegis-session-output__json > .aegis-session-content,
-.aegis-session-output__tool > .aegis-session-content {
+.trajectories-session-message__tool > .trajectories-session-content,
+.trajectories-session-output__json > .trajectories-session-content,
+.trajectories-session-output__tool > .trajectories-session-content {
   border-top: var(--size-hairline) solid var(--border-hairline);
   padding: var(--space-2);
 }
 
-.aegis-session-content {
+.trajectories-session-content {
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
-.aegis-session-content__toolbar {
+.trajectories-session-content__toolbar {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -133,11 +140,11 @@
   min-width: 0;
 }
 
-.aegis-session-content__toolbar .aegis-metric-label {
+.trajectories-session-content__kind {
   margin-right: auto;
 }
 
-.aegis-session-content__title {
+.trajectories-session-content__title {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -148,12 +155,12 @@
   font-weight: var(--fw-medium);
 }
 
-.aegis-session-content__expand {
+.trajectories-session-content__expand {
   padding: var(--space-1) var(--space-2);
   font-size: var(--fs-11);
 }
 
-.aegis-session-output {
+.trajectories-session-output {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
@@ -163,7 +170,7 @@
   gap: var(--space-3);
 }
 
-.aegis-session-output__section {
+.trajectories-session-output__section {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -171,13 +178,13 @@
   border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
-.aegis-session-output__section h3 {
+.trajectories-session-output__section h3 {
   margin: 0;
   font-family: var(--font-brand);
   font-size: var(--fs-13);
 }
 
-.aegis-session-output__facts {
+.trajectories-session-output__facts {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-1) var(--space-3);
@@ -185,21 +192,21 @@
   font-size: var(--fs-12);
 }
 
-.aegis-session-output__fact {
+.trajectories-session-output__fact {
   display: contents;
 }
 
-.aegis-session-output__facts dt {
+.trajectories-session-output__facts dt {
   color: var(--text-muted);
 }
 
-.aegis-session-output__facts dd {
+.trajectories-session-output__facts dd {
   margin: 0;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-.aegis-session-output__roots {
+.trajectories-session-output__roots {
   padding: var(--space-2);
   border-radius: var(--radius-sm);
   background: var(--bg-muted);
@@ -210,18 +217,18 @@
   white-space: pre-wrap;
 }
 
-.aegis-session-output__chips {
+.trajectories-session-output__chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-.aegis-session-output__tool-list {
+.trajectories-session-output__tool-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
-.aegis-session-output__tool--error {
+.trajectories-session-output__tool--error {
   border-color: var(--accent-warning);
 }

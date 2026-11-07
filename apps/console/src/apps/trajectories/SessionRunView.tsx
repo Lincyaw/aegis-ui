@@ -14,6 +14,13 @@ import {
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
 
+import {
+  type AgentBlock,
+  contentExcerpt,
+  normalizeBlock,
+  normalizeContent,
+} from '../shared/agentContent';
+
 import './SessionRunView.css';
 
 const EXCERPT_LIMIT = 140;
@@ -71,49 +78,26 @@ export interface SessionRunOutputViewProps {
   onInspectContent: (content: InspectableContent) => void;
 }
 
-function contentExcerpt(message: SessionRunMessage): string {
-  for (const block of message.content) {
-    if (block != null && typeof block === 'object') {
-      const obj = block as Record<string, unknown>;
-      if (obj.type === 'text' && typeof obj.text === 'string') {
-        const text = obj.text.trim().replace(/\s+/g, ' ');
-        return text.length > EXCERPT_LIMIT
-          ? `${text.slice(0, EXCERPT_LIMIT)}…`
-          : text;
-      }
-      if (obj.type === 'tool_call' && typeof obj.name === 'string') {
-        return `→ ${obj.name}`;
-      }
-      if (obj.type === 'tool_result') {
-        return '⇐ tool result';
-      }
+function blockTitle(block: AgentBlock): string {
+  switch (block.kind) {
+    case 'tool_call':
+      return block.name;
+    case 'tool_result':
+      return block.toolCallId || 'tool result';
+    case 'unknown': {
+      const raw = block.raw as { type?: unknown } | null;
+      return typeof raw?.type === 'string' ? raw.type : 'content';
     }
+    case 'text':
+    case 'thinking':
+      return block.kind;
   }
-  return '';
-}
-
-function blockTitle(block: Record<string, unknown>): string {
-  if (typeof block.name === 'string') {
-    return block.name;
-  }
-  if (typeof block.type === 'string') {
-    return block.type;
-  }
-  return 'content';
 }
 
 function messageInspectContent(message: SessionRunMessage): InspectableContent {
-  const textBlocks = message.content
-    .map((block) => {
-      if (block != null && typeof block === 'object') {
-        const obj = block as Record<string, unknown>;
-        if (obj.type === 'text' && typeof obj.text === 'string') {
-          return obj.text;
-        }
-      }
-      return null;
-    })
-    .filter((text): text is string => text !== null);
+  const textBlocks = normalizeContent(message.content).flatMap((block) =>
+    block.kind === 'text' ? [block.text] : []
+  );
   if (textBlocks.length > 0 && textBlocks.length === message.content.length) {
     return {
       title: `${message.role} message`,
@@ -141,7 +125,7 @@ function InspectContentButton({
     <Button
       type='button'
       tone='ghost'
-      className='aegis-session-content__expand'
+      className='trajectories-session-content__expand'
       aria-label={`Open ${content.title}`}
       title='Open in inspector'
       onClick={(event) => {
@@ -168,12 +152,16 @@ function InspectableRunContent({
   const prepared = prepareInspectableContent(content);
   return (
     <div
-      className={`aegis-session-content aegis-session-content--${prepared.kind}`}
+      className={`trajectories-session-content trajectories-session-content--${prepared.kind}`}
     >
       {showHeader && (
-        <div className='aegis-session-content__toolbar'>
-          <span className='aegis-session-content__title'>{content.title}</span>
-          <MetricLabel size='xs'>{prepared.kind}</MetricLabel>
+        <div className='trajectories-session-content__toolbar'>
+          <span className='trajectories-session-content__title'>
+            {content.title}
+          </span>
+          <MetricLabel size='xs' className='trajectories-session-content__kind'>
+            {prepared.kind}
+          </MetricLabel>
           <InspectContentButton
             content={content}
             onInspectContent={onInspectContent}
@@ -219,26 +207,26 @@ function MessageBlock({
       />
     );
   }
-  const obj = block as Record<string, unknown>;
-  if (obj.type === 'text' && typeof obj.text === 'string') {
+  const normalized = normalizeBlock(block);
+  if (normalized.kind === 'text') {
     return (
       <MessageTextBlock
         title={title}
-        text={obj.text}
+        text={normalized.text}
         onInspectContent={onInspectContent}
       />
     );
   }
   const content = {
-    title: blockTitle(obj),
-    value: obj,
+    title: blockTitle(normalized),
+    value: block,
     kind: 'json' as const,
   };
   return (
-    <details className='aegis-session-message__tool'>
+    <details className='trajectories-session-message__tool'>
       <summary>
-        <span>{String(obj.type ?? 'block')}</span>
-        <MonoValue size='sm'>{blockTitle(obj)}</MonoValue>
+        <span>{normalized.kind === 'unknown' ? 'block' : normalized.kind}</span>
+        <MonoValue size='sm'>{blockTitle(normalized)}</MonoValue>
         <InspectContentButton
           content={content}
           onInspectContent={onInspectContent}
@@ -266,27 +254,30 @@ function MessageCard({
   return (
     <details
       open={!collapseByDefault}
-      className={`aegis-session-message aegis-session-message--${message.role}${
-        message.highlighted ? ' aegis-session-message--highlighted' : ''
+      className={`trajectories-session-message trajectories-session-message--${message.role}${
+        message.highlighted ? ' trajectories-session-message--highlighted' : ''
       }`}
     >
-      <summary className='aegis-session-message__head'>
-        <span className='aegis-session-message__fold' aria-hidden='true' />
+      <summary className='trajectories-session-message__head'>
+        <span
+          className='trajectories-session-message__fold'
+          aria-hidden='true'
+        />
         <Chip tone={message.role === 'assistant' ? 'ink' : 'ghost'}>
           {message.role}
         </Chip>
         <MonoValue size='sm'>
           {message.id ? message.id.slice(0, 12) : 'message'}
         </MonoValue>
-        <span className='aegis-session-message__excerpt'>
-          {contentExcerpt(message)}
+        <span className='trajectories-session-message__excerpt'>
+          {contentExcerpt(normalizeContent(message.content), EXCERPT_LIMIT)}
         </span>
         <InspectContentButton
           content={content}
           onInspectContent={onInspectContent}
         />
       </summary>
-      <div className='aegis-session-message__body'>
+      <div className='trajectories-session-message__body'>
         {message.content.map((block, index) => (
           <MessageBlock
             key={`${message.id ?? 'message'}-${index.toString()}`}
@@ -320,8 +311,8 @@ export function SessionRunTrajectoryView({
     );
   }
   return (
-    <div className='aegis-session-trajectory'>
-      <div className='aegis-session-trajectory__summary'>
+    <div className='trajectories-session-trajectory'>
+      <div className='trajectories-session-trajectory__summary'>
         <Chip tone='ghost'>{summary.lineage}</Chip>
         {summary.startedAt && <TimeDisplay value={summary.startedAt} />}
         {summary.inputTokens && (
@@ -391,25 +382,25 @@ export function SessionRunOutputView({
         };
 
   return (
-    <div className='aegis-session-output'>
-      <section className='aegis-session-output__section'>
+    <div className='trajectories-session-output'>
+      <section className='trajectories-session-output__section'>
         <h3>Session</h3>
-        <dl className='aegis-session-output__facts'>
+        <dl className='trajectories-session-output__facts'>
           {facts.map((fact) => (
-            <div key={fact.key} className='aegis-session-output__fact'>
+            <div key={fact.key} className='trajectories-session-output__fact'>
               <dt>{fact.label}</dt>
               <dd>{fact.value}</dd>
             </div>
           ))}
         </dl>
       </section>
-      <section className='aegis-session-output__section'>
+      <section className='trajectories-session-output__section'>
         <h3>Output</h3>
         {acceptedSubmission != null && (
           <Chip tone='ghost'>{acceptedSubmission.tool}</Chip>
         )}
         {acceptedSubmission?.summary ? (
-          <div className='aegis-session-output__roots'>
+          <div className='trajectories-session-output__roots'>
             {acceptedSubmission.summary}
           </div>
         ) : (
@@ -419,7 +410,7 @@ export function SessionRunOutputView({
           <Chip tone='warning'>{submitErrors.toString()} failed submit</Chip>
         )}
         {acceptedSubmissionContent != null && (
-          <details className='aegis-session-output__json'>
+          <details className='trajectories-session-output__json'>
             <summary>
               <span>raw payload</span>
               <InspectContentButton
@@ -435,16 +426,16 @@ export function SessionRunOutputView({
           </details>
         )}
       </section>
-      <section className='aegis-session-output__section'>
+      <section className='trajectories-session-output__section'>
         <h3>Tools</h3>
-        <div className='aegis-session-output__chips'>
+        <div className='trajectories-session-output__chips'>
           <Chip tone='ghost'>{tools.length.toString()} calls</Chip>
           <Chip tone='ghost'>{querySqlCount.toString()} SQL</Chip>
           {erroredTools.length > 0 && (
             <Chip tone='warning'>{erroredTools.length.toString()} errors</Chip>
           )}
         </div>
-        <div className='aegis-session-output__tool-list'>
+        <div className='trajectories-session-output__tool-list'>
           {tools.map((tool) => {
             const content = {
               title: `${tool.tool} call`,
@@ -454,9 +445,9 @@ export function SessionRunOutputView({
             return (
               <details
                 key={tool.id}
-                className={`aegis-session-output__tool${
+                className={`trajectories-session-output__tool${
                   tool.errored === true
-                    ? ' aegis-session-output__tool--error'
+                    ? ' trajectories-session-output__tool--error'
                     : ''
                 }`}
               >

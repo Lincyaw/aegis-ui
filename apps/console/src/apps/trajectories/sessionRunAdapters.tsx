@@ -10,7 +10,9 @@ import {
   type ToolCallRow,
 } from './api/clickhouse';
 
-import { formatDurationMs, formatTokens } from './conversation';
+import { jsonStringify } from '../shared/agentContent';
+
+import { formatDurationMs, formatTokens } from './format';
 import type {
   SessionRunFact,
   SessionRunMessage,
@@ -73,20 +75,6 @@ export function lineageLabel(row: SessionRow): string {
   return 'root';
 }
 
-function stringify(value: unknown): string {
-  if (value == null) {
-    return '';
-  }
-  if (typeof value === 'string') {
-    return value;
-  }
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-}
-
 function valueSummary(value: unknown): string {
   if (value == null) {
     return '';
@@ -97,7 +85,7 @@ function valueSummary(value: unknown): string {
   if (typeof value === 'number' || typeof value === 'boolean') {
     return String(value);
   }
-  return stringify(value);
+  return jsonStringify(value);
 }
 
 export function isToolError(tool: ToolCallRow): boolean {
@@ -154,7 +142,7 @@ function rootSummary(payload: unknown): string {
   return roots
     .map((root) => {
       if (typeof root !== 'string') {
-        return stringify(root);
+        return jsonStringify(root);
       }
       const node = byId.get(root);
       if (!node) {
@@ -191,7 +179,7 @@ function submissionSummary(payload: unknown): string {
   const lines = preferred
     .filter((key) => key in obj)
     .map((key) => `${key}: ${valueSummary(obj[key])}`);
-  return lines.length > 0 ? lines.join('\n') : stringify(payload);
+  return lines.length > 0 ? lines.join('\n') : jsonStringify(payload);
 }
 
 export function toSessionRunSummary(row: SessionRow): SessionRunSummary {

@@ -2,6 +2,7 @@ import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
+  Button,
   Chip,
   ErrorState,
   EventTable,
@@ -21,12 +22,14 @@ import { parseAsString, useQueryState } from 'nuqs';
 import { listSessionRows, type SessionRow } from '../api/clickhouse';
 import { compileLuceneToSql } from '../api/luceneToSql';
 import { useCompareList } from '../compareList';
-import { formatTokens } from '../conversation';
+import { formatTokens } from '../format';
 import {
   SESSION_FIELD_MAPPINGS,
   SESSION_FIELD_SUGGESTIONS,
   suggestSessionFieldValues,
 } from '../sessionFields';
+
+import './SessionList.css';
 
 const SINCE_PRESETS = [
   { label: '1h', value: 'now-1h' },
@@ -122,13 +125,7 @@ export function SessionList(): ReactElement {
       render: (r) => (
         <Link
           to={r.sessionId || '#'}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            color: 'inherit',
-            textDecoration: 'none',
-          }}
+          className='trajectories-list__link trajectories-list__session'
         >
           <MonoValue size='sm'>{shortId(r.sessionId, 16)}</MonoValue>
           <MetricLabel size='xs'>
@@ -145,10 +142,7 @@ export function SessionList(): ReactElement {
       width: 150,
       render: (r) =>
         r.parentSessionId ? (
-          <Link
-            to={r.parentSessionId}
-            style={{ color: 'inherit', textDecoration: 'none' }}
-          >
+          <Link to={r.parentSessionId} className='trajectories-list__link'>
             <MonoValue size='sm'>{r.parentSessionId.slice(0, 12)}</MonoValue>
           </Link>
         ) : (
@@ -179,14 +173,18 @@ export function SessionList(): ReactElement {
       header: 'Turns',
       align: 'right',
       width: 80,
-      render: (r) => <MonoValue size='sm'>{r.turnCount}</MonoValue>,
+      render: (r) => (
+        <span className='trajectories-list__number'>{r.turnCount}</span>
+      ),
     },
     {
       key: 'tools',
       header: 'Tools',
       align: 'right',
       width: 80,
-      render: (r) => <MonoValue size='sm'>{r.toolCount}</MonoValue>,
+      render: (r) => (
+        <span className='trajectories-list__number'>{r.toolCount}</span>
+      ),
     },
     {
       key: 'tokens',
@@ -194,9 +192,9 @@ export function SessionList(): ReactElement {
       align: 'right',
       width: 160,
       render: (r) => (
-        <MonoValue size='sm'>
+        <span className='trajectories-list__number'>
           {formatTokens(r.inputTokens)} / {formatTokens(r.outputTokens)}
-        </MonoValue>
+        </span>
       ),
     },
     {
@@ -226,8 +224,9 @@ export function SessionList(): ReactElement {
       render: (r) => {
         const isPinned = pinned.includes(r.sessionId);
         return (
-          <button
-            type='button'
+          <Button
+            tone='ghost'
+            aria-pressed={isPinned}
             aria-label={isPinned ? 'Unpin session' : 'Pin session'}
             title={isPinned ? 'Unpin session' : 'Pin session'}
             onClick={(event) => {
@@ -235,18 +234,9 @@ export function SessionList(): ReactElement {
               event.stopPropagation();
               toggle(r.sessionId);
             }}
-            style={{
-              border: 0,
-              background: 'transparent',
-              color: 'inherit',
-              padding: 0,
-              cursor: 'pointer',
-            }}
           >
-            <Chip tone={isPinned ? 'ink' : 'default'}>
-              {isPinned ? '★' : '☆'}
-            </Chip>
-          </button>
+            {isPinned ? '★' : '☆'}
+          </Button>
         );
       },
       truncate: false,
@@ -257,9 +247,9 @@ export function SessionList(): ReactElement {
     <Panel
       title={<PanelTitle size='lg'>Agent sessions</PanelTitle>}
       extra={
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className='trajectories-list__extra'>
           {pinned.length > 0 && (
-            <Link to='compare' style={{ textDecoration: 'none' }}>
+            <Link to='compare' className='trajectories-list__link'>
               <Chip tone='ink'>★ {pinned.length}/2 → compare</Chip>
             </Link>
           )}
@@ -269,7 +259,7 @@ export function SessionList(): ReactElement {
     >
       <Toolbar
         left={
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className='trajectories-list__search'>
             <QueryAutocomplete
               value={search}
               onChange={(v) => void setSearch(v)}
@@ -288,11 +278,11 @@ export function SessionList(): ReactElement {
         }
       />
       {compiled.referencedFields.length > 0 && (
-        <MetricLabel size='xs' style={{ marginTop: 'var(--space-2)' }}>
+        <MetricLabel size='xs' className='trajectories-list__explain'>
           {compiled.explanation}
         </MetricLabel>
       )}
-      <div style={{ marginTop: 16 }}>
+      <div className='trajectories-list__table'>
         {error ? (
           <ErrorState title='ClickHouse query failed' description={error} />
         ) : (

@@ -31,7 +31,7 @@ export function Compare(): ReactElement {
       <Panel
         title={<PanelTitle size='lg'>Compare</PanelTitle>}
         extra={
-          <Link to='..' style={{ color: 'inherit' }}>
+          <Link to='..' className='trajectories-compare__link'>
             <Chip>← back to sessions</Chip>
           </Link>
         }
@@ -49,11 +49,11 @@ export function Compare(): ReactElement {
       <Panel
         title={<PanelTitle size='lg'>Compare</PanelTitle>}
         extra={
-          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-            <Link to='..' style={{ color: 'inherit', textDecoration: 'none' }}>
+          <div className='trajectories-compare__extra'>
+            <Link to='..' className='trajectories-compare__link'>
               <Chip>← back</Chip>
             </Link>
-            <Chip tone='warning' onClick={clear}>
+            <Chip tone='default' onClick={clear}>
               clear pins
             </Chip>
           </div>
@@ -136,7 +136,7 @@ function CompareColumn({
         <Chip tone='ink'>{label}</Chip>
         <Link
           to={`/trajectories/${sessionId}`}
-          style={{ color: 'inherit', textDecoration: 'none', flex: '1 1 auto' }}
+          className='trajectories-compare__link trajectories-compare__session-link'
         >
           <MonoValue size='sm'>{sessionId.slice(0, 16)}…</MonoValue>
         </Link>
