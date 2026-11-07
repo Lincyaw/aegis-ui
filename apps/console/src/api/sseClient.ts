@@ -1,8 +1,9 @@
 /**
  * Minimal SSE consumer that supports an Authorization header — the
- * built-in EventSource doesn't. Uses fetch + ReadableStream + a tiny
- * frame parser. Each call returns an AbortController; cancel via
- * `controller.abort()` to close the connection.
+ * built-in EventSource doesn't. Connects through `authFetch`, so it sends
+ * the session's token and renews it on a 401, then reads the
+ * ReadableStream with a tiny frame parser. Each call returns an
+ * AbortController; cancel via `controller.abort()` to close the connection.
  *
  * Frame format (RFC EventSource subset we care about):
  *
@@ -13,6 +14,7 @@
  * Lines without `event:` use the default event name (`message`).
  * Comments (`:` lines, e.g. keep-alives) are ignored.
  */
+import { authFetch } from './apiClient';
 
 export interface SseEvent {
   event: string;
@@ -21,13 +23,13 @@ export interface SseEvent {
 
 export interface SseOptions {
   url: string;
-  /** Bearer token for the Authorization header. Required for our backend. */
-  token: string | null;
   onEvent: (e: SseEvent) => void;
   /** Optional connect-success hook (after headers come back 2xx). */
   onOpen?: () => void;
-  /** Called when the stream errors or closes; caller may reconnect. */
+  /** Called when connecting or reading fails; caller may reconnect. */
   onError?: (err: unknown) => void;
+  /** Called when the server ends the stream; caller may reconnect. */
+  onClose?: () => void;
   /** Optional AbortSignal upstream caller can plug into. */
   signal?: AbortSignal;
 }
@@ -46,13 +48,9 @@ export function openSseStream(opts: SseOptions): AbortController {
 
   void (async () => {
     try {
-      const headers = new Headers({ accept: 'text/event-stream' });
-      if (opts.token) {
-        headers.set('authorization', `Bearer ${opts.token}`);
-      }
-      const res = await fetch(opts.url, {
+      const res = await authFetch(opts.url, {
         method: 'GET',
-        headers,
+        headers: { accept: 'text/event-stream' },
         signal: controller.signal,
         // Keep-alive needed for long-lived streams behind some proxies.
         cache: 'no-store',
@@ -64,8 +62,7 @@ export function openSseStream(opts: SseOptions): AbortController {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = '';
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
+      for (;;) {
         const { value, done } = await reader.read();
         if (done) {
           break;
@@ -84,10 +81,13 @@ export function openSseStream(opts: SseOptions): AbortController {
         }
       }
     } catch (err) {
-      if (controller.signal.aborted) {
-        return;
+      if (!controller.signal.aborted) {
+        opts.onError?.(err);
       }
-      opts.onError?.(err);
+      return;
+    }
+    if (!controller.signal.aborted) {
+      opts.onClose?.();
     }
   })();
 
