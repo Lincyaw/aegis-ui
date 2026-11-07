@@ -367,6 +367,14 @@ export function DataDisplaySection() {
         <Specimen caption='duration'>
           <TimeDisplay value={2840} mode='duration' />
         </Specimen>
+        <Specimen caption="formatDuration(ms) · the library's one duration format, also behind TraceTree, TimelineChart and the trajectory primitives">
+          <KeyValueList
+            items={DURATION_SAMPLES.map((ms) => ({
+              k: String(ms),
+              v: formatDuration(ms),
+            }))}
+          />
+        </Specimen>
       </div>
 
       <SectionDivider>TimeRangePicker</SectionDivider>
@@ -387,14 +395,6 @@ export function DataDisplaySection() {
         </Specimen>
         <Specimen caption='controlled · logs to console'>
           <TimeRangePickerSpecimen initial='now-15m' logToConsole />
-        </Specimen>
-        <Specimen caption="formatDuration(ms) · the library's one duration format, also behind TraceTree, TimelineChart and the trajectory primitives">
-          <KeyValueList
-            items={DURATION_SAMPLES.map((ms) => ({
-              k: String(ms),
-              v: formatDuration(ms),
-            }))}
-          />
         </Specimen>
       </div>
     </Panel>
