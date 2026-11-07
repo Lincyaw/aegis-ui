@@ -49,6 +49,19 @@ func TestHostAllowlist(t *testing.T) {
 	}
 }
 
+func TestCheckAllowedHosts(t *testing.T) {
+	for _, h := range []string{"console.example.com", "Console.Example.COM.", "aegis-console", "build_box.lan", "10.0.0.5"} {
+		if err := checkAllowedHosts([]string{h}); err != nil {
+			t.Errorf("%q rejected: %v", h, err)
+		}
+	}
+	for _, h := range []string{"https://console.example.com", "console.example.com:8443", "console.example.com/app", "", "*.example.com"} {
+		if err := checkAllowedHosts([]string{h}); err == nil {
+			t.Errorf("%q accepted, want an error", h)
+		}
+	}
+}
+
 func TestCheckClickhouseExposure(t *testing.T) {
 	cases := []struct {
 		name    string
@@ -94,7 +107,7 @@ func TestShutdownDrainsRequestsAndEndsStreams(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	runErr := make(chan error, 1)
-	go func() { runErr <- run(ctx, newServer(h), ln) }()
+	go func() { runErr <- serveUntilDone(ctx, newServer(h), ln) }()
 
 	go func() {
 		req, err := http.NewRequest(http.MethodGet, base+"/stream", nil)

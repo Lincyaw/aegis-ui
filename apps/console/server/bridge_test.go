@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -65,7 +66,7 @@ func connectBrowser(t *testing.T, b *bridge, lf *lockFile, id string) *websocket
 }
 
 // answerNextCall reads one tool.call from the browser side and replies
-// with result.
+// with result, unescaped, as the browser's JSON.stringify sends it.
 func answerNextCall(ctx context.Context, conn *websocket.Conn, result json.RawMessage) error {
 	_, data, err := conn.Read(ctx)
 	if err != nil {
@@ -77,50 +78,121 @@ func answerNextCall(ctx context.Context, conn *websocket.Conn, result json.RawMe
 	if err := json.Unmarshal(data, &call); err != nil {
 		return err
 	}
-	reply, err := json.Marshal(map[string]any{"type": "tool.result", "id": call.ID, "result": result})
-	if err != nil {
-		return err
-	}
-	return conn.Write(ctx, websocket.MessageText, reply)
+	reply := fmt.Sprintf(`{"type":"tool.result","id":%q,"result":%s}`, call.ID, result)
+	return conn.Write(ctx, websocket.MessageText, []byte(reply))
 }
 
-func jsonString(t *testing.T, n int) json.RawMessage {
-	t.Helper()
-	b, err := json.Marshal(strings.Repeat("x", n))
-	if err != nil {
-		t.Fatal(err)
+// jsonString is a JSON string of n bytes of content; with ampEvery > 0,
+// every ampEvery-th byte is a raw '&'.
+func jsonString(n, ampEvery int) json.RawMessage {
+	b := make([]byte, 0, n+2)
+	b = append(b, '"')
+	for i := 0; i < n; i++ {
+		if ampEvery > 0 && i%ampEvery == 0 {
+			b = append(b, '&')
+		} else {
+			b = append(b, 'x')
+		}
 	}
-	return b
+	return append(b, '"')
+}
+
+func newTestControlClient(t *testing.T, ctx context.Context, lf *lockFile, dials *atomic.Int32) *controlClient {
+	t.Helper()
+	cli := &controlClient{
+		ctx: ctx,
+		dial: func(ctx context.Context) (*websocket.Conn, error) {
+			dials.Add(1)
+			return dialBridge(ctx, lf)
+		},
+		pending: map[string]chan controlReply{},
+	}
+	t.Cleanup(cli.close)
+	return cli
 }
 
 func TestToolResultOverDefaultReadLimitReachesControlClient(t *testing.T) {
+	cases := []struct {
+		name   string
+		result json.RawMessage
+	}{
+		{"4 MiB", jsonString(4<<20, 0)},
+		// json.Marshal would grow each & to &, past controlReadLimit.
+		{"12 MiB, 10% ampersands", jsonString(12<<20, 10)},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			b := newBridge(0, false)
+			lf := startBridge(t, b)
+			browser := connectBrowser(t, b, lf, "tab-1")
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			cli := newTestControlClient(t, ctx, lf, &atomic.Int32{})
+
+			answered := make(chan error, 1)
+			go func() { answered <- answerNextCall(ctx, browser, tc.result) }()
+
+			got, berr := cli.callTool("", "aegis_snapshot", nil)
+			if berr != nil {
+				t.Fatalf("callTool: [%s] %s", berr.Code, berr.Message)
+			}
+			if err := <-answered; err != nil {
+				t.Fatalf("browser reply: %v", err)
+			}
+			if !bytes.Equal(got, tc.result) {
+				t.Fatalf("result has %d bytes, want the %d the browser sent", len(got), len(tc.result))
+			}
+		})
+	}
+}
+
+func TestControlClientReportsCloseAndRedials(t *testing.T) {
 	b := newBridge(0, false)
 	lf := startBridge(t, b)
 	browser := connectBrowser(t, b, lf, "tab-1")
-
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	conn, err := dialBridge(ctx, lf)
-	if err != nil {
+	var dials atomic.Int32
+	cli := newTestControlClient(t, ctx, lf, &dials)
+	if err := cli.connect(); err != nil {
 		t.Fatal(err)
 	}
-	defer conn.CloseNow()
-	cli := &controlClient{conn: conn, ctx: ctx, pending: map[string]chan controlReply{}}
-	go cli.readLoop()
 
-	want := jsonString(t, 4<<20)
+	// The browser never answers this call; the control connection drops
+	// while it waits.
+	go func() {
+		if _, _, err := browser.Read(ctx); err != nil {
+			return
+		}
+		cli.mu.Lock()
+		conn := cli.conn
+		cli.mu.Unlock()
+		_ = conn.CloseNow()
+	}()
+	start := time.Now()
+	_, berr := cli.callTool("", "aegis_snapshot", nil)
+	if berr == nil || berr.Code != "bridge_closed" {
+		t.Fatalf("call during the drop: got %+v, want bridge_closed", berr)
+	}
+	if elapsed := time.Since(start); elapsed > 5*time.Second {
+		t.Fatalf("drop reported after %v, want at once", elapsed)
+	}
+
+	want := jsonString(16, 0)
 	answered := make(chan error, 1)
 	go func() { answered <- answerNextCall(ctx, browser, want) }()
-
 	got, berr := cli.callTool("", "aegis_snapshot", nil)
 	if berr != nil {
-		t.Fatalf("callTool: [%s] %s", berr.Code, berr.Message)
+		t.Fatalf("call after the drop: [%s] %s", berr.Code, berr.Message)
 	}
 	if err := <-answered; err != nil {
 		t.Fatalf("browser reply: %v", err)
 	}
 	if !bytes.Equal(got, want) {
-		t.Fatalf("result has %d bytes, want %d", len(got), len(want))
+		t.Fatalf("result %s, want %s", got, want)
+	}
+	if n := dials.Load(); n != 2 {
+		t.Fatalf("dialed %d times, want 2", n)
 	}
 }
 
@@ -143,7 +215,7 @@ func TestPendingCallFailsWhenSessionCloses(t *testing.T) {
 		{
 			name: "reply over the message limit",
 			browser: func(ctx context.Context, conn *websocket.Conn) error {
-				return answerNextCall(ctx, conn, jsonString(t, browserReadLimit))
+				return answerNextCall(ctx, conn, jsonString(browserReadLimit, 0))
 			},
 			wantMsg: "message limit",
 		},

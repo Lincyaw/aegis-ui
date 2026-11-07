@@ -83,7 +83,9 @@ name passed with `--allowed-host`; anything else gets `403`. This stops
 a DNS-rebinding page, which reaches the console under its own hostname,
 from reading `/config.js`, querying ClickHouse or opening the bridge.
 When the console sits behind a proxy or is reached by a DNS name, pass
-that name: `--allowed-host console.example.com`.
+that name: `--allowed-host console.example.com`. The value is a bare host
+name; the server refuses to start when it carries a scheme, a port or a
+path, since ports are never compared.
 
 ### ClickHouse credentials on a LAN bind
 
@@ -154,6 +156,12 @@ A message on the bridge may be up to 16 MiB, enough for a full
 `aegis_snapshot`. When a browser session closes, including when its
 reply exceeds that limit, the calls waiting on it fail at once with the
 error code `session_closed`.
+
+`aegis-console mcp` fails at startup when no bridge is running. If its
+connection to the bridge drops later, the calls waiting on it fail with
+`bridge_closed`, and the next call connects again, re-reading the lock
+file, so a restarted console is picked up; while none is running, calls
+fail with `bridge_unavailable`.
 
 `aegis-console mcp` flags:
 

@@ -6,6 +6,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -408,30 +409,43 @@ func (b *bridge) serveControl(conn *websocket.Conn) {
 				})
 			}
 			b.mu.Unlock()
-			body, _ := json.Marshal(map[string]any{
+			body, _ := marshalControl(map[string]any{
 				"type":     "control.sessions",
 				"sessions": out,
 			})
 			_ = conn.Write(ctx, websocket.MessageText, body)
 		case "control.tool.call":
 			result, callErr := b.callTool(env.SessionID, env.Tool, env.Params)
+			reply := map[string]any{"type": "control.tool.result", "id": env.ID, "result": result}
 			if callErr != nil {
-				body, _ := json.Marshal(map[string]any{
+				reply = map[string]any{"type": "control.tool.error", "id": env.ID, "error": callErr}
+			}
+			body, err := marshalControl(reply)
+			if err != nil {
+				body, _ = marshalControl(map[string]any{
 					"type":  "control.tool.error",
 					"id":    env.ID,
-					"error": callErr,
+					"error": &bridgeError{Code: "thrown", Message: err.Error()},
 				})
-				_ = conn.Write(ctx, websocket.MessageText, body)
-			} else {
-				body, _ := json.Marshal(map[string]any{
-					"type":   "control.tool.result",
-					"id":     env.ID,
-					"result": json.RawMessage(result),
-				})
-				_ = conn.Write(ctx, websocket.MessageText, body)
 			}
+			_ = conn.Write(ctx, websocket.MessageText, body)
 		}
 	}
+}
+
+// marshalControl encodes a control message without HTML escaping.
+// json.Marshal would rewrite each <, > and & in a forwarded browser result
+// as a 6-byte \u00XX escape, so a result that fit browserReadLimit could
+// outgrow controlReadLimit and kill the control connection. Unescaped, a
+// result keeps the bytes the browser sent.
+func marshalControl(v any) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+	return bytes.TrimSuffix(buf.Bytes(), []byte("\n")), nil
 }
 
 func (b *bridge) snapshotSessions() []session {

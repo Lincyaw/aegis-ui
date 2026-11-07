@@ -26,6 +26,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -138,8 +139,11 @@ func main() {
 	cfg.Gateway = strings.TrimRight(cfg.Gateway, "/")
 	cfg.Clickhouse = strings.TrimRight(cfg.Clickhouse, "/")
 	cfg.SsoOrigin = strings.TrimRight(cfg.SsoOrigin, "/")
+	if err := checkAllowedHosts(cfg.AllowedHosts); err != nil {
+		log.Fatal(err)
+	}
 
-	if err := serve(cfg); err != nil {
+	if err := runServer(cfg); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -200,7 +204,8 @@ const (
 	shutdownTimeout   = 10 * time.Second
 )
 
-func serve(cfg config) error {
+// runServer serves the console until SIGINT or SIGTERM, then drains it.
+func runServer(cfg config) error {
 	if err := checkClickhouseExposure(cfg); err != nil {
 		return err
 	}
@@ -254,7 +259,9 @@ func serve(cfg config) error {
 	if cfg.Open {
 		go openBrowser(url)
 	}
-	err = run(ctx, srv, ln)
+	err = serveUntilDone(ctx, srv, ln)
+	// Also ends the lock writer when Serve failed on its own.
+	stop()
 	if lockDone != nil {
 		<-lockDone
 	}
@@ -406,6 +413,21 @@ func (a hostAllowlist) wrap(next http.Handler) http.Handler {
 	})
 }
 
+var bareHostName = regexp.MustCompile(`^[a-z0-9_-]+(\.[a-z0-9_-]+)*\.?$`)
+
+// checkAllowedHosts rejects anything but a bare host name. The allowlist
+// never compares ports, so a port is refused rather than dropped, and a
+// URL would otherwise reduce to its scheme and match nothing.
+func checkAllowedHosts(hosts []string) error {
+	for _, h := range hosts {
+		if !bareHostName.MatchString(strings.ToLower(h)) {
+			return fmt.Errorf("--allowed-host %q: give a bare host name such as console.example.com, "+
+				"without a scheme, port or path (ports are not checked, and IP addresses are always allowed)", h)
+		}
+	}
+	return nil
+}
+
 func normalizeHost(hostport string) string {
 	host := hostport
 	if h, _, err := net.SplitHostPort(hostport); err == nil {
@@ -442,9 +464,10 @@ func endStreamsOnShutdown(shuttingDown context.Context, next http.Handler) http.
 	})
 }
 
-// run serves on ln until ctx ends, then stops accepting connections and
-// waits up to shutdownTimeout for the requests in flight to finish.
-func run(ctx context.Context, srv *http.Server, ln net.Listener) error {
+// serveUntilDone serves on ln until ctx ends, then stops accepting
+// connections and waits up to shutdownTimeout for the requests in flight
+// to finish.
+func serveUntilDone(ctx context.Context, srv *http.Server, ln net.Listener) error {
 	served := make(chan error, 1)
 	go func() { served <- srv.Serve(ln) }()
 	select {
