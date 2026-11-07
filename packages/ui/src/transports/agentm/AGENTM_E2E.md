@@ -8,6 +8,13 @@ The library only ships the client + React adapter; the gateway lives in
 [`Lincyaw/AgentM`](https://github.com/Lincyaw/AgentM) — `contrib/channels`
 on `main` since merge commit `151d912`.
 
+**The client speaks wire v1 (`v: 1`), so current AgentM cannot serve it.**
+AgentM moved to wire v2 in #183 (`7584c216`), whose gateway answers a v1
+hello with `unsupported_wire_version`, and #207 (`f393a772`) removed the
+gateway server, its CLI and the WebSocket transport; `main` now keeps only
+the v2 envelope types in `src/agentm/gateway/wire.py`. Run this walkthrough
+against an AgentM checkout from before `7584c216`, such as `151d912`.
+
 ## Prerequisites
 
 - AgentM checked out at `/home/ddq/AoyangSpace/AgentM` (path is what the
