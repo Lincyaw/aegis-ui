@@ -83,22 +83,25 @@ export interface AegisRuntime {
     condition: AegisWaitCondition,
     opts?: WaitForOptions,
   ): Promise<AegisSnapshot>;
+  /** `signal` reaches the action as `ctx.signal`. */
   dispatch<R = unknown>(
     id: string,
     params?: unknown,
     opts?: {
       correlationId?: string;
       by?: InvocationSource;
+      signal?: AbortSignal;
     },
   ): Promise<DispatchResult<R>>;
   /**
    * Describes what dispatching `id` would do without running it: the
    * action's descriptor plus the output of its `dryRun`, if it has one.
+   * The `dryRun` gets a `ctx.navigate` that does nothing.
    */
   preview(
     id: string,
     params?: unknown,
-    opts?: { by?: InvocationSource },
+    opts?: { by?: InvocationSource; signal?: AbortSignal },
   ): Promise<PreviewResult>;
   subscribe(listener: (e: AegisEvent) => void): () => void;
   /** Subscribe specifically to ask-triggered events (sugar over subscribe). */
@@ -180,12 +183,40 @@ function containsText(needle: string, values: unknown[]): boolean {
   );
 }
 
+class InvalidParamsError extends Error {}
+
 function thrownError(err: unknown): AegisError {
   return {
-    code: 'thrown',
+    code: err instanceof InvalidParamsError ? 'invalid_params' : 'thrown',
     message: err instanceof Error ? err.message : String(err),
     reason: err,
   };
+}
+
+function navigateTarget(params: unknown): string {
+  const to = (params as { to?: unknown } | null | undefined)?.to;
+  if (typeof to !== 'string' || to === '') {
+    throw new InvalidParamsError('aegis.navigate requires { to: string }');
+  }
+  return to;
+}
+
+// Resolves `to` the way a link's href resolves and keeps only a path on
+// this page's origin, so the agent can neither run a javascript: URL nor
+// send the tab to another site.
+function sameOriginPath(to: string): string {
+  let url: URL;
+  try {
+    url = new URL(to, window.location.href);
+  } catch {
+    throw new InvalidParamsError(`aegis.navigate: "${to}" is not a URL`);
+  }
+  if (url.origin !== window.location.origin) {
+    throw new InvalidParamsError(
+      `aegis.navigate: "${to}" leaves ${window.location.origin}; only paths on this site are allowed`,
+    );
+  }
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 function unknownActionError(id: string): AegisError {
@@ -390,14 +421,16 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     entry: RegisteredAction,
     by: InvocationSource,
     correlationId: string,
+    overrides: Partial<Pick<ActionContext, 'navigate' | 'signal'>> = {},
   ): ActionContext => ({
     appId: entry.source.appId,
-    navigate: navigateImpl ?? ((_to: string) => undefined),
+    navigate:
+      overrides.navigate ?? navigateImpl ?? ((_to: string) => undefined),
     snapshot,
     toast: deps.toast ?? ((_msg: string) => undefined),
     correlationId,
     invokedBy: by,
-    signal: new AbortController().signal,
+    signal: overrides.signal ?? new AbortController().signal,
   });
 
   const dispatch = async <R = unknown>(
@@ -406,6 +439,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     opts: {
       correlationId?: string;
       by?: InvocationSource;
+      signal?: AbortSignal;
     } = {},
   ): Promise<DispatchResult<R>> => {
     const correlationId = opts.correlationId ?? uniqueId('aegis');
@@ -428,7 +462,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     try {
       const result = (await entry.action.run(
         params,
-        makeContext(entry, by, correlationId),
+        makeContext(entry, by, correlationId, { signal: opts.signal }),
       )) as R;
       emit({
         type: 'action.completed',
@@ -445,7 +479,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
   const preview = async (
     id: string,
     params: unknown = undefined,
-    opts: { by?: InvocationSource } = {},
+    opts: { by?: InvocationSource; signal?: AbortSignal } = {},
   ): Promise<PreviewResult> => {
     const by: InvocationSource = opts.by ?? 'user';
     const entry = registry.get(id);
@@ -463,7 +497,10 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     try {
       const result = await entry.action.dryRun(
         params,
-        makeContext(entry, by, uniqueId('aegis')),
+        makeContext(entry, by, uniqueId('aegis'), {
+          navigate: (_to: string) => undefined,
+          signal: opts.signal,
+        }),
       );
       return { ok: true, action, params, preview: result };
     } catch (err) {
@@ -944,7 +981,8 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     action: {
       id: 'aegis.navigate',
       label: 'Navigate',
-      description: 'Navigate to a route inside the current app shell.',
+      description:
+        'Navigate to a path on this site, resolved like a link; other origins are refused.',
       paramsSchema: {
         type: 'object',
         properties: { to: { type: 'string' } },
@@ -952,14 +990,13 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       },
       invocableBy: 'both',
       run: (params, ctx) => {
-        const p = params as { to?: unknown } | null | undefined;
-        const to = typeof p?.to === 'string' ? p.to : '';
-        if (!to) {
-          throw new Error('aegis.navigate requires { to: string }');
-        }
+        const to = sameOriginPath(navigateTarget(params));
         ctx.navigate(to);
         return { to };
       },
+      dryRun: (params) => ({
+        summary: `would navigate to ${sameOriginPath(navigateTarget(params))}`,
+      }),
     },
     source: { kind: 'app', appId: 'aegis' },
   });

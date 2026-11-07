@@ -85,6 +85,20 @@ function optionalNumber(params: ToolParams, key: string): number | undefined {
   throw invalid(`"${key}" must be a number`);
 }
 
+function optionalPositiveInteger(
+  params: ToolParams,
+  key: string,
+): number | undefined {
+  const value = params[key];
+  if (
+    value === undefined ||
+    (typeof value === 'number' && Number.isInteger(value) && value > 0)
+  ) {
+    return value;
+  }
+  throw invalid(`"${key}" must be a positive integer`);
+}
+
 function optionalBoolean(params: ToolParams, key: string): boolean | undefined {
   const value = params[key];
   if (value === undefined || typeof value === 'boolean') {
@@ -189,8 +203,9 @@ async function dispatchAsAgent(
   runtime: AegisRuntime,
   id: string,
   params: unknown,
+  signal: AbortSignal,
 ): Promise<unknown> {
-  const result = await runtime.dispatch(id, params, { by: 'agent' });
+  const result = await runtime.dispatch(id, params, { by: 'agent', signal });
   if (!result.ok) {
     throw new McpToolError(result.error.code, result.error.message);
   }
@@ -232,7 +247,7 @@ export const MCP_TOOLS: McpTool[] = [
         query: { type: 'string' },
         kinds: { type: 'array', items: { type: 'string', enum: REF_KINDS } },
         appId: { type: 'string' },
-        limit: { type: 'number' },
+        limit: { type: 'integer', minimum: 1 },
       },
       required: ['query'],
     },
@@ -244,7 +259,7 @@ export const MCP_TOOLS: McpTool[] = [
       return runtime.search(query, {
         kinds: parseKinds(params.kinds),
         appId: optionalString(params, 'appId'),
-        limit: optionalNumber(params, 'limit'),
+        limit: optionalPositiveInteger(params, 'limit'),
         signal,
       });
     },
@@ -262,12 +277,15 @@ export const MCP_TOOLS: McpTool[] = [
       },
       required: ['id'],
     },
-    run: async (runtime, params) => {
+    run: async (runtime, params, signal) => {
       const id = requireString(params, 'id');
       if (optionalBoolean(params, 'dryRun') !== true) {
-        return dispatchAsAgent(runtime, id, params.params);
+        return dispatchAsAgent(runtime, id, params.params, signal);
       }
-      const preview = await runtime.preview(id, params.params, { by: 'agent' });
+      const preview = await runtime.preview(id, params.params, {
+        by: 'agent',
+        signal,
+      });
       if (!preview.ok) {
         throw new McpToolError(preview.error.code, preview.error.message);
       }
@@ -277,16 +295,19 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: 'aegis_navigate',
     description:
-      'Navigate to a path inside the console, such as /portal/datasets. Sugar for aegis_invoke("aegis.navigate", { to }).',
+      'Navigate to a path inside the console, such as /portal/datasets. `to` resolves the way a link resolves; a URL on another origin, or a javascript: or data: URL, fails with invalid_params. Sugar for aegis_invoke("aegis.navigate", { to }).',
     inputSchema: {
       type: 'object',
       properties: { to: { type: 'string' } },
       required: ['to'],
     },
-    run: (runtime, params) =>
-      dispatchAsAgent(runtime, 'aegis.navigate', {
-        to: requireString(params, 'to'),
-      }),
+    run: (runtime, params, signal) =>
+      dispatchAsAgent(
+        runtime,
+        'aegis.navigate',
+        { to: requireString(params, 'to') },
+        signal,
+      ),
   },
   {
     name: 'aegis_highlight',

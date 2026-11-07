@@ -81,7 +81,8 @@
             "type": "string"
           },
           "limit": {
-            "type": "number"
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [
@@ -110,7 +111,7 @@
     },
     {
       "name": "aegis_navigate",
-      "description": "Navigate to a path inside the console, such as /portal/datasets. Sugar for aegis_invoke(\"aegis.navigate\", { to }).",
+      "description": "Navigate to a path inside the console, such as /portal/datasets. `to` resolves the way a link resolves; a URL on another origin, or a javascript: or data: URL, fails with invalid_params. Sugar for aegis_invoke(\"aegis.navigate\", { to }).",
       "inputSchema": {
         "type": "object",
         "properties": {

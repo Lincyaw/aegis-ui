@@ -35,7 +35,7 @@ interface ToolCallMessage {
   type: 'tool.call';
   id: string;
   tool: string;
-  params?: Record<string, unknown> | null;
+  params?: unknown;
 }
 
 interface ToolErrorBody {
@@ -51,11 +51,21 @@ function isToolCallMessage(value: unknown): value is ToolCallMessage {
   return (
     v.type === 'tool.call' &&
     typeof v.id === 'string' &&
-    typeof v.tool === 'string' &&
-    (v.params === undefined ||
-      v.params === null ||
-      (typeof v.params === 'object' && !Array.isArray(v.params)))
+    typeof v.tool === 'string'
   );
+}
+
+function toolParams(params: unknown): Record<string, unknown> {
+  if (params === undefined || params === null) {
+    return {};
+  }
+  if (typeof params !== 'object' || Array.isArray(params)) {
+    throw new McpToolError(
+      'invalid_params',
+      'tool arguments must be an object',
+    );
+  }
+  return params as Record<string, unknown>;
 }
 
 function toToolError(err: unknown): ToolErrorBody {
@@ -188,7 +198,7 @@ export function connectAegisBridge(
         if (!tool) {
           throw new McpToolError('unknown_tool', `Unknown tool: ${name}`);
         }
-        return tool.run(runtime, params ?? {}, signal);
+        return tool.run(runtime, toolParams(params), signal);
       })
       .then(
         (result: unknown) => {
