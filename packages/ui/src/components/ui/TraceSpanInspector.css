@@ -2,6 +2,11 @@
   font-family: var(--font-mono);
 }
 
+.aegis-trace-span-inspector__number {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
 .aegis-trace-span-inspector__overview {
   display: flex;
   flex-direction: column;

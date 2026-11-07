@@ -12,7 +12,7 @@ import { ObjectInspector, type ObjectInspectorTab } from './ObjectInspector';
 import { StatusDot } from './StatusDot';
 import './TraceSpanInspector.css';
 import type { TraceSpan } from './TraceTree';
-import { statusTone } from './traceFormat';
+import { statusTone } from './traceStatus';
 
 export interface TraceSpanInspectorProps {
   span: TraceSpan | null;
@@ -65,11 +65,14 @@ function toJson(value: unknown, indent?: number): JsonText {
 }
 
 function attributeText(value: unknown): ReactNode {
-  if (
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  ) {
+  if (typeof value === 'number') {
+    return (
+      <span className="aegis-trace-span-inspector__number">
+        {String(value)}
+      </span>
+    );
+  }
+  if (typeof value === 'string' || typeof value === 'boolean') {
     return <MonoValue size="sm">{String(value)}</MonoValue>;
   }
   const text = toJson(value);
@@ -133,13 +136,21 @@ export function TraceSpanInspector({
   if (span.startMs !== undefined) {
     overviewItems.push({
       k: strings.traceSpanField('start'),
-      v: <MonoValue size="sm">{formatDuration(span.startMs)}</MonoValue>,
+      v: (
+        <span className="aegis-trace-span-inspector__number">
+          {formatDuration(span.startMs)}
+        </span>
+      ),
     });
   }
   if (span.durationMs !== undefined) {
     overviewItems.push({
       k: strings.traceSpanField('duration'),
-      v: <MonoValue size="sm">{formatDuration(span.durationMs)}</MonoValue>,
+      v: (
+        <span className="aegis-trace-span-inspector__number">
+          {formatDuration(span.durationMs)}
+        </span>
+      ),
     });
   }
 

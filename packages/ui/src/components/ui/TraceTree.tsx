@@ -20,10 +20,9 @@ import type { ChartColor } from '../../lib/chart';
 import { formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';
-import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
 import './TraceTree.css';
-import { statusTone } from './traceFormat';
+import { statusTone } from './traceStatus';
 
 export type TraceTreeSurface = PrimitiveSurface<TraceSpan[]>;
 
@@ -412,7 +411,7 @@ export function TraceTree({
               aria-posinset={position}
               aria-setsize={siblings}
               aria-expanded={hasChildren ? !isCollapsed : undefined}
-              aria-selected={isSelected}
+              aria-selected={isSelected ? true : undefined}
               tabIndex={index === tabStopIndex ? 0 : -1}
               onClick={(event) => {
                 handleRowClick(event, node);
@@ -479,11 +478,8 @@ export function TraceTree({
                     )}
                   </div>
                   <div className="aegis-trace-tree__duration">
-                    {span.durationMs !== undefined && (
-                      <MonoValue size="sm" weight="regular">
-                        {formatDuration(span.durationMs)}
-                      </MonoValue>
-                    )}
+                    {span.durationMs !== undefined &&
+                      formatDuration(span.durationMs)}
                   </div>
                 </>
               )}

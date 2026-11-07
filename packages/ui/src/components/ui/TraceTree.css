@@ -1,4 +1,8 @@
 .aegis-trace-tree {
+  /* A row's side padding and the gap between its columns; the resize
+   * handle is placed from the same two. */
+  --aegis-trace-tree-pad-x: var(--space-3);
+  --aegis-trace-tree-gap: var(--space-3);
   position: relative;
   width: 100%;
   min-width: 0;
@@ -12,6 +16,21 @@
   flex-direction: column;
 }
 
+/* Timed rows share the tree's columns, so the duration column is as wide as
+ * the widest duration and every bar track has the same width: the bars share
+ * one scale. The edge columns plus the gap make the rows' side padding. */
+.aegis-trace-tree:not(.aegis-trace-tree--untimed) .aegis-trace-tree__rows {
+  display: grid;
+  grid-template-columns:
+    calc(var(--aegis-trace-tree-pad-x) - var(--aegis-trace-tree-gap))
+    var(--aegis-trace-tree-name-w)
+    var(--space-1)
+    minmax(0, 1fr)
+    auto
+    calc(var(--aegis-trace-tree-pad-x) - var(--aegis-trace-tree-gap));
+  column-gap: var(--aegis-trace-tree-gap);
+}
+
 .aegis-trace-tree--dragging,
 .aegis-trace-tree--dragging * {
   user-select: none;
@@ -20,14 +39,9 @@
 
 .aegis-trace-tree__row {
   display: grid;
-  grid-template-columns:
-    var(--aegis-trace-tree-name-w)
-    var(--space-1)
-    1fr
-    auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--aegis-trace-tree-pad-x);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   cursor: pointer;
   transition: background var(--motion-fast);
@@ -44,14 +58,18 @@
   outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
-/* No span is timed: the rows are the labels alone. */
-.aegis-trace-tree--untimed .aegis-trace-tree__row {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: none;
+.aegis-trace-tree:not(.aegis-trace-tree--untimed) .aegis-trace-tree__row {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  padding-inline: 0;
 }
 
-.aegis-trace-tree--untimed .aegis-trace-tree__label {
-  grid-area: auto;
+.aegis-trace-tree:not(.aegis-trace-tree--untimed) .aegis-trace-tree__label {
+  grid-column: 2;
+}
+
+.aegis-trace-tree__gutter {
+  grid-column: 3;
 }
 
 .aegis-trace-tree__row--selected {
@@ -116,12 +134,15 @@
 }
 
 /* One handle for every row, over the gutter column between name and bar:
- * past the row's padding, the name column and the grid gap. */
+ * past the rows' side padding, the name column and the column gap. */
 .aegis-trace-tree__handle {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(var(--space-3) + var(--aegis-trace-tree-name-w) + var(--space-3));
+  left: calc(
+    var(--aegis-trace-tree-pad-x) + var(--aegis-trace-tree-name-w) +
+      var(--aegis-trace-tree-gap)
+  );
   width: var(--space-1);
   cursor: col-resize;
   background: transparent;
@@ -141,6 +162,7 @@
 }
 
 .aegis-trace-tree__bar-track {
+  grid-column: 4;
   position: relative;
   height: var(--space-3);
   background: var(--bg-muted);
@@ -170,8 +192,13 @@
 }
 
 .aegis-trace-tree__duration {
-  color: var(--text-muted);
+  grid-column: 5;
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
   font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  text-align: right;
   white-space: nowrap;
 }
 
@@ -190,29 +217,41 @@
 
 .aegis-trace-tree__tooltip-meta {
   margin-top: var(--space-1);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   color: var(--text-on-inverted-muted);
   font-size: var(--fs-11);
 }
 
+/* Narrow: the duration follows the name and the bar takes a line of its own. */
 @media (max-width: 768px) {
-  .aegis-trace-tree__row {
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      'label duration'
-      'bar bar';
-    gap: var(--space-2);
+  .aegis-trace-tree {
+    --aegis-trace-tree-gap: var(--space-2);
   }
-  .aegis-trace-tree__label {
-    grid-area: label;
+  .aegis-trace-tree:not(.aegis-trace-tree--untimed) .aegis-trace-tree__rows {
+    grid-template-columns:
+      calc(var(--aegis-trace-tree-pad-x) - var(--aegis-trace-tree-gap))
+      minmax(0, 1fr)
+      auto
+      calc(var(--aegis-trace-tree-pad-x) - var(--aegis-trace-tree-gap));
+  }
+  .aegis-trace-tree:not(.aegis-trace-tree--untimed) .aegis-trace-tree__row {
+    row-gap: var(--space-2);
+  }
+  .aegis-trace-tree:not(.aegis-trace-tree--untimed) .aegis-trace-tree__label {
+    grid-row: 1;
+    grid-column: 2;
   }
   .aegis-trace-tree__handle,
   .aegis-trace-tree__gutter {
     display: none;
   }
   .aegis-trace-tree__bar-track {
-    grid-area: bar;
+    grid-row: 2;
+    grid-column: 2 / 4;
   }
   .aegis-trace-tree__duration {
-    grid-area: duration;
+    grid-row: 1;
+    grid-column: 3;
   }
 }
