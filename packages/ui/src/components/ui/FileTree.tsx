@@ -14,6 +14,8 @@ import './FileTree.css';
 export interface FileTreeFile {
   /** Path from the tree root with `/` between segments, e.g. `tests/grading.toml`. */
   path: string;
+  /** Shown in place of the file name, e.g. a note's name without `.md`. The row's title keeps the path. */
+  label?: ReactNode;
   /** Trailing note, typically the file size. */
   note?: ReactNode;
 }
@@ -53,6 +55,7 @@ interface FileEntry {
   kind: 'file';
   path: string;
   name: string;
+  label?: ReactNode;
   depth: number;
   parentPath?: string;
   note?: ReactNode;
@@ -97,6 +100,7 @@ function buildEntries(files: FileTreeFile[]): Entry[] {
       kind: 'file',
       path: file.path,
       name: file.path.slice(file.path.lastIndexOf('/') + 1),
+      label: file.label,
       depth: segments.length - 1,
       parentPath: parent?.path,
       note: file.note,
@@ -281,7 +285,7 @@ export function FileTree({
               <FileOutlined className="aegis-file-tree__icon" aria-hidden />
             )}
             <span className="aegis-file-tree__name" title={entry.path}>
-              {entry.name}
+              {entry.kind === 'file' ? (entry.label ?? entry.name) : entry.name}
             </span>
             {note !== undefined && (
               <span className="aegis-file-tree__note">{note}</span>

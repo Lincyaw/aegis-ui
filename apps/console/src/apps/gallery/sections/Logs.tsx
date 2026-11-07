@@ -92,6 +92,17 @@ function FileTreeSpecimen(): ReactNode {
   );
 }
 
+const GALLERY_NOTE_FILES: FileTreeFile[] = [
+  'ops/runbooks/rollback.md',
+  'ops/runbooks/replica-lag.md',
+  'ops/oncall.md',
+  'research/rca/evaluation-notes.md',
+  'index.md',
+].map((path) => ({
+  path,
+  label: path.slice(path.lastIndexOf('/') + 1).replace(/\.md$/, ''),
+}));
+
 const GALLERY_TASK_DIRECTORIES = [
   'environment/',
   'environment/app/',
@@ -284,6 +295,18 @@ export function LogsSection() {
             span={2}
           >
             <FileTreeControlledSpecimen />
+          </Specimen>
+          <Specimen
+            caption='label · a file shows its label in place of its name, e.g. notes without .md; the title keeps the path'
+            span={2}
+          >
+            <div style={{ width: 280 }}>
+              <FileTree
+                files={GALLERY_NOTE_FILES}
+                ariaLabel='Notes'
+                selectedPath='ops/runbooks/rollback.md'
+              />
+            </div>
           </Specimen>
         </div>
       </div>
