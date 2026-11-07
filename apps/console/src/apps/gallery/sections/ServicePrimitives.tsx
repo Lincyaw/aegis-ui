@@ -1699,6 +1699,26 @@ export function ServicePrimitivesSection() {
             }
           />
         </Specimen>
+        <Specimen
+          caption='slow generate (2 s) · change the TTL or download while it runs and the stale link is dropped; the URL names the options it was made for'
+          span={2}
+        >
+          <ShareLinkDialog
+            objectKey='datasets/2026-04/trace-snapshot.json'
+            onGenerate={(opts) =>
+              new Promise((resolve) => {
+                window.setTimeout(() => {
+                  resolve({
+                    url: `https://example.com/blob/raw/trace-snapshot.json?ttl=${String(opts.ttlSeconds)}&download=${String(opts.asAttachment)}`,
+                    expiresAt: new Date(
+                      Date.now() + opts.ttlSeconds * 1000
+                    ).toISOString(),
+                  });
+                }, 2000);
+              })
+            }
+          />
+        </Specimen>
         <Specimen caption='url · a page link that does not expire' span={2}>
           <ShareLinkDialog
             objectKey='sre-incidents'

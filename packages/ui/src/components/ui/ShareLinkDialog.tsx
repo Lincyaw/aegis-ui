@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -99,7 +100,16 @@ export function ShareLinkDialog({
   const [error, setError] = useState<string | null>(null);
   const { copied, copy, reset: resetCopied } = useCopyToClipboard(2000);
   const [now, setNow] = useState<number>(Date.now());
+  // Counts requests and option changes: a link generated for options the
+  // reader has since changed is dropped, never shown under the new ones.
+  const requestRef = useRef(0);
   const url = plainUrl ?? result?.url;
+
+  const discardLink = (): void => {
+    requestRef.current += 1;
+    setResult(null);
+    setGenerating(false);
+  };
 
   useEffect(() => {
     if (!result) {
@@ -115,18 +125,26 @@ export function ShareLinkDialog({
 
   const handleGenerate = useCallback(
     async (generate: (opts: ShareLinkOptions) => Promise<ShareLinkResult>) => {
+      requestRef.current += 1;
+      const request = requestRef.current;
       setGenerating(true);
       setError(null);
       resetCopied();
       try {
         const r = await generate({ ttlSeconds: ttl, asAttachment });
-        setResult(r);
+        if (request === requestRef.current) {
+          setResult(r);
+        }
       } catch (e) {
-        setError(
-          e instanceof Error ? e.message : strings.shareLinkGenerateFailed,
-        );
+        if (request === requestRef.current) {
+          setError(
+            e instanceof Error ? e.message : strings.shareLinkGenerateFailed,
+          );
+        }
       } finally {
-        setGenerating(false);
+        if (request === requestRef.current) {
+          setGenerating(false);
+        }
       }
     },
     [asAttachment, ttl, resetCopied, strings],
@@ -176,7 +194,7 @@ export function ShareLinkDialog({
                   }
                   onClick={() => {
                     setTtl(p.seconds);
-                    setResult(null);
+                    discardLink();
                   }}
                 >
                   {p.label}
@@ -193,7 +211,7 @@ export function ShareLinkDialog({
                 checked={asAttachment}
                 onChange={(e) => {
                   setAsAttachment(e.target.checked);
-                  setResult(null);
+                  discardLink();
                 }}
               />
               <span>{strings.shareLinkForceDownload}</span>
