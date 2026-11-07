@@ -36,6 +36,8 @@ export { ControlListItem } from './ControlListItem';
 export { Chip } from './Chip';
 export type { ChipSurface } from './Chip';
 export { Checkbox } from './Checkbox';
+export { ChoiceCardGroup } from './ChoiceCardGroup';
+export type { ChoiceCardOption } from './ChoiceCardGroup';
 export { Collapse } from './Collapse';
 export type { CollapseItem } from './Collapse';
 export { Alert } from './Alert';
@@ -188,6 +190,8 @@ export type {
 } from './ObjectInspector';
 export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
+export { Steps } from './Steps';
+export type { StepsItem } from './Steps';
 export { Carousel } from './Carousel';
 export type { CarouselProps, CarouselSlide } from './Carousel';
 export { Breadcrumb } from './Breadcrumb';

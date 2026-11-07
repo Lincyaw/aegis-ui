@@ -1,6 +1,8 @@
 import { type ReactNode, useState } from 'react';
 
 import {
+  ChoiceCardGroup,
+  type ChoiceCardOption,
   ControlListItem,
   MetricLabel,
   Panel,
@@ -10,6 +12,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { GALLERY_ACTIONS } from '../fixtures';
+import { Specimen } from '../shared';
 
 function ControlListItemDescriptionSpecimen(): ReactNode {
   const [chart, setChart] = useState('ranking');
@@ -39,6 +42,67 @@ function ControlListItemDescriptionSpecimen(): ReactNode {
           description={option.description}
         />
       ))}
+    </div>
+  );
+}
+
+const GALLERY_CHAOS_CHOICES: ChoiceCardOption[] = [
+  {
+    value: 'PodKill',
+    title: 'PodKill',
+    description: 'Hard delete the pod.',
+    meta: 'pod',
+  },
+  {
+    value: 'NetworkDelay',
+    title: 'NetworkDelay',
+    description: 'Add egress or ingress latency between services.',
+    meta: 'service',
+  },
+  {
+    value: 'NetworkPartition',
+    title: 'NetworkPartition',
+    description: 'Sever traffic across the namespace.',
+    meta: 'namespace',
+  },
+  {
+    value: 'TimeSkew',
+    title: 'TimeSkew',
+    description: 'Not available on this system.',
+    meta: 'pod',
+    disabled: true,
+  },
+];
+
+function ChoiceCardGroupSpecimen(): ReactNode {
+  const [chaosType, setChaosType] = useState('NetworkDelay');
+  const [plan, setPlan] = useState('');
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption={`one choice · the chosen card inverts · arrow keys move it · disabled card · value=${chaosType}`}
+        span={3}
+      >
+        <ChoiceCardGroup
+          ariaLabel='Chaos type'
+          className='gallery__stack--fill'
+          options={GALLERY_CHAOS_CHOICES}
+          value={chaosType}
+          onChange={setChaosType}
+        />
+      </Specimen>
+      <Specimen caption="value='' · nothing chosen yet · title only">
+        <ChoiceCardGroup
+          ariaLabel='Namespace allocation'
+          className='gallery__stack--fill'
+          options={[
+            { value: 'auto', title: 'Auto-allocate from pool' },
+            { value: 'specific', title: 'Specific namespace' },
+          ]}
+          value={plan}
+          onChange={setPlan}
+        />
+      </Specimen>
     </div>
   );
 }
@@ -128,6 +192,15 @@ export function ListsRowsSection() {
 
       <SectionDivider>ControlListItem · description</SectionDivider>
       <ControlListItemDescriptionSpecimen />
+
+      <SectionDivider
+        extra={
+          <MetricLabel>Radio cards · hover lifts · chosen inverts</MetricLabel>
+        }
+      >
+        ChoiceCardGroup
+      </SectionDivider>
+      <ChoiceCardGroupSpecimen />
     </Panel>
   );
 }
