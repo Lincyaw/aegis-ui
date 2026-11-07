@@ -19,7 +19,7 @@ import {
   injectionsApi,
   projectsApi,
   tracesApi,
-} from '../../../api/portal-client';
+} from '../../../api/portalClient';
 import type { GuidedInjectionSpec } from '../components/inject/types';
 
 const TRACE_ACTIVE_STATES = new Set([

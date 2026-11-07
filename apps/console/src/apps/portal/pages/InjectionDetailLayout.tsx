@@ -14,7 +14,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
-import { injectionsApi } from '../../../api/portal-client';
+import { injectionsApi } from '../../../api/portalClient';
 import { useInjectionDetail } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
 

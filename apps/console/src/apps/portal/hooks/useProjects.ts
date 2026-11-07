@@ -11,7 +11,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 
-import { projectsApi } from '../../../api/portal-client';
+import { projectsApi } from '../../../api/portalClient';
 
 export const projectKeys = {
   all: ['portal', 'projects'] as const,

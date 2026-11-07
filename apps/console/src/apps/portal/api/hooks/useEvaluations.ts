@@ -10,7 +10,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 
-import { evaluationsApi } from '../../../../api/portal-client';
+import { evaluationsApi } from '../../../../api/portalClient';
 
 export type EvaluationResp = EvaluationEvaluationResp;
 

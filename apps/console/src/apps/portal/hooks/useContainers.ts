@@ -6,7 +6,7 @@ import {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { containersApi } from '../../../api/portal-client';
+import { containersApi } from '../../../api/portalClient';
 
 const KEY = 'containers';
 

@@ -1,7 +1,7 @@
 import type { TraceTraceLogsResp } from '@lincyaw/portal';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
-import { tracesApi } from '../../../api/portal-client';
+import { tracesApi } from '../../../api/portalClient';
 
 export interface TraceLogsOptions {
   limit?: number;

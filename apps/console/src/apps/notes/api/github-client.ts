@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { portalAxios } from '../../../api/portal-client';
+import { portalAxios } from '../../../api/portalClient';
 import { gatewayUrlFor } from '../../../config/runtime';
 
 // Defaults for the knowledge-base repo. Change these (or thread props through)

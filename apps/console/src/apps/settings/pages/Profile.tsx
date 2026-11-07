@@ -17,7 +17,7 @@ import { App, Button, Spin } from 'antd';
 import { isAxiosError } from 'axios';
 
 import { ApiError, errMsg } from '../../../api/apiClient';
-import { authenticationApi } from '../../../api/portal-client';
+import { authenticationApi } from '../../../api/portalClient';
 import { updateUser } from '../api/iamClient';
 import '../settings.css';
 

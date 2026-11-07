@@ -1,7 +1,7 @@
 import type { InjectionDatapackFilesResp } from '@lincyaw/portal';
 import axios, { type AxiosError } from 'axios';
 
-import { injectionsApi, portalAxios } from '../../../api/portal-client';
+import { injectionsApi, portalAxios } from '../../../api/portalClient';
 import { getRuntimeConfig } from '../../../config/runtime';
 import {
   type ArrowResult,

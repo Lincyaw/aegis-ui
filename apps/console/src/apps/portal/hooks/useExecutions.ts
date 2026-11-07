@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { executionsApi, projectsApi } from '../../../api/portal-client';
+import { executionsApi, projectsApi } from '../../../api/portalClient';
 
 export interface ExecutionsPage {
   page?: number;

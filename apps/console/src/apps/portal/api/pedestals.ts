@@ -8,7 +8,7 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { pedestalApi } from '../../../api/portal-client';
+import { pedestalApi } from '../../../api/portalClient';
 
 const PEDESTAL_LONG_POLL_MS = 11 * 60 * 1000;
 

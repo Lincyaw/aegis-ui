@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { tasksApi } from '../../../api/portal-client';
+import { tasksApi } from '../../../api/portalClient';
 
 const ACTIVE_STATES = new Set([
   'initial',

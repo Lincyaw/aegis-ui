@@ -4,7 +4,7 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { pagesApi, portalAxios } from '../../../api/portal-client';
+import { pagesApi, portalAxios } from '../../../api/portalClient';
 import { gatewayUrlFor } from '../../../config/runtime';
 
 export type PageVisibility = 'public_listed' | 'public_unlisted' | 'private';

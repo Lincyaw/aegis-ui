@@ -1,7 +1,7 @@
 /**
  * Fetch transport for the console. `apiFetch` resolves gateway paths and
  * sends them through the session's `authFetch` (auth/session.ts); the
- * portal SDK's axios instance (`portal-client.ts`) authenticates through
+ * portal SDK's axios instance (`portalClient.ts`) authenticates through
  * the same session.
  *
  * Each surface routes through its own vite proxy prefix (see
