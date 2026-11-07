@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
   Avatar,
@@ -10,11 +10,13 @@ import {
   Panel,
   PanelTitle,
 } from '@lincyaw/aegis-ui';
-import type { TeamTeamMemberResp, TeamTeamResp } from '@lincyaw/portal';
+import type { TeamTeamResp } from '@lincyaw/portal';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Form, Input, Modal, Spin } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import { teamsApi } from '../../portal/api/portal-client';
+import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 
 import './Teams.css';
@@ -26,42 +28,37 @@ interface CreateForm {
   description: string;
 }
 
+async function readTeamMembers(teamId: number) {
+  const res = await teamsApi.listTeamMembers({ teamId, page: 1, size: 10 });
+  const data = res.data.data;
+  return {
+    members: data?.items ?? [],
+    total: data?.pagination?.total ?? data?.items?.length ?? 0,
+  };
+}
+
+async function readTeams(): Promise<TeamTeamResp[]> {
+  const res = await teamsApi.listTeams({ page: 1, size: 50 });
+  return res.data.data?.items ?? [];
+}
+
 function MembersStrip({ teamId }: { teamId: number }) {
-  const [members, setMembers] = useState<TeamTeamMemberResp[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const membersQuery = useQuery({
+    queryKey: settingsKeys.teamMembers(teamId),
+    queryFn: () => readTeamMembers(teamId),
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const res = await teamsApi.listTeamMembers({
-          teamId,
-          page: 1,
-          size: 10,
-        });
-        if (cancelled) {
-          return;
-        }
-        const data = res.data.data;
-        setMembers(data?.items ?? []);
-        setTotal(data?.pagination?.total ?? data?.items?.length ?? 0);
-      } catch {
-        /* member strip is best-effort; team card still renders */
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [teamId]);
-
-  if (loading) {
+  if (membersQuery.isPending) {
     return <Spin size='small' />;
   }
+  if (membersQuery.isError) {
+    return (
+      <MetricLabel>
+        Could not load members: {errMsg(membersQuery.error)}
+      </MetricLabel>
+    );
+  }
+  const { members, total } = membersQuery.data;
   if (members.length === 0) {
     return <MetricLabel>No members yet</MetricLabel>;
   }
@@ -81,29 +78,18 @@ function MembersStrip({ teamId }: { teamId: number }) {
 
 export default function Teams() {
   const { message: msg, modal } = App.useApp();
-  const [teams, setTeams] = useState<TeamTeamResp[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const teamsQuery = useQuery({
+    queryKey: settingsKeys.teams,
+    queryFn: readTeams,
+  });
+  const teams = teamsQuery.data ?? [];
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm] = Form.useForm<CreateForm>();
   const [submitting, setSubmitting] = useState(false);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await teamsApi.listTeams({ page: 1, size: 50 });
-      setTeams(res.data.data?.items ?? []);
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const refresh = (): Promise<void> =>
+    queryClient.invalidateQueries({ queryKey: settingsKeys.teams });
 
   const handleCreate = (): void => {
     createForm
@@ -170,15 +156,15 @@ export default function Teams() {
           </Button>
         }
       />
-      {error !== null ? (
+      {teamsQuery.isError ? (
         <Panel>
           <ErrorState
             title='Could not load teams'
-            description={error}
+            description={errMsg(teamsQuery.error)}
             action={
               <Button
                 onClick={() => {
-                  void refresh();
+                  void teamsQuery.refetch();
                 }}
               >
                 Try again
@@ -186,7 +172,7 @@ export default function Teams() {
             }
           />
         </Panel>
-      ) : loading ? (
+      ) : teamsQuery.isPending ? (
         <Panel>
           <div className='settings-page__loading'>
             <Spin />

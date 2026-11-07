@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ReloadOutlined } from '@ant-design/icons';
 import {
@@ -11,11 +11,13 @@ import {
   PageHeader,
   Panel,
 } from '@lincyaw/aegis-ui';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Button, DatePicker, Input, Select } from 'antd';
 import type { Dayjs } from 'dayjs';
 
 import { errMsg } from '../../../api/apiClient';
 import { type AuditLog, listAuditLogs } from '../../../api/auditClient';
+import { settingsKeys } from '../queryKeys';
 
 import './AuditLogs.css';
 
@@ -44,34 +46,18 @@ function statusTone(status: string): 'default' | 'ghost' | 'warning' {
 }
 
 export default function AuditLogs() {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const logsQuery = useQuery({
+    queryKey: settingsKeys.auditLogsPage(page),
+    queryFn: () => listAuditLogs({ page, size: PAGE_SIZE }),
+    placeholderData: keepPreviousData,
+  });
+  const logs = useMemo(() => logsQuery.data?.items ?? [], [logsQuery.data]);
 
   const [range, setRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const [actorFilter, setActorFilter] = useState<string>('all');
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await listAuditLogs({ page, size: PAGE_SIZE });
-      setLogs(res.items);
-      setTotal(res.total);
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   const actorOptions = useMemo(() => {
     const set = new Set(logs.map(actorOf));
@@ -170,22 +156,22 @@ export default function AuditLogs() {
           <Button
             icon={<ReloadOutlined />}
             onClick={() => {
-              void refresh();
+              void logsQuery.refetch();
             }}
           >
             Refresh
           </Button>
         }
       />
-      {error !== null ? (
+      {logsQuery.isError ? (
         <Panel>
           <ErrorState
             title='Could not load audit logs'
-            description={error}
+            description={errMsg(logsQuery.error)}
             action={
               <Button
                 onClick={() => {
-                  void refresh();
+                  void logsQuery.refetch();
                 }}
               >
                 Try again
@@ -234,13 +220,13 @@ export default function AuditLogs() {
             columns={columns}
             data={filtered}
             rowKey={(l) => l.id.toString()}
-            loading={loading}
+            loading={logsQuery.isFetching}
             emptyTitle='No matching events'
             emptyDescription='Try widening the time range or clearing filters.'
             pagination={{
               page,
               pageSize: PAGE_SIZE,
-              total,
+              total: logsQuery.data?.total ?? 0,
               onChange: setPage,
             }}
           />

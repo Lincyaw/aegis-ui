@@ -1,24 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import {
+  Button,
+  ErrorState,
   FormRow,
   PageHeader,
   Panel,
   SettingsSection,
-  TextField,
+  SkeletonText,
 } from '@lincyaw/aegis-ui';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntdApp, Switch } from 'antd';
 
-import { ApiError } from '../../../api/apiClient';
+import { ApiError, errMsg } from '../../../api/apiClient';
 import {
   listSubscriptions,
   setSubscription,
   type SubscriptionRow,
 } from '../../../api/notificationClient';
+import { settingsKeys } from '../queryKeys';
 
 import './Notifications.css';
-
-const noop = (): void => undefined;
 
 // Categories the console understands. Backend may know more — we render
 // any extra ones it returns at the bottom.
@@ -55,52 +57,64 @@ const KNOWN_CATEGORIES: Array<{
 ];
 
 const KNOWN_CHANNELS = ['inbox', 'email', 'slack'] as const;
-type Channel = (typeof KNOWN_CHANNELS)[number];
 
 function key(category: string, channel: string): string {
   return `${category}::${channel}`;
 }
 
+/** The user's subscriptions; a notify service without any yet answers 404. */
+async function readSubscriptions(): Promise<SubscriptionRow[]> {
+  try {
+    return await listSubscriptions();
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) {
+      return [];
+    }
+    throw e;
+  }
+}
+
+function withSubscription(
+  rows: SubscriptionRow[] | undefined,
+  row: SubscriptionRow
+): SubscriptionRow[] {
+  const others = (rows ?? []).filter(
+    (r) => key(r.category, r.channel) !== key(row.category, row.channel)
+  );
+  return [...others, row];
+}
+
 export default function Notifications() {
   const { message: msg } = AntdApp.useApp();
-  const [subs, setSubs] = useState<Map<string, boolean>>(new Map());
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    try {
-      const rows = await listSubscriptions();
-      const m = new Map<string, boolean>();
-      for (const r of rows) {
-        m.set(key(r.category, r.channel), r.enabled);
-      }
-      setSubs(m);
-    } catch (e) {
-      if (!(e instanceof ApiError) || e.status !== 404) {
-        void msg.error('Failed to load subscriptions');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [msg]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const handleToggle = useCallback(
-    (row: SubscriptionRow) => {
-      setSubs((prev) => {
-        const next = new Map(prev);
-        next.set(key(row.category, row.channel), row.enabled);
-        return next;
-      });
-      void setSubscription(row).catch(() => {
-        void msg.error(`Could not update ${row.category} / ${row.channel}`);
-        void load();
-      });
+  const queryClient = useQueryClient();
+  const subscriptions = useQuery({
+    queryKey: settingsKeys.subscriptions,
+    queryFn: readSubscriptions,
+  });
+  const toggle = useMutation({
+    mutationFn: setSubscription,
+    onMutate: (row) => {
+      queryClient.setQueryData<SubscriptionRow[]>(
+        settingsKeys.subscriptions,
+        (rows) => withSubscription(rows, row)
+      );
     },
-    [load, msg]
-  );
+    onError: (e, row) => {
+      void msg.error(
+        `Could not update ${row.category} / ${row.channel}: ${errMsg(e)}`
+      );
+    },
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: settingsKeys.subscriptions }),
+  });
+
+  const subs = useMemo(() => {
+    const m = new Map<string, boolean>();
+    for (const r of subscriptions.data ?? []) {
+      m.set(key(r.category, r.channel), r.enabled);
+    }
+    return m;
+  }, [subscriptions.data]);
 
   // Unknown categories returned by server but not in our list — render
   // them so admins don't lose visibility.
@@ -116,100 +130,67 @@ export default function Notifications() {
     return Array.from(seen);
   }, [subs]);
 
+  const categories = [
+    ...KNOWN_CATEGORIES,
+    ...extraCategories.map((cat) => ({
+      key: cat,
+      label: cat,
+      description: 'Category surfaced by the backend.',
+    })),
+  ];
+
   return (
     <>
       <PageHeader
         title='Notifications'
-        description='Choose what events you want to be notified about and how.'
+        description='Choose which events notify you, and on which channel.'
       />
       <Panel>
-        <SettingsSection
-          title='Channels'
-          description='Where notifications are delivered. Inbox is always on; per-event toggles below.'
-        >
-          <FormRow label='Email' description='user@example.com'>
-            <Switch defaultChecked onChange={noop} />
-          </FormRow>
-          <FormRow label='Slack' description='Connected workspace: aegislab'>
-            <Switch defaultChecked onChange={noop} />
-          </FormRow>
-          <FormRow
-            label='Webhook'
-            description='Configure a custom HTTP endpoint.'
-          >
-            <Switch onChange={noop} />
-          </FormRow>
-        </SettingsSection>
-
         <SettingsSection
           title='Events'
           description='Per-category × channel toggles. Backed by aegis-notify /inbox/subscriptions.'
         >
-          {KNOWN_CATEGORIES.map((c) => (
-            <FormRow key={c.key} label={c.label} description={c.description}>
-              <div className='notifications-page__channels'>
-                {KNOWN_CHANNELS.map((ch) => (
-                  <label key={ch} className='notifications-page__channel'>
-                    <Switch
-                      size='small'
-                      disabled={loading}
-                      checked={subs.get(key(c.key, ch)) ?? false}
-                      onChange={(enabled) => {
-                        handleToggle({
-                          category: c.key,
-                          channel: ch,
-                          enabled,
-                        });
-                      }}
-                    />
-                    {ch}
-                  </label>
-                ))}
-              </div>
-            </FormRow>
-          ))}
-          {extraCategories.map((cat) => (
-            <FormRow
-              key={cat}
-              label={cat}
-              description='Category surfaced by the backend.'
-            >
-              <div className='notifications-page__channels'>
-                {KNOWN_CHANNELS.map((ch: Channel) => (
-                  <label key={ch} className='notifications-page__channel'>
-                    <Switch
-                      size='small'
-                      disabled={loading}
-                      checked={subs.get(key(cat, ch)) ?? false}
-                      onChange={(enabled) => {
-                        handleToggle({ category: cat, channel: ch, enabled });
-                      }}
-                    />
-                    {ch}
-                  </label>
-                ))}
-              </div>
-            </FormRow>
-          ))}
-        </SettingsSection>
-
-        <SettingsSection
-          title='Quiet hours'
-          description='Suppress non-critical notifications during these hours.'
-        >
-          <FormRow
-            label='Window'
-            description='Times are interpreted in your local timezone.'
-          >
-            <div className='notifications-page__quiet-hours'>
-              <div className='notifications-page__quiet-field'>
-                <TextField label='From' type='time' defaultValue='22:00' />
-              </div>
-              <div className='notifications-page__quiet-field'>
-                <TextField label='To' type='time' defaultValue='07:00' />
-              </div>
-            </div>
-          </FormRow>
+          {subscriptions.isError ? (
+            <ErrorState
+              title='Could not load your subscriptions'
+              description={errMsg(subscriptions.error)}
+              action={
+                <Button
+                  tone='secondary'
+                  onClick={() => {
+                    void subscriptions.refetch();
+                  }}
+                >
+                  Retry
+                </Button>
+              }
+            />
+          ) : subscriptions.isPending ? (
+            <SkeletonText lines={5} />
+          ) : (
+            categories.map((c) => (
+              <FormRow key={c.key} label={c.label} description={c.description}>
+                <div className='notifications-page__channels'>
+                  {KNOWN_CHANNELS.map((ch) => (
+                    <label key={ch} className='notifications-page__channel'>
+                      <Switch
+                        size='small'
+                        checked={subs.get(key(c.key, ch)) ?? false}
+                        onChange={(enabled) => {
+                          toggle.mutate({
+                            category: c.key,
+                            channel: ch,
+                            enabled,
+                          });
+                        }}
+                      />
+                      {ch}
+                    </label>
+                  ))}
+                </div>
+              </FormRow>
+            ))
+          )}
         </SettingsSection>
       </Panel>
     </>

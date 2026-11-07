@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import {
@@ -12,7 +12,8 @@ import {
   Panel,
   TextField,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Button, Form, Modal, Select } from 'antd';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { App as AntdApp, Button, Checkbox, Form, Modal, Select } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import {
@@ -23,6 +24,7 @@ import {
   type OidcClient,
   rotateSecret,
 } from '../../../api/ssoAdminClient';
+import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 
 const GRANTS = [
@@ -46,14 +48,16 @@ function statusChip(status: number) {
   if (status === 1) {
     return <Chip tone='ink'>active</Chip>;
   }
-  return <Chip tone='warning'>disabled</Chip>;
+  return <Chip tone='default'>disabled</Chip>;
 }
 
 export default function OidcClients() {
   const { message: msg, modal } = AntdApp.useApp();
-  const [clients, setClients] = useState<OidcClient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const clientsQuery = useQuery({
+    queryKey: settingsKeys.oidcClients,
+    queryFn: () => listClients(),
+  });
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm] = Form.useForm<CreateFormValues>();
   const [submitting, setSubmitting] = useState(false);
@@ -63,22 +67,8 @@ export default function OidcClients() {
     label: string;
   } | null>(null);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await listClients();
-      setClients(data);
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const refresh = (): Promise<void> =>
+    queryClient.invalidateQueries({ queryKey: settingsKeys.oidcClients });
 
   const openCreate = (): void => {
     setCreateOpen(true);
@@ -259,15 +249,15 @@ export default function OidcClients() {
           </span>
         }
       />
-      {error !== null ? (
+      {clientsQuery.isError ? (
         <Panel>
           <ErrorState
             title='Could not load clients'
-            description={error}
+            description={errMsg(clientsQuery.error)}
             action={
               <Button
                 onClick={() => {
-                  void refresh();
+                  void clientsQuery.refetch();
                 }}
               >
                 Try again
@@ -278,9 +268,9 @@ export default function OidcClients() {
       ) : (
         <DataTable
           columns={columns}
-          data={clients}
+          data={clientsQuery.data ?? []}
           rowKey={(row) => row.id.toString()}
-          loading={loading}
+          loading={clientsQuery.isFetching}
           emptyTitle='No OIDC clients'
           emptyDescription='Register a client to let a UI or service authenticate users.'
           emptyAction={
@@ -354,7 +344,7 @@ export default function OidcClients() {
             label='Confidential client'
             valuePropName='checked'
           >
-            <input type='checkbox' />
+            <Checkbox />
           </Form.Item>
         </Form>
       </Modal>
