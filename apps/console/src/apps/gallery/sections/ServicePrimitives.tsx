@@ -1419,15 +1419,18 @@ export function ServicePrimitivesSection() {
             right={<Chip tone='ghost'>Filter</Chip>}
           />
         </Specimen>
-        <Specimen caption='legacy search + filter chips' span={3}>
+        <Specimen caption='left only · SearchInput + filter Chip' span={3}>
           <Toolbar
-            searchPlaceholder='Search…'
-            searchValue=''
-            onSearchChange={() => undefined}
-            filters={[{ key: 'type', label: 'type: image' }]}
-            onFilterRemove={() => undefined}
-            onClearFilters={() => undefined}
-            action={<Chip tone='ghost'>Export</Chip>}
+            left={
+              <>
+                <SearchInput
+                  value=''
+                  onChange={() => undefined}
+                  placeholder='Search…'
+                />
+                <Chip onClose={() => undefined}>type: image</Chip>
+              </>
+            }
           />
         </Specimen>
       </div>

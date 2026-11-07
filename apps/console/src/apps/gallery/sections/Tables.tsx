@@ -16,6 +16,7 @@ import {
   MonoValue,
   Panel,
   PanelTitle,
+  SearchInput,
   SectionDivider,
   Toolbar,
 } from '@lincyaw/aegis-ui';
@@ -626,20 +627,50 @@ function EventTableSpecimen(): ReactNode {
   );
 }
 
+const TOOLBAR_FILTERS = [
+  { key: 'type', label: 'type: NetworkLatency' },
+  { key: 'target', label: 'target: order-svc' },
+];
+
+function ToolbarFiltersSpecimen(): ReactNode {
+  const [search, setSearch] = useState('latency');
+  const [filters, setFilters] = useState(TOOLBAR_FILTERS);
+  return (
+    <Toolbar
+      left={
+        <>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            onClear={() => setSearch('')}
+            placeholder='Search injections…'
+          />
+          {filters.map((f) => (
+            <Chip
+              key={f.key}
+              onClose={() =>
+                setFilters((cur) => cur.filter((c) => c.key !== f.key))
+              }
+            >
+              {f.label}
+            </Chip>
+          ))}
+        </>
+      }
+      right={<Chip tone='ink'>+ New injection</Chip>}
+    />
+  );
+}
+
 export function TablesSection() {
   return (
     <Panel title={<PanelTitle size='lg'>Tables & Toolbar</PanelTitle>}>
       <SectionDivider>Toolbar</SectionDivider>
-      <Specimen caption='search + filters + action' span={3}>
-        <Toolbar
-          searchPlaceholder='Search injections…'
-          searchValue='latency'
-          filters={[
-            { key: 'type', label: 'type: NetworkLatency' },
-            { key: 'target', label: 'target: order-svc' },
-          ]}
-          action={<Chip tone='ink'>+ New injection</Chip>}
-        />
+      <Specimen
+        caption='left: SearchInput + removable filter Chips · right: action'
+        span={3}
+      >
+        <ToolbarFiltersSpecimen />
       </Specimen>
 
       <SectionDivider>DataTable · framed</SectionDivider>

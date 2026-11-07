@@ -14,11 +14,11 @@ import {
   type DataTableColumn,
   EmptyState,
   ErrorState,
-  type FilterChip,
   MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
+  SearchInput,
   Tabs,
   Toolbar,
 } from '@lincyaw/aegis-ui';
@@ -231,12 +231,6 @@ export function SftPage(): ReactElement {
       : []),
   ];
 
-  const filterChips: FilterChip[] = [
-    ...(phase === 'auditor' && onlySurfaced
-      ? [{ key: 'surfaced', label: 'surfaced only' }]
-      : []),
-  ];
-
   return (
     <Panel
       title={<PanelTitle size='lg'>SFT preview</PanelTitle>}
@@ -276,11 +270,22 @@ export function SftPage(): ReactElement {
             }}
           >
             <Toolbar
-              searchPlaceholder='sample_id / session / turn'
-              searchValue={search}
-              onSearchChange={setSearch}
-              filters={filterChips}
-              action={
+              left={
+                <>
+                  <SearchInput
+                    value={search}
+                    onChange={setSearch}
+                    onClear={() => setSearch('')}
+                    placeholder='sample_id / session / turn'
+                  />
+                  {phase === 'auditor' && onlySurfaced ? (
+                    <Chip onClose={() => setOnlySurfaced(false)}>
+                      surfaced only
+                    </Chip>
+                  ) : null}
+                </>
+              }
+              right={
                 phase === 'auditor' ? (
                   <Chip
                     tone={onlySurfaced ? 'warning' : 'default'}
