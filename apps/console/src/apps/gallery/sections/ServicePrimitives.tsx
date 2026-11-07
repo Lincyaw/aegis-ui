@@ -657,11 +657,22 @@ function TraceSpanInspectorSpecimen(): ReactNode {
       'rpc.service': 'aegislab.OrchestratorService',
     },
   };
+  const looped: Record<string, unknown> = { 'retry.count': 3 };
+  looped.self = looped;
+  const unserialisable: TraceSpan = {
+    ...sample,
+    id: 'unserialisable',
+    name: 'POST /api/v2/retry',
+    attrs: { ...sample.attrs, 'retry.state': looped },
+  };
   const [open, setOpen] = useState<TraceSpan | null>(null);
   return (
-    <div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
       <AegisButton tone='secondary' onClick={() => setOpen(sample)}>
         Open span inspector
+      </AegisButton>
+      <AegisButton tone='secondary' onClick={() => setOpen(unserialisable)}>
+        Open a span with a circular attribute
       </AegisButton>
       <TraceSpanInspector span={open} onClose={() => setOpen(null)} />
     </div>
@@ -1997,7 +2008,10 @@ export function ServicePrimitivesSection() {
         TraceSpanInspector
       </SectionDivider>
       <div className='gallery__stack'>
-        <Specimen caption='Overview · Attributes · Raw tabs' span={3}>
+        <Specimen
+          caption='Overview · Attributes · Raw tabs · an attribute that is not JSON shows why, and Raw says so'
+          span={3}
+        >
           <TraceSpanInspectorSpecimen />
         </Specimen>
       </div>
