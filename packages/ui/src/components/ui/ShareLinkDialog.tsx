@@ -182,11 +182,16 @@ export function ShareLinkDialog({
         <>
           <div className="aegis-share-link__row">
             <MetricLabel>{strings.shareLinkExpiresAfter}</MetricLabel>
-            <div className="aegis-share-link__ttl">
+            <div
+              className="aegis-share-link__ttl"
+              role="group"
+              aria-label={strings.shareLinkExpiresAfter}
+            >
               {ttlPresets.map((p) => (
                 <button
                   key={p.seconds}
                   type="button"
+                  aria-pressed={p.seconds === ttl}
                   className={
                     p.seconds === ttl
                       ? 'aegis-share-link__ttl-pill aegis-share-link__ttl-pill--active'
