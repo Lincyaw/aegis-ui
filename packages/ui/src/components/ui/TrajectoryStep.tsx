@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { Markdown } from './Markdown';
@@ -131,9 +132,8 @@ export function TrajectoryStep({
           {data.durationMs !== undefined && (
             <MetricLabel size="xs">
               <MonoValue size="sm" weight="regular">
-                {data.durationMs}
-              </MonoValue>{' '}
-              ms
+                {formatDuration(data.durationMs)}
+              </MonoValue>
             </MetricLabel>
           )}
           {data.timestamp && (

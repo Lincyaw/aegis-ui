@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { MetricLabel } from './MetricLabel';
@@ -67,9 +68,8 @@ export function TrajectoryTimeline({
             {totalDurationMs !== undefined && (
               <MetricLabel size="sm">
                 <MonoValue size="sm" weight="regular">
-                  {totalDurationMs}
-                </MonoValue>{' '}
-                ms
+                  {formatDuration(totalDurationMs)}
+                </MonoValue>
               </MetricLabel>
             )}
             {extra}

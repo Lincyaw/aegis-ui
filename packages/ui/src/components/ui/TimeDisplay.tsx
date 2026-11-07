@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { formatDuration } from '../../lib/format';
 import './TimeDisplay.css';
 import { relativeTime } from './relativeTime';
 
@@ -27,24 +28,6 @@ function formatAbsolute(d: Date): string {
     return time;
   }
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${time}`;
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) {
-    return `${Math.round(ms)} ms`;
-  }
-  const sec = ms / 1000;
-  if (sec < 60) {
-    return `${sec.toFixed(2)} s`.replace(/\.00$/, ' s');
-  }
-  const min = Math.floor(sec / 60);
-  const remSec = Math.round(sec % 60);
-  if (min < 60) {
-    return `${min} m ${remSec} s`;
-  }
-  const hour = Math.floor(min / 60);
-  const remMin = min % 60;
-  return `${hour} h ${remMin} m`;
 }
 
 export function TimeDisplay({

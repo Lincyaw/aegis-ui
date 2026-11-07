@@ -5,6 +5,7 @@ import {
   Button as AegisButton,
   Chip,
   EmptyState,
+  formatDuration,
   type KeyValueItem,
   KeyValueList,
   MetricCard,
@@ -33,6 +34,10 @@ const SPARK_DIP = [
 
 const SPARK_FLAT = [
   50, 51, 49, 52, 50, 51, 49, 50, 51, 50, 49, 51, 50, 50, 51, 49,
+];
+
+const DURATION_SAMPLES = [
+  0.0004, 0.5, 12.34, 999.7, 1500, 59_990, 123_000, 3_900_000,
 ];
 
 const KV_META: KeyValueItem[] = [
@@ -382,6 +387,14 @@ export function DataDisplaySection() {
         </Specimen>
         <Specimen caption='controlled · logs to console'>
           <TimeRangePickerSpecimen initial='now-15m' logToConsole />
+        </Specimen>
+        <Specimen caption="formatDuration(ms) · the library's one duration format, also behind TraceTree, TimelineChart and the trajectory primitives">
+          <KeyValueList
+            items={DURATION_SAMPLES.map((ms) => ({
+              k: String(ms),
+              v: formatDuration(ms),
+            }))}
+          />
         </Specimen>
       </div>
     </Panel>
