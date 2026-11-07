@@ -190,6 +190,10 @@ export function AgentmChannelProvider({
 
     const offStatus = client.onStatusChange((s) => {
       setStatus(s);
+      // A reply cannot arrive on a dropped connection; free the composer.
+      if (s !== 'connected') {
+        setSending(false);
+      }
       onStatusRef.current?.(s);
     });
 
