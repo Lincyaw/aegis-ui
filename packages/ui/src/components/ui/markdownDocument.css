@@ -61,8 +61,7 @@
 
 .aegis-document__paragraph,
 .aegis-document__list,
-.aegis-document__quote,
-.aegis-document__table {
+.aegis-document__quote {
   overflow-wrap: anywhere;
 }
 
@@ -133,7 +132,13 @@
   color: inherit;
 }
 
+/* Cells break only between words; a table wider than the column scrolls
+ * sideways instead. The block wraps an anonymous table box, which inherits
+ * the collapsed borders. */
 .aegis-document__table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   font-size: var(--type-body-size);
   line-height: var(--type-body-line);
