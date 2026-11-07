@@ -140,9 +140,14 @@ export function parseTimeRangeInput(
   if (results.length === 0) {
     return null;
   }
-  const result = results.length === 1 ? results[0] : results[1];
-  const start = normalizeParsedDate(result.start, now);
-  const end = normalizeParsedDate(result.end, now) ?? new Date(now);
+  // Two separate dates (e.g. two pasted timestamps) are the range's two ends.
+  const [first] = results;
+  const start = normalizeParsedDate(first.start, now);
+  const end =
+    normalizeParsedDate(
+      results.length > 1 ? results[1].start : first.end,
+      now,
+    ) ?? new Date(now);
   if (!start) {
     return null;
   }

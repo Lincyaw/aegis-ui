@@ -22,7 +22,8 @@ function isWhitespace(ch: string): boolean {
 /** Walk backward from `caret` to the first whitespace-or-paren boundary that
  *  is not inside a double-quoted region. Returns the start index of the token
  *  the caret sits inside (which may equal `caret` if the caret is at a
- *  boundary). */
+ *  boundary). An opening quote stays part of its token, so inside
+ *  `field:"…` the token starts at `field`. */
 function tokenStart(input: string, caret: number): number {
   // First pass: scan forward from start of string, tracking quote state, to
   // figure out whether `caret` is currently inside a quoted region.
@@ -44,8 +45,6 @@ function tokenStart(input: string, caret: number): number {
       if (!inQuotes) {
         // closing quote → boundary after it
         lastBoundary = i + 1;
-      } else {
-        lastBoundary = i;
       }
       continue;
     }
