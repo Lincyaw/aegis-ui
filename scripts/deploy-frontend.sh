@@ -12,11 +12,12 @@
 #   - <N> auto-increments by scanning the cluster's current image tag.
 #   - Push goes to docker.io/opspai; k8s pulls from the
 #     pair-cn-shanghai.cr.volces.com/opspai mirror, which syncs from it.
-#     The script waits for the tag to appear on the mirror before it
-#     points the deployment at it.
+#     The script first proves it can read the mirror, then waits for the
+#     new tag to appear there before it points the deployment at it.
 #
 # What it does (and does NOT do):
 #   - DOES: refuse a dirty working tree
+#   - DOES: check read access to the mirror before building
 #   - DOES: pnpm check (type-check, lint, lint:css, format:check,
 #     check:gallery, check:tokens, check:mcp-tools)
 #   - DOES: docker buildx --platform linux/amd64 + push (latest + tag)
@@ -86,11 +87,22 @@ echo "=> current cluster tag: $CUR_TAG"
 echo "=> new tag:             $TAG"
 echo
 
-echo "==> 1/5 pnpm check"
+echo "==> 1/6 check read access to $CLUSTER_REPO"
+# Step 4 takes "not found" to mean "not synced yet", but a wrong path or a
+# registry that refuses this machine can answer the same, so access is
+# proven first on the tag the cluster already runs.
+if ! out="$(docker buildx imagetools inspect "$CLUSTER_REPO:$CUR_TAG" 2>&1)"; then
+    echo "Cannot read $CLUSTER_REPO:$CUR_TAG, the tag the cluster runs now, from this machine:" >&2
+    echo "$out" >&2
+    exit 1
+fi
+
+echo
+echo "==> 2/6 pnpm check"
 pnpm check
 
 echo
-echo "==> 2/5 docker build + push ($PUSH_REPO:{$TAG,latest})"
+echo "==> 3/6 docker build + push ($PUSH_REPO:{$TAG,latest})"
 docker buildx build \
     --platform linux/amd64 \
     -t "$PUSH_REPO:$TAG" \
@@ -99,9 +111,14 @@ docker buildx build \
     --push
 
 echo
-echo "==> 3/5 wait for $CLUSTER_REPO:$TAG (up to ${MIRROR_WAIT_SECONDS}s)"
+echo "==> 4/6 wait for $CLUSTER_REPO:$TAG (up to ${MIRROR_WAIT_SECONDS}s)"
 deadline=$((SECONDS + MIRROR_WAIT_SECONDS))
-until docker buildx imagetools inspect "$CLUSTER_REPO:$TAG" > /dev/null 2>&1; do
+until out="$(docker buildx imagetools inspect "$CLUSTER_REPO:$TAG" 2>&1)"; do
+    if ! grep -qiE ': not found|manifest unknown' <<< "$out"; then
+        echo "Cannot read $CLUSTER_REPO:$TAG from the mirror; the deployment is unchanged:" >&2
+        echo "$out" >&2
+        exit 1
+    fi
     if ((SECONDS >= deadline)); then
         echo "The mirror does not have $TAG after ${MIRROR_WAIT_SECONDS}s; the deployment is unchanged." >&2
         echo "Re-run once it has synced, or raise MIRROR_WAIT_SECONDS." >&2
@@ -111,11 +128,11 @@ until docker buildx imagetools inspect "$CLUSTER_REPO:$TAG" > /dev/null 2>&1; do
 done
 
 echo
-echo "==> 4/5 kubectl set image (context=$KUBE_CONTEXT, container=$CONTAINER, deploy=$DEPLOY, ns=$NS)"
+echo "==> 5/6 kubectl set image (context=$KUBE_CONTEXT, container=$CONTAINER, deploy=$DEPLOY, ns=$NS)"
 kc set image "deploy/$DEPLOY" "$CONTAINER=$CLUSTER_REPO:$TAG"
 
 echo
-echo "==> 5/5 wait for rollout"
+echo "==> 6/6 wait for rollout"
 if ! kc rollout status "deploy/$DEPLOY" --timeout=180s; then
     echo >&2
     echo "Rollout of $TAG failed; rolling back to $CUR_IMAGE." >&2
