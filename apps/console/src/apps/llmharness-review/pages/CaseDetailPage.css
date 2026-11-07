@@ -67,7 +67,7 @@
 }
 
 .llmh-cdp__rail-row--window {
-  border-color: var(--accent-warning);
+  border-color: var(--border-emphasis);
 }
 
 .llmh-cdp__rail-row--selected,
