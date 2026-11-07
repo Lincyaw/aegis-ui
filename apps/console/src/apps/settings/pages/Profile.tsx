@@ -17,8 +17,8 @@ import { App, Button, Spin } from 'antd';
 import { isAxiosError } from 'axios';
 
 import { ApiError, errMsg } from '../../../api/apiClient';
-import { updateUser } from '../../../api/iamClient';
-import { authenticationApi } from '../../portal/api/portal-client';
+import { authenticationApi } from '../../../api/portal-client';
+import { updateUser } from '../api/iamClient';
 import '../settings.css';
 
 function isForbidden(e: unknown): boolean {

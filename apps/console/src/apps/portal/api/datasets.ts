@@ -5,7 +5,7 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { datasetsApi } from './portal-client';
+import { datasetsApi } from '../../../api/portal-client';
 
 export interface ListDatasetsParams {
   page?: number;

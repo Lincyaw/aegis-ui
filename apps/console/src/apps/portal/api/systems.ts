@@ -4,7 +4,7 @@ import type {
 } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
-import { systemsApi } from './portal-client';
+import { systemsApi } from '../../../api/portal-client';
 
 export const systemsKeys = {
   all: ['systems'] as const,

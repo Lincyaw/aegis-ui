@@ -11,7 +11,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { Button } from 'antd';
 
-import { usePageSize } from '../../portal/hooks/usePageSize';
+import { usePageSize } from '../../../hooks/usePageSize';
 import { shareUrlForSlug, usePagesPublic } from '../api/pages-client';
 import '../pages-app.css';
 

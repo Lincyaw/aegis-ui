@@ -1,13 +1,12 @@
 import type { InjectionDatapackFilesResp } from '@lincyaw/portal';
 import axios, { type AxiosError } from 'axios';
 
+import { injectionsApi, portalAxios } from '../../../api/portal-client';
 import { getRuntimeConfig } from '../../../config/runtime';
 import {
   type ArrowResult,
   arrowStreamToRows,
 } from '../pages/InjectionData/arrowToRows';
-
-import { injectionsApi, portalAxios } from './portal-client';
 
 export interface DatapackColumn {
   name: string;

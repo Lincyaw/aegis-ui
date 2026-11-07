@@ -21,7 +21,7 @@ import {
   getLocalOverride,
   getRuntimeConfig,
   setLocalOverride,
-} from '../config/runtime';
+} from '../../../config/runtime';
 
 import './Setup.css';
 

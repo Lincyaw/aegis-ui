@@ -19,7 +19,7 @@ import {
   listPermissions,
   listRoles,
   removeRolePermissions,
-} from '../../../api/iamClient';
+} from '../api/iamClient';
 import '../settings.css';
 
 import './Roles.css';

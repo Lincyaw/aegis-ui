@@ -25,7 +25,7 @@ import {
   listApiKeys,
   revokeApiKey,
   rotateApiKey,
-} from '../../../api/apiKeyClient';
+} from '../api/apiKeyClient';
 import '../settings.css';
 
 const PAGE_SIZE = 20;

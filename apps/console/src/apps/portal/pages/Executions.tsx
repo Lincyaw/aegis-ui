@@ -15,10 +15,10 @@ import {
 import type { ExecutionExecutionResp } from '@lincyaw/portal';
 
 import { errMsg } from '../../../api/apiClient';
+import { usePageSize } from '../../../hooks/usePageSize';
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import { useExecutionsList } from '../hooks/useExecutions';
-import { usePageSize } from '../hooks/usePageSize';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 

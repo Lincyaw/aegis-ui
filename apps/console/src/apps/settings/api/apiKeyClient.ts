@@ -13,7 +13,7 @@ import {
   pageQs,
   type PageReq,
   type Paginated,
-} from './apiClient';
+} from '../../../api/apiClient';
 
 /** 1 = enabled, 0 = disabled, -1 = deleted/revoked. */
 export type ApiKeyStatus = 1 | 0 | -1;

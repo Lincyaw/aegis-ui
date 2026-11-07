@@ -15,10 +15,10 @@ import {
 import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
+import { usePageSize } from '../../../hooks/usePageSize';
 import { useInjectionsList } from '../api/injections';
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
-import { usePageSize } from '../hooks/usePageSize';
 import { useInjectBatch } from '../state/inject-batch';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];

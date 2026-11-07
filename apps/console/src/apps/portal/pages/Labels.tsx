@@ -16,8 +16,8 @@ import {
 import type { LabelLabelResp } from '@lincyaw/portal';
 
 import { errMsg } from '../../../api/apiClient';
+import { usePageSize } from '../../../hooks/usePageSize';
 import { useLabelsList } from '../api/labels';
-import { usePageSize } from '../hooks/usePageSize';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 

@@ -28,7 +28,7 @@ import type {
 import { useQuery } from '@tanstack/react-query';
 
 import { errMsg } from '../../../api/apiClient';
-import { projectsApi } from '../api/portal-client';
+import { projectsApi } from '../../../api/portal-client';
 import { useActiveProjectIdNum } from '../hooks/useActiveProject';
 import { useProjectsList } from '../hooks/useProjects';
 

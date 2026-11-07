@@ -22,7 +22,7 @@ import {
   listClients,
   type OidcClient,
   rotateSecret,
-} from '../../../api/ssoAdminClient';
+} from '../api/ssoAdminClient';
 import '../settings.css';
 
 const GRANTS = [

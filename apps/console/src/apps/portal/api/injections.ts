@@ -15,9 +15,12 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 
+import {
+  injectionsApi,
+  projectsApi,
+  tracesApi,
+} from '../../../api/portal-client';
 import type { GuidedInjectionSpec } from '../components/inject/types';
-
-import { injectionsApi, projectsApi, tracesApi } from './portal-client';
 
 const TRACE_ACTIVE_STATES = new Set([
   'initial',

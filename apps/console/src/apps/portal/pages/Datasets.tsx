@@ -15,8 +15,8 @@ import {
 import type { DatasetDatasetResp } from '@lincyaw/portal';
 
 import { errMsg } from '../../../api/apiClient';
+import { usePageSize } from '../../../hooks/usePageSize';
 import { useDatasetsList } from '../api/datasets';
-import { usePageSize } from '../hooks/usePageSize';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 

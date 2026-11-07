@@ -24,7 +24,7 @@ import {
   listUsers,
   removeUserRole,
   updateUser,
-} from '../../../api/iamClient';
+} from '../api/iamClient';
 import '../settings.css';
 
 import './Users.css';

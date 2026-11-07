@@ -24,8 +24,8 @@ import { App as AntdApp, Select, Spin } from 'antd';
 import yaml from 'js-yaml';
 
 import { errMsg } from '../../../api/apiClient';
+import { containersApi } from '../../../api/portal-client';
 import { useInstallPedestal, usePedestalHelmConfig } from '../api/pedestals';
-import { containersApi } from '../api/portal-client';
 import { useSystems } from '../api/systems';
 import { WizardSteps } from '../components/WizardSteps';
 import { useContainersList } from '../hooks/useContainers';

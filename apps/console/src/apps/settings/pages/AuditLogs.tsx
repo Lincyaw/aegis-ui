@@ -15,7 +15,7 @@ import { Button, DatePicker, Input, Select } from 'antd';
 import type { Dayjs } from 'dayjs';
 
 import { errMsg } from '../../../api/apiClient';
-import { type AuditLog, listAuditLogs } from '../../../api/auditClient';
+import { type AuditLog, listAuditLogs } from '../api/auditClient';
 
 import './AuditLogs.css';
 

@@ -28,7 +28,7 @@ import {
   type IdentityProvider,
   listProviders,
   updateProvider,
-} from '../../../api/identityProviderClient';
+} from '../api/identityProviderClient';
 import '../settings.css';
 
 interface CreateFormValues {

@@ -22,10 +22,9 @@ import Notifications from './pages/Notifications';
 import OidcClients from './pages/OidcClients';
 import Profile from './pages/Profile';
 import Roles from './pages/Roles';
+import { Setup } from './pages/Setup';
 import Teams from './pages/Teams';
 import Users from './pages/Users';
-
-import { Setup } from '../../pages/Setup';
 
 export const settingsApp: AegisApp = {
   id: 'settings',

@@ -18,8 +18,8 @@ import {
 } from '@lincyaw/portal';
 import axios from 'axios';
 
-import { readTokens } from '../../../auth/tokenStore';
-import { getRuntimeConfig } from '../../../config/runtime';
+import { readTokens } from '../auth/tokenStore';
+import { getRuntimeConfig } from '../config/runtime';
 
 const portalAxios = axios.create();
 
