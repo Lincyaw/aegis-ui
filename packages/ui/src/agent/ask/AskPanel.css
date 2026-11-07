@@ -5,7 +5,7 @@
   max-height: var(--ask-panel-max-height);
   background: var(--ask-panel-bg);
   border: var(--size-hairline) solid var(--ask-panel-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--ask-panel-shadow);
   font-family: var(--font-ui);
   color: var(--text-main);
@@ -34,10 +34,11 @@
 }
 
 .aegis-ask-panel__title {
-  font-family: var(--font-brand);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--tracking-brand);
+  font-size: var(--type-strong-size);
+  font-weight: var(--type-strong-weight);
+  line-height: var(--type-strong-line);
+  letter-spacing: var(--type-strong-tracking);
+  text-wrap: balance;
 }
 
 .aegis-ask-panel__close {
@@ -57,6 +58,11 @@
   background: var(--bg-muted);
 }
 
+.aegis-ask-panel__close:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .aegis-ask-panel__meta {
   display: flex;
   flex-direction: column;
@@ -74,8 +80,6 @@
 }
 
 .aegis-ask-panel__meta-label {
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
   color: var(--text-muted);
   min-width: var(--space-10);
 }
@@ -138,7 +142,6 @@
 .aegis-ask-panel__empty {
   font-size: var(--fs-11);
   color: var(--text-muted);
-  font-style: italic;
 }
 
 /* The section above already draws the dividing hairline. */

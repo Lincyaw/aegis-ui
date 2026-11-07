@@ -543,7 +543,9 @@ surface, and the available actions the agent can offer to take.
 
 The shell mounts a single `<AskOverlay>` that listens (delegated) for
 these triggers on any element with `data-agent-surface-id`,
-`data-agent-entity-id`, or `data-agent-action-id`:
+`data-agent-entity-id`, or `data-agent-action-id`. A page that needs its
+own chat, such as a demo, mounts a second overlay with `scope` set to its
+element; the shell's overlay leaves that element to it.
 
 | Trigger           | Gesture                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------- |

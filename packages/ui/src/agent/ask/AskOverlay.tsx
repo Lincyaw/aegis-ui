@@ -1,5 +1,6 @@
 import {
   type ReactElement,
+  type RefObject,
   useCallback,
   useContext,
   useEffect,
@@ -22,6 +23,36 @@ interface PanelState {
 }
 
 type TriggerInfo = AskTrigger & { el: HTMLElement };
+
+interface AskWindow extends Window {
+  __aegisOpenAskPanel?: (
+    trigger: AskTrigger,
+    anchorEl?: HTMLElement | null,
+  ) => void;
+}
+
+interface Opener {
+  owns: (el: Element | null) => boolean;
+  open: (trigger: AskTrigger, anchorEl: HTMLElement | null) => void;
+}
+
+const SCOPE_ATTRIBUTE = 'data-aegis-ask-scope';
+
+// Every listening overlay, so the window helper reaches the one that owns
+// its anchor rather than whichever overlay mounted last.
+const openers = new Set<Opener>();
+
+function openFromScript(
+  trigger: AskTrigger,
+  anchorEl: HTMLElement | null = null,
+): void {
+  for (const opener of openers) {
+    if (opener.owns(anchorEl)) {
+      opener.open(trigger, anchorEl);
+      return;
+    }
+  }
+}
 
 function findTrigger(target: EventTarget | null): TriggerInfo | null {
   if (!(target instanceof Element)) {
@@ -83,13 +114,23 @@ function describeContext(context: AskContext): string {
   return parts.join(' · ');
 }
 
+export interface AskOverlayProps {
+  /**
+   * Limits the overlay to this element. An overlay without a scope serves
+   * the rest of the page and leaves scoped elements to their own overlay.
+   */
+  scope?: RefObject<HTMLElement | null>;
+}
+
 /**
  * Opens the AskPanel on a right-click or Cmd/Ctrl + . over any element with
  * a `data-agent-*` attribute, and sends the question to the agent chat.
  * It stays inert, leaving the browser's context menu alone, until an
  * `<AgentChatProvider>` above it supplies a chat to send to.
  */
-export function AskOverlay(): ReactElement | null {
+export function AskOverlay({
+  scope,
+}: AskOverlayProps = {}): ReactElement | null {
   const ctx = useContext(AegisRuntimeContext);
   const chat = useAgentChat();
   const runtime =
@@ -111,6 +152,28 @@ export function AskOverlay(): ReactElement | null {
     setPanel(null);
   }, []);
 
+  const owns = useCallback(
+    (el: Element | null): boolean => {
+      const owner = el?.closest(`[${SCOPE_ATTRIBUTE}]`) ?? null;
+      if (!scope) {
+        return owner === null;
+      }
+      return scope.current !== null && owner === scope.current;
+    },
+    [scope],
+  );
+
+  useEffect(() => {
+    const el = scope?.current;
+    if (!runtime || !el) {
+      return;
+    }
+    el.setAttribute(SCOPE_ATTRIBUTE, '');
+    return () => {
+      el.removeAttribute(SCOPE_ATTRIBUTE);
+    };
+  }, [runtime, scope]);
+
   const { send, setPanelOpen } = chat;
   const ask = useCallback(
     (request: AskRequest) => {
@@ -131,7 +194,7 @@ export function AskOverlay(): ReactElement | null {
       return;
     }
     const onContextMenu = (e: MouseEvent): void => {
-      if (e.shiftKey) {
+      if (e.shiftKey || !(e.target instanceof Element) || !owns(e.target)) {
         return;
       }
       const trigger = findTrigger(e.target);
@@ -152,6 +215,9 @@ export function AskOverlay(): ReactElement | null {
         return;
       }
       const target = (e.target as Element | null) ?? document.activeElement;
+      if (!owns(target)) {
+        return;
+      }
       const trigger = findTrigger(target);
       if (!trigger) {
         return;
@@ -167,7 +233,7 @@ export function AskOverlay(): ReactElement | null {
       document.removeEventListener('contextmenu', onContextMenu, true);
       document.removeEventListener('keydown', onKeyDown, true);
     };
-  }, [runtime, open]);
+  }, [runtime, open, owns]);
 
   // Programmatic open: external code subscribes via runtime.onAskTriggered
   // and may not need the panel; AskOverlay opens the default panel only for
@@ -176,24 +242,24 @@ export function AskOverlay(): ReactElement | null {
     if (!runtime || typeof window === 'undefined') {
       return;
     }
-    interface AskWindow extends Window {
-      __aegisOpenAskPanel?: (
-        trigger: AskTrigger,
-        anchorEl?: HTMLElement | null,
-      ) => void;
-    }
-    const w = window as AskWindow;
-    w.__aegisOpenAskPanel = (trigger, anchorEl) => {
-      const askContext = buildAskContext(runtime, trigger);
-      runtime.emitAskTriggered(askContext);
-      open(askContext, anchorEl?.getBoundingClientRect() ?? null, null);
+    const opener: Opener = {
+      owns,
+      open: (trigger, anchorEl) => {
+        const askContext = buildAskContext(runtime, trigger);
+        runtime.emitAskTriggered(askContext);
+        open(askContext, anchorEl?.getBoundingClientRect() ?? null, null);
+      },
     };
+    const w = window as AskWindow;
+    openers.add(opener);
+    w.__aegisOpenAskPanel = openFromScript;
     return () => {
-      if (w.__aegisOpenAskPanel) {
+      openers.delete(opener);
+      if (openers.size === 0) {
         delete w.__aegisOpenAskPanel;
       }
     };
-  }, [runtime, open]);
+  }, [runtime, open, owns]);
 
   const portalled = useMemo(() => {
     if (!panel) {

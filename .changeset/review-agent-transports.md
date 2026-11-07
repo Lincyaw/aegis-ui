@@ -19,14 +19,22 @@ Breaking:
   agent dispatch of an action marked `confirm.danger` (`needs_confirm`).
 - `AegisRuntime.toMcpTools()` and the `McpToolDefinition` type are removed.
 - `listActions({ invocableBy })` keeps actions left at `'both'`.
+- The built-in `aegis.navigate` action (and the `aegis_navigate` tool)
+  resolves `to` the way a link resolves and refuses, with
+  `invalid_params`, anything that leaves the page's origin, including
+  `javascript:` and `data:` URLs. A relative `to` now resolves against
+  the current URL rather than the current route.
 - MCP tools: `aegis_invoke` with `dryRun: true` previews the action
   instead of running it, and its `force` is gone; `aegis_snapshot` drops
-  the `paths` it ignored; `aegis_wait_for` takes a `condition`. A failed
-  action or navigation now comes back as a tool error.
+  the `paths` it ignored; `aegis_wait_for` takes a `condition`;
+  `aegis_search` takes only a positive integer `limit`. A failed action or
+  navigation now comes back as a tool error.
 - `AskOverlay` takes over the right-click menu only when an
   `<AgentChatProvider>` is above it. `AskPanel` sends through a new
   `onSend` prop (with `sending`) instead of a Send button that was always
   disabled; the overlay passes the question to the agent chat.
+- `AskPanel` with `popover={false}` no longer closes on Escape or on a
+  click outside it; only its close button closes an inline panel.
 
 Added:
 
@@ -34,6 +42,12 @@ Added:
   `dryRun()` output without running it; `PreviewResult`.
 - `AegisActionDescriptor.confirm`; the `ActionConfirm`,
   `AegisSearchResponse`, `AegisWaitCondition` and `WaitForOptions` types.
+- A `signal` option on `dispatch` and `preview`, passed to the action as
+  `ctx.signal`; the MCP bridge aborts it when its socket closes. A
+  `dryRun` gets a `ctx.navigate` that does nothing.
+- `AskOverlay`'s `scope` prop (`AskOverlayProps`): a scoped overlay
+  answers only inside its element, under its own chat, and the page's
+  overlay leaves that element alone.
 
 Fixed:
 
@@ -51,6 +65,10 @@ Fixed:
 - `highlight` escapes ids in its selector, scrolls instantly under reduced
   motion, and returns the element's position after the scroll settles.
 - `AskPanel`'s tool list picks up actions and surfaces registered after
-  the panel opens.
+  the panel opens. Its title uses the UI face, its field labels are no
+  longer uppercase, its empty note is no longer italic, the panel takes
+  `--radius-lg`, and its close button shows the focus ring.
+- A bridge `tool.call` whose arguments are not an object gets an
+  `invalid_params` reply instead of no reply.
 - The library build no longer writes into `apps/console`; the console's
   `bundle:prepare` and `pnpm gen:mcp-tools` generate the MCP tool list.

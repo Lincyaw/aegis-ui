@@ -21,6 +21,7 @@ export type {
   UseAegisSurfaceResult,
 } from './core/hooks';
 export { AskOverlay } from './ask/AskOverlay';
+export type { AskOverlayProps } from './ask/AskOverlay';
 export { AskPanel } from './ask/AskPanel';
 export type { AskPanelProps } from './ask/AskPanel';
 export { buildAskContext } from './ask/buildAskContext';

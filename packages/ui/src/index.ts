@@ -196,6 +196,7 @@ export type {
   AskContext,
   AskMessage,
   AskOrigin,
+  AskOverlayProps,
   AskPanelProps,
   AskRequest,
   AskTrigger,
