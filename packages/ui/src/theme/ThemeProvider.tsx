@@ -54,6 +54,18 @@ function subscribePreference(onChange: () => void): () => void {
   };
 }
 
+function subscribeNever(): () => void {
+  return () => undefined;
+}
+
+function isClientSnapshot(): boolean {
+  return true;
+}
+
+function isClientServerSnapshot(): boolean {
+  return false;
+}
+
 const NEXT_PREFERENCE: Record<ThemePreference, ThemePreference> = {
   light: 'dark',
   dark: 'system',
@@ -71,7 +83,8 @@ export interface ThemeProviderProps {
  * `document.documentElement`, persists user choice in localStorage, and
  * follows system theme changes when preference is 'system'. A server
  * render and the hydration that follows use `defaultPreference`; the
- * stored choice applies right after.
+ * stored choice applies right after. Until then the provider leaves
+ * `data-theme` alone, so the theme `themeInitScript` applied stays.
  */
 export function ThemeProvider({
   children,
@@ -91,13 +104,23 @@ export function ThemeProvider({
     getServerSnapshot,
   );
   const systemDark = useMediaQuery(DARK_QUERY);
+  // False while hydrating, when `preference` and `systemDark` still hold
+  // their server snapshots.
+  const isClient = useSyncExternalStore(
+    subscribeNever,
+    isClientSnapshot,
+    isClientServerSnapshot,
+  );
   const resolved: ThemeMode =
     preference === 'system' ? (systemDark ? 'dark' : 'light') : preference;
 
   useIsomorphicLayoutEffect(() => {
+    if (!isClient) {
+      return;
+    }
     document.documentElement.setAttribute('data-theme', resolved);
     document.documentElement.style.colorScheme = resolved;
-  }, [resolved]);
+  }, [isClient, resolved]);
 
   const toggle = useCallback(() => {
     writePreference(NEXT_PREFERENCE[getSnapshot()]);
