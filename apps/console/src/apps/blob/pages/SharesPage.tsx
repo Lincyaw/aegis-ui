@@ -11,6 +11,7 @@ import {
   MonoValue,
   PageHeader,
   Panel,
+  TimeDisplay,
   useActiveApp,
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp, Button } from 'antd';
@@ -21,11 +22,8 @@ import {
   readShares,
   type ShareRecord,
 } from '../../../api/blobClient';
-
-function lastSegment(key: string): string {
-  const idx = key.lastIndexOf('/');
-  return idx === -1 ? key : key.slice(idx + 1);
-}
+import '../blob-app.css';
+import { lastSegment } from '../objects';
 
 function remaining(expiresAt: string, nowMs: number): string {
   const ms = new Date(expiresAt).getTime() - nowMs;
@@ -73,7 +71,7 @@ export default function SharesPage() {
     [msg]
   );
 
-  const revoke = useCallback(
+  const forget = useCallback(
     (id: string): void => {
       forgetShare(id);
       setShares(readShares());
@@ -90,17 +88,11 @@ export default function SharesPage() {
         key: 'object',
         header: 'Object',
         render: (row) => (
-          <span
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-px)',
-            }}
-          >
+          <span className='blob-share__object'>
             <MonoValue size='sm'>{lastSegment(row.key)}</MonoValue>
             <Link
               to={`${basePath}/${encodeURIComponent(row.bucket)}`}
-              style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-11)' }}
+              className='blob-share__path'
             >
               {row.bucket}/{row.key}
             </Link>
@@ -122,7 +114,7 @@ export default function SharesPage() {
         render: (row) => {
           const left = remaining(row.expiresAt, now);
           return (
-            <Chip tone={left === 'expired' ? 'warning' : 'ghost'}>{left}</Chip>
+            <Chip tone={left === 'expired' ? 'caution' : 'ghost'}>{left}</Chip>
           );
         },
       },
@@ -130,11 +122,7 @@ export default function SharesPage() {
         key: 'created',
         header: 'Created',
         width: 180,
-        render: (row) => (
-          <MonoValue size='sm'>
-            {new Date(row.createdAt).toLocaleString()}
-          </MonoValue>
-        ),
+        render: (row) => <TimeDisplay value={row.createdAt} />,
       },
       {
         key: 'actions',
@@ -158,7 +146,7 @@ export default function SharesPage() {
               danger
               icon={<DeleteOutlined />}
               onClick={() => {
-                revoke(row.id);
+                forget(row.id);
               }}
               title='Forget'
             />
@@ -166,7 +154,7 @@ export default function SharesPage() {
         ),
       },
     ],
-    [basePath, copy, now, revoke]
+    [basePath, copy, forget, now]
   );
 
   return (
@@ -179,7 +167,7 @@ export default function SharesPage() {
       <Panel>
         <MetricLabel>
           Local browser history — not synced. Links keep working until their TTL
-          expires; revoke only removes the row here.
+          expires; forgetting one only removes the row here.
         </MetricLabel>
       </Panel>
 
