@@ -76,7 +76,6 @@ export default defineConfig(({ mode }) => {
     ...(pages ? { publicDir: false } : {}),
     build: {
       target: 'esnext',
-      sourcemap: pages ? false : 'hidden',
       ...(pages ? { outDir: PAGES_OUT_DIR } : {}),
       rollupOptions: {
         ...(pages ? { input: path.resolve(__dirname, 'gallery-site.html') } : {}),
