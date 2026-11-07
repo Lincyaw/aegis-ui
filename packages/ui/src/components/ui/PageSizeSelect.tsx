@@ -16,10 +16,9 @@ export interface PageSizeSelectProps {
   label?: string;
   className?: string;
   /**
-   * Preferred side for the options panel. Default is 'top' because the
-   * primitive was originally used as a pagination footer where the table
-   * content is above; use 'bottom' when the trigger sits at the top of a
-   * section. The panel flips when the preferred side has no room.
+   * Preferred side for the options panel: `top` (default) for a pager
+   * under a table, `bottom` for a trigger at the top of a section. The panel
+   * flips when the preferred side has no room.
    */
   placement?: 'top' | 'bottom';
 }

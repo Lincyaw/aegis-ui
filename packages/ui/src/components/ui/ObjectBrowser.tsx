@@ -95,7 +95,7 @@ export function ObjectBrowser({
       {!hideTree ? (
         <aside className="aegis-object-browser__tree" aria-label="Folders">
           <header className="aegis-object-browser__tree-head">
-            <MetricLabel>{treeCollapsed ? 'Folders' : 'Folders'}</MetricLabel>
+            <MetricLabel>Folders</MetricLabel>
             <button
               type="button"
               className="aegis-object-browser__tree-toggle"

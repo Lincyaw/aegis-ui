@@ -1,15 +1,7 @@
-import {
-  type ReactElement,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactElement, type ReactNode, useId } from 'react';
 
 import { useMediaQuery } from '../../hooks/useMediaQuery';
-import { activationRootMargin, findCurrentIndex } from '../../lib/scrollView';
+import { useSectionSpy } from '../../hooks/useSectionSpy';
 import { useStrings } from '../../locale';
 import { Panel } from './Panel';
 import './ScrollStory.css';
@@ -64,58 +56,24 @@ export function ScrollStory({
   const strings = useStrings();
   const titleIdPrefix = useId();
   const stacked = useMediaQuery(STACKED_QUERY);
-  const [trackedIndex, setTrackedIndex] = useState(0);
-  const trackedIndexRef = useRef(0);
-  const onCurrentChangeRef = useRef(onCurrentChange);
-  const stepRefs = useRef<Array<HTMLLIElement | null>>([]);
-  const activeIndex = currentIndex ?? trackedIndex;
-  /* Changes when steps are swapped or reordered, which replaces their
-   * elements even if the count stays the same. */
-  const stepKey = steps.map((step) => step.id).join('\n');
-
-  useEffect(() => {
-    onCurrentChangeRef.current = onCurrentChange;
-  }, [onCurrentChange]);
-
-  const track = useCallback((index: number): void => {
-    if (index === trackedIndexRef.current) {
-      return;
-    }
-    trackedIndexRef.current = index;
-    setTrackedIndex(index);
-    onCurrentChangeRef.current?.(index);
-  }, []);
-
-  useEffect(() => {
-    if (stacked) {
-      return undefined;
-    }
-    const elements = stepRefs.current
-      .slice(0, steps.length)
-      .filter((el): el is HTMLLIElement => el !== null);
-    if (elements.length === 0) {
-      return undefined;
-    }
-    const sync = (): void => {
-      track(findCurrentIndex(elements, scrollContainer, ACTIVATION_PERCENT));
-    };
-    sync();
-    const observer = new IntersectionObserver(sync, {
-      root: scrollContainer,
-      rootMargin: activationRootMargin(ACTIVATION_PERCENT),
-    });
-    for (const el of elements) {
-      observer.observe(el);
-    }
-    /* A jump can skip the activation band without an intersection change,
-     * and the end-of-scroll rule needs the settled position. */
-    const scrollEvents: EventTarget = scrollContainer ?? document;
-    scrollEvents.addEventListener('scrollend', sync);
-    return () => {
-      observer.disconnect();
-      scrollEvents.removeEventListener('scrollend', sync);
-    };
-  }, [stacked, stepKey, steps.length, scrollContainer, track]);
+  const stepIds = steps.map(
+    (step) => `${titleIdPrefix}-step-${encodeURIComponent(step.id)}`,
+  );
+  const { activeId } = useSectionSpy({
+    ids: stacked ? [] : stepIds,
+    activationPercent: ACTIVATION_PERCENT,
+    currentId: currentIndex === undefined ? undefined : stepIds[currentIndex],
+    onCurrentChange:
+      onCurrentChange &&
+      ((id) => {
+        onCurrentChange(stepIds.indexOf(id));
+      }),
+    scrollContainer,
+  });
+  const activeIndex = Math.max(
+    activeId === undefined ? 0 : stepIds.indexOf(activeId),
+    0,
+  );
 
   const rootClass = [
     'aegis-scroll-story',
@@ -134,9 +92,7 @@ export function ScrollStory({
           return (
             <li
               key={step.id}
-              ref={(node) => {
-                stepRefs.current[index] = node;
-              }}
+              id={stepIds[index]}
               className={[
                 'aegis-scroll-story__step',
                 current ? 'aegis-scroll-story__step--current' : '',

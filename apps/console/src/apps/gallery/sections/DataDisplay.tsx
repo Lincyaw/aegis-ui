@@ -240,12 +240,25 @@ export function DataDisplaySection() {
             <SparkLine points={SPARK_RISING} inverted />
           </div>
         </Specimen>
+        <Specimen caption='one sample · level line'>
+          <div className='gallery__spark-host'>
+            <SparkLine points={[64]} />
+          </div>
+        </Specimen>
       </div>
 
       <SectionDivider>MetricCard</SectionDivider>
       <div className='gallery__row gallery__row--wide'>
         <Specimen caption='value only'>
           <MetricCard label='Active injections' value='3' />
+        </Specimen>
+        <Specimen caption='first sample · sparkline of one point'>
+          <MetricCard
+            label='Error rate'
+            value='0.4'
+            unit='%'
+            sparkline={[0.4]}
+          />
         </Specimen>
         <Specimen caption='value + unit'>
           <MetricCard label='Latency p99' value='142' unit='ms' />

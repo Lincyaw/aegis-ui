@@ -26,7 +26,7 @@ interface ToolCallCardProps {
   surface?: ToolCallCardSurface;
 }
 
-function CodeBlock({ label, code }: { label: string; code: string }) {
+function FoldedCode({ label, code }: { label: string; code: string }) {
   const [folded, setFolded] = useState(true);
   const lines = code.split('\n');
   const preview = lines.slice(0, 3).join('\n');
@@ -69,9 +69,9 @@ export function ToolCallCard({ data, className, surface }: ToolCallCardProps) {
         <Chip tone="ink">{data.name}</Chip>
         <StatusChip status={status} />
       </div>
-      <CodeBlock label={strings.toolCallArguments} code={data.arguments} />
+      <FoldedCode label={strings.toolCallArguments} code={data.arguments} />
       {data.result && (
-        <CodeBlock
+        <FoldedCode
           label={
             status === 'error' ? strings.toolCallError : strings.toolCallResult
           }
