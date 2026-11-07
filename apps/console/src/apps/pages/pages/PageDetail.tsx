@@ -12,6 +12,8 @@ import {
 import {
   EmptyState,
   ErrorState,
+  FileTree,
+  type FileTreeFile,
   FolderDropzone,
   formatBytes,
   MetadataList,
@@ -30,19 +32,23 @@ import {
   usePageDetail,
   useReplacePage,
   useUpdatePage,
+  validateUpload,
 } from '../api/pages-client';
 import '../pages-app.css';
 
-import { validateUpload } from './helpers';
+function encodePath(path: string): string {
+  return path.split('/').map(encodeURIComponent).join('/');
+}
 
 export default function PageDetail() {
   const { id: idParam = '' } = useParams<{ id: string }>();
-  const id = Number.parseInt(idParam, 10);
+  const id = /^\d+$/.test(idParam) ? Number(idParam) : Number.NaN;
+  const validId = Number.isSafeInteger(id);
   const navigate = useNavigate();
   const { basePath } = useActiveApp();
   const { message: msg, modal } = AntdApp.useApp();
 
-  const detail = usePageDetail(Number.isFinite(id) ? id : undefined);
+  const detail = usePageDetail(validId ? id : undefined);
   const update = useUpdatePage(id);
   const replace = useReplacePage(id);
   const del = useDeletePage();
@@ -147,6 +153,37 @@ export default function PageDetail() {
     }
   };
 
+  const files = useMemo<FileTreeFile[]>(
+    () =>
+      (detail.data?.files ?? []).flatMap((f) =>
+        f.path ? [{ path: f.path, note: formatBytes(f.size_bytes ?? 0) }] : []
+      ),
+    [detail.data?.files]
+  );
+
+  if (!validId) {
+    return (
+      <>
+        <PageHeader title='Page detail' />
+        <Panel>
+          <ErrorState
+            title='Not a page id'
+            description={`"${idParam}" is not a page id. Open a page from the list.`}
+            action={
+              <Button
+                onClick={() => {
+                  navigate(basePath);
+                }}
+              >
+                My pages
+              </Button>
+            }
+          />
+        </Panel>
+      </>
+    );
+  }
+
   if (detail.error) {
     return (
       <>
@@ -182,8 +219,6 @@ export default function PageDetail() {
       </>
     );
   }
-
-  const files = data.files ?? [];
 
   return (
     <>
@@ -420,22 +455,17 @@ export default function PageDetail() {
           />
         ) : (
           <div className='pages-app__file-tree'>
-            {files.map((f) => (
-              <div
-                key={f.path ?? ''}
-                className='pages-app__file-tree-row pages-app__file-tree-row--strong'
-              >
-                <a
-                  href={`${shareUrl}/${f.path ?? ''}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='pages-app__file-link'
-                >
-                  {f.path ?? ''}
-                </a>
-                <span>{formatBytes(f.size_bytes ?? 0)}</span>
-              </div>
-            ))}
+            <FileTree
+              files={files}
+              ariaLabel='Site files'
+              onSelect={(path) => {
+                window.open(
+                  `${shareUrl}/${encodePath(path)}`,
+                  '_blank',
+                  'noopener'
+                );
+              }}
+            />
           </div>
         )}
       </Panel>

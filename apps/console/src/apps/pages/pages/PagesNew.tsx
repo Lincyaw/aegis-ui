@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
+  FileTree,
   FolderDropzone,
   formatBytes,
   PageHeader,
@@ -14,12 +15,12 @@ import { App as AntdApp, Button, Input, Radio } from 'antd';
 import {
   fileRelPath,
   PAGES_LIMITS,
+  pagesUploadHelperText,
   type PageVisibility,
   useCreatePage,
+  validateUpload,
 } from '../api/pages-client';
 import '../pages-app.css';
-
-import { pagesUploadHelperText, validateUpload } from './helpers';
 
 export default function PagesNew() {
   const navigate = useNavigate();
@@ -64,17 +65,13 @@ export default function PagesNew() {
 
   const summary =
     files.length > 0 ? (
-      <>
-        {files.map((f, i) => (
-          <div
-            key={`${fileRelPath(f)}-${i.toString()}`}
-            className='pages-app__file-tree-row'
-          >
-            <span>{fileRelPath(f)}</span>
-            <span>{formatBytes(f.size)}</span>
-          </div>
-        ))}
-      </>
+      <FileTree
+        files={files.map((f) => ({
+          path: fileRelPath(f),
+          note: formatBytes(f.size),
+        }))}
+        ariaLabel='Files to upload'
+      />
     ) : null;
 
   const blockingError =
