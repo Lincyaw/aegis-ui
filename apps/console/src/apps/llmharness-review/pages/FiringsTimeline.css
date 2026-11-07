@@ -40,7 +40,7 @@
 
 .llmh-tl__btn--active {
   outline: var(--size-hairline) solid var(--text-main);
-  outline-offset: -1px;
+  outline-offset: calc(-1 * var(--size-hairline));
 }
 
 .llmh-tl__btn--surfaced::after {

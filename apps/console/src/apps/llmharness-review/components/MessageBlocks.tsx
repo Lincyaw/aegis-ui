@@ -1,17 +1,17 @@
 /**
  * Render a main-agent turn as chat bubbles. The renderer never reads
- * raw block shapes — it consumes a NormalizedTurn from messageAdapter,
- * so as long as the normalizer recognises the source shape, the user
- * sees prose instead of JSON.
+ * raw block shapes — it consumes normalised blocks, so as long as the
+ * normaliser recognises the source shape, the user sees prose instead of
+ * JSON.
  */
 import { type ReactElement } from 'react';
 
 import {
+  type AgentBlock,
   jsonStringify,
   normalizeContent,
-  type NormalizedBlock,
-  normalizeTurn,
-} from '../messageAdapter';
+} from '../../shared/agentContent';
+import { normalizeTurn } from '../messageAdapter';
 import type { MainTurn } from '../schemas';
 
 import './MessageBlocks.css';
@@ -76,7 +76,7 @@ function ToolResultBlock({
   );
 }
 
-function renderBlock(block: NormalizedBlock, key: number): ReactElement {
+function renderBlock(block: AgentBlock, key: number): ReactElement {
   switch (block.kind) {
     case 'text':
       return (

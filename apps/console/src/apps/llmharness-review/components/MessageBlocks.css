@@ -9,7 +9,7 @@
   color: var(--text-main);
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-3);
-  border-left: 2px solid var(--text-muted);
+  border-left: var(--size-border-thick) solid var(--text-muted);
 }
 
 .llmh-msg--assistant .llmh-msg__text {
@@ -49,19 +49,19 @@
 .llmh-msg__tool--call {
   background: var(--bg-terminal);
   color: var(--text-terminal);
-  border-left: 2px solid var(--text-terminal-strong);
+  border-left: var(--size-border-thick) solid var(--text-terminal-strong);
 }
 
 .llmh-msg__tool--result {
   background: var(--bg-terminal);
   color: var(--text-terminal);
-  border-left: 2px solid var(--text-terminal-muted);
+  border-left: var(--size-border-thick) solid var(--text-terminal-muted);
 }
 
 .llmh-msg__tool--error {
   background: var(--bg-warning-soft);
   color: var(--accent-warning);
-  border-left: 2px solid var(--accent-warning);
+  border-left: var(--size-border-thick) solid var(--accent-warning);
 }
 
 .llmh-msg__tool-head {
