@@ -20,10 +20,12 @@ Breaking:
 - `AegisRuntime.toMcpTools()` and the `McpToolDefinition` type are removed.
 - `listActions({ invocableBy })` keeps actions left at `'both'`.
 - The built-in `aegis.navigate` action (and the `aegis_navigate` tool)
-  resolves `to` the way a link resolves and refuses, with
-  `invalid_params`, anything that leaves the page's origin, including
-  `javascript:` and `data:` URLs. A relative `to` now resolves against
-  the current URL rather than the current route.
+  resolves `to` from the current route as a URL path resolves and hands
+  the router a path from the app's root. It refuses, with
+  `invalid_params`, a URL on another origin or protocol, including
+  `javascript:`, `data:` and `blob:` URLs, and a full URL outside the
+  router's basename; a path that resolves to `//host` keeps one leading
+  slash.
 - MCP tools: `aegis_invoke` with `dryRun: true` previews the action
   instead of running it, and its `force` is gone; `aegis_snapshot` drops
   the `paths` it ignored; `aegis_wait_for` takes a `condition`;

@@ -507,15 +507,15 @@ rejected (§10.9). Each tool maps 1:1 to a runtime method;
 `packages/ui/src/transports/mcpTools.ts` keeps each tool's schema next
 to its handler.
 
-| MCP tool          | Runtime call            | Purpose                                                                                                                  |
-| ----------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `aegis_snapshot`  | `snapshot()`            | Read state.                                                                                                              |
-| `aegis_inspect`   | `inspect(ref)`          | Noun-first discovery — target + bound actions.                                                                           |
-| `aegis_search`    | `search(query, opts)`   | Free-text shortcut — finds targets without `navigate` chains.                                                            |
-| `aegis_invoke`    | `dispatch` / `preview`  | The **only** write entry. `dryRun: true` previews instead.                                                               |
-| `aegis_navigate`  | shell-registered action | Goes to a path on this origin; other origins fail with `invalid_params`. Sugar for `dispatch('aegis.navigate', { to })`. |
-| `aegis_highlight` | `highlight(ref)`        | Point the user's eye.                                                                                                    |
-| `aegis_wait_for`  | `waitFor(condition)`    | Block on async UI state instead of sleeping.                                                                             |
+| MCP tool          | Runtime call            | Purpose                                                                                                                                               |
+| ----------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aegis_snapshot`  | `snapshot()`            | Read state.                                                                                                                                           |
+| `aegis_inspect`   | `inspect(ref)`          | Noun-first discovery — target + bound actions.                                                                                                        |
+| `aegis_search`    | `search(query, opts)`   | Free-text shortcut — finds targets without `navigate` chains.                                                                                         |
+| `aegis_invoke`    | `dispatch` / `preview`  | The **only** write entry. `dryRun: true` previews instead.                                                                                            |
+| `aegis_navigate`  | shell-registered action | Goes to a path in the app, resolved from the current route; other origins fail with `invalid_params`. Sugar for `dispatch('aegis.navigate', { to })`. |
+| `aegis_highlight` | `highlight(ref)`        | Point the user's eye.                                                                                                                                 |
+| `aegis_wait_for`  | `waitFor(condition)`    | Block on async UI state instead of sleeping.                                                                                                          |
 
 The Go server embeds the schemas from
 `apps/console/server/mcp_tools.generated.json`, which `pnpm gen:mcp-tools`

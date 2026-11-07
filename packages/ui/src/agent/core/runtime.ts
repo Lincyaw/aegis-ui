@@ -201,22 +201,46 @@ function navigateTarget(params: unknown): string {
   return to;
 }
 
-// Resolves `to` the way a link's href resolves and keeps only a path on
-// this page's origin, so the agent can neither run a javascript: URL nor
-// send the tab to another site.
-function sameOriginPath(to: string): string {
+// The part of the page's path in front of the route the shell reports,
+// which the router adds back to every path it is given.
+function routerBasename(routePathname: string): string {
+  const page = window.location.pathname.replace(/\/+$/, '');
+  const route = routePathname.replace(/\/+$/, '');
+  return page.endsWith(route) ? page.slice(0, page.length - route.length) : '';
+}
+
+// Resolves `to` the way a router link resolves its `to` and returns a path
+// for the router: a relative path from the current route, an absolute path
+// from the app's root, and a full URL only on this page's origin and
+// protocol and under the router's basename. So the agent can neither run a
+// javascript: URL nor send the tab to another site.
+function appPath(to: string, route: ShellSnapshot['route']): string {
+  const page = window.location;
   let url: URL;
   try {
-    url = new URL(to, window.location.href);
+    url = new URL(to, `${page.origin}${route.pathname}${route.search}`);
   } catch {
     throw new InvalidParamsError(`aegis.navigate: "${to}" is not a URL`);
   }
-  if (url.origin !== window.location.origin) {
+  if (url.protocol !== page.protocol || url.origin !== page.origin) {
     throw new InvalidParamsError(
-      `aegis.navigate: "${to}" leaves ${window.location.origin}; only paths on this site are allowed`,
+      `aegis.navigate: "${to}" leaves ${page.origin}; only paths on this site are allowed`,
     );
   }
-  return `${url.pathname}${url.search}${url.hash}`;
+  let pathname = url.pathname;
+  const namesOrigin =
+    new URL(to, `${page.protocol}//aegis.invalid/`).host !== 'aegis.invalid';
+  if (namesOrigin) {
+    const basename = routerBasename(route.pathname);
+    if (pathname !== basename && !pathname.startsWith(`${basename}/`)) {
+      throw new InvalidParamsError(
+        `aegis.navigate: "${to}" is outside this app, whose paths start with ${basename}/`,
+      );
+    }
+    pathname = pathname.slice(basename.length);
+  }
+  // Dot segments can leave `//host/…`, which the router reads as an origin.
+  return `${pathname.replace(/^\/*/, '/')}${url.search}${url.hash}`;
 }
 
 function unknownActionError(id: string): AegisError {
@@ -982,7 +1006,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       id: 'aegis.navigate',
       label: 'Navigate',
       description:
-        'Navigate to a path on this site, resolved like a link; other origins are refused.',
+        'Navigate to a path in this app, resolved like a router link from the current route; other origins are refused.',
       paramsSchema: {
         type: 'object',
         properties: { to: { type: 'string' } },
@@ -990,12 +1014,12 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       },
       invocableBy: 'both',
       run: (params, ctx) => {
-        const to = sameOriginPath(navigateTarget(params));
+        const to = appPath(navigateTarget(params), currentShell().route);
         ctx.navigate(to);
         return { to };
       },
       dryRun: (params) => ({
-        summary: `would navigate to ${sameOriginPath(navigateTarget(params))}`,
+        summary: `would navigate to ${appPath(navigateTarget(params), currentShell().route)}`,
       }),
     },
     source: { kind: 'app', appId: 'aegis' },

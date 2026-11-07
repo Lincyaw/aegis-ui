@@ -295,7 +295,7 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: 'aegis_navigate',
     description:
-      'Navigate to a path inside the console, such as /portal/datasets. `to` resolves the way a link resolves; a URL on another origin, or a javascript: or data: URL, fails with invalid_params. Sugar for aegis_invoke("aegis.navigate", { to }).',
+      'Navigate to a path inside the console, such as /portal/datasets. `to` is a path like shell.route.pathname in the snapshot, and a relative path resolves from the current route. A full URL must be on the origin of the page; a URL on another origin, or a javascript:, data: or blob: URL, fails with invalid_params. Sugar for aegis_invoke("aegis.navigate", { to }).',
     inputSchema: {
       type: 'object',
       properties: { to: { type: 'string' } },
