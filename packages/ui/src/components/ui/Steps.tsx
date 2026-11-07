@@ -24,6 +24,13 @@ interface StepsProps {
 
 type StepState = 'complete' | 'current' | 'upcoming';
 
+/** The state the marker shows, put into words for assistive tech. */
+const STATE_TEXT: Record<StepState, string | undefined> = {
+  complete: 'completed',
+  current: 'current step',
+  upcoming: undefined,
+};
+
 function stepState(index: number, current: number): StepState {
   if (index < current) {
     return 'complete';
@@ -43,12 +50,20 @@ export function Steps({
     <ol className={cls} aria-label={ariaLabel}>
       {items.map((item, index) => {
         const state = stepState(index, current);
+        const spoken =
+          item.disabled === true && state === 'upcoming'
+            ? 'not yet available'
+            : STATE_TEXT[state];
         const content = (
           <>
             <span className="aegis-steps__marker" aria-hidden="true">
               {state === 'complete' ? <CheckOutlined /> : index + 1}
             </span>
+            <span className="aegis-steps__hidden">{`${String(index + 1)}. `}</span>
             <span className="aegis-steps__label">{item.label}</span>
+            {spoken !== undefined && (
+              <span className="aegis-steps__hidden">{` (${spoken})`}</span>
+            )}
           </>
         );
         const clickable =

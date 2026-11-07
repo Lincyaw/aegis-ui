@@ -217,6 +217,8 @@ export { FormRow } from './FormRow';
 export { DangerZone } from './DangerZone';
 export { ThemeToggle } from './ThemeToggle';
 export { TextField } from './TextField';
+export { NumberField } from './NumberField';
+export { Slider } from './Slider';
 export { PasswordField } from './PasswordField';
 export { AuthLayout } from './AuthLayout';
 export { LoginForm } from './LoginForm';

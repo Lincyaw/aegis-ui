@@ -1,0 +1,11 @@
+.aegis-number-field .aegis-textfield__input {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+.aegis-number-field .aegis-textfield__icon--trailing {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+}

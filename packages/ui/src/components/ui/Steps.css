@@ -77,6 +77,18 @@ button.aegis-steps__step {
   font-size: var(--size-icon-sm);
 }
 
+.aegis-steps__hidden {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  margin: calc(-1 * var(--size-hairline));
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .aegis-steps__label {
   min-width: 0;
   overflow: hidden;

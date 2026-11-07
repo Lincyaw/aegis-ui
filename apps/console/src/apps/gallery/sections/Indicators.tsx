@@ -23,6 +23,7 @@ import {
   EmptyState,
   KeyValueList,
   MetricLabel,
+  NumberField,
   Pagination,
   Panel,
   PanelTitle,
@@ -33,6 +34,7 @@ import {
   RunPips,
   ScoreBar,
   SectionDivider,
+  Slider,
   StackedBar,
   type StackedBarRow,
   type StackedBarSeries,
@@ -456,6 +458,58 @@ function SelectSpecimen(): ReactNode {
       options={GALLERY_SELECT_OPTIONS}
       onChange={setValue}
     />
+  );
+}
+
+function NumberFieldSpecimen(): ReactNode {
+  const [delay, setDelay] = useState<number | undefined>(200);
+  const [offset, setOffset] = useState<number | undefined>(-30);
+  return (
+    <>
+      <Specimen caption='integer · unit · ↑↓ step, PageUp/Down ×10 · type 1.5 to see the refusal'>
+        <NumberField
+          label='Delay'
+          integer
+          min={1}
+          max={60000}
+          unit='ms'
+          value={delay}
+          onChange={setDelay}
+        />
+      </Specimen>
+      <Specimen caption='integer · negative allowed · host error out of range'>
+        <NumberField
+          label='Time offset'
+          integer
+          min={-3600}
+          max={3600}
+          unit='s'
+          value={offset}
+          error={
+            offset !== undefined && (offset < -3600 || offset > 3600)
+              ? 'Between -3600 and 3600'
+              : undefined
+          }
+          onChange={setOffset}
+        />
+      </Specimen>
+    </>
+  );
+}
+
+function SliderSpecimen(): ReactNode {
+  const [load, setLoad] = useState(70);
+  return (
+    <Specimen caption='label · formatValue · arrows, PageUp/Down, Home/End'>
+      <Slider
+        label='CPU load'
+        min={1}
+        max={100}
+        value={load}
+        formatValue={(v) => `${String(v)}%`}
+        onChange={setLoad}
+      />
+    </Specimen>
   );
 }
 
@@ -912,6 +966,64 @@ export function IndicatorsSection() {
             value='v1'
             disabled
             options={[{ value: 'v1', label: 'V1 · 当前版本' }]}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+      </div>
+
+      <SectionDivider>NumberField</SectionDivider>
+      <div className='gallery__row'>
+        <NumberFieldSpecimen />
+        <Specimen caption='decimal · placeholder · helper text'>
+          <NumberField
+            label='Ratio'
+            value={undefined}
+            placeholder='0.5'
+            helperText='Any number; decimals allowed.'
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+        <Specimen caption='no label · ariaLabel · disabled'>
+          <NumberField
+            ariaLabel='Workers'
+            integer
+            min={1}
+            max={8}
+            value={2}
+            disabled
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+      </div>
+
+      <SectionDivider>Slider</SectionDivider>
+      <div className='gallery__row'>
+        <SliderSpecimen />
+        <Specimen caption='no label · ariaLabel · value only'>
+          <Slider
+            ariaLabel='Correlation'
+            min={0}
+            max={100}
+            value={25}
+            formatValue={(v) => `${String(v)}%`}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+        <Specimen caption='disabled'>
+          <Slider
+            label='Loss'
+            min={1}
+            max={100}
+            value={40}
+            disabled
             onChange={() => {
               /* no-op */
             }}

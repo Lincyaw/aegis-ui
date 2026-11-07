@@ -118,7 +118,10 @@
     transition: none;
   }
 
-  .aegis-choice-card:hover {
+  .aegis-choice-card:not(
+      .aegis-choice-card--selected,
+      .aegis-choice-card--disabled
+    ):hover {
     transform: none;
   }
 }
