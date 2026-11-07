@@ -204,7 +204,28 @@ export function AgentmChannelProvider({
         return;
       }
       setSending(false);
-      setMessages((prev) => appendOutbound(prev, mapped, streamMapRef.current));
+      // Stream bookkeeping stays out of the updater, which StrictMode runs
+      // twice.
+      const streams = streamMapRef.current;
+      let id: string;
+      if (mapped.streamId) {
+        id = streams.get(mapped.streamId) ?? uniqueId('msg');
+        if (mapped.final) {
+          streams.delete(mapped.streamId);
+        } else {
+          streams.set(mapped.streamId, id);
+        }
+      } else {
+        id = uniqueId('msg');
+      }
+      const message: AgentMessage = {
+        id,
+        role: mapped.role ?? 'assistant',
+        content: mapped.content,
+        timestamp: new Date().toISOString(),
+        ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
+      };
+      setMessages((prev) => upsertMessage(prev, message));
     });
 
     const offError = client.onError((env) => {
@@ -307,56 +328,22 @@ export function AgentmChannelProvider({
   return <AgentChatProvider value={value}>{children}</AgentChatProvider>;
 }
 
-function appendOutbound(
+// contrib/channels sends cumulative content per stream_id (each chunk is
+// the full text so far, not a delta), so a later chunk replaces the row.
+function upsertMessage(
   prev: AgentMessage[],
-  mapped: MappedOutbound,
-  streamMap: Map<string, string>,
+  message: AgentMessage,
 ): AgentMessage[] {
-  const role: AgentMessageRole = mapped.role ?? 'assistant';
-  const timestamp = new Date().toISOString();
-
-  if (mapped.streamId) {
-    const existingId = streamMap.get(mapped.streamId);
-    if (existingId) {
-      // contrib/channels sends cumulative content per stream_id (each
-      // chunk is the full text so far, not a delta), so replace.
-      const next = prev.map((m) =>
-        m.id === existingId
-          ? {
-              ...m,
-              content: mapped.content,
-              ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
-            }
-          : m,
-      );
-      if (mapped.final) {
-        streamMap.delete(mapped.streamId);
-      }
-      return next;
-    }
-    const id = uniqueId('msg');
-    streamMap.set(mapped.streamId, id);
-    const fresh: AgentMessage = {
-      id,
-      role,
-      content: mapped.content,
-      timestamp,
-      ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
-    };
-    if (mapped.final) {
-      streamMap.delete(mapped.streamId);
-    }
-    return [...prev, fresh];
+  if (!prev.some((m) => m.id === message.id)) {
+    return [...prev, message];
   }
-
-  return [
-    ...prev,
-    {
-      id: uniqueId('msg'),
-      role,
-      content: mapped.content,
-      timestamp,
-      ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
-    },
-  ];
+  return prev.map((m) =>
+    m.id === message.id
+      ? {
+          ...m,
+          content: message.content,
+          ...(message.toolCall ? { toolCall: message.toolCall } : {}),
+        }
+      : m,
+  );
 }

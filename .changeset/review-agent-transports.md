@@ -61,7 +61,9 @@ Fixed:
   fragment out of the URL it reports.
 - The AgentM client rejects malformed frames, ignores events from a
   socket it has replaced, and `connect()` replaces the current connection;
-  `AgentmChannelProvider` re-enables sending when the connection drops.
+  `AgentmChannelProvider` re-enables sending when the connection drops,
+  and under React StrictMode it no longer drops the chunks of a streamed
+  reply.
 - `highlight` escapes ids in its selector, scrolls instantly under reduced
   motion, and returns the element's position after the scroll settles.
 - `AskPanel`'s tool list picks up actions and surfaces registered after
