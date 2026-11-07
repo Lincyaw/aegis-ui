@@ -101,7 +101,10 @@ function QueryAutocompleteSpecimen(): ReactNode {
   );
   return (
     <div className='gallery__row gallery__row--wide'>
-      <Specimen caption='empty · field-name suggestions on focus' span={2}>
+      <Specimen
+        caption='empty · type a field name for suggestions · Escape closes; typing, focus or ↓ reopens · a field pick goes on to its values'
+        span={2}
+      >
         <QueryAutocomplete
           value={empty}
           onChange={setEmpty}
