@@ -9,6 +9,8 @@ import { DatasetDetail } from './DatasetDetail';
 import { DatasetUpload } from './DatasetUpload';
 import { DatasetsProvider } from './store';
 
+import './datasets.css';
+
 /**
  * Demo pattern: tabs-in-header. No left sidebar — primary nav lives in
  * the app's sub-header as horizontal tabs.
@@ -20,13 +22,7 @@ function DatasetsHeader(): ReactElement {
     { to: `${basePath}/upload`, label: 'Upload' },
   ];
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'stretch',
-        height: '100%',
-      }}
-    >
+    <div className='datasets-tabs'>
       {tabs.map((t) => (
         <NavLink
           key={t.to}

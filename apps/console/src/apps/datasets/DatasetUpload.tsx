@@ -45,7 +45,7 @@ export function DatasetUpload(): ReactElement {
           layout='vertical'
           initialValues={{ format: 'parquet' }}
           onFinish={onFinish}
-          style={{ padding: 'var(--space-4)' }}
+          className='datasets-form'
         >
           <FormRow label='Filename'>
             <Form.Item
@@ -59,7 +59,7 @@ export function DatasetUpload(): ReactElement {
           <FormRow label='Format'>
             <Form.Item name='format' noStyle>
               <Select
-                style={{ minWidth: 180 }}
+                className='datasets-form__select'
                 options={[
                   { value: 'parquet', label: 'Parquet' },
                   { value: 'csv', label: 'CSV' },
@@ -68,7 +68,7 @@ export function DatasetUpload(): ReactElement {
               />
             </Form.Item>
           </FormRow>
-          <div style={{ paddingTop: 'var(--space-4)' }}>
+          <div className='datasets-form__actions'>
             <Button type='primary' htmlType='submit'>
               Start upload
             </Button>
@@ -80,28 +80,11 @@ export function DatasetUpload(): ReactElement {
         {uploads.length === 0 ? (
           <EmptyState title='No uploads yet' />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className='datasets-list'>
             {uploads.map((u) => (
-              <div
-                key={u.id}
-                style={{
-                  padding: 'var(--space-3) var(--space-4)',
-                  borderTop: '1px solid var(--border-hairline)',
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto',
-                  alignItems: 'center',
-                  gap: 'var(--space-3)',
-                }}
-              >
+              <div key={u.id} className='datasets-upload'>
                 <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      marginBottom: 6,
-                    }}
-                  >
+                  <div className='datasets-upload__head'>
                     <StatusDot
                       tone={u.done ? 'ink' : 'muted'}
                       pulse={!u.done}
@@ -109,30 +92,19 @@ export function DatasetUpload(): ReactElement {
                     <MonoValue size='sm'>{u.filename}</MonoValue>
                     <Chip tone='ghost'>{u.format}</Chip>
                   </div>
-                  <div
-                    style={{
-                      height: 4,
-                      background: 'var(--bg-muted)',
-                      borderRadius: 999,
-                      overflow: 'hidden',
-                    }}
-                  >
+                  <div className='datasets-upload__bar'>
                     <div
-                      style={{
-                        width: `${u.progress}%`,
-                        height: '100%',
-                        background: 'var(--bg-inverted)',
-                        transition: 'width 0.22s ease',
-                      }}
+                      className='datasets-upload__bar-fill'
+                      style={{ width: `${u.progress}%` }}
                     />
                   </div>
                 </div>
                 <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'var(--fs-11)',
-                    color: u.done ? 'var(--text-main)' : 'var(--text-muted)',
-                  }}
+                  className={
+                    u.done
+                      ? 'datasets-upload__progress datasets-upload__progress--done'
+                      : 'datasets-upload__progress'
+                  }
                 >
                   {u.done ? 'done' : `${Math.floor(u.progress)}%`}
                 </div>
