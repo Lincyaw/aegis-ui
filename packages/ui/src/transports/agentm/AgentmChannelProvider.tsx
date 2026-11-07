@@ -34,6 +34,7 @@ interface AgentmChannelProviderProps {
   children: ReactNode;
   /**
    * Initial messages — for resuming a prior thread server-side. The
+   * conversation restarts from them whenever `channel.chatId` changes. The
    * library still does not persist anything itself.
    */
   initialMessages?: AgentMessage[];
@@ -147,6 +148,14 @@ export function AgentmChannelProvider({
   );
   const [sending, setSending] = useState<boolean>(false);
   const [status, setStatus] = useState<ConnectionStatus>('idle');
+  // Reset in render, not in an effect, so the new chat's first paint never
+  // shows the previous chat's messages.
+  const [chatId, setChatId] = useState(channel.chatId);
+  if (channel.chatId !== chatId) {
+    setChatId(channel.chatId);
+    setMessages(initialMessages ?? []);
+    setSending(false);
+  }
   const clientRef = useRef<AgentmChannelClient | null>(null);
   // Maps stream_id → message id so we can append chunks to the same row.
   const streamMapRef = useRef<Map<string, string>>(new Map());

@@ -52,6 +52,9 @@ Added:
   or is replaced: a scoped overlay answers only inside its element, under
   its own chat, and the page's overlay leaves that element alone. Opening
   one overlay's panel closes any other overlay's panel.
+- `AgentmChannelProvider` restarts the conversation from
+  `initialMessages` when `channel.chatId` changes, in the same render, so
+  a host switching chats no longer has to remount it with a `key`.
 
 Fixed:
 
