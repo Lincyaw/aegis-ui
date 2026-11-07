@@ -10,6 +10,9 @@ import {
   type AegisAction,
   Button as AegisButton,
   type AegisSearchResult,
+  type AskContext,
+  AskPanel,
+  type AskRequest,
   DataList,
   type DataListColumn,
   MetricLabel,
@@ -303,6 +306,28 @@ function AgentIntegrationSpecimen(): ReactNode {
   );
 }
 
+const ASK_PANEL_CONTEXT: AskContext = {
+  origin: 'entity',
+  appId: 'gallery',
+  surface: { id: 'gallery.ask.demo', kind: 'list', label: 'Ask demo' },
+  entity: { id: 'ask-row-1', type: 'dataset', label: 'imagenet-mini' },
+  suggestions: ['Why is this row flagged?', 'Summarise recent changes'],
+  snapshot: {
+    timestamp: 0,
+    shell: {
+      currentAppId: 'gallery',
+      route: { pathname: '/gallery', search: '', params: {} },
+      breadcrumbs: [],
+      theme: 'light',
+      viewport: { width: 0, height: 0 },
+    },
+    surfaces: [],
+    selection: [],
+    focus: { surfaceId: null, entityId: null },
+    appData: {},
+  },
+};
+
 interface AskWindow extends Window {
   __aegisOpenAskPanel?: (
     trigger: {
@@ -317,6 +342,7 @@ interface AskWindow extends Window {
 
 function AskAffordanceSpecimen(): ReactNode {
   const [log, setLog] = useState<string[]>([]);
+  const [inlineOpen, setInlineOpen] = useState(true);
 
   const askRows = useMemo(
     () => [
@@ -363,6 +389,18 @@ function AskAffordanceSpecimen(): ReactNode {
     });
   }, []);
 
+  const onInlineAsk = useCallback((request: AskRequest) => {
+    const stamp = new Date().toISOString().slice(11, 19);
+    setLog((prev) => [
+      ...prev.slice(-9),
+      `[${stamp}] onSend prompt="${request.prompt}" tools=${request.tools.length}`,
+    ]);
+  }, []);
+
+  const closeInline = useCallback(() => {
+    setInlineOpen(false);
+  }, []);
+
   const onTriggerJs = useCallback(() => {
     const w = window as AskWindow;
     const anchor = document.querySelector<HTMLElement>(
@@ -383,7 +421,10 @@ function AskAffordanceSpecimen(): ReactNode {
       className='gallery__row gallery__row--wide'
       style={{ alignItems: 'flex-start' }}
     >
-      <Specimen caption='right-click any row · or use Cmd/Ctrl + .' span={3}>
+      <Specimen
+        caption='right-click a row or press Cmd/Ctrl + . · needs an agent chat above the shell'
+        span={3}
+      >
         <div
           data-agent-surface-id='gallery.ask.demo'
           data-aegis-ask-demo-surface=''
@@ -477,6 +518,35 @@ function AskAffordanceSpecimen(): ReactNode {
           </pre>
         </div>
       </Specimen>
+      {inlineOpen ? (
+        <>
+          <Specimen caption='AskPanel · popover={false} · onSend' span={3}>
+            <AskPanel
+              context={ASK_PANEL_CONTEXT}
+              popover={false}
+              onClose={closeInline}
+              onSend={onInlineAsk}
+            />
+          </Specimen>
+          <Specimen caption='AskPanel · no onSend (no agent)' span={2}>
+            <AskPanel
+              context={ASK_PANEL_CONTEXT}
+              popover={false}
+              onClose={closeInline}
+            />
+          </Specimen>
+        </>
+      ) : (
+        <Specimen caption='AskPanel · closed' span={2}>
+          <AegisButton
+            onClick={() => {
+              setInlineOpen(true);
+            }}
+          >
+            Show the AskPanels again
+          </AegisButton>
+        </Specimen>
+      )}
     </div>
   );
 }

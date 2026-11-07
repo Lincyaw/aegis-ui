@@ -141,15 +141,15 @@
   font-style: italic;
 }
 
-.aegis-ask-panel__footer {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+/* The section above already draws the dividing hairline. */
+.aegis-ask-panel .aegis-ask-panel__composer {
+  border-top: none;
 }
 
 .aegis-ask-panel__note {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
   font-size: var(--fs-11);
   color: var(--text-muted);
-  font-style: italic;
+  text-wrap: pretty;
 }
