@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { useTheme } from '@lincyaw/aegis-ui';
+
 interface MermaidProps {
   code: string;
 }
@@ -7,6 +9,7 @@ interface MermaidProps {
 let renderCounter = 0;
 
 export function Mermaid({ code }: MermaidProps): JSX.Element {
+  const { resolved: scheme } = useTheme();
   const [svg, setSvg] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +23,7 @@ export function Mermaid({ code }: MermaidProps): JSX.Element {
         mod.default.initialize({
           startOnLoad: false,
           securityLevel: 'strict',
-          theme: 'default',
+          theme: scheme === 'dark' ? 'dark' : 'default',
         });
         const result = await mod.default.render(renderId, code);
         if (!cancelled) {
@@ -38,7 +41,7 @@ export function Mermaid({ code }: MermaidProps): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [code]);
+  }, [code, scheme]);
 
   if (error) {
     return (

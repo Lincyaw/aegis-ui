@@ -31,6 +31,13 @@ interface GitTreeResponse {
   truncated?: boolean;
 }
 
+export interface RepoTree {
+  /** Markdown files, sorted by path. */
+  entries: GitTreeEntry[];
+  /** GitHub stopped listing part-way; some notes are missing from `entries`. */
+  truncated: boolean;
+}
+
 interface GitContentResponse {
   type: string;
   encoding?: string;
@@ -58,24 +65,25 @@ function decodeBase64Utf8(content: string): string {
   return new TextDecoder('utf-8').decode(bytes);
 }
 
-/** Markdown files in the repo, sorted by path. Cached aggressively. */
+/** Markdown files in the repo. Cached aggressively. */
 export function useRepoTree(
   ref: RepoRef = { owner: NOTES_OWNER, repo: NOTES_REPO, branch: NOTES_BRANCH }
 ) {
   return useQuery({
     queryKey: notesKeys.tree(ref),
     staleTime: STALE_MS,
-    queryFn: async (): Promise<GitTreeEntry[]> => {
+    queryFn: async (): Promise<RepoTree> => {
       const url = gatewayUrlFor(
         `/api/v2/github/repos/${ref.owner}/${ref.repo}/git/trees/${ref.branch}?recursive=1`
       );
       const res = await portalAxios.get<GitTreeResponse>(url);
-      return res.data.tree
+      const entries = res.data.tree
         .filter(
           (entry) =>
             entry.type === 'blob' && entry.path.toLowerCase().endsWith('.md')
         )
         .sort((a, b) => a.path.localeCompare(b.path));
+      return { entries, truncated: res.data.truncated === true };
     },
   });
 }
@@ -108,8 +116,11 @@ export function useFileContent(
       );
       const res = await portalAxios.get<GitContentResponse>(url);
       const { content, encoding } = res.data;
-      if (typeof content !== 'string') {
-        return '';
+      // The contents API leaves `content` out of files over 1 MB.
+      if (typeof content !== 'string' || encoding === 'none') {
+        throw new Error(
+          `GitHub returned no content for ${path}; files over 1 MB cannot be read through the contents API.`
+        );
       }
       return encoding === 'base64' ? decodeBase64Utf8(content) : content;
     },
