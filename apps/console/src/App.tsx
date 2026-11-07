@@ -10,6 +10,7 @@ import {
 import { connectAegisBridge } from '@lincyaw/aegis-ui/transports';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v6';
 
+import { AgentmChatProvider } from './ai/AgentmChatProvider';
 import { AiDockHost } from './ai/AiDockHost';
 import { SsoAuthProvider } from './auth/SsoAuthProvider';
 import { getRuntimeConfig } from './config/runtime';
@@ -33,6 +34,44 @@ if (bridge) {
 
 export function ConsoleApp(): ReactElement {
   const { agentmUrl, agentmToken } = getRuntimeConfig();
+  const shell = (
+    <AegisShell
+      brand={{ name: 'AegisLab', href: '/' }}
+      apps={registeredApps}
+      notFoundElement={<NotFound />}
+      rootRoutes={[
+        { path: '/', element: <Landing /> },
+        { path: '/inbox', element: <InboxPage /> },
+        {
+          path: '/setup',
+          element: <Navigate to='/settings/endpoints' replace />,
+        },
+        { path: '/error/forbidden', element: <Forbidden /> },
+        { path: '/error/server', element: <ServerError /> },
+      ]}
+      headerActions={
+        <>
+          {agentmUrl && <AiDockHost />}
+          <ThemeToggle />
+        </>
+      }
+      agentRuntime={agentRuntime}
+      inboxPath='/inbox'
+      userMenu={[
+        {
+          key: 'profile',
+          label: 'Profile',
+          to: '/settings/profile',
+        },
+        { key: 'settings', label: 'Settings', to: '/settings' },
+        {
+          key: 'endpoints',
+          label: 'Endpoints',
+          to: '/settings/endpoints',
+        },
+      ]}
+    />
+  );
   return (
     <BrowserRouter>
       <NuqsAdapter>
@@ -45,47 +84,16 @@ export function ConsoleApp(): ReactElement {
               path='/*'
               element={
                 <RealNotificationProvider>
-                  <AegisShell
-                    brand={{ name: 'AegisLab', href: '/' }}
-                    apps={registeredApps}
-                    notFoundElement={<NotFound />}
-                    rootRoutes={[
-                      { path: '/', element: <Landing /> },
-                      { path: '/inbox', element: <InboxPage /> },
-                      {
-                        path: '/setup',
-                        element: <Navigate to='/settings/endpoints' replace />,
-                      },
-                      { path: '/error/forbidden', element: <Forbidden /> },
-                      { path: '/error/server', element: <ServerError /> },
-                    ]}
-                    headerActions={
-                      <>
-                        {agentmUrl && (
-                          <AiDockHost
-                            url={agentmUrl}
-                            token={agentmToken || undefined}
-                          />
-                        )}
-                        <ThemeToggle />
-                      </>
-                    }
-                    agentRuntime={agentRuntime}
-                    inboxPath='/inbox'
-                    userMenu={[
-                      {
-                        key: 'profile',
-                        label: 'Profile',
-                        to: '/settings/profile',
-                      },
-                      { key: 'settings', label: 'Settings', to: '/settings' },
-                      {
-                        key: 'endpoints',
-                        label: 'Endpoints',
-                        to: '/settings/endpoints',
-                      },
-                    ]}
-                  />
+                  {agentmUrl ? (
+                    <AgentmChatProvider
+                      url={agentmUrl}
+                      token={agentmToken || undefined}
+                    >
+                      {shell}
+                    </AgentmChatProvider>
+                  ) : (
+                    shell
+                  )}
                 </RealNotificationProvider>
               }
             />

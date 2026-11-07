@@ -1,79 +1,43 @@
-import {
-  type ReactElement,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { type ReactElement, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-import { Button } from '@lincyaw/aegis-ui';
-import { AgentmChannelProvider } from '@lincyaw/aegis-ui/transports';
+import { Button, useAgentChat } from '@lincyaw/aegis-ui';
 
 import { AiDock } from './AiDock';
-import { useChatStore } from './chatStore';
 
-interface AgentmConnection {
-  /** AgentM gateway WebSocket URL. */
-  url: string;
-  /** Token sent to the gateway, if it requires one. */
-  token?: string;
-}
-
-const OPEN_KEY = 'aegis.ai.dock.open.v1';
-
-function readOpen(): boolean {
-  try {
-    return window.localStorage.getItem(OPEN_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function writeOpen(value: boolean): void {
-  try {
-    window.localStorage.setItem(OPEN_KEY, value ? '1' : '0');
-  } catch {
-    // Why: localStorage may be unavailable in some sandboxes — preference is best-effort.
-  }
-}
-
-function AgentmChatProvider({
-  url,
-  token,
-  children,
-}: AgentmConnection & { children: ReactNode }): ReactElement {
-  const { currentId, loadMessages } = useChatStore();
-  // Why: remount on chat switch so the provider's messages and stream state
-  // reset; it seeds from initialMessages only when it mounts.
-  return (
-    <AgentmChannelProvider
-      key={currentId}
-      channel={{ url, token, chatId: currentId }}
-      initialMessages={loadMessages(currentId)}
-    >
-      {children}
-    </AgentmChannelProvider>
-  );
-}
-
-export function AiDockHost({ url, token }: AgentmConnection): ReactElement {
-  const [open, setOpen] = useState<boolean>(() =>
-    typeof window === 'undefined' ? false : readOpen()
-  );
+/**
+ * The header's AI toggle and the dock it opens, both driven by the open
+ * state `AgentmChatProvider` serves through `useAgentChat`. Focus moves
+ * into the composer when the dock opens and back to the toggle when it
+ * closes with focus inside.
+ */
+export function AiDockHost(): ReactElement {
+  const { panelOpen = false, setPanelOpen } = useAgentChat();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const wasOpenRef = useRef(panelOpen);
 
   const toggle = useCallback((): void => {
-    setOpen((prev) => {
-      const next = !prev;
-      writeOpen(next);
-      return next;
-    });
-  }, []);
+    setPanelOpen?.(!panelOpen);
+  }, [panelOpen, setPanelOpen]);
 
   const close = useCallback((): void => {
-    setOpen(false);
-    writeOpen(false);
-  }, []);
+    setPanelOpen?.(false);
+  }, [setPanelOpen]);
+
+  useEffect(() => {
+    if (panelOpen === wasOpenRef.current) {
+      return;
+    }
+    wasOpenRef.current = panelOpen;
+    if (panelOpen) {
+      dockRef.current?.querySelector('textarea')?.focus();
+    } else if (document.activeElement === document.body) {
+      // Why: the dock unmounts on close, which drops focus held inside it
+      // to the body.
+      toggleRef.current?.focus();
+    }
+  }, [panelOpen]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
@@ -91,19 +55,21 @@ export function AiDockHost({ url, token }: AgentmConnection): ReactElement {
   return (
     <>
       <Button
+        ref={toggleRef}
         tone='ghost'
         onClick={toggle}
         aria-label='AI assistant'
-        aria-pressed={open}
+        aria-pressed={panelOpen}
         title='AI assistant (Ctrl/Cmd+K)'
       >
         AI
       </Button>
-      <AgentmChatProvider url={url} token={token}>
-        {/* Why: the glass header's backdrop-filter is the containing block
-            for fixed descendants, which would clip the dock to the header. */}
-        {createPortal(<AiDock open={open} onClose={close} />, document.body)}
-      </AgentmChatProvider>
+      {/* Why: the glass header's backdrop-filter is the containing block
+          for fixed descendants, which would clip the dock to the header. */}
+      {createPortal(
+        <AiDock open={panelOpen} onClose={close} dockRef={dockRef} />,
+        document.body
+      )}
     </>
   );
 }
