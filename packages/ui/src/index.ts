@@ -177,6 +177,7 @@ export {
   useAegisSurface,
 } from './agent';
 export type {
+  ActionConfirm,
   ActionContext,
   ActionPreview,
   ActionSource,
@@ -188,8 +189,10 @@ export type {
   AegisInspectResult,
   AegisRef,
   AegisRuntime,
+  AegisSearchResponse,
   AegisSearchResult,
   AegisSnapshot,
+  AegisWaitCondition,
   AskContext,
   AskMessage,
   AskOrigin,
@@ -202,7 +205,7 @@ export type {
   FieldProjection,
   InvocationSource,
   ListActionsFilter,
-  McpToolDefinition,
+  PreviewResult,
   RuntimeDeps,
   SearchOptions,
   SearchProvider,
@@ -213,4 +216,5 @@ export type {
   UseAegisActionResult,
   UseAegisSurfaceOptions,
   UseAegisSurfaceResult,
+  WaitForOptions,
 } from './agent';

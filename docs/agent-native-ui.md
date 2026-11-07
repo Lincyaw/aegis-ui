@@ -87,10 +87,10 @@ export interface AegisAction<P = unknown, R = unknown> {
   /** true → available; string → unavailable, the string is the reason. */
   availability?: (snap: AegisSnapshot) => true | string;
 
-  /** Human confirmation; agent may set { force: true } to skip. */
+  /** Human confirmation. With `danger`, the agent can never run it. */
   confirm?: { title: string; body?: string; danger?: boolean };
 
-  /** Defaults to 'both'. */
+  /** Defaults to 'both'. Anyone else's dispatch fails with `unavailable`. */
   invocableBy?: 'user' | 'agent' | 'both';
 }
 
@@ -392,7 +392,7 @@ or takes the host's through its `agentRuntime` prop, and
 
 ```ts
 export interface AegisRuntime {
-  snapshot(paths?: string[]): AegisSnapshot | unknown;
+  snapshot(): AegisSnapshot;
 
   /** Noun-first discovery. Returns the target plus actions bound to it. */
   inspect(ref: AegisRef): AegisInspectResult | null;
@@ -406,25 +406,37 @@ export interface AegisRuntime {
       limit?: number; // default 20
       signal?: AbortSignal;
     },
-  ): Promise<AegisSearchResult[]>;
+  ): Promise<{
+    results: AegisSearchResult[];
+    failedProviders: Array<{ providerId: string; message: string }>;
+  }>;
 
   dispatch<R = unknown>(
     id: string,
     params?: unknown,
     opts?: {
-      force?: boolean;
-      dryRun?: boolean;
       correlationId?: string;
       by?: InvocationSource;
     },
   ): Promise<DispatchResult<R>>;
 
+  /** What dispatch would do — the action plus its `dryRun()` — without running it. */
+  preview(
+    id: string,
+    params?: unknown,
+    opts?: { by?: InvocationSource },
+  ): Promise<PreviewResult>;
+
   /** Highlight a target in the UI (scroll into view + transient ring). */
   highlight(ref: AegisRef): Promise<{ found: boolean; bbox?: DOMRect }>;
 
-  /** Wait until a snapshot predicate is true; returns the snapshot at trigger. */
+  /**
+   * Wait until a declarative condition holds (a ref present or absent, a
+   * route, text, a field value); returns the snapshot at trigger. The
+   * timeout is capped at 20 s.
+   */
   waitFor(
-    predicate: string,
+    condition: AegisWaitCondition,
     opts?: { timeoutMs?: number; signal?: AbortSignal },
   ): Promise<AegisSnapshot>;
 
@@ -437,9 +449,6 @@ export interface AegisRuntime {
     invocableBy?: InvocationSource;
   }): AegisActionDescriptor[];
   getAction(id: string): AegisActionDescriptor | null;
-
-  /** Pure: returns the fixed MCP tool definitions (see §6.2). */
-  toMcpTools(): McpToolDefinition[];
 }
 
 export type DispatchResult<R> =
@@ -465,7 +474,7 @@ The agent should treat this as the default pattern; any deviation is a
 smell.
 
 ```
-1. snapshot({ paths: ['shell','surfaces[*].id','surfaces[*].kind','selection'] })
+1. snapshot()
    → "where am I, what's on screen"
 
 2. search(query)         OR    inspect({ surfaceId })
@@ -475,7 +484,7 @@ smell.
 3. inspect({ entityId | actionId })
    → see what's bound to the target
 
-4. dispatch(actionId, params [, { dryRun: true } ])
+4. preview(actionId, params), then dispatch(actionId, params)
    → execute (preview first if destructive)
 
 5. snapshot()
@@ -487,21 +496,25 @@ ref. The agent never iterates over a global verb table.
 
 ### 6.2 MCP tool catalogue (the only public surface)
 
-`toMcpTools()` returns a **fixed, atomic** set of 7 tools — independent
-of how many actions the page registers. Per-action tools are explicitly
-rejected (§10.9). Each tool maps 1:1 to a runtime method.
+The bridge serves a **fixed, atomic** set of 7 tools — independent of
+how many actions the page registers. Per-action tools are explicitly
+rejected (§10.9). Each tool maps 1:1 to a runtime method;
+`packages/ui/src/transports/mcpTools.ts` keeps each tool's schema next
+to its handler.
 
 | MCP tool          | Runtime call            | Purpose                                                               |
 | ----------------- | ----------------------- | --------------------------------------------------------------------- |
-| `aegis_snapshot`  | `snapshot(paths?)`      | Read state. `paths` projects to keep tokens small.                    |
+| `aegis_snapshot`  | `snapshot()`            | Read state.                                                           |
 | `aegis_inspect`   | `inspect(ref)`          | Noun-first discovery — target + bound actions.                        |
 | `aegis_search`    | `search(query, opts)`   | Free-text shortcut — finds targets without `navigate` chains.         |
-| `aegis_invoke`    | `dispatch(id, params)`  | The **only** write entry. Carries `force` / `dryRun`.                 |
+| `aegis_invoke`    | `dispatch` / `preview`  | The **only** write entry. `dryRun: true` previews instead.            |
 | `aegis_navigate`  | shell-registered action | Goes to a route. Just sugar for `dispatch('aegis.navigate', { to })`. |
 | `aegis_highlight` | `highlight(ref)`        | Point the user's eye.                                                 |
-| `aegis_wait_for`  | `waitFor(predicate)`    | Block on async UI state instead of sleeping.                          |
+| `aegis_wait_for`  | `waitFor(condition)`    | Block on async UI state instead of sleeping.                          |
 
-JSON Schema for each tool is generated from the runtime method's TypeScript signature.
+The Go server embeds the schemas from
+`apps/console/server/mcp_tools.generated.json`, which `pnpm gen:mcp-tools`
+writes from that table.
 Tool list is **static** — `tools/list_changed` is never emitted by this layer.
 Action churn (mount / unmount) only changes what `inspect` and `search` return; the tool surface itself is constant. This dodges client-side
 list-thrash and keeps prompts small.
@@ -672,10 +685,10 @@ The browser side is `connectAegisBridge(runtime, config)` from
    Mounted but not allowed in current state → in the registry,
    `available: false` with a reason. The agent needs the _reason_ —
    "switch to Datasets app first" is more useful than "doesn't exist".
-4. **`dryRun` / `confirm` / `force`.** Destructive actions default to
-   needing `force: true` to bypass `confirm`. `dryRun` is what makes the
-   Ask panel's "preview before accept" possible without writing
-   per-action UI.
+4. **`dryRun` / `confirm`.** The agent cannot run an action marked
+   `confirm.danger`: its dispatch fails with `needs_confirm` and the user
+   runs it. `dryRun` is what makes "preview before accept" possible
+   without writing per-action UI.
 5. **`project()` is mandatory.** Forces developers to think about which
    columns the agent actually needs. Prevents PII leakage and snapshot
    bloat.

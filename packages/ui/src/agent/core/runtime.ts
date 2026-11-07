@@ -1,9 +1,8 @@
-// Agent runtime — Layer 3 in docs/agent-native-ui.md.
-// v0 deliberately ignores `confirm`, `dryRun`, and `availability` enforcement:
-// every dispatch goes straight through `run()`. Those gates land in a later
-// slice once the human-trigger / Ask-overlay layer is wired.
+// Agent runtime — layer 3 in docs/agent-native-ui.md. Dispatch enforces
+// `invocableBy` and keeps `confirm.danger` actions away from the agent.
+// `availability` is not evaluated yet: every registered action reports
+// `available: true`.
 import { uniqueId } from '../../lib/id';
-import { MCP_TOOL_CATALOGUE } from './mcpToolCatalogue';
 import type {
   ActionContext,
   ActionSource,
@@ -13,16 +12,17 @@ import type {
   AegisEvent,
   AegisInspectResult,
   AegisRef,
+  AegisSearchResponse,
   AegisSearchResult,
   AegisSnapshot,
+  AegisWaitCondition,
   AskContext,
   AskRequest,
   DispatchResult,
   EntityProjection,
   EntityRef,
-  FieldProjection,
   InvocationSource,
-  McpToolDefinition,
+  PreviewResult,
   SearchProvider,
   ShellSnapshot,
   SurfaceKind,
@@ -40,6 +40,8 @@ export interface RegisteredSurface {
   appId: string;
   label?: string;
   getProjection: () => Pick<SurfaceSnapshot, 'entities' | 'fields'>;
+  /** The surface's root element; actions rendered inside it bind to it. */
+  getElement?: () => Element | null;
   getBBox?: () => SurfaceSnapshot['bbox'];
   getInViewport?: () => boolean;
   askSuggestions?: string[];
@@ -48,6 +50,7 @@ export interface RegisteredSurface {
 export interface ListActionsFilter {
   available?: boolean;
   appId?: string;
+  /** Keeps the actions this source may invoke. */
   invocableBy?: InvocationSource;
 }
 
@@ -58,33 +61,51 @@ export interface SearchOptions {
   signal?: AbortSignal;
 }
 
+export interface WaitForOptions {
+  /** Defaults to 5 s; capped at 20 s. */
+  timeoutMs?: number;
+  signal?: AbortSignal;
+}
+
 export interface AegisRuntime {
   snapshot(): AegisSnapshot;
   listActions(filter?: ListActionsFilter): AegisActionDescriptor[];
   getAction(id: string): AegisActionDescriptor | null;
   inspect(ref: AegisRef): AegisInspectResult | null;
-  search(query: string, opts?: SearchOptions): Promise<AegisSearchResult[]>;
+  search(query: string, opts?: SearchOptions): Promise<AegisSearchResponse>;
   highlight(ref: AegisRef): Promise<{ found: boolean; bbox?: DOMRect }>;
+  /**
+   * Resolves with the snapshot once `condition` holds. Rejects with an
+   * `AegisError`: `timeout`, `aborted`, or `thrown` when a surface's
+   * projection throws.
+   */
   waitFor(
-    predicate: string,
-    opts?: { timeoutMs?: number; signal?: AbortSignal },
+    condition: AegisWaitCondition,
+    opts?: WaitForOptions,
   ): Promise<AegisSnapshot>;
-  toMcpTools(): McpToolDefinition[];
   dispatch<R = unknown>(
     id: string,
     params?: unknown,
     opts?: {
-      force?: boolean;
       correlationId?: string;
       by?: InvocationSource;
     },
   ): Promise<DispatchResult<R>>;
+  /**
+   * Describes what dispatching `id` would do without running it: the
+   * action's descriptor plus the output of its `dryRun`, if it has one.
+   */
+  preview(
+    id: string,
+    params?: unknown,
+    opts?: { by?: InvocationSource },
+  ): Promise<PreviewResult>;
   subscribe(listener: (e: AegisEvent) => void): () => void;
   /** Subscribe specifically to ask-triggered events (sugar over subscribe). */
   onAskTriggered(handler: (ctx: AskContext) => void): () => void;
   /** Emit an ask-triggered event. Used by AskOverlay + programmatic openers. */
   emitAskTriggered(ctx: AskContext): void;
-  /** Emit an ask-submit event. Env-only — there is no transport yet. */
+  /** Emit an ask-submit event; AskOverlay does so when the user sends a question. */
   emitAskSubmit(req: AskRequest): void;
   /** Tell the runtime what the user has selected; it shows in snapshot().selection. */
   setSelection(refs: EntityRef[]): void;
@@ -106,6 +127,16 @@ export interface RuntimeDeps {
   navigate?: (to: string) => void;
   toast?: (msg: string, level?: 'info' | 'warn' | 'error') => void;
 }
+
+const WAIT_FOR_DEFAULT_TIMEOUT_MS = 5_000;
+// Below the MCP bridge's 30 s call timeout, so the agent gets this
+// runtime's timeout error rather than the bridge's.
+const WAIT_FOR_MAX_TIMEOUT_MS = 20_000;
+// Route changes and new surface data emit no event, so waitFor also polls.
+const WAIT_FOR_POLL_MS = 250;
+const HIGHLIGHT_DURATION_MS = 1200;
+const SCROLL_SETTLE_POLL_MS = 50;
+const SCROLL_SETTLE_MAX_MS = 3000;
 
 export function defaultShellSnapshot(
   currentAppId: string | null = null,
@@ -132,6 +163,76 @@ export function findSurfaceContaining(
   return null;
 }
 
+function canInvoke(
+  allowed: AegisActionDescriptor['invocableBy'],
+  by: InvocationSource,
+): boolean {
+  return allowed === 'both' || by === 'system' || allowed === by;
+}
+
+function containsText(needle: string, values: unknown[]): boolean {
+  return values.some(
+    (v) =>
+      (typeof v === 'string' ||
+        typeof v === 'number' ||
+        typeof v === 'boolean') &&
+      String(v).toLowerCase().includes(needle),
+  );
+}
+
+function thrownError(err: unknown): AegisError {
+  return {
+    code: 'thrown',
+    message: err instanceof Error ? err.message : String(err),
+    reason: err,
+  };
+}
+
+function unknownActionError(id: string): AegisError {
+  return {
+    code: 'unknown_action',
+    message: `No action registered with id "${id}"`,
+  };
+}
+
+function attrSelector(attr: string, value: string): string {
+  return `[${attr}="${CSS.escape(value)}"]`;
+}
+
+function refToSelector(ref: AegisRef): string | null {
+  switch (ref.kind) {
+    case 'surface':
+      return attrSelector('data-agent-surface-id', ref.surfaceId);
+    case 'entity':
+      return attrSelector('data-agent-entity-id', ref.entityId);
+    case 'action':
+      return attrSelector('data-agent-action-id', ref.actionId);
+    case 'route':
+      return null;
+  }
+}
+
+/** Resolves with the element's rect once a smooth scroll has stopped moving it. */
+function settledRect(el: HTMLElement): Promise<DOMRect> {
+  return new Promise((resolve) => {
+    const started = Date.now();
+    let last = el.getBoundingClientRect();
+    let stableReads = 0;
+    const poll = (): void => {
+      const next = el.getBoundingClientRect();
+      stableReads =
+        next.top === last.top && next.left === last.left ? stableReads + 1 : 0;
+      last = next;
+      if (stableReads >= 2 || Date.now() - started >= SCROLL_SETTLE_MAX_MS) {
+        resolve(next);
+        return;
+      }
+      window.setTimeout(poll, SCROLL_SETTLE_POLL_MS);
+    };
+    window.setTimeout(poll, SCROLL_SETTLE_POLL_MS);
+  });
+}
+
 export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
   const registry = new Map<string, RegisteredAction>();
   const surfaces = new Map<string, RegisteredSurface>();
@@ -153,40 +254,55 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     }
   };
 
-  const projectSurfaces = (): SurfaceSnapshot[] => {
-    const out: SurfaceSnapshot[] = [];
-    for (const s of surfaces.values()) {
-      const proj = s.getProjection();
-      const actionIds: string[] = [];
-      for (const entry of registry.values()) {
-        if (
-          entry.source.kind === 'component' &&
-          entry.source.surfaceId === s.id
-        ) {
-          actionIds.push(entry.action.id);
+  const currentShell = (): ShellSnapshot =>
+    shellGetter ? shellGetter() : defaultShellSnapshot();
+
+  const boundActionIds = (s: RegisteredSurface): string[] => {
+    const rendered = new Set<string>();
+    const root = s.getElement?.();
+    if (root) {
+      for (const el of root.querySelectorAll('[data-agent-action-id]')) {
+        const id = el.getAttribute('data-agent-action-id');
+        if (id) {
+          rendered.add(id);
         }
       }
-      const entities: EntityProjection[] | undefined = proj.entities;
-      const fields: FieldProjection[] | undefined = proj.fields;
-      out.push({
-        id: s.id,
-        kind: s.kind,
-        appId: s.appId,
-        label: s.label,
-        entities,
-        fields,
-        actionIds,
-        bbox: s.getBBox?.(),
-        inViewport: s.getInViewport?.() ?? true,
-        askSuggestions: s.askSuggestions,
-      });
     }
-    return out;
+    const ids: string[] = [];
+    for (const { action, source } of registry.values()) {
+      if (
+        rendered.has(action.id) ||
+        action.appliesTo?.surfaceKind === s.kind ||
+        (source.kind === 'component' && source.surfaceId === s.id)
+      ) {
+        ids.push(action.id);
+      }
+    }
+    return ids;
   };
+
+  const projectSurface = (s: RegisteredSurface): SurfaceSnapshot => {
+    const { entities, fields } = s.getProjection();
+    return {
+      id: s.id,
+      kind: s.kind,
+      appId: s.appId,
+      label: s.label,
+      entities,
+      fields,
+      actionIds: boundActionIds(s),
+      bbox: s.getBBox?.(),
+      inViewport: s.getInViewport?.() ?? true,
+      askSuggestions: s.askSuggestions,
+    };
+  };
+
+  const projectSurfaces = (): SurfaceSnapshot[] =>
+    [...surfaces.values()].map(projectSurface);
 
   const snapshot = (): AegisSnapshot => ({
     timestamp: Date.now(),
-    shell: shellGetter ? shellGetter() : defaultShellSnapshot(),
+    shell: currentShell(),
     surfaces: projectSurfaces(),
     selection: [...selection],
     focus: { surfaceId: null, entityId: null },
@@ -204,8 +320,20 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       resultSchema: action.resultSchema,
       available: true,
       invocableBy: action.invocableBy ?? 'both',
+      confirm: action.confirm,
       source,
     };
+  };
+
+  const describeIds = (ids: Iterable<string>): AegisActionDescriptor[] => {
+    const out: AegisActionDescriptor[] = [];
+    for (const id of ids) {
+      const entry = registry.get(id);
+      if (entry) {
+        out.push(describe(entry));
+      }
+    }
+    return out;
   };
 
   const listActions = (filter?: ListActionsFilter): AegisActionDescriptor[] => {
@@ -218,7 +346,10 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       ) {
         continue;
       }
-      if (filter?.invocableBy && desc.invocableBy !== filter.invocableBy) {
+      if (
+        filter?.invocableBy &&
+        !canInvoke(desc.invocableBy, filter.invocableBy)
+      ) {
         continue;
       }
       if (filter?.appId && desc.source.appId !== filter.appId) {
@@ -234,41 +365,71 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     return entry ? describe(entry) : null;
   };
 
+  const refusal = (
+    entry: RegisteredAction,
+    by: InvocationSource,
+    mode: 'run' | 'preview',
+  ): AegisError | null => {
+    const { id, invocableBy = 'both', confirm } = entry.action;
+    if (!canInvoke(invocableBy, by)) {
+      return {
+        code: 'unavailable',
+        message: `Action "${id}" can only be invoked by the ${invocableBy}.`,
+      };
+    }
+    if (mode === 'run' && by === 'agent' && confirm?.danger) {
+      return {
+        code: 'needs_confirm',
+        message: `Action "${id}" is marked dangerous; only the user can run it.`,
+      };
+    }
+    return null;
+  };
+
+  const makeContext = (
+    entry: RegisteredAction,
+    by: InvocationSource,
+    correlationId: string,
+  ): ActionContext => ({
+    appId: entry.source.appId,
+    navigate: navigateImpl ?? ((_to: string) => undefined),
+    snapshot,
+    toast: deps.toast ?? ((_msg: string) => undefined),
+    correlationId,
+    invokedBy: by,
+    signal: new AbortController().signal,
+  });
+
   const dispatch = async <R = unknown>(
     id: string,
     params: unknown = undefined,
     opts: {
-      force?: boolean;
       correlationId?: string;
       by?: InvocationSource;
     } = {},
   ): Promise<DispatchResult<R>> => {
     const correlationId = opts.correlationId ?? uniqueId('aegis');
     const by: InvocationSource = opts.by ?? 'user';
-    const entry = registry.get(id);
-    if (!entry) {
-      const error: AegisError = {
-        code: 'unknown_action',
-        message: `No action registered with id "${id}"`,
-      };
+    const fail = (error: AegisError): DispatchResult<R> => {
       emit({ type: 'action.failed', correlationId, error });
       return { ok: false, error, correlationId };
-    }
-
-    const ctx: ActionContext = {
-      appId: entry.source.appId,
-      navigate: navigateImpl ?? ((_to: string) => undefined),
-      snapshot,
-      toast: deps.toast ?? ((_msg: string) => undefined),
-      correlationId,
-      invokedBy: by,
-      signal: new AbortController().signal,
     };
+    const entry = registry.get(id);
+    if (!entry) {
+      return fail(unknownActionError(id));
+    }
+    const refused = refusal(entry, by, 'run');
+    if (refused) {
+      return fail(refused);
+    }
 
     emit({ type: 'action.invoked', id, params, by, correlationId });
     const start = Date.now();
     try {
-      const result = (await entry.action.run(params, ctx)) as R;
+      const result = (await entry.action.run(
+        params,
+        makeContext(entry, by, correlationId),
+      )) as R;
       emit({
         type: 'action.completed',
         correlationId,
@@ -277,13 +438,36 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       });
       return { ok: true, result, correlationId };
     } catch (err) {
-      const error: AegisError = {
-        code: 'thrown',
-        message: err instanceof Error ? err.message : String(err),
-        reason: err,
-      };
-      emit({ type: 'action.failed', correlationId, error });
-      return { ok: false, error, correlationId };
+      return fail(thrownError(err));
+    }
+  };
+
+  const preview = async (
+    id: string,
+    params: unknown = undefined,
+    opts: { by?: InvocationSource } = {},
+  ): Promise<PreviewResult> => {
+    const by: InvocationSource = opts.by ?? 'user';
+    const entry = registry.get(id);
+    if (!entry) {
+      return { ok: false, error: unknownActionError(id) };
+    }
+    const refused = refusal(entry, by, 'preview');
+    if (refused) {
+      return { ok: false, error: refused };
+    }
+    const action = describe(entry);
+    if (!entry.action.dryRun) {
+      return { ok: true, action, params };
+    }
+    try {
+      const result = await entry.action.dryRun(
+        params,
+        makeContext(entry, by, uniqueId('aegis')),
+      );
+      return { ok: true, action, params, preview: result };
+    } catch (err) {
+      return { ok: false, error: thrownError(err) };
     }
   };
 
@@ -326,10 +510,12 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       );
     }
     surfaces.set(entry.id, entry);
+    emit({ type: 'snapshot.changed', diff: { added: [entry.id] } });
     return () => {
       const current = surfaces.get(entry.id);
       if (current === entry) {
         surfaces.delete(entry.id);
+        emit({ type: 'snapshot.changed', diff: { removed: [entry.id] } });
       }
     };
   };
@@ -362,75 +548,45 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
 
   const inspect = (ref: AegisRef): AegisInspectResult | null => {
     if (ref.kind === 'surface') {
-      const surface = projectSurfaces().find((s) => s.id === ref.surfaceId);
-      if (!surface) {
+      const registered = surfaces.get(ref.surfaceId);
+      if (!registered) {
         return null;
       }
-      const actions: AegisActionDescriptor[] = [];
-      for (const entry of registry.values()) {
-        const desc = describe(entry);
-        if (
-          entry.source.kind === 'component' &&
-          entry.source.surfaceId === surface.id
-        ) {
-          actions.push(desc);
-          continue;
-        }
-        if (entry.action.appliesTo?.surfaceKind === surface.kind) {
-          actions.push(desc);
-        }
-      }
-      return { ref, surface, entities: surface.entities, actions };
+      const surface = projectSurface(registered);
+      return {
+        ref,
+        surface,
+        entities: surface.entities,
+        actions: describeIds(surface.actionIds),
+      };
     }
     if (ref.kind === 'entity') {
-      const found = findSurfaceContaining(projectSurfaces(), ref.entityId);
+      const scope = projectSurfaces().filter(
+        (s) => ref.surfaceId === undefined || s.id === ref.surfaceId,
+      );
+      const found = findSurfaceContaining(scope, ref.entityId);
       if (!found) {
         return null;
       }
       const { surface, entity } = found;
       // Right-click intuition: actions on an entity ⊇ actions on its container surface.
-      const actions: AegisActionDescriptor[] = [];
-      const seen = new Set<string>();
-      const push = (entry: RegisteredAction): void => {
-        if (seen.has(entry.action.id)) {
-          return;
-        }
-        seen.add(entry.action.id);
-        actions.push(describe(entry));
-      };
-      for (const entry of registry.values()) {
-        if (
-          entry.source.kind === 'component' &&
-          entry.source.surfaceId === surface.id
-        ) {
-          push(entry);
-          continue;
-        }
-        if (entry.action.appliesTo?.surfaceKind === surface.kind) {
-          push(entry);
-          continue;
-        }
-        if (entry.action.appliesTo?.entityType === entity.type) {
-          push(entry);
+      const ids = new Set(surface.actionIds);
+      for (const { action } of registry.values()) {
+        if (action.appliesTo?.entityType === entity.type) {
+          ids.add(action.id);
         }
       }
-      return { ref, surface, entity, actions };
+      return { ref, surface, entity, actions: describeIds(ids) };
     }
     if (ref.kind === 'action') {
       const entry = registry.get(ref.actionId);
       if (!entry) {
         return null;
       }
-      const desc = describe(entry);
-      let surface: SurfaceSnapshot | undefined;
-      if (
-        entry.source.kind === 'component' &&
-        entry.source.surfaceId !== undefined
-      ) {
-        const targetSurfaceId = entry.source.surfaceId;
-        surface = projectSurfaces().find((s) => s.id === targetSurfaceId);
-      }
-      return { ref, action: desc, surface, actions: [] };
+      const surface = projectSurfaces().find((s) =>
+        s.actionIds.includes(ref.actionId),
+      );
+      return { ref, action: describe(entry), surface, actions: [] };
     }
     // route
     const actions: AegisActionDescriptor[] = [];
@@ -473,7 +629,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
   const search = async (
     query: string,
     opts: SearchOptions = {},
-  ): Promise<AegisSearchResult[]> => {
+  ): Promise<AegisSearchResponse> => {
     const limit = opts.limit ?? 20;
     const requestedKinds = new Set<AegisRef['kind']>(
       opts.kinds ?? ['surface', 'entity', 'action', 'route'],
@@ -568,6 +724,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       return true;
     });
 
+    const failedProviders: AegisSearchResponse['failedProviders'] = [];
     const providerResults = await Promise.all(
       eligibleProviders.map(async (p) => {
         try {
@@ -576,7 +733,14 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
             signal: providerCtl.signal,
           });
           return r.map((hit) => ({ ...hit, source: 'provider' as const }));
-        } catch {
+        } catch (err) {
+          // A provider that stops because the caller aborted has not failed.
+          if (!providerCtl.signal.aborted) {
+            failedProviders.push({
+              providerId: p.id,
+              message: err instanceof Error ? err.message : String(err),
+            });
+          }
           return [] as AegisSearchResult[];
         }
       }),
@@ -614,107 +778,166 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       }
     }
     const out = [...seen.values()].sort((a, b) => b.score - a.score);
-    return out.slice(0, limit);
+    return { results: out.slice(0, limit), failedProviders };
   };
 
-  const refToSelector = (ref: AegisRef): string | null => {
-    switch (ref.kind) {
-      case 'surface':
-        return `[data-agent-surface-id="${ref.surfaceId}"]`;
-      case 'entity':
-        return `[data-agent-entity-id="${ref.entityId}"]`;
-      case 'action':
-        return `[data-agent-action-id="${ref.actionId}"]`;
-      case 'route':
-        return null;
-    }
-  };
-
-  const HIGHLIGHT_DURATION_MS = 1200;
-  const highlight = (
+  const highlight = async (
     ref: AegisRef,
   ): Promise<{ found: boolean; bbox?: DOMRect }> => {
     if (typeof document === 'undefined') {
-      return Promise.resolve({ found: false });
+      return { found: false };
     }
-    const sel = refToSelector(ref);
-    if (!sel) {
-      return Promise.resolve({ found: false });
-    }
-    const el = document.querySelector(sel);
+    const selector = refToSelector(ref);
+    const el = selector ? document.querySelector(selector) : null;
     if (!(el instanceof HTMLElement)) {
-      return Promise.resolve({ found: false });
+      return { found: false };
     }
-    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const instant =
+      document.visibilityState === 'hidden' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({
+      block: 'center',
+      behavior: instant ? 'auto' : 'smooth',
+    });
     el.setAttribute('data-aegis-highlight', 'true');
     window.setTimeout(() => {
       el.removeAttribute('data-aegis-highlight');
     }, HIGHLIGHT_DURATION_MS);
-    return Promise.resolve({ found: true, bbox: el.getBoundingClientRect() });
+    const bbox = instant ? el.getBoundingClientRect() : await settledRect(el);
+    return { found: true, bbox };
+  };
+
+  const surfacesIn = (surfaceId: string | undefined): RegisteredSurface[] => {
+    if (surfaceId === undefined) {
+      return [...surfaces.values()];
+    }
+    const s = surfaces.get(surfaceId);
+    return s ? [s] : [];
+  };
+
+  const isPresent = (
+    ref: Extract<AegisWaitCondition, { kind: 'present' }>['ref'],
+  ): boolean => {
+    switch (ref.kind) {
+      case 'surface':
+        return surfaces.has(ref.surfaceId);
+      case 'action':
+        return registry.has(ref.actionId);
+      case 'entity':
+        return surfacesIn(ref.surfaceId).some(
+          (s) =>
+            s.getProjection().entities?.some((e) => e.id === ref.entityId) ??
+            false,
+        );
+    }
+  };
+
+  const conditionHolds = (condition: AegisWaitCondition): boolean => {
+    switch (condition.kind) {
+      case 'present':
+        return isPresent(condition.ref);
+      case 'absent':
+        return !isPresent(condition.ref);
+      case 'route':
+        return currentShell().route.pathname === condition.pathname;
+      case 'text': {
+        const needle = condition.text.toLowerCase();
+        return surfacesIn(condition.surfaceId).some((s) => {
+          const { entities = [], fields = [] } = s.getProjection();
+          return (
+            containsText(needle, [s.label]) ||
+            entities.some((e) =>
+              containsText(needle, [
+                e.id,
+                e.label,
+                ...Object.values(e.data ?? {}),
+              ]),
+            ) ||
+            fields.some((f) => containsText(needle, [f.label, f.value]))
+          );
+        });
+      }
+      case 'field':
+        return (
+          surfaces
+            .get(condition.surfaceId)
+            ?.getProjection()
+            .fields?.some(
+              (f) => f.name === condition.name && f.value === condition.value,
+            ) ?? false
+        );
+    }
   };
 
   const waitFor = (
-    predicate: string,
-    opts: { timeoutMs?: number; signal?: AbortSignal } = {},
+    condition: AegisWaitCondition,
+    opts: WaitForOptions = {},
   ): Promise<AegisSnapshot> => {
-    const timeoutMs = opts.timeoutMs ?? 5000;
-    // safe-by-trust-model — runtime is local; agent already has dispatch power.
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const fn = new Function('snap', `return (${predicate});`) as (
-      snap: AegisSnapshot,
-    ) => unknown;
+    const timeoutMs = Math.min(
+      Math.max(opts.timeoutMs ?? WAIT_FOR_DEFAULT_TIMEOUT_MS, 0),
+      WAIT_FOR_MAX_TIMEOUT_MS,
+    );
+    const { signal } = opts;
     return new Promise((resolve, reject) => {
-      const fail = (msg: string): void => {
-        cleanup();
-        const error: AegisError = { code: 'aborted', message: msg };
-        reject(error);
+      const aborted: AegisError = {
+        code: 'aborted',
+        message: 'waitFor was aborted',
       };
-      const check = (): boolean => {
-        const snap = snapshot();
+      if (signal?.aborted) {
+        reject(aborted);
+        return;
+      }
+      let settled = false;
+      const settle = (finish: () => void): void => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        unsubscribe();
+        window.clearInterval(poll);
+        window.clearTimeout(timer);
+        signal?.removeEventListener('abort', onAbort);
+        finish();
+      };
+      const check = (): void => {
         try {
-          if (fn(snap)) {
-            cleanup();
-            resolve(snap);
-            return true;
+          if (conditionHolds(condition)) {
+            const snap = snapshot();
+            settle(() => {
+              resolve(snap);
+            });
           }
         } catch (err) {
-          fail(`waitFor predicate threw: ${String(err)}`);
-          return true;
+          const error = thrownError(err);
+          settle(() => {
+            reject(error);
+          });
         }
-        return false;
       };
-      const unsub = subscribe((e) => {
+      const onAbort = (): void => {
+        settle(() => {
+          reject(aborted);
+        });
+      };
+      const unsubscribe = subscribe((e) => {
         if (e.type === 'snapshot.changed' || e.type === 'registry.changed') {
           check();
         }
       });
-      const tick = window.setInterval(check, 100);
+      const poll = window.setInterval(check, WAIT_FOR_POLL_MS);
       const timer = window.setTimeout(() => {
-        fail(`waitFor timed out after ${String(timeoutMs)}ms: ${predicate}`);
+        const error: AegisError = {
+          code: 'timeout',
+          message: `waitFor: condition not met within ${String(timeoutMs)} ms`,
+        };
+        settle(() => {
+          reject(error);
+        });
       }, timeoutMs);
-      const onAbort = (): void => {
-        fail(`waitFor aborted: ${predicate}`);
-      };
-      if (opts.signal) {
-        if (opts.signal.aborted) {
-          onAbort();
-          return;
-        }
-        opts.signal.addEventListener('abort', onAbort);
-      }
-      function cleanup(): void {
-        unsub();
-        window.clearInterval(tick);
-        window.clearTimeout(timer);
-        if (opts.signal) {
-          opts.signal.removeEventListener('abort', onAbort);
-        }
-      }
+      signal?.addEventListener('abort', onAbort);
       check();
     });
   };
-
-  const toMcpTools = (): McpToolDefinition[] => MCP_TOOL_CATALOGUE;
 
   // Built-in app-level navigate action — sugar for aegis_navigate MCP tool.
   registry.set('aegis.navigate', {
@@ -765,8 +988,8 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
     search,
     highlight,
     waitFor,
-    toMcpTools,
     dispatch,
+    preview,
     subscribe,
     onAskTriggered,
     emitAskTriggered,

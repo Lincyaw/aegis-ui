@@ -110,6 +110,7 @@ export function useAegisSurface<T>(
       label: opts.label,
       askSuggestions: opts.askSuggestions,
       getProjection: () => projectRef.current(dataRef.current),
+      getElement: () => refRef.current?.current ?? null,
       getBBox: () => {
         const r = rect();
         return r && { x: r.x, y: r.y, width: r.width, height: r.height };

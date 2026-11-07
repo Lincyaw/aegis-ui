@@ -13,7 +13,7 @@
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
-    "bundle:prepare": "vite build",
+    "bundle:prepare": "node ../../scripts/emit-mcp-tools.mjs && vite build",
     "bundle:host": "pnpm bundle:prepare && node server/bundle.mjs host",
     "bundle:linux-x64": "pnpm bundle:prepare && node server/bundle.mjs linux-x64",
     "bundle:linux-arm64": "pnpm bundle:prepare && node server/bundle.mjs linux-arm64",

@@ -1,33 +1,54 @@
 {
   "_generated": true,
-  "_source": "packages/ui/src/agent/core/mcpToolCatalogue.ts",
+  "_source": "packages/ui/src/transports/mcpTools.ts",
   "_regenerate": "pnpm gen:mcp-tools",
   "tools": [
     {
       "name": "aegis_snapshot",
-      "description": "Read the current UI snapshot (shell + surfaces + selection + appData).",
+      "description": "Read the current UI: the shell (app, route, theme, viewport), every surface on the page with its projected entities and fields and the ids of the actions bound to it, and the selection.",
       "inputSchema": {
         "type": "object",
-        "properties": {
-          "paths": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Optional projection paths to keep the payload small."
-          }
-        }
+        "properties": {}
       }
     },
     {
       "name": "aegis_inspect",
-      "description": "Noun-first discovery: returns the target plus actions bound to it.",
+      "description": "Noun-first discovery: returns the target plus the actions bound to it. Fails with not_found when the target is not on the page.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "ref": {
             "type": "object",
-            "description": "AegisRef — { kind: \"surface\"|\"entity\"|\"action\"|\"route\", ... }"
+            "description": "A ref from aegis_snapshot or aegis_search: { kind: \"surface\", surfaceId } | { kind: \"entity\", entityId, surfaceId? } | { kind: \"action\", actionId } | { kind: \"route\", appId, pathname }.",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "surface",
+                  "entity",
+                  "action",
+                  "route"
+                ]
+              },
+              "surfaceId": {
+                "type": "string"
+              },
+              "entityId": {
+                "type": "string"
+              },
+              "actionId": {
+                "type": "string"
+              },
+              "appId": {
+                "type": "string"
+              },
+              "pathname": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           }
         },
         "required": [
@@ -37,7 +58,7 @@
     },
     {
       "name": "aegis_search",
-      "description": "Free-text search across snapshot + registered providers. Returns ranked refs.",
+      "description": "Free-text search across the snapshot and the search providers the page registered. Returns ranked refs in `results`; `failedProviders` names providers that failed, whose hits are missing.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -70,7 +91,7 @@
     },
     {
       "name": "aegis_invoke",
-      "description": "The only write entry. Dispatches an action by id with optional params, force, dryRun.",
+      "description": "The only write entry: runs a registered action by id, with optional params, as the agent. With dryRun: true nothing runs; it returns the action, the params and the action's own preview when it has one. Fails with unavailable for actions only the user may invoke (invocableBy: \"user\") and with needs_confirm for actions marked confirm.danger: the user has to run those, so point at the control with aegis_highlight. An action that fails comes back as a tool error.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -78,9 +99,6 @@
             "type": "string"
           },
           "params": {},
-          "force": {
-            "type": "boolean"
-          },
           "dryRun": {
             "type": "boolean"
           }
@@ -92,7 +110,7 @@
     },
     {
       "name": "aegis_navigate",
-      "description": "Navigate to a route inside the current app shell. Sugar for aegis_invoke(\"aegis.navigate\", { to }).",
+      "description": "Navigate to a path inside the console, such as /portal/datasets. Sugar for aegis_invoke(\"aegis.navigate\", { to }).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -107,12 +125,42 @@
     },
     {
       "name": "aegis_highlight",
-      "description": "Scroll a target into view and apply a transient ring. Use to point the user.",
+      "description": "Scroll a surface, entity or action into view and ring it briefly, to point the user at it. Returns found: false when it is not on the page.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "ref": {
-            "type": "object"
+            "type": "object",
+            "description": "A ref from aegis_snapshot or aegis_search: { kind: \"surface\", surfaceId } | { kind: \"entity\", entityId, surfaceId? } | { kind: \"action\", actionId } | { kind: \"route\", appId, pathname }.",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "surface",
+                  "entity",
+                  "action",
+                  "route"
+                ]
+              },
+              "surfaceId": {
+                "type": "string"
+              },
+              "entityId": {
+                "type": "string"
+              },
+              "actionId": {
+                "type": "string"
+              },
+              "appId": {
+                "type": "string"
+              },
+              "pathname": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           }
         },
         "required": [
@@ -122,20 +170,91 @@
     },
     {
       "name": "aegis_wait_for",
-      "description": "Block until a JS predicate over `snap` becomes truthy, or timeout.",
+      "description": "Wait until a condition holds, then return the snapshot; fails with timeout otherwise. Conditions: present / absent (ref is a surface, entity or action ref), route (the shell pathname equals pathname), text (text appears, case-insensitively, in a surface label, entity or field; only in surfaceId when given), field (field name on surface surfaceId equals value).",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "predicate": {
-            "type": "string",
-            "description": "JS expression evaluated as `(snap) => <expr>`."
+          "condition": {
+            "type": "object",
+            "description": "{ kind: \"present\" | \"absent\", ref } | { kind: \"route\", pathname } | { kind: \"text\", text, surfaceId? } | { kind: \"field\", surfaceId, name, value }.",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "absent",
+                  "route",
+                  "text",
+                  "field"
+                ]
+              },
+              "ref": {
+                "type": "object",
+                "description": "A ref from aegis_snapshot or aegis_search: { kind: \"surface\", surfaceId } | { kind: \"entity\", entityId, surfaceId? } | { kind: \"action\", actionId } | { kind: \"route\", appId, pathname }.",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "surface",
+                      "entity",
+                      "action",
+                      "route"
+                    ]
+                  },
+                  "surfaceId": {
+                    "type": "string"
+                  },
+                  "entityId": {
+                    "type": "string"
+                  },
+                  "actionId": {
+                    "type": "string"
+                  },
+                  "appId": {
+                    "type": "string"
+                  },
+                  "pathname": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              },
+              "pathname": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "surfaceId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "timeoutMs": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0,
+            "maximum": 20000,
+            "description": "Defaults to 5000; longer waits are cut to 20000."
           }
         },
         "required": [
-          "predicate"
+          "condition"
         ]
       }
     }

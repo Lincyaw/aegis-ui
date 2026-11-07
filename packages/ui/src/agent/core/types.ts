@@ -1,9 +1,7 @@
-// Agent-native UI substrate — core types.
-// See docs/agent-native-ui.md §3. This slice intentionally omits the
-// surface system, ask-overlay, and MCP descriptor pieces.
-// TODO(next slice): adopt @standard-schema/spec for paramsSchema typing.
-// For v0 we keep the field as `unknown` so the library has zero validator
-// dependency surface.
+// Types shared by the agent runtime, its hooks, the Ask overlay and the
+// transports (docs/agent-native-ui.md §3). `paramsSchema` and
+// `resultSchema` stay `unknown` so the library carries no validator
+// dependency.
 
 export type InvocationSource = 'user' | 'agent' | 'system';
 
@@ -88,6 +86,12 @@ export interface ActionContext {
   signal: AbortSignal;
 }
 
+export interface ActionConfirm {
+  title: string;
+  body?: string;
+  danger?: boolean;
+}
+
 export interface ActionPreview {
   summary: string;
   affectedEntities?: EntityRef[];
@@ -105,12 +109,18 @@ export interface AegisAction<P = unknown, R = unknown> {
   paramsSchema?: unknown;
   resultSchema?: unknown;
   run: (params: P, ctx: ActionContext) => Promise<R> | R;
+  /** Describes what `run` would do, without doing it. Must not mutate. */
   dryRun?: (
     params: P,
     ctx: ActionContext,
   ) => Promise<ActionPreview> | ActionPreview;
   availability?: (snap: AegisSnapshot) => true | string;
-  confirm?: { title: string; body?: string; danger?: boolean };
+  /**
+   * `danger: true` keeps the agent from running the action: an agent
+   * dispatch fails with `needs_confirm`, and only the user can run it.
+   */
+  confirm?: ActionConfirm;
+  /** Who may dispatch the action; anyone else gets `unavailable`. */
   invocableBy?: 'user' | 'agent' | 'both';
   /** Noun-first discovery binding. See docs/agent-native-ui.md §3.5. */
   appliesTo?: { entityType?: string; surfaceKind?: SurfaceKind };
@@ -152,11 +162,28 @@ export interface SearchProvider {
   ) => Promise<AegisSearchResult[]>;
 }
 
-export interface McpToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: Record<string, unknown>;
+export interface AegisSearchResponse {
+  results: AegisSearchResult[];
+  /** Providers that threw; `results` lacks their hits. */
+  failedProviders: Array<{ providerId: string; message: string }>;
 }
+
+/**
+ * What `waitFor` waits for. `text` matches case-insensitively against the
+ * surfaces' labels and projections; `field` compares a projected field's
+ * value with `===`.
+ */
+export type AegisWaitCondition =
+  | { kind: 'present'; ref: Exclude<AegisRef, { kind: 'route' }> }
+  | { kind: 'absent'; ref: Exclude<AegisRef, { kind: 'route' }> }
+  | { kind: 'route'; pathname: string }
+  | { kind: 'text'; text: string; surfaceId?: string }
+  | {
+      kind: 'field';
+      surfaceId: string;
+      name: string;
+      value: string | number | boolean | null;
+    };
 
 export type ActionSource =
   | { kind: 'app'; appId: string }
@@ -173,6 +200,7 @@ export interface AegisActionDescriptor {
   available: boolean;
   unavailableReason?: string;
   invocableBy: 'user' | 'agent' | 'both';
+  confirm?: ActionConfirm;
   source: ActionSource;
 }
 
@@ -182,6 +210,7 @@ export type AegisErrorCode =
   | 'invalid_params'
   | 'needs_confirm'
   | 'aborted'
+  | 'timeout'
   | 'thrown';
 
 export interface AegisError {
@@ -193,6 +222,16 @@ export interface AegisError {
 export type DispatchResult<R> =
   | { ok: true; result: R; correlationId: string }
   | { ok: false; error: AegisError; correlationId: string };
+
+export type PreviewResult =
+  | {
+      ok: true;
+      action: AegisActionDescriptor;
+      params: unknown;
+      /** The action's own `dryRun` output, when it declares one. */
+      preview?: ActionPreview;
+    }
+  | { ok: false; error: AegisError };
 
 export interface SnapshotDiff {
   added?: string[];

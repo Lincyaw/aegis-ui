@@ -156,8 +156,8 @@ function AgentIntegrationSpecimen(): ReactNode {
           2
         )
       );
-      void rt.search('imagenet').then((hits) => {
-        setSearchText(JSON.stringify(hits, null, 2));
+      void rt.search('imagenet').then((response) => {
+        setSearchText(JSON.stringify(response, null, 2));
       });
     };
     tick();

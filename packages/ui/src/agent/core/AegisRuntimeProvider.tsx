@@ -8,7 +8,7 @@ import {
 } from './runtime';
 import type { ShellSnapshot } from './types';
 
-interface AgentRuntimeProviderProps {
+interface AegisRuntimeProviderProps {
   children: ReactNode;
   /**
    * A runtime the host created, for instance to connect it to the MCP
@@ -44,7 +44,7 @@ export function AegisRuntimeProvider({
   shellSnapshot,
   navigate,
   exposeOnWindow = true,
-}: AgentRuntimeProviderProps) {
+}: AegisRuntimeProviderProps) {
   const [runtime] = useState<AegisRuntime>(
     () => externalRuntime ?? createAegisRuntime(),
   );
