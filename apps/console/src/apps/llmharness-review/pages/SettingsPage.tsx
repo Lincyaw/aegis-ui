@@ -10,6 +10,7 @@ import {
 
 import { CaretDownOutlined, FolderOutlined } from '@ant-design/icons';
 import {
+  Alert,
   Breadcrumb,
   type BreadcrumbItem,
   Button,
@@ -24,6 +25,7 @@ import {
   TextField,
 } from '@lincyaw/aegis-ui';
 
+import { errMsg } from '../../../api/apiClient';
 import {
   type BucketSummary,
   driverList,
@@ -65,6 +67,8 @@ type CrumbLink = ComponentType<{
 
 interface BlobPathPickerProps {
   buckets: BucketSummary[];
+  /** Why the bucket list could not be read, if it could not. */
+  bucketsError: string | null;
   store: BlobRootStore;
   saveLabel: string;
   forgetLabel: string;
@@ -73,6 +77,7 @@ interface BlobPathPickerProps {
 
 function BlobPathPicker({
   buckets,
+  bucketsError,
   store,
   saveLabel,
   forgetLabel,
@@ -179,6 +184,11 @@ function BlobPathPicker({
 
   return (
     <>
+      {bucketsError !== null && (
+        <Alert tone='error' title='Could not list buckets'>
+          {bucketsError}
+        </Alert>
+      )}
       <div className='llmh-settings__row'>
         <MetricLabel size='xs'>Bucket</MetricLabel>
         <DropdownMenu
@@ -311,6 +321,7 @@ export function SettingsPage(): ReactElement {
   const [probe, setProbe] = useState<ProbeState>({ kind: 'idle' });
 
   const [buckets, setBuckets] = useState<BucketSummary[]>([]);
+  const [bucketsError, setBucketsError] = useState<string | null>(null);
 
   const probeUrl = useCallback(async (url: string): Promise<void> => {
     setProbe({ kind: 'probing' });
@@ -334,8 +345,8 @@ export function SettingsPage(): ReactElement {
     }
     listBuckets()
       .then(setBuckets)
-      .catch(() => {
-        // Buckets dropdown stays empty — surfaced via empty-state below.
+      .catch((err: unknown) => {
+        setBucketsError(errMsg(err));
       });
   }, [probeUrl]);
 
@@ -455,6 +466,7 @@ export function SettingsPage(): ReactElement {
       >
         <BlobPathPicker
           buckets={buckets}
+          bucketsError={bucketsError}
           store={casesBlobRoot}
           saveLabel='Save'
           forgetLabel='Forget blob source'
@@ -467,6 +479,7 @@ export function SettingsPage(): ReactElement {
       >
         <BlobPathPicker
           buckets={buckets}
+          bucketsError={bucketsError}
           store={sftBlobRoot}
           saveLabel='Save'
           forgetLabel='Forget SFT source'

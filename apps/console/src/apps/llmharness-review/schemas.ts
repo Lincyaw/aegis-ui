@@ -170,27 +170,6 @@ export interface DroppedRow {
   [k: string]: unknown;
 }
 
-export interface VerdictRow {
-  sequence: number;
-  turn_index: number;
-  ts_ns: number;
-  surface_reminder: boolean;
-  reminder_text?: string;
-  matched_event_ids?: number[];
-  continuation_notes?: string[];
-  cited_cards?: unknown[];
-  [k: string]: unknown;
-}
-
-export interface TrajectoryRow {
-  ts_ns: number;
-  source: FiringPhase;
-  sequence: number;
-  turn_index: number;
-  summary: string;
-  ref: string;
-}
-
 export interface CaseSummary {
   caseId: string;
   meta: CaseMeta;

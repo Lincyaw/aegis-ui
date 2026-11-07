@@ -1,10 +1,4 @@
-import {
-  type ReactElement,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { type ReactElement, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -24,10 +18,14 @@ import {
   MonoValue,
   Panel,
   PanelTitle,
+  SkeletonText,
   TimeDisplay,
   Toolbar,
 } from '@lincyaw/aegis-ui';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { errMsg } from '../../../api/apiClient';
+import { llmhKeys } from '../queries';
 import {
   BlobCaseRepo,
   type CaseRepo,
@@ -38,82 +36,56 @@ import {
   resolveCaseRepo,
 } from '../repo';
 import type { CaseSummary } from '../schemas';
+import { nsToIso } from '../time';
 
 import './CaseListPage.css';
 
-function nsToMs(ns: number): number {
-  return Math.round(ns / 1_000_000);
-}
-
-function nsToIsoOrNull(ns: number): string | null {
-  if (!ns) return null;
-  return new Date(nsToMs(ns)).toISOString();
-}
+const NO_CASES: CaseSummary[] = [];
 
 export function CaseListPage(): ReactElement {
-  const [repo, setRepo] = useState<CaseRepo | null>(null);
-  const [cases, setCases] = useState<CaseSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [sourceError, setSourceError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [onlySurfaced, setOnlySurfaced] = useState(false);
   const [datasetFilter, setDatasetFilter] = useState<string | null>(null);
 
-  const refresh = useCallback(async (r: CaseRepo) => {
-    setLoading(true);
-    setError(null);
-    try {
-      setCases(await r.listCases());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const source = useQuery<CaseRepo | null>({
+    queryKey: llmhKeys.caseSource,
+    queryFn: resolveCaseRepo,
+    staleTime: Infinity,
+    gcTime: 0,
+    retry: false,
+  });
+  const repo = source.data ?? null;
+  const listing = useQuery({
+    queryKey: llmhKeys.cases(repo),
+    queryFn: () => (repo ? repo.listCases() : NO_CASES),
+    enabled: repo !== null,
+  });
+  const cases = listing.data ?? NO_CASES;
 
-  useEffect(() => {
-    let cancelled = false;
-    resolveCaseRepo()
-      .then(async (r) => {
-        if (cancelled) {
-          return;
-        }
-        if (!r) {
-          setLoading(false);
-          return;
-        }
-        setRepo(r);
-        await refresh(r);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) {
-          return;
-        }
-        setError(err instanceof Error ? err.message : String(err));
-        setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [refresh]);
+  const setSource = (next: CaseRepo | null): void => {
+    queryClient.setQueryData(llmhKeys.caseSource, next);
+  };
 
-  const handlePick = useCallback(async () => {
-    setError(null);
+  const handlePick = async (): Promise<void> => {
+    setSourceError(null);
     try {
-      const r = await pickCasesRoot();
-      setRepo(r);
-      await refresh(r);
+      setSource(await pickCasesRoot());
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      setError(err instanceof Error ? err.message : String(err));
+      setSourceError(errMsg(err));
     }
-  }, [refresh]);
+  };
 
-  const handleClear = useCallback(async () => {
-    await clearStoredRoot();
-    setRepo(null);
-    setCases([]);
-  }, []);
+  const handleClear = async (): Promise<void> => {
+    try {
+      await clearStoredRoot();
+      setSource(null);
+    } catch (err) {
+      setSourceError(errMsg(err));
+    }
+  };
 
   const datasetOptions = useMemo(() => {
     const names = new Set<string>();
@@ -142,31 +114,48 @@ export function CaseListPage(): ReactElement {
     });
   }, [cases, search, onlySurfaced, datasetFilter]);
 
+  if (source.isPending) {
+    return (
+      <Panel title={<PanelTitle size='lg'>Case review</PanelTitle>}>
+        <SkeletonText lines={4} />
+      </Panel>
+    );
+  }
+
   if (!repo) {
-    const fsAction = isFsAccessSupported() ? (
-      <Button tone='ghost' onClick={() => void handlePick()}>
-        <FolderOpenOutlined /> Pick a local directory
-      </Button>
-    ) : null;
+    const error = source.isError ? errMsg(source.error) : sourceError;
+    const actions = (
+      <div className='llmh-cases__actions'>
+        <Link to='settings'>
+          <Button>
+            <ApiOutlined /> Open Connection settings
+          </Button>
+        </Link>
+        {isFsAccessSupported() ? (
+          <Button tone='ghost' onClick={() => void handlePick()}>
+            <FolderOpenOutlined /> Pick a local directory
+          </Button>
+        ) : null}
+      </div>
+    );
     return (
       <Panel
         title={<PanelTitle size='lg'>Case review</PanelTitle>}
         extra={<MetricLabel>llmharness · case aggregator</MetricLabel>}
       >
-        <EmptyState
-          title='Connect to a case source'
-          description='Configure a `llmharness serve` URL, point at a path inside platform blob storage, or pick a local cases/ directory (Chromium-based browsers only).'
-          action={
-            <div className='llmh-cases__actions'>
-              <Link to='settings'>
-                <Button>
-                  <ApiOutlined /> Open Connection settings
-                </Button>
-              </Link>
-              {fsAction}
-            </div>
-          }
-        />
+        {error !== null ? (
+          <ErrorState
+            title='Could not open the case source'
+            description={error}
+            action={actions}
+          />
+        ) : (
+          <EmptyState
+            title='Connect to a case source'
+            description='Configure a `llmharness serve` URL, point at a path inside platform blob storage, or pick a local cases/ directory (Chromium-based browsers only).'
+            action={actions}
+          />
+        )}
       </Panel>
     );
   }
@@ -220,7 +209,7 @@ export function CaseListPage(): ReactElement {
       header: 'Started',
       width: 180,
       render: (r) => {
-        const iso = nsToIsoOrNull(r.meta.started_at_ns);
+        const iso = nsToIso(r.meta.started_at_ns);
         return iso ? (
           <TimeDisplay value={iso} />
         ) : (
@@ -231,29 +220,27 @@ export function CaseListPage(): ReactElement {
     {
       key: 'ext',
       header: 'Extractor',
-      align: 'right',
+      numeric: true,
       width: 100,
-      render: (r) => (
-        <MonoValue size='sm'>{r.meta.extractor_firings}</MonoValue>
-      ),
+      render: (r) => r.meta.extractor_firings,
     },
     {
       key: 'aud',
       header: 'Auditor',
-      align: 'right',
+      numeric: true,
       width: 90,
-      render: (r) => <MonoValue size='sm'>{r.meta.auditor_firings}</MonoValue>,
+      render: (r) => r.meta.auditor_firings,
     },
     {
       key: 'surfaced',
       header: 'Surfaced',
-      align: 'right',
+      numeric: true,
       width: 100,
       render: (r) =>
         r.meta.surfaced_reminders > 0 ? (
           <Chip tone='warning'>{r.meta.surfaced_reminders}</Chip>
         ) : (
-          <MonoValue size='sm'>0</MonoValue>
+          0
         ),
     },
   ];
@@ -267,7 +254,7 @@ export function CaseListPage(): ReactElement {
             {sourceLabel}
             {repo.label}
           </MetricLabel>
-          <Button tone='ghost' onClick={() => void refresh(repo)}>
+          <Button tone='ghost' onClick={() => void listing.refetch()}>
             <ReloadOutlined /> Refresh
           </Button>
           {!isRemote && (
@@ -286,7 +273,7 @@ export function CaseListPage(): ReactElement {
         action={
           <div className='llmh-cases__filters'>
             <Chip
-              tone={onlySurfaced ? 'warning' : 'default'}
+              tone={onlySurfaced ? 'ink' : 'default'}
               onClick={() => setOnlySurfaced((v) => !v)}
             >
               surfaced only
@@ -306,15 +293,18 @@ export function CaseListPage(): ReactElement {
         }
       />
       <div className='llmh-cases__table'>
-        {error ? (
-          <ErrorState title='Failed to read cases root' description={error} />
+        {listing.isError ? (
+          <ErrorState
+            title='Failed to read cases root'
+            description={errMsg(listing.error)}
+          />
         ) : (
           <DataTable
             framed={false}
             columns={columns}
             data={visibleCases}
             rowKey={(r) => r.caseId}
-            loading={loading}
+            loading={listing.isPending}
             emptyTitle='No cases match'
             emptyDescription='Clear the search / filters or pick a different cases root.'
             persistKey='llmharness.cases'
