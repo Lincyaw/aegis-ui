@@ -258,7 +258,6 @@ export { TraceSpanInspector } from './TraceSpanInspector';
 export type { TraceSpanInspectorProps } from './TraceSpanInspector';
 export { TimelineChart } from './TimelineChart';
 export type { TimelineChartProps } from './TimelineChart';
-export { BucketCard } from './BucketCard';
 export { ObjectBrowser } from './ObjectBrowser';
 export { ShareLinkDialog } from './ShareLinkDialog';
 export type { ShareLinkOptions, ShareLinkResult } from './ShareLinkDialog';
