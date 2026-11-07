@@ -1,13 +1,11 @@
 // Timeline / waterfall mechanics adapted from HyperDX (MIT, DeploySentinel Inc. 2023):
 // https://github.com/hyperdxio/hyperdx/blob/main/packages/app/src/components/TimelineChart/TimelineChart.tsx
 import {
-  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
   useCallback,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -15,6 +13,7 @@ import { Tooltip } from 'antd';
 
 import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
 import { type ChartColor, chartColorValue, niceTicks } from '../../lib/chart';
+import { formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Skeleton';
@@ -33,6 +32,7 @@ export interface TimelineChartProps {
   maxMs?: number;
   rowHeight?: number;
   maxVisibleRows?: number;
+  /** Makes each row a button that selects its span. */
   onSelect?: (span: TraceSpan) => void;
   selectedId?: string;
   loading?: boolean;
@@ -106,60 +106,17 @@ function colorForKind(kind: string | undefined): string {
   return chartColorValue(KIND_COLORS[hashString(kind) % KIND_COLORS.length]);
 }
 
-interface DurationUnit {
-  label: string;
-  perNs: number;
-}
-
-const DURATION_UNITS: DurationUnit[] = [
-  { label: 'ns', perNs: 1 },
-  { label: 'μs', perNs: 1_000 },
-  { label: 'ms', perNs: 1_000_000 },
-  { label: 's', perNs: 1_000_000_000 },
-  { label: 'm', perNs: 60 * 1_000_000_000 },
-];
-
-function pickUnit(spanNs: number): DurationUnit {
-  let best: DurationUnit = DURATION_UNITS[0];
-  for (const unit of DURATION_UNITS) {
-    if (spanNs / unit.perNs >= 1) {
-      best = unit;
-    }
-  }
-  return best;
-}
-
-function formatThousands(value: number, fractionDigits: number): string {
-  return value.toLocaleString(undefined, {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  });
-}
-
-function formatDuration(ns: number): string {
-  const unit = pickUnit(Math.max(ns, 1));
-  const value = ns / unit.perNs;
-  const fractionDigits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
-  return `${formatThousands(value, fractionDigits)} ${unit.label}`;
-}
-
 interface TickSpec {
   ns: number;
   label: string;
 }
 
-/** Ticks at round offsets from the start: 0, 1 ms, 2 ms, … */
+/** Ticks at round offsets from the start: 0, 200 ms, 400 ms, … */
 function buildTicks(minNs: number, maxNs: number): TickSpec[] {
-  const range = maxNs - minNs;
-  const unit = pickUnit(range);
-  return niceTicks(0, range, APPROX_TICK_COUNT).map((offset) => {
-    const value = offset / unit.perNs;
-    const fractionDigits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
-    return {
-      ns: minNs + offset,
-      label: `${formatThousands(value, fractionDigits)} ${unit.label}`,
-    };
-  });
+  return niceTicks(0, maxNs - minNs, APPROX_TICK_COUNT).map((offset) => ({
+    ns: minNs + offset,
+    label: formatDuration(offset / NS_PER_MS),
+  }));
 }
 
 function emptyDeriveBounds(): { minNs: number; maxNs: number } {
@@ -180,15 +137,10 @@ export function TimelineChart({
   const scrollRef = useRef<HTMLDivElement>(null);
   const strings = useStrings();
   const develop = useDevelopAfterLoad(loading);
-  const trackHeaderRef = useRef<HTMLDivElement>(null);
+  const guideTrackRef = useRef<HTMLDivElement>(null);
   const guideRef = useRef<HTMLDivElement>(null);
   const guideLabelRef = useRef<HTMLDivElement>(null);
   const rows = useMemo(() => timelineRows(spans), [spans]);
-  const [hasSpans, setHasSpans] = useState(rows.length > 0);
-
-  if (hasSpans !== rows.length > 0) {
-    setHasSpans(rows.length > 0);
-  }
 
   const derived = useMemo(() => {
     if (rows.length === 0) {
@@ -226,24 +178,26 @@ export function TimelineChart({
 
   const bodyHeight = Math.min(rows.length, maxVisibleRows) * rowHeight;
 
+  // The guide reads the time under the pointer from the track column only;
+  // over the labels it hides.
   const handleMouseMove = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {
-      const track = event.currentTarget;
+      const track = guideTrackRef.current;
+      const guide = guideRef.current;
+      const label = guideLabelRef.current;
+      if (!track || !guide || !label) {
+        return;
+      }
       const rect = track.getBoundingClientRect();
       const offsetX = event.clientX - rect.left;
       if (offsetX < 0 || offsetX > rect.width) {
+        guide.style.display = 'none';
         return;
       }
       const ratio = offsetX / Math.max(rect.width, 1);
-      const guide = guideRef.current;
-      const label = guideLabelRef.current;
-      if (guide) {
-        guide.style.display = 'block';
-        guide.style.left = `${offsetX.toFixed(2)}px`;
-      }
-      if (label) {
-        label.textContent = formatDuration(ratio * range);
-      }
+      guide.style.display = 'block';
+      guide.style.left = `${(ratio * 100).toFixed(4)}%`;
+      label.textContent = formatDuration((ratio * range) / NS_PER_MS);
     },
     [range],
   );
@@ -254,23 +208,6 @@ export function TimelineChart({
       guide.style.display = 'none';
     }
   }, []);
-
-  const handleRowActivate = useCallback(
-    (span: TraceSpan) => {
-      onSelect?.(span);
-    },
-    [onSelect],
-  );
-
-  const handleRowKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLDivElement>, span: TraceSpan) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        handleRowActivate(span);
-      }
-    },
-    [handleRowActivate],
-  );
 
   const gridTemplate = 'var(--timeline-chart-label-width) 1fr';
 
@@ -288,7 +225,7 @@ export function TimelineChart({
           className="aegis-timeline-chart__axis-label-gutter"
           aria-hidden="true"
         />
-        <div className="aegis-timeline-chart__axis-ticks" ref={trackHeaderRef}>
+        <div className="aegis-timeline-chart__axis-ticks">
           {ticks.map((tick) => {
             const left = ((tick.ns - minNs) / range) * 100;
             return (
@@ -329,7 +266,7 @@ export function TimelineChart({
             </div>
           ))}
         </div>
-      ) : !hasSpans ? (
+      ) : rows.length === 0 ? (
         <div className="aegis-timeline-chart__empty">
           <EmptyState
             title={strings.timelineEmptyTitle}
@@ -350,14 +287,16 @@ export function TimelineChart({
             onMouseLeave={handleMouseLeave}
           >
             <div
-              ref={guideRef}
-              className="aegis-timeline-chart__guide"
+              ref={guideTrackRef}
+              className="aegis-timeline-chart__guide-track"
               aria-hidden="true"
             >
-              <div
-                ref={guideLabelRef}
-                className="aegis-timeline-chart__guide-label"
-              />
+              <div ref={guideRef} className="aegis-timeline-chart__guide">
+                <div
+                  ref={guideLabelRef}
+                  className="aegis-timeline-chart__guide-label"
+                />
+              </div>
             </div>
             {virtualizer.getVirtualItems().map((item) => {
               const { span, startNs, durationNs, depth } = rows[item.index];
@@ -366,6 +305,7 @@ export function TimelineChart({
               const isSelected = selectedId === span.id;
               const classes = [
                 'aegis-timeline-chart__row',
+                onSelect ? 'aegis-timeline-chart__row--interactive' : '',
                 isSelected ? 'aegis-timeline-chart__row--selected' : '',
               ]
                 .filter(Boolean)
@@ -387,15 +327,27 @@ export function TimelineChart({
                     height: `${item.size}px`,
                     transform: `translateY(${item.start}px)`,
                   }}
-                  role="button"
-                  tabIndex={0}
                   data-id={span.id}
-                  onClick={() => {
-                    handleRowActivate(span);
-                  }}
-                  onKeyDown={(e) => {
-                    handleRowKeyDown(e, span);
-                  }}
+                  role={onSelect ? 'button' : undefined}
+                  tabIndex={onSelect ? 0 : undefined}
+                  aria-pressed={onSelect ? isSelected : undefined}
+                  onClick={
+                    onSelect
+                      ? () => {
+                          onSelect(span);
+                        }
+                      : undefined
+                  }
+                  onKeyDown={
+                    onSelect
+                      ? (event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onSelect(span);
+                          }
+                        }
+                      : undefined
+                  }
                 >
                   <div
                     className="aegis-timeline-chart__label"
@@ -410,7 +362,7 @@ export function TimelineChart({
                   </div>
                   <div className="aegis-timeline-chart__track">
                     <Tooltip
-                      title={`${span.name} · ${formatDuration(durationNs)}`}
+                      title={`${span.name} · ${formatDuration(durationNs / NS_PER_MS)}`}
                       mouseEnterDelay={0.2}
                     >
                       <div

@@ -2020,13 +2020,16 @@ export function ServicePrimitivesSection() {
         TimelineChart
       </SectionDivider>
       <div className='gallery__stack'>
-        <Specimen caption='8-span trace · depth tree' span={3}>
+        <Specimen
+          caption='8-span trace · depth tree · no onSelect, so rows are not buttons · hover the track for the time under the pointer'
+          span={3}
+        >
           <TimelineChartDepthSpecimen />
         </Specimen>
         <Specimen caption='500 spans · virtualized · 3 kinds' span={3}>
           <TimelineChartLargeSpecimen />
         </Specimen>
-        <Specimen caption='selectable · click logs to console' span={3}>
+        <Specimen caption='onSelect · each row is a button' span={3}>
           <TimelineChartSelectableSpecimen />
         </Specimen>
       </div>
