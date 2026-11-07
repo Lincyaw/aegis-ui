@@ -77,7 +77,7 @@
   color: var(--text-main);
 }
 
-.aegis-tabs__tab:disabled {
+.aegis-tabs__tab[aria-disabled='true'] {
   color: var(--text-faint);
   cursor: not-allowed;
 }

@@ -155,7 +155,7 @@ function TabsSegmentedSpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen
-        caption='default · tabpanel under the list · Overview fires an agent action · a disabled tab with a hint, which the arrow keys pass over'
+        caption='default · tabpanel under the list · Overview fires an agent action · a disabled tab, whose hint opens on hover and when the arrow keys focus it'
         span={3}
       >
         <RosettaTabs
