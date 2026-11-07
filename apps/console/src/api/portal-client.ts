@@ -18,9 +18,12 @@ import {
 } from '@lincyaw/portal';
 import axios, { type InternalAxiosRequestConfig, isAxiosError } from 'axios';
 
+import {
+  getAccessToken,
+  renewAfterUnauthorized,
+  unauthorizedWithoutToken,
+} from '../auth/session';
 import { getRuntimeConfig } from '../config/runtime';
-
-import { getAccessToken, renewAfterUnauthorized } from './session';
 
 interface PortalRequestConfig extends InternalAxiosRequestConfig {
   retriedAfterUnauthorized?: boolean;
@@ -45,7 +48,11 @@ portalAxios.interceptors.response.use(undefined, async (error: unknown) => {
   }
   const failed: PortalRequestConfig = error.config;
   const sent = String(failed.headers.get('authorization') ?? '');
-  if (failed.retriedAfterUnauthorized || !sent.startsWith(BEARER_PREFIX)) {
+  if (failed.retriedAfterUnauthorized) {
+    throw error;
+  }
+  if (!sent.startsWith(BEARER_PREFIX)) {
+    unauthorizedWithoutToken();
     throw error;
   }
   const renewed = await renewAfterUnauthorized(

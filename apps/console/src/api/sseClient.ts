@@ -14,7 +14,7 @@
  * Lines without `event:` use the default event name (`message`).
  * Comments (`:` lines, e.g. keep-alives) are ignored.
  */
-import { authFetch } from './apiClient';
+import { authFetch } from '../auth/session';
 
 export interface SseEvent {
   event: string;

@@ -14,10 +14,13 @@ import {
   type AuthStatus,
 } from '@lincyaw/aegis-ui';
 
-import { authFetch } from '../api/apiClient';
-import { onSessionEnded, tokensFromResponse } from '../api/session';
-
 import { randomUrlSafe, s256Challenge } from './pkce';
+import {
+  authFetch,
+  clearSession,
+  onSessionEnded,
+  tokensFromResponse,
+} from './session';
 import { type SsoAuthHandle, SsoCallbackContext } from './ssoCallbackContext';
 import {
   discoverOidc,
@@ -120,16 +123,18 @@ export function SsoAuthProvider({
   );
 
   const signOut = useCallback(async (): Promise<void> => {
-    const t = readTokens();
-    writeTokens(null);
+    const ending = clearSession();
     writePending(null);
     setUser(null);
     setStatus('unauthenticated');
-    if (t?.refreshToken) {
+    const refreshToken = await ending;
+    if (refreshToken) {
       try {
-        await logoutSso(t.refreshToken);
-      } catch {
-        // sign-out is best-effort; tokens are already cleared locally
+        await logoutSso(refreshToken);
+      } catch (err) {
+        // The tokens are already cleared locally; the server-side session
+        // lapses when its refresh token expires.
+        console.error('Could not end the SSO session on the server', err);
       }
     }
   }, []);
