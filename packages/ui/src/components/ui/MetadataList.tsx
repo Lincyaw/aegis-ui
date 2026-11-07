@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { useStrings } from '../../locale';
+import { CopyGlyph } from './CopyGlyph';
 import './MetadataList.css';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
@@ -31,12 +32,16 @@ function CopyButton({ text }: { text: string }): ReactNode {
   return (
     <button
       type="button"
-      className="aegis-metadata-list__copy"
+      className={
+        copied
+          ? 'aegis-metadata-list__copy aegis-metadata-list__copy--copied'
+          : 'aegis-metadata-list__copy'
+      }
       onClick={handleCopy}
       aria-label={strings.copyToClipboard}
       title={copied ? strings.copied : strings.copy}
     >
-      {copied ? '✓' : '⎘'}
+      <CopyGlyph copied={copied} />
     </button>
   );
 }

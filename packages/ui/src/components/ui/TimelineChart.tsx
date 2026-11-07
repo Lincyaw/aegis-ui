@@ -13,6 +13,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Tooltip } from 'antd';
 
+import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
 import { type ChartColor, chartColorValue, niceTicks } from '../../lib/chart';
 import { useStrings } from '../../locale';
 import { EmptyState } from './EmptyState';
@@ -178,6 +179,7 @@ export function TimelineChart({
 }: TimelineChartProps): ReactNode {
   const scrollRef = useRef<HTMLDivElement>(null);
   const strings = useStrings();
+  const develop = useDevelopAfterLoad(loading);
   const trackHeaderRef = useRef<HTMLDivElement>(null);
   const guideRef = useRef<HTMLDivElement>(null);
   const guideLabelRef = useRef<HTMLDivElement>(null);
@@ -339,6 +341,7 @@ export function TimelineChart({
           ref={scrollRef}
           className="aegis-timeline-chart__body"
           style={{ height: `${bodyHeight}px` }}
+          data-aegis-develop={develop || undefined}
         >
           <div
             className="aegis-timeline-chart__virtual"

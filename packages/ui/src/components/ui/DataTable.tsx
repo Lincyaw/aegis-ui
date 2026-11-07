@@ -19,6 +19,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { readStorage, writeStorage } from '../../lib/storage';
@@ -326,6 +327,7 @@ export function DataTable<T>({
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const detailIdPrefix = useId();
   const cardMode = renderMobileCard !== undefined && isMobile;
+  const develop = useDevelopAfterLoad(loading);
 
   const [uncontrolledSort, setUncontrolledSort] =
     useState<DataTableSort | null>(defaultSort ?? null);
@@ -850,7 +852,7 @@ export function DataTable<T>({
               </tr>
             </thead>
           )}
-          <tbody>
+          <tbody data-aegis-develop={develop || undefined}>
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={`sk-${i}`} className="aegis-data-table__row">

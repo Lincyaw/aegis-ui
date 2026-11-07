@@ -314,12 +314,12 @@
   --border-terminal: rgba(255, 255, 255, 0.08);
 
   /* ── Motion ──────────────────────────────────────────────────────── */
-  /* Every state change decelerates into place; only constant loops (spinners,
-   * shimmer, the carousel progress) run linear, and the ambient drift
-   * swings both ways. */
+  /* Every state change decelerates into place, with no overshoot; only
+   * constant loops (spinners, shimmer, scan, the carousel progress) run
+   * linear, and the ambient drift swings both ways. */
   /* Hover colour and opacity, arrow nudges, the hover lift. */
   --motion-fast: 200ms cubic-bezier(0.22, 1, 0.36, 1);
-  /* Switching, expanding, the segmented-tab slider. */
+  /* Switching and expanding. */
   --motion-base: 250ms cubic-bezier(0.22, 1, 0.36, 1);
   --motion-skeleton: 1400ms;
   --motion-spin: 800ms;
@@ -334,11 +334,24 @@
   --motion-enter-offset: 8px;
   /* Clickable cards and buttons rise this far on hover. */
   --motion-lift: 2px;
+  /* A selection marker moving between items: the edge facing the new item
+   * leads, the far edge trails, so the marker stretches across and settles. */
+  --motion-lead: 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-trail: 440ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Loaded content develops in place of its skeleton, out of a soft blur. */
+  --motion-develop: 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-develop-blur: 6px;
+  /* Popovers, menus and tooltips fade in from their trigger's side. */
+  --motion-popover-offset: 4px;
+  /* A changed number's digits roll to their new value, right column first. */
+  --motion-roll: 600ms cubic-bezier(0.22, 1, 0.36, 1);
   /* Overview and article sections fade in and rise once on entering the
-   * viewport, siblings staggered. */
+   * viewport, siblings staggered; the stagger stops growing after
+   * --motion-reveal-stagger-max siblings. */
   --motion-reveal: 520ms cubic-bezier(0.16, 1, 0.3, 1);
   --motion-reveal-offset: 20px;
   --motion-reveal-stagger: 50ms;
+  --motion-reveal-stagger-max: 8;
   /* Hero text: position over --motion-hero, opacity over --motion-hero-fade. */
   --motion-hero: 800ms cubic-bezier(0.32, 0.94, 0.6, 1);
   --motion-hero-fade: 600ms cubic-bezier(0.32, 0.94, 0.6, 1);
@@ -666,6 +679,53 @@
   }
   to {
     clip-path: inset(0 0 0 0);
+  }
+}
+
+/* ── Develop (loaded content replacing its skeleton) ───────────────── */
+@keyframes aegis-develop {
+  from {
+    opacity: 0;
+    filter: blur(var(--motion-develop-blur));
+  }
+}
+
+/* `backwards` fill drops the blur once the content is in, so it never stays
+ * a stacking context. */
+[data-aegis-develop] {
+  animation: aegis-develop var(--motion-develop) backwards;
+}
+
+/* ── Scan (a band of ink sweeping across in-progress text) ─────────── */
+@keyframes aegis-scan {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* ── Popover (antd overlays: see index.css) ────────────────────────── */
+/* An explicit end frame: antd leaves `opacity: 0; transform: scale(0)` on
+ * the entering popup, which an implied end frame would animate towards. */
+@keyframes aegis-popover-in {
+  from {
+    opacity: 0;
+    transform: translate(
+      var(--aegis-popover-from-x, 0),
+      var(--aegis-popover-from-y, 0)
+    );
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes aegis-popover-out {
+  to {
+    opacity: 0;
   }
 }
 

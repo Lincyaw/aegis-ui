@@ -7,6 +7,7 @@ import {
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { useStrings } from '../../locale';
 import './CodeBlock.css';
+import { CopyGlyph } from './CopyGlyph';
 
 export type CodeBlockSurface = PrimitiveSurface<{
   code: string;
@@ -63,6 +64,7 @@ export function CodeBlock({
           onClick={handleCopy}
           aria-label={strings.copyToClipboard}
         >
+          <CopyGlyph copied={copied} />
           {copied ? strings.copied : strings.copy}
         </button>
       </div>

@@ -12,6 +12,7 @@ import {
 } from '../../agent/core/usePrimitiveSurface';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { MetricLabel } from './MetricLabel';
+import { RollingValue } from './RollingValue';
 import './StatBlock.css';
 
 export type StatBlockSurface = PrimitiveSurface<{
@@ -115,9 +116,6 @@ export function StatBlock({
     animateValue && numeric,
     valueRef,
   );
-  const shown = counting
-    ? current.toFixed((String(value).split('.')[1] ?? '').length)
-    : value;
   const cls = [
     'aegis-stat',
     `aegis-stat--${direction}`,
@@ -135,7 +133,11 @@ export function StatBlock({
       </MetricLabel>
       <span className="aegis-stat__measure">
         <span ref={valueRef} className="aegis-stat__value">
-          {shown}
+          {counting ? (
+            current.toFixed((String(value).split('.')[1] ?? '').length)
+          ) : (
+            <RollingValue value={value} />
+          )}
         </span>
         {unit && (
           <MetricLabel inverted={inverted} className="aegis-stat__unit">

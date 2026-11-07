@@ -1,10 +1,16 @@
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 
 import {
+  Button,
+  DataTable,
+  type DataTableColumn,
+  MetricCard,
   MonoValue,
   Panel,
   PanelTitle,
   SectionDivider,
+  StatBlock,
+  Tabs,
 } from '@lincyaw/aegis-ui';
 
 import { AMBIENT_WASH, DATA_COLOR_TOKENS } from '../fixtures';
@@ -27,21 +33,121 @@ const ELEVATION_TOKENS: Array<{ name: string; use: string }> = [
 
 const MOTION_TOKENS: Array<{ name: string; use: string }> = [
   { name: '--motion-fast', use: 'Hover colour, opacity and lift' },
-  { name: '--motion-base', use: 'Switching, expanding, segmented slider' },
-  { name: '--motion-enter', use: 'Dialog and panel entrance' },
-  { name: '--motion-exit', use: 'Dialog and panel exit' },
-  { name: '--motion-chart', use: 'Bar draw and number roll' },
-  { name: '--motion-stagger-step', use: 'Delay between chart rows' },
+  { name: '--motion-base', use: 'Switching and expanding' },
+  { name: '--motion-enter', use: 'Dialog and panel entrance, check draw' },
+  { name: '--motion-exit', use: 'Dialog, panel and popover exit' },
+  { name: '--motion-chart', use: 'Bar draw and count-up' },
+  { name: '--motion-stagger-step', use: 'Delay between chart rows, digits' },
   { name: '--motion-lift', use: 'Hover lift of clickable cards and buttons' },
+  { name: '--motion-lead', use: 'Selection marker edge facing the move' },
+  { name: '--motion-trail', use: 'Selection marker far edge' },
+  { name: '--motion-develop', use: 'Loaded content replacing a skeleton' },
+  { name: '--motion-develop-blur', use: 'Blur that content develops from' },
+  { name: '--motion-popover-offset', use: 'Popover and tooltip approach' },
+  { name: '--motion-roll', use: 'Digits rolling to a changed value' },
   { name: '--motion-reveal', use: 'Overview and article section reveal' },
   { name: '--motion-reveal-offset', use: 'Reveal rise distance' },
   { name: '--motion-reveal-stagger', use: 'Delay between revealed siblings' },
+  {
+    name: '--motion-reveal-stagger-max',
+    use: 'Siblings after which the stagger stops growing',
+  },
   { name: '--motion-hero', use: 'Hero text position' },
   { name: '--motion-hero-fade', use: 'Hero text opacity' },
   { name: '--motion-slide', use: 'Hero carousel slide change' },
   { name: '--carousel-dwell', use: 'Time each carousel slide stays' },
   { name: '--motion-ambient', use: 'One loop of the ambient drift' },
 ];
+
+const MOTION_TABS = [
+  { key: 'traces', label: 'Traces' },
+  { key: 'logs', label: 'Logs' },
+  { key: 'metrics', label: 'Metrics' },
+  { key: 'topology', label: 'Service topology' },
+];
+
+const ROLL_SAMPLES = [
+  { p99: '412', errors: '0.82', spans: '18,204' },
+  { p99: '1,097', errors: '3.15', spans: '18,977' },
+  { p99: '386', errors: '0.40', spans: '21,530' },
+];
+
+/** Digits roll to each new sample, right column first. */
+function RollSpecimen() {
+  const [index, setIndex] = useState(0);
+  const sample = ROLL_SAMPLES[index % ROLL_SAMPLES.length];
+  return (
+    <div className='gallery__stack'>
+      <div className='gallery__row'>
+        <StatBlock
+          direction='vertical'
+          emphasized
+          label='p99'
+          value={sample.p99}
+          unit='ms'
+        />
+        <MetricCard label='Error rate' value={sample.errors} unit='%' />
+        <StatBlock direction='vertical' label='Spans' value={sample.spans} />
+      </div>
+      <div>
+        <Button tone='secondary' onClick={() => setIndex((i) => i + 1)}>
+          Next sample
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface DevelopRow {
+  service: string;
+  p99: string;
+  status: string;
+}
+
+const DEVELOP_ROWS: DevelopRow[] = [
+  { service: 'checkout', p99: '412 ms', status: 'Healthy' },
+  { service: 'payment', p99: '1,097 ms', status: 'Degraded' },
+  { service: 'inventory', p99: '386 ms', status: 'Healthy' },
+];
+
+const DEVELOP_COLUMNS: Array<DataTableColumn<DevelopRow>> = [
+  { key: 'service', header: 'Service', render: (r) => r.service },
+  { key: 'p99', header: 'p99', align: 'right', render: (r) => r.p99 },
+  { key: 'status', header: 'Status', render: (r) => r.status },
+];
+
+const DEVELOP_LOAD_MS = 1200;
+
+/** Rows develop out of a soft blur when the skeleton gives way. */
+function DevelopSpecimen() {
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (!loading) {
+      return undefined;
+    }
+    const id = window.setTimeout(() => setLoading(false), DEVELOP_LOAD_MS);
+    return () => window.clearTimeout(id);
+  }, [loading]);
+  return (
+    <div className='gallery__stack' style={{ width: '100%' }}>
+      <DataTable
+        columns={DEVELOP_COLUMNS}
+        data={DEVELOP_ROWS}
+        rowKey={(r) => r.service}
+        loading={loading}
+      />
+      <div>
+        <Button
+          tone='secondary'
+          disabled={loading}
+          onClick={() => setLoading(true)}
+        >
+          Reload
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 const GLASS_SURFACE: CSSProperties = {
   border: 'var(--size-hairline) solid var(--border-glass)',
@@ -216,6 +322,24 @@ export function ShapeMotionSection() {
             <span className='gallery__type-hint'>{t.use}</span>
           </div>
         ))}
+      </div>
+
+      <SectionDivider>Motion · in primitives</SectionDivider>
+      <div className='gallery__row gallery__row--wide'>
+        <Specimen caption='select · the edge facing the move leads (--motion-lead), the far edge trails (--motion-trail)'>
+          <Tabs items={MOTION_TABS} listOnly />
+        </Specimen>
+        <Specimen caption='roll · changed digits roll in place, right column first (--motion-roll)'>
+          <RollSpecimen />
+        </Specimen>
+      </div>
+      <div className='gallery__row'>
+        <Specimen
+          caption='develop · rows come into focus as the skeleton gives way (--motion-develop)'
+          span={3}
+        >
+          <DevelopSpecimen />
+        </Specimen>
       </div>
     </Panel>
   );

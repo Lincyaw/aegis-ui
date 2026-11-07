@@ -96,3 +96,32 @@ samp {
 :focus:not(:focus-visible) {
   outline: none;
 }
+
+/* antd popovers and tooltips fade in from their trigger's side instead of
+ * zooming out of it. Only the running phase is restyled: rc-trigger
+ * measures the popup in the prepare phase, before any transform applies.
+ * Three classes outrank antd's two. */
+.ant-popover.ant-zoom-big-enter.ant-zoom-big-enter-active,
+.ant-popover.ant-zoom-big-appear.ant-zoom-big-appear-active {
+  animation: aegis-popover-in var(--motion-enter) both;
+}
+.ant-tooltip.ant-zoom-big-fast-enter.ant-zoom-big-fast-enter-active,
+.ant-tooltip.ant-zoom-big-fast-appear.ant-zoom-big-fast-appear-active {
+  animation: aegis-popover-in var(--motion-fast) both;
+}
+.ant-popover.ant-zoom-big-leave.ant-zoom-big-leave-active,
+.ant-tooltip.ant-zoom-big-fast-leave.ant-zoom-big-fast-leave-active {
+  animation: aegis-popover-out var(--motion-exit) both;
+}
+:is(.ant-popover, .ant-tooltip)[class*='-placement-top'] {
+  --aegis-popover-from-y: var(--motion-popover-offset);
+}
+:is(.ant-popover, .ant-tooltip)[class*='-placement-bottom'] {
+  --aegis-popover-from-y: calc(-1 * var(--motion-popover-offset));
+}
+:is(.ant-popover, .ant-tooltip)[class*='-placement-left'] {
+  --aegis-popover-from-x: var(--motion-popover-offset);
+}
+:is(.ant-popover, .ant-tooltip)[class*='-placement-right'] {
+  --aegis-popover-from-x: calc(-1 * var(--motion-popover-offset));
+}

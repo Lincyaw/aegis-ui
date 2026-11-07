@@ -1,5 +1,7 @@
 import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react';
 
+import { flushSync } from 'react-dom';
+
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
@@ -33,14 +35,17 @@ interface TabsProps {
 }
 
 interface TabBox {
-  x: number;
-  y: number;
-  width: number;
+  left: number;
+  right: number;
+  top: number;
   height: number;
 }
 
+/** Which way the indicator travels; the edge facing that way leads. */
+type TabsIndicatorTravel = 'none' | 'forward' | 'backward';
+
 interface TabsIndicator extends TabBox {
-  slide: boolean;
+  travel: TabsIndicatorTravel;
 }
 
 function findSelectedTab(list: HTMLElement): HTMLElement | null {
@@ -53,9 +58,9 @@ function measureSelectedTab(list: HTMLElement): TabBox | null {
     return null;
   }
   return {
-    x: tab.offsetLeft,
-    y: tab.offsetTop,
-    width: tab.offsetWidth,
+    left: tab.offsetLeft,
+    right: list.clientWidth - tab.offsetLeft - tab.offsetWidth,
+    top: tab.offsetTop,
     height: tab.offsetHeight,
   };
 }
@@ -65,7 +70,10 @@ function isSameTabBox(a: TabBox | null, b: TabBox | null): boolean {
     return a === b;
   }
   return (
-    a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
+    a.left === b.left &&
+    a.right === b.right &&
+    a.top === b.top &&
+    a.height === b.height
   );
 }
 
@@ -108,16 +116,29 @@ export function Tabs({
     if (!list) {
       return;
     }
-    const slide =
+    const moved =
       placedKeyRef.current !== undefined && placedKeyRef.current !== activeKey;
     placedKeyRef.current = activeKey;
     const box = measureSelectedTab(list);
-    setIndicator(box && { ...box, slide });
+    setIndicator((current) => {
+      if (!box) {
+        return null;
+      }
+      if (!moved || !current) {
+        return { ...box, travel: 'none' };
+      }
+      return {
+        ...box,
+        travel: box.left < current.left ? 'backward' : 'forward',
+      };
+    });
     scrollSelectedTabIntoView(list);
   }, [activeKey]);
 
   // Tab widths change after web fonts load, when a label's count changes and
-  // when a hidden list is first shown; follow them without sliding.
+  // when a hidden list is first shown; follow them without sliding. The
+  // indicator's right edge is measured from the list's width, so the update
+  // commits before paint, never showing it stretched for a frame.
   useIsomorphicLayoutEffect(() => {
     const list = listRef.current;
     if (!list) {
@@ -125,9 +146,13 @@ export function Tabs({
     }
     const observer = new ResizeObserver(() => {
       const box = measureSelectedTab(list);
-      setIndicator((current) =>
-        isSameTabBox(current, box) ? current : box && { ...box, slide: false },
-      );
+      flushSync(() => {
+        setIndicator((current) =>
+          isSameTabBox(current, box)
+            ? current
+            : box && { ...box, travel: 'none' },
+        );
+      });
     });
     observer.observe(list);
     for (const tab of list.querySelectorAll(':scope > [role="tab"]')) {
@@ -184,14 +209,15 @@ export function Tabs({
           <span
             aria-hidden="true"
             className={
-              indicator.slide
-                ? 'aegis-tabs__indicator aegis-tabs__indicator--slide'
-                : 'aegis-tabs__indicator'
+              indicator.travel === 'none'
+                ? 'aegis-tabs__indicator'
+                : `aegis-tabs__indicator aegis-tabs__indicator--${indicator.travel}`
             }
             style={{
-              width: indicator.width,
+              left: indicator.left,
+              right: indicator.right,
+              top: indicator.top,
               height: indicator.height,
-              transform: `translate(${String(indicator.x)}px, ${String(indicator.y)}px)`,
             }}
           />
         ) : null}

@@ -64,7 +64,9 @@
     color var(--motion-fast);
 }
 
-.aegis-metadata-list__row:hover .aegis-metadata-list__copy {
+/* A copied button stays in view until its check has been seen. */
+.aegis-metadata-list__row:hover .aegis-metadata-list__copy,
+.aegis-metadata-list__copy--copied {
   opacity: 1;
 }
 

@@ -81,6 +81,22 @@
   color: var(--text-terminal-muted);
 }
 
+/* A band of brighter ink sweeps across the label while the call runs. */
+@supports (background-clip: text) {
+  .aegis-tool-call__scan {
+    color: transparent;
+    background: linear-gradient(
+        90deg,
+        var(--text-terminal-muted) 40%,
+        var(--text-terminal) 50%,
+        var(--text-terminal-muted) 60%
+      )
+      0 0 / 300% 100%;
+    background-clip: text;
+    animation: aegis-scan var(--motion-skeleton) linear infinite;
+  }
+}
+
 .aegis-tool-call__status--ok {
   background: var(--bg-terminal-soft);
   color: var(--text-terminal-strong);

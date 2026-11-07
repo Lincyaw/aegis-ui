@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
 
 import './HeadlineStat.css';
+import { RollingValue } from './RollingValue';
 
 export interface HeadlineStatProps {
   /** The figure, e.g. "97.6%" or "46 / 47". */
@@ -22,7 +23,9 @@ export function HeadlineStat({
         .filter(Boolean)
         .join(' ')}
     >
-      <span className="aegis-headline-stat__value">{value}</span>
+      <span className="aegis-headline-stat__value">
+        <RollingValue value={value} />
+      </span>
       <span className="aegis-headline-stat__caption">{caption}</span>
     </div>
   );

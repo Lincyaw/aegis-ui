@@ -1,0 +1,52 @@
+/* One value never breaks between its digit columns. */
+.aegis-rolling-value {
+  position: relative;
+  white-space: nowrap;
+}
+
+.aegis-rolling-value__text {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Every face is generated content inside the aria-hidden span. */
+.aegis-rolling-value__char::before,
+.aegis-rolling-value__digit::before {
+  content: attr(data-char);
+}
+
+/* The digit's own face, transparent, sizes the column. clip-path, not
+ * overflow, crops it: an inline-block that hides its overflow sits on its
+ * bottom edge instead of the text baseline. */
+.aegis-rolling-value__digit {
+  position: relative;
+  display: inline-block;
+  clip-path: inset(0);
+}
+
+.aegis-rolling-value__digit::before {
+  color: transparent;
+}
+
+/* The ten faces, one per line; the column moves up a tenth per digit. */
+.aegis-rolling-value__digit::after {
+  content: '0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9';
+  position: absolute;
+  inset: 0 0 auto;
+  text-align: center;
+  white-space: pre;
+  transform: translateY(calc(var(--aegis-roll-digit) * -10%));
+  transition: transform var(--motion-roll);
+  transition-delay: calc(var(--aegis-roll-column) * var(--motion-stagger-step));
+}
+
+/* The global reduced-motion rule shortens durations but not delays. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-rolling-value__digit::after {
+    transition: none;
+  }
+}

@@ -88,7 +88,9 @@ function StatusChip({ status }: { status: ToolCallStatus }) {
     return (
       <span className="aegis-tool-call__status aegis-tool-call__status--running">
         <span className="aegis-tool-call__spinner" aria-hidden="true" />
-        {strings.toolCallStatus('running')}
+        <span className="aegis-tool-call__scan">
+          {strings.toolCallStatus('running')}
+        </span>
       </span>
     );
   }

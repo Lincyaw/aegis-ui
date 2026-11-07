@@ -1,0 +1,40 @@
+.aegis-copy-glyph {
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  overflow: visible;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.aegis-copy-glyph__page {
+  transform-box: fill-box;
+  transition:
+    opacity var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+/* The check draws itself on copy and vanishes at once when the button
+ * resets, so it never draws backwards. */
+.aegis-copy-glyph__check {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* The back page slides onto the front one (half its size away) as both
+ * fade, then the check draws. */
+.aegis-copy-glyph--copied .aegis-copy-glyph__page {
+  opacity: 0;
+}
+
+.aegis-copy-glyph--copied .aegis-copy-glyph__page--back {
+  transform: translate(50%, 50%);
+}
+
+.aegis-copy-glyph--copied .aegis-copy-glyph__check {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--motion-enter);
+}

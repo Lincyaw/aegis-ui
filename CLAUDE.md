@@ -132,16 +132,34 @@ Sans SC, so Apple devices render Chinese in the system face.
   `--border-glass` + `--shadow-rest`) only on surfaces layered over
   content or the ambient wash, never on tables or body text.
 - **Motion**: `--motion-*` tokens only. Every state change decelerates
-  into place: the token curves decelerate and no transition names `ease`,
-  `linear` or `ease-in-out`; only constant loops (spinners, shimmer, the
-  carousel progress) run linear, and the ambient drift swings both ways.
-  Clickable cards and buttons rise `--motion-lift` and step to
-  `--shadow-raised` on hover and settle back into place when pressed;
-  nothing scales or rotates; content that cannot be clicked has no hover
-  effect. Overview and article surfaces add `--motion-reveal`,
-  `--motion-hero`, `--motion-slide` / `--carousel-dwell` and the
-  `--motion-ambient` drift. Under `prefers-reduced-motion` everything is
-  instant and nothing autoplays.
+  into place with no overshoot: the token curves decelerate and no
+  transition names `ease`, `linear` or `ease-in-out`; only constant loops
+  (spinners, shimmer, scan, the carousel progress) run linear, and the
+  ambient drift swings both ways. Clickable cards and buttons rise
+  `--motion-lift` and step to `--shadow-raised` on hover and settle back
+  into place when pressed; nothing scales or rotates; content that cannot
+  be clicked has no hover effect. Overview and article surfaces add
+  `--motion-reveal`, `--motion-hero`, `--motion-slide` / `--carousel-dwell`
+  and the `--motion-ambient` drift. Under `prefers-reduced-motion`
+  everything is instant and nothing autoplays.
+- **Motion moments**: each kind of change has one motion, shared by every
+  primitive that shows it.
+  - _Select_: a marker moving between items leads with the edge facing the
+    move (`--motion-lead`) and trails with the far edge (`--motion-trail`),
+    so it stretches across and settles (Tabs).
+  - _Develop_: content that replaces a skeleton, and a revealed section,
+    comes into focus out of `--motion-develop-blur` (`[data-aegis-develop]`
+    with `useDevelopAfterLoad`, Reveal).
+  - _Roll_: a changed number's digits roll to the new value, right column
+    first (`--motion-roll`, StatBlock / MetricCard / HeadlineStat).
+  - _Draw_: a confirmation draws its check (`--motion-enter`, the copy
+    buttons).
+  - _Scan_: in-progress text carries a band of brighter ink
+    (`aegis-scan`, ToolCallCard while running).
+  - _Approach_: popovers, menus and tooltips fade in
+    `--motion-popover-offset` from their trigger's side, never zoom
+    (`index.css` restyles antd's popover and tooltip motion;
+    `antdTheme.ts` maps every antd easing onto the two token curves).
 - **Focus**: a `--focus-ring-width` outline in `--focus-ring-color` at
   `--focus-ring-offset`; fields show an `--accent-brand` border plus
   `--focus-halo`. Every interactive element shows it on `:focus-visible`,
@@ -231,7 +249,7 @@ themselves render content only, never the layout chrome.
 | `packages/ui/src/theme/antdTheme.ts`                    | Ant Design `ConfigProvider` mapped to our tokens                                                          |
 | `packages/ui/src/index.ts`                              | Library public API barrel                                                                                 |
 | `packages/ui/src/vite.ts`                               | Build-time Vite preset (`aegisMdx`), published as `@lincyaw/aegis-ui/vite`                                |
-| `packages/ui/src/index.css`                             | Global reset + scrollbar + focus ring                                                                     |
+| `packages/ui/src/index.css`                             | Global reset + scrollbar + focus ring + antd popover / tooltip motion                                     |
 | `packages/ui/package.json`                              | Library publish config — name, version, exports                                                           |
 | `packages/ui/vite.config.ts`                            | Library build (ESM + CJS + d.ts + style.css)                                                              |
 | `apps/console/src/apps/gallery/`                        | Live spec — `sections/<Group>.tsx` per gallery section, `shared.tsx` / `fixtures.ts` / `columns.tsx`      |

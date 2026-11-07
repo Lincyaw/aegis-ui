@@ -1,5 +1,6 @@
 import { type ReactNode, useState } from 'react';
 
+import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
 import './ObjectBrowser.css';
@@ -72,6 +73,7 @@ export function ObjectBrowser({
   className,
 }: ObjectBrowserProps) {
   const [treeCollapsed, setTreeCollapsed] = useState(defaultTreeCollapsed);
+  const develop = useDevelopAfterLoad(loading);
 
   const showTree = !hideTree && !treeCollapsed;
   const cls = [
@@ -174,7 +176,10 @@ export function ObjectBrowser({
               {dragOverlay}
             </div>
           ) : null}
-          <div className="aegis-object-browser__body">
+          <div
+            className="aegis-object-browser__body"
+            data-aegis-develop={develop || undefined}
+          >
             {loading ? (
               <div className="aegis-object-browser__skeleton" aria-busy="true">
                 <Skeleton block height="var(--space-8)" />

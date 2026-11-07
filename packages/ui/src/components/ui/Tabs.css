@@ -26,18 +26,27 @@
 
 .aegis-tabs__indicator {
   position: absolute;
-  top: 0;
-  left: 0;
   background: var(--bg-panel);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-rest);
   pointer-events: none;
 }
 
-.aegis-tabs__indicator--slide {
+/* The edge facing the new tab leads and the far edge trails, so the
+ * indicator stretches across both tabs and then settles on the new one. */
+.aegis-tabs__indicator--forward {
   transition:
-    transform var(--motion-base),
-    width var(--motion-base),
+    right var(--motion-lead),
+    left var(--motion-trail),
+    top var(--motion-base),
+    height var(--motion-base);
+}
+
+.aegis-tabs__indicator--backward {
+  transition:
+    left var(--motion-lead),
+    right var(--motion-trail),
+    top var(--motion-base),
     height var(--motion-base);
 }
 
@@ -84,7 +93,8 @@
     scroll-behavior: auto;
   }
 
-  .aegis-tabs__indicator--slide {
+  .aegis-tabs__indicator--forward,
+  .aegis-tabs__indicator--backward {
     transition: none;
   }
 }

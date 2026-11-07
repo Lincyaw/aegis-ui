@@ -48,6 +48,14 @@ const RADIUS = {
   pill: 999,
 };
 
+/* theme.css's decelerating and exit curves. antd's back and in-out easings
+ * would overshoot or ease both ways. antd also uses its in-out-circ and
+ * in-back easings for entrances and state changes (radio, progress,
+ * message, checkbox), so only in-quint, which it uses for leaving alone,
+ * takes the exit curve. */
+const EASE_SETTLE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const EASE_EXIT = 'cubic-bezier(0.4, 0, 1, 1)';
+
 interface Palette {
   bgPage: string;
   bgPanel: string;
@@ -184,6 +192,14 @@ function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
       motionDurationMid: '0.2s',
       motionDurationFast: '0.15s',
       motionDurationSlow: '0.25s',
+      motionEaseOut: EASE_SETTLE,
+      motionEaseOutCirc: EASE_SETTLE,
+      motionEaseOutQuint: EASE_SETTLE,
+      motionEaseOutBack: EASE_SETTLE,
+      motionEaseInOut: EASE_SETTLE,
+      motionEaseInOutCirc: EASE_SETTLE,
+      motionEaseInBack: EASE_SETTLE,
+      motionEaseInQuint: EASE_EXIT,
     },
     components: {
       Tree: {

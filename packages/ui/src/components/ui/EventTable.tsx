@@ -19,6 +19,7 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
+import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
 import { EmptyState } from './EmptyState';
 import './EventTable.css';
 import { Skeleton } from './Skeleton';
@@ -206,6 +207,7 @@ export function EventTable<T>({
   const headerCells = table.getHeaderGroups()[0]?.headers ?? [];
 
   const showEmpty = !loading && rows.length === 0;
+  const develop = useDevelopAfterLoad(loading ?? false);
 
   return (
     <div className={rootCls} role="grid">
@@ -233,6 +235,7 @@ export function EventTable<T>({
         ref={scrollRef}
         className="aegis-event-table__scroll"
         style={scrollStyle}
+        data-aegis-develop={develop || undefined}
         onScroll={handleScroll}
       >
         {loading ? (

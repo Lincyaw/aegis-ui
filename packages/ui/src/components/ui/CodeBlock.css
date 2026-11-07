@@ -27,6 +27,9 @@
 }
 
 .aegis-code-block__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   font-family: var(--font-ui);
   font-size: var(--fs-10);
   font-weight: var(--fw-medium);
@@ -39,6 +42,11 @@
   transition:
     color var(--motion-fast),
     background var(--motion-fast);
+}
+
+.aegis-code-block__copy > .aegis-copy-glyph {
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
 }
 
 .aegis-code-block__copy:hover {
