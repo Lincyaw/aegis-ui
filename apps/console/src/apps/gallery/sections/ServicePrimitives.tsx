@@ -2069,7 +2069,7 @@ export function ServicePrimitivesSection() {
       </SectionDivider>
       <div className='gallery__stack'>
         <Specimen
-          caption='8-span trace · depth tree · no onSelect, so rows are not buttons · hover the track for the time under the pointer'
+          caption='8-span trace · depth tree · no onSelect, so rows are not buttons · the axis keeps one unit and drops ticks on a narrow track · hover the track for the time under the pointer'
           span={3}
         >
           <TimelineChartDepthSpecimen />
@@ -2077,7 +2077,10 @@ export function ServicePrimitivesSection() {
         <Specimen caption='500 spans · virtualized · 3 kinds' span={3}>
           <TimelineChartLargeSpecimen />
         </Specimen>
-        <Specimen caption='onSelect · each row is a button' span={3}>
+        <Specimen
+          caption='onSelect · each row is a button · the selected row is aria-current'
+          span={3}
+        >
           <TimelineChartSelectableSpecimen />
         </Specimen>
       </div>

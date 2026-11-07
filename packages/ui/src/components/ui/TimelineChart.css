@@ -53,6 +53,11 @@
   pointer-events: none;
 }
 
+.aegis-timeline-chart__tick--end .aegis-timeline-chart__tick-label {
+  left: auto;
+  right: var(--space-1);
+}
+
 .aegis-timeline-chart__body {
   position: relative;
   overflow-y: auto;

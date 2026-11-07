@@ -1,4 +1,4 @@
-import { formatBytes, formatDuration } from '../../lib/format';
+import { formatBytes, formatDurationEstimate } from '../../lib/format';
 import { Button } from './Button';
 import { EmptyState } from './EmptyState';
 import type { FileDropzoneItem } from './FileDropzone';
@@ -77,7 +77,7 @@ export function UploadQueue({
             <>
               <MetricLabel>·</MetricLabel>
               <MonoValue size="sm">
-                ETA {formatDuration(maxEta * 1000)}
+                ETA {formatDurationEstimate(maxEta * 1000)}
               </MonoValue>
             </>
           ) : null}
@@ -107,7 +107,7 @@ export function UploadQueue({
                       ? ' · '
                       : null}
                     {it.etaSeconds !== undefined
-                      ? `ETA ${formatDuration(it.etaSeconds * 1000)}`
+                      ? `ETA ${formatDurationEstimate(it.etaSeconds * 1000)}`
                       : null}
                   </MonoValue>
                 ) : null}

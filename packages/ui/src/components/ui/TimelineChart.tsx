@@ -12,8 +12,9 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { Tooltip } from 'antd';
 
 import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
-import { type ChartColor, chartColorValue, niceTicks } from '../../lib/chart';
-import { formatDuration } from '../../lib/format';
+import { useElementWidth } from '../../hooks/useElementWidth';
+import { type ChartColor, chartColorValue } from '../../lib/chart';
+import { durationTicks, formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Skeleton';
@@ -79,7 +80,9 @@ function timelineRows(spans: TraceSpan[]): TimelineRow[] {
 const INDENT_PX = 12;
 const DEFAULT_ROW_HEIGHT = 24;
 const DEFAULT_MAX_VISIBLE_ROWS = 20;
-const APPROX_TICK_COUNT = 6;
+const MAX_TICK_COUNT = 6;
+/** Room each tick needs for its label, so labels never crowd. */
+const TICK_SPACING_PX = 72;
 
 const KIND_COLORS: ChartColor[] = [
   'cat-1',
@@ -111,11 +114,25 @@ interface TickSpec {
   label: string;
 }
 
-/** Ticks at round offsets from the start: 0, 200 ms, 400 ms, … */
-function buildTicks(minNs: number, maxNs: number): TickSpec[] {
-  return niceTicks(0, maxNs - minNs, APPROX_TICK_COUNT).map((offset) => ({
-    ns: minNs + offset,
-    label: formatDuration(offset / NS_PER_MS),
+/**
+ * Ticks at round offsets from the start, all in one unit, as many as the
+ * track's width leaves room for: 0 ms, 200 ms, 400 ms, …
+ */
+function buildTicks(
+  minNs: number,
+  maxNs: number,
+  trackWidth: number,
+): TickSpec[] {
+  const count =
+    trackWidth > 0
+      ? Math.min(
+          Math.max(Math.floor(trackWidth / TICK_SPACING_PX), 1),
+          MAX_TICK_COUNT,
+        )
+      : MAX_TICK_COUNT;
+  return durationTicks((maxNs - minNs) / NS_PER_MS, count).map((tick) => ({
+    ns: minNs + tick.ms * NS_PER_MS,
+    label: tick.label,
   }));
 }
 
@@ -140,6 +157,8 @@ export function TimelineChart({
   const guideTrackRef = useRef<HTMLDivElement>(null);
   const guideRef = useRef<HTMLDivElement>(null);
   const guideLabelRef = useRef<HTMLDivElement>(null);
+  const axisTicksRef = useRef<HTMLDivElement>(null);
+  const trackWidth = useElementWidth(axisTicksRef);
   const rows = useMemo(() => timelineRows(spans), [spans]);
 
   const derived = useMemo(() => {
@@ -167,7 +186,10 @@ export function TimelineChart({
   const maxNs = maxMs === undefined ? derived.maxNs : maxMs * NS_PER_MS;
   const range = Math.max(maxNs - minNs, 1);
 
-  const ticks = useMemo(() => buildTicks(minNs, maxNs), [minNs, maxNs]);
+  const ticks = useMemo(
+    () => buildTicks(minNs, maxNs, trackWidth),
+    [minNs, maxNs, trackWidth],
+  );
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -225,13 +247,21 @@ export function TimelineChart({
           className="aegis-timeline-chart__axis-label-gutter"
           aria-hidden="true"
         />
-        <div className="aegis-timeline-chart__axis-ticks">
+        <div ref={axisTicksRef} className="aegis-timeline-chart__axis-ticks">
           {ticks.map((tick) => {
             const left = ((tick.ns - minNs) / range) * 100;
+            // A label with no room after its tick sits before it instead.
+            const atEnd =
+              trackWidth > 0 &&
+              ((100 - left) / 100) * trackWidth < TICK_SPACING_PX / 2;
             return (
               <div
                 key={tick.ns}
-                className="aegis-timeline-chart__tick"
+                className={
+                  atEnd
+                    ? 'aegis-timeline-chart__tick aegis-timeline-chart__tick--end'
+                    : 'aegis-timeline-chart__tick'
+                }
                 style={{ left: `${left.toFixed(4)}%` }}
               >
                 <span className="aegis-timeline-chart__tick-label">
@@ -330,7 +360,7 @@ export function TimelineChart({
                   data-id={span.id}
                   role={onSelect ? 'button' : undefined}
                   tabIndex={onSelect ? 0 : undefined}
-                  aria-pressed={onSelect ? isSelected : undefined}
+                  aria-current={isSelected ? 'true' : undefined}
                   onClick={
                     onSelect
                       ? () => {
