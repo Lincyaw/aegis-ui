@@ -78,3 +78,10 @@ Fixed:
   badge dot, and a failed environment load reads "Env error".
 - `SavedQueryBar`'s save field gets a unique id, so two bars on one page
   no longer share a label target.
+- At 768 px and below an app's own header row is inset like the page
+  content, and the closed navigation drawer is hidden once it has slid
+  out, so it casts no shadow at the screen edge and its links leave the
+  tab order.
+- `TableOfContents` and `SiteAnchorNav` pick the current section again
+  when content around the sections grows or shrinks (a diagram or image
+  rendering), instead of waiting for the next scroll.

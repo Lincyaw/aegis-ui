@@ -136,10 +136,38 @@ export function useSectionSpy({
     for (const section of sections) {
       observer.observe(section);
     }
+    /* Content that grows or shrinks after the first measurement (a diagram
+     * or image rendering) moves the sections without a scroll and often
+     * without an intersection change, so their parents and siblings are
+     * watched too. */
+    let frame = 0;
+    const resizeObserver = new ResizeObserver(() => {
+      if (frame === 0) {
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          sync();
+        });
+      }
+    });
+    const resized = new Set<Element>(sections);
+    for (const section of sections) {
+      const parent = section.parentElement;
+      if (parent) {
+        resized.add(parent);
+        for (const sibling of parent.children) {
+          resized.add(sibling);
+        }
+      }
+    }
+    for (const element of resized) {
+      resizeObserver.observe(element);
+    }
     const scrollEvents: EventTarget = scrollContainer ?? document;
     scrollEvents.addEventListener('scrollend', handleScrollEnd);
     return () => {
       observer.disconnect();
+      resizeObserver.disconnect();
+      cancelAnimationFrame(frame);
       scrollEvents.removeEventListener('scrollend', handleScrollEnd);
     };
   }, [sectionIds, activationPercent, scrollContainer, track]);
