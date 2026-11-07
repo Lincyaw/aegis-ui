@@ -1985,6 +1985,12 @@ export function ServicePrimitivesSection() {
         <Specimen caption='no span timed · labels only' span={3}>
           <TraceTree spans={traceTreeUntimedSpans} />
         </Specimen>
+        <Specimen
+          caption='children listed before parents nest at their depth · a parent cycle is cut, not dropped · one tab stop: ↑ ↓ move, → expands then enters, ← collapses then leaves, Enter selects'
+          span={3}
+        >
+          <TraceTreeUnorderedSpecimen />
+        </Specimen>
       </div>
 
       <SectionDivider extra={<MetricLabel>OTel agent traces</MetricLabel>}>
@@ -2056,12 +2062,6 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <ResizableSidePanelStackedSpecimen />
-        </Specimen>
-        <Specimen
-          caption='children listed before parents nest at their depth · a parent cycle is cut, not dropped · one tab stop: ↑ ↓ move, → expands then enters, ← collapses then leaves, Enter selects'
-          span={3}
-        >
-          <TraceTreeUnorderedSpecimen />
         </Specimen>
       </div>
     </Panel>
