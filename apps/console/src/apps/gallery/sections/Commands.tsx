@@ -8,6 +8,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import {
+  Button,
   type Command,
   CommandPalette,
   CommandProvider,
@@ -18,10 +19,11 @@ import {
   useCommands,
   useRegisterCommands,
 } from '@lincyaw/aegis-ui';
-import { Button } from 'antd';
+
+const GROUP_ORDER = ['Quick actions', 'Navigate', 'Settings'];
 
 function CommandGallerySpecimen(): ReactNode {
-  const { setPaletteOpen } = useCommands();
+  const { commands, paletteOpen, setPaletteOpen, execute } = useCommands();
   const cmds: Command[] = [
     {
       id: 'projects.create',
@@ -92,12 +94,21 @@ function CommandGallerySpecimen(): ReactNode {
 
   return (
     <div className='gallery__specimen-row'>
-      <Button type='primary' onClick={() => setPaletteOpen(true)}>
+      <Button onClick={() => setPaletteOpen(true)}>
         Open palette (or press ⌘K)
       </Button>
       <span className='gallery__specimen-hint'>
         mod+k toggles globally while a CommandProvider is mounted.
       </span>
+      <CommandPalette
+        open={paletteOpen}
+        commands={commands}
+        groupOrder={GROUP_ORDER}
+        onClose={() => setPaletteOpen(false)}
+        onSelect={(cmd) => {
+          void execute(cmd.id);
+        }}
+      />
     </div>
   );
 }
@@ -111,13 +122,15 @@ export function CommandsSection() {
       <p className='gallery__panel-body'>
         A command registry + searchable palette. Mount{' '}
         <code>&lt;CommandProvider&gt;</code> once, then register commands per
-        app via <code>useRegisterCommands</code>. Press <code>⌘K</code> /{' '}
-        <code>Ctrl+K</code> to toggle, or click the button below.
+        app via <code>useRegisterCommands</code>. The palette takes the
+        registry&apos;s commands and open state as props;{' '}
+        <code>AegisShell enableCommandPalette</code> wires it for you. Press{' '}
+        <code>⌘K</code> / <code>Ctrl+K</code> to toggle, or click the button
+        below.
       </p>
       <SectionDivider>CommandPalette</SectionDivider>
       <CommandProvider>
         <CommandGallerySpecimen />
-        <CommandPalette />
       </CommandProvider>
     </Panel>
   );

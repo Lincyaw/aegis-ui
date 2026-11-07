@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import type { RouteObject } from 'react-router-dom';
 
-import type { AegisRuntime } from '../../agent/core/runtime';
+import type { AegisRuntime } from '../../agent';
 import type { Command } from '../../commands';
 import type { AmbientBackgroundVariant } from '../../components/ui/AmbientBackground';
 import type { AegisAppEnvironmentsConfig } from './environments/types';
@@ -102,17 +102,13 @@ export interface AegisApp {
    */
   requiredRoles?: string[];
   /**
-   * Seed URL for backend-declared environment discovery. When set, the shell
-   * fetches `<apiBaseUrl><environments.discoveryPath>` (default
-   * `/.well-known/aegis-environments.json`) and renders an `<EnvironmentSwitcher>`
-   * in the top header for the active app. Apps observe selection via
-   * `useCurrentEnvironment()` or the `app.environmentChanged` runtime event.
-   *
-   * The shell does not rewrite axios base URLs — it surfaces the choice;
+   * The app's backend-declared environments. While the app is active the
+   * shell loads them with `environments.load()` and renders an
+   * `<EnvironmentSwitcher>` in the top header; apps read the choice with
+   * `useCurrentEnvironment()` or the `app.environmentChanged` window event.
+   * The shell does not rewrite API base URLs — it surfaces the choice;
    * apps consume it.
    */
-  apiBaseUrl?: string;
-  /** Optional knobs for environment discovery. See AegisAppEnvironmentsConfig. */
   environments?: AegisAppEnvironmentsConfig;
 }
 
@@ -180,10 +176,12 @@ export interface AegisShellProps {
    */
   ambient?: AmbientBackgroundVariant;
   /**
-   * When set, a notification bell is rendered in the top header (between
-   * `headerActions` and the user menu) and clicking "View all" routes to
-   * this path. When omitted, the bell is not rendered — apps without a
-   * notification provider don't show an empty bell.
+   * When set, a notification bell filled from `<NotificationProvider>` is
+   * rendered in the top header (between `headerActions` and the user menu)
+   * and clicking "View all" routes to this path; mount
+   * `<NotificationInboxPage>` there. When omitted, the bell is not
+   * rendered — apps without a notification provider don't show an empty
+   * bell.
    */
   inboxPath?: string;
   /** Fired when the user navigates between apps. */
@@ -196,6 +194,8 @@ export interface AegisShellProps {
    * Don't also render <CommandPalette/> yourself.
    */
   enableCommandPalette?: boolean;
+  /** The palette's group labels in display order; see CommandPalette's `groupOrder`. */
+  commandGroupOrder?: string[];
   /**
    * When provided, AegisShell renders the node (typically <AgentPanel/>
    * filled from useAgentChat()) as a right-side column while the agent

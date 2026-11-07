@@ -32,6 +32,11 @@ export interface NotificationContextValue<TItem = AegisNotification> {
   unreadCount: number;
   /** True while initial load or refetch is pending. */
   loading: boolean;
+  /**
+   * Why the last load failed, or null once a load succeeds. The inbox
+   * shows it with a retry through `refetch`.
+   */
+  error?: Error | null;
   markRead?: (id: string) => Promise<void> | void;
   markAllRead?: () => Promise<void> | void;
   archive?: (id: string) => Promise<void> | void;

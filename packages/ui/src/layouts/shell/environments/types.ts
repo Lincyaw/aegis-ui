@@ -1,12 +1,11 @@
 /**
- * Backend-declared environment discovery — public types.
+ * Backend-declared environments — public types.
  *
- * Each AegisApp may opt-in to environment discovery by setting `apiBaseUrl`
- * + (optionally) `environments`. The shell fetches a manifest from
- * `<apiBaseUrl><discoveryPath>` (default `/.well-known/aegis-environments.json`)
- * and surfaces the env list through the `<EnvironmentSwitcher>` mounted in
- * the top header. Apps subscribe to the `app.environmentChanged` runtime
- * event (or read `useCurrentEnvironment()`) to react to switches.
+ * An AegisApp opts in by setting `environments`. When the app becomes
+ * active the shell calls `environments.load()` and surfaces the result
+ * through the `<EnvironmentSwitcher>` in the top header. Apps read the
+ * choice with `useCurrentEnvironment()` or listen for the
+ * `app.environmentChanged` window event.
  */
 
 export type EnvironmentBadge = 'default' | 'info' | 'warning' | 'danger';
@@ -19,20 +18,25 @@ export interface EnvironmentDescriptor {
 }
 
 export interface EnvironmentManifest {
+  /** Id of the environment chosen until the user picks another. */
   default: string;
   environments: EnvironmentDescriptor[];
 }
 
 export interface AegisAppEnvironmentsConfig {
-  /** Path appended to `apiBaseUrl`. Default `/.well-known/aegis-environments.json`. */
-  discoveryPath?: string;
   /**
-   * What to do when the manifest is missing / 404 / schema invalid.
-   * - `production` (default) — show a single synthetic prod env, hide the switcher.
-   * - `hidden` — render nothing.
+   * Loads the app's manifest. Called once a session when the app first
+   * becomes active, and again on retry. Resolve `null` when the backend
+   * declares no environments; reject when loading fails, and the header
+   * reports the failure.
    */
-  fallback?: 'production' | 'hidden';
-  /** localStorage key. Default `aegis.env.${app.id}`. */
+  load: (signal: AbortSignal) => Promise<EnvironmentManifest | null>;
+  /**
+   * The environment reported while the backend declares none. Omitted,
+   * `useCurrentEnvironment()` returns null then.
+   */
+  fallback?: EnvironmentDescriptor;
+  /** localStorage key of the user's choice. Default `aegis.env.${app.id}`. */
   storageKey?: string;
 }
 
@@ -49,11 +53,16 @@ export type EnvironmentManifestStatus =
   | {
       status: 'unsupported';
       currentEnv: EnvironmentDescriptor;
+    }
+  | {
+      status: 'error';
+      error: Error;
+      retry: () => void;
     };
 
 export interface EnvironmentChangedEventDetail {
   appId: string;
-  fromEnvId: string | null;
+  fromEnvId: string;
   toEnvId: string;
   env: EnvironmentDescriptor;
 }

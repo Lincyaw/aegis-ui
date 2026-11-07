@@ -2,17 +2,28 @@ import { type ReactElement, useState } from 'react';
 
 import { BellOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
-import { type AegisNotification, useNotifications } from '../../notifications';
+import type { AegisNotification } from '../../notifications';
 import './NotificationBell.css';
+import { DefaultLink, type LinkComponent } from './linkComponent';
 import { relativeTime } from './relativeTime';
 
-interface NotificationBellProps {
+export interface NotificationBellProps {
+  /** Newest first; the popover previews the first few. */
+  items: AegisNotification[];
+  /** Shown on the badge. Defaults to the number of unread `items`. */
+  unreadCount?: number;
+  /**
+   * Fired when the user opens an item; the popover closes first. The host
+   * marks it read and navigates to `item.to`.
+   */
+  onOpen?: (item: AegisNotification) => void;
   /** Path to the full inbox page, e.g. '/inbox'. */
   inboxPath: string;
+  /** Renders the "View all" link. Defaults to an `<a href>`. */
+  linkComponent?: LinkComponent;
   /** Override popover width in px. Defaults to 360. */
   width?: number;
   /** Optional aegis-ui agent action — fired when the bell is clicked. */
@@ -23,25 +34,22 @@ const MAX_PREVIEW_ITEMS = 8;
 const DEFAULT_WIDTH = 360;
 
 export function NotificationBell({
+  items,
+  unreadCount = items.filter((n) => !n.read).length,
+  onOpen,
   inboxPath,
+  linkComponent: LinkImpl = DefaultLink,
   width = DEFAULT_WIDTH,
   action,
 }: NotificationBellProps): ReactElement {
-  const { items, unreadCount, markRead } = useNotifications();
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
   const bound = useAegisAction<void, unknown>(action);
 
   const preview = items.slice(0, MAX_PREVIEW_ITEMS);
 
   const handleItemClick = (item: AegisNotification): void => {
-    if (!item.read && markRead) {
-      void markRead(item.id);
-    }
     setOpen(false);
-    if (item.to) {
-      navigate(item.to);
-    }
+    onOpen?.(item);
   };
 
   const content = (
@@ -95,16 +103,16 @@ export function NotificationBell({
           ))}
         </ul>
       )}
-      <div className="aegis-notif-pop__foot">
-        <Link
-          to={inboxPath}
-          className="aegis-notif-pop__view-all"
-          onClick={() => {
-            setOpen(false);
-          }}
-        >
+      {/* Following the link closes the popover. */}
+      <div
+        className="aegis-notif-pop__foot"
+        onClickCapture={() => {
+          setOpen(false);
+        }}
+      >
+        <LinkImpl to={inboxPath} className="aegis-notif-pop__view-all">
           View all
-        </Link>
+        </LinkImpl>
       </div>
     </div>
   );

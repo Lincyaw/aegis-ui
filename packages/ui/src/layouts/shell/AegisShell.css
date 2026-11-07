@@ -244,6 +244,10 @@
   margin-left: auto;
 }
 
+.aegis-shell__env-error {
+  display: inline-flex;
+}
+
 .aegis-shell__sidebar {
   grid-area: sidebar;
   position: sticky;

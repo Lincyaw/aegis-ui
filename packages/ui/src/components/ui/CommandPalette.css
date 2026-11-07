@@ -1,53 +1,57 @@
-.aegis-cmdk {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-modal);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 10vh;
+/* A fixed height keeps the centred dialog still while the matches change. */
+.aegis-dialog.aegis-cmdk {
+  max-width: var(--cmdk-width);
+  height: var(--cmdk-max-height);
 }
 
-.aegis-cmdk__backdrop {
-  position: absolute;
-  inset: 0;
-  background: var(--bg-backdrop);
-  border: 0;
-  padding: 0;
-  margin: 0;
-  cursor: default;
-}
-
-.aegis-cmdk__card {
-  position: relative;
-  width: var(--cmdk-width);
-  max-width: calc(100vw - var(--space-8));
-  max-height: var(--cmdk-max-height);
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-panel);
-  border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-overlay);
+.aegis-cmdk .aegis-dialog__body {
+  gap: var(--space-3);
   overflow: hidden;
-  animation: page-fade-in var(--motion-base) both;
 }
 
-.aegis-cmdk__input-row {
-  border-bottom: var(--size-hairline) solid var(--border-hairline);
-  padding: var(--space-3) var(--space-4);
+.aegis-cmdk__field {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--size-control-lg);
+  padding: 0 var(--space-4);
+  background: var(--bg-page);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.aegis-cmdk__field:hover {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-cmdk__field:focus-within {
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
+}
+
+.aegis-cmdk__field-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: var(--size-icon-md);
 }
 
 .aegis-cmdk__input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--text-main);
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
   font-family: var(--font-ui);
-  font-size: var(--fs-16);
-  font-weight: var(--fw-regular);
-  padding: var(--space-1) 0;
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  line-height: var(--type-body-line);
+  letter-spacing: var(--type-body-tracking);
+  color: var(--text-main);
 }
 
 .aegis-cmdk__input::placeholder {
@@ -55,8 +59,9 @@
 }
 
 .aegis-cmdk__results {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
-  padding: var(--space-2) 0;
 }
 
 .aegis-cmdk__group + .aegis-cmdk__group {
@@ -64,87 +69,110 @@
 }
 
 .aegis-cmdk__group-label {
+  padding: var(--space-2) var(--space-3) var(--space-1);
   font-family: var(--font-ui);
-  font-size: var(--fs-10);
-  font-weight: var(--fw-medium);
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  line-height: var(--type-micro-line);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--text-muted);
-  padding: var(--space-2) var(--space-4) var(--space-1);
 }
 
-.aegis-cmdk__row {
-  width: 100%;
+.aegis-cmdk__option {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  background: transparent;
-  border: 0;
-  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  color: var(--text-main);
   font-family: var(--font-ui);
-  transition: background var(--motion-fast);
+  color: var(--text-main);
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
 }
 
-.aegis-cmdk__row--active {
-  background: var(--bg-muted);
+.aegis-cmdk__option--active {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
 }
 
-.aegis-cmdk__row-icon {
+.aegis-cmdk__option-icon {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: var(--size-icon-lg);
   height: var(--size-icon-lg);
+  font-size: var(--size-icon-base);
   color: var(--text-muted);
-  flex-shrink: 0;
 }
 
-.aegis-cmdk__row-body {
+.aegis-cmdk__option-body {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-px);
   flex: 1;
+  flex-direction: column;
   min-width: 0;
 }
 
-.aegis-cmdk__row-label {
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  color: var(--text-main);
+.aegis-cmdk__option-label {
   overflow: hidden;
+  font-size: var(--type-strong-size);
+  font-weight: var(--type-strong-weight);
+  line-height: var(--type-strong-line);
+  letter-spacing: var(--type-strong-tracking);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.aegis-cmdk__row-desc {
-  font-size: var(--fs-11);
-  color: var(--text-muted);
+.aegis-cmdk__option-desc {
   overflow: hidden;
+  font-size: var(--type-small-size);
+  font-weight: var(--type-small-weight);
+  line-height: var(--type-small-line);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.aegis-cmdk__row-shortcut {
-  font-family: var(--font-mono);
-  font-size: var(--fs-11);
-  color: var(--text-muted);
-  background: var(--bg-muted);
-  border-radius: var(--radius-sm);
-  padding: var(--space-px) var(--space-2);
+.aegis-cmdk__option-shortcut {
   flex-shrink: 0;
-}
-
-.aegis-cmdk__row--active .aegis-cmdk__row-shortcut {
-  background: var(--bg-panel);
-}
-
-.aegis-cmdk__hint {
-  padding: var(--space-6) var(--space-4);
-  text-align: center;
-  font-family: var(--font-ui);
-  font-size: var(--fs-13);
+  padding: 0 var(--space-1);
+  background: var(--bg-muted);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.aegis-cmdk__option--active .aegis-cmdk__option-icon,
+.aegis-cmdk__option--active .aegis-cmdk__option-desc {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-cmdk__option--active .aegis-cmdk__option-shortcut {
+  background: none;
+  border-color: var(--border-on-inverted);
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-cmdk__empty {
+  margin: 0;
+  padding: var(--space-6) var(--space-4);
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .aegis-cmdk__option-desc {
+    white-space: normal;
+  }
 }

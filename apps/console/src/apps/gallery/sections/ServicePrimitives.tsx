@@ -1,11 +1,4 @@
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 
 import {
   Button as AegisButton,
@@ -49,6 +42,7 @@ import {
   TraceTree,
   UploadQueue,
   useCopyToClipboard,
+  useSavedQueries,
   zhCNStrings,
 } from '@lincyaw/aegis-ui';
 
@@ -120,78 +114,99 @@ function QueryAutocompleteSpecimen(): ReactNode {
   );
 }
 
+const SAVED_QUERY_SEED: SavedQuery[] = [
+  {
+    id: 'seed-failed',
+    name: 'Failed runs · 24h',
+    value: 'status:failed AND ts:>now-24h',
+    pinned: true,
+    lastUsedAt: 3,
+  },
+  {
+    id: 'seed-slow',
+    name: 'Slow traces',
+    value: 'duration:>1000ms',
+    pinned: true,
+    lastUsedAt: 2,
+  },
+  {
+    id: 'seed-checkout',
+    name: 'Checkout errors',
+    value: 'service.name:checkout AND error:true',
+    pinned: false,
+    lastUsedAt: 1,
+  },
+];
+
 function SavedQueryBarSpecimen(): ReactNode {
-  const emptyNs = 'gallery.saved-queries.empty';
-  const seededNs = 'gallery.saved-queries.seeded';
-  const [emptyValue, setEmptyValue] = useState('status:queued');
-  const [seededValue, setSeededValue] = useState('service.name:checkout');
+  const stored = useSavedQueries({ namespace: 'gallery.saved-queries' });
+  const [storedValue, setStoredValue] = useState('status:queued');
+  const [hostQueries, setHostQueries] = useState(SAVED_QUERY_SEED);
+  const [hostValue, setHostValue] = useState('service.name:checkout');
   const [lastApplied, setLastApplied] = useState<SavedQuery | null>(null);
 
-  useEffect(() => {
-    try {
-      window.localStorage.removeItem(`aegis.saved-queries.${emptyNs}`);
-      const seededKey = `aegis.saved-queries.${seededNs}`;
-      if (window.localStorage.getItem(seededKey) === null) {
-        const now = Date.now();
-        const seed: SavedQuery[] = [
-          {
-            id: 'seed-failed',
-            name: 'Failed runs · 24h',
-            value: 'status:failed AND ts:>now-24h',
-            pinned: true,
-            lastUsedAt: now - 1000,
-          },
-          {
-            id: 'seed-slow',
-            name: 'Slow traces',
-            value: 'duration:>1000ms',
-            pinned: true,
-            lastUsedAt: now - 2000,
-          },
-          {
-            id: 'seed-checkout',
-            name: 'Checkout errors',
-            value: 'service.name:checkout AND error:true',
-            pinned: false,
-            lastUsedAt: now - 3000,
-          },
-        ];
-        window.localStorage.setItem(seededKey, JSON.stringify(seed));
-      }
-    } catch {
-      /* localStorage unavailable in this environment */
-    }
-  }, []);
+  const updateHostQuery = (
+    id: string,
+    change: (q: SavedQuery) => SavedQuery
+  ): void => {
+    setHostQueries((prev) => prev.map((q) => (q.id === id ? change(q) : q)));
+  };
 
   return (
     <div className='gallery__row gallery__row--wide'>
-      <Specimen caption='empty · save current to seed' span={2}>
+      <Specimen caption='useSavedQueries · kept in localStorage' span={2}>
         <SearchInput
-          value={emptyValue}
-          onChange={setEmptyValue}
+          value={storedValue}
+          onChange={setStoredValue}
           placeholder='Try a query, then save it…'
         />
         <SavedQueryBar
-          namespace={emptyNs}
-          currentValue={emptyValue}
+          queries={stored.queries}
+          currentValue={storedValue}
           onApply={(q) => {
-            setEmptyValue(q.value);
+            stored.touch(q.id);
+            setStoredValue(q.value);
             setLastApplied(q);
           }}
+          onSave={stored.save}
+          onRename={stored.rename}
+          onRemove={stored.remove}
+          onTogglePinned={stored.togglePinned}
         />
       </Specimen>
-      <Specimen caption='seeded · 2 pinned + 1 unpinned' span={2}>
+      <Specimen caption='host-held · 2 pinned + 1 unpinned' span={2}>
         <SearchInput
-          value={seededValue}
-          onChange={setSeededValue}
+          value={hostValue}
+          onChange={setHostValue}
           placeholder='Search…'
         />
         <SavedQueryBar
-          namespace={seededNs}
-          currentValue={seededValue}
+          queries={hostQueries}
+          currentValue={hostValue}
           onApply={(q) => {
-            setSeededValue(q.value);
+            setHostValue(q.value);
             setLastApplied(q);
+          }}
+          onSave={(name, value) => {
+            setHostQueries((prev) => [
+              ...prev,
+              {
+                id: `host-${prev.length + 1}`,
+                name,
+                value,
+                pinned: false,
+                lastUsedAt: 0,
+              },
+            ]);
+          }}
+          onRename={(id, name) => {
+            updateHostQuery(id, (q) => ({ ...q, name }));
+          }}
+          onRemove={(id) => {
+            setHostQueries((prev) => prev.filter((q) => q.id !== id));
+          }}
+          onTogglePinned={(id) => {
+            updateHostQuery(id, (q) => ({ ...q, pinned: !q.pinned }));
           }}
         />
         <pre
@@ -1408,9 +1423,7 @@ export function ServicePrimitivesSection() {
       </SectionDivider>
       <QueryAutocompleteSpecimen />
 
-      <SectionDivider
-        extra={<MetricLabel>localStorage · namespaced</MetricLabel>}
-      >
+      <SectionDivider extra={<MetricLabel>host-supplied queries</MetricLabel>}>
         SavedQueryBar
       </SectionDivider>
       <SavedQueryBarSpecimen />

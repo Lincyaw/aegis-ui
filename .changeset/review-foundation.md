@@ -1,0 +1,71 @@
+---
+'@lincyaw/aegis-ui': minor
+'@lincyaw/console': patch
+---
+
+Breaking:
+
+- `CommandPalette`, `InboxPage`, `NotificationBell` and `SavedQueryBar` are
+  presentational and take their data and callbacks as props:
+  - `CommandPalette` takes `open`, `commands`, `onSelect`, `onClose` and an
+    optional `groupOrder` (group labels in display order; unlisted groups
+    follow alphabetically, ungrouped commands last). It is built on
+    `Dialog` — focus trap, focus restore, scroll lock — with a combobox
+    field over a listbox (`aria-activedescendant`). The unwired `>` and `?`
+    modes are gone. `AegisShell enableCommandPalette` still mounts it from
+    `<CommandProvider>`; set the order with the new `commandGroupOrder`.
+  - `InboxPage` takes `items`, `unreadCount`, `onOpen` and `onMarkAllRead`;
+    `NotificationBell` takes `items`, `unreadCount`, `onOpen`, `inboxPath`
+    and a `linkComponent` for "View all". Neither imports react-router any
+    more. Mount the new `NotificationInboxPage` (filled from
+    `<NotificationProvider>`, marks items read and follows their `to`) on
+    the route `AegisShell inboxPath` names; the shell's bell is filled the
+    same way.
+  - `SavedQueryBar` takes `queries`, `onSave`, `onRename`, `onRemove` and
+    `onTogglePinned` instead of `namespace`. `useSavedQueries({ namespace })`
+    still keeps them in localStorage; call its `touch` in `onApply`.
+- App environments are loaded by the app, not fetched by the library:
+  `AegisApp.apiBaseUrl` is removed, and `AegisApp.environments` is now
+  `{ load(signal), fallback?, storageKey? }`. `load` resolves the manifest,
+  `null` when the backend declares none (then `fallback`, if given, is the
+  current environment), or rejects — the header then shows the failure and
+  retries on click, and `useEnvironmentManifest()` reports
+  `{ status: 'error', error, retry }`. `discoveryPath` and
+  `fallback: 'production' | 'hidden'` are gone, as are `fetchManifest`,
+  `validateManifest`, `manifestUrl` and `clearManifestCache`.
+  `EnvironmentChangedEventDetail.fromEnvId` is always a string.
+- `Command.action` is removed; commands reach agents through the registry.
+- The `aegisTheme` export is removed; use `getAegisTheme(resolved)`.
+
+Added:
+
+- `isAppVisible(app, status, user)` — the rule the shell uses to show an
+  app to the current user.
+- `AegisShell` catches a page that throws while rendering and shows the
+  error with a retry in the page area; navigating elsewhere clears it.
+- `CommandPaletteProps`, `InboxPageProps` and `NotificationBellProps` types.
+- `NotificationContextValue.error` — why the last load failed, `null` once
+  one succeeds. `InboxPage` takes `error` and `onRetry` and shows the
+  failure with a retry in place of the list; `NotificationInboxPage` passes
+  the provider's `error` and `refetch` through.
+
+Fixed:
+
+- `useRegisterCommands` runs the latest render's `handler` and `undo`, and
+  re-registers when a label, shortcut, scope or other described field
+  changes.
+- `parseTimeRangeInput` reads two separate dates (e.g. two pasted
+  timestamps) as the range's start and end.
+- `QueryAutocomplete` suggests values inside an opened quote
+  (`service:"fro`).
+- `AegisShell` decides a route is bare from the route react-router
+  matched, so params, relative paths and trailing slashes work.
+- Switching apps while one's environments load no longer leaves the next
+  app loading.
+- The sidebar's collapsed state, `useResizable`'s stored width and
+  `useSavedQueries` read storage after hydration, so a server render
+  hydrates cleanly; `useResizable` writes storage when a drag ends instead
+  of on every frame. `ThemeProvider` leaves the theme `themeInitScript`
+  set alone until hydration ends.
+- InboxPage shows notification severity `warning` in the caution tone;
+  the anomaly tone is kept for `error`.

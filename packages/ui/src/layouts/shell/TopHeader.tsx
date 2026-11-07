@@ -1,16 +1,18 @@
 import type { ReactElement, ReactNode } from 'react';
 
+import { Tooltip } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { Avatar } from '../../components/ui/Avatar';
+import { Chip } from '../../components/ui/Chip';
 import {
   type DropdownItem,
   DropdownMenu,
 } from '../../components/ui/DropdownMenu';
 import { EnvironmentSwitcher } from '../../components/ui/EnvironmentSwitcher';
-import { NotificationBell } from '../../components/ui/NotificationBell';
 import { useStrings } from '../../locale';
 import { AppSwitcher } from './AppSwitcher';
+import { ShellNotificationBell } from './ShellNotificationBell';
 import { useEnvironmentManifest } from './environments';
 import type { AegisApp, AegisBrand, AegisUser } from './types';
 
@@ -164,7 +166,7 @@ export function TopHeader({
       <div className="aegis-shell__header-right">
         <ActiveEnvironmentSwitcher />
         {headerActions}
-        {inboxPath && <NotificationBell inboxPath={inboxPath} />}
+        {inboxPath && <ShellNotificationBell inboxPath={inboxPath} />}
         {user && <UserMenu user={user} />}
         {onAgentPanelToggle && (
           <button
@@ -204,6 +206,17 @@ export function TopHeader({
 
 function ActiveEnvironmentSwitcher(): ReactElement | null {
   const state = useEnvironmentManifest();
+  if (state.status === 'error') {
+    return (
+      <Tooltip title={`${state.error.message} Click to retry.`}>
+        <span className="aegis-shell__env-error">
+          <Chip tone="warning" onClick={state.retry}>
+            Environments unavailable
+          </Chip>
+        </span>
+      </Tooltip>
+    );
+  }
   if (state.status !== 'ready') {
     return null;
   }
