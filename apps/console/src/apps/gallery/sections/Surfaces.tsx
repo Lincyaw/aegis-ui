@@ -374,6 +374,18 @@ export function SurfacesSection() {
             cards.
           </p>
         </Panel>
+
+        <Panel extra={<MetricLabel>Exported 2 min ago</MetricLabel>}>
+          <p className='gallery__panel-body'>
+            No title: extra alone still shows the header.
+          </p>
+        </Panel>
+
+        <Panel title='' description="title='' · the description still shows">
+          <p className='gallery__panel-body'>
+            An empty title, null or false counts as no title; 0 is content.
+          </p>
+        </Panel>
       </div>
 
       <SectionDivider extra={<MetricLabel>Variant</MetricLabel>}>
