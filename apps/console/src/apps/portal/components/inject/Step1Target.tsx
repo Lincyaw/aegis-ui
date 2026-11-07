@@ -1,10 +1,22 @@
-import { Chip, Panel, PanelTitle, SectionDivider } from '@lincyaw/aegis-ui';
-import { Form, Input, InputNumber, Radio, Select, Switch } from 'antd';
+import { useId } from 'react';
 
+import {
+  Chip,
+  Panel,
+  PanelTitle,
+  SectionDivider,
+  Select,
+  TextField,
+} from '@lincyaw/aegis-ui';
+import { Form, Radio } from 'antd';
+
+import { errMsg } from '../../../../api/apiClient';
 import { useInjectCandidates, useSystems } from '../../api/systems';
+import type {
+  GuidedInjectionSpec,
+  NamespaceMode,
+} from '../../domain/injectSpec';
 import { useInjectBatch } from '../../state/inject-batch';
-
-import type { GuidedInjectionSpec, NamespaceMode } from './types';
 
 interface Props {
   spec: GuidedInjectionSpec;
@@ -12,56 +24,68 @@ interface Props {
 }
 
 export function Step1Target({ spec, update }: Props) {
+  const id = useId();
   const templates = useInjectBatch((s) => s.templates);
   const systemsQuery = useSystems();
-  const candidatesNamespace =
-    spec.namespaceMode === 'specific' ? spec.namespace : undefined;
   const candidatesQuery = useInjectCandidates(
     spec.systemCode,
-    candidatesNamespace
+    spec.namespaceMode === 'specific' ? spec.namespace : undefined
   );
 
-  const systemOptions = (systemsQuery.data ?? []).map((sys) => ({
+  const systemOptions = (systemsQuery.data?.items ?? []).map((sys) => ({
     value: sys.name ?? '',
     label:
       sys.display_name && sys.name
         ? `${sys.display_name} (${sys.name})`
         : (sys.display_name ?? sys.name ?? ''),
   }));
-
-  const appOptions = Array.from(
-    new Set(
-      (candidatesQuery.data ?? [])
+  const appOptions = [
+    ...new Set(
+      (candidatesQuery.data?.items ?? [])
         .map((c) => c.app)
         .filter((a): a is string => Boolean(a))
-    )
-  ).map((a) => ({ value: a, label: a }));
+    ),
+  ].map((a) => ({ value: a, label: a }));
 
-  const systemsFailed = systemsQuery.isError;
-  const candidatesFailed = candidatesQuery.isError;
   const candidatesReady =
     spec.systemCode.length > 0 &&
     (spec.namespaceMode !== 'specific' || spec.namespace.length > 0);
 
+  const appHelp = candidatesQuery.isError ? (
+    <Chip tone='warning'>
+      {`Failed to load candidates: ${errMsg(candidatesQuery.error)} — enter the app by hand.`}
+    </Chip>
+  ) : !candidatesReady ? (
+    spec.namespaceMode === 'specific' ? (
+      'Pick a system and namespace first to load candidates.'
+    ) : (
+      'Pick a system first to load candidates.'
+    )
+  ) : spec.namespaceMode === 'specific' ? (
+    'Candidates discovered for this system + namespace.'
+  ) : (
+    'Candidates discovered for this system across all namespaces.'
+  );
+
   return (
     <Panel title={<PanelTitle size='base'>1. Target</PanelTitle>}>
-      <Form layout='vertical'>
-        <Form.Item label='Load from template'>
-          <Select
-            placeholder='choose a saved template (optional)'
-            allowClear
-            options={templates.map((t) => ({ value: t.id, label: t.name }))}
-            onChange={(id?: string) => {
-              if (!id) {
-                return;
-              }
-              const t = templates.find((x) => x.id === id);
-              if (t) {
-                update(t.spec);
-              }
-            }}
-          />
-        </Form.Item>
+      <Form layout='vertical' component='div'>
+        {templates.length > 0 && (
+          <Form.Item label='Load from template' htmlFor={`${id}-template`}>
+            <Select
+              id={`${id}-template`}
+              value=''
+              placeholder='Choose a saved template'
+              options={templates.map((t) => ({ value: t.id, label: t.name }))}
+              onChange={(templateId) => {
+                const template = templates.find((t) => t.id === templateId);
+                if (template) {
+                  update(template.spec);
+                }
+              }}
+            />
+          </Form.Item>
+        )}
 
         <Form.Item
           label='Namespace allocation'
@@ -81,8 +105,9 @@ export function Step1Target({ spec, update }: Props) {
         </Form.Item>
 
         {spec.namespaceMode === 'specific' && (
-          <Form.Item label='Namespace name' required>
-            <Input
+          <Form.Item label='Namespace name' required htmlFor={`${id}-ns`}>
+            <TextField
+              id={`${id}-ns`}
               value={spec.namespace}
               onChange={(e) => update({ namespace: e.target.value })}
               placeholder='e.g. ts-1'
@@ -93,39 +118,45 @@ export function Step1Target({ spec, update }: Props) {
         <Form.Item
           label='System'
           required
+          htmlFor={`${id}-system`}
           extra={
-            systemsFailed ? (
+            systemsQuery.isError ? (
               <Chip tone='warning'>
-                Failed to load systems — using manual entry
+                {`Failed to load systems: ${errMsg(systemsQuery.error)} — enter the system code by hand.`}
               </Chip>
             ) : (
               'Loaded from the chaos systems registry.'
             )
           }
         >
-          {systemsFailed ? (
-            <Input
+          {systemsQuery.isError ? (
+            <TextField
+              id={`${id}-system`}
               value={spec.systemCode}
               onChange={(e) => update({ systemCode: e.target.value, app: '' })}
               placeholder='system short_code'
             />
           ) : (
             <Select
-              value={spec.systemCode || undefined}
-              loading={systemsQuery.isLoading}
-              showSearch
-              optionFilterProp='label'
-              placeholder='select a system'
-              options={systemOptions}
-              onChange={(value: string) =>
-                update({ systemCode: value, app: '' })
+              id={`${id}-system`}
+              value={spec.systemCode}
+              disabled={systemsQuery.isLoading}
+              placeholder={
+                systemsQuery.isLoading ? 'Loading systems…' : 'Select a system'
               }
+              options={systemOptions}
+              onChange={(value) => update({ systemCode: value, app: '' })}
             />
           )}
         </Form.Item>
 
-        <Form.Item label='System type' extra='free-form chaos.system_type tag.'>
-          <Input
+        <Form.Item
+          label='System type'
+          htmlFor={`${id}-system-type`}
+          extra='free-form chaos.system_type tag.'
+        >
+          <TextField
+            id={`${id}-system-type`}
             value={spec.systemType}
             onChange={(e) => update({ systemType: e.target.value })}
             placeholder='e.g. ts'
@@ -136,48 +167,39 @@ export function Step1Target({ spec, update }: Props) {
         <Form.Item
           label='App / Deployment'
           required
-          extra={
-            candidatesFailed ? (
-              <Chip tone='warning'>
-                Failed to load candidates — using manual entry
-              </Chip>
-            ) : !candidatesReady ? (
-              spec.namespaceMode === 'specific' ? (
-                'Pick a system and namespace first to load candidates.'
-              ) : (
-                'Pick a system first to load candidates.'
-              )
-            ) : spec.namespaceMode === 'specific' ? (
-              'Candidates discovered for this system + namespace.'
-            ) : (
-              'Candidates discovered for this system across all namespaces.'
-            )
-          }
+          htmlFor={`${id}-app`}
+          extra={appHelp}
         >
-          {candidatesFailed || !candidatesReady ? (
-            <Input
+          {candidatesQuery.isError || !candidatesReady ? (
+            <TextField
+              id={`${id}-app`}
               value={spec.app}
               onChange={(e) => update({ app: e.target.value })}
               placeholder='deployment label'
             />
           ) : (
             <Select
-              value={spec.app || undefined}
-              loading={candidatesQuery.isLoading}
-              showSearch
-              optionFilterProp='label'
-              placeholder='select an app / deployment'
+              id={`${id}-app`}
+              value={spec.app}
+              disabled={candidatesQuery.isLoading}
+              placeholder={
+                candidatesQuery.isLoading
+                  ? 'Loading candidates…'
+                  : 'Select an app / deployment'
+              }
               options={appOptions}
-              onChange={(value: string) => update({ app: value })}
+              onChange={(value) => update({ app: value })}
             />
           )}
         </Form.Item>
 
         <Form.Item
           label='Container (optional)'
+          htmlFor={`${id}-container`}
           extra='leave blank to target the first container.'
         >
-          <Input
+          <TextField
+            id={`${id}-container`}
             value={spec.container}
             onChange={(e) => update({ container: e.target.value })}
             placeholder='e.g. main'
@@ -186,33 +208,16 @@ export function Step1Target({ spec, update }: Props) {
 
         <Form.Item
           label='Target service (optional)'
+          htmlFor={`${id}-service`}
           extra='used by HTTP / JVM faults that scope per-service.'
         >
-          <Input
+          <TextField
+            id={`${id}-service`}
             value={spec.targetService}
             onChange={(e) => update({ targetService: e.target.value })}
             placeholder='e.g. checkoutservice'
           />
         </Form.Item>
-
-        <SectionDivider>Pedestal bootstrap</SectionDivider>
-        <Form.Item label='Install if missing' extra='maps to --install.'>
-          <Switch
-            checked={spec.install}
-            onChange={(v) => update({ install: v })}
-          />
-        </Form.Item>
-        {spec.install && (
-          <Form.Item label='Ready timeout (seconds)'>
-            <InputNumber
-              min={30}
-              max={1800}
-              step={30}
-              value={spec.readyTimeoutSec}
-              onChange={(v) => update({ readyTimeoutSec: Number(v ?? 180) })}
-            />
-          </Form.Item>
-        )}
       </Form>
     </Panel>
   );

@@ -4,29 +4,30 @@ import type {
 } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
+import { type ListResult, toList, wholeList } from './list';
 import { systemsApi } from './portal-client';
 
 export const systemsKeys = {
-  all: ['systems'] as const,
-  list: (page?: number, size?: number) =>
-    ['systems', 'list', { page, size }] as const,
+  all: ['portal', 'systems'] as const,
+  list: () => [...systemsKeys.all, 'list'] as const,
   candidates: (name: string, namespace: string | undefined) =>
-    ['systems', 'candidates', name, namespace ?? null] as const,
+    [...systemsKeys.all, 'candidates', name, namespace ?? null] as const,
 };
 
-export function useSystems(params: { page?: number; size?: number } = {}) {
-  return useQuery<ChaossystemChaosSystemResp[]>({
-    queryKey: systemsKeys.list(params.page, params.size),
+export function useSystems() {
+  return useQuery<ListResult<ChaossystemChaosSystemResp>>({
+    queryKey: systemsKeys.list(),
     queryFn: async () => {
-      const res = await systemsApi.listChaosSystems(params);
-      return res.data.data?.items ?? [];
+      const res = await systemsApi.listChaosSystems({});
+      return toList(res.data.data);
     },
   });
 }
 
+/** Apps the system can inject into, in one namespace or across all of them. */
 export function useInjectCandidates(name: string, namespace?: string) {
   const ns = namespace && namespace.length > 0 ? namespace : undefined;
-  return useQuery<ChaossystemInjectCandidateResp[]>({
+  return useQuery<ListResult<ChaossystemInjectCandidateResp>>({
     queryKey: systemsKeys.candidates(name, ns),
     enabled: name.length > 0,
     queryFn: async () => {
@@ -34,7 +35,7 @@ export function useInjectCandidates(name: string, namespace?: string) {
         name,
         namespace: ns,
       });
-      return res.data.data?.candidates ?? [];
+      return wholeList(res.data.data?.candidates);
     },
   });
 }

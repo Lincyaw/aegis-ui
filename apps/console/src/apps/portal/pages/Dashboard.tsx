@@ -1,212 +1,128 @@
-import type { ReactElement, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
-  Chip,
   DataTable,
-  EmptyState,
-  ErrorState,
   MetricCard,
   MetricLabel,
   MonoValue,
+  PageHeader,
   Panel,
   PanelTitle,
   SectionDivider,
   Skeleton,
   SkeletonText,
-  StatusDot,
-  Terminal,
-  type TerminalLine,
   TimeDisplay,
-  type TrajectoryStepData,
-  TrajectoryTimeline,
+  useAppHref,
 } from '@lincyaw/aegis-ui';
 import type {
   ExecutionExecutionResp,
   InjectionInjectionResp,
   TraceTraceResp,
 } from '@lincyaw/portal';
-import { useQuery } from '@tanstack/react-query';
 
-import { errMsg } from '../../../api/apiClient';
-import { projectsApi } from '../api/portal-client';
-import { useActiveProjectIdNum } from '../hooks/useActiveProject';
-import { useProjectsList } from '../hooks/useProjects';
+import { useProjectDashboard } from '../api/projects';
+import { LoadError } from '../components/LoadError';
+import { ProjectRequired } from '../components/ProjectRequired';
+import { StatusChip } from '../components/StatusChip';
+import { useActiveProject } from '../hooks/useActiveProject';
 
 import './Dashboard.css';
 
-const DEMO_TRAJECTORY: TrajectoryStepData[] = [
-  {
-    step: 1,
-    timestamp: '14:22:01',
-    durationMs: 1240,
-    actionType: 'tool_call',
-    action: 'query_metrics(service="catalog", metric="latency_p99")',
-    thought:
-      'The user reports **high latency** in the catalog service. I should first check the `p99 latency` metric to quantify the severity.',
-    toolCall: {
-      name: 'query_metrics',
-      arguments: '{\n  "service": "catalog",\n  "metric": "latency_p99"\n}',
-      result: '{\n  "value": 2840,\n  "unit": "ms"\n}',
-    },
-    observation: '> **Observation**: p99 latency spiked to **2.84 s**.',
-  },
-  {
-    step: 2,
-    timestamp: '14:22:08',
-    durationMs: 2100,
-    actionType: 'message',
-    action: 'Report RCA conclusion',
-    observation: '> **Root Cause**: Missing index on `inventory.sku`.',
-  },
-];
+const RECENT = 6;
 
-const DEMO_TERMINAL_LINES: TerminalLine[] = [
-  {
-    ts: '14:22:01',
-    prefix: 'agent',
-    level: 'info',
-    body: 'query_metrics → catalog.latency_p99',
-  },
-  {
-    ts: '14:22:02',
-    prefix: 'metric',
-    level: 'info',
-    body: 'p99=2840ms baseline=120ms',
-  },
-  {
-    ts: '14:22:08',
-    prefix: 'agent',
-    level: 'warn',
-    body: 'RCA conclusion → missing index',
-  },
-];
+export default function Dashboard() {
+  const active = useActiveProject();
+  const href = useAppHref();
+  const dashboardQuery = useProjectDashboard(active.projectId);
 
-export default function Dashboard(): ReactElement {
-  const projectsQuery = useProjectsList();
-  const activeProjectId = useActiveProjectIdNum();
-  const projects = projectsQuery.data ?? [];
-  // Like the header's ProjectSwitcher, the first project until one is
-  // chosen.
-  const selectedProject =
-    projects.find((p) => p.id === activeProjectId) ?? projects[0];
-  const projectId = selectedProject?.id;
+  const { project } = active;
+  const header = (
+    <PageHeader
+      title={project?.name ?? 'Dashboard'}
+      description='Recent injections, traces and executions in the active project.'
+    />
+  );
 
-  const dashboardQuery = useQuery({
-    queryKey: ['portal', 'dashboard', projectId],
-    enabled: typeof projectId === 'number',
-    queryFn: async () => {
-      const res = await projectsApi.getProjectDashboard({
-        projectId: projectId as number,
-      });
-      return res.data.data;
-    },
-  });
+  if (active.projectId === undefined) {
+    return (
+      <>
+        {header}
+        <ProjectRequired active={active} />
+      </>
+    );
+  }
+
+  if (dashboardQuery.isError) {
+    return (
+      <>
+        {header}
+        <Panel>
+          <LoadError
+            error={dashboardQuery.error}
+            title='Failed to load the dashboard'
+          />
+        </Panel>
+      </>
+    );
+  }
 
   const dash = dashboardQuery.data;
-  const activeProject = dash?.project ?? selectedProject;
+  const loading = dashboardQuery.isLoading;
+  const counts = dash?.counts;
   const injections: InjectionInjectionResp[] = dash?.recent_injections ?? [];
   const traces: TraceTraceResp[] = dash?.recent_traces ?? [];
   const executions: ExecutionExecutionResp[] = dash?.recent_executions ?? [];
 
-  const runningTasks = dash?.counts?.tasks_running ?? 0;
-  const injectionCount =
-    dash?.counts?.injections_total ?? activeProject?.injection_count ?? 0;
-  const executionCount =
-    dash?.counts?.executions_total ?? activeProject?.execution_count ?? 0;
-  const tracesTotal = dash?.counts?.traces_total ?? traces.length;
-
-  const projectsLoading = projectsQuery.isLoading;
-  const projectsError = projectsQuery.error;
-  const noProject = !projectsLoading && projectId === undefined;
-  const dashLoading = dashboardQuery.isLoading;
-  const dashError = dashboardQuery.error;
+  const metric = (value: number | undefined) =>
+    loading ? <Skeleton width='4ch' height='1lh' /> : (value ?? 0);
+  const tasksRunning = counts?.tasks_running ?? 0;
 
   return (
-    <div className='dashboard'>
-      <header className='dashboard__header'>
-        <div className='dashboard__header-left'>
-          <h1 className='dashboard__title'>
-            <PanelTitle size='hero' as='span'>
-              {projectsLoading ? (
-                <Skeleton width={240} height={32} />
-              ) : (
-                (activeProject?.name ?? 'Dashboard')
-              )}
-            </PanelTitle>
-          </h1>
-          <MetricLabel>
-            AegisLab · projects come from the Portal API
-          </MetricLabel>
-        </div>
-        <div className='dashboard__header-right'>
-          <Chip tone='ink'>live</Chip>
-        </div>
-      </header>
+    <>
+      {header}
 
-      {projectsError ? (
-        <ErrorState
-          title='Failed to load projects'
-          description={errMsg(projectsError)}
-        />
-      ) : null}
-
-      {noProject && !projectsError ? (
-        <EmptyState
-          title='No projects yet'
-          description='Create a project from the Projects page to populate the dashboard.'
-        />
-      ) : null}
-
-      <section className='dashboard__kpi-row'>
-        <KpiCard
+      <div className='page-overview-grid'>
+        <MetricCard
           label='Injections'
-          loading={dashLoading || projectsLoading}
-          value={injectionCount}
+          value={metric(counts?.injections_total ?? project?.injection_count)}
         />
-        <KpiCard label='Traces' loading={dashLoading} value={tracesTotal} />
-        <KpiCard
+        <MetricCard label='Traces' value={metric(counts?.traces_total)} />
+        <MetricCard
           label='Active stages'
-          loading={dashLoading}
-          value={runningTasks}
-          unit={
-            <span className='dashboard__kpi-live'>
-              {runningTasks > 0 ? <StatusDot size={6} pulse /> : null}
-              {runningTasks > 0 ? 'active' : 'idle'}
-            </span>
-          }
+          value={metric(counts?.tasks_running)}
+          unit={loading ? undefined : tasksRunning > 0 ? 'running' : 'idle'}
         />
-        <KpiCard
+        <MetricCard
           label='Executions'
-          loading={dashLoading || projectsLoading}
-          value={executionCount}
+          value={metric(counts?.executions_total ?? project?.execution_count)}
         />
-      </section>
+      </div>
 
-      <section className='dashboard__two-col'>
+      <div className='dashboard__two-col'>
         <Panel
           title={<PanelTitle size='base'>Recent injections</PanelTitle>}
-          extra={<MetricLabel>{injectionCount} total</MetricLabel>}
-          className='dashboard__panel'
+          extra={
+            counts?.injections_total === undefined ? undefined : (
+              <MetricLabel>{`${String(counts.injections_total)} total`}</MetricLabel>
+            )
+          }
         >
-          {dashLoading ? (
+          {loading ? (
             <SkeletonText lines={5} />
-          ) : dashError ? (
-            <ErrorState
-              size='compact'
-              title='Failed to load injections'
-              description={errMsg(dashError)}
-            />
           ) : (
             <DataTable<InjectionInjectionResp>
               framed={false}
-              data={injections.slice(0, 6)}
-              rowKey={(i) => String(i.id ?? '')}
+              data={injections.slice(0, RECENT)}
+              rowKey={(i) => i.id ?? -1}
+              emptyTitle='No injections yet'
               columns={[
                 {
                   key: 'id',
                   header: 'Injection',
                   render: (i) => (
-                    <MonoValue size='sm'>{String(i.id ?? '—')}</MonoValue>
+                    <Link to={href(`injections/${String(i.id)}`)}>
+                      <MonoValue size='sm'>{i.id}</MonoValue>
+                    </Link>
                   ),
                 },
                 {
@@ -217,19 +133,7 @@ export default function Dashboard(): ReactElement {
                 {
                   key: 'status',
                   header: 'Status',
-                  render: (i) => (
-                    <StatusDot
-                      size={6}
-                      pulse={i.status === 'running'}
-                      tone={
-                        i.status === 'failed'
-                          ? 'warning'
-                          : i.status === 'running' || i.status === 'completed'
-                            ? 'ink'
-                            : 'muted'
-                      }
-                    />
-                  ),
+                  render: (i) => <StatusChip status={i.status ?? i.state} />,
                 },
                 {
                   key: 'created',
@@ -245,29 +149,25 @@ export default function Dashboard(): ReactElement {
 
         <Panel
           title={<PanelTitle size='base'>Recent traces</PanelTitle>}
-          extra={<MetricLabel>{tracesTotal} total</MetricLabel>}
-          className='dashboard__panel'
+          extra={
+            counts?.traces_total === undefined ? undefined : (
+              <MetricLabel>{`${String(counts.traces_total)} total`}</MetricLabel>
+            )
+          }
         >
-          {dashLoading ? (
+          {loading ? (
             <SkeletonText lines={5} />
-          ) : dashError ? (
-            <ErrorState
-              size='compact'
-              title='Failed to load traces'
-              description={errMsg(dashError)}
-            />
           ) : (
             <DataTable<TraceTraceResp>
               framed={false}
-              data={traces.slice(0, 6)}
-              rowKey={(t) => String(t.id ?? '')}
+              data={traces.slice(0, RECENT)}
+              rowKey={(t) => t.id ?? ''}
+              emptyTitle='No traces yet'
               columns={[
                 {
                   key: 'id',
                   header: 'Trace',
-                  render: (t) => (
-                    <MonoValue size='sm'>{String(t.id ?? '—')}</MonoValue>
-                  ),
+                  render: (t) => <MonoValue size='sm'>{t.id ?? '—'}</MonoValue>,
                 },
                 {
                   key: 'type',
@@ -280,94 +180,46 @@ export default function Dashboard(): ReactElement {
                   key: 'status',
                   header: 'Status',
                   align: 'right',
-                  render: (t) => (
-                    <MonoValue size='sm'>{t.status ?? '—'}</MonoValue>
-                  ),
+                  render: (t) => <StatusChip status={t.state ?? t.status} />,
                 },
               ]}
             />
           )}
         </Panel>
-      </section>
+      </div>
 
-      <section>
-        <SectionDivider>Recent executions</SectionDivider>
-        {dashLoading ? (
-          <SkeletonText lines={5} />
-        ) : dashError ? (
-          <ErrorState
-            size='compact'
-            title='Failed to load executions'
-            description={errMsg(dashError)}
-          />
-        ) : executions.length === 0 ? (
-          <EmptyState title='No executions yet' />
-        ) : (
-          <DataTable<ExecutionExecutionResp>
-            data={executions.slice(0, 6)}
-            rowKey={(e) => String(e.id ?? '')}
-            columns={[
-              {
-                key: 'id',
-                header: 'Execution',
-                render: (e) => (
-                  <MonoValue size='sm'>{String(e.id ?? '—')}</MonoValue>
-                ),
-              },
-              {
-                key: 'algorithm',
-                header: 'Algorithm',
-                render: (e) => e.algorithm_name ?? '—',
-              },
-              { key: 'state', header: 'State', render: (e) => e.state ?? '—' },
-              {
-                key: 'status',
-                header: 'Status',
-                align: 'right',
-                render: (e) => (
-                  <MonoValue size='sm'>{e.status ?? '—'}</MonoValue>
-                ),
-              },
-            ]}
-          />
-        )}
-      </section>
-
-      <section>
-        <SectionDivider>Agent Trajectory · demo</SectionDivider>
-        <div className='dashboard__trajectory-host'>
-          <TrajectoryTimeline
-            agentName='rca-agent'
-            status='completed'
-            totalDurationMs={4790}
-            steps={DEMO_TRAJECTORY}
-          />
-        </div>
-      </section>
-
-      <section>
-        <SectionDivider>Live Logs · demo</SectionDivider>
-        <Terminal lines={DEMO_TERMINAL_LINES} />
-      </section>
-    </div>
+      <SectionDivider>Recent executions</SectionDivider>
+      {loading ? (
+        <SkeletonText lines={5} />
+      ) : (
+        <DataTable<ExecutionExecutionResp>
+          data={executions.slice(0, RECENT)}
+          rowKey={(e) => e.id ?? -1}
+          emptyTitle='No executions yet'
+          columns={[
+            {
+              key: 'id',
+              header: 'Execution',
+              render: (e) => (
+                <Link to={href(`executions/${String(e.id)}`)}>
+                  <MonoValue size='sm'>{e.id}</MonoValue>
+                </Link>
+              ),
+            },
+            {
+              key: 'algorithm',
+              header: 'Algorithm',
+              render: (e) => e.algorithm_name ?? '—',
+            },
+            {
+              key: 'state',
+              header: 'State',
+              align: 'right',
+              render: (e) => <StatusChip status={e.state ?? e.status} />,
+            },
+          ]}
+        />
+      )}
+    </>
   );
-}
-
-interface KpiCardProps {
-  label: string;
-  value: number;
-  loading?: boolean;
-  unit?: ReactNode;
-}
-
-function KpiCard({ label, value, loading, unit }: KpiCardProps): ReactElement {
-  if (loading) {
-    return (
-      <Panel className='dashboard__panel'>
-        <MetricLabel>{label}</MetricLabel>
-        <Skeleton block height={32} />
-      </Panel>
-    );
-  }
-  return <MetricCard label={label} value={value} unit={unit} />;
 }

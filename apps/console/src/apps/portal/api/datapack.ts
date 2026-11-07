@@ -1,160 +1,103 @@
-import type { InjectionDatapackFilesResp } from '@lincyaw/portal';
-import axios, { type AxiosError } from 'axios';
+import type {
+  InjectionDatapackFilesResp,
+  InjectionDatapackSchemaResp,
+} from '@lincyaw/portal';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 
-import { getRuntimeConfig } from '../../../config/runtime';
-import {
-  type ArrowResult,
-  arrowStreamToRows,
-} from '../pages/InjectionData/arrowToRows';
+import { type ArrowColumnInfo, arrowStreamToRows } from './arrow';
+import { injectionsKeys } from './injections';
+import { required } from './list';
+import { injectionsApi } from './portal-client';
 
-import { injectionsApi, portalAxios } from './portal-client';
+export const datapackKeys = {
+  files: (id: number) => [...injectionsKeys.detail(id), 'datapack-files'],
+  schema: (id: number) => [...injectionsKeys.detail(id), 'datapack-schema'],
+};
 
-export interface DatapackColumn {
-  name: string;
-  type: string;
+export function useDatapackFiles(id: number | undefined) {
+  return useQuery<InjectionDatapackFilesResp>({
+    queryKey: datapackKeys.files(id ?? -1),
+    enabled: id !== undefined,
+    queryFn: async () => {
+      const res = await injectionsApi.listDatapackFiles({ id: id ?? -1 });
+      return required(res.data.data, 'datapack file list');
+    },
+  });
 }
 
-export interface DatapackTable {
-  name: string;
-  columns: DatapackColumn[];
-}
-
-export interface DatapackSchema {
-  tables: DatapackTable[];
-}
-
-export class DatapackQueryError extends Error {
-  status?: number;
-  isBackendMissing: boolean;
-
-  constructor(
-    message: string,
-    opts: { status?: number; isBackendMissing?: boolean } = {}
-  ) {
-    super(message);
-    this.name = 'DatapackQueryError';
-    this.status = opts.status;
-    this.isBackendMissing = opts.isBackendMissing ?? false;
-  }
-}
-
-function gatewayBase(): string {
-  return getRuntimeConfig().gatewayUrl;
-}
-
-export async function listDatapackFiles(
-  id: number
-): Promise<InjectionDatapackFilesResp> {
-  const res = await injectionsApi.listDatapackFiles({ id });
-  return res.data.data ?? { files: [], dir_count: 0, file_count: 0 };
-}
-
-export async function getDatapackSchema(id: number): Promise<DatapackSchema> {
-  try {
-    const res = await portalAxios.get<
-      { data?: DatapackSchema } | DatapackSchema
-    >(`${gatewayBase()}/api/v2/injections/${String(id)}/datapack-schema`);
-    const body = res.data as { data?: DatapackSchema } & DatapackSchema;
-    if (body.tables) {
-      return { tables: body.tables };
-    }
-    if (body.data?.tables) {
-      return body.data;
-    }
-    return { tables: [] };
-  } catch (err) {
-    throw wrapAxiosError(err, 'Failed to load datapack schema');
-  }
+export function useDatapackSchema(id: number | undefined) {
+  return useQuery<InjectionDatapackSchemaResp>({
+    queryKey: datapackKeys.schema(id ?? -1),
+    enabled: id !== undefined,
+    queryFn: async () => {
+      const res = await injectionsApi.getDatapackSchema({ id: id ?? -1 });
+      return required(res.data.data, 'datapack schema');
+    },
+  });
 }
 
 export interface DatapackQueryResult {
   rows: Array<Record<string, unknown>>;
-  columns: ArrowResult['columns'];
+  columns: ArrowColumnInfo[];
   elapsedMs: number;
 }
 
-export async function runDatapackQuery(
-  id: number,
-  sql: string
-): Promise<DatapackQueryResult> {
-  const startedAt = performance.now();
-  try {
-    const res = await portalAxios.post<ArrayBuffer>(
-      `${gatewayBase()}/api/v2/injections/${String(id)}/datapack-query`,
-      { sql },
-      {
-        responseType: 'arraybuffer',
-        headers: {
-          'content-type': 'application/json',
-          accept: 'application/vnd.apache.arrow.stream',
-        },
+/**
+ * Runs SQL over the datapack. The answer is an Arrow IPC stream, so the
+ * body is read as bytes — and so is an error body, whose JSON message is
+ * decoded here.
+ */
+export function useRunDatapackQuery(id: number) {
+  return useMutation({
+    mutationFn: async (sql: string): Promise<DatapackQueryResult> => {
+      const startedAt = performance.now();
+      try {
+        const res = await injectionsApi.queryDatapack(
+          { id, injectionDatapackQueryReq: { sql } },
+          {
+            responseType: 'arraybuffer',
+            headers: { accept: 'application/vnd.apache.arrow.stream' },
+          }
+        );
+        const body: unknown = res.data;
+        if (!(body instanceof ArrayBuffer)) {
+          throw new Error('The datapack query returned no Arrow stream.');
+        }
+        const parsed = arrowStreamToRows(new Uint8Array(body));
+        return {
+          ...parsed,
+          elapsedMs: Math.round(performance.now() - startedAt),
+        };
+      } catch (err) {
+        throw withServerMessage(err);
       }
-    );
-    const contentType = String(res.headers['content-type'] ?? '');
-    if (!contentType.includes('arrow')) {
-      const text = decodeMaybeJson(res.data);
-      throw new DatapackQueryError(
-        text ?? 'Backend returned non-Arrow response',
-        { status: res.status, isBackendMissing: true }
-      );
-    }
-    const parsed = arrowStreamToRows(new Uint8Array(res.data));
-    return {
-      rows: parsed.rows,
-      columns: parsed.columns,
-      elapsedMs: Math.round(performance.now() - startedAt),
-    };
-  } catch (err) {
-    if (err instanceof DatapackQueryError) {
-      throw err;
-    }
-    throw wrapAxiosError(err, 'Datapack query failed');
-  }
+    },
+  });
 }
 
-function decodeMaybeJson(buf: ArrayBuffer): string | undefined {
-  try {
-    const text = new TextDecoder().decode(buf);
-    if (text.trim().length === 0) {
-      return undefined;
-    }
-    return text;
-  } catch {
-    return undefined;
+function withServerMessage(err: unknown): unknown {
+  if (!isAxiosError(err) || !(err.response?.data instanceof ArrayBuffer)) {
+    return err;
   }
-}
-
-function wrapAxiosError(err: unknown, fallback: string): DatapackQueryError {
-  if (axios.isAxiosError(err)) {
-    const ax = err as AxiosError<unknown>;
-    const status = ax.response?.status;
-    const backendMissing = status === 404 || status === 501;
-    let message = fallback;
-    const data: unknown = ax.response?.data;
-    if (data instanceof ArrayBuffer) {
-      const text = decodeMaybeJson(data);
-      if (text) {
-        message = text;
-      }
-    } else if (typeof data === 'string' && data.length > 0) {
-      message = data;
-    } else if (
-      data !== null &&
-      typeof data === 'object' &&
-      'message' in data &&
-      typeof (data as { message: unknown }).message === 'string'
+  const text = new TextDecoder().decode(err.response.data).trim();
+  if (text === '') {
+    return err;
+  }
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      'message' in parsed &&
+      typeof parsed.message === 'string'
     ) {
-      message = (data as { message: string }).message;
-    } else if (ax.message) {
-      message = ax.message;
+      return new Error(parsed.message);
     }
-    return new DatapackQueryError(message, {
-      status,
-      isBackendMissing: backendMissing,
-    });
+  } catch (parseError) {
+    if (!(parseError instanceof SyntaxError)) {
+      throw parseError;
+    }
   }
-  if (err instanceof Error) {
-    return new DatapackQueryError(err.message);
-  }
-  return new DatapackQueryError(fallback);
+  return new Error(text);
 }

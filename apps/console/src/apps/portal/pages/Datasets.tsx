@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import {
   Button,
   DataTable,
-  ErrorState,
   MonoValue,
   PageHeader,
   Panel,
@@ -14,8 +13,8 @@ import {
 } from '@lincyaw/aegis-ui';
 import type { DatasetDatasetResp } from '@lincyaw/portal';
 
-import { errMsg } from '../../../api/apiClient';
 import { useDatasetsList } from '../api/datasets';
+import { LoadError } from '../components/LoadError';
 import { usePageSize } from '../hooks/usePageSize';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -26,7 +25,6 @@ export default function Datasets() {
   const { size, setSize } = usePageSize('datasets', 50);
   const [page, setPage] = useState(1);
   const { data, isLoading, isError, error } = useDatasetsList({ page, size });
-  const datasets = data?.items ?? [];
 
   return (
     <>
@@ -41,17 +39,14 @@ export default function Datasets() {
       />
       <Panel>
         {isError ? (
-          <ErrorState
-            title='Failed to load datasets'
-            description={errMsg(error, 'Unknown error')}
-          />
+          <LoadError error={error} title='Failed to load datasets' />
         ) : (
           <DataTable<DatasetDatasetResp>
             framed={false}
             loading={isLoading}
             emptyTitle='No datasets'
-            emptyDescription='Build a dataset from the Injections list.'
-            data={datasets}
+            emptyDescription='Click + New dataset to create one.'
+            data={data?.items ?? []}
             rowKey={(r) => String(r.id ?? '')}
             columns={[
               {
@@ -84,7 +79,7 @@ export default function Datasets() {
             pagination={{
               page,
               pageSize: size,
-              total: data?.pagination?.total,
+              total: data?.total,
               pageSizeOptions: PAGE_SIZE_OPTIONS,
               onChange: (nextPage, nextSize) => {
                 setPage(nextPage);

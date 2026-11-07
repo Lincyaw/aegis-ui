@@ -5,7 +5,6 @@ import {
   Button,
   Chip,
   DataTable,
-  ErrorState,
   MonoValue,
   PageHeader,
   Panel,
@@ -15,8 +14,8 @@ import {
 } from '@lincyaw/aegis-ui';
 import type { LabelLabelResp } from '@lincyaw/portal';
 
-import { errMsg } from '../../../api/apiClient';
 import { useLabelsList } from '../api/labels';
+import { LoadError } from '../components/LoadError';
 import { usePageSize } from '../hooks/usePageSize';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -27,7 +26,6 @@ export default function Labels() {
   const { size, setSize } = usePageSize('labels', 50);
   const [page, setPage] = useState(1);
   const { data, isLoading, isError, error } = useLabelsList({ page, size });
-  const labels = data?.items ?? [];
 
   return (
     <>
@@ -42,17 +40,14 @@ export default function Labels() {
       />
       <Panel>
         {isError ? (
-          <ErrorState
-            title='Failed to load labels'
-            description={errMsg(error, 'Unknown error')}
-          />
+          <LoadError error={error} title='Failed to load labels' />
         ) : (
           <DataTable<LabelLabelResp>
             framed={false}
             loading={isLoading}
             emptyTitle='No labels'
             emptyDescription='Create your first label.'
-            data={labels}
+            data={data?.items ?? []}
             rowKey={(r) => String(r.id ?? '')}
             columns={[
               {
@@ -96,7 +91,7 @@ export default function Labels() {
             pagination={{
               page,
               pageSize: size,
-              total: data?.pagination?.total,
+              total: data?.total,
               pageSizeOptions: PAGE_SIZE_OPTIONS,
               onChange: (nextPage, nextSize) => {
                 setPage(nextPage);

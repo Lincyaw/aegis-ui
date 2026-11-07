@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import {
   Button,
+  Checkbox,
   FormRow,
   PageHeader,
   Panel,
@@ -9,10 +10,16 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import { ContainerType } from '@lincyaw/portal';
-import { App as AntdApp, Select } from 'antd';
+import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
-import { useCreateContainer } from '../hooks/useContainers';
+import { useCreateContainer } from '../api/containers';
+
+interface FieldErrors {
+  name?: string;
+  versionName?: string;
+  imageRef?: string;
+}
 
 interface Copy {
   basePath: string;
@@ -67,14 +74,16 @@ export default function ContainerCreate({
   const [readme, setReadme] = useState('');
   const [versionName, setVersionName] = useState('v1');
   const [imageRef, setImageRef] = useState('');
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   const submit = (): void => {
-    if (!name.trim()) {
-      void msg.error('name is required');
-      return;
-    }
-    if (!imageRef.trim() || !versionName.trim()) {
-      void msg.error('image and version name are required');
+    const next: FieldErrors = {
+      name: name.trim() ? undefined : 'Name is required',
+      versionName: versionName.trim() ? undefined : 'Version name is required',
+      imageRef: imageRef.trim() ? undefined : 'Image ref is required',
+    };
+    if (next.name || next.versionName || next.imageRef) {
+      setErrors(next);
       return;
     }
     createContainer.mutate(
@@ -98,7 +107,7 @@ export default function ContainerCreate({
           }
         },
         onError: (err) => {
-          void msg.error(errMsg(err, 'Create failed'));
+          void msg.error(`Register failed: ${errMsg(err)}`);
         },
       }
     );
@@ -117,30 +126,37 @@ export default function ContainerCreate({
       />
       <Panel>
         <FormRow label='Name'>
-          <TextField value={name} onChange={(e) => setName(e.target.value)} />
+          <TextField
+            value={name}
+            error={errors.name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setErrors({ ...errors, name: undefined });
+            }}
+          />
         </FormRow>
         <FormRow label='Visibility'>
-          <Select
-            value={isPublic}
-            onChange={setIsPublic}
-            style={{ width: 240 }}
-            options={[
-              { value: false, label: 'Private' },
-              { value: true, label: 'Public' },
-            ]}
-          />
+          <Checkbox label='Public' checked={isPublic} onChange={setIsPublic} />
         </FormRow>
         <FormRow label='Version name'>
           <TextField
             value={versionName}
-            onChange={(e) => setVersionName(e.target.value)}
+            error={errors.versionName}
+            onChange={(e) => {
+              setVersionName(e.target.value);
+              setErrors({ ...errors, versionName: undefined });
+            }}
             placeholder='v1'
           />
         </FormRow>
         <FormRow label='Image ref'>
           <TextField
             value={imageRef}
-            onChange={(e) => setImageRef(e.target.value)}
+            error={errors.imageRef}
+            onChange={(e) => {
+              setImageRef(e.target.value);
+              setErrors({ ...errors, imageRef: undefined });
+            }}
             placeholder={copy.imagePlaceholder}
           />
         </FormRow>
@@ -152,13 +168,15 @@ export default function ContainerCreate({
           />
         </FormRow>
       </Panel>
-      <Button
-        tone='primary'
-        onClick={submit}
-        disabled={createContainer.isPending}
-      >
-        {createContainer.isPending ? 'Registering…' : copy.submitLabel}
-      </Button>
+      <div className='wizard-actions'>
+        <Button
+          tone='primary'
+          onClick={submit}
+          disabled={createContainer.isPending}
+        >
+          {createContainer.isPending ? 'Registering…' : copy.submitLabel}
+        </Button>
+      </div>
     </>
   );
 }

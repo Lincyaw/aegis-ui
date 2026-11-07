@@ -1,30 +1,27 @@
+import { Link } from 'react-router-dom';
+
 import {
   Button,
   DataTable,
-  EmptyState,
-  ErrorState,
   MonoValue,
   PageHeader,
   Panel,
   TimeDisplay,
+  useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import type { ProjectProjectResp } from '@lincyaw/portal';
 
+import { useProjectsList } from '../api/projects';
+import { LoadError } from '../components/LoadError';
 import { StatusChip } from '../components/StatusChip';
-import { useActiveProjectStore } from '../hooks/useActiveProject';
-import { useProjectsList } from '../hooks/useProjects';
+import { useActiveProjectStore } from '../state/active-project';
 
 export default function Projects() {
   const navigate = useAppNavigate();
+  const href = useAppHref();
   const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
-  const {
-    data: projects,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useProjectsList();
+  const { data, isLoading, isError, error } = useProjectsList();
 
   return (
     <>
@@ -39,40 +36,30 @@ export default function Projects() {
       />
       <Panel>
         {isError ? (
-          <ErrorState
-            title='Failed to load projects'
-            description={error.message}
-            action={
-              <Button tone='secondary' onClick={() => void refetch()}>
-                Retry
-              </Button>
-            }
-          />
+          <LoadError error={error} title='Failed to load projects' />
         ) : (
           <DataTable<ProjectProjectResp>
             framed={false}
-            data={projects ?? []}
+            data={data?.items ?? []}
             rowKey={(r) => String(r.id ?? '')}
             loading={isLoading}
             emptyTitle='No projects'
-            emptyDescription='Create a project to start.'
+            emptyDescription='Click + New project to create one.'
             columns={[
               {
                 key: 'name',
                 header: 'Name',
                 render: (r) => (
-                  <a
-                    href='#'
-                    onClick={(e) => {
-                      e.preventDefault();
+                  <Link
+                    to={href(`projects/${String(r.id)}`)}
+                    onClick={() => {
                       if (r.id !== undefined) {
                         setActiveProject(r.id);
-                        navigate(`projects/${String(r.id)}`);
                       }
                     }}
                   >
                     <MonoValue size='sm'>{r.name ?? '—'}</MonoValue>
-                  </a>
+                  </Link>
                 ),
               },
               {
@@ -91,7 +78,7 @@ export default function Projects() {
               {
                 key: 'status',
                 header: 'Status',
-                render: (r) => <StatusChip status={r.status ?? 'unknown'} />,
+                render: (r) => <StatusChip status={r.status} />,
               },
               {
                 key: 'inj',
@@ -107,12 +94,6 @@ export default function Projects() {
                   r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
               },
             ]}
-          />
-        )}
-        {!isError && !isLoading && (projects?.length ?? 0) === 0 && (
-          <EmptyState
-            title='No projects yet'
-            description='Click “+ New project” to create one.'
           />
         )}
       </Panel>

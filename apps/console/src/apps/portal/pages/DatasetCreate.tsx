@@ -2,13 +2,15 @@ import { useState } from 'react';
 
 import {
   Button,
+  Checkbox,
   FormRow,
   PageHeader,
   Panel,
+  Select,
   TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Select } from 'antd';
+import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import { useCreateDataset } from '../api/datasets';
@@ -25,21 +27,18 @@ export default function DatasetCreate() {
   const create = useCreateDataset();
 
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState<string>();
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<string>('replay');
+  const [type, setType] = useState('replay');
   const [isPublic, setIsPublic] = useState<boolean>(false);
 
   const submit = (): void => {
     if (!name.trim()) {
-      void msg.error('name is required');
-      return;
-    }
-    if (!type) {
-      void msg.error('type is required');
+      setNameError('Name is required');
       return;
     }
     create.mutate(
-      { name, description, type, is_public: isPublic },
+      { name: name.trim(), description, type, is_public: isPublic },
       {
         onSuccess: (created) => {
           void msg.success(`Dataset ${created.name ?? name} created`);
@@ -50,7 +49,7 @@ export default function DatasetCreate() {
           }
         },
         onError: (err) => {
-          void msg.error(errMsg(err, 'Failed to create dataset'));
+          void msg.error(`Failed to create dataset: ${errMsg(err)}`);
         },
       }
     );
@@ -60,7 +59,7 @@ export default function DatasetCreate() {
     <>
       <PageHeader
         title='New dataset'
-        description='Create an empty dataset; add injections from the Injections list.'
+        description='Create an empty dataset.'
         action={
           <Button tone='secondary' onClick={() => navigate('datasets')}>
             Cancel
@@ -71,7 +70,11 @@ export default function DatasetCreate() {
         <FormRow label='Name'>
           <TextField
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            error={nameError}
+            onChange={(e) => {
+              setName(e.target.value);
+              setNameError(undefined);
+            }}
             placeholder='ts-fresh-replay-n100'
           />
         </FormRow>
@@ -84,27 +87,21 @@ export default function DatasetCreate() {
         </FormRow>
         <FormRow label='Type'>
           <Select
-            style={{ width: '100%' }}
+            ariaLabel='Type'
             value={type}
             onChange={setType}
             options={TYPES}
           />
         </FormRow>
         <FormRow label='Visibility'>
-          <Select
-            style={{ width: '100%' }}
-            value={isPublic ? 'public' : 'private'}
-            onChange={(v) => setIsPublic(v === 'public')}
-            options={[
-              { value: 'private', label: 'private' },
-              { value: 'public', label: 'public' },
-            ]}
-          />
+          <Checkbox label='Public' checked={isPublic} onChange={setIsPublic} />
         </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit} disabled={create.isPending}>
-        {create.isPending ? 'Creating…' : 'Create'}
-      </Button>
+      <div className='wizard-actions'>
+        <Button tone='primary' onClick={submit} disabled={create.isPending}>
+          {create.isPending ? 'Creating…' : 'Create'}
+        </Button>
+      </div>
     </>
   );
 }

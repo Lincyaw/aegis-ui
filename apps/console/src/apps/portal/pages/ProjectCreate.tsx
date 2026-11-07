@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import {
   Button,
+  Checkbox,
   FormRow,
   PageHeader,
   Panel,
@@ -10,8 +11,9 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
-import { useActiveProjectStore } from '../hooks/useActiveProject';
-import { useCreateProject } from '../hooks/useProjects';
+import { errMsg } from '../../../api/apiClient';
+import { useCreateProject } from '../api/projects';
+import { useActiveProjectStore } from '../state/active-project';
 
 export default function ProjectCreate() {
   const navigate = useAppNavigate();
@@ -20,12 +22,13 @@ export default function ProjectCreate() {
   const createProject = useCreateProject();
 
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState<string>();
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(false);
 
   const submit = (): void => {
     if (!name.trim()) {
-      void msg.error('name is required');
+      setNameError('Name is required');
       return;
     }
     createProject.mutate(
@@ -43,7 +46,7 @@ export default function ProjectCreate() {
           navigate('projects');
         },
         onError: (err) => {
-          void msg.error(`Failed to create project: ${err.message}`);
+          void msg.error(`Failed to create project: ${errMsg(err)}`);
         },
       }
     );
@@ -52,7 +55,7 @@ export default function ProjectCreate() {
   return (
     <>
       <PageHeader
-        title='New Project'
+        title='New project'
         description='Create a new fault-injection project.'
         action={
           <Button tone='secondary' onClick={() => navigate('projects')}>
@@ -64,7 +67,11 @@ export default function ProjectCreate() {
         <FormRow label='Name'>
           <TextField
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            error={nameError}
+            onChange={(e) => {
+              setName(e.target.value);
+              setNameError(undefined);
+            }}
             placeholder='checkout-service'
           />
         </FormRow>
@@ -76,23 +83,18 @@ export default function ProjectCreate() {
           />
         </FormRow>
         <FormRow label='Visibility'>
-          <label>
-            <input
-              type='checkbox'
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-            />{' '}
-            Public
-          </label>
+          <Checkbox label='Public' checked={isPublic} onChange={setIsPublic} />
         </FormRow>
       </Panel>
-      <Button
-        tone='primary'
-        onClick={submit}
-        disabled={createProject.isPending}
-      >
-        {createProject.isPending ? 'Creating…' : 'Create'}
-      </Button>
+      <div className='wizard-actions'>
+        <Button
+          tone='primary'
+          onClick={submit}
+          disabled={createProject.isPending}
+        >
+          {createProject.isPending ? 'Creating…' : 'Create'}
+        </Button>
+      </div>
     </>
   );
 }

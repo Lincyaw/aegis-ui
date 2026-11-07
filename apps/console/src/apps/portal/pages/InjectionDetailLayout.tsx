@@ -6,26 +6,18 @@ import {
   EmptyState,
   PageHeader,
   Panel,
+  SkeletonText,
   Tabs,
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
-import { useInjectionDetail } from '../api/injections';
-import { injectionsApi } from '../api/portal-client';
+import { useCancelInjection, useInjectionDetail } from '../api/injections';
+import { LoadError } from '../components/LoadError';
 import { StatusChip } from '../components/StatusChip';
-
-const CANCELLABLE_STATES = new Set([
-  'Pending',
-  'Rescheduled',
-  'Running',
-  'pending',
-  'rescheduled',
-  'running',
-]);
+import { isActive } from '../domain/status';
 
 interface TabSpec {
   key: string;
@@ -45,7 +37,6 @@ export default function InjectionDetailLayout() {
   const href = useAppHref();
   const location = useLocation();
   const { message: msg } = AntdApp.useApp();
-  const qc = useQueryClient();
 
   const idNum = injectionId ? Number.parseInt(injectionId, 10) : Number.NaN;
   const {
@@ -53,22 +44,8 @@ export default function InjectionDetailLayout() {
     isLoading,
     isError,
     error,
-  } = useInjectionDetail(Number.isNaN(idNum) ? null : idNum);
-
-  const cancel = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await injectionsApi.cancelInjection({ id });
-      return res.data.data;
-    },
-    onSuccess: () => {
-      void msg.success('Injection cancelled');
-      void qc.invalidateQueries({ queryKey: ['portal', 'injection'] });
-      void qc.invalidateQueries({ queryKey: ['portal', 'injections'] });
-    },
-    onError: (e: unknown) => {
-      void msg.error(errMsg(e, 'Cancel failed'));
-    },
-  });
+  } = useInjectionDetail(Number.isNaN(idNum) ? undefined : idNum);
+  const cancel = useCancelInjection();
 
   const activeTabKey = useMemo(() => {
     if (Number.isNaN(idNum)) {
@@ -100,29 +77,41 @@ export default function InjectionDetailLayout() {
     );
   }
 
-  if (isLoading) {
-    return <PageHeader title={`Injection ${idNum}`} description='Loading…' />;
-  }
-
-  if (isError || !injection) {
+  if (isLoading || isError || !injection) {
     return (
       <>
-        <PageHeader title={`Injection ${idNum}`} />
+        <PageHeader title={`Injection ${String(idNum)}`} />
         <Panel>
-          <EmptyState
-            title='Injection not found'
-            description={errMsg(
-              error,
-              'It may have been removed or never existed.'
-            )}
-          />
+          {isError ? (
+            <LoadError
+              error={error}
+              title='Failed to load injection'
+              notFound={{
+                title: 'Injection not found',
+                description: 'It may have been removed or never existed.',
+              }}
+            />
+          ) : (
+            <SkeletonText />
+          )}
         </Panel>
       </>
     );
   }
 
-  const status = injection.status ?? injection.state ?? 'unknown';
-  const cancellable = CANCELLABLE_STATES.has(status) && injection.task_id;
+  const status = injection.status ?? injection.state;
+  const cancellable = isActive(status) && Boolean(injection.task_id);
+
+  const onCancel = (id: number): void => {
+    cancel.mutate(id, {
+      onSuccess: () => {
+        void msg.success('Injection cancelled');
+      },
+      onError: (err) => {
+        void msg.error(`Cancel failed: ${errMsg(err)}`);
+      },
+    });
+  };
 
   const onTabChange = (key: string): void => {
     const spec = TAB_SPECS.find((t) => t.key === key);
@@ -136,7 +125,7 @@ export default function InjectionDetailLayout() {
   return (
     <>
       <PageHeader
-        title={`Injection ${injection.id ?? idNum}`}
+        title={`Injection ${String(injection.id ?? idNum)}`}
         description={injection.name}
         action={
           <div className='page-action-row'>
@@ -147,7 +136,7 @@ export default function InjectionDetailLayout() {
                 disabled={cancel.isPending}
                 onClick={() => {
                   if (typeof injection.id === 'number') {
-                    cancel.mutate(injection.id);
+                    onCancel(injection.id);
                   }
                 }}
               >

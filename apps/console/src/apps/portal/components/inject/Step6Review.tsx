@@ -1,36 +1,47 @@
 import { useState } from 'react';
 
-import { CodeBlock, MetricLabel, Panel, PanelTitle } from '@lincyaw/aegis-ui';
-import { Radio } from 'antd';
+import {
+  CodeBlock,
+  MetricLabel,
+  Panel,
+  PanelTitle,
+  Tabs,
+} from '@lincyaw/aegis-ui';
+import yaml from 'js-yaml';
 
-import { specToYaml } from './paramSchema';
-import type { GuidedInjectionSpec } from './types';
+import {
+  type GuidedInjectionSpec,
+  submitOptionsFor,
+  toSubmitRequest,
+} from '../../domain/injectSpec';
 
 interface Props {
   spec: GuidedInjectionSpec;
 }
 
 export function Step6Review({ spec }: Props) {
-  const [format, setFormat] = useState<'json' | 'yaml'>('json');
+  const [format, setFormat] = useState('yaml');
+  const request = toSubmitRequest([spec], submitOptionsFor(spec));
   return (
     <Panel title={<PanelTitle size='base'>6. Review</PanelTitle>}>
-      <MetricLabel>
-        Resolved session config — equivalent to
-        ~/.aegisctl/inject-guided/session.yaml.
-      </MetricLabel>
-      <Radio.Group
-        value={format}
-        onChange={(e) => setFormat(e.target.value as 'json' | 'yaml')}
-        style={{ margin: 'var(--space-3) 0' }}
-      >
-        <Radio value='json'>JSON</Radio>
-        <Radio value='yaml'>YAML</Radio>
-      </Radio.Group>
-      {format === 'json' ? (
-        <CodeBlock language='json' code={JSON.stringify(spec, null, 2)} />
-      ) : (
-        <CodeBlock language='yaml' code={specToYaml(spec)} />
-      )}
+      <div className='page-stack'>
+        <MetricLabel>The request body that is sent on confirm.</MetricLabel>
+        <Tabs
+          listOnly
+          size='sm'
+          activeKey={format}
+          onChange={setFormat}
+          items={[
+            { key: 'yaml', label: 'YAML' },
+            { key: 'json', label: 'JSON' },
+          ]}
+        />
+        {format === 'json' ? (
+          <CodeBlock language='json' code={JSON.stringify(request, null, 2)} />
+        ) : (
+          <CodeBlock language='yaml' code={yaml.dump(request)} />
+        )}
+      </div>
     </Panel>
   );
 }

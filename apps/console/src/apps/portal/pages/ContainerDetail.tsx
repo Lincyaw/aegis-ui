@@ -5,40 +5,40 @@ import {
   DataTable,
   EmptyState,
   KeyValueList,
+  Markdown,
   MonoValue,
   PageHeader,
   Panel,
   PanelTitle,
+  SkeletonText,
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
 import { ContainerType } from '@lincyaw/portal';
 
-import { useContainer } from '../hooks/useContainers';
+import { useContainer } from '../api/containers';
+import { LoadError } from '../components/LoadError';
+import { StatusChip } from '../components/StatusChip';
 
 interface Copy {
+  noun: string;
   notFoundTitle: string;
-  loadingTitle: string;
-  loadingDescription: string;
   description: string;
 }
 
 const COPY: Record<ContainerType, Copy> = {
   [ContainerType.Algorithm]: {
+    noun: 'algorithm',
     notFoundTitle: 'Algorithm not found',
-    loadingTitle: 'Loading…',
-    loadingDescription: 'Loading algorithm',
     description: 'Algorithm',
   },
   [ContainerType.Benchmark]: {
+    noun: 'benchmark',
     notFoundTitle: 'Benchmark not found',
-    loadingTitle: 'Loading…',
-    loadingDescription: 'Loading benchmark',
     description: 'Benchmark',
   },
   [ContainerType.Pedestal]: {
+    noun: 'pedestal chart',
     notFoundTitle: 'Pedestal chart not found',
-    loadingTitle: 'Loading…',
-    loadingDescription: 'Loading pedestal chart',
     description: 'Pedestal chart',
   },
 };
@@ -55,33 +55,25 @@ export default function ContainerDetail({
   const { data: container, isLoading, isError, error } = useContainer(idNum);
   const copy = COPY[containerType];
 
-  if (isLoading) {
+  if (isLoading || isError || !container) {
     return (
       <>
-        <PageHeader title={copy.loadingTitle} />
+        <PageHeader title={`${copy.description} ${containerId ?? ''}`} />
         <Panel>
-          <EmptyState
-            title={copy.loadingDescription}
-            description='Please wait.'
-          />
-        </Panel>
-      </>
-    );
-  }
-
-  if (isError || !container) {
-    return (
-      <>
-        <PageHeader title={copy.notFoundTitle} />
-        <Panel>
-          <EmptyState
-            title='Not found'
-            description={
-              isError && error instanceof Error
-                ? error.message
-                : copy.notFoundTitle
-            }
-          />
+          {isLoading ? (
+            <SkeletonText />
+          ) : isError ? (
+            <LoadError
+              error={error}
+              title={`Failed to load the ${copy.noun}`}
+              notFound={{ title: copy.notFoundTitle }}
+            />
+          ) : (
+            <EmptyState
+              title={copy.notFoundTitle}
+              description={`"${containerId ?? ''}" is not a ${copy.noun} id.`}
+            />
+          )}
         </Panel>
       </>
     );
@@ -102,7 +94,11 @@ export default function ContainerDetail({
             },
             {
               k: 'status',
-              v: container.status ? <Chip>{container.status}</Chip> : '—',
+              v: container.status ? (
+                <StatusChip status={container.status} />
+              ) : (
+                '—'
+              ),
             },
             {
               k: 'visibility',
@@ -128,14 +124,14 @@ export default function ContainerDetail({
               k: 'labels',
               v:
                 container.labels && container.labels.length > 0 ? (
-                  <>
+                  <div className='page-action-row'>
                     {container.labels.map((l, i) => (
-                      <Chip key={`${l.key ?? ''}-${String(i)}`}>
+                      <Chip key={`${l.key ?? ''}-${String(i)}`} tone='ghost'>
                         {l.key}
                         {l.value ? `=${l.value}` : ''}
                       </Chip>
                     ))}
-                  </>
+                  </div>
                 ) : (
                   '—'
                 ),
@@ -145,9 +141,7 @@ export default function ContainerDetail({
       </Panel>
       {container.readme ? (
         <Panel title={<PanelTitle size='base'>Readme</PanelTitle>}>
-          <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
-            {container.readme}
-          </pre>
+          <Markdown>{container.readme}</Markdown>
         </Panel>
       ) : null}
       <Panel title={<PanelTitle size='base'>Versions</PanelTitle>}>

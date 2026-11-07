@@ -1,107 +1,108 @@
 import {
   Button,
-  Chip,
+  ChoiceCardGroup,
   DataTable,
-  MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
+  Toolbar,
 } from '@lincyaw/aegis-ui';
-import { Radio } from 'antd';
 
-import { useInjectBatch } from '../../state/inject-batch';
+import { type StagedInjection, useInjectBatch } from '../../state/inject-batch';
+
+export type SubmitMode = 'submit' | 'stage';
 
 interface Props {
-  mode: 'submit' | 'stage';
-  setMode: (m: 'submit' | 'stage') => void;
+  mode: SubmitMode;
+  setMode: (mode: SubmitMode) => void;
 }
 
-interface StagedRow {
-  index: number;
-  id: string;
-  systemCode: string;
-  app: string;
-  chaosType: string;
-  durationSec: number;
-}
+const MODES = [
+  {
+    value: 'submit',
+    title: 'Submit now',
+    description: 'On confirm one injection is created.',
+  },
+  {
+    value: 'stage',
+    title: 'Stage for batch',
+    description:
+      'On confirm this draft joins the batch and the wizard starts again.',
+    meta: '--stage',
+  },
+];
 
 export function Step5Stage({ mode, setMode }: Props) {
   const staged = useInjectBatch((s) => s.staged);
   const remove = useInjectBatch((s) => s.remove);
   const clear = useInjectBatch((s) => s.clear);
 
-  const rows: StagedRow[] = staged.map((it, i) => ({
-    index: i,
-    id: it.id,
-    systemCode: it.spec.systemCode,
-    app: it.spec.app,
-    chaosType: it.spec.chaosType,
-    durationSec: it.spec.durationSec,
-  }));
-
   return (
     <Panel title={<PanelTitle size='base'>5. Submit or stage</PanelTitle>}>
-      <Radio.Group
-        value={mode}
-        onChange={(e) => setMode(e.target.value as 'submit' | 'stage')}
-        style={{ marginBottom: 'var(--space-3)' }}
-      >
-        <Radio value='submit'>Submit now</Radio>
-        <Radio value='stage'>Stage for batch (--stage)</Radio>
-      </Radio.Group>
-      <MetricLabel>
-        {mode === 'submit'
-          ? 'On confirm: one injection is created.'
-          : 'On confirm: this draft is appended to the batch and the wizard resets.'}
-      </MetricLabel>
+      <div className='page-stack'>
+        <ChoiceCardGroup
+          ariaLabel='What to do on confirm'
+          value={mode}
+          onChange={(value) => setMode(value === 'stage' ? 'stage' : 'submit')}
+          options={MODES}
+        />
 
-      {rows.length > 0 && (
-        <div style={{ marginTop: 'var(--space-4)' }}>
-          <div
-            className='page-action-row'
-            style={{ marginBottom: 'var(--space-3)' }}
-          >
-            <Chip tone='ink'>{rows.length} staged</Chip>
-            <Button tone='ghost' onClick={() => clear()}>
-              Clear batch
-            </Button>
-          </div>
-          <DataTable<StagedRow>
-            framed={false}
-            data={rows}
-            rowKey={(r) => r.id}
-            emptyTitle='No staged drafts'
-            emptyDescription=''
-            columns={[
-              {
-                key: 'sys',
-                header: 'System',
-                render: (r) => <MonoValue size='sm'>{r.systemCode}</MonoValue>,
-              },
-              { key: 'app', header: 'App', render: (r) => r.app },
-              {
-                key: 'type',
-                header: 'Chaos type',
-                render: (r) => <MonoValue size='sm'>{r.chaosType}</MonoValue>,
-              },
-              {
-                key: 'dur',
-                header: 'Duration',
-                render: (r) => `${r.durationSec}s`,
-              },
-              {
-                key: 'rm',
-                header: '',
-                render: (r) => (
-                  <Button tone='ghost' onClick={() => remove(r.index)}>
-                    Remove
-                  </Button>
-                ),
-              },
-            ]}
-          />
-        </div>
-      )}
+        {staged.length > 0 && (
+          <>
+            <Toolbar
+              left={
+                <MonoValue size='sm'>{`${String(staged.length)} staged`}</MonoValue>
+              }
+              right={
+                <Button tone='ghost' onClick={() => clear()}>
+                  Clear batch
+                </Button>
+              }
+            />
+            <DataTable<StagedInjection>
+              framed={false}
+              data={staged}
+              rowKey={(r) => r.id}
+              columns={[
+                {
+                  key: 'sys',
+                  header: 'System',
+                  render: (r) => (
+                    <MonoValue size='sm'>{r.spec.systemCode}</MonoValue>
+                  ),
+                },
+                { key: 'app', header: 'App', render: (r) => r.spec.app },
+                {
+                  key: 'type',
+                  header: 'Chaos type',
+                  render: (r) => (
+                    <MonoValue size='sm'>{r.spec.chaosType}</MonoValue>
+                  ),
+                },
+                {
+                  key: 'dur',
+                  header: 'Duration',
+                  render: (r) => `${String(r.spec.durationSec)}s`,
+                },
+                {
+                  key: 'rm',
+                  header: '',
+                  render: (r) => (
+                    <Button
+                      tone='ghost'
+                      onClick={() =>
+                        remove(staged.findIndex((s) => s.id === r.id))
+                      }
+                    >
+                      Remove
+                    </Button>
+                  ),
+                },
+              ]}
+            />
+          </>
+        )}
+      </div>
     </Panel>
   );
 }

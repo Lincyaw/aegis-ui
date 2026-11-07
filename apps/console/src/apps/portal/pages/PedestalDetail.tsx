@@ -13,17 +13,21 @@ import {
   Panel,
   PanelTitle,
   SectionDivider,
-  TextField,
+  SkeletonText,
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Modal, Spin } from 'antd';
+import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import {
   usePedestal,
   useRestartPedestal,
   useUninstallPedestal,
 } from '../api/pedestals';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { DeleteButton } from '../components/DeleteButton';
+import { LoadError } from '../components/LoadError';
 
 function stringifyValues(values: Record<string, unknown> | undefined): string {
   if (!values || Object.keys(values).length === 0) {
@@ -36,78 +40,65 @@ export default function PedestalDetail() {
   const { release: releaseParam } = useParams<{ release: string }>();
   const release = releaseParam ?? '';
   const navigate = useAppNavigate();
-  const { message: msg, modal } = AntdApp.useApp();
+  const { message: msg } = AntdApp.useApp();
 
-  const { data, isLoading } = usePedestal(release);
+  const { data, isLoading, isError, error } = usePedestal(release);
   const restartMutation = useRestartPedestal();
   const uninstallMutation = useUninstallPedestal();
+  const [restartOpen, setRestartOpen] = useState(false);
 
-  const [uninstallOpen, setUninstallOpen] = useState(false);
-  const [confirmName, setConfirmName] = useState('');
-
-  if (isLoading && !data) {
+  if (isLoading || isError || !data?.release) {
     return (
       <>
         <PageHeader title={`Pedestal ${release}`} />
         <Panel>
-          <Spin />
+          {isLoading ? (
+            <SkeletonText />
+          ) : isError ? (
+            <LoadError
+              error={error}
+              title='Failed to load the pedestal'
+              notFound={{
+                title: 'Pedestal not found',
+                description: 'It may have been uninstalled.',
+              }}
+            />
+          ) : (
+            <EmptyState
+              title='Pedestal not found'
+              description='The server returned no release under this name.'
+            />
+          )}
         </Panel>
       </>
     );
   }
 
-  if (!data || !data.release) {
-    return (
-      <>
-        <PageHeader title='Pedestal not found' />
-        <Panel>
-          <EmptyState
-            title='Not found'
-            description='Pedestal may have been uninstalled.'
-          />
-        </Panel>
-      </>
-    );
-  }
+  const releaseName = data.release;
 
-  const onRestart = (): void => {
-    modal.confirm({
-      title: `Restart ${data.release ?? ''}?`,
-      content:
-        'Redeploys the release in-place with the previously-applied values.',
-      okText: 'Restart',
-      onOk: async () => {
-        try {
-          await restartMutation.mutateAsync({ release: data.release ?? '' });
-          void msg.success(`Restarted ${data.release ?? ''}`);
-        } catch {
-          void msg.error('Restart failed');
-        }
-      },
+  const restart = (): void => {
+    restartMutation.mutate(
+      { release: releaseName },
+      {
+        onSuccess: () => {
+          setRestartOpen(false);
+          void msg.success(`Restarted ${releaseName}`);
+        },
+        onError: (err) => {
+          setRestartOpen(false);
+          void msg.error(`Restart failed: ${errMsg(err)}`);
+        },
+      }
+    );
+  };
+
+  const uninstall = async (): Promise<void> => {
+    await uninstallMutation.mutateAsync({
+      release: releaseName,
+      namespace: data.namespace,
     });
-  };
-
-  const openUninstall = (): void => {
-    setConfirmName('');
-    setUninstallOpen(true);
-  };
-
-  const confirmUninstall = async (): Promise<void> => {
-    if (confirmName !== data.release) {
-      void msg.error('Release name does not match');
-      return;
-    }
-    try {
-      await uninstallMutation.mutateAsync({
-        release: data.release ?? '',
-        namespace: data.namespace,
-      });
-      void msg.success(`Uninstalled ${data.release ?? ''}`);
-      setUninstallOpen(false);
-      navigate('pedestals');
-    } catch {
-      void msg.error('Uninstall failed');
-    }
+    void msg.success(`Uninstalled ${releaseName}`);
+    navigate('pedestals');
   };
 
   const valuesYaml = stringifyValues(data.values);
@@ -117,11 +108,11 @@ export default function PedestalDetail() {
       : (data.system ?? '').length > 0
         ? 'name-only'
         : 'unknown';
-  const managedTone: 'ink' | 'warning' | 'ghost' =
+  const managedTone: 'ink' | 'caution' | 'ghost' =
     managedLabel === 'managed'
       ? 'ink'
       : managedLabel === 'name-only'
-        ? 'warning'
+        ? 'caution'
         : 'ghost';
 
   return (
@@ -138,7 +129,7 @@ export default function PedestalDetail() {
             <Chip tone={managedTone}>{managedLabel}</Chip>
             <Button
               tone='secondary'
-              onClick={onRestart}
+              onClick={() => setRestartOpen(true)}
               disabled={restartMutation.isPending}
             >
               {restartMutation.isPending ? 'Restarting…' : 'Restart'}
@@ -194,36 +185,24 @@ export default function PedestalDetail() {
         title='Danger zone'
         description='Uninstall removes all release resources from the cluster.'
       >
-        <Button tone='secondary' onClick={openUninstall}>
-          Uninstall
-        </Button>
+        <DeleteButton
+          label='Uninstall'
+          subject={`pedestal ${releaseName}`}
+          consequence='This removes all release resources from the cluster.'
+          typedConfirmation={releaseName}
+          onDelete={uninstall}
+        />
       </DangerZone>
 
-      <Modal
-        title={`Uninstall ${data.release ?? ''}?`}
-        open={uninstallOpen}
-        onCancel={() => setUninstallOpen(false)}
-        onOk={() => {
-          void confirmUninstall();
-        }}
-        okText='Uninstall'
-        okButtonProps={{
-          danger: true,
-          disabled: confirmName !== data.release || uninstallMutation.isPending,
-          loading: uninstallMutation.isPending,
-        }}
-        width={520}
-      >
-        <p>
-          This removes all release resources from the cluster. Type the release
-          name <strong>{data.release}</strong> to confirm.
-        </p>
-        <TextField
-          value={confirmName}
-          onChange={(e) => setConfirmName(e.target.value)}
-          placeholder={data.release}
-        />
-      </Modal>
+      <ConfirmDialog
+        open={restartOpen}
+        title={`Restart ${releaseName}?`}
+        description='Redeploys the release in place with the values applied before.'
+        confirmLabel='Restart'
+        pending={restartMutation.isPending}
+        onConfirm={restart}
+        onCancel={() => setRestartOpen(false)}
+      />
     </>
   );
 }

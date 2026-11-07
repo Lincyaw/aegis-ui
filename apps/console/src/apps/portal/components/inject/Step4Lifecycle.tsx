@@ -1,13 +1,17 @@
 import {
   BlastRadiusBar,
+  Checkbox,
   MetricLabel,
   Panel,
   PanelTitle,
 } from '@lincyaw/aegis-ui';
-import { Form, Slider, Switch } from 'antd';
+import { Form, Slider } from 'antd';
 
-import { CHAOS_BY_NAME } from './paramSchema';
-import type { GuidedInjectionSpec } from './types';
+import {
+  CHAOS_BY_NAME,
+  type ChaosTypeDef,
+  type GuidedInjectionSpec,
+} from '../../domain/injectSpec';
 
 interface Props {
   spec: GuidedInjectionSpec;
@@ -22,21 +26,20 @@ const DURATION_MARKS = {
   1800: '30m',
 };
 
-function blastFor(spec: GuidedInjectionSpec): number {
-  const def = CHAOS_BY_NAME[spec.chaosType];
-  if (!def) return 30;
-  if (def.blastHint === 'pod') return 25;
-  if (def.blastHint === 'service') return 60;
-  return 90;
-}
+const BLAST_PERCENT: Record<ChaosTypeDef['blastHint'], number> = {
+  pod: 25,
+  service: 60,
+  namespace: 90,
+};
 
 export function Step4Lifecycle({ spec, update }: Props) {
+  const def = CHAOS_BY_NAME[spec.chaosType];
   return (
     <Panel
       title={<PanelTitle size='base'>4. Lifecycle &amp; scope</PanelTitle>}
     >
-      <Form layout='vertical'>
-        <Form.Item label={`Duration · ${spec.durationSec}s`}>
+      <Form layout='vertical' component='div'>
+        <Form.Item label={`Duration · ${String(spec.durationSec)}s`}>
           <Slider
             min={15}
             max={1800}
@@ -48,29 +51,21 @@ export function Step4Lifecycle({ spec, update }: Props) {
         </Form.Item>
 
         <Form.Item label='Estimated blast radius'>
-          <BlastRadiusBar value={blastFor(spec)} />
-          <MetricLabel size='xs'>
-            Heuristic from chaos type · pod &lt; service &lt; namespace
-          </MetricLabel>
+          <div className='page-stack'>
+            <BlastRadiusBar value={def ? BLAST_PERCENT[def.blastHint] : 0} />
+            <MetricLabel size='xs'>
+              {def
+                ? `A ${def.name} fault reaches the ${def.blastHint} · pod < service < namespace`
+                : 'Pick a chaos type to estimate the reach.'}
+            </MetricLabel>
+          </div>
         </Form.Item>
 
-        <Form.Item
-          label='Skip restart pedestal'
-          extra='maps to --skip-restart-pedestal.'
-        >
-          <Switch
+        <Form.Item extra='maps to --skip-restart-pedestal.'>
+          <Checkbox
+            label='Skip restarting the pedestal'
             checked={spec.skipRestartPedestal}
-            onChange={(v) => update({ skipRestartPedestal: v })}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label='Skip stale-check'
-          extra='maps to --skip-stale-check; bypasses duplicate-suppression.'
-        >
-          <Switch
-            checked={spec.skipStaleCheck}
-            onChange={(v) => update({ skipStaleCheck: v })}
+            onChange={(checked) => update({ skipRestartPedestal: checked })}
           />
         </Form.Item>
       </Form>

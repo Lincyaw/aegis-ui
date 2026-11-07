@@ -5,23 +5,27 @@ import {
   DataTable,
   type DataTableColumn,
   EmptyState,
-  ErrorState,
   KeyValueList,
+  MetricLabel,
   MonoValue,
   PageHeader,
   Panel,
   PanelTitle,
+  SkeletonText,
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
 import type { ExecutionDetectorResultItem } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
+import { useExecutionDetail } from '../api/executions';
+import { ACTIVE_POLL_MS } from '../api/polling';
+import { useCancelTask } from '../api/tasks';
 import { useTraceLogs } from '../api/traces';
+import { LoadError } from '../components/LoadError';
 import { StatusChip } from '../components/StatusChip';
 import { TraceLogsPanel } from '../components/TraceLogsPanel';
-import { useExecutionDetail } from '../hooks/useExecutions';
-import { isActiveTaskState, useCancelTask } from '../hooks/useTasks';
+import { isActive, isTerminal } from '../domain/status';
 import { useTraceLogFilters } from '../hooks/useTraceLogFilters';
 
 function fmtNum(n: number | undefined, digits = 2): string {
@@ -83,49 +87,61 @@ export default function ExecutionDetail() {
   const numericId = executionId ? Number(executionId) : undefined;
   const { data, isLoading, isError, error } = useExecutionDetail(numericId);
 
-  const traceId = data?.trace_id ?? null;
-  const state = data?.state ?? data?.status ?? 'pending';
-  const live = isActiveTaskState(state);
+  const traceId = data?.trace_id;
+  const state = data?.state ?? data?.status;
+  const live = isActive(state);
 
   const { message: msg } = AntdApp.useApp();
-  const cancelTask = useCancelTask(() => {
-    void msg.success('Run cancelled');
-  });
+  const cancelTask = useCancelTask();
 
   const logFilters = useTraceLogFilters();
   const { data: logsResp } = useTraceLogs(
     traceId,
     logFilters.query,
-    live ? 3_000 : false
+    live ? ACTIVE_POLL_MS : false
   );
 
-  if (isLoading) {
+  if (isLoading || isError || !data) {
     return (
       <>
         <PageHeader title={`Execution ${executionId ?? ''}`} />
         <Panel>
-          <EmptyState title='Loading…' description='Fetching execution.' />
+          {isLoading ? (
+            <SkeletonText />
+          ) : isError ? (
+            <LoadError
+              error={error}
+              title='Failed to load execution'
+              notFound={{
+                title: 'Execution not found',
+                description: `No execution has id ${executionId ?? ''}.`,
+              }}
+            />
+          ) : (
+            <EmptyState
+              title='Execution not found'
+              description={`"${executionId ?? ''}" is not an execution id.`}
+            />
+          )}
         </Panel>
       </>
     );
   }
 
-  if (isError || !data) {
-    return (
-      <>
-        <PageHeader title={`Execution ${executionId ?? ''}`} />
-        <Panel>
-          <ErrorState
-            title='Not found'
-            description={errMsg(error, 'Unknown execution.')}
-          />
-        </Panel>
-      </>
-    );
-  }
-
-  const taskId = data?.task_id ?? null;
-  const cancellable = typeof taskId === 'string' && taskId.length > 0 && live;
+  const taskId = data.task_id;
+  const cancel = (): void => {
+    if (taskId === undefined) {
+      return;
+    }
+    cancelTask.mutate(taskId, {
+      onSuccess: () => {
+        void msg.success('Run cancelled');
+      },
+      onError: (err) => {
+        void msg.error(`Cancel failed: ${errMsg(err)}`);
+      },
+    });
+  };
   const detectorResults = data.detector_results ?? [];
 
   return (
@@ -180,11 +196,23 @@ export default function ExecutionDetail() {
             { k: 'state', v: <StatusChip status={state} /> },
             {
               k: 'started',
-              v: <TimeDisplay value={data.created_at ?? ''} />,
+              v: data.created_at ? (
+                <TimeDisplay value={data.created_at} />
+              ) : (
+                '—'
+              ),
             },
             {
               k: 'finished',
-              v: live ? '—' : <TimeDisplay value={data.updated_at ?? ''} />,
+              v: isTerminal(state) ? (
+                data.updated_at ? (
+                  <TimeDisplay value={data.updated_at} />
+                ) : (
+                  '—'
+                )
+              ) : (
+                '—'
+              ),
             },
             {
               k: 'trace id',
@@ -192,16 +220,12 @@ export default function ExecutionDetail() {
             },
           ]}
         />
-        {cancellable && (
+        {live && taskId && (
           <div className='injection-process__stage-actions'>
             <Button
               tone='secondary'
               disabled={cancelTask.isPending}
-              onClick={() => {
-                if (typeof taskId === 'string') {
-                  cancelTask.mutate(taskId);
-                }
-              }}
+              onClick={cancel}
             >
               {cancelTask.isPending ? 'Cancelling…' : 'Cancel'}
             </Button>
@@ -222,9 +246,9 @@ export default function ExecutionDetail() {
         title={<PanelTitle size='base'>Detector results</PanelTitle>}
         extra={
           detectorResults.length > 0 ? (
-            <span className='injection-process__last-event-label'>
+            <MetricLabel size='xs'>
               {`${String(detectorResults.length)} spans`}
-            </span>
+            </MetricLabel>
           ) : undefined
         }
       >

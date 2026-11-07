@@ -5,44 +5,38 @@ import {
   Button,
   EmptyState,
   KeyValueList,
+  MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
+  SkeletonText,
   Terminal,
-  type TerminalLine,
   TimeDisplay,
   TimelineChart,
   type TraceSpan,
   TraceSpanInspector,
   TraceTree,
 } from '@lincyaw/aegis-ui';
-import type {
-  InjectionInjectionTimelineEvent,
-  InjectionInjectionTimelineResp,
-  InjectionInjectionTimelineWindow,
-  TaskResp,
-  TraceSpanNode,
-  TraceTraceDetailResp,
-} from '@lincyaw/portal';
+import type { TaskResp, TraceTraceDetailResp } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
-import {
-  isActiveTraceState,
-  useInjectionDetail,
-  useInjectionTimeline,
-  useProcessTrace,
-  useTraceSpans,
-} from '../api/injections';
-import { useTraceLogs } from '../api/traces';
-import {
-  intervalToMs,
-  type RefreshInterval,
-} from '../components/refresh-interval';
+import { useInjectionDetail, useInjectionTimeline } from '../api/injections';
+import { pollMs, type RefreshInterval } from '../api/polling';
+import { useCancelTask } from '../api/tasks';
+import { useProcessTrace, useTraceLogs, useTraceSpans } from '../api/traces';
+import { LoadError } from '../components/LoadError';
 import { RefreshControl } from '../components/RefreshControl';
 import { StatusChip } from '../components/StatusChip';
 import { TraceLogsPanel } from '../components/TraceLogsPanel';
-import { isActiveTaskState, useCancelTask } from '../hooks/useTasks';
+import { isActive } from '../domain/status';
+import {
+  buildPhaseGantt,
+  formatElapsed,
+  formatMs,
+  groupSpansByOTelTrace,
+  timelineEventLines,
+} from '../domain/traceSpans';
 import { useTraceLogFilters } from '../hooks/useTraceLogFilters';
 
 const STAGE_LABELS: Record<string, string> = {
@@ -61,222 +55,6 @@ function stageLabel(type: string | undefined): string {
   return STAGE_LABELS[type] ?? type;
 }
 
-function formatDuration(startIso?: string, endIso?: string): string {
-  if (!startIso) {
-    return '—';
-  }
-  const start = Date.parse(startIso);
-  if (Number.isNaN(start)) {
-    return '—';
-  }
-  const end = endIso ? Date.parse(endIso) : Date.now();
-  if (Number.isNaN(end) || end < start) {
-    return '—';
-  }
-  const ms = end - start;
-  if (ms < 1000) {
-    return `${ms}ms`;
-  }
-  const s = ms / 1000;
-  if (s < 60) {
-    return `${s.toFixed(1)}s`;
-  }
-  const m = Math.floor(s / 60);
-  const rs = Math.round(s - m * 60);
-  if (m < 60) {
-    return `${String(m)}m ${String(rs)}s`;
-  }
-  const h = Math.floor(m / 60);
-  const rm = m - h * 60;
-  return `${String(h)}h ${String(rm)}m`;
-}
-
-function formatMs(ms: number): string {
-  if (ms < 1) {
-    return `${(ms * 1000).toFixed(0)}µs`;
-  }
-  if (ms < 1000) {
-    return `${ms.toFixed(0)}ms`;
-  }
-  if (ms < 60_000) {
-    return `${(ms / 1000).toFixed(2)}s`;
-  }
-  const s = ms / 1000;
-  const m = Math.floor(s / 60);
-  const rs = Math.round(s - m * 60);
-  return `${String(m)}m${String(rs)}s`;
-}
-
-const PHASE_ORDER: Array<keyof InjectionInjectionTimelineResp> = [
-  'pre',
-  'fault',
-  'post',
-  'recover',
-];
-
-interface PhaseGantt {
-  spans: TraceSpan[];
-  maxMs: number;
-  totalMs: number;
-}
-
-function buildPhaseGantt(
-  timeline: InjectionInjectionTimelineResp
-): PhaseGantt | null {
-  const phases: Array<{
-    key: string;
-    window: InjectionInjectionTimelineWindow;
-  }> = [];
-  for (const key of PHASE_ORDER) {
-    const w = timeline[key];
-    if (
-      w &&
-      typeof w === 'object' &&
-      'start' in w &&
-      (w as InjectionInjectionTimelineWindow).start
-    ) {
-      phases.push({
-        key: String(key),
-        window: w as InjectionInjectionTimelineWindow,
-      });
-    }
-  }
-  if (phases.length === 0) {
-    return null;
-  }
-  const startsMs = phases
-    .map((p) => Date.parse(p.window.start ?? ''))
-    .filter((n) => !Number.isNaN(n));
-  if (startsMs.length === 0) {
-    return null;
-  }
-  const traceStartMs = Math.min(...startsMs);
-  let traceEndMs = traceStartMs;
-  const spans: TraceSpan[] = phases.map((p, i) => {
-    const startMs = Date.parse(p.window.start ?? '');
-    const endStr = p.window.end ?? '';
-    const endMs = endStr ? Date.parse(endStr) : Date.now();
-    const safeStart = Number.isNaN(startMs) ? traceStartMs : startMs;
-    const safeEnd = Number.isNaN(endMs)
-      ? safeStart
-      : Math.max(endMs, safeStart);
-    if (safeEnd > traceEndMs) {
-      traceEndMs = safeEnd;
-    }
-    return {
-      id: `phase-${p.key}-${String(i)}`,
-      name: p.key,
-      startMs: safeStart - traceStartMs,
-      durationMs: Math.max(1, safeEnd - safeStart),
-      kind: p.key,
-    };
-  });
-  const totalMs = traceEndMs - traceStartMs;
-  return {
-    spans,
-    maxMs: Math.max(totalMs, 1),
-    totalMs,
-  };
-}
-
-function eventLines(
-  events: InjectionInjectionTimelineEvent[] | undefined
-): TerminalLine[] {
-  if (!events || events.length === 0) {
-    return [];
-  }
-  return [...events]
-    .sort((a, b) => (a.ts ?? '').localeCompare(b.ts ?? ''))
-    .map((e, i) => ({
-      ts: e.ts ?? String(i),
-      prefix: e.kind ?? 'event',
-      body: e.label ?? '',
-    }));
-}
-
-function spanStatus(s: string | undefined): TraceSpan['status'] {
-  const lower = (s ?? '').toLowerCase();
-  if (lower === 'error' || lower === 'status_code_error') {
-    return 'error';
-  }
-  if (lower === 'ok' || lower === 'status_code_ok') {
-    return 'ok';
-  }
-  return 'unset';
-}
-
-interface SpanGroup {
-  otelTraceId: string;
-  spans: TraceSpan[];
-  startMs: number;
-  durationMs: number;
-}
-
-function groupSpansByOTelTrace(
-  nodes: TraceSpanNode[] | undefined
-): SpanGroup[] {
-  if (!nodes || nodes.length === 0) {
-    return [];
-  }
-  const byOTel = new Map<string, TraceSpanNode[]>();
-  for (const n of nodes) {
-    const key = n.otel_trace_id ?? '';
-    const existing = byOTel.get(key) ?? [];
-    existing.push(n);
-    byOTel.set(key, existing);
-  }
-  const groups: SpanGroup[] = [];
-  for (const [otelTraceId, members] of byOTel) {
-    if (members.length === 0) {
-      continue;
-    }
-    const localIds = new Set<string>();
-    for (const m of members) {
-      if (m.span_id) {
-        localIds.add(m.span_id);
-      }
-    }
-    const starts = members
-      .map((m) => Date.parse(m.start_ts ?? ''))
-      .filter((n) => !Number.isNaN(n));
-    if (starts.length === 0) {
-      continue;
-    }
-    const traceStartMs = Math.min(...starts);
-    let traceEndMs = traceStartMs;
-    const spans: TraceSpan[] = members.map((m, i) => {
-      const startMs = Date.parse(m.start_ts ?? '');
-      const endMs = Date.parse(m.end_ts ?? '');
-      const safeStart = Number.isNaN(startMs) ? traceStartMs : startMs;
-      const safeEnd = Number.isNaN(endMs)
-        ? safeStart
-        : Math.max(endMs, safeStart);
-      if (safeEnd > traceEndMs) {
-        traceEndMs = safeEnd;
-      }
-      const parentInTrace =
-        m.parent_id && localIds.has(m.parent_id) ? m.parent_id : null;
-      const name = [m.service, m.op].filter(Boolean).join(' · ') || 'span';
-      return {
-        id: m.span_id ?? `span-${otelTraceId}-${String(i)}`,
-        parentId: parentInTrace,
-        name,
-        startMs: safeStart - traceStartMs,
-        durationMs: safeEnd - safeStart,
-        status: spanStatus(m.status),
-        kind: m.service,
-      };
-    });
-    groups.push({
-      otelTraceId,
-      spans,
-      startMs: traceStartMs,
-      durationMs: traceEndMs - traceStartMs,
-    });
-  }
-  return groups.sort((a, b) => a.startMs - b.startMs);
-}
-
 interface StageCardProps {
   task: TaskResp;
   onCancel: (taskId: string) => void;
@@ -284,11 +62,8 @@ interface StageCardProps {
 }
 
 function StageCard({ task, onCancel, cancelPending }: StageCardProps) {
-  const state = task.state ?? task.status ?? 'pending';
-  const cancellable =
-    typeof task.id === 'string' &&
-    task.id.length > 0 &&
-    isActiveTaskState(state);
+  const state = task.state ?? task.status;
+  const cancellable = Boolean(task.id) && isActive(state);
   return (
     <div className='injection-process__stage'>
       <div className='injection-process__stage-head'>
@@ -301,11 +76,11 @@ function StageCard({ task, onCancel, cancelPending }: StageCardProps) {
         items={[
           {
             k: 'started at',
-            v: <TimeDisplay value={task.created_at ?? ''} />,
+            v: task.created_at ? <TimeDisplay value={task.created_at} /> : '—',
           },
           {
             k: 'updated at',
-            v: <TimeDisplay value={task.updated_at ?? ''} />,
+            v: task.updated_at ? <TimeDisplay value={task.updated_at} /> : '—',
           },
           {
             k: 'trace id',
@@ -333,7 +108,7 @@ function StageCard({ task, onCancel, cancelPending }: StageCardProps) {
 }
 
 function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
-  const state = trace.state ?? trace.status ?? 'unknown';
+  const state = trace.state ?? trace.status;
   return (
     <KeyValueList
       items={[
@@ -349,12 +124,15 @@ function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
         },
         {
           k: 'started',
-          v: <TimeDisplay value={trace.start_time ?? ''} />,
+          v: trace.start_time ? <TimeDisplay value={trace.start_time} /> : '—',
         },
-        { k: 'ended', v: <TimeDisplay value={trace.end_time ?? ''} /> },
+        {
+          k: 'ended',
+          v: trace.end_time ? <TimeDisplay value={trace.end_time} /> : '—',
+        },
         {
           k: 'duration',
-          v: formatDuration(trace.start_time, trace.end_time),
+          v: formatElapsed(trace.start_time, trace.end_time),
         },
       ]}
     />
@@ -365,12 +143,11 @@ export default function InjectionProcess() {
   const { injectionId } = useParams<{ injectionId: string }>();
 
   const idNum = injectionId ? Number.parseInt(injectionId, 10) : Number.NaN;
-  const validId = Number.isNaN(idNum) ? null : idNum;
+  const validId = Number.isNaN(idNum) ? undefined : idNum;
   const { data: injection } = useInjectionDetail(validId);
 
-  const traceId = injection?.trace_id ?? null;
-  const [refresh, setRefresh] = useState<RefreshInterval>(5);
-  const intervalMs = intervalToMs(refresh);
+  const traceId = injection?.trace_id;
+  const [refresh, setRefresh] = useState<RefreshInterval>('auto');
 
   const {
     data: trace,
@@ -379,7 +156,9 @@ export default function InjectionProcess() {
     error,
     isFetching: traceFetching,
     refetch: refetchTrace,
-  } = useProcessTrace(traceId, intervalMs);
+  } = useProcessTrace(traceId, refresh);
+  const live = isActive(trace?.state ?? trace?.status);
+  const intervalMs = pollMs(refresh, live);
 
   const {
     data: timeline,
@@ -415,23 +194,31 @@ export default function InjectionProcess() {
   }, [spanGroups]);
 
   const { message: msg } = AntdApp.useApp();
-  const cancelTask = useCancelTask(() => {
-    void msg.success('Stage cancelled');
-  });
+  const cancelTask = useCancelTask();
+  const cancelStage = (taskId: string): void => {
+    cancelTask.mutate(taskId, {
+      onSuccess: () => {
+        void msg.success('Stage cancelled');
+      },
+      onError: (err) => {
+        void msg.error(`Cancel failed: ${errMsg(err)}`);
+      },
+    });
+  };
 
   const phaseGantt = useMemo(
     () => (timeline ? buildPhaseGantt(timeline) : null),
     [timeline]
   );
   const events = useMemo(
-    () => eventLines(timeline?.events),
+    () => timelineEventLines(timeline?.events),
     [timeline?.events]
   );
 
   if (!injection) {
     return (
       <Panel>
-        <EmptyState title='Loading injection…' />
+        <SkeletonText />
       </Panel>
     );
   }
@@ -447,29 +234,25 @@ export default function InjectionProcess() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || isError || !trace) {
     return (
       <Panel>
-        <EmptyState title='Loading process trace…' />
+        {isError ? (
+          <LoadError
+            error={error}
+            title='Failed to load the process trace'
+            notFound={{
+              title: 'No process trace yet',
+              description: 'The orchestrator has not reported this trace.',
+            }}
+          />
+        ) : (
+          <SkeletonText />
+        )}
       </Panel>
     );
   }
 
-  if (isError || !trace) {
-    return (
-      <Panel>
-        <EmptyState
-          title='Process trace unavailable'
-          description={errMsg(
-            error,
-            'The orchestrator has not reported this trace.'
-          )}
-        />
-      </Panel>
-    );
-  }
-
-  const live = isActiveTraceState(trace.state);
   const anyFetching =
     traceFetching || timelineFetching || logsFetching || spansFetching;
 
@@ -495,9 +278,7 @@ export default function InjectionProcess() {
         <ProcessSummary trace={trace} />
         {trace.last_event && (
           <div className='injection-process__last-event'>
-            <span className='injection-process__last-event-label'>
-              last event
-            </span>
+            <MetricLabel size='xs'>last event</MetricLabel>
             <MonoValue size='sm'>{trace.last_event}</MonoValue>
           </div>
         )}
@@ -507,9 +288,9 @@ export default function InjectionProcess() {
         title={<PanelTitle size='base'>Fault windows on SUT</PanelTitle>}
         extra={
           phaseGantt ? (
-            <span className='injection-process__last-event-label'>
+            <MetricLabel size='xs'>
               {`${String(phaseGantt.spans.length)} windows · ${formatMs(phaseGantt.totalMs)}`}
-            </span>
+            </MetricLabel>
           ) : undefined
         }
       >
@@ -534,9 +315,7 @@ export default function InjectionProcess() {
               <StageCard
                 key={task.id ?? `stage-${String(i)}`}
                 task={task}
-                onCancel={(id) => {
-                  cancelTask.mutate(id);
-                }}
+                onCancel={cancelStage}
                 cancelPending={
                   cancelTask.isPending && cancelTask.variables === task.id
                 }
@@ -555,9 +334,9 @@ export default function InjectionProcess() {
         title={<PanelTitle size='base'>Spans</PanelTitle>}
         extra={
           spanGroups.length > 0 ? (
-            <span className='injection-process__last-event-label'>
+            <MetricLabel size='xs'>
               {`${String(spanGroups.length)} OTel traces · ${String(spansResp?.spans?.length ?? 0)} spans`}
-            </span>
+            </MetricLabel>
           ) : undefined
         }
       >
@@ -570,9 +349,9 @@ export default function InjectionProcess() {
               >
                 <div className='injection-process__span-group-head'>
                   <MonoValue size='sm'>{g.otelTraceId}</MonoValue>
-                  <span className='injection-process__last-event-label'>
+                  <MetricLabel size='xs'>
                     {`${String(g.spans.length)} spans · ${formatMs(g.durationMs)}`}
-                  </span>
+                  </MetricLabel>
                 </div>
                 <TraceTree
                   spans={g.spans}

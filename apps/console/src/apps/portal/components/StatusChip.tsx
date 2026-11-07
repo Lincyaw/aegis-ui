@@ -1,52 +1,38 @@
 import { Chip, StatusDot } from '@lincyaw/aegis-ui';
 
-type EntityStatus =
-  | 'pending'
-  | 'running'
-  | 'completed'
-  | 'failed'
-  | 'cancelled'
-  | 'restarting'
-  | 'installing';
+import { type StatusTone, toneFor } from '../domain/status';
 
-type ChipTone = 'default' | 'ink' | 'warning' | 'ghost';
-type DotTone = 'ink' | 'inverted' | 'warning' | 'muted';
+type ChipTone = 'default' | 'warning' | 'caution' | 'success' | 'ghost';
+type DotTone = 'ink' | 'warning' | 'muted' | 'success';
+
+const CHIP_TONE: Record<StatusTone, ChipTone> = {
+  failure: 'warning',
+  caution: 'caution',
+  active: 'default',
+  success: 'success',
+  neutral: 'ghost',
+};
+
+const DOT_TONE: Record<StatusTone, DotTone> = {
+  failure: 'warning',
+  caution: 'muted',
+  active: 'ink',
+  success: 'success',
+  neutral: 'muted',
+};
 
 interface StatusChipProps {
-  status: EntityStatus | string;
-  pulse?: boolean;
+  status: string | undefined;
 }
 
-const TONE_MAP: Record<string, ChipTone> = {
-  pending: 'ghost',
-  running: 'ink',
-  restarting: 'ink',
-  installing: 'ink',
-  completed: 'ink',
-  failed: 'warning',
-  cancelled: 'ghost',
-  pass: 'ink',
-  fail: 'warning',
-  ok: 'ink',
-  warn: 'warning',
-  uninstalled: 'ghost',
-};
-
-const DOT_MAP: Record<ChipTone, DotTone> = {
-  ink: 'ink',
-  warning: 'warning',
-  ghost: 'muted',
-  default: 'muted',
-};
-
-export function StatusChip({ status, pulse }: StatusChipProps) {
-  const tone = TONE_MAP[status] ?? 'ghost';
-  const isLive =
-    status === 'running' || status === 'restarting' || status === 'installing';
+export function StatusChip({ status }: StatusChipProps) {
+  const tone = toneFor(status);
   return (
-    <Chip tone={tone}>
-      <StatusDot size={6} pulse={pulse ?? isLive} tone={DOT_MAP[tone]} />{' '}
-      {status}
+    <Chip
+      tone={CHIP_TONE[tone]}
+      leading={<StatusDot tone={DOT_TONE[tone]} pulse={tone === 'active'} />}
+    >
+      {status ?? 'unknown'}
     </Chip>
   );
 }

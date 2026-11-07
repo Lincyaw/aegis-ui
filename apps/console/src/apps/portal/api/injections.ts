@@ -1,249 +1,120 @@
-import {
-  type InjectionGuidedSpec,
-  type InjectionInjectionDetailResp,
-  type InjectionInjectionResp,
-  type InjectionInjectionTimelineResp,
-  type InjectionSubmitInjectionReq,
-  type TraceSpansResp,
-  type TraceTraceDetailResp,
+import type {
+  InjectionInjectionDetailResp,
+  InjectionInjectionResp,
+  InjectionInjectionTimelineResp,
+  InjectionSubmitInjectionReq,
 } from '@lincyaw/portal';
-import {
-  useMutation,
-  type UseMutationResult,
-  useQuery,
-  useQueryClient,
-  type UseQueryResult,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { GuidedInjectionSpec } from '../components/inject/types';
+import { isActive } from '../domain/status';
 
-import { injectionsApi, projectsApi, tracesApi } from './portal-client';
+import { type ListResult, required, toList } from './list';
+import { ACTIVE_POLL_MS, unlessFailed } from './polling';
+import { injectionsApi, projectsApi } from './portal-client';
 
-const TRACE_ACTIVE_STATES = new Set([
-  'initial',
-  'pending',
-  'queued',
-  'running',
-  'restarting',
-  'installing',
-  'rescheduled',
-]);
-
-const STATUS_ACTIVE = new Set([
-  'pending',
-  'running',
-  'restarting',
-  'installing',
-]);
-
-export function isActiveStatus(status: string | undefined): boolean {
-  return status ? STATUS_ACTIVE.has(status.toLowerCase()) : false;
-}
-
-export function toGuidedSpec(spec: GuidedInjectionSpec): InjectionGuidedSpec {
-  return {
-    app: spec.app || undefined,
-    body_type: spec.bodyType,
-    buffer: spec.buffer,
-    chaos_type: spec.chaosType || undefined,
-    class: spec.class,
-    container: spec.container || undefined,
-    correlation: spec.correlation,
-    corrupt: spec.corrupt,
-    cpu_count: spec.cpuCount,
-    cpu_load: spec.cpuLoad,
-    cpu_worker: spec.cpuWorker,
-    database: spec.database,
-    delay_duration: spec.latencyDuration,
-    direction: spec.direction,
-    domain: spec.domain,
-    duplicate: spec.duplicate,
-    duration: spec.durationSec,
-    exception_opt: spec.exceptionOpt,
-    http_method: spec.httpMethod,
-    jitter: spec.jitter,
-    latency_ms: spec.latencyMs,
-    latency_duration: spec.latencyDuration,
-    limit: spec.limit,
-    loss: spec.loss,
-    mem_type: spec.memType,
-    mem_worker: spec.memWorker,
-    memory_size: spec.memSize,
-    method: spec.method,
-    mutator_config: spec.mutatorConfig,
-    namespace: spec.namespace || undefined,
-    operation: spec.operation,
-    rate: spec.rate,
-    replace_method: spec.replaceMethod,
-    return_type: spec.returnType,
-    return_value_opt: spec.returnOpt,
-    route: spec.route,
-    status_code: spec.returnCode,
-    system: spec.systemCode || undefined,
-    system_type: spec.systemType || undefined,
-    table: spec.table,
-    target_service: spec.targetService || undefined,
-    time_offset: spec.timeOffset,
-  };
-}
-
-export function injectionsKey(
-  projectId: number,
-  page = 1,
-  size = 50
-): readonly unknown[] {
-  return ['portal', 'injections', projectId, page, size] as const;
-}
-
-export function injectionKey(id: number): readonly unknown[] {
-  return ['portal', 'injection', id] as const;
-}
+export const injectionsKeys = {
+  all: ['portal', 'injections'] as const,
+  list: (projectId: number, page: number, size: number) =>
+    [...injectionsKeys.all, 'list', projectId, page, size] as const,
+  detail: (id: number) => [...injectionsKeys.all, 'detail', id] as const,
+  timeline: (id: number) => [...injectionsKeys.all, 'timeline', id] as const,
+};
 
 export function useInjectionsList(
-  projectId: number,
-  opts?: { page?: number; size?: number }
-): UseQueryResult<InjectionInjectionResp[]> {
-  const page = opts?.page ?? 1;
-  const size = opts?.size ?? 50;
-  return useQuery({
-    queryKey: injectionsKey(projectId, page, size),
+  projectId: number | undefined,
+  page: number,
+  size: number
+) {
+  return useQuery<ListResult<InjectionInjectionResp>>({
+    queryKey: injectionsKeys.list(projectId ?? -1, page, size),
+    enabled: projectId !== undefined,
     queryFn: async () => {
-      const resp = await projectsApi.listProjectInjections({
-        projectId,
+      const res = await projectsApi.listProjectInjections({
+        projectId: projectId ?? -1,
         page,
         size,
       });
-      return resp.data.data?.items ?? [];
+      return toList(res.data.data);
     },
-    enabled: projectId > 0,
   });
 }
 
-export function useInjectionDetail(
-  id: number | null
-): UseQueryResult<InjectionInjectionDetailResp | undefined> {
-  return useQuery({
-    queryKey: id != null ? injectionKey(id) : ['portal', 'injection', 'null'],
+/** Polls while the injection is still active. */
+export function useInjectionDetail(id: number | undefined) {
+  return useQuery<InjectionInjectionDetailResp>({
+    queryKey: injectionsKeys.detail(id ?? -1),
+    enabled: id !== undefined,
     queryFn: async () => {
-      if (id == null) return undefined;
-      const resp = await injectionsApi.getInjectionById({ id });
-      return resp.data.data;
+      const res = await injectionsApi.getInjectionById({ id: id ?? -1 });
+      return required(res.data.data, 'injection');
     },
-    enabled: id != null && id > 0,
     refetchInterval: (query) => {
-      const detail = query.state.data as
-        | InjectionInjectionDetailResp
-        | undefined;
-      return isActiveStatus(detail?.status) ? 3_000 : false;
+      const detail = query.state.data;
+      return query.state.status !== 'error' &&
+        isActive(detail?.status ?? detail?.state)
+        ? ACTIVE_POLL_MS
+        : false;
     },
-  });
-}
-
-export function isActiveTraceState(state: string | undefined): boolean {
-  return state ? TRACE_ACTIVE_STATES.has(state.toLowerCase()) : false;
-}
-
-export function useProcessTrace(
-  traceId: string | null | undefined,
-  /**
-   * Polling override. `undefined` keeps the default (3s while active, off
-   * after terminal). `false` disables polling entirely. A number forces that
-   * interval (ms) regardless of state.
-   */
-  refetchMs?: number | false
-): UseQueryResult<TraceTraceDetailResp | undefined> {
-  return useQuery({
-    queryKey: ['portal', 'trace', traceId ?? null],
-    queryFn: async () => {
-      if (!traceId) {
-        return undefined;
-      }
-      const resp = await tracesApi.getTraceById({ traceId });
-      return resp.data.data;
-    },
-    enabled: Boolean(traceId),
-    refetchInterval: (query) => {
-      if (refetchMs !== undefined) {
-        return refetchMs;
-      }
-      const detail = query.state.data as TraceTraceDetailResp | undefined;
-      return isActiveTraceState(detail?.state) ? 3_000 : false;
-    },
-  });
-}
-
-export function useTraceSpans(
-  traceId: string | null | undefined,
-  refetchMs?: number | false
-): UseQueryResult<TraceSpansResp | undefined> {
-  return useQuery({
-    queryKey: ['portal', 'trace-spans', traceId ?? null],
-    queryFn: async () => {
-      if (!traceId) {
-        return undefined;
-      }
-      const resp = await tracesApi.getTraceSpans({ traceId });
-      return resp.data.data;
-    },
-    enabled: Boolean(traceId),
-    refetchInterval: refetchMs ?? false,
   });
 }
 
 export function useInjectionTimeline(
-  injectionId: number | null | undefined,
-  refetchMs?: number | false
-): UseQueryResult<InjectionInjectionTimelineResp | undefined> {
-  return useQuery({
-    queryKey: ['portal', 'injection-timeline', injectionId ?? null],
+  id: number | undefined,
+  refetchMs: number | false
+) {
+  return useQuery<InjectionInjectionTimelineResp>({
+    queryKey: injectionsKeys.timeline(id ?? -1),
+    enabled: id !== undefined,
     queryFn: async () => {
-      if (injectionId == null) {
-        return undefined;
-      }
-      const resp = await injectionsApi.getInjectionTimeline({
-        id: injectionId,
-      });
-      return resp.data.data;
+      const res = await injectionsApi.getInjectionTimeline({ id: id ?? -1 });
+      return required(res.data.data, 'timeline');
     },
-    enabled: injectionId != null && injectionId > 0,
-    refetchInterval: refetchMs ?? false,
+    refetchInterval: unlessFailed(refetchMs),
   });
 }
 
-export interface SubmitInjectionInput {
-  projectId: number;
-  specs: GuidedInjectionSpec[];
-  autoAllocate?: boolean;
-  allowBootstrap?: boolean;
-  skipRestartPedestal?: boolean;
-}
-
-export function useSubmitInjection(): UseMutationResult<
-  unknown,
-  Error,
-  SubmitInjectionInput
-> {
+export function useSubmitInjection() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input) => {
-      const req: InjectionSubmitInjectionReq = {
-        benchmark: { name: '' },
-        pedestal: { name: '' },
-        specs: [input.specs.map(toGuidedSpec)],
-        auto_allocate: input.autoAllocate,
-        allow_bootstrap: input.allowBootstrap,
-        skip_restart_pedestal: input.skipRestartPedestal,
-      };
-      const resp = await projectsApi.submitProjectFaultInjection({
+    mutationFn: async (input: {
+      projectId: number;
+      request: InjectionSubmitInjectionReq;
+    }) => {
+      const res = await projectsApi.submitProjectFaultInjection({
         projectId: input.projectId,
-        injectionSubmitInjectionReq: req,
+        injectionSubmitInjectionReq: input.request,
       });
-      return resp.data.data;
+      return res.data.data;
     },
-    onSuccess: (_, vars) => {
-      void qc.invalidateQueries({
-        queryKey: ['portal', 'injections', vars.projectId],
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: injectionsKeys.all });
+    },
+  });
+}
+
+export function useCancelInjection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await injectionsApi.cancelInjection({ id });
+      return res.data.data;
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: injectionsKeys.all });
+    },
+  });
+}
+
+export function useDeleteInjections() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: number[]) => {
+      await injectionsApi.batchDeleteInjections({
+        injectionBatchDeleteInjectionReq: { ids },
       });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: injectionsKeys.all });
     },
   });
 }

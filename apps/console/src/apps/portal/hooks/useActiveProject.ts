@@ -1,34 +1,46 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useEffect } from 'react';
 
-interface ActiveProjectState {
-  activeProjectId: number | null;
+import type { ProjectProjectResp } from '@lincyaw/portal';
+
+import { useProjectsList } from '../api/projects';
+import { useActiveProjectStore } from '../state/active-project';
+
+export interface ActiveProject {
+  /** `undefined` while the list loads, when it failed, or when there are no projects. */
+  project: ProjectProjectResp | undefined;
+  projectId: number | undefined;
+  isLoading: boolean;
+  error: unknown;
   setActiveProject: (id: number | null) => void;
 }
 
-export const useActiveProjectStore = create<ActiveProjectState>()(
-  persist(
-    (set) => ({
-      activeProjectId: null,
-      setActiveProject: (id) => {
-        set({ activeProjectId: id });
-      },
-    }),
-    { name: 'portal:active-project' }
-  )
-);
+/**
+ * The project every portal page works in: the one last chosen if it still
+ * exists, otherwise the first project. The resolved choice is saved back,
+ * so the header, the dashboard and every page agree on it.
+ */
+export function useActiveProject(): ActiveProject {
+  const projectsQuery = useProjectsList();
+  const storedId = useActiveProjectStore((s) => s.activeProjectId);
+  const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
 
-export function useActiveProjectIdNum(): number {
-  const fromStore = useActiveProjectStore((s) => s.activeProjectId);
-  const search = globalThis.location?.search ?? '';
-  if (search) {
-    const fromUrl = new URLSearchParams(search).get('project');
-    if (fromUrl) {
-      const n = Number.parseInt(fromUrl, 10);
-      if (!Number.isNaN(n) && n > 0) {
-        return n;
-      }
+  const projects = projectsQuery.data?.items;
+  const project = projects
+    ? (projects.find((p) => p.id === storedId) ?? projects[0])
+    : undefined;
+  const resolvedId = project?.id ?? null;
+
+  useEffect(() => {
+    if (projects !== undefined && resolvedId !== storedId) {
+      setActiveProject(resolvedId);
     }
-  }
-  return fromStore ?? 0;
+  }, [projects, resolvedId, storedId, setActiveProject]);
+
+  return {
+    project,
+    projectId: project?.id,
+    isLoading: projectsQuery.isLoading,
+    error: projectsQuery.error,
+    setActiveProject,
+  };
 }

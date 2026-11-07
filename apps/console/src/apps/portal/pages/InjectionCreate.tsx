@@ -1,110 +1,89 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { Button, Chip, PageHeader, useAppNavigate } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Input, Modal } from 'antd';
+import {
+  Button,
+  Dialog,
+  PageHeader,
+  Steps,
+  TextField,
+  useAppNavigate,
+} from '@lincyaw/aegis-ui';
+import { App as AntdApp } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { useSubmitInjection } from '../api/injections';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { LivePreview } from '../components/inject/LivePreview';
-import { defaultSpec, isStepValid } from '../components/inject/paramSchema';
 import { Step1Target } from '../components/inject/Step1Target';
 import { Step2ChaosType } from '../components/inject/Step2ChaosType';
 import { Step3Params } from '../components/inject/Step3Params';
 import { Step4Lifecycle } from '../components/inject/Step4Lifecycle';
-import { Step5Stage } from '../components/inject/Step5Stage';
+import { Step5Stage, type SubmitMode } from '../components/inject/Step5Stage';
 import { Step6Review } from '../components/inject/Step6Review';
-import type { GuidedInjectionSpec } from '../components/inject/types';
-import { useActiveProjectIdNum } from '../hooks/useActiveProject';
+import { ProjectRequired } from '../components/ProjectRequired';
+import {
+  BATCH_SUBMIT_OPTIONS,
+  defaultSpec,
+  firstInvalidStep,
+  type GuidedInjectionSpec,
+  isStepValid,
+  submitOptionsFor,
+  toSubmitRequest,
+  withChaosType,
+  WIZARD_STEPS,
+} from '../domain/injectSpec';
+import { useActiveProject } from '../hooks/useActiveProject';
 import { useInjectBatch } from '../state/inject-batch';
+import { clearDraft, readDraft, saveDraft } from '../state/inject-draft';
 
-const STEPS = [
-  'Target',
-  'Chaos type',
-  'Parameters',
-  'Lifecycle',
-  'Stage',
-  'Review',
-];
-
-function draftKey(projectId: number): string {
-  return `inject-guided-draft:${projectId}`;
+function specFromLink(params: URLSearchParams): GuidedInjectionSpec {
+  const spec = defaultSpec(params.get('system') ?? '');
+  const chaosType = params.get('chaosType');
+  return chaosType ? withChaosType(spec, chaosType) : spec;
 }
 
-export default function InjectionCreate() {
-  const pid = useActiveProjectIdNum();
+interface WizardProps {
+  projectId: number;
+  projectName: string;
+}
+
+function InjectionWizard({ projectId, projectName }: WizardProps) {
   const [params] = useSearchParams();
   const navigate = useAppNavigate();
-  const { message: msg, modal } = AntdApp.useApp();
+  const { message: msg } = AntdApp.useApp();
 
   const stage = useInjectBatch((s) => s.stage);
   const staged = useInjectBatch((s) => s.staged);
   const clear = useInjectBatch((s) => s.clear);
   const saveTemplate = useInjectBatch((s) => s.saveTemplate);
-
   const submitMutation = useSubmitInjection();
 
-  const initialSpec = useMemo<GuidedInjectionSpec>(() => {
-    const sys = params.get('system') ?? '';
-    const chaos = params.get('chaosType') ?? '';
-    return {
-      ...defaultSpec(sys),
-      chaosType: chaos,
-    };
-  }, [params]);
-
+  const [draft, setDraft] = useState(() => readDraft(projectId));
+  const [spec, setSpec] = useState(() => specFromLink(params));
   const [step, setStep] = useState(0);
-  const [spec, setSpec] = useState<GuidedInjectionSpec>(initialSpec);
-  const [submitMode, setSubmitMode] = useState<'submit' | 'stage'>('submit');
-  const [resumeAsked, setResumeAsked] = useState(false);
-  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [submitMode, setSubmitMode] = useState<SubmitMode>('submit');
+  const [templateOpen, setTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [templateDesc, setTemplateDesc] = useState('');
+  const [templateError, setTemplateError] = useState<string>();
+
+  useEffect(() => {
+    if (draft === null) {
+      saveDraft(projectId, spec);
+    }
+  }, [draft, projectId, spec]);
 
   const update = (patch: Partial<GuidedInjectionSpec>): void => {
     setSpec((s) => ({ ...s, ...patch }));
   };
 
-  useEffect(() => {
-    sessionStorage.setItem(draftKey(pid), JSON.stringify(spec));
-  }, [spec, pid]);
-
-  useEffect(() => {
-    if (resumeAsked) {
-      return;
-    }
-    const raw = sessionStorage.getItem(draftKey(pid));
-    if (!raw) {
-      setResumeAsked(true);
-      return;
-    }
-    try {
-      const parsed = JSON.parse(raw) as GuidedInjectionSpec;
-      if (parsed.systemCode || parsed.chaosType) {
-        modal.confirm({
-          title: 'Resume previous draft?',
-          content: `A previous fault-injection draft for project ${pid} was found.`,
-          okText: 'Resume',
-          cancelText: 'Start fresh',
-          onOk: () => {
-            setSpec(parsed);
-          },
-          onCancel: () => {
-            sessionStorage.removeItem(draftKey(pid));
-          },
-        });
-      }
-    } catch {
-      // ignore
-    }
-    setResumeAsked(true);
-  }, [modal, pid, resumeAsked]);
-
-  const canNext = isStepValid(step, spec);
-  const isLast = step === STEPS.length - 1;
+  const reachable = firstInvalidStep(spec);
+  const isLast = step === WIZARD_STEPS.length - 1;
 
   const reset = (): void => {
-    sessionStorage.removeItem(draftKey(pid));
-    setSpec(defaultSpec(''));
+    clearDraft(projectId);
+    setSpec(defaultSpec());
     setStep(0);
   };
 
@@ -118,61 +97,71 @@ export default function InjectionCreate() {
     }
     submitMutation.mutate(
       {
-        projectId: pid,
-        specs: [spec],
-        autoAllocate: spec.namespaceMode !== 'specific',
-        allowBootstrap: spec.namespaceMode === 'auto-bootstrap',
-        skipRestartPedestal: spec.skipRestartPedestal,
+        projectId,
+        request: toSubmitRequest([spec], submitOptionsFor(spec)),
       },
       {
         onSuccess: () => {
           void msg.success('Injection submitted');
-          sessionStorage.removeItem(draftKey(pid));
+          clearDraft(projectId);
           navigate('injections');
         },
         onError: (err) => {
-          void msg.error(`Submit failed: ${err.message}`);
+          void msg.error(`Submit failed: ${errMsg(err)}`);
         },
       }
     );
   };
 
-  const submitBatchNow = (): void => {
-    if (staged.length === 0) {
-      void msg.info('No staged drafts');
-      return;
-    }
+  const submitBatch = (): void => {
     submitMutation.mutate(
       {
-        projectId: pid,
-        specs: staged.map((s) => s.spec),
-        autoAllocate: true,
+        projectId,
+        request: toSubmitRequest(
+          staged.map((s) => s.spec),
+          BATCH_SUBMIT_OPTIONS
+        ),
       },
       {
         onSuccess: () => {
           void msg.success(
-            `${staged.length} injection${staged.length === 1 ? '' : 's'} queued`
+            `${String(staged.length)} injection${staged.length === 1 ? '' : 's'} queued`
           );
           clear();
           navigate('injections');
         },
         onError: (err) => {
-          void msg.error(`Batch submit failed: ${err.message}`);
+          void msg.error(`Batch submit failed: ${errMsg(err)}`);
         },
       }
     );
   };
 
+  const closeTemplate = (): void => {
+    setTemplateOpen(false);
+    setTemplateName('');
+    setTemplateDesc('');
+    setTemplateError(undefined);
+  };
+
+  const confirmTemplate = (): void => {
+    const name = templateName.trim();
+    if (name === '') {
+      setTemplateError('Name is required');
+      return;
+    }
+    saveTemplate(name, templateDesc.trim(), spec);
+    void msg.success(`Template '${name}' saved`);
+    closeTemplate();
+  };
+
   return (
     <>
       <PageHeader
-        title='New Injection'
-        description={`Guided fault-injection wizard for project ${pid}.`}
+        title='New injection'
+        description={`Guided fault-injection wizard for ${projectName}.`}
         action={
           <div className='page-action-row'>
-            <Chip tone='ghost'>
-              step {step + 1} / {STEPS.length}
-            </Chip>
             <Button tone='ghost' onClick={reset}>
               Reset
             </Button>
@@ -183,29 +172,16 @@ export default function InjectionCreate() {
         }
       />
 
-      <div className='wizard-steps-clickable'>
-        <ol className='wizard-steps'>
-          {STEPS.map((label, idx) => {
-            const state =
-              idx < step ? 'done' : idx === step ? 'active' : 'todo';
-            return (
-              <li
-                key={label}
-                className={`wizard-steps__item wizard-steps__item--${state}`}
-              >
-                <button
-                  type='button'
-                  className='wizard-steps__btn'
-                  onClick={() => setStep(idx)}
-                >
-                  <span className='wizard-steps__num'>{idx + 1}</span>
-                  <span className='wizard-steps__label'>{label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
+      <Steps
+        ariaLabel='Injection steps'
+        current={step}
+        onStepClick={setStep}
+        items={WIZARD_STEPS.map((label, index) => ({
+          key: label,
+          label,
+          disabled: index > reachable,
+        }))}
+      />
 
       <div className='inject-layout'>
         <div className='inject-layout__main'>
@@ -227,10 +203,10 @@ export default function InjectionCreate() {
         {staged.length > 0 && (
           <Button
             tone='secondary'
-            onClick={submitBatchNow}
+            onClick={submitBatch}
             disabled={submitMutation.isPending}
           >
-            Submit batch ({staged.length})
+            {`Submit batch (${String(staged.length)})`}
           </Button>
         )}
         <Button
@@ -240,60 +216,112 @@ export default function InjectionCreate() {
         >
           Back
         </Button>
-        {!isLast ? (
-          <Button
-            tone='primary'
-            onClick={() => setStep((s) => s + 1)}
-            disabled={!canNext}
-          >
-            Next
-          </Button>
-        ) : (
+        {isLast ? (
           <>
-            <Button tone='ghost' onClick={() => setTemplateModalOpen(true)}>
+            <Button tone='ghost' onClick={() => setTemplateOpen(true)}>
               Save as template
             </Button>
             <Button
               tone='primary'
               onClick={submit}
-              disabled={!canNext || submitMutation.isPending}
+              disabled={
+                reachable < WIZARD_STEPS.length || submitMutation.isPending
+              }
             >
               {submitMode === 'stage' ? 'Add to batch' : 'Inject now'}
             </Button>
           </>
+        ) : (
+          <Button
+            tone='primary'
+            onClick={() => setStep((s) => s + 1)}
+            disabled={!isStepValid(step, spec)}
+          >
+            Next
+          </Button>
         )}
       </div>
 
-      <Modal
-        title='Save as template'
-        open={templateModalOpen}
-        onCancel={() => setTemplateModalOpen(false)}
-        onOk={() => {
-          if (!templateName.trim()) {
-            void msg.error('name is required');
-            return;
+      <ConfirmDialog
+        open={draft !== null}
+        title='Resume the previous draft?'
+        description={
+          draft === null
+            ? undefined
+            : `A draft for ${projectName} from earlier in this tab: ${draft.chaosType || 'no fault chosen'} on ${draft.systemCode || 'no system chosen'}. Starting fresh discards it.`
+        }
+        confirmLabel='Resume'
+        cancelLabel='Start fresh'
+        onConfirm={() => {
+          if (draft !== null) {
+            setSpec(draft);
           }
-          saveTemplate(templateName, templateDesc, spec);
-          void msg.success(`Template '${templateName}' saved`);
-          setTemplateModalOpen(false);
-          setTemplateName('');
-          setTemplateDesc('');
+          setDraft(null);
         }}
-        okText='Save'
+        onCancel={() => {
+          clearDraft(projectId);
+          setDraft(null);
+        }}
+      />
+
+      <Dialog
+        open={templateOpen}
+        title='Save as template'
+        description='Templates last until the page is reloaded.'
+        width='sm'
+        onClose={closeTemplate}
+        footer={
+          <>
+            <Button tone='secondary' onClick={closeTemplate}>
+              Cancel
+            </Button>
+            <Button tone='primary' onClick={confirmTemplate}>
+              Save
+            </Button>
+          </>
+        }
       >
-        <Input
-          value={templateName}
-          onChange={(e) => setTemplateName(e.target.value)}
-          placeholder='template name'
-          style={{ marginBottom: 8 }}
-        />
-        <Input.TextArea
-          value={templateDesc}
-          onChange={(e) => setTemplateDesc(e.target.value)}
-          placeholder='description (optional)'
-          rows={3}
-        />
-      </Modal>
+        <div className='page-stack'>
+          <TextField
+            label='Name'
+            value={templateName}
+            error={templateError}
+            onChange={(e) => {
+              setTemplateName(e.target.value);
+              setTemplateError(undefined);
+            }}
+          />
+          <TextField
+            label='Description (optional)'
+            value={templateDesc}
+            onChange={(e) => setTemplateDesc(e.target.value)}
+          />
+        </div>
+      </Dialog>
     </>
+  );
+}
+
+export default function InjectionCreate() {
+  const active = useActiveProject();
+  if (active.projectId === undefined) {
+    return (
+      <>
+        <PageHeader
+          title='New injection'
+          description='Guided fault-injection wizard.'
+        />
+        <ProjectRequired active={active} />
+      </>
+    );
+  }
+  return (
+    <InjectionWizard
+      key={active.projectId}
+      projectId={active.projectId}
+      projectName={
+        active.project?.name ?? `project ${String(active.projectId)}`
+      }
+    />
   );
 }

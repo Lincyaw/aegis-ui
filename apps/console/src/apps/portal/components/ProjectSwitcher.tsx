@@ -8,8 +8,8 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
-import { useActiveProjectStore } from '../hooks/useActiveProject';
-import { useProjectsList } from '../hooks/useProjects';
+import { useProjectsList } from '../api/projects';
+import { useActiveProject } from '../hooks/useActiveProject';
 
 import { StatusChip } from './StatusChip';
 
@@ -18,19 +18,16 @@ import './ProjectSwitcher.css';
 export function ProjectSwitcher() {
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
-  const { data: projects } = useProjectsList();
-  const activeId = useActiveProjectStore((s) => s.activeProjectId);
-  const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
-
-  const list = projects ?? [];
-  const active = list.find((p) => p.id === activeId) ?? list[0];
+  const { data } = useProjectsList();
+  const { projectId, setActiveProject } = useActiveProject();
+  const list = data?.items ?? [];
 
   const options: ProjectOption[] = list.map((p) => ({
     id: String(p.id ?? ''),
     name: p.name ?? '—',
     meta: (
       <>
-        <StatusChip status={p.status ?? 'unknown'} />
+        <StatusChip status={p.status} />
         <MonoValue size='sm'>{p.injection_count ?? 0} inj</MonoValue>
       </>
     ),
@@ -38,7 +35,7 @@ export function ProjectSwitcher() {
 
   const handleSelect = (id: string) => {
     const project = list.find((p) => String(p.id ?? '') === id);
-    if (project?.id !== undefined && project.id !== activeId) {
+    if (project?.id !== undefined && project.id !== projectId) {
       setActiveProject(project.id);
       void msg.success(`Switched to ${project.name ?? 'project'}`);
     }
@@ -49,7 +46,7 @@ export function ProjectSwitcher() {
       <div className='project-switcher-bar__left'>
         <ProjectSelector
           projects={options}
-          selectedId={active ? String(active.id ?? '') : undefined}
+          selectedId={projectId === undefined ? undefined : String(projectId)}
           onSelect={handleSelect}
           placeholder='No project'
           footerItems={[

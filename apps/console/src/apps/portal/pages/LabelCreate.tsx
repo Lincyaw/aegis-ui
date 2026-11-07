@@ -5,16 +5,17 @@ import {
   FormRow,
   PageHeader,
   Panel,
+  Select,
   TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import { LabelCategory } from '@lincyaw/portal';
-import { App as AntdApp, Select } from 'antd';
+import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import { useCreateLabel } from '../api/labels';
 
-const CATEGORY_OPTIONS = [
+const CATEGORIES: Array<{ value: LabelCategory; label: string }> = [
   { value: LabelCategory.System, label: 'System' },
   { value: LabelCategory.Config, label: 'Config' },
   { value: LabelCategory.Container, label: 'Container' },
@@ -23,6 +24,11 @@ const CATEGORY_OPTIONS = [
   { value: LabelCategory.Injection, label: 'Injection' },
   { value: LabelCategory.Execution, label: 'Execution' },
 ];
+
+interface FieldErrors {
+  key?: string;
+  value?: string;
+}
 
 export default function LabelCreate() {
   const navigate = useAppNavigate();
@@ -34,18 +40,19 @@ export default function LabelCreate() {
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('');
   const [category, setCategory] = useState<LabelCategory>(LabelCategory.Config);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   const submit = (): void => {
-    if (!key.trim()) {
-      void msg.error('key is required');
-      return;
-    }
-    if (!value.trim()) {
-      void msg.error('value is required');
+    const next: FieldErrors = {
+      key: key.trim() ? undefined : 'Key is required',
+      value: value.trim() ? undefined : 'Value is required',
+    };
+    if (next.key || next.value) {
+      setErrors(next);
       return;
     }
     create.mutate(
-      { key, value, description, color, category },
+      { key: key.trim(), value: value.trim(), description, color, category },
       {
         onSuccess: (created) => {
           void msg.success(
@@ -54,7 +61,7 @@ export default function LabelCreate() {
           navigate('labels');
         },
         onError: (err) => {
-          void msg.error(errMsg(err, 'Failed to create label'));
+          void msg.error(`Failed to create label: ${errMsg(err)}`);
         },
       }
     );
@@ -75,23 +82,39 @@ export default function LabelCreate() {
         <FormRow label='Key'>
           <TextField
             value={key}
-            onChange={(e) => setKey(e.target.value)}
+            error={errors.key}
+            onChange={(e) => {
+              setKey(e.target.value);
+              setErrors({ ...errors, key: undefined });
+            }}
             placeholder='env'
           />
         </FormRow>
         <FormRow label='Value'>
           <TextField
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            error={errors.value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              setErrors({ ...errors, value: undefined });
+            }}
             placeholder='production'
           />
         </FormRow>
         <FormRow label='Category'>
           <Select
-            style={{ width: '100%' }}
-            value={category}
-            onChange={setCategory}
-            options={CATEGORY_OPTIONS}
+            ariaLabel='Category'
+            value={String(category)}
+            onChange={(v) =>
+              setCategory(
+                CATEGORIES.find((c) => String(c.value) === v)?.value ??
+                  LabelCategory.Config
+              )
+            }
+            options={CATEGORIES.map((c) => ({
+              value: String(c.value),
+              label: c.label,
+            }))}
           />
         </FormRow>
         <FormRow label='Description'>
@@ -109,9 +132,11 @@ export default function LabelCreate() {
           />
         </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit} disabled={create.isPending}>
-        {create.isPending ? 'Creating…' : 'Create'}
-      </Button>
+      <div className='wizard-actions'>
+        <Button tone='primary' onClick={submit} disabled={create.isPending}>
+          {create.isPending ? 'Creating…' : 'Create'}
+        </Button>
+      </div>
     </>
   );
 }

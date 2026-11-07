@@ -1,21 +1,23 @@
 import type { ClusterClusterStatusResp } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
+import { required } from './list';
+import { unlessFailed } from './polling';
 import { clusterApi } from './portal-client';
 
 export const clusterKeys = {
-  all: ['cluster'] as const,
-  status: ['cluster', 'status'] as const,
+  all: ['portal', 'cluster'] as const,
+  status: () => [...clusterKeys.all, 'status'] as const,
 };
 
 export function useClusterStatus() {
   return useQuery<ClusterClusterStatusResp>({
-    queryKey: clusterKeys.status,
+    queryKey: clusterKeys.status(),
     queryFn: async () => {
       const res = await clusterApi.getClusterStatus();
-      return res.data.data ?? {};
+      return required(res.data.data, 'cluster status');
     },
-    refetchInterval: 5000,
+    refetchInterval: unlessFailed(5000),
     refetchIntervalInBackground: false,
   });
 }
