@@ -172,11 +172,12 @@ fail with `bridge_unavailable`.
 | `--list-sessions` | Print the bridge's browser sessions and exit               |
 
 The tool list served by `tools/list` is `mcp_tools.generated.json`,
-embedded at build time. It is generated from
-`packages/ui/src/agent/core/mcpToolCatalogue.ts`; regenerate it with
-`pnpm gen:mcp-tools` (the library build does this too) and do not edit
-it by hand. `pnpm check:mcp-tools` fails when the committed file is out
-of date.
+embedded at build time. The root `scripts/emit-mcp-tools.mjs` generates
+it from `packages/ui/src/transports/mcpTools.ts`. The console's
+`bundle:prepare` runs that script, so every `bundle:*` build regenerates
+the file; outside a bundle, regenerate it with `pnpm gen:mcp-tools`, and
+do not edit it by hand. `pnpm check:mcp-tools` only compares, and fails
+when the committed file is out of date.
 
 ## How the build works
 

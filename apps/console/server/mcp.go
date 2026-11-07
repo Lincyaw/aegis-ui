@@ -18,8 +18,9 @@ import (
 	"github.com/coder/websocket"
 )
 
-// Generated from packages/ui/src/agent/core/mcpToolCatalogue.ts.
-// Run `pnpm gen:mcp-tools` to regenerate; do NOT hand-edit.
+// Generated from packages/ui/src/transports/mcpTools.ts by the root
+// scripts/emit-mcp-tools.mjs, which the console's bundle:prepare runs
+// (or `pnpm gen:mcp-tools`); do NOT hand-edit.
 //
 //go:embed mcp_tools.generated.json
 var mcpToolsJSON []byte
