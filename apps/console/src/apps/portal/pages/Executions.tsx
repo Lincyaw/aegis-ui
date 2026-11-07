@@ -107,7 +107,7 @@ export default function Executions() {
               {
                 key: 'state',
                 header: 'State',
-                render: (r) => <StatusChip status={r.state ?? r.status} />,
+                render: (r) => <StatusChip status={r.state} />,
               },
               {
                 key: 'started',

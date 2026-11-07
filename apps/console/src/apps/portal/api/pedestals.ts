@@ -8,8 +8,8 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { type ListResult, required, wholeList } from './list';
 import { pedestalApi } from './portal-client';
+import { type ListResult, required, wholeList } from './response';
 
 const PEDESTAL_LONG_POLL_MS = 11 * 60 * 1000;
 
@@ -27,7 +27,7 @@ export function usePedestals(limit = 200) {
     queryKey: pedestalsKeys.list(limit),
     queryFn: async () => {
       const res = await pedestalApi.listPedestalReleases({ limit });
-      return wholeList(res.data.data);
+      return wholeList(res.data.data, 'pedestals');
     },
   });
 }
@@ -54,7 +54,7 @@ export function usePedestalHelmConfig(containerVersionId: number | undefined) {
       const res = await pedestalApi.getPedestalHelmConfig({
         containerVersionId: containerVersionId ?? -1,
       });
-      return res.data.data ?? {};
+      return required(res.data.data, 'helm config');
     },
   });
 }
@@ -69,7 +69,7 @@ export function useInstallPedestal() {
         { pedestalInstallPedestalReq: body },
         { timeout: PEDESTAL_LONG_POLL_MS }
       );
-      return res.data.data ?? {};
+      return required(res.data.data, 'install result');
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: pedestalsKeys.all });
@@ -91,7 +91,7 @@ export function useRestartPedestal() {
         },
         { timeout: PEDESTAL_LONG_POLL_MS }
       );
-      return res.data.data ?? {};
+      return required(res.data.data, 'restart result');
     },
     onSuccess: (_data, vars) => {
       void qc.invalidateQueries({

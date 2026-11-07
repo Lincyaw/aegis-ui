@@ -5,8 +5,8 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { type ListResult, required, toList } from './list';
 import { datasetsApi } from './portal-client';
+import { type ListResult, required, toList } from './response';
 
 export interface ListDatasetsParams {
   page?: number;
@@ -25,7 +25,7 @@ export function useDatasetsList(params: ListDatasetsParams) {
     queryKey: datasetsKeys.list(params),
     queryFn: async () => {
       const res = await datasetsApi.listDatasets(params);
-      return toList(res.data.data);
+      return toList(res.data.data, 'datasets');
     },
   });
 }

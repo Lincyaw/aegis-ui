@@ -1,7 +1,7 @@
 import { EmptyState, ErrorState } from '@lincyaw/aegis-ui';
 
 import { errMsg } from '../../../api/apiClient';
-import { isNotFound } from '../api/list';
+import { isNotFound } from '../api/response';
 
 interface LoadErrorProps {
   error: unknown;

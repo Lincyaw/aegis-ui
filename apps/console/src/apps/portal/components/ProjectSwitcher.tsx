@@ -19,8 +19,13 @@ export function ProjectSwitcher() {
   const navigate = useAppNavigate();
   const { message: msg } = AntdApp.useApp();
   const { data } = useProjectsList();
-  const { projectId, setActiveProject } = useActiveProject();
-  const list = data?.items ?? [];
+  const { project: active, projectId, setActiveProject } = useActiveProject();
+  const listed = data?.items ?? [];
+  // The list is one page; the active project may sit beyond it.
+  const list =
+    active === undefined || listed.some((p) => p.id === active.id)
+      ? listed
+      : [active, ...listed];
 
   const options: ProjectOption[] = list.map((p) => ({
     id: String(p.id ?? ''),

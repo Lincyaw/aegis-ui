@@ -8,9 +8,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { isActive } from '../domain/status';
 
-import { type ListResult, required, toList } from './list';
 import { ACTIVE_POLL_MS, unlessFailed } from './polling';
 import { injectionsApi, projectsApi } from './portal-client';
+import { type ListResult, required, toList } from './response';
 
 export const injectionsKeys = {
   all: ['portal', 'injections'] as const,
@@ -34,7 +34,7 @@ export function useInjectionsList(
         page,
         size,
       });
-      return toList(res.data.data);
+      return toList(res.data.data, 'injections');
     },
   });
 }
@@ -50,8 +50,7 @@ export function useInjectionDetail(id: number | undefined) {
     },
     refetchInterval: (query) => {
       const detail = query.state.data;
-      return query.state.status !== 'error' &&
-        isActive(detail?.status ?? detail?.state)
+      return query.state.status !== 'error' && isActive(detail?.state)
         ? ACTIVE_POLL_MS
         : false;
     },
@@ -84,7 +83,7 @@ export function useSubmitInjection() {
         projectId: input.projectId,
         injectionSubmitInjectionReq: input.request,
       });
-      return res.data.data;
+      return required(res.data.data, 'submit result');
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: injectionsKeys.all });
@@ -98,20 +97,6 @@ export function useCancelInjection() {
     mutationFn: async (id: number) => {
       const res = await injectionsApi.cancelInjection({ id });
       return res.data.data;
-    },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: injectionsKeys.all });
-    },
-  });
-}
-
-export function useDeleteInjections() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (ids: number[]) => {
-      await injectionsApi.batchDeleteInjections({
-        injectionBatchDeleteInjectionReq: { ids },
-      });
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: injectionsKeys.all });

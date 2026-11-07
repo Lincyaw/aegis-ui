@@ -99,8 +99,8 @@ export default function InjectionDetailLayout() {
     );
   }
 
-  const status = injection.status ?? injection.state;
-  const cancellable = isActive(status) && Boolean(injection.task_id);
+  const state = injection.state;
+  const cancellable = isActive(state) && Boolean(injection.task_id);
 
   const onCancel = (id: number): void => {
     cancel.mutate(id, {
@@ -129,7 +129,7 @@ export default function InjectionDetailLayout() {
         description={injection.name}
         action={
           <div className='page-action-row'>
-            <StatusChip status={status} />
+            <StatusChip status={state} />
             {cancellable && (
               <Button
                 tone='secondary'

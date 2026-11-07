@@ -8,6 +8,7 @@ import {
 import yaml from 'js-yaml';
 
 import {
+  type ContainerChoice,
   type GuidedInjectionSpec,
   toGuidedSpec,
 } from '../../domain/injectSpec';
@@ -20,6 +21,13 @@ const NAMESPACE_LABEL = {
   auto: 'auto-allocated',
   'auto-bootstrap': 'auto-allocated, bootstrap allowed',
 } as const;
+
+function containerText({ name, version }: ContainerChoice): string {
+  if (name === '') {
+    return '—';
+  }
+  return version === '' ? `${name} (latest)` : `${name} ${version}`;
+}
 
 export function LivePreview({ spec }: Props) {
   return (
@@ -46,7 +54,18 @@ export function LivePreview({ spec }: Props) {
               k: 'chaos_type',
               v: <MonoValue size='sm'>{spec.chaosType || '—'}</MonoValue>,
             },
-            { k: 'duration', v: `${String(spec.durationSec)}s` },
+            {
+              k: 'pedestal',
+              v: (
+                <MonoValue size='sm'>{containerText(spec.pedestal)}</MonoValue>
+              ),
+            },
+            {
+              k: 'benchmark',
+              v: (
+                <MonoValue size='sm'>{containerText(spec.benchmark)}</MonoValue>
+              ),
+            },
           ]}
         />
         <CodeBlock language='yaml' code={yaml.dump(toGuidedSpec(spec))} />

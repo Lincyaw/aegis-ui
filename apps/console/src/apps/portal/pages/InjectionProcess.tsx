@@ -62,7 +62,7 @@ interface StageCardProps {
 }
 
 function StageCard({ task, onCancel, cancelPending }: StageCardProps) {
-  const state = task.state ?? task.status;
+  const state = task.state;
   const cancellable = Boolean(task.id) && isActive(state);
   return (
     <div className='injection-process__stage'>
@@ -108,7 +108,7 @@ function StageCard({ task, onCancel, cancelPending }: StageCardProps) {
 }
 
 function ProcessSummary({ trace }: { trace: TraceTraceDetailResp }) {
-  const state = trace.state ?? trace.status;
+  const state = trace.state;
   return (
     <KeyValueList
       items={[
@@ -157,7 +157,7 @@ export default function InjectionProcess() {
     isFetching: traceFetching,
     refetch: refetchTrace,
   } = useProcessTrace(traceId, refresh);
-  const live = isActive(trace?.state ?? trace?.status);
+  const live = isActive(trace?.state);
   const intervalMs = pollMs(refresh, live);
 
   const {

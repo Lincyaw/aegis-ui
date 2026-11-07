@@ -4,8 +4,8 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { type ListResult, required, toList } from './list';
 import { evaluationsApi } from './portal-client';
+import { type ListResult, required, toList } from './response';
 
 export const evaluationsKeys = {
   all: ['portal', 'evaluations'] as const,
@@ -19,7 +19,7 @@ export function useEvaluations(page: number, size: number) {
     queryKey: evaluationsKeys.list(page, size),
     queryFn: async () => {
       const res = await evaluationsApi.listEvaluations({ page, size });
-      return toList(res.data.data);
+      return toList(res.data.data, 'evaluations');
     },
   });
 }

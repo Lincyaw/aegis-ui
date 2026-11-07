@@ -11,13 +11,23 @@ interface ListPayload<T> {
   pagination?: { total?: number };
 }
 
-export function toList<T>(payload: ListPayload<T> | undefined): ListResult<T> {
-  const items = payload?.items ?? [];
-  return { items, total: payload?.pagination?.total ?? items.length };
+export function toList<T>(
+  payload: ListPayload<T> | undefined,
+  what: string
+): ListResult<T> {
+  const page = required(payload, what);
+  const items = page.items ?? [];
+  return { items, total: page.pagination?.total ?? items.length };
 }
 
 /** A list endpoint that returns every item at once. */
-export function wholeList<T>(items: T[] | undefined): ListResult<T> {
+export function wholeList<T>(
+  items: T[] | null | undefined,
+  what: string
+): ListResult<T> {
+  if (items === undefined) {
+    throw new Error(`The server returned no ${what}.`);
+  }
   const all = items ?? [];
   return { items: all, total: all.length };
 }

@@ -7,8 +7,8 @@ import { isAxiosError } from 'axios';
 
 import { type ArrowColumnInfo, arrowStreamToRows } from './arrow';
 import { injectionsKeys } from './injections';
-import { required } from './list';
 import { injectionsApi } from './portal-client';
+import { required } from './response';
 
 export const datapackKeys = {
   files: (id: number) => [...injectionsKeys.detail(id), 'datapack-files'],

@@ -6,8 +6,8 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { type ListResult, required, toList } from './list';
 import { projectsApi } from './portal-client';
+import { isNotFound, type ListResult, required, toList } from './response';
 
 export const projectsKeys = {
   all: ['portal', 'projects'] as const,
@@ -21,7 +21,7 @@ export function useProjectsList() {
     queryKey: projectsKeys.list(),
     queryFn: async () => {
       const res = await projectsApi.listProjects({ size: 100 });
-      return toList(res.data.data);
+      return toList(res.data.data, 'projects');
     },
   });
 }
@@ -30,6 +30,7 @@ export function useProject(id: number | undefined) {
   return useQuery<ProjectProjectDetailResp>({
     queryKey: projectsKeys.detail(id ?? -1),
     enabled: id !== undefined && Number.isFinite(id),
+    retry: (failures, error) => !isNotFound(error) && failures < 1,
     queryFn: async () => {
       const res = await projectsApi.getProjectById({ projectId: id ?? -1 });
       return required(res.data.data, 'project');

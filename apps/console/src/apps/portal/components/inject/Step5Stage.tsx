@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   ChoiceCardGroup,
   DataTable,
@@ -15,24 +16,26 @@ export type SubmitMode = 'submit' | 'stage';
 interface Props {
   mode: SubmitMode;
   setMode: (mode: SubmitMode) => void;
+  /** Why this draft cannot join the staged batch, if it cannot. */
+  conflict: string | undefined;
 }
 
 const MODES = [
   {
     value: 'submit',
     title: 'Submit now',
-    description: 'On confirm one injection is created.',
+    description: 'On confirm this draft is sent as one injection.',
   },
   {
     value: 'stage',
     title: 'Stage for batch',
     description:
-      'On confirm this draft joins the batch and the wizard starts again.',
+      'On confirm nothing is sent: the draft joins the batch and the wizard starts again.',
     meta: '--stage',
   },
 ];
 
-export function Step5Stage({ mode, setMode }: Props) {
+export function Step5Stage({ mode, setMode, conflict }: Props) {
   const staged = useInjectBatch((s) => s.staged);
   const remove = useInjectBatch((s) => s.remove);
   const clear = useInjectBatch((s) => s.clear);
@@ -46,6 +49,9 @@ export function Step5Stage({ mode, setMode }: Props) {
           onChange={(value) => setMode(value === 'stage' ? 'stage' : 'submit')}
           options={MODES}
         />
+        {mode === 'stage' && conflict !== undefined && (
+          <Alert tone='warning'>{conflict}</Alert>
+        )}
 
         {staged.length > 0 && (
           <>
@@ -78,11 +84,6 @@ export function Step5Stage({ mode, setMode }: Props) {
                   render: (r) => (
                     <MonoValue size='sm'>{r.spec.chaosType}</MonoValue>
                   ),
-                },
-                {
-                  key: 'dur',
-                  header: 'Duration',
-                  render: (r) => `${String(r.spec.durationSec)}s`,
                 },
                 {
                   key: 'rm',

@@ -133,7 +133,7 @@ export default function Dashboard() {
                 {
                   key: 'status',
                   header: 'Status',
-                  render: (i) => <StatusChip status={i.status ?? i.state} />,
+                  render: (i) => <StatusChip status={i.state} />,
                 },
                 {
                   key: 'created',
@@ -180,7 +180,7 @@ export default function Dashboard() {
                   key: 'status',
                   header: 'Status',
                   align: 'right',
-                  render: (t) => <StatusChip status={t.state ?? t.status} />,
+                  render: (t) => <StatusChip status={t.state} />,
                 },
               ]}
             />
@@ -215,7 +215,7 @@ export default function Dashboard() {
               key: 'state',
               header: 'State',
               align: 'right',
-              render: (e) => <StatusChip status={e.state ?? e.status} />,
+              render: (e) => <StatusChip status={e.state} />,
             },
           ]}
         />

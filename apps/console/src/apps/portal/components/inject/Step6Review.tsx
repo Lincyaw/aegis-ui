@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import {
+  Alert,
   CodeBlock,
   MetricLabel,
   Panel,
@@ -11,21 +12,42 @@ import yaml from 'js-yaml';
 
 import {
   type GuidedInjectionSpec,
-  submitOptionsFor,
+  requestOptionsFor,
   toSubmitRequest,
 } from '../../domain/injectSpec';
 
+import type { SubmitMode } from './Step5Stage';
+
 interface Props {
   spec: GuidedInjectionSpec;
+  mode: SubmitMode;
+  /** Drafts already staged, in order. */
+  staged: GuidedInjectionSpec[];
+  conflict: string | undefined;
 }
 
-export function Step6Review({ spec }: Props) {
+export function Step6Review({ spec, mode, staged, conflict }: Props) {
   const [format, setFormat] = useState('yaml');
-  const request = toSubmitRequest([spec], submitOptionsFor(spec));
+
+  if (mode === 'stage' && conflict !== undefined) {
+    return (
+      <Panel title={<PanelTitle size='base'>6. Review</PanelTitle>}>
+        <Alert tone='warning'>{conflict}</Alert>
+      </Panel>
+    );
+  }
+
+  const batch = mode === 'stage' ? [...staged, spec] : [spec];
+  const request = toSubmitRequest(batch, requestOptionsFor(batch[0] ?? spec));
+  const caption =
+    mode === 'stage'
+      ? `Add to batch sends nothing. Submit batch then sends this request, with this draft as number ${String(batch.length)}.`
+      : 'Inject now sends this request.';
+
   return (
     <Panel title={<PanelTitle size='base'>6. Review</PanelTitle>}>
       <div className='page-stack'>
-        <MetricLabel>The request body that is sent on confirm.</MetricLabel>
+        <MetricLabel>{caption}</MetricLabel>
         <Tabs
           listOnly
           size='sm'

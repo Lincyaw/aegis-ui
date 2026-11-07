@@ -7,9 +7,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import { isActive } from '../domain/status';
 
-import { required } from './list';
 import { pollMs, type RefreshInterval, unlessFailed } from './polling';
 import { tracesApi } from './portal-client';
+import { required } from './response';
 
 export interface TraceLogsOptions {
   limit?: number;
@@ -43,10 +43,7 @@ export function useProcessTrace(
     refetchInterval: (query) =>
       query.state.status === 'error'
         ? false
-        : pollMs(
-            refresh,
-            isActive(query.state.data?.state ?? query.state.data?.status)
-          ),
+        : pollMs(refresh, isActive(query.state.data?.state)),
   });
 }
 

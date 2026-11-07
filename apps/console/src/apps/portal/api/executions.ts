@@ -6,9 +6,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { isActive } from '../domain/status';
 
-import { type ListResult, required, toList } from './list';
 import { ACTIVE_POLL_MS } from './polling';
 import { executionsApi, projectsApi } from './portal-client';
+import { type ListResult, required, toList } from './response';
 
 export const executionsKeys = {
   all: ['portal', 'executions'] as const,
@@ -31,7 +31,7 @@ export function useExecutionsList(
         page,
         size,
       });
-      return toList(res.data.data);
+      return toList(res.data.data, 'executions');
     },
   });
 }

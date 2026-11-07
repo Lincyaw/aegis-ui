@@ -4,8 +4,8 @@ import type {
 } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
-import { type ListResult, toList, wholeList } from './list';
 import { systemsApi } from './portal-client';
+import { type ListResult, required, toList, wholeList } from './response';
 
 export const systemsKeys = {
   all: ['portal', 'systems'] as const,
@@ -19,7 +19,7 @@ export function useSystems() {
     queryKey: systemsKeys.list(),
     queryFn: async () => {
       const res = await systemsApi.listChaosSystems({});
-      return toList(res.data.data);
+      return toList(res.data.data, 'systems');
     },
   });
 }
@@ -35,7 +35,10 @@ export function useInjectCandidates(name: string, namespace?: string) {
         name,
         namespace: ns,
       });
-      return wholeList(res.data.data?.candidates);
+      return wholeList(
+        required(res.data.data, 'candidates').candidates,
+        'candidates'
+      );
     },
   });
 }

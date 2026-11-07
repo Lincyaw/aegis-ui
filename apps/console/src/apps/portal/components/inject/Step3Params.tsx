@@ -1,15 +1,14 @@
-import { useId } from 'react';
-
 import {
-  CodeEditor,
   EmptyState,
+  FormRow,
   MetricLabel,
+  NumberField,
   Panel,
   PanelTitle,
   Select,
+  Slider,
   TextField,
 } from '@lincyaw/aegis-ui';
-import { Form, InputNumber, Radio, Slider } from 'antd';
 
 import {
   CHAOS_BY_NAME,
@@ -27,82 +26,83 @@ interface Props {
 }
 
 interface ControlProps {
-  id: string;
   field: ParamField;
   value: ParamValue | undefined;
   onChange: (value: ParamValue | undefined) => void;
 }
 
-function ParamControl({ id, field, value, onChange }: ControlProps) {
+function ParamControl({ field, value, onChange }: ControlProps) {
+  const problem = value === undefined ? undefined : paramProblem(field, value);
   switch (field.kind) {
     case 'number':
       return field.widget === 'slider' ? (
         <Slider
-          id={id}
+          ariaLabel={field.label}
           min={field.min}
           max={field.max}
           value={typeof value === 'number' ? value : field.min}
-          onChange={(v: number) => onChange(v)}
+          formatValue={(v) => withUnit(v, field.unit)}
+          onChange={onChange}
         />
       ) : (
-        <InputNumber
-          id={id}
+        <NumberField
+          ariaLabel={field.label}
+          integer
           min={field.min}
           max={field.max}
-          value={typeof value === 'number' ? value : null}
-          onChange={(v) => onChange(v ?? undefined)}
+          unit={field.unit}
+          value={typeof value === 'number' ? value : undefined}
+          error={problem}
+          onChange={onChange}
         />
       );
     case 'text':
-      return field.widget === 'yaml' ? (
-        <CodeEditor
-          language='yaml'
-          height='calc(var(--space-16) * 2)'
-          value={typeof value === 'string' ? value : ''}
-          onChange={(v) => onChange(v)}
-          placeholder={'action: throw\nargs:\n  - "x"'}
-        />
-      ) : (
+      return (
         <TextField
-          id={id}
+          aria-label={field.label}
           value={typeof value === 'string' ? value : ''}
-          onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder}
+          error={problem}
+          onChange={(e) => onChange(e.target.value)}
         />
       );
     case 'choice':
-      return field.widget === 'radio' ? (
-        <Radio.Group
-          id={id}
-          value={value}
-          onChange={(e) => onChange(String(e.target.value))}
-        >
-          {field.options.map((option) => (
-            <Radio key={option} value={option}>
-              {option}
-            </Radio>
-          ))}
-        </Radio.Group>
-      ) : (
+      return (
         <Select
-          id={id}
+          ariaLabel={field.label}
           value={typeof value === 'string' ? value : ''}
           placeholder={`Select ${field.label.toLowerCase()}`}
+          allowClear={!field.required}
           options={field.options.map((o) => ({ value: o, label: o }))}
-          onChange={(v) => onChange(v)}
+          onChange={(v) => onChange(v === '' ? undefined : v)}
         />
       );
   }
 }
 
-function labelFor(field: ParamField, value: ParamValue | undefined): string {
-  return field.widget === 'slider' && typeof value === 'number'
-    ? `${field.label} · ${String(value)}`
-    : field.label;
+function withUnit(value: number, unit: string | undefined): string {
+  if (unit === undefined) {
+    return String(value);
+  }
+  return unit === '%' ? `${String(value)}%` : `${String(value)} ${unit}`;
+}
+
+function describe(field: ParamField): string {
+  const parts = [field.required ? 'Required' : 'Optional'];
+  if (field.kind === 'number' && field.widget === 'input') {
+    parts.push(
+      field.max === undefined
+        ? `at least ${withUnit(field.min, field.unit)}`
+        : `${String(field.min)}–${withUnit(field.max, field.unit)}`
+    );
+  }
+  if (field.description !== undefined) {
+    parts.push(field.description);
+  }
+  return parts.join(' · ');
 }
 
 export function Step3Params({ spec, update }: Props) {
-  const id = useId();
   const def = CHAOS_BY_NAME[spec.chaosType];
 
   if (!def) {
@@ -130,41 +130,30 @@ export function Step3Params({ spec, update }: Props) {
     <Panel
       title={<PanelTitle size='base'>3. Parameters · {def.name}</PanelTitle>}
     >
-      <div className='page-stack'>
-        <MetricLabel>{def.description}</MetricLabel>
-        {def.params.length === 0 ? (
-          <EmptyState
-            title='No parameters'
-            description='This fault only needs the target and the duration.'
-          />
-        ) : (
-          <Form layout='vertical' component='div'>
-            {def.params.map((key) => {
-              const field = PARAM_FIELDS[key];
-              const value = spec.params[key];
-              const problem =
-                value === undefined ? undefined : paramProblem(field, value);
-              return (
-                <Form.Item
-                  key={key}
-                  label={labelFor(field, value)}
-                  required={field.required}
-                  htmlFor={`${id}-${key}`}
-                  validateStatus={problem ? 'error' : undefined}
-                  help={problem}
-                >
-                  <ParamControl
-                    id={`${id}-${key}`}
-                    field={field}
-                    value={value}
-                    onChange={(v) => setParam(key, v)}
-                  />
-                </Form.Item>
-              );
-            })}
-          </Form>
-        )}
-      </div>
+      <MetricLabel>{def.description}</MetricLabel>
+      {def.params.length === 0 ? (
+        <EmptyState
+          title='No parameters'
+          description='This fault needs only its target. It runs for the fixed fault window.'
+        />
+      ) : (
+        def.params.map((key) => {
+          const field = PARAM_FIELDS[key];
+          return (
+            <FormRow
+              key={key}
+              label={field.label}
+              description={describe(field)}
+            >
+              <ParamControl
+                field={field}
+                value={spec.params[key]}
+                onChange={(v) => setParam(key, v)}
+              />
+            </FormRow>
+          );
+        })
+      )}
     </Panel>
   );
 }

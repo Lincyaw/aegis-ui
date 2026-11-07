@@ -1,14 +1,12 @@
-import { useId } from 'react';
-
 import {
-  Chip,
+  ChoiceCardGroup,
+  FormRow,
   Panel,
   PanelTitle,
   SectionDivider,
   Select,
   TextField,
 } from '@lincyaw/aegis-ui';
-import { Form, Radio } from 'antd';
 
 import { errMsg } from '../../../../api/apiClient';
 import { useInjectCandidates, useSystems } from '../../api/systems';
@@ -23,8 +21,35 @@ interface Props {
   update: (patch: Partial<GuidedInjectionSpec>) => void;
 }
 
+const NAMESPACE_MODES: Array<{
+  value: NamespaceMode;
+  title: string;
+  description: string;
+  meta: string;
+}> = [
+  {
+    value: 'auto',
+    title: 'Auto-allocate',
+    description: 'Take a free namespace from the pool.',
+    meta: '--auto',
+  },
+  {
+    value: 'auto-bootstrap',
+    title: 'Auto + bootstrap',
+    description: 'Take one from the pool, or set up a new one.',
+    meta: '--allow-bootstrap',
+  },
+  {
+    value: 'specific',
+    title: 'Specific namespace',
+    description: 'Inject into a namespace you name.',
+    meta: '--namespace',
+  },
+];
+
+const NO_CONTAINER = { name: '', version: '' };
+
 export function Step1Target({ spec, update }: Props) {
-  const id = useId();
   const templates = useInjectBatch((s) => s.templates);
   const systemsQuery = useSystems();
   const candidatesQuery = useInjectCandidates(
@@ -51,174 +76,152 @@ export function Step1Target({ spec, update }: Props) {
     spec.systemCode.length > 0 &&
     (spec.namespaceMode !== 'specific' || spec.namespace.length > 0);
 
-  const appHelp = candidatesQuery.isError ? (
-    <Chip tone='warning'>
-      {`Failed to load candidates: ${errMsg(candidatesQuery.error)} — enter the app by hand.`}
-    </Chip>
-  ) : !candidatesReady ? (
-    spec.namespaceMode === 'specific' ? (
-      'Pick a system and namespace first to load candidates.'
-    ) : (
-      'Pick a system first to load candidates.'
-    )
-  ) : spec.namespaceMode === 'specific' ? (
-    'Candidates discovered for this system + namespace.'
-  ) : (
-    'Candidates discovered for this system across all namespaces.'
-  );
+  const appHelp = !candidatesReady
+    ? spec.namespaceMode === 'specific'
+      ? 'Pick a system and a namespace to list its apps.'
+      : 'Pick a system to list its apps.'
+    : spec.namespaceMode === 'specific'
+      ? 'Apps found in this namespace.'
+      : 'Apps found for this system across its namespaces.';
+
+  const setSystem = (systemCode: string): void => {
+    update({ systemCode, app: '', pedestal: NO_CONTAINER });
+  };
 
   return (
     <Panel title={<PanelTitle size='base'>1. Target</PanelTitle>}>
-      <Form layout='vertical' component='div'>
-        {templates.length > 0 && (
-          <Form.Item label='Load from template' htmlFor={`${id}-template`}>
-            <Select
-              id={`${id}-template`}
-              value=''
-              placeholder='Choose a saved template'
-              options={templates.map((t) => ({ value: t.id, label: t.name }))}
-              onChange={(templateId) => {
-                const template = templates.find((t) => t.id === templateId);
-                if (template) {
-                  update(template.spec);
-                }
-              }}
-            />
-          </Form.Item>
-        )}
+      {templates.length > 0 && (
+        <FormRow label='Template'>
+          <Select
+            ariaLabel='Load from template'
+            value=''
+            placeholder='Load a saved template'
+            options={templates.map((t) => ({ value: t.id, label: t.name }))}
+            onChange={(templateId) => {
+              const template = templates.find((t) => t.id === templateId);
+              if (template) {
+                update(template.spec);
+              }
+            }}
+          />
+        </FormRow>
+      )}
 
-        <Form.Item
-          label='Namespace allocation'
-          required
-          extra='matches aegisctl inject guided --auto / --auto --allow-bootstrap.'
-        >
-          <Radio.Group
-            value={spec.namespaceMode}
-            onChange={(e) =>
-              update({ namespaceMode: e.target.value as NamespaceMode })
+      <FormRow
+        label='Namespace'
+        description='Where the fault runs, as aegisctl inject guided chooses it.'
+      >
+        <ChoiceCardGroup
+          ariaLabel='Namespace allocation'
+          value={spec.namespaceMode}
+          onChange={(value) => {
+            const mode = NAMESPACE_MODES.find((m) => m.value === value);
+            if (mode) {
+              update({ namespaceMode: mode.value });
             }
-          >
-            <Radio value='specific'>Specific namespace</Radio>
-            <Radio value='auto'>Auto-allocate from pool</Radio>
-            <Radio value='auto-bootstrap'>Auto + allow bootstrap</Radio>
-          </Radio.Group>
-        </Form.Item>
+          }}
+          options={NAMESPACE_MODES}
+        />
+      </FormRow>
 
-        {spec.namespaceMode === 'specific' && (
-          <Form.Item label='Namespace name' required htmlFor={`${id}-ns`}>
-            <TextField
-              id={`${id}-ns`}
-              value={spec.namespace}
-              onChange={(e) => update({ namespace: e.target.value })}
-              placeholder='e.g. ts-1'
-            />
-          </Form.Item>
+      {spec.namespaceMode === 'specific' && (
+        <FormRow label='Namespace name'>
+          <TextField
+            aria-label='Namespace name'
+            value={spec.namespace}
+            onChange={(e) => update({ namespace: e.target.value })}
+            placeholder='e.g. ts-1'
+          />
+        </FormRow>
+      )}
+
+      <FormRow label='System' description='From the chaos systems registry.'>
+        {systemsQuery.isError ? (
+          <TextField
+            aria-label='System'
+            value={spec.systemCode}
+            onChange={(e) => setSystem(e.target.value)}
+            placeholder='system short code'
+            error={`Systems failed to load: ${errMsg(systemsQuery.error)}. Enter the short code.`}
+          />
+        ) : (
+          <Select
+            ariaLabel='System'
+            value={spec.systemCode}
+            disabled={systemsQuery.isLoading}
+            placeholder={
+              systemsQuery.isLoading ? 'Loading systems…' : 'Select a system'
+            }
+            options={systemOptions}
+            onChange={setSystem}
+          />
         )}
+      </FormRow>
 
-        <Form.Item
-          label='System'
-          required
-          htmlFor={`${id}-system`}
-          extra={
-            systemsQuery.isError ? (
-              <Chip tone='warning'>
-                {`Failed to load systems: ${errMsg(systemsQuery.error)} — enter the system code by hand.`}
-              </Chip>
-            ) : (
-              'Loaded from the chaos systems registry.'
-            )
-          }
-        >
-          {systemsQuery.isError ? (
-            <TextField
-              id={`${id}-system`}
-              value={spec.systemCode}
-              onChange={(e) => update({ systemCode: e.target.value, app: '' })}
-              placeholder='system short_code'
-            />
-          ) : (
-            <Select
-              id={`${id}-system`}
-              value={spec.systemCode}
-              disabled={systemsQuery.isLoading}
-              placeholder={
-                systemsQuery.isLoading ? 'Loading systems…' : 'Select a system'
-              }
-              options={systemOptions}
-              onChange={(value) => update({ systemCode: value, app: '' })}
-            />
-          )}
-        </Form.Item>
+      <FormRow
+        label='System type'
+        description='Optional chaos.system_type tag.'
+      >
+        <TextField
+          aria-label='System type'
+          value={spec.systemType}
+          onChange={(e) => update({ systemType: e.target.value })}
+          placeholder='e.g. ts'
+        />
+      </FormRow>
 
-        <Form.Item
-          label='System type'
-          htmlFor={`${id}-system-type`}
-          extra='free-form chaos.system_type tag.'
-        >
+      <SectionDivider>App</SectionDivider>
+
+      <FormRow label='App' description={appHelp}>
+        {candidatesQuery.isError || !candidatesReady ? (
           <TextField
-            id={`${id}-system-type`}
-            value={spec.systemType}
-            onChange={(e) => update({ systemType: e.target.value })}
-            placeholder='e.g. ts'
+            aria-label='App'
+            value={spec.app}
+            onChange={(e) => update({ app: e.target.value })}
+            placeholder='deployment label'
+            error={
+              candidatesQuery.isError
+                ? `Apps failed to load: ${errMsg(candidatesQuery.error)}. Enter the app.`
+                : undefined
+            }
           />
-        </Form.Item>
-
-        <SectionDivider>App</SectionDivider>
-        <Form.Item
-          label='App / Deployment'
-          required
-          htmlFor={`${id}-app`}
-          extra={appHelp}
-        >
-          {candidatesQuery.isError || !candidatesReady ? (
-            <TextField
-              id={`${id}-app`}
-              value={spec.app}
-              onChange={(e) => update({ app: e.target.value })}
-              placeholder='deployment label'
-            />
-          ) : (
-            <Select
-              id={`${id}-app`}
-              value={spec.app}
-              disabled={candidatesQuery.isLoading}
-              placeholder={
-                candidatesQuery.isLoading
-                  ? 'Loading candidates…'
-                  : 'Select an app / deployment'
-              }
-              options={appOptions}
-              onChange={(value) => update({ app: value })}
-            />
-          )}
-        </Form.Item>
-
-        <Form.Item
-          label='Container (optional)'
-          htmlFor={`${id}-container`}
-          extra='leave blank to target the first container.'
-        >
-          <TextField
-            id={`${id}-container`}
-            value={spec.container}
-            onChange={(e) => update({ container: e.target.value })}
-            placeholder='e.g. main'
+        ) : (
+          <Select
+            ariaLabel='App'
+            value={spec.app}
+            disabled={candidatesQuery.isLoading}
+            placeholder={
+              candidatesQuery.isLoading ? 'Loading apps…' : 'Select an app'
+            }
+            options={appOptions}
+            onChange={(value) => update({ app: value })}
           />
-        </Form.Item>
+        )}
+      </FormRow>
 
-        <Form.Item
-          label='Target service (optional)'
-          htmlFor={`${id}-service`}
-          extra='used by HTTP / JVM faults that scope per-service.'
-        >
-          <TextField
-            id={`${id}-service`}
-            value={spec.targetService}
-            onChange={(e) => update({ targetService: e.target.value })}
-            placeholder='e.g. checkoutservice'
-          />
-        </Form.Item>
-      </Form>
+      <FormRow
+        label='Container'
+        description='Optional. Container, memory, CPU and time faults act on it.'
+      >
+        <TextField
+          aria-label='Container'
+          value={spec.container}
+          onChange={(e) => update({ container: e.target.value })}
+          placeholder='e.g. main'
+        />
+      </FormRow>
+
+      <FormRow
+        label='Target service'
+        description='Optional. Network faults act on traffic to it.'
+      >
+        <TextField
+          aria-label='Target service'
+          value={spec.targetService}
+          onChange={(e) => update({ targetService: e.target.value })}
+          placeholder='e.g. checkoutservice'
+        />
+      </FormRow>
     </Panel>
   );
 }

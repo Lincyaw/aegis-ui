@@ -88,7 +88,7 @@ export default function ExecutionDetail() {
   const { data, isLoading, isError, error } = useExecutionDetail(numericId);
 
   const traceId = data?.trace_id;
-  const state = data?.state ?? data?.status;
+  const state = data?.state;
   const live = isActive(state);
 
   const { message: msg } = AntdApp.useApp();

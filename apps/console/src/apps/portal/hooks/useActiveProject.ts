@@ -2,11 +2,12 @@ import { useEffect } from 'react';
 
 import type { ProjectProjectResp } from '@lincyaw/portal';
 
-import { useProjectsList } from '../api/projects';
+import { useProject, useProjectsList } from '../api/projects';
+import { isNotFound } from '../api/response';
 import { useActiveProjectStore } from '../state/active-project';
 
 export interface ActiveProject {
-  /** `undefined` while the list loads, when it failed, or when there are no projects. */
+  /** `undefined` while the project resolves, when loading failed, or when there are no projects. */
   project: ProjectProjectResp | undefined;
   projectId: number | undefined;
   isLoading: boolean;
@@ -15,9 +16,11 @@ export interface ActiveProject {
 }
 
 /**
- * The project every portal page works in: the one last chosen if it still
- * exists, otherwise the first project. The resolved choice is saved back,
- * so the header, the dashboard and every page agree on it.
+ * The project every portal page works in: the one last chosen while it
+ * exists, otherwise the first project. The list holds one page of projects,
+ * so a chosen project missing from it is fetched by id; only a not-found
+ * answer, read against a list that is not refetching, moves the choice to
+ * the first project and saves that back.
  */
 export function useActiveProject(): ActiveProject {
   const projectsQuery = useProjectsList();
@@ -25,22 +28,39 @@ export function useActiveProject(): ActiveProject {
   const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
 
   const projects = projectsQuery.data?.items;
-  const project = projects
-    ? (projects.find((p) => p.id === storedId) ?? projects[0])
-    : undefined;
-  const resolvedId = project?.id ?? null;
+  const listed =
+    storedId === null ? undefined : projects?.find((p) => p.id === storedId);
+  const needsLookup =
+    storedId !== null && projects !== undefined && listed === undefined;
+  const lookup = useProject(needsLookup ? storedId : undefined);
+
+  const gone = needsLookup && isNotFound(lookup.error);
+  const fallback =
+    (storedId === null || gone) &&
+    projects !== undefined &&
+    !projectsQuery.isFetching;
+  const fallbackId = fallback ? (projects[0]?.id ?? null) : null;
+
+  const project =
+    listed ??
+    (needsLookup ? lookup.data : undefined) ??
+    (fallback ? projects[0] : undefined);
 
   useEffect(() => {
-    if (projects !== undefined && resolvedId !== storedId) {
-      setActiveProject(resolvedId);
+    if (fallback && fallbackId !== storedId) {
+      setActiveProject(fallbackId);
     }
-  }, [projects, resolvedId, storedId, setActiveProject]);
+  }, [fallback, fallbackId, storedId, setActiveProject]);
+
+  const lookupError = needsLookup && !gone ? lookup.error : null;
+  const error = projectsQuery.error ?? lookupError;
+  const settled = project !== undefined || (fallback && projects.length === 0);
 
   return {
     project,
     projectId: project?.id,
-    isLoading: projectsQuery.isLoading,
-    error: projectsQuery.error,
+    isLoading: error === null && !settled,
+    error,
     setActiveProject,
   };
 }

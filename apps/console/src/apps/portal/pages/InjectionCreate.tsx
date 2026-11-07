@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import {
@@ -18,17 +18,18 @@ import { LivePreview } from '../components/inject/LivePreview';
 import { Step1Target } from '../components/inject/Step1Target';
 import { Step2ChaosType } from '../components/inject/Step2ChaosType';
 import { Step3Params } from '../components/inject/Step3Params';
-import { Step4Lifecycle } from '../components/inject/Step4Lifecycle';
+import { Step4Pedestal } from '../components/inject/Step4Pedestal';
 import { Step5Stage, type SubmitMode } from '../components/inject/Step5Stage';
 import { Step6Review } from '../components/inject/Step6Review';
 import { ProjectRequired } from '../components/ProjectRequired';
 import {
-  BATCH_SUBMIT_OPTIONS,
+  batchConflict,
   defaultSpec,
   firstInvalidStep,
   type GuidedInjectionSpec,
   isStepValid,
-  submitOptionsFor,
+  requestOptionsFor,
+  submitOutcome,
   toSubmitRequest,
   withChaosType,
   WIZARD_STEPS,
@@ -74,9 +75,15 @@ function InjectionWizard({ projectId, projectName }: WizardProps) {
     }
   }, [draft, projectId, spec]);
 
-  const update = (patch: Partial<GuidedInjectionSpec>): void => {
+  const update = useCallback((patch: Partial<GuidedInjectionSpec>): void => {
     setSpec((s) => ({ ...s, ...patch }));
-  };
+  }, []);
+
+  const stagedSpecs = staged.map((s) => s.spec);
+  const batchOptions =
+    stagedSpecs.length > 0 ? requestOptionsFor(stagedSpecs[0]) : undefined;
+  const conflict =
+    batchOptions === undefined ? undefined : batchConflict(batchOptions, spec);
 
   const reachable = firstInvalidStep(spec);
   const isLast = step === WIZARD_STEPS.length - 1;
@@ -89,20 +96,34 @@ function InjectionWizard({ projectId, projectName }: WizardProps) {
 
   const submit = (): void => {
     if (submitMode === 'stage') {
+      if (conflict !== undefined) {
+        return;
+      }
       stage(spec);
       void msg.success('Draft added to batch');
-      setSpec(defaultSpec(spec.systemCode));
+      setSpec({
+        ...defaultSpec(spec.systemCode),
+        namespaceMode: spec.namespaceMode,
+        pedestal: spec.pedestal,
+        benchmark: spec.benchmark,
+        skipRestartPedestal: spec.skipRestartPedestal,
+      });
       setStep(0);
       return;
     }
     submitMutation.mutate(
       {
         projectId,
-        request: toSubmitRequest([spec], submitOptionsFor(spec)),
+        request: toSubmitRequest([spec], requestOptionsFor(spec)),
       },
       {
-        onSuccess: () => {
-          void msg.success('Injection submitted');
+        onSuccess: (resp) => {
+          const outcome = submitOutcome(resp, 1);
+          if (outcome.created === 1) {
+            void msg.success(outcome.text);
+          } else {
+            void msg.warning(outcome.text);
+          }
           clearDraft(projectId);
           navigate('injections');
         },
@@ -114,19 +135,22 @@ function InjectionWizard({ projectId, projectName }: WizardProps) {
   };
 
   const submitBatch = (): void => {
+    if (batchOptions === undefined) {
+      return;
+    }
     submitMutation.mutate(
       {
         projectId,
-        request: toSubmitRequest(
-          staged.map((s) => s.spec),
-          BATCH_SUBMIT_OPTIONS
-        ),
+        request: toSubmitRequest(stagedSpecs, batchOptions),
       },
       {
-        onSuccess: () => {
-          void msg.success(
-            `${String(staged.length)} injection${staged.length === 1 ? '' : 's'} queued`
-          );
+        onSuccess: (resp) => {
+          const outcome = submitOutcome(resp, stagedSpecs.length);
+          if (outcome.created === stagedSpecs.length) {
+            void msg.success(outcome.text);
+          } else {
+            void msg.warning(outcome.text);
+          }
           clear();
           navigate('injections');
         },
@@ -188,11 +212,22 @@ function InjectionWizard({ projectId, projectName }: WizardProps) {
           {step === 0 && <Step1Target spec={spec} update={update} />}
           {step === 1 && <Step2ChaosType spec={spec} update={update} />}
           {step === 2 && <Step3Params spec={spec} update={update} />}
-          {step === 3 && <Step4Lifecycle spec={spec} update={update} />}
+          {step === 3 && <Step4Pedestal spec={spec} update={update} />}
           {step === 4 && (
-            <Step5Stage mode={submitMode} setMode={setSubmitMode} />
+            <Step5Stage
+              mode={submitMode}
+              setMode={setSubmitMode}
+              conflict={conflict}
+            />
           )}
-          {step === 5 && <Step6Review spec={spec} />}
+          {step === 5 && (
+            <Step6Review
+              spec={spec}
+              mode={submitMode}
+              staged={stagedSpecs}
+              conflict={conflict}
+            />
+          )}
         </div>
         <aside className='inject-layout__side'>
           <LivePreview spec={spec} />
@@ -225,7 +260,9 @@ function InjectionWizard({ projectId, projectName }: WizardProps) {
               tone='primary'
               onClick={submit}
               disabled={
-                reachable < WIZARD_STEPS.length || submitMutation.isPending
+                reachable < WIZARD_STEPS.length ||
+                submitMutation.isPending ||
+                (submitMode === 'stage' && conflict !== undefined)
               }
             >
               {submitMode === 'stage' ? 'Add to batch' : 'Inject now'}

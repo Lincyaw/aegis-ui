@@ -5,8 +5,8 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { type ListResult, required, toList } from './list';
 import { labelsApi } from './portal-client';
+import { type ListResult, required, toList } from './response';
 
 export interface ListLabelsParams {
   page?: number;
@@ -25,7 +25,7 @@ export function useLabelsList(params: ListLabelsParams) {
     queryKey: labelsKeys.list(params),
     queryFn: async () => {
       const res = await labelsApi.listLabels(params);
-      return toList(res.data.data);
+      return toList(res.data.data, 'labels');
     },
   });
 }

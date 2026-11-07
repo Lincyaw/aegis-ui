@@ -5,6 +5,7 @@ import {
   CodeBlock,
   DataTable,
   EmptyState,
+  KeyValueList,
   MonoValue,
   PageHeader,
   Panel,
@@ -19,13 +20,29 @@ import { errMsg } from '../../../api/apiClient';
 import { useSubmitInjection } from '../api/injections';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { ProjectRequired } from '../components/ProjectRequired';
-import { BATCH_SUBMIT_OPTIONS, toSubmitRequest } from '../domain/injectSpec';
+import {
+  type ContainerChoice,
+  type NamespaceMode,
+  requestOptionsFor,
+  submitOutcome,
+  toSubmitRequest,
+} from '../domain/injectSpec';
 import { useActiveProject } from '../hooks/useActiveProject';
 import { type StagedInjection, useInjectBatch } from '../state/inject-batch';
 
 function plural(count: number): string {
   return `${String(count)} injection${count === 1 ? '' : 's'}`;
 }
+
+function containerText({ name, version }: ContainerChoice): string {
+  return version === '' ? `${name} (latest)` : `${name} ${version}`;
+}
+
+const NAMESPACE_TEXT: Record<NamespaceMode, string> = {
+  specific: 'the namespace named in each draft',
+  auto: 'auto-allocated',
+  'auto-bootstrap': 'auto-allocated, bootstrap allowed',
+};
 
 export default function BatchInjections() {
   const active = useActiveProject();
@@ -53,17 +70,23 @@ export default function BatchInjections() {
     );
   }
 
-  const request = toSubmitRequest(
-    staged.map((s) => s.spec),
-    BATCH_SUBMIT_OPTIONS
-  );
+  const specs = staged.map((s) => s.spec);
+  const options = specs.length > 0 ? requestOptionsFor(specs[0]) : undefined;
 
   const onSubmit = (): void => {
+    if (options === undefined) {
+      return;
+    }
     submitMutation.mutate(
-      { projectId, request },
+      { projectId, request: toSubmitRequest(specs, options) },
       {
-        onSuccess: () => {
-          void msg.success(`${plural(staged.length)} queued`);
+        onSuccess: (resp) => {
+          const outcome = submitOutcome(resp, specs.length);
+          if (outcome.created === specs.length) {
+            void msg.success(outcome.text);
+          } else {
+            void msg.warning(outcome.text);
+          }
           setConfirming(false);
           clear();
           navigate('injections');
@@ -76,7 +99,7 @@ export default function BatchInjections() {
     );
   };
 
-  if (staged.length === 0) {
+  if (options === undefined) {
     return (
       <>
         <PageHeader title='Batch' description={description} />
@@ -115,6 +138,33 @@ export default function BatchInjections() {
           </div>
         }
       />
+      <Panel title={<PanelTitle size='base'>Shared by every draft</PanelTitle>}>
+        <KeyValueList
+          items={[
+            {
+              k: 'pedestal',
+              v: (
+                <MonoValue size='sm'>
+                  {containerText(options.pedestal)}
+                </MonoValue>
+              ),
+            },
+            {
+              k: 'benchmark',
+              v: (
+                <MonoValue size='sm'>
+                  {containerText(options.benchmark)}
+                </MonoValue>
+              ),
+            },
+            { k: 'namespace', v: NAMESPACE_TEXT[options.namespaceMode] },
+            {
+              k: 'pedestal restart',
+              v: options.skipRestartPedestal ? 'skipped' : 'restarted',
+            },
+          ]}
+        />
+      </Panel>
       <Panel title={<PanelTitle size='base'>Drafts</PanelTitle>}>
         <DataTable<StagedInjection>
           framed={false}
@@ -142,11 +192,6 @@ export default function BatchInjections() {
               ),
             },
             {
-              key: 'dur',
-              header: 'Duration',
-              render: (r) => `${String(r.spec.durationSec)}s`,
-            },
-            {
               key: 'when',
               header: 'Added',
               render: (r) => <TimeDisplay value={r.addedAt} />,
@@ -164,12 +209,15 @@ export default function BatchInjections() {
         />
       </Panel>
       <Panel title={<PanelTitle size='base'>Request body</PanelTitle>}>
-        <CodeBlock language='yaml' code={yaml.dump(request)} />
+        <CodeBlock
+          language='yaml'
+          code={yaml.dump(toSubmitRequest(specs, options))}
+        />
       </Panel>
       <ConfirmDialog
         open={confirming}
         title={`Submit ${plural(staged.length)}?`}
-        description='Each staged draft becomes an injection in an auto-allocated namespace.'
+        description='Each draft becomes one injection. The server skips a draft that repeats another or one already injected.'
         confirmLabel='Submit all'
         pending={submitMutation.isPending}
         onConfirm={onSubmit}
