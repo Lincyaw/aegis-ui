@@ -24,6 +24,7 @@ import {
   MonoValue,
   ObjectBrowser,
   ObjectInspector,
+  type ObjectInspectorTab,
   Panel,
   PanelTitle,
   ParquetViewer,
@@ -298,20 +299,108 @@ function SearchInputSpecimen(): ReactNode {
   );
 }
 
+interface InspectorObject {
+  key: string;
+  size: string;
+  contentType: string;
+  parquet: boolean;
+}
+
+const INSPECTOR_OBJECTS: InspectorObject[] = [
+  {
+    key: 'datasets/2026-05/trace-snapshot.json',
+    size: '4.2 MB',
+    contentType: 'application/json',
+    parquet: false,
+  },
+  {
+    key: 'datasets/2026-05/spans.parquet',
+    size: '18.6 MB',
+    contentType: 'application/vnd.apache.parquet',
+    parquet: true,
+  },
+];
+
+const INSPECTOR_PLACEHOLDER_STYLE = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: 'var(--fs-13)',
+  color: 'var(--text-muted)',
+};
+
+function inspectorTabs(object: InspectorObject | null): ObjectInspectorTab[] {
+  if (!object) {
+    return [];
+  }
+  return [
+    {
+      id: 'summary',
+      label: 'Summary',
+      content: (
+        <MetadataList
+          entries={[
+            { label: 'Key', value: object.key, mono: true, copyable: true },
+            { label: 'Size', value: object.size, mono: true },
+            { label: 'Content-Type', value: object.contentType, mono: true },
+            { label: 'Last modified', value: '2026-05-14 08:21 UTC' },
+          ]}
+        />
+      ),
+    },
+    {
+      id: 'preview',
+      label: 'Preview',
+      content: (
+        <div style={INSPECTOR_PLACEHOLDER_STYLE}>
+          Preview placeholder — host renders FilePreview here.
+        </div>
+      ),
+    },
+    ...(object.parquet
+      ? [
+          {
+            id: 'parquet',
+            label: 'Parquet',
+            content: (
+              <div style={INSPECTOR_PLACEHOLDER_STYLE}>
+                Parquet viewer placeholder — host renders ParquetViewer here.
+              </div>
+            ),
+          },
+        ]
+      : []),
+    {
+      id: 'audit-log',
+      label: 'Audit log',
+      disabled: true,
+      hint: 'Audit logging is off for this bucket',
+      content: null,
+    },
+  ];
+}
+
+/** Mounted the way the blob browser mounts it: no tabs until an object opens. */
 function ObjectInspectorSpecimen(): ReactNode {
-  const [open, setOpen] = useState(false);
+  const [object, setObject] = useState<InspectorObject | null>(null);
   return (
     <div className='gallery__row'>
-      <Specimen caption='toggle to open inspector'>
-        <AegisButton onClick={() => setOpen(true)}>
-          Open ObjectInspector
-        </AegisButton>
+      <Specimen caption='each object opens on its defaultTabId · a picked tab holds until defaultTabId changes · disabled tab with hint'>
+        <div
+          style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}
+        >
+          {INSPECTOR_OBJECTS.map((o) => (
+            <AegisButton key={o.key} onClick={() => setObject(o)}>
+              Open {o.key.split('/').pop()}
+            </AegisButton>
+          ))}
+        </div>
         <ObjectInspector
-          open={open}
-          onClose={() => setOpen(false)}
-          title='trace-snapshot.json'
-          subtitle='datasets/2026-05/trace-snapshot.json'
-          defaultTabId='summary'
+          open={object !== null}
+          onClose={() => setObject(null)}
+          title={object ? (object.key.split('/').pop() ?? '') : ''}
+          subtitle={object?.key}
+          defaultTabId={
+            object ? (object.parquet ? 'parquet' : 'preview') : undefined
+          }
           actions={
             <>
               <Chip tone='ghost'>Download</Chip>
@@ -320,74 +409,7 @@ function ObjectInspectorSpecimen(): ReactNode {
               <Chip tone='warning'>Delete</Chip>
             </>
           }
-          tabs={[
-            {
-              id: 'summary',
-              label: 'Summary',
-              content: (
-                <MetadataList
-                  entries={[
-                    {
-                      label: 'Key',
-                      value: 'datasets/2026-05/trace-snapshot.json',
-                      mono: true,
-                      copyable: true,
-                    },
-                    { label: 'Size', value: '4.2 MB', mono: true },
-                    {
-                      label: 'Content-Type',
-                      value: 'application/json',
-                      mono: true,
-                    },
-                    { label: 'Last modified', value: '2026-05-14 08:21 UTC' },
-                    {
-                      label: 'ETag',
-                      value: '"a3f29c8d0e11b7ce2a4f1d6e90b5a823"',
-                      mono: true,
-                      copyable: true,
-                    },
-                  ]}
-                />
-              ),
-            },
-            {
-              id: 'preview',
-              label: 'Preview',
-              content: (
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'var(--fs-13)',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  Preview placeholder — host renders FilePreview here.
-                </div>
-              ),
-            },
-            {
-              id: 'parquet',
-              label: 'Parquet',
-              content: (
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'var(--fs-13)',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  Parquet viewer placeholder — host renders ParquetViewer here.
-                </div>
-              ),
-            },
-            {
-              id: 'audit-log',
-              label: 'Audit log',
-              disabled: true,
-              hint: 'Coming soon',
-              content: null,
-            },
-          ]}
+          tabs={inspectorTabs(object)}
           width={680}
         />
       </Specimen>

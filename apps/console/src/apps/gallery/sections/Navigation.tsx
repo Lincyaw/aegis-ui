@@ -155,7 +155,7 @@ function TabsSegmentedSpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen
-        caption='default · tabpanel under the list · Overview fires an agent action'
+        caption='default · tabpanel under the list · Overview fires an agent action · a disabled tab with a hint, which the arrow keys pass over'
         span={3}
       >
         <RosettaTabs
@@ -166,6 +166,12 @@ function TabsSegmentedSpecimen(): ReactNode {
               action: GALLERY_ACTIONS.tabOverview,
             },
             { key: 'params', label: 'Parameters' },
+            {
+              key: 'audit',
+              label: 'Audit',
+              disabled: true,
+              hint: 'Audit logging is off for this run',
+            },
             { key: 'logs', label: 'Logs' },
           ]}
           defaultActiveKey='overview'

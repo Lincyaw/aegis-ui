@@ -1,4 +1,10 @@
-import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react';
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 
 import { flushSync } from 'react-dom';
 
@@ -11,6 +17,10 @@ import { tablistKeyTarget } from './tablistKeyboard';
 export interface TabItem {
   key: string;
   label: ReactNode;
+  /** Cannot be selected; the arrow keys pass over it. */
+  disabled?: boolean;
+  /** The tab's tooltip, e.g. why it is disabled. */
+  hint?: string;
   /** Optional aegis-ui agent action — fired after the tab activates. */
   action?: AegisAction<void, unknown>;
 }
@@ -26,6 +36,13 @@ interface TabsProps {
    * rendered elsewhere (site navigation, a toolbar view switch).
    */
   listOnly?: boolean;
+  /** The tab list's accessible name, when no visible heading names it. */
+  ariaLabel?: string;
+  /**
+   * With `listOnly`, the id of the `role="tabpanel"` element that shows the
+   * selected tab's content; the selected tab names it in `aria-controls`.
+   */
+  panelId?: string;
   /**
    * `sm` makes each tab `--size-control-sm` tall, so the whole list is
    * `--size-control-base` and lines up with inputs in a toolbar.
@@ -99,9 +116,15 @@ export function Tabs({
   onChange,
   children,
   listOnly = false,
+  ariaLabel,
+  panelId,
   size = 'md',
   className,
 }: TabsProps) {
+  const baseId = useId();
+  const tabId = (index: number): string => `${baseId}-tab-${String(index)}`;
+  const ownPanelId = `${baseId}-panel`;
+  const controlledPanelId = listOnly ? panelId : ownPanelId;
   const [internalKey, setInternalKey] = useState(
     defaultActiveKey ?? items[0]?.key,
   );
@@ -170,18 +193,29 @@ export function Tabs({
     onChange?.(key);
   };
 
-  // Tab reaches only the selected tab, or the first when none is selected;
-  // arrows, Home and End move between tabs.
-  const tabStopIndex = Math.max(
-    items.findIndex((item) => item.key === activeKey),
-    0,
+  // Tab reaches only the selected tab, or the first enabled one when none is
+  // selected; arrows, Home and End move between the enabled tabs.
+  const activeIndex = items.findIndex(
+    (item) => item.key === activeKey && item.disabled !== true,
   );
+  const tabStopIndex =
+    activeIndex >= 0
+      ? activeIndex
+      : Math.max(
+          items.findIndex((item) => item.disabled !== true),
+          0,
+        );
 
   const handleTabKeyDown = (
     event: KeyboardEvent<HTMLButtonElement>,
     index: number,
   ): void => {
-    const target = tablistKeyTarget(event.key, index, items.length);
+    const target = tablistKeyTarget(
+      event.key,
+      index,
+      items.length,
+      (i) => items[i].disabled === true,
+    );
     if (target === null) {
       return;
     }
@@ -204,7 +238,12 @@ export function Tabs({
 
   return (
     <div className={cls}>
-      <div ref={listRef} className="aegis-tabs__list" role="tablist">
+      <div
+        ref={listRef}
+        className="aegis-tabs__list"
+        role="tablist"
+        aria-label={ariaLabel}
+      >
         {indicator ? (
           <span
             aria-hidden="true"
@@ -224,8 +263,10 @@ export function Tabs({
         {items.map((item, index) => (
           <TabsTab
             key={item.key}
+            id={tabId(index)}
             item={item}
-            active={item.key === activeKey}
+            active={index === activeIndex}
+            controls={index === activeIndex ? controlledPanelId : undefined}
             tabStop={index === tabStopIndex}
             onActivate={() => handleClick(item.key)}
             onKeyDown={(event) => handleTabKeyDown(event, index)}
@@ -233,7 +274,12 @@ export function Tabs({
         ))}
       </div>
       {listOnly ? null : (
-        <div className="aegis-tabs__panel" role="tabpanel">
+        <div
+          id={ownPanelId}
+          className="aegis-tabs__panel"
+          role="tabpanel"
+          aria-labelledby={activeIndex >= 0 ? tabId(activeIndex) : undefined}
+        >
           {children}
         </div>
       )}
@@ -242,16 +288,20 @@ export function Tabs({
 }
 
 interface TabsTabProps {
+  id: string;
   item: TabItem;
   active: boolean;
+  controls: string | undefined;
   tabStop: boolean;
   onActivate: () => void;
   onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
 }
 
 function TabsTab({
+  id,
   item,
   active,
+  controls,
   tabStop,
   onActivate,
   onKeyDown,
@@ -267,7 +317,11 @@ function TabsTab({
     <button
       type="button"
       role="tab"
+      id={id}
       aria-selected={active}
+      aria-controls={controls}
+      disabled={item.disabled}
+      title={item.hint}
       tabIndex={tabStop ? 0 : -1}
       className={
         active ? 'aegis-tabs__tab aegis-tabs__tab--active' : 'aegis-tabs__tab'
