@@ -3,11 +3,12 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { readStorage, writeStorage } from '../lib/storage';
 
 const listeners = new Set<(key: string) => void>();
-// Holds what was written while storage is blocked, so the value still changes.
+// Writes that storage refused (blocked, or over quota). Such a value wins
+// over whatever storage still holds until a later write sticks.
 const unstored = new Map<string, string>();
 
 function read(key: string): string | null {
-  return readStorage(key) ?? unstored.get(key) ?? null;
+  return unstored.get(key) ?? readStorage(key);
 }
 
 function serverSnapshot(): null {
@@ -31,6 +32,7 @@ export function useStorageItem(
       };
       const onStorage = (event: StorageEvent): void => {
         if (event.key === key) {
+          unstored.delete(key);
           onChange();
         }
       };

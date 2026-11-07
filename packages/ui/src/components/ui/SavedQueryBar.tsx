@@ -3,6 +3,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -426,6 +427,7 @@ function SaveCurrentControl({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const nameId = useId();
 
   useEffect(() => {
     if (open) {
@@ -453,11 +455,11 @@ function SaveCurrentControl({
 
   const content = (
     <form className="aegis-sqb__save-form" onSubmit={handleSubmit}>
-      <label className="aegis-sqb__save-label" htmlFor="aegis-sqb__save-name">
+      <label className="aegis-sqb__save-label" htmlFor={nameId}>
         Name this query
       </label>
       <input
-        id="aegis-sqb__save-name"
+        id={nameId}
         ref={inputRef}
         type="text"
         className="aegis-sqb__save-input"

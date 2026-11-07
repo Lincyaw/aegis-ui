@@ -51,10 +51,10 @@ export const myApp: AegisApp = {
 };
 ```
 
-The console's loader for the `/.well-known/aegis-environments.json`
-convention lives in `apps/console/src/environments.ts`: a 404 means "none",
-any other failure — network, HTTP status, a manifest that doesn't match the
-shape above — rejects with the reason.
+The console's env demo loads the `/.well-known/aegis-environments.json`
+convention with `apps/console/src/apps/env-demo/wellKnownEnvironments.ts`:
+a 404 means "none", and any other failure — network, HTTP status, a
+manifest that doesn't match the shape above — rejects with the reason.
 
 Inside the app, react to the chosen env:
 

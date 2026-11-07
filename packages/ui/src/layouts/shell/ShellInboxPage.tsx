@@ -7,7 +7,7 @@ import {
 import { useNotifications } from '../../notifications';
 import { useOpenNotification } from './useOpenNotification';
 
-interface NotificationInboxPageProps {
+interface ShellInboxPageProps {
   defaultFilter?: 'all' | 'unread';
   surface?: InboxPageSurface;
 }
@@ -16,10 +16,10 @@ interface NotificationInboxPageProps {
  * The InboxPage filled from `<NotificationProvider>`: opening an item marks
  * it read and follows its `to`. Mount it on the route `inboxPath` names.
  */
-export function NotificationInboxPage({
+export function ShellInboxPage({
   defaultFilter,
   surface,
-}: NotificationInboxPageProps): ReactElement {
+}: ShellInboxPageProps): ReactElement {
   const { items, unreadCount, markAllRead, error, refetch } =
     useNotifications();
   const open = useOpenNotification();

@@ -18,7 +18,7 @@ import {
   useCurrentEnvironment,
 } from '@lincyaw/aegis-ui';
 
-import { wellKnownEnvironments } from '../../environments';
+import { wellKnownEnvironments } from './wellKnownEnvironments';
 
 function EnvDemoPage({ appLabel }: { appLabel: string }): ReactElement {
   const env = useCurrentEnvironment();

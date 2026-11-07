@@ -26,7 +26,8 @@ This is a **pnpm monorepo**:
 The library (`packages/ui`) is presentational only — no API client, no
 business state, no router instance. Router-aware code is confined to
 `packages/ui/src/layouts/shell/` (AegisShell + the `AegisApp` contract,
-and the store-connected `NotificationInboxPage`) and `auth/RequireAuth`.
+and the `Shell*` wrappers that fill presentational primitives from their
+providers, such as `ShellInboxPage`) and `auth/RequireAuth`.
 Anything business lives inside a sub-app in `apps/console/src/apps/`.
 
 ## What this repo ships
@@ -175,8 +176,8 @@ Sans SC, so Apple devices render Chinese in the system face.
 - **Every new primitive ships with a Specimen** in the gallery. PRs that
   add a primitive without a gallery entry are incomplete.
 - **Primitives stay router-agnostic where possible.** `Breadcrumb`,
-  `IdentityCell`, `ButtonLink`, a linked `Panel`, `SiteNav` and
-  `SiteFooter` accept a `linkComponent` render prop
+  `IdentityCell`, `ButtonLink`, a linked `Panel`, `NotificationBell`,
+  `SiteNav` and `SiteFooter` accept a `linkComponent` render prop
   (type `LinkComponent`) instead of hardcoding `react-router-dom`. An
   adapter passes `aria-current` on to the anchor, which navigation uses
   to mark the current page. Only
@@ -461,18 +462,18 @@ Secondary tiebreaker: **fix the primitive before the page** — see "First princ
 
 ## Dev-loop stages
 
-| Stage        | Command                                                                                      | Notes                                                                                                                     |
-| ------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Type check   | `pnpm type-check`                                                                            | Run after every TS change                                                                                                 |
-| Lint         | `pnpm lint`                                                                                  | ESLint `--max-warnings 0` enforced                                                                                        |
-| Lint CSS     | `pnpm lint:css`                                                                              | Stylelint over `packages/ui/src/**/*.css`                                                                                 |
-| Format       | `pnpm format:check`                                                                          | Prettier (root config, then the console's) — fix with `pnpm format`                                                       |
-| Build        | `pnpm build`                                                                                 | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css                                                             |
-| Full gate    | `pnpm check`                                                                                 | type-check + lint + lint:css + format:check + check:gallery + check:tokens + check:mcp-tools; plus `pnpm build` before PR |
-| Dev server   | `pnpm dev`                                                                                   | apps/console at `:3323` — use for dual-theme + responsive checks                                                          |
-| Measure NS#2 | `pnpm check:gallery`                                                                         | Gallery specimen coverage (also folded into `pnpm check`)                                                                 |
-| Measure NS#4 | see north-star target 4                                                                      | Token discipline grep                                                                                                     |
-| Bundle size  | `pnpm -F @lincyaw/aegis-ui build && du -cb packages/ui/dist/*.js packages/ui/dist/style.css` | Compare before/after primitive changes                                                                                    |
+| Stage        | Command                                                                                      | Notes                                                                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Type check   | `pnpm type-check`                                                                            | Run after every TS change                                                                                                                |
+| Lint         | `pnpm lint`                                                                                  | ESLint `--max-warnings 0` enforced                                                                                                       |
+| Lint CSS     | `pnpm lint:css`                                                                              | Stylelint over `packages/ui/src/**/*.css`                                                                                                |
+| Format       | `pnpm format:check`                                                                          | Prettier (root config, then the console's) — fix with `pnpm format`                                                                      |
+| Build        | `pnpm build`                                                                                 | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css                                                                            |
+| Full gate    | `pnpm check`                                                                                 | type-check + lint + lint:css + format:check + check:gallery + check:tokens + check:mcp-tools; run (plus `pnpm build`) before commit + PR |
+| Dev server   | `pnpm dev`                                                                                   | apps/console at `:3323` — use for dual-theme + responsive checks                                                                         |
+| Measure NS#2 | `pnpm check:gallery`                                                                         | Gallery specimen coverage (also folded into `pnpm check`)                                                                                |
+| Measure NS#4 | see north-star target 4                                                                      | Token discipline grep                                                                                                                    |
+| Bundle size  | `pnpm -F @lincyaw/aegis-ui build && du -cb packages/ui/dist/*.js packages/ui/dist/style.css` | Compare before/after primitive changes                                                                                                   |
 
 No unit-test runner is configured. Visual verification in `pnpm dev` is the testing substrate for primitives; type-check + lint + build catch correctness regressions.
 

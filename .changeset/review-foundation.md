@@ -9,18 +9,22 @@ Breaking:
   presentational and take their data and callbacks as props:
   - `CommandPalette` takes `open`, `commands`, `onSelect`, `onClose` and an
     optional `groupOrder` (group labels in display order; unlisted groups
-    follow alphabetically, ungrouped commands last). It is built on
+    follow alphabetically, and ungrouped commands join "Other", last unless
+    listed). It is built on
     `Dialog` — focus trap, focus restore, scroll lock — with a combobox
     field over a listbox (`aria-activedescendant`). The unwired `>` and `?`
-    modes are gone. `AegisShell enableCommandPalette` still mounts it from
+    modes are gone, and Escape is handled by the dialog alone, so it no
+    longer closes the palette during an IME composition.
+    `AegisShell enableCommandPalette` still mounts it from
     `<CommandProvider>`; set the order with the new `commandGroupOrder`.
   - `InboxPage` takes `items`, `unreadCount`, `onOpen` and `onMarkAllRead`;
     `NotificationBell` takes `items`, `unreadCount`, `onOpen`, `inboxPath`
     and a `linkComponent` for "View all". Neither imports react-router any
-    more. Mount the new `NotificationInboxPage` (filled from
+    more. Mount the new `ShellInboxPage` (filled from
     `<NotificationProvider>`, marks items read and follows their `to`) on
     the route `AegisShell inboxPath` names; the shell's bell is filled the
-    same way.
+    same way. `Shell*` names the wrappers that fill a primitive from its
+    provider.
   - `SavedQueryBar` takes `queries`, `onSave`, `onRename`, `onRemove` and
     `onTogglePinned` instead of `namespace`. `useSavedQueries({ namespace })`
     still keeps them in localStorage; call its `touch` in `onApply`.
@@ -46,7 +50,7 @@ Added:
 - `CommandPaletteProps`, `InboxPageProps` and `NotificationBellProps` types.
 - `NotificationContextValue.error` — why the last load failed, `null` once
   one succeeds. `InboxPage` takes `error` and `onRetry` and shows the
-  failure with a retry in place of the list; `NotificationInboxPage` passes
+  failure with a retry in place of the list; `ShellInboxPage` passes
   the provider's `error` and `refetch` through.
 
 Fixed:
@@ -69,3 +73,8 @@ Fixed:
   set alone until hydration ends.
 - InboxPage shows notification severity `warning` in the caution tone;
   the anomaly tone is kept for `error`.
+- At 768 px and below the shell header keeps its brand and actions on one
+  row: the brand truncates first, the environment switcher shows only its
+  badge dot, and a failed environment load reads "Env error".
+- `SavedQueryBar`'s save field gets a unique id, so two bars on one page
+  no longer share a label target.

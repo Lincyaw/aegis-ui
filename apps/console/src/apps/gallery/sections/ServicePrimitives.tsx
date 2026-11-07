@@ -191,7 +191,7 @@ function SavedQueryBarSpecimen(): ReactNode {
             setHostQueries((prev) => [
               ...prev,
               {
-                id: `host-${prev.length + 1}`,
+                id: crypto.randomUUID(),
                 name,
                 value,
                 pinned: false,

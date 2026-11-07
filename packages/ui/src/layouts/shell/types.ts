@@ -179,7 +179,7 @@ export interface AegisShellProps {
    * When set, a notification bell filled from `<NotificationProvider>` is
    * rendered in the top header (between `headerActions` and the user menu)
    * and clicking "View all" routes to this path; mount
-   * `<NotificationInboxPage>` there. When omitted, the bell is not
+   * `<ShellInboxPage>` there. When omitted, the bell is not
    * rendered — apps without a notification provider don't show an empty
    * bell.
    */

@@ -1,5 +1,5 @@
 export { AegisShell } from './AegisShell';
-export { NotificationInboxPage } from './NotificationInboxPage';
+export { ShellInboxPage } from './ShellInboxPage';
 export { isAppVisible } from './apps';
 export { useActiveApp } from './activeAppContext';
 export type { ActiveAppContextValue } from './activeAppContext';

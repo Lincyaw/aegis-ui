@@ -89,7 +89,7 @@ export type {
 export {
   AegisShell,
   ENVIRONMENT_CHANGED_EVENT,
-  NotificationInboxPage,
+  ShellInboxPage,
   isAppVisible,
   useActiveApp,
   useAppHref,
