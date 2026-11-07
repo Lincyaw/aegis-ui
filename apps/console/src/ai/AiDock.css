@@ -8,7 +8,9 @@
   background: var(--bg-panel);
   border-left: var(--size-hairline) solid var(--border-hairline);
   box-shadow: var(--shadow-overlay);
-  z-index: var(--z-modal);
+  /* Why: the dock is a side panel, not a modal; antd's popups, modals and
+     toasts (from 1000 up) and the library's popovers must open over it. */
+  z-index: calc(var(--z-dropdown) - 1);
   display: flex;
   flex-direction: column;
   animation: aegis-ai-dock-in var(--motion-fast);
