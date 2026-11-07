@@ -15,7 +15,6 @@ import { SsoAuthProvider } from './auth/SsoAuthProvider';
 import { getRuntimeConfig } from './config/runtime';
 import { RealNotificationProvider } from './notifications/RealNotificationProvider';
 import { Callback } from './pages/auth/Callback';
-import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { Forbidden } from './pages/errors/Forbidden';
@@ -41,7 +40,6 @@ export function ConsoleApp(): ReactElement {
           <Routes>
             <Route path='/auth/login' element={<Login />} />
             <Route path='/auth/register' element={<Register />} />
-            <Route path='/auth/forgot' element={<ForgotPassword />} />
             <Route path='/auth/callback' element={<Callback />} />
             <Route
               path='/*'
