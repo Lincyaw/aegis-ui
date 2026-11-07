@@ -13,7 +13,6 @@ import {
   MonoValue,
   PageHeader,
   Panel,
-  Toolbar,
   useActiveApp,
 } from '@lincyaw/aegis-ui';
 import type { PagesPageSiteResponse } from '@lincyaw/portal';
@@ -124,10 +123,7 @@ export default function PagesList() {
       <PageHeader
         title='My pages'
         description='Static sites you own. Upload a folder of markdown and share the URL.'
-      />
-
-      <Toolbar
-        right={
+        action={
           <Button
             type='primary'
             icon={<PlusOutlined />}

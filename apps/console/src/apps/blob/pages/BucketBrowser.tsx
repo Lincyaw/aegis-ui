@@ -678,7 +678,7 @@ export default function BucketBrowser() {
       />
 
       <Toolbar
-        center={
+        left={
           <SearchInput
             value={search}
             onChange={setSearch}
