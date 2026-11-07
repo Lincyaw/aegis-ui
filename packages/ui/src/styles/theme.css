@@ -519,11 +519,10 @@
   --page-header-title-size: var(--type-title-size);
   --page-header-title-size-mobile: var(--type-title-size);
   --page-header-title-weight: var(--type-title-weight);
-  --page-header-description-size: var(--fs-10);
+  --page-header-description-size: var(--type-small-size);
   --page-header-description-line: var(--type-small-line);
   --page-header-description-color: var(--text-muted);
-  --page-header-description-transform: uppercase;
-  --page-header-description-tracking: var(--tracking-label);
+  --page-header-description-tracking: var(--type-small-tracking);
   --rank-bar-fill: var(--bg-inverted);
   --pareto-dominated-opacity: 0.4;
   --score-bar-fill: var(--data-seq);

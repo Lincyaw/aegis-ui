@@ -530,16 +530,15 @@ select.gallery__demo-input:focus {
 }
 
 /* ── Component-token overrides ──────────────────────────────────── */
-/* What a host sets to restyle primitives structurally: a sentence-case
- * page header with a larger title. */
+/* What a host sets to restyle primitives structurally: a page header with
+ * a larger title and a larger description. */
 .gallery__token-override {
   --page-header-margin-bottom: 0;
   --page-header-title-size: var(--fs-28);
   --page-header-title-size-mobile: var(--fs-24);
   --page-header-title-weight: var(--fw-semibold);
-  --page-header-description-size: var(--fs-12);
-  --page-header-description-transform: none;
-  --page-header-description-tracking: normal;
+  --page-header-description-size: var(--type-body-size);
+  --page-header-description-line: var(--type-body-line);
   --page-padding-inline: var(--space-12);
   --page-padding-inline-mobile: var(--space-2);
 
