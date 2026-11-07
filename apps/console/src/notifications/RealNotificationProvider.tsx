@@ -43,6 +43,9 @@ interface Props {
 const STREAM_URL = '/api/v2/inbox/stream';
 const RECONNECT_BASE_MS = 1_000;
 const RECONNECT_MAX_MS = 30_000;
+// A stream that stays open this long, or delivers an event, counts as
+// healthy and resets the backoff; one that opens and ends at once keeps it.
+const STREAM_HEALTHY_MS = 10_000;
 const LOAD_FAILED_KEY = 'aegis-inbox-load-failed';
 
 /**
@@ -158,9 +161,16 @@ export function RealNotificationProvider({
     let attempt = 0;
     let reconnecting = false;
     let timer: number | undefined;
+    let healthyTimer: number | undefined;
     let controller: AbortController | undefined;
 
+    const markHealthy = (): void => {
+      window.clearTimeout(healthyTimer);
+      attempt = 0;
+    };
+
     const reconnect = (): void => {
+      window.clearTimeout(healthyTimer);
       if (stopped) {
         return;
       }
@@ -180,17 +190,18 @@ export function RealNotificationProvider({
       controller = openSseStream({
         url: gatewayUrlFor(STREAM_URL),
         onOpen: () => {
-          attempt = 0;
+          healthyTimer = window.setTimeout(markHealthy, STREAM_HEALTHY_MS);
           if (reconnecting) {
             reconnecting = false;
             void refetch();
           }
         },
         onEvent: (e) => {
+          markHealthy();
           if (e.event === 'notification') {
             void refetch();
           }
-          // 'ping' heartbeats are intentionally ignored.
+          // 'ping' heartbeats only mark the stream healthy.
         },
         onError: reconnect,
         onClose: reconnect,
@@ -200,9 +211,8 @@ export function RealNotificationProvider({
     connect();
     return () => {
       stopped = true;
-      if (timer !== undefined) {
-        window.clearTimeout(timer);
-      }
+      window.clearTimeout(timer);
+      window.clearTimeout(healthyTimer);
       controller?.abort();
     };
   }, [isAuthed, refetch]);
