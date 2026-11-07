@@ -47,35 +47,64 @@ printed by `--version` comes from `$AEGIS_CONSOLE_VERSION`,
 ./aegis-console --config ./aegis.json
 ```
 
-| Flag                                         | Default                 | Meaning                                                |
-| -------------------------------------------- | ----------------------- | ------------------------------------------------------ |
-| `--port`                                     | `3323`                  | Port to listen on                                      |
-| `--host`                                     | `127.0.0.1`             | Bind address (`0.0.0.0` for LAN access)                |
-| `--gateway`                                  | empty                   | AegisLab gateway URL; empty disables the proxy         |
-| `--clickhouse`                               | `http://127.0.0.1:8123` | ClickHouse HTTP endpoint                               |
-| `--clickhouse-db`                            | `otel`                  | ClickHouse database                                    |
-| `--clickhouse-table`                         | `otel_traces`           | Traces table                                           |
-| `--clickhouse-logs-table`                    | `otel_logs`             | Logs table                                             |
-| `--clickhouse-user`, `--clickhouse-password` | empty                   | Optional ClickHouse credentials                        |
-| `--sso-origin`                               | same as `--gateway`     | SSO origin                                             |
-| `--sso-client-id`                            | `aegis-console`         | OIDC client ID                                         |
-| `--sso-scope`                                | `openid profile email`  | OIDC scope                                             |
-| `--config`                                   | empty                   | JSON config file                                       |
-| `--open`                                     | off                     | Open the browser after starting                        |
-| `--bridge`                                   | off                     | Enable the MCP bridge (see below)                      |
-| `--bridge-no-auth`                           | off                     | Accept bridge connections without the token (dev only) |
-| `-v`, `--version`                            |                         | Print the version and exit                             |
-| `-h`, `--help`                               |                         | Print help and exit                                    |
+| Flag                                         | Default                 | Meaning                                                                  |
+| -------------------------------------------- | ----------------------- | ------------------------------------------------------------------------ |
+| `--port`                                     | `3323`                  | Port to listen on                                                        |
+| `--host`                                     | `127.0.0.1`             | Bind address (`0.0.0.0` for LAN access)                                  |
+| `--allowed-host`                             | none                    | Also accept requests addressed to this host name (repeatable; see below) |
+| `--gateway`                                  | empty                   | AegisLab gateway URL; empty disables the proxy                           |
+| `--clickhouse`                               | `http://127.0.0.1:8123` | ClickHouse HTTP endpoint                                                 |
+| `--clickhouse-db`                            | `otel`                  | ClickHouse database                                                      |
+| `--clickhouse-table`                         | `otel_traces`           | Traces table                                                             |
+| `--clickhouse-logs-table`                    | `otel_logs`             | Logs table                                                               |
+| `--clickhouse-user`, `--clickhouse-password` | empty                   | Optional ClickHouse credentials                                          |
+| `--clickhouse-allow-remote`                  | off                     | Start with ClickHouse credentials on a non-loopback `--host` (see below) |
+| `--sso-origin`                               | same as `--gateway`     | SSO origin                                                               |
+| `--sso-client-id`                            | `aegis-console`         | OIDC client ID                                                           |
+| `--sso-scope`                                | `openid profile email`  | OIDC scope                                                               |
+| `--config`                                   | empty                   | JSON config file                                                         |
+| `--open`                                     | off                     | Open the browser after starting                                          |
+| `--bridge`                                   | off                     | Enable the MCP bridge (see below)                                        |
+| `--bridge-no-auth`                           | off                     | Accept bridge connections without the token (dev only)                   |
+| `-v`, `--version`                            |                         | Print the version and exit                                               |
+| `-h`, `--help`                               |                         | Print help and exit                                                      |
 
 Config file keys are the camelCase flag names: `port`, `host`,
-`gateway`, `clickhouse`, `clickhouseDb`, `clickhouseTable`,
-`clickhouseLogsTable`, `clickhouseUser`, `clickhousePassword`,
-`ssoOrigin`, `ssoClientId`, `ssoScope`, `open`, `bridge`,
-`bridgeNoAuth`.
+`allowedHosts` (an array), `gateway`, `clickhouse`, `clickhouseDb`,
+`clickhouseTable`, `clickhouseLogsTable`, `clickhouseUser`,
+`clickhousePassword`, `clickhouseAllowRemote`, `ssoOrigin`,
+`ssoClientId`, `ssoScope`, `open`, `bridge`, `bridgeNoAuth`.
+
+### Allowed hosts
+
+Every request must name the server, in its `Host` header, by an IP
+address, `localhost` (or a `*.localhost` name), the `--host` value, or a
+name passed with `--allowed-host`; anything else gets `403`. This stops
+a DNS-rebinding page, which reaches the console under its own hostname,
+from reading `/config.js`, querying ClickHouse or opening the bridge.
+When the console sits behind a proxy or is reached by a DNS name, pass
+that name: `--allowed-host console.example.com`.
+
+### ClickHouse credentials on a LAN bind
+
+The ClickHouse proxy adds `--clickhouse-user` / `--clickhouse-password`
+to every query it forwards, and only refuses browsers on other origins;
+a client that is not a browser is always let through. With a `--host`
+other than a loopback address, anyone who can reach the port could
+therefore run SQL as that user, so the server refuses to start with
+credentials and a non-loopback `--host`. Pass `--clickhouse-allow-remote`
+to accept this, for example on a trusted network.
+
+### Shutdown
+
+On `SIGINT` / `SIGTERM` the server stops accepting connections, ends
+event streams (requests with `Accept: text/event-stream`, which the
+browser reconnects) and waits up to 10 s for the other requests in
+flight before it exits. A second signal exits at once.
 
 ## Routes
 
-`main.go` builds one `http.ServeMux`:
+`main.go` builds one `http.ServeMux` behind the allowed-hosts check:
 
 - `GET /healthz` → `ok`.
 - `GET /config.js` → `window.__AEGIS_CONFIG__` generated from the flags
@@ -90,6 +119,10 @@ Config file keys are the camelCase flag names: `port`, `host`,
 - `/api/`, `/v1/`, `/.well-known/`, `/authorize`, `/login`, `/token`,
   `/userinfo` → reverse proxy to `--gateway`; `503` when no gateway is
   set.
+- Both proxies send the upstream's own host as `Host`, so a gateway
+  behind a host-routed ingress receives requests it can route, and pass
+  the console's host and scheme in `X-Forwarded-Host` /
+  `X-Forwarded-Proto`.
 - `/aegis-bridge/ws` → MCP bridge WebSocket, only with `--bridge`.
 - Everything else → the embedded asset, or `index.html` for SPA routes.
 
@@ -105,8 +138,9 @@ open in a browser.
    the browser token to the SPA, which connects as a browser session.
 2. Register `aegis-console mcp` as a stdio MCP server in your client.
    It picks the most recently active bridge from `~/.aegis/ide`,
-   connects with the control token, and forwards `tools/call` requests to the
-   most recently active browser session.
+   connects with the control token, and forwards each `tools/call`
+   request to the browser session that is most recently active at the
+   time of the call, so a reloaded or replaced tab keeps working.
 
 The bridge has two tokens. The browser token reaches the SPA through
 `/config.js` and only lets a browser session register; the control token
@@ -115,6 +149,11 @@ control connection (`?as=mcp`), as `Authorization: Bearer <token>` or
 `?token=`. A browser connects only from the console's own origin:
 `/config.js` builds the bridge URL from the host the page was loaded
 from.
+
+A message on the bridge may be up to 16 MiB, enough for a full
+`aegis_snapshot`. When a browser session closes, including when its
+reply exceeds that limit, the calls waiting on it fail at once with the
+error code `session_closed`.
 
 `aegis-console mcp` flags:
 

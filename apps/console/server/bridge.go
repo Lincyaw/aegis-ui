@@ -28,6 +28,12 @@ const (
 	lockRefreshInterval    = 5 * time.Second
 	browserCallTimeout     = 30 * time.Second
 	defaultBridgeShellName = "AegisLab Console"
+
+	// A tool result such as aegis_snapshot carries the page's whole UI
+	// state, far past the WebSocket library's 32 KiB default.
+	browserReadLimit = 16 << 20
+	// A control reply wraps a browser result in a small envelope.
+	controlReadLimit = browserReadLimit + 64<<10
 )
 
 type bridgeOptions struct {
@@ -40,11 +46,14 @@ type session struct {
 	URL          string `json:"url"`
 	CurrentAppID string `json:"currentAppId"`
 	Title        string `json:"title"`
-	LastActivity int64  `json:"lastActivity"`
+	// Guarded by bridge.mu.
+	LastActivity int64 `json:"lastActivity"`
 	conn         *websocket.Conn
-	pending      map[string]chan replyEnvelope
-	pendingMu    sync.Mutex
 	cancel       context.CancelFunc
+
+	pendingMu sync.Mutex
+	pending   map[string]chan replyEnvelope
+	closeErr  error
 }
 
 type replyEnvelope struct {
@@ -127,17 +136,20 @@ func (b *bridge) handleBrowserWS(w http.ResponseWriter, r *http.Request) {
 	}
 	// With no OriginPatterns, a browser is accepted only from the page's
 	// own origin; /config.js builds the bridge URL from the request's
-	// Host, so the console always connects that way. The control client
-	// sends no Origin.
+	// Host, so the console always connects that way. Comparing Origin
+	// with Host only holds because the Host allowlist in front of the mux
+	// refuses a rebound hostname. The control client sends no Origin.
 	conn, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		log.Printf("bridge: ws accept: %v", err)
 		return
 	}
 	if role == "mcp" {
+		conn.SetReadLimit(controlReadLimit)
 		b.serveControl(conn)
 		return
 	}
+	conn.SetReadLimit(browserReadLimit)
 	b.serveBrowser(conn)
 }
 
@@ -186,13 +198,15 @@ func (b *bridge) serveBrowser(conn *websocket.Conn) {
 	b.mu.Unlock()
 	log.Printf("bridge: session up id=%s url=%s", sess.ID, sess.URL)
 
+	var readErr error
 	defer func() {
 		b.mu.Lock()
 		if cur, ok := b.sessions[sess.ID]; ok && cur == sess {
 			delete(b.sessions, sess.ID)
 		}
 		b.mu.Unlock()
-		log.Printf("bridge: session down id=%s", sess.ID)
+		sess.failPending(readErr)
+		log.Printf("bridge: session down id=%s: %v", sess.ID, readErr)
 	}()
 
 	// Heartbeat
@@ -214,9 +228,12 @@ func (b *bridge) serveBrowser(conn *websocket.Conn) {
 	for {
 		_, data, err := conn.Read(ctx)
 		if err != nil {
+			readErr = err
 			return
 		}
+		b.mu.Lock()
 		sess.LastActivity = time.Now().Unix()
+		b.mu.Unlock()
 		var env struct {
 			Type   string          `json:"type"`
 			ID     string          `json:"id"`
@@ -254,13 +271,59 @@ func (b *bridge) serveBrowser(conn *websocket.Conn) {
 	}
 }
 
+// failPending ends every call still waiting on s once its connection has
+// gone, instead of leaving each to run into browserCallTimeout, and makes
+// later calls that already hold s fail the same way.
+func (s *session) failPending(cause error) {
+	s.pendingMu.Lock()
+	defer s.pendingMu.Unlock()
+	s.closeErr = cause
+	for id, ch := range s.pending {
+		delete(s.pending, id)
+		select {
+		case ch <- replyEnvelope{Err: sessionClosedError(cause)}:
+		default:
+		}
+	}
+}
+
+func sessionClosedError(cause error) *bridgeError {
+	msg := "browser session closed before replying: " + cause.Error()
+	if errors.Is(cause, websocket.ErrMessageTooBig) {
+		msg = fmt.Sprintf("browser session closed: a reply exceeded the bridge's %d MiB message limit", browserReadLimit>>20)
+	}
+	return &bridgeError{Code: "session_closed", Message: msg}
+}
+
+// targetSession returns the session with id, or the most recently active
+// one when id is empty.
+func (b *bridge) targetSession(id string) (*session, *bridgeError) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if id != "" {
+		sess, ok := b.sessions[id]
+		if !ok {
+			return nil, &bridgeError{Code: "no_session", Message: "session not connected: " + id}
+		}
+		return sess, nil
+	}
+	var best *session
+	for _, s := range b.sessions {
+		if best == nil || s.LastActivity > best.LastActivity {
+			best = s
+		}
+	}
+	if best == nil {
+		return nil, &bridgeError{Code: "no_session", Message: "no browser session is connected to the bridge"}
+	}
+	return best, nil
+}
+
 // callTool sends a tool.call to a browser session and waits for the reply.
 func (b *bridge) callTool(sessionID, tool string, params json.RawMessage) (json.RawMessage, *bridgeError) {
-	b.mu.Lock()
-	sess, ok := b.sessions[sessionID]
-	b.mu.Unlock()
-	if !ok {
-		return nil, &bridgeError{Code: "no_session", Message: "session not connected: " + sessionID}
+	sess, berr := b.targetSession(sessionID)
+	if berr != nil {
+		return nil, berr
 	}
 	id, err := newToken()
 	if err != nil {
@@ -268,6 +331,11 @@ func (b *bridge) callTool(sessionID, tool string, params json.RawMessage) (json.
 	}
 	ch := make(chan replyEnvelope, 1)
 	sess.pendingMu.Lock()
+	if sess.closeErr != nil {
+		cause := sess.closeErr
+		sess.pendingMu.Unlock()
+		return nil, sessionClosedError(cause)
+	}
 	sess.pending[id] = ch
 	sess.pendingMu.Unlock()
 	defer func() {
@@ -346,11 +414,7 @@ func (b *bridge) serveControl(conn *websocket.Conn) {
 			})
 			_ = conn.Write(ctx, websocket.MessageText, body)
 		case "control.tool.call":
-			sessID := env.SessionID
-			if sessID == "" {
-				sessID = b.pickRecentSession()
-			}
-			result, callErr := b.callTool(sessID, env.Tool, env.Params)
+			result, callErr := b.callTool(env.SessionID, env.Tool, env.Params)
 			if callErr != nil {
 				body, _ := json.Marshal(map[string]any{
 					"type":  "control.tool.error",
@@ -368,21 +432,6 @@ func (b *bridge) serveControl(conn *websocket.Conn) {
 			}
 		}
 	}
-}
-
-func (b *bridge) pickRecentSession() string {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	var best *session
-	for _, s := range b.sessions {
-		if best == nil || s.LastActivity > best.LastActivity {
-			best = s
-		}
-	}
-	if best == nil {
-		return ""
-	}
-	return best.ID
 }
 
 func (b *bridge) snapshotSessions() []session {
@@ -451,8 +500,12 @@ func (b *bridge) writeLock() error {
 	return os.Rename(tmp, b.lockPath())
 }
 
-func (b *bridge) startLockWriter(ctx context.Context) {
+// startLockWriter keeps the lock file current until ctx ends, then removes
+// it and closes the returned channel.
+func (b *bridge) startLockWriter(ctx context.Context) <-chan struct{} {
+	done := make(chan struct{})
 	go func() {
+		defer close(done)
 		t := time.NewTicker(lockRefreshInterval)
 		defer t.Stop()
 		if err := b.writeLock(); err != nil {
@@ -470,6 +523,7 @@ func (b *bridge) startLockWriter(ctx context.Context) {
 			}
 		}
 	}()
+	return done
 }
 
 // loadLockFile reads and parses a lock file from disk.
@@ -518,17 +572,4 @@ func pickLockFile() (*lockFile, string, error) {
 		}
 	}
 	return best, bestPath, nil
-}
-
-func pidAlive(pid int) bool {
-	if pid <= 0 {
-		return false
-	}
-	proc, err := os.FindProcess(pid)
-	if err != nil {
-		return false
-	}
-	// Signal 0 is portable on unix; on windows FindProcess+nil-signal is best-effort.
-	err = proc.Signal(syscall0)
-	return err == nil
 }

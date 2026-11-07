@@ -121,17 +121,12 @@ func runMcpSubcommand(args []string) error {
 		lf = l
 	}
 
-	bridgeURL := fmt.Sprintf("ws://127.0.0.1:%d%s?as=mcp&token=%s",
-		lf.Port, lf.WSPath, lf.AuthToken)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, _, err := websocket.Dial(ctx, bridgeURL, &websocket.DialOptions{
-		HTTPHeader: http.Header{"Authorization": []string{"Bearer " + lf.AuthToken}},
-	})
+	conn, err := dialBridge(ctx, lf)
 	if err != nil {
-		return fmt.Errorf("dial bridge: %w", err)
+		return err
 	}
 	defer conn.Close(websocket.StatusNormalClosure, "")
 
@@ -152,30 +147,28 @@ func runMcpSubcommand(args []string) error {
 		return nil
 	}
 
-	if sessionID == "" {
-		sessions, err := cli.listSessions()
-		if err != nil {
-			return err
-		}
-		var best *session
-		for i := range sessions {
-			s := &sessions[i]
-			if best == nil || s.LastActivity > best.LastActivity {
-				best = s
-			}
-		}
-		if best == nil {
-			return errors.New("no browser sessions connected to the bridge")
-		}
-		sessionID = best.ID
-	}
-
+	// Without --session the ID stays empty and the bridge picks the most
+	// recently active session on every call, so a reloaded or replaced
+	// tab keeps working.
 	srv := &mcpServer{
 		client:    cli,
 		sessionID: sessionID,
 		out:       bufio.NewWriter(os.Stdout),
 	}
 	return srv.serve(os.Stdin)
+}
+
+func dialBridge(ctx context.Context, lf *lockFile) (*websocket.Conn, error) {
+	bridgeURL := fmt.Sprintf("ws://127.0.0.1:%d%s?as=mcp&token=%s",
+		lf.Port, lf.WSPath, lf.AuthToken)
+	conn, _, err := websocket.Dial(ctx, bridgeURL, &websocket.DialOptions{
+		HTTPHeader: http.Header{"Authorization": []string{"Bearer " + lf.AuthToken}},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("dial bridge: %w", err)
+	}
+	conn.SetReadLimit(controlReadLimit)
+	return conn, nil
 }
 
 type controlReply struct {
