@@ -211,7 +211,10 @@ function ActiveEnvironmentSwitcher(): ReactElement | null {
       <Tooltip title={`${state.error.message} Click to retry.`}>
         <span className="aegis-shell__env-error">
           <Chip tone="warning" onClick={state.retry}>
-            Environments unavailable
+            <span className="aegis-shell__env-error-full">
+              Environments unavailable
+            </span>
+            <span className="aegis-shell__env-error-short">Env error</span>
           </Chip>
         </span>
       </Tooltip>
@@ -228,6 +231,7 @@ function ActiveEnvironmentSwitcher(): ReactElement | null {
   }));
   return (
     <EnvironmentSwitcher
+      className="aegis-shell__env-switcher"
       options={options}
       currentId={state.currentEnvId}
       onChange={state.setCurrentEnv}
