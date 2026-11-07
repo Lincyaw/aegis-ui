@@ -1,7 +1,6 @@
 import {
   type ComponentProps,
   type ReactNode,
-  createElement,
   isValidElement,
   useMemo,
 } from 'react';
@@ -9,14 +8,23 @@ import {
 import type { MDXComponents, MDXContent } from 'mdx/types';
 
 import { CodeBlock } from './CodeBlock';
-import './MdxDocument.css';
 import { fenceLanguage } from './codeFence';
 import { DefaultLink, type LinkComponent } from './linkComponent';
+import {
+  DOCUMENT_CLASS,
+  DOCUMENT_CODE_BLOCK_CLASS,
+  DOCUMENT_TAGS,
+  documentElement,
+} from './markdownDocument';
 
 export interface MdxDocumentProps {
   /** The default export of an `.mdx` module compiled by `aegisMdx()` from `@lincyaw/aegis-ui/vite`. */
   content: MDXContent;
-  /** Components the document's JSX names, and overrides of its Markdown elements. */
+  /**
+   * Components the document's JSX names, and overrides of its Markdown
+   * elements. An override of a Markdown element receives the element's
+   * document class in `className`.
+   */
   components?: MDXComponents;
   /** Renders links within the site (`/…`) through the host router; other links are plain anchors. */
   linkComponent?: LinkComponent;
@@ -33,66 +41,26 @@ function FencedCode({ children, ...rest }: ComponentProps<'pre'>) {
   }
   return (
     <CodeBlock
-      className="aegis-mdx__code-block"
+      className={DOCUMENT_CODE_BLOCK_CLASS}
       code={children.props.children.replace(/\n$/, '')}
       language={fenceLanguage(children.props.className)}
     />
   );
 }
 
-type MarkdownTag =
-  | 'h2'
-  | 'h3'
-  | 'p'
-  | 'ul'
-  | 'ol'
-  | 'strong'
-  | 'code'
-  | 'blockquote'
-  | 'table'
-  | 'hr'
-  | 'img';
-
-/**
- * A Markdown element under its document class. The document styles only these
- * classes, so the components it embeds, such as a DataTable, keep their own.
- */
-function markdownElement(tag: MarkdownTag, documentClass: string) {
-  return function MarkdownElement({
-    className,
-    ...rest
-  }: ComponentProps<MarkdownTag>) {
-    return createElement(tag, {
-      ...rest,
-      className: [documentClass, className ?? ''].filter(Boolean).join(' '),
-    });
-  };
-}
-
-const MARKDOWN_ELEMENTS: MDXComponents = {
-  h2: markdownElement('h2', 'aegis-mdx__heading'),
-  h3: markdownElement('h3', 'aegis-mdx__subheading'),
-  p: markdownElement('p', 'aegis-mdx__paragraph'),
-  ul: markdownElement('ul', 'aegis-mdx__list'),
-  ol: markdownElement('ol', 'aegis-mdx__list'),
-  strong: markdownElement('strong', 'aegis-mdx__strong'),
-  code: markdownElement('code', 'aegis-mdx__code'),
-  blockquote: markdownElement('blockquote', 'aegis-mdx__quote'),
-  table: markdownElement('table', 'aegis-mdx__table'),
-  hr: markdownElement('hr', 'aegis-mdx__rule'),
-  img: markdownElement('img', 'aegis-mdx__image'),
-  pre: FencedCode,
-};
-
 /** A document link: through the router within the site, a plain anchor elsewhere. */
 function documentLink(Link: LinkComponent) {
-  return function DocumentLink({ href = '', children }: ComponentProps<'a'>) {
+  return function DocumentLink({
+    href = '',
+    className,
+    children,
+  }: ComponentProps<'a'>) {
     return href.startsWith('/') ? (
-      <Link to={href} className="aegis-mdx__link">
+      <Link to={href} className={className}>
         {children}
       </Link>
     ) : (
-      <a href={href} className="aegis-mdx__link" rel="noreferrer">
+      <a href={href} className={className} rel="noreferrer">
         {children}
       </a>
     );
@@ -102,7 +70,8 @@ function documentLink(Link: LinkComponent) {
 /**
  * A long-form document written in MDX, such as an article or a report, in the
  * article type roles: Markdown headings, prose, lists, tables, quotes and code,
- * with the document's own components in between.
+ * with the document's own components in between. `Markdown variant="document"`
+ * renders runtime Markdown in the same style.
  */
 export function MdxDocument({
   content: Content,
@@ -110,16 +79,20 @@ export function MdxDocument({
   linkComponent,
   className,
 }: MdxDocumentProps) {
-  const mapped = useMemo<MDXComponents>(
-    () => ({
-      ...MARKDOWN_ELEMENTS,
-      a: documentLink(linkComponent ?? DefaultLink),
-      ...components,
-    }),
-    [components, linkComponent],
-  );
+  const mapped = useMemo<MDXComponents>(() => {
+    const out: MDXComponents = { pre: FencedCode, ...components };
+    for (const tag of DOCUMENT_TAGS) {
+      const host =
+        components?.[tag] ??
+        (tag === 'a' ? documentLink(linkComponent ?? DefaultLink) : undefined);
+      (out as Record<string, unknown>)[tag] = documentElement(tag, host);
+    }
+    return out;
+  }, [components, linkComponent]);
   return (
-    <div className={['aegis-mdx', className ?? ''].filter(Boolean).join(' ')}>
+    <div
+      className={[DOCUMENT_CLASS, className ?? ''].filter(Boolean).join(' ')}
+    >
       <Content components={mapped} />
     </div>
   );

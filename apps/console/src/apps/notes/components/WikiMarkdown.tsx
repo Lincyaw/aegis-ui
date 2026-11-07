@@ -56,7 +56,7 @@ export function WikiMarkdown({
       h2: ({ node, ...props }) => <h2 {...props} id={idFor(node)} />,
       h3: ({ node, ...props }) => <h3 {...props} id={idFor(node)} />,
       h4: ({ node, ...props }) => <h4 {...props} id={idFor(node)} />,
-      a({ href, children }) {
+      a({ href, children, className }) {
         if (href && href.startsWith(WIKILINK_SCHEME)) {
           const slug = decodeURIComponent(href.slice(WIKILINK_SCHEME.length));
           const target = resolveSlug(slug);
@@ -80,6 +80,7 @@ export function WikiMarkdown({
         return (
           <a
             href={href}
+            className={className}
             target={external ? '_blank' : undefined}
             rel={external ? 'noreferrer' : undefined}
           >

@@ -1,10 +1,16 @@
-import { type ComponentProps, Suspense, lazy } from 'react';
+import { type ComponentProps, Suspense, lazy, useMemo } from 'react';
 
 import type { Components, ExtraProps, Options } from 'react-markdown';
 
 import { CodeBlock } from './CodeBlock';
 import './Markdown.css';
 import { fenceLanguage } from './codeFence';
+import {
+  DOCUMENT_CLASS,
+  DOCUMENT_CODE_BLOCK_CLASS,
+  DOCUMENT_TAGS,
+  documentElement,
+} from './markdownDocument';
 
 // GitHub-flavoured Markdown (tables, task lists, strikethrough) is on by
 // default. Both packages are ESM-only, so they load lazily to keep the CJS
@@ -35,8 +41,9 @@ export interface MarkdownProps extends Pick<
   className?: string;
   /**
    * `compact` (default) keeps every heading at body size for chat turns,
-   * tooltips and cards. `document` uses a heading scale and roomier
-   * spacing for long-form pages.
+   * tooltips and cards. `document` renders a long-form page in the style
+   * `MdxDocument` uses; there, a `components` override of a Markdown element
+   * receives the element's document class in `className`.
    */
   variant?: 'compact' | 'document';
 }
@@ -53,28 +60,39 @@ function textOf(node: HastNode): string {
   return '';
 }
 
-function FencedCode({
-  node,
-  children,
-  ...rest
-}: ComponentProps<'pre'> & ExtraProps) {
-  const code = node?.children[0];
-  if (code?.type !== 'element' || code.tagName !== 'code') {
-    return <pre {...rest}>{children}</pre>;
-  }
-  const classes = code.properties.className;
-  return (
-    <CodeBlock
-      className="aegis-markdown__code-block"
-      code={textOf(code).replace(/\n$/, '')}
-      language={fenceLanguage(
-        Array.isArray(classes) ? classes.join(' ') : undefined,
-      )}
-    />
-  );
+function fencedCode(codeBlockClass: string) {
+  return function FencedCode({
+    node,
+    children,
+    ...rest
+  }: ComponentProps<'pre'> & ExtraProps) {
+    const code = node?.children[0];
+    if (code?.type !== 'element' || code.tagName !== 'code') {
+      return <pre {...rest}>{children}</pre>;
+    }
+    const classes = code.properties.className;
+    return (
+      <CodeBlock
+        className={codeBlockClass}
+        code={textOf(code).replace(/\n$/, '')}
+        language={fenceLanguage(
+          Array.isArray(classes) ? classes.join(' ') : undefined,
+        )}
+      />
+    );
+  };
 }
 
-const DEFAULT_COMPONENTS: Components = { pre: FencedCode };
+const COMPACT_PRE = fencedCode('aegis-markdown__code-block');
+const DOCUMENT_PRE = fencedCode(DOCUMENT_CODE_BLOCK_CLASS);
+
+function documentComponents(host: Components | null | undefined): Components {
+  const out: Components = { pre: DOCUMENT_PRE, ...host };
+  for (const tag of DOCUMENT_TAGS) {
+    (out as Record<string, unknown>)[tag] = documentElement(tag, host?.[tag]);
+  }
+  return out;
+}
 
 export function Markdown({
   children,
@@ -85,13 +103,17 @@ export function Markdown({
   components,
   urlTransform,
 }: MarkdownProps) {
-  const cls = [
-    'aegis-markdown',
-    variant === 'document' ? 'aegis-markdown--document' : '',
-    className ?? '',
-  ]
+  const isDocument = variant === 'document';
+  const cls = [isDocument ? DOCUMENT_CLASS : 'aegis-markdown', className ?? '']
     .filter(Boolean)
     .join(' ');
+  const mapped = useMemo<Components>(
+    () =>
+      isDocument
+        ? documentComponents(components)
+        : { pre: COMPACT_PRE, ...components },
+    [isDocument, components],
+  );
   return (
     <div className={cls}>
       <Suspense
@@ -100,7 +122,7 @@ export function Markdown({
         <ReactMarkdown
           remarkPlugins={remarkPlugins}
           rehypePlugins={rehypePlugins}
-          components={{ ...DEFAULT_COMPONENTS, ...components }}
+          components={mapped}
           urlTransform={urlTransform}
         >
           {children}

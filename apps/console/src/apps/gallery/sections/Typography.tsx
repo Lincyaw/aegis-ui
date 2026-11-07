@@ -425,7 +425,10 @@ export function TypographySection() {
             {GALLERY_WIKI_MARKDOWN}
           </Markdown>
         </Specimen>
-        <Specimen caption="variant='document' · heading scale" span={3}>
+        <Specimen
+          caption="variant='document' · the MdxDocument style: article type roles, the same headings, quotes, lists, tables and code"
+          span={3}
+        >
           <Markdown variant='document'>{MARKDOWN_DOCUMENT_SAMPLE}</Markdown>
         </Specimen>
       </div>
