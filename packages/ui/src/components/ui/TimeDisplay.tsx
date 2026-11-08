@@ -11,7 +11,11 @@ interface TimeDisplayProps {
    * shows an em dash, read out as the locale's `noValue`.
    */
   value: string | number | Date | null | undefined;
-  /** 'absolute' = full timestamp, 'relative' = "2m ago", 'duration' = elapsed time. */
+  /**
+   * 'absolute' = full timestamp, 'relative' = "2m ago" with the timestamp as
+   * its tooltip, 'duration' = elapsed time with the exact milliseconds as its
+   * tooltip.
+   */
   mode?: 'absolute' | 'relative' | 'duration';
   /** For relative mode: refresh interval in ms (default 60 000). */
   refreshMs?: number;
@@ -62,12 +66,12 @@ export function TimeDisplay({
     };
   }, [mode, refreshMs]);
 
+  const durationMs = typeof value === 'number' ? value : d?.getTime();
+  const hasDuration = durationMs !== undefined && Number.isFinite(durationMs);
+
   const display = useMemo(() => {
     if (mode === 'duration') {
-      const ms = typeof value === 'number' ? value : d?.getTime();
-      return ms !== undefined && Number.isFinite(ms)
-        ? formatDuration(ms)
-        : null;
+      return hasDuration ? formatDuration(durationMs) : null;
     }
     if (d === null) {
       return null;
@@ -76,14 +80,17 @@ export function TimeDisplay({
       return relativeTime(d, now);
     }
     return formatAbsolute(d);
-  }, [d, mode, value, now]);
+  }, [d, mode, durationMs, hasDuration, now]);
 
   const tooltip = useMemo(() => {
+    if (mode === 'duration') {
+      return hasDuration ? `${String(durationMs)} ms` : undefined;
+    }
     if (mode === 'absolute' || d === null) {
       return undefined;
     }
     return formatAbsolute(d);
-  }, [d, mode]);
+  }, [d, mode, durationMs, hasDuration]);
 
   const cls = ['aegis-time-display', className ?? ''].filter(Boolean).join(' ');
 
