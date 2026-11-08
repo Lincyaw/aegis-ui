@@ -14,8 +14,9 @@ import {
 import type { PedestalPedestalRelease } from '@lincyaw/portal';
 
 import { usePedestals } from '../api/pedestals';
+import { LoadError } from '../components/LoadError';
 
-type ManagedTone = 'ink' | 'warning' | 'ghost';
+type ManagedTone = 'ink' | 'caution' | 'ghost';
 
 function managedBadge(rel: PedestalPedestalRelease) {
   const managed = rel.managed === true;
@@ -27,7 +28,7 @@ function managedBadge(rel: PedestalPedestalRelease) {
     tone = 'ink';
   } else if (system.length > 0) {
     label = 'name-only';
-    tone = 'warning';
+    tone = 'caution';
   } else {
     label = 'unknown';
     tone = 'ghost';
@@ -38,8 +39,7 @@ function managedBadge(rel: PedestalPedestalRelease) {
 export default function Pedestals() {
   const navigate = useAppNavigate();
   const href = useAppHref();
-  const { data, isLoading } = usePedestals(200);
-  const releases = data ?? [];
+  const { data, isLoading, isError, error } = usePedestals(200);
 
   return (
     <>
@@ -53,55 +53,59 @@ export default function Pedestals() {
         }
       />
       <Panel>
-        <DataTable<PedestalPedestalRelease>
-          framed={false}
-          loading={isLoading}
-          data={releases}
-          rowKey={(r) => `${r.namespace ?? ''}/${r.release ?? ''}`}
-          emptyTitle='No pedestals'
-          emptyDescription='Install one to begin injecting faults.'
-          columns={[
-            {
-              key: 'release',
-              header: 'Name',
-              render: (r) => (
-                <Link to={href(`pedestals/${r.release ?? ''}`)}>
-                  <MonoValue size='sm'>{r.release ?? '—'}</MonoValue>
-                </Link>
-              ),
-            },
-            {
-              key: 'namespace',
-              header: 'Namespace',
-              render: (r) => (
-                <MonoValue size='sm'>{r.namespace ?? '—'}</MonoValue>
-              ),
-            },
-            {
-              key: 'chart',
-              header: 'Chart',
-              render: (r) => r.chart ?? '—',
-            },
-            {
-              key: 'version',
-              header: 'Version',
-              render: (r) => (
-                <MonoValue size='sm'>{r.chart_version ?? '—'}</MonoValue>
-              ),
-            },
-            {
-              key: 'managed',
-              header: 'Status',
-              render: managedBadge,
-            },
-            {
-              key: 'deployed_at',
-              header: 'Deployed at',
-              render: (r) =>
-                r.deployed_at ? <TimeDisplay value={r.deployed_at} /> : '—',
-            },
-          ]}
-        />
+        {isError ? (
+          <LoadError error={error} title='Failed to load pedestals' />
+        ) : (
+          <DataTable<PedestalPedestalRelease>
+            framed={false}
+            loading={isLoading}
+            data={data?.items ?? []}
+            rowKey={(r) => `${r.namespace ?? ''}/${r.release ?? ''}`}
+            emptyTitle='No pedestals'
+            emptyDescription='Install one to begin injecting faults.'
+            columns={[
+              {
+                key: 'release',
+                header: 'Name',
+                render: (r) => (
+                  <Link to={href(`pedestals/${r.release ?? ''}`)}>
+                    <MonoValue size='sm'>{r.release ?? '—'}</MonoValue>
+                  </Link>
+                ),
+              },
+              {
+                key: 'namespace',
+                header: 'Namespace',
+                render: (r) => (
+                  <MonoValue size='sm'>{r.namespace ?? '—'}</MonoValue>
+                ),
+              },
+              {
+                key: 'chart',
+                header: 'Chart',
+                render: (r) => r.chart ?? '—',
+              },
+              {
+                key: 'version',
+                header: 'Version',
+                render: (r) => (
+                  <MonoValue size='sm'>{r.chart_version ?? '—'}</MonoValue>
+                ),
+              },
+              {
+                key: 'managed',
+                header: 'Status',
+                render: managedBadge,
+              },
+              {
+                key: 'deployed_at',
+                header: 'Deployed at',
+                render: (r) =>
+                  r.deployed_at ? <TimeDisplay value={r.deployed_at} /> : '—',
+              },
+            ]}
+          />
+        )}
       </Panel>
     </>
   );

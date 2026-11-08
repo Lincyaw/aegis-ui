@@ -4,13 +4,13 @@ import {
   Button,
   Chip,
   CodeBlock,
-  EmptyState,
   KeyValueList,
   MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
   SectionDivider,
+  SkeletonText,
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
@@ -23,19 +23,18 @@ export default function InjectionDetailOverview() {
 
   const idNum = injectionId ? Number.parseInt(injectionId, 10) : Number.NaN;
   const { data: injection } = useInjectionDetail(
-    Number.isNaN(idNum) ? null : idNum
+    Number.isNaN(idNum) ? undefined : idNum
   );
 
   if (!injection) {
     return (
       <Panel>
-        <EmptyState title='Loading…' />
+        <SkeletonText />
       </Panel>
     );
   }
 
-  const status = injection.status ?? injection.state ?? 'unknown';
-  const traceReady = status === 'running' || status === 'completed';
+  const traceId = injection.trace_id;
 
   return (
     <>
@@ -68,22 +67,36 @@ export default function InjectionDetailOverview() {
             },
             {
               k: 'trace',
-              v:
-                traceReady && injection.trace_id ? (
-                  <MonoValue size='sm'>{injection.trace_id}</MonoValue>
-                ) : (
-                  <Chip tone='ghost'>pending</Chip>
-                ),
+              v: traceId ? (
+                <MonoValue size='sm'>{traceId}</MonoValue>
+              ) : (
+                <Chip tone='ghost'>not started</Chip>
+              ),
             },
             {
               k: 'created',
-              v: <TimeDisplay value={injection.created_at ?? ''} />,
+              v: injection.created_at ? (
+                <TimeDisplay value={injection.created_at} />
+              ) : (
+                '—'
+              ),
             },
             {
               k: 'started',
-              v: <TimeDisplay value={injection.start_time ?? ''} />,
+              v: injection.start_time ? (
+                <TimeDisplay value={injection.start_time} />
+              ) : (
+                '—'
+              ),
             },
-            { k: 'ended', v: <TimeDisplay value={injection.end_time ?? ''} /> },
+            {
+              k: 'ended',
+              v: injection.end_time ? (
+                <TimeDisplay value={injection.end_time} />
+              ) : (
+                '—'
+              ),
+            },
           ]}
         />
       </Panel>
@@ -110,7 +123,7 @@ export default function InjectionDetailOverview() {
       <div className='page-action-row'>
         <Button
           tone='primary'
-          disabled={!traceReady}
+          disabled={!traceId}
           onClick={() => {
             if (typeof injection.id === 'number') {
               navigate(`injections/${String(injection.id)}/data`);
@@ -123,7 +136,7 @@ export default function InjectionDetailOverview() {
 
       <Panel>
         <MetricLabel>
-          Live status — refetches every 3s while pending/running
+          Status refreshes every 3s while the injection is active.
         </MetricLabel>
       </Panel>
     </>

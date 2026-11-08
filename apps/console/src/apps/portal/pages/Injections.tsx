@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
   Button,
   DataTable,
-  EmptyState,
   MonoValue,
   PageHeader,
   Panel,
@@ -12,141 +11,87 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp } from 'antd';
+import type { InjectionInjectionResp } from '@lincyaw/portal';
 
-import { errMsg } from '../../../api/apiClient';
 import { useInjectionsList } from '../api/injections';
+import { LoadError } from '../components/LoadError';
+import { ProjectRequired } from '../components/ProjectRequired';
 import { StatusChip } from '../components/StatusChip';
-import { useActiveProjectIdNum } from '../hooks/useActiveProject';
+import { useActiveProject } from '../hooks/useActiveProject';
 import { usePageSize } from '../hooks/usePageSize';
 import { useInjectBatch } from '../state/inject-batch';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
-interface InjectionRow {
-  id: number;
-  name: string;
-  faultType: string;
-  status: string;
-  createdAt: string;
-}
-
 export default function Injections() {
-  const projectId = useActiveProjectIdNum();
+  const active = useActiveProject();
+  const { projectId } = active;
   const navigate = useAppNavigate();
   const href = useAppHref();
-  const { message: msg } = AntdApp.useApp();
 
   const { size, setSize } = usePageSize('injections', 50);
   // Switching the active project starts again from the first page.
   const [paging, setPaging] = useState({ projectId, page: 1 });
   const page = paging.projectId === projectId ? paging.page : 1;
-  const { data, isLoading, isError, error } = useInjectionsList(projectId, {
-    page,
-    size,
-  });
+
+  const list = useInjectionsList(projectId, page, size);
   const stagedCount = useInjectBatch((s) => s.staged.length);
 
-  const rows = useMemo<InjectionRow[]>(
-    () =>
-      (data ?? []).map((i) => ({
-        id: i.id ?? 0,
-        name: i.name ?? '',
-        faultType: i.fault_type ?? '',
-        status: i.status ?? i.state ?? 'unknown',
-        createdAt: i.created_at ?? '',
-      })),
-    [data]
+  const header = (
+    <PageHeader
+      title='Injections'
+      description={
+        active.project?.name === undefined
+          ? 'Fault injections.'
+          : `Fault injections in ${active.project.name}.`
+      }
+      action={
+        <div className='page-action-row'>
+          {stagedCount > 0 && (
+            <Button
+              tone='secondary'
+              onClick={() => navigate('injections/batch')}
+            >
+              {`Batch (${String(stagedCount)})`}
+            </Button>
+          )}
+          <Button tone='primary' onClick={() => navigate('injections/new')}>
+            + Inject
+          </Button>
+        </div>
+      }
+    />
   );
 
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-
-  const toggle = (id: number): void => {
-    setSelected((s) => {
-      const next = new Set(s);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
+  if (projectId === undefined) {
+    return (
+      <>
+        {header}
+        <ProjectRequired active={active} />
+      </>
+    );
+  }
 
   return (
     <>
-      <PageHeader
-        title='Injections'
-        description={`Fault injections for project ${projectId}.`}
-        action={
-          <div className='page-action-row'>
-            {stagedCount > 0 && (
-              <Button
-                tone='secondary'
-                onClick={() => navigate('injections/batch')}
-              >
-                Batch ({stagedCount})
-              </Button>
-            )}
-            <Button tone='primary' onClick={() => navigate('injections/new')}>
-              + Inject
-            </Button>
-          </div>
-        }
-      />
-
-      {selected.size > 0 && (
-        <div className='page-bulk-bar'>
-          <span>{selected.size} selected</span>
-          <div className='page-bulk-bar__actions'>
-            <Button
-              tone='ghost'
-              onClick={() => {
-                void msg.info('Dataset attach not yet wired to portal API');
-              }}
-            >
-              Add to dataset
-            </Button>
-            <Button tone='ghost' onClick={() => setSelected(new Set())}>
-              Clear
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <Panel>
-        {isError ? (
-          <EmptyState
-            title='Failed to load injections'
-            description={errMsg(error, 'Unknown error')}
-          />
+      {header}
+      <Panel padded={false}>
+        {list.isError ? (
+          <LoadError error={list.error} title='Failed to load injections' />
         ) : (
-          <DataTable<InjectionRow>
+          <DataTable<InjectionInjectionResp>
             framed={false}
-            data={rows}
-            rowKey={(r) => String(r.id)}
-            loading={isLoading}
+            data={list.data?.items ?? []}
+            rowKey={(r) => r.id ?? -1}
+            loading={list.isLoading}
             emptyTitle='No injections'
             emptyDescription='Click + Inject to create one.'
             columns={[
               {
-                key: 'sel',
-                header: '',
-                render: (r) => (
-                  <input
-                    type='checkbox'
-                    checked={selected.has(r.id)}
-                    onChange={() => toggle(r.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`select ${r.id}`}
-                  />
-                ),
-              },
-              {
                 key: 'id',
                 header: 'Injection',
                 render: (r) => (
-                  <Link to={href(`injections/${r.id}`)}>
+                  <Link to={href(`injections/${String(r.id)}`)}>
                     <MonoValue size='sm'>{r.id}</MonoValue>
                   </Link>
                 ),
@@ -155,22 +100,26 @@ export default function Injections() {
               {
                 key: 'fault',
                 header: 'Fault',
-                render: (r) => <MonoValue size='sm'>{r.faultType}</MonoValue>,
+                render: (r) => (
+                  <MonoValue size='sm'>{r.fault_type ?? '—'}</MonoValue>
+                ),
               },
               {
-                key: 'status',
-                header: 'Status',
-                render: (r) => <StatusChip status={r.status} />,
+                key: 'state',
+                header: 'State',
+                render: (r) => <StatusChip status={r.state} />,
               },
               {
                 key: 'created',
                 header: 'Created',
-                render: (r) => <TimeDisplay value={r.createdAt} />,
+                render: (r) =>
+                  r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
               },
             ]}
             pagination={{
               page,
               pageSize: size,
+              total: list.data?.total,
               pageSizeOptions: PAGE_SIZE_OPTIONS,
               onChange: (nextPage, nextSize) => {
                 setPaging({ projectId, page: nextPage });

@@ -1,0 +1,127 @@
+.aegis-choice-card-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  align-content: start;
+  gap: var(--space-3);
+}
+
+.aegis-choice-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast),
+    box-shadow var(--motion-fast),
+    background-color var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast);
+}
+
+/* The radio covers the card, invisible, so the whole card takes the click. */
+.aegis-choice-card__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.aegis-choice-card:has(.aegis-choice-card__input:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.aegis-choice-card--selected {
+  background: var(--bg-inverted);
+  border-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-choice-card--disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.aegis-choice-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.aegis-choice-card__title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+  text-wrap: balance;
+}
+
+.aegis-choice-card__meta {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-tracking);
+}
+
+.aegis-choice-card__description {
+  color: var(--text-muted);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  text-wrap: pretty;
+}
+
+.aegis-choice-card--selected .aegis-choice-card__meta,
+.aegis-choice-card--selected .aegis-choice-card__description {
+  color: var(--text-on-inverted-muted);
+}
+
+/* Touch screens keep :hover after a tap, which would leave the card lifted. */
+@media (hover: hover) {
+  .aegis-choice-card:not(
+      .aegis-choice-card--selected,
+      .aegis-choice-card--disabled
+    ):hover {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+    box-shadow: var(--shadow-raised);
+  }
+
+  .aegis-choice-card:not(
+      .aegis-choice-card--selected,
+      .aegis-choice-card--disabled
+    ):active {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-choice-card {
+    transition: none;
+  }
+
+  .aegis-choice-card:not(
+      .aegis-choice-card--selected,
+      .aegis-choice-card--disabled
+    ):hover {
+    transform: none;
+  }
+}

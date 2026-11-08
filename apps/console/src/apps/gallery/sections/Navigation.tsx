@@ -40,6 +40,7 @@ import {
   RegisterForm,
   Tabs as RosettaTabs,
   SectionDivider,
+  Steps,
   TableOfContents,
   type TableOfContentsItem,
   TextField,
@@ -217,6 +218,65 @@ function TabsViewSwitchSpecimen(): ReactNode {
           activeKey={view}
           onChange={setView}
         />
+      </Specimen>
+    </div>
+  );
+}
+
+const GALLERY_INSTALL_STEPS = [
+  'System',
+  'Container version',
+  'Helm values',
+  'Review',
+];
+
+function StepsSpecimen(): ReactNode {
+  const [current, setCurrent] = useState(2);
+  // A step is reachable once every step before it has been reached.
+  const [reached, setReached] = useState(2);
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='current={1} · no onStepClick · the steps are text'>
+        <Steps
+          ariaLabel='Install steps'
+          current={1}
+          items={GALLERY_INSTALL_STEPS.map((label) => ({ key: label, label }))}
+        />
+      </Specimen>
+      <Specimen
+        caption={`onStepClick · steps past the furthest reached are disabled · current ${String(current + 1)}`}
+        span={2}
+      >
+        <div className='gallery__stack'>
+          <Steps
+            ariaLabel='Wizard steps'
+            current={current}
+            onStepClick={setCurrent}
+            items={GALLERY_INSTALL_STEPS.map((label, index) => ({
+              key: label,
+              label,
+              disabled: index > reached,
+            }))}
+          />
+          <div className='gallery__row'>
+            <AegisButton
+              tone='secondary'
+              disabled={current === 0}
+              onClick={() => setCurrent(current - 1)}
+            >
+              Back
+            </AegisButton>
+            <AegisButton
+              disabled={current === GALLERY_INSTALL_STEPS.length - 1}
+              onClick={() => {
+                setCurrent(current + 1);
+                setReached(Math.max(reached, current + 1));
+              }}
+            >
+              Next
+            </AegisButton>
+          </div>
+        </div>
       </Specimen>
     </div>
   );
@@ -629,6 +689,15 @@ export function NavigationSection() {
 
       <SectionDivider>Tabs · view switch</SectionDivider>
       <TabsViewSwitchSpecimen />
+
+      <SectionDivider
+        extra={
+          <MetricLabel>Current step inverts · clickable steps lift</MetricLabel>
+        }
+      >
+        Steps
+      </SectionDivider>
+      <StepsSpecimen />
 
       <SectionDivider>Carousel</SectionDivider>
       <div className='gallery__row'>

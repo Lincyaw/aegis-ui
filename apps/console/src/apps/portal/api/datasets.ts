@@ -6,40 +6,37 @@ import type {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { datasetsApi } from './portal-client';
+import { type ListResult, required, toList } from './response';
 
 export interface ListDatasetsParams {
   page?: number;
   size?: number;
-  type?: string;
-  isPublic?: boolean;
 }
 
 export const datasetsKeys = {
-  all: ['datasets'] as const,
-  list: (params: ListDatasetsParams) => ['datasets', 'list', params] as const,
-  detail: (id: number) => ['datasets', 'detail', id] as const,
+  all: ['portal', 'datasets'] as const,
+  list: (params: ListDatasetsParams) =>
+    [...datasetsKeys.all, 'list', params] as const,
+  detail: (id: number) => [...datasetsKeys.all, 'detail', id] as const,
 };
 
-export function useDatasetsList(params: ListDatasetsParams = {}) {
-  return useQuery({
+export function useDatasetsList(params: ListDatasetsParams) {
+  return useQuery<ListResult<DatasetDatasetResp>>({
     queryKey: datasetsKeys.list(params),
     queryFn: async () => {
       const res = await datasetsApi.listDatasets(params);
-      return res.data.data ?? { items: [], pagination: undefined };
+      return toList(res.data.data, 'datasets');
     },
   });
 }
 
-export function useDataset(datasetId: number | undefined) {
+export function useDataset(id: number | undefined) {
   return useQuery<DatasetDatasetDetailResp>({
-    queryKey: datasetsKeys.detail(datasetId ?? -1),
-    enabled: datasetId !== undefined && Number.isFinite(datasetId),
+    queryKey: datasetsKeys.detail(id ?? -1),
+    enabled: id !== undefined && Number.isFinite(id),
     queryFn: async () => {
-      if (datasetId === undefined) {
-        return {};
-      }
-      const res = await datasetsApi.getDatasetById({ datasetId });
-      return res.data.data ?? {};
+      const res = await datasetsApi.getDatasetById({ datasetId: id ?? -1 });
+      return required(res.data.data, 'dataset');
     },
   });
 }
@@ -53,7 +50,7 @@ export function useCreateDataset() {
       const res = await datasetsApi.createDataset({
         datasetCreateDatasetReq: body,
       });
-      return res.data.data ?? {};
+      return required(res.data.data, 'dataset');
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: datasetsKeys.all });
@@ -64,8 +61,8 @@ export function useCreateDataset() {
 export function useDeleteDataset() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (datasetId: number) => {
-      await datasetsApi.deleteDataset({ datasetId });
+    mutationFn: async (id: number) => {
+      await datasetsApi.deleteDataset({ datasetId: id });
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: datasetsKeys.all });
