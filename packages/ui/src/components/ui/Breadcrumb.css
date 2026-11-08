@@ -9,16 +9,18 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  flex-wrap: wrap;
 }
 
-/* An item wider than the trail truncates instead of widening the page. */
+/* The trail stays on one line. Every item starts from an equal share and
+ * none grows past its own text, so short items keep their full label and
+ * the long ones divide the rest, truncating. */
 .aegis-breadcrumb__item {
   display: flex;
+  flex: 1 1 0;
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
-  max-width: 100%;
+  max-width: max-content;
 }
 
 .aegis-breadcrumb__link {

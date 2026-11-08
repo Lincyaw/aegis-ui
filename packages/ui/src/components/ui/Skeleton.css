@@ -1,10 +1,15 @@
+/* Translucent ink, so a block reads on the page, a panel or a muted row
+ * alike; the sheen lightens it as it passes. */
 .aegis-skeleton {
+  --aegis-skeleton-base: color-mix(in srgb, var(--text-main) 9%, transparent);
+  --aegis-skeleton-sheen: color-mix(in srgb, var(--text-main) 3%, transparent);
+
   display: inline-block;
   background: linear-gradient(
     90deg,
-    var(--bg-muted) 0%,
-    var(--bg-panel) 50%,
-    var(--bg-muted) 100%
+    var(--aegis-skeleton-base) 0%,
+    var(--aegis-skeleton-sheen) 50%,
+    var(--aegis-skeleton-base) 100%
   );
   background-size: 200% 100%;
   animation: aegis-skeleton-shimmer var(--motion-skeleton) linear infinite;
