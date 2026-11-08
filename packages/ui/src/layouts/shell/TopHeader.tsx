@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode, Ref } from 'react';
 
 import { Tooltip } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
@@ -32,6 +32,10 @@ interface TopHeaderProps {
   inboxPath?: string;
   /** Fired by the mobile hamburger; the shell owns the open state. */
   onMobileMenuToggle?: () => void;
+  /** Whether the navigation drawer is open — drives aria-expanded on the hamburger. */
+  mobileMenuOpen?: boolean;
+  /** The hamburger button, which takes focus back when the drawer is dismissed. */
+  menuToggleRef?: Ref<HTMLButtonElement>;
   /** Whether to render the mobile hamburger at all (only when sidebar exists). */
   showMobileMenu?: boolean;
   /** Whether to render the desktop sidebar collapse toggle. */
@@ -66,6 +70,8 @@ export function TopHeader({
   headerActions,
   inboxPath,
   onMobileMenuToggle,
+  mobileMenuOpen = false,
+  menuToggleRef,
   showMobileMenu,
   sidebarCollapsible,
   sidebarCollapsed,
@@ -96,10 +102,12 @@ export function TopHeader({
       <div className="aegis-shell__header-left">
         {showMobileMenu && onMobileMenuToggle && (
           <button
+            ref={menuToggleRef}
             type="button"
             className="aegis-shell__menu-toggle"
             onClick={onMobileMenuToggle}
             aria-label={strings.openNavigation}
+            aria-expanded={mobileMenuOpen}
           >
             <span className="aegis-shell__menu-toggle-glyph" aria-hidden="true">
               ☰

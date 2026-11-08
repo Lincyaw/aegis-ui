@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import type { ReactElement, Ref } from 'react';
 
 import { NavLink } from 'react-router-dom';
 
@@ -7,19 +7,24 @@ import type { AegisApp } from './types';
 
 interface SidebarProps {
   activeApp: AegisApp | undefined;
+  /** The sidebar element, which is the navigation drawer at 768 px and below. */
+  drawerRef?: Ref<HTMLElement>;
 }
 
 /**
  * Per-app inner nav. The global app list lives in the header's
  * `AppSwitcher`, not here — sidebar only ever shows the current app.
  */
-export function Sidebar({ activeApp }: SidebarProps): ReactElement | null {
+export function Sidebar({
+  activeApp,
+  drawerRef,
+}: SidebarProps): ReactElement | null {
   if (!activeApp?.sidebar || activeApp.sidebar.length === 0) {
     return null;
   }
 
   return (
-    <aside className="aegis-shell__sidebar">
+    <aside ref={drawerRef} className="aegis-shell__sidebar">
       <section className="aegis-shell__sidebar-section">
         <div className="aegis-shell__sidebar-heading">{activeApp.label}</div>
         {activeApp.sidebar.map((group, idx) => (

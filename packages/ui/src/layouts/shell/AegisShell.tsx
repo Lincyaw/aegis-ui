@@ -45,6 +45,7 @@ import { normalizeBasePath } from './paths';
 import type { AegisApp, AegisShellProps } from './types';
 import { useAgentPanel } from './useAgentPanel';
 import { useAppCommands } from './useAppCommands';
+import { useMobileNav } from './useMobileNav';
 import { useShellUser } from './useShellUser';
 import { useWarnOnce } from './useWarnOnce';
 
@@ -86,7 +87,6 @@ export function AegisShell({
   const { pathname } = location;
   const auth = useAuth();
   const themeCtx = useContext(ThemeContext);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [sidebarCollapsedValue, setSidebarCollapsedValue] = useStorageItem(
     SIDEBAR_COLLAPSED_KEY,
   );
@@ -128,17 +128,8 @@ export function AegisShell({
   );
 
   const agent = useAgentPanel(agentPanel);
+  const mobileNav = useMobileNav(pathname);
 
-  // Auto-close the drawer on navigation.
-  useEffect(() => {
-    setMobileNavOpen(false);
-  }, [pathname]);
-
-  const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
-  const toggleMobileNav = useCallback(
-    () => setMobileNavOpen((open) => !open),
-    [],
-  );
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsedValue(sidebarCollapsed ? '0' : '1');
   }, [setSidebarCollapsedValue, sidebarCollapsed]);
@@ -186,7 +177,7 @@ export function AegisShell({
   const shellClass = [
     'aegis-shell',
     hasSidebar ? 'aegis-shell--with-sidebar' : 'aegis-shell--no-sidebar',
-    mobileNavOpen ? 'aegis-shell--mobile-nav-open' : '',
+    mobileNav.open ? 'aegis-shell--mobile-nav-open' : '',
     agent.open ? 'aegis-shell--with-agent-panel' : '',
     ambient ? 'aegis-shell--ambient' : '',
   ]
@@ -201,7 +192,7 @@ export function AegisShell({
       navigate={navigate}
     >
       <EnvironmentProvider app={activeApp}>
-        <div className={shellClass}>
+        <div ref={mobileNav.shellRef} className={shellClass}>
           <SkipLink targetId="aegis-main" targetRef={mainRef} />
           {ambient && <AmbientBackground variant={ambient} />}
           <TopHeader
@@ -229,7 +220,9 @@ export function AegisShell({
               </>
             }
             inboxPath={auth.status === 'authenticated' ? inboxPath : undefined}
-            onMobileMenuToggle={toggleMobileNav}
+            onMobileMenuToggle={mobileNav.toggle}
+            mobileMenuOpen={mobileNav.open}
+            menuToggleRef={mobileNav.toggleRef}
             showMobileMenu={appHasSidebar}
             sidebarCollapsible={appHasSidebar}
             sidebarCollapsed={sidebarCollapsed}
@@ -239,12 +232,16 @@ export function AegisShell({
             agentPanelOpen={agent.open}
             onAgentPanelToggle={agent.toggle}
           />
-          {appHasSidebar && <Sidebar activeApp={activeApp} />}
+          {appHasSidebar && (
+            <Sidebar activeApp={activeApp} drawerRef={mobileNav.drawerRef} />
+          )}
           <button
+            ref={mobileNav.backdropRef}
             type="button"
             className="aegis-shell__backdrop"
             aria-label={strings.closeNavigation}
-            onClick={closeMobileNav}
+            tabIndex={-1}
+            onClick={mobileNav.dismiss}
           />
           <main
             id="aegis-main"

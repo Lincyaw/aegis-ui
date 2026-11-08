@@ -534,6 +534,7 @@
     flex: 1 1 0;
     min-width: 0;
     height: calc(var(--header-height) - var(--size-hairline));
+    padding: 0 var(--space-3) 0 var(--page-padding-inline-mobile);
   }
 
   .aegis-shell--with-sidebar .aegis-shell__header-left {
@@ -582,7 +583,7 @@
   .aegis-shell__header-right {
     flex-shrink: 0;
     gap: var(--space-2);
-    padding: 0 var(--space-3);
+    padding: 0 var(--page-padding-inline-mobile) 0 var(--space-3);
   }
 
   /* The environment control keeps its badge dot and drops its words; the
@@ -631,9 +632,11 @@
       visibility var(--motion-base);
   }
 
+  /* Opening shows it at once, so focus can move in while it slides. */
   .aegis-shell--mobile-nav-open .aegis-shell__sidebar {
     transform: translateX(0);
     visibility: visible;
+    transition: transform var(--motion-base);
   }
 
   .aegis-shell--mobile-nav-open .aegis-shell__backdrop {
@@ -649,6 +652,6 @@
   }
 
   .aegis-shell__breadcrumb {
-    padding: var(--space-3) var(--space-4) 0;
+    padding: var(--space-3) var(--page-padding-inline-mobile) 0;
   }
 }
