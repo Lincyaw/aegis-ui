@@ -46,7 +46,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-warning);
+  background: var(--bg-inverted);
   color: var(--text-on-inverted);
   font-family: var(--font-mono);
   font-size: var(--fs-9);
@@ -57,11 +57,12 @@
 }
 
 /* Live updates are failing: a caution mark opposite the unread badge,
- * cut out of the surface behind the bell. */
+ * cut out of the surface behind the bell. It sits on the bottom edge so the
+ * badge's surface border still parts the two. */
 .aegis-notif-bell__stale {
   position: absolute;
   right: var(--space-px);
-  bottom: var(--space-px);
+  bottom: 0;
   font-size: var(--size-icon-sm);
   color: var(--ink-warn);
   background: var(--bg-panel);

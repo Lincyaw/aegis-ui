@@ -40,3 +40,5 @@ Fixes:
   their triggers gain `aria-haspopup`, `aria-expanded` and `aria-controls`.
   `NotificationBell` and `TimeRangePicker` slide along their trigger to stay
   on a phone screen.
+- `NotificationBell`'s unread badge is an inverted surface instead of anomaly
+  red: an unread count is not a failure.
