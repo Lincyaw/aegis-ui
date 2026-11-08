@@ -2,6 +2,8 @@
 // https://github.com/hyperdxio/hyperdx/blob/main/packages/app/src/components/ServiceMap/ServiceMap.tsx
 import {
   type CSSProperties,
+  type ComponentProps,
+  type FocusEvent,
   type KeyboardEvent,
   useCallback,
   useEffect,
@@ -43,7 +45,10 @@ import { useStrings } from '../../locale';
 import './ServiceMap.css';
 import { StatusDot } from './StatusDot';
 
-/** `active` is work in progress, e.g. a running task: an ink stripe and a pulsing dot. */
+/**
+ * Drawn as a dot before the node's label. `active` is work in progress, e.g.
+ * a running task: the ink dot pulses.
+ */
 export type ServiceMapStatus = 'ok' | 'active' | 'warn' | 'error' | 'muted';
 export type ServiceMapDirection = 'LR' | 'TB';
 
@@ -111,6 +116,11 @@ export interface ServiceMapProps {
    * direct edge to or from when they fit at actual size, otherwise centred
    * on the node alone. Large maps stay readable when they open. An id that
    * is not on the map is ignored.
+   *
+   * Without it the map opens fitted whole. At 768 px and below a map that
+   * fits only below a readable size opens at the smallest readable zoom on
+   * its start instead, the left edge for `LR` and the top for `TB`, to be
+   * panned from there.
    */
   focusNodeId?: string;
   /**
@@ -372,11 +382,23 @@ function ServiceGroup({
   );
 }
 
+const DOT_TONE: Record<
+  ServiceMapStatus,
+  NonNullable<ComponentProps<typeof StatusDot>['tone']>
+> = {
+  ok: 'ink',
+  active: 'ink',
+  warn: 'caution',
+  error: 'warning',
+  muted: 'muted',
+};
+
 function ServiceNode({
   data,
 }: NodeProps<Node<ServiceNodeData, 'service'>>): JSX.Element {
   const { node, selected } = data;
   const status = node.status ?? 'ok';
+  const tone = DOT_TONE[status];
   return (
     <div
       className={[
@@ -392,12 +414,12 @@ function ServiceNode({
         position={Position.Left}
         className="aegis-service-map__handle"
       />
-      <span className="aegis-service-map__node-stripe" aria-hidden="true" />
       <div className="aegis-service-map__node-body">
         <div className="aegis-service-map__node-label">
-          {status === 'active' && (
-            <StatusDot pulse tone={selected ? 'inverted' : 'ink'} />
-          )}
+          <StatusDot
+            pulse={status === 'active'}
+            tone={selected && tone === 'ink' ? 'inverted' : tone}
+          />
           <span className="aegis-service-map__node-label-text">
             {node.label}
           </span>
@@ -425,14 +447,18 @@ function ServiceNode({
 }
 
 function ServiceEdge(props: EdgeProps<Edge<ServiceEdgeData>>): JSX.Element {
-  const { sourceX, sourceY, targetX, targetY, id, label, markerEnd, style } =
-    props;
+  const { sourceX, sourceY, targetX, targetY, label, markerEnd, style } = props;
+  // The label follows the path by its id, which must be unique on the page,
+  // also when two maps share edge ids.
+  const pathId = useId();
   const midX = (sourceX + targetX) / 2;
   const path = `M${sourceX},${sourceY} C${midX},${sourceY} ${midX},${targetY} ${targetX},${targetY}`;
   return (
     <>
+      {/* The focus ring, drawn along the path under it. */}
+      <path d={path} className="aegis-service-map__edge-focus" fill="none" />
       <path
-        id={id}
+        id={pathId}
         d={path}
         className="aegis-service-map__edge-path"
         markerEnd={markerEnd}
@@ -441,7 +467,7 @@ function ServiceEdge(props: EdgeProps<Edge<ServiceEdgeData>>): JSX.Element {
       />
       {label !== undefined && label !== '' && (
         <text className="aegis-service-map__edge-label">
-          <textPath href={`#${id}`} startOffset="50%" textAnchor="middle">
+          <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
             {label}
           </textPath>
         </text>
@@ -460,6 +486,8 @@ const FIT_MARGIN = 24;
 const MIN_ZOOM = 0.1;
 /** A focused map opens at this zoom, so its labels are readable. */
 const FOCUS_ZOOM = 1;
+/** The smallest zoom a narrow map opens at: a node's 13 px label reads at 11 px. */
+const READABLE_ZOOM = 11 / 13;
 // React Flow draws the controls and the minimap in panels inset by 15 px. A
 // control button is 26 px, 28 inside the controls' hairline border.
 const PANEL_INSET = 15;
@@ -496,8 +524,9 @@ function useFit(
   laidOut: boolean,
   focusNodeId: string | undefined,
   showMinimap: boolean,
+  narrow: boolean,
 ): void {
-  const { fitView, getNodesBounds } = useReactFlow();
+  const { fitView, getNodes, getNodesBounds, setViewport } = useReactFlow();
   const store = useStoreApi();
   const paneSized = useStore((state) => state.width > 0 && state.height > 0);
   const focus = useMemo(
@@ -517,10 +546,48 @@ function useFit(
           showMinimap ? PANEL_INSET + MINIMAP_WIDTH + FIT_MARGIN : FIT_MARGIN,
         ),
       };
+      const { width, height } = store.getState();
       if (focus === undefined) {
-        void fitView({ maxZoom: 1, padding });
+        const all = getNodes();
+        const bounds = getNodesBounds(all);
+        const fitted = getViewportForBounds(
+          bounds,
+          width,
+          height,
+          MIN_ZOOM,
+          1,
+          padding,
+        );
+        if (narrow && fitted.zoom < READABLE_ZOOM) {
+          // A phone has no minimap and too little room for the whole map,
+          // so it opens where the map starts, on its first node.
+          const zoom = READABLE_ZOOM;
+          const horizontal = shape.direction === 'LR';
+          const along = (n: Node): number =>
+            horizontal ? n.position.x : n.position.y;
+          const first = all
+            .filter((n) => n.type === 'service')
+            .reduce((a, b) => (along(b) < along(a) ? b : a));
+          const { width: w = NODE_WIDTH, height: h = NODE_HEIGHT } =
+            first.measured ?? {};
+          void setViewport(
+            horizontal
+              ? {
+                  x:
+                    PANEL_INSET + CONTROLS_WIDTH + FIT_MARGIN - bounds.x * zoom,
+                  y: height / 2 - (first.position.y + h / 2) * zoom,
+                  zoom,
+                }
+              : {
+                  x: width / 2 - (first.position.x + w / 2) * zoom,
+                  y: FIT_MARGIN - bounds.y * zoom,
+                  zoom,
+                },
+          );
+        } else {
+          void fitView({ maxZoom: 1, padding });
+        }
       } else {
-        const { width, height } = store.getState();
         const nearFits =
           getViewportForBounds(
             getNodesBounds(focus.near),
@@ -544,10 +611,58 @@ function useFit(
     layout,
     focus,
     showMinimap,
+    narrow,
+    shape.direction,
     store,
     fitView,
+    getNodes,
     getNodesBounds,
+    setViewport,
   ]);
+}
+
+/**
+ * Pans a node or edge that gets keyboard focus fully into view, centred.
+ * React Flow pans only to a node entirely outside the view, and never to
+ * an edge.
+ */
+function usePanToFocused(): (event: FocusEvent<HTMLDivElement>) => void {
+  const { getViewport, setViewport } = useReactFlow();
+  return useCallback(
+    (event: FocusEvent<HTMLDivElement>) => {
+      const target = event.target;
+      if (
+        !(target instanceof Element) ||
+        !target.matches(
+          '.react-flow__node:focus-visible, .react-flow__edge:focus-visible',
+        )
+      ) {
+        return;
+      }
+      // The browser has already scrolled the pane to the element, and React
+      // Flow scrolls it back, so the offset is added back to place it.
+      const { scrollLeft, scrollTop } = event.currentTarget;
+      const pane = event.currentTarget.getBoundingClientRect();
+      const box = target.getBoundingClientRect();
+      const left = box.left - pane.left + scrollLeft;
+      const top = box.top - pane.top + scrollTop;
+      if (
+        left >= 0 &&
+        top >= 0 &&
+        left + box.width <= pane.width &&
+        top + box.height <= pane.height
+      ) {
+        return;
+      }
+      const { x, y, zoom } = getViewport();
+      void setViewport({
+        x: x + pane.width / 2 - (left + box.width / 2),
+        y: y + pane.height / 2 - (top + box.height / 2),
+        zoom,
+      });
+    },
+    [getViewport, setViewport],
+  );
 }
 
 function ServiceMapInner({
@@ -567,7 +682,9 @@ function ServiceMapInner({
 }: ServiceMapProps): JSX.Element {
   const strings = useStrings();
   const idPrefix = useId();
-  const rfId = useStore((state) => state.rfId);
+  // React Flow names its elements after this id ('1' when none is given),
+  // so each map passes its own and a page can hold several.
+  const flowId = `aegis-service-map${idPrefix.replace(/:/g, '-')}`;
   const nodesSelectable = onNodeClick !== undefined;
   const edgesSelectable = onEdgeClick !== undefined;
   // Node sizes as React Flow measured them; the layout reads them, so a
@@ -597,7 +714,7 @@ function ServiceMapInner({
         // has none.
         const describedBy = [
           layout.groupLabels.get(n.id),
-          nodesSelectable ? `react-flow__node-desc-${rfId}` : undefined,
+          nodesSelectable ? `react-flow__node-desc-${flowId}` : undefined,
         ]
           .filter(Boolean)
           .join(' ');
@@ -635,7 +752,7 @@ function ServiceMapInner({
       selectedNodeId,
       isHorizontal,
       nodesSelectable,
-      rfId,
+      flowId,
       strings,
     ],
   );
@@ -690,7 +807,9 @@ function ServiceMapInner({
     nodes.every((n) => measured.has(n.id)),
     focusNodeId,
     showMinimap,
+    narrow,
   );
+  const handleFocus = usePanToFocused();
 
   const handleNodeClick = useCallback(
     (_: unknown, n: ServiceFlowNode) => {
@@ -758,6 +877,7 @@ function ServiceMapInner({
           even when the box only has its min-height. */}
       <div className="aegis-service-map__pane">
         <ReactFlow
+          id={flowId}
           aria-label={ariaLabel}
           nodes={flowNodes}
           edges={flowEdges}
@@ -766,6 +886,7 @@ function ServiceMapInner({
           minZoom={MIN_ZOOM}
           nodesDraggable={false}
           nodesConnectable={false}
+          autoPanOnNodeFocus={false}
           panOnDrag
           zoomOnScroll
           proOptions={{ hideAttribution: true }}
@@ -774,6 +895,7 @@ function ServiceMapInner({
           onNodeClick={nodesSelectable ? handleNodeClick : undefined}
           onEdgeClick={edgesSelectable ? handleEdgeClick : undefined}
           onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
         >
           <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
           <Controls showInteractive={false} position="top-left" />

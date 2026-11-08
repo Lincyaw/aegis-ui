@@ -2701,13 +2701,13 @@ export function ServicePrimitivesSection() {
       </SectionDivider>
       <div className='gallery__stack'>
         <Specimen
-          caption='microservice topology · LR · onNodeClick + onEdgeClick · click, or Tab and press Enter or Space'
+          caption='microservice topology · LR · onNodeClick + onEdgeClick · click, or Tab and press Enter or Space · a dot before each label shows its state · a focused edge draws its ring along its path, and a focused node or edge pans fully into view · at 768 px and below the map opens on its start at a readable zoom, to pan from'
           span={3}
         >
           <ServiceMapMicroSpecimen />
         </Specimen>
         <Specimen
-          caption='AgentM session DAG · TB · no handlers, so nothing is focusable'
+          caption='AgentM session DAG · TB · no handlers, so nothing is focusable · at 768 px and below it opens on its root at a readable zoom'
           span={3}
         >
           <ServiceMapAgentSpecimen />

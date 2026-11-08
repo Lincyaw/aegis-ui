@@ -35,10 +35,14 @@
   border-radius: var(--radius-md);
 }
 
-.aegis-service-map .react-flow__node.selectable:focus-visible,
-.aegis-service-map .react-flow__edge.selectable:focus-visible {
+.aegis-service-map .react-flow__node.selectable:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
+}
+
+/* An edge's outline would be its bounding box; its ring follows the path. */
+.aegis-service-map .react-flow__edge.selectable:focus-visible {
+  outline: none;
 }
 
 /* ── Node card ─────────────────────────────────────────────────── */
@@ -73,43 +77,9 @@
   border-color: var(--border-strong);
 }
 
-.aegis-service-map__node-stripe {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--space-1);
-  border-top-left-radius: var(--radius-md);
-  border-bottom-left-radius: var(--radius-md);
-  background: var(--bg-inverted);
-}
-
-.aegis-service-map__node--ok .aegis-service-map__node-stripe {
-  background: var(--bg-inverted);
-}
-
-.aegis-service-map__node--warn .aegis-service-map__node-stripe {
-  background: var(--ink-warn);
-}
-
-.aegis-service-map__node--error .aegis-service-map__node-stripe {
-  background: var(--accent-warning);
-}
-
-.aegis-service-map__node--active .aegis-service-map__node-stripe {
-  background: var(--bg-inverted);
-}
-
-.aegis-service-map__node--muted .aegis-service-map__node-stripe {
-  background: var(--text-muted);
-}
-
-.aegis-service-map__node--selected .aegis-service-map__node-stripe {
-  background: var(--text-on-inverted);
-}
-
 .aegis-service-map__node-body {
   flex: 1;
   min-width: 0;
-  padding-left: var(--space-2);
   display: flex;
   flex-direction: column;
   gap: var(--space-px);
@@ -151,9 +121,10 @@
   height: var(--space-5);
   padding: 0 var(--space-2);
   border-radius: var(--radius-pill);
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-10);
   font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
   color: var(--text-on-inverted);
   background: var(--bg-inverted);
 }
@@ -228,9 +199,22 @@
   stroke-width: var(--size-border-thick);
 }
 
+.aegis-service-map__edge-focus {
+  stroke: none;
+  stroke-width: calc(var(--size-border-thick) + 2 * var(--focus-ring-width));
+  stroke-linecap: round;
+}
+
+.aegis-service-map
+  .react-flow__edge.selectable:focus-visible
+  .aegis-service-map__edge-focus {
+  stroke: var(--focus-ring-color);
+}
+
 .aegis-service-map__edge-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-10);
+  font-variant-numeric: tabular-nums;
   fill: var(--text-muted);
 }
 
@@ -252,6 +236,12 @@
 
 .aegis-service-map .react-flow__controls-button:hover {
   background: var(--bg-muted);
+}
+
+/* Inset: the controls clip what lies outside their rounded box. */
+.aegis-service-map .react-flow__controls-button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-service-map .react-flow__minimap {
