@@ -11,6 +11,7 @@ import {
   Button as AegisButton,
   Select as AegisSelect,
   Chip,
+  CodeBlock,
   CodeEditor,
   type CodeEditorField,
   CommitGraph,
@@ -62,6 +63,9 @@ import {
 
 import { TOOL_QUERY_METRICS } from '../fixtures';
 import { GalleryRouterLink, Specimen } from '../shared';
+// 120 spans written with pyarrow. The file stays above Vite's 4 KB inline
+// limit, so it is served as a file the viewer can read by range.
+import spansParquetUrl from '../spans.parquet?url';
 
 /* ── EnvironmentSwitcher specimen ──────────────────────────────────── */
 
@@ -119,7 +123,10 @@ function QueryAutocompleteSpecimen(): ReactNode {
           valueSuggestions={valueSuggestions}
         />
       </Specimen>
-      <Specimen caption='pre-filled' span={2}>
+      <Specimen
+        caption='pre-filled · the ? button opens the syntax sheet on hover, Tab or tap; Escape closes it'
+        span={2}
+      >
         <QueryAutocomplete
           value={prefilled}
           onChange={setPrefilled}
@@ -270,7 +277,7 @@ function SqlCodeEditorSpecimen(): ReactNode {
   );
   const [submitted, setSubmitted] = useState<string | null>(null);
   return (
-    <>
+    <div className='gallery__stack gallery__stack--fill'>
       <CodeEditor
         value={value}
         language='sql'
@@ -280,25 +287,12 @@ function SqlCodeEditorSpecimen(): ReactNode {
         tables={['otel_traces', 'otel_logs', 'otel_metrics']}
         height={160}
       />
-      <pre
-        style={{
-          marginTop: 'var(--space-2)',
-          padding: 'var(--space-2) var(--space-3)',
-          background: 'var(--bg-muted)',
-          border: 'var(--size-hairline) solid var(--border-hairline)',
-          borderRadius: 'var(--radius-sm)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 'var(--fs-11)',
-          color: 'var(--text-main)',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-        }}
-      >
-        {submitted == null
-          ? 'press Cmd+Enter / Ctrl+Enter to submit'
-          : `submitted → ${submitted}`}
-      </pre>
-    </>
+      {submitted == null ? (
+        <MetricLabel>Press Cmd+Enter or Ctrl+Enter to submit.</MetricLabel>
+      ) : (
+        <CodeBlock language='sql' code={submitted} />
+      )}
+    </div>
   );
 }
 
@@ -483,10 +477,24 @@ function ObjectInspectorSpecimen(): ReactNode {
   );
 }
 
+/** A fixture file that reports `bytes` as its size without allocating them. */
+function sizedFile(name: string, bytes: number): File {
+  const file = new File([], name);
+  Object.defineProperty(file, 'size', { value: bytes });
+  return file;
+}
+
+const UPLOAD_FILES = {
+  waiting: sizedFile('waiting.tar.gz', 1_887_436),
+  corpus: sizedFile('corpus-2026-04.tar.gz', 5 * 1024 * 1024),
+  snapshot: sizedFile('trace-snapshot.json', 356_352),
+  tooBig: sizedFile('too-big.bin', 7_759_462),
+};
+
 function ParquetViewerSpecimen(): ReactNode {
   const [file, setFile] = useState<File | undefined>();
   return (
-    <div className='gallery__stack'>
+    <div className='gallery__stack gallery__stack--fill'>
       <FileDropzone
         onDrop={(files) => {
           if (files[0]) {
@@ -498,7 +506,9 @@ function ParquetViewerSpecimen(): ReactNode {
       />
       <ParquetViewer
         file={file}
-        title={file?.name ?? 'Parquet preview'}
+        src={spansParquetUrl}
+        pageSize={10}
+        title={file?.name ?? 'spans.parquet'}
         surface={{
           id: 'gallery.parquet.preview',
           kind: 'preview',
@@ -1770,19 +1780,20 @@ export function ServicePrimitivesSection() {
               items={[
                 {
                   id: 'a',
-                  file: new File([''], 'corpus-2026-04.tar.gz'),
+                  file: UPLOAD_FILES.corpus,
                   status: 'uploading',
                   progress: 0.64,
+                  bytesUploaded: 0.64 * UPLOAD_FILES.corpus.size,
                 },
                 {
                   id: 'b',
-                  file: new File([''], 'trace-snapshot.json'),
+                  file: UPLOAD_FILES.snapshot,
                   status: 'done',
                   progress: 1,
                 },
                 {
                   id: 'c',
-                  file: new File([''], 'too-big.bin'),
+                  file: UPLOAD_FILES.tooBig,
                   status: 'error',
                   error: 'exceeds 5 MB cap',
                 },
@@ -1923,15 +1934,12 @@ export function ServicePrimitivesSection() {
             items={[
               {
                 id: 'q1',
-                file: new File([''], 'waiting.tar.gz'),
+                file: UPLOAD_FILES.waiting,
                 status: 'queued',
               },
               {
                 id: 'u1',
-                file: new File(
-                  [new Uint8Array(5 * 1024 * 1024)],
-                  'corpus-2026-04.tar.gz'
-                ),
+                file: UPLOAD_FILES.corpus,
                 status: 'uploading',
                 progress: 0.5,
                 bytesUploaded: 2.5 * 1024 * 1024,
@@ -1941,13 +1949,13 @@ export function ServicePrimitivesSection() {
               },
               {
                 id: 'd1',
-                file: new File([''], 'trace-snapshot.json'),
+                file: UPLOAD_FILES.snapshot,
                 status: 'done',
                 progress: 1,
               },
               {
                 id: 'e1',
-                file: new File([''], 'too-big.bin'),
+                file: UPLOAD_FILES.tooBig,
                 status: 'error',
                 error: 'exceeds 5 MB cap',
               },
@@ -2428,7 +2436,7 @@ export function ServicePrimitivesSection() {
           />
         </Specimen>
         <Specimen
-          caption='sql · field+table autocomplete · Cmd+Enter submit'
+          caption='sql · field+table autocomplete · Cmd+Enter submit · focused, a line says how Tab leaves'
           span={3}
         >
           <SqlCodeEditorSpecimen />
@@ -2493,7 +2501,7 @@ export function ServicePrimitivesSection() {
       </SectionDivider>
       <div className='gallery__row gallery__row--wide'>
         <Specimen
-          caption="variant='dot' · mono meta + timestamp · dotColor override"
+          caption="variant='dot' · numeric meta + timestamp · dotColor override"
           span={3}
         >
           <Timeline
@@ -2537,7 +2545,7 @@ export function ServicePrimitivesSection() {
           />
         </Specimen>
         <Specimen
-          caption="variant='numbered' · mono marker (3ch) · strong title · mono meta · body description · hairline rows · pre-wrap"
+          caption="variant='numbered' · numeric marker (3ch) · strong title · numeric meta · body description · hairline rows · pre-wrap"
           span={3}
         >
           <Timeline
@@ -2619,7 +2627,10 @@ export function ServicePrimitivesSection() {
         ParquetViewer
       </SectionDivider>
       <div className='gallery__stack'>
-        <Specimen caption='drop a .parquet to inspect' span={3}>
+        <Specimen
+          caption='120 spans read by range from a URL · pageSize={10} · drop a .parquet to inspect your own'
+          span={3}
+        >
           <ParquetViewerSpecimen />
         </Specimen>
       </div>

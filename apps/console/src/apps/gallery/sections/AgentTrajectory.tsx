@@ -224,7 +224,7 @@ function ReplayStepStripSpecimen(): ReactNode {
   return (
     <div className='gallery__stack'>
       <Specimen
-        caption={`bars by kind · course-changing steps taller · key moments numbered · the current step outlined · arrows move · #${String(current + 1)}`}
+        caption={`bars by kind · course-changing steps taller · key moments numbered · the current step outlined · arrows move · each step a 24 px target, scrolling when the run is wider · #${String(current + 1)}`}
         span={3}
       >
         <div className='gallery__stack gallery__stack--fill'>
@@ -356,9 +356,9 @@ const TRAJECTORY_STEP_SEVERAL_CALLS: TrajectoryStepData = {
   thought: 'Compare the **cache** latency with the pool settings in one round.',
   actionType: 'tool_call',
   sections: [
-    { label: 'message', text: 'Checking the metric and the config together.' },
+    { label: 'Message', text: 'Checking the metric and the config together.' },
     {
-      label: 'recorded request body',
+      label: 'Recorded request body',
       text: '{"model": "claude-opus-4-7",\n "tools": ["query_metrics", "read_file"]}',
       format: 'text',
     },
