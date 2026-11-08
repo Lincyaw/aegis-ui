@@ -35,7 +35,7 @@ export function Landing(): ReactElement {
 
       {needsClickhouse && (
         <div className='landing-config-hint'>
-          <Chip tone='warning'>ClickHouse not configured</Chip>
+          <Chip tone='caution'>ClickHouse not configured</Chip>
           <Link
             to='/settings/endpoints'
             style={{
