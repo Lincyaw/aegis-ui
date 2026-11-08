@@ -76,16 +76,21 @@ function ChatPersistence({ chatId }: ChatPersistenceProps): null {
     };
   }, [messages, chatId, saveMessages]);
 
-  // Title + lastActiveAt should bump only when a NEW user turn starts —
-  // i.e., the user-message count for this chat increases. Streaming
-  // assistant tokens must not reorder the chat list.
-  const prevUserCountRef = useRef(0);
+  // Title + lastActiveAt bump only when a new user turn starts, i.e. the
+  // chat's user-message count rises. The count starts at what the chat
+  // opened with, so opening it on a switch or a reload is not a new turn,
+  // and it follows a clear back down. Streaming assistant tokens must not
+  // reorder the chat list.
+  const prevUserCountRef = useRef(
+    messages.filter((m) => m.role === 'user').length
+  );
   useEffect(() => {
     const userMessages = messages.filter((m) => m.role === 'user');
-    if (userMessages.length <= prevUserCountRef.current) {
+    const previous = prevUserCountRef.current;
+    prevUserCountRef.current = userMessages.length;
+    if (userMessages.length <= previous) {
       return;
     }
-    prevUserCountRef.current = userMessages.length;
     const firstUser = userMessages[0];
     if (firstUser) {
       maybeAutoTitle(chatId, firstUser.content);

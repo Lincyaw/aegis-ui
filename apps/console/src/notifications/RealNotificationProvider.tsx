@@ -47,10 +47,6 @@ const RECONNECT_MAX_MS = 30_000;
 // healthy and resets the backoff; one that opens and ends at once keeps it.
 const STREAM_HEALTHY_MS = 10_000;
 
-function toError(err: unknown): Error {
-  return new Error(errMsg(err));
-}
-
 /**
  * Talks to aegis-notify /api/v2/inbox/*. Real-time freshness comes
  * from /inbox/stream (Server-Sent Events via fetch — EventSource can't
@@ -89,7 +85,7 @@ export function RealNotificationProvider({
       setError(null);
     } catch (err) {
       if (mounted.current) {
-        setError(toError(err));
+        setError(new Error(errMsg(err)));
       }
     } finally {
       if (mounted.current) {
