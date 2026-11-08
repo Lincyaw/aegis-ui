@@ -95,12 +95,14 @@ export function InboxPage({
   };
   // A retry that works removes its "Try again" button, and focus with it;
   // focus goes on to the first item, or to the list area when it is empty.
+  // Only the first state change after a press counts, so a later background
+  // recovery leaves focus where it is.
   useEffect(() => {
     const button = retryButton.current;
+    retryButton.current = null;
     if (!button || button.isConnected) {
       return;
     }
-    retryButton.current = null;
     if (document.activeElement !== document.body) {
       return;
     }
