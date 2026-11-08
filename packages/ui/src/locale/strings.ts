@@ -767,7 +767,10 @@ export const enStrings: AegisStrings = {
   inboxNoUnread: 'No unread items',
   inboxEmptyTitle: 'No notifications',
   inboxEmptyDescription: 'Activity will appear here as it happens.',
-  notificationSeverity: (severity) => severity,
+  notificationSeverity: (severity) =>
+    ({ info: 'Info', success: 'Success', warning: 'Warning', error: 'Error' })[
+      severity
+    ],
   askPanelTitle: 'Ask AI',
   askSurface: 'Surface',
   askEntity: 'Entity',
@@ -1185,5 +1188,5 @@ export const zhCNStrings: AegisStrings = {
   askToolsAvailable: (count) => `可用工具（${count.toLocaleString('zh-CN')}）`,
   askNoTools: '当前范围内没有可用工具。',
   askPlaceholder: '就此提问…',
-  askNoAgent: '未连接智能体。',
+  askNoAgent: '未连接 Agent。',
 };

@@ -50,6 +50,8 @@ Breaking:
     like the other row menus, instead of `Options for <name>`.
   - `RouteErrorBoundary`'s and `InboxPage`'s retry buttons read `Retry`
     instead of `Try again`, the same word as every other retry.
+  - `InboxPage`'s severity chips read `Info`, `Success`, `Warning` and
+    `Error` instead of the raw `info`, `success`, `warning` and `error`.
 - `FilePreview` and `ParquetViewer` show a non-`Error` rejection as its
   string instead of a fixed English message.
 
