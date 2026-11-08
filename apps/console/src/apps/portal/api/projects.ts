@@ -6,7 +6,8 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { projectsApi } from './portal-client';
+import { projectsApi } from '../../../api/portalClient';
+
 import { isNotFound, type ListResult, required, toList } from './response';
 
 export const projectsKeys = {

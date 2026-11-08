@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { tasksApi } from '../../../api/portalClient';
+
 import { executionsKeys } from './executions';
 import { injectionsKeys } from './injections';
-import { tasksApi } from './portal-client';
 import { tracesKeys } from './traces';
 
 export function useCancelTask() {

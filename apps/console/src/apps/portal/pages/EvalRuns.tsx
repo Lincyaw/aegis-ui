@@ -14,10 +14,10 @@ import {
 import type { EvaluationEvaluationResp } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
+import { usePageSize } from '../../../hooks/usePageSize';
 import { useDeleteEvaluation, useEvaluations } from '../api/evaluations';
 import { DeleteButton } from '../components/DeleteButton';
 import { LoadError } from '../components/LoadError';
-import { usePageSize } from '../hooks/usePageSize';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 

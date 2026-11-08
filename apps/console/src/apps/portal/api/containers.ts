@@ -7,7 +7,8 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { containersApi } from './portal-client';
+import { containersApi } from '../../../api/portalClient';
+
 import { type ListResult, required, toList } from './response';
 
 export const containersKeys = {

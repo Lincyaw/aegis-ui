@@ -4,10 +4,10 @@ import type {
 } from '@lincyaw/portal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { executionsApi, projectsApi } from '../../../api/portalClient';
 import { isActive } from '../domain/status';
 
 import { ACTIVE_POLL_MS } from './polling';
-import { executionsApi, projectsApi } from './portal-client';
 import { type ListResult, required, toList } from './response';
 
 export const executionsKeys = {
