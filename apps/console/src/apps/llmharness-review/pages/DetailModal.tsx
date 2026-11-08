@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 
-import { Modal } from 'antd';
+import { Dialog } from '@lincyaw/aegis-ui';
 
 interface DetailModalProps {
   title: ReactNode;
@@ -9,7 +9,7 @@ interface DetailModalProps {
   children: ReactNode;
 }
 
-/** The scrolling modal every case-detail drill-down opens in. */
+/** The scrolling dialog every case-detail drill-down opens in. */
 export function DetailModal({
   title,
   open,
@@ -17,16 +17,8 @@ export function DetailModal({
   children,
 }: DetailModalProps): ReactElement {
   return (
-    <Modal
-      title={title}
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={720}
-      destroyOnClose
-      rootClassName='llmh-detail-modal'
-    >
+    <Dialog title={title} open={open} onClose={onClose} width='lg'>
       {children}
-    </Modal>
+    </Dialog>
   );
 }
