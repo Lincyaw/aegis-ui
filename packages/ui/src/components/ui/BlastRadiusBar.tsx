@@ -27,8 +27,8 @@ interface BlastRadiusBarBaseProps {
 type BlastRadiusBarProps = BlastRadiusBarBaseProps &
   (
     | {
-        /** Names the measure for assistive technology, e.g. "Estimated blast radius". */
-        label: string;
+        /** Accessible name of the measure, e.g. "Estimated blast radius". */
+        ariaLabel: string;
         'aria-labelledby'?: never;
       }
     | {
@@ -37,13 +37,13 @@ type BlastRadiusBarProps = BlastRadiusBarBaseProps &
          * label (`${controlId}-label` with `labelBy='aria-labelledby'`).
          */
         'aria-labelledby': string;
-        label?: never;
+        ariaLabel?: never;
       }
   );
 
 export function BlastRadiusBar({
   value,
-  label,
+  ariaLabel,
   'aria-labelledby': labelledBy,
   centerLabel,
   hideTicks = false,
@@ -66,7 +66,7 @@ export function BlastRadiusBar({
       <div
         className="aegis-blast-radius__track"
         role="meter"
-        aria-label={label}
+        aria-label={ariaLabel}
         aria-labelledby={labelledBy}
         aria-describedby={describedBy}
         aria-valuenow={clamped}

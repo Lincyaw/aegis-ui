@@ -1266,7 +1266,7 @@ export function IndicatorsSection() {
       <div className='gallery__stack'>
         <BlastRadiusBar
           value={20}
-          label='Blast radius'
+          ariaLabel='Blast radius'
           centerLabel='Node Group A · 20 %'
           surface={{
             id: 'gallery.blast.20',
@@ -1287,15 +1287,15 @@ export function IndicatorsSection() {
         />
         <BlastRadiusBar
           value={65}
-          label='Blast radius'
+          ariaLabel='Blast radius'
           centerLabel='Node Group A · 65 %'
         />
         <BlastRadiusBar
           value={92}
-          label='Blast radius'
+          ariaLabel='Blast radius'
           centerLabel='Node Group A · 92 %'
         />
-        <BlastRadiusBar value={50} label='Blast radius' hideTicks />
+        <BlastRadiusBar value={50} ariaLabel='Blast radius' hideTicks />
       </div>
     </Panel>
   );

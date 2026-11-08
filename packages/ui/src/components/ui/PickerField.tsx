@@ -4,28 +4,44 @@ import { DownOutlined } from '@ant-design/icons';
 
 import './PickerField.css';
 
-interface PickerFieldProps {
-  /** Caption rendered above the control, as on Select. */
-  label?: ReactNode;
+interface PickerFieldBaseProps {
   /** Current choice; the placeholder shows while it is empty. */
   value?: ReactNode;
   placeholder?: ReactNode;
   /** Opens the picker, typically a Dialog. */
   onClick: () => void;
   disabled?: boolean;
-  /** Accessible name when the caption is not plain text. */
-  ariaLabel?: string;
-  /**
-   * Id of visible text that names the field in place of `label`, such as a
-   * FormRow's label: give the row `labelBy='aria-labelledby'` and pass
-   * `${controlId}-label`. The value stays in the name, which a
-   * `<label for>` would replace.
-   */
-  'aria-labelledby'?: string;
   /** Ids of the text that describes the field, such as a FormRow's description. */
   'aria-describedby'?: string;
   className?: string;
 }
+
+type PickerFieldProps = PickerFieldBaseProps &
+  (
+    | {
+        /** Caption rendered above the control, as on Select; it and the value name the field. */
+        label: NonNullable<ReactNode>;
+        ariaLabel?: never;
+        'aria-labelledby'?: never;
+      }
+    | {
+        /** Accessible name for a field shown without a caption. */
+        ariaLabel: string;
+        label?: never;
+        'aria-labelledby'?: never;
+      }
+    | {
+        /**
+         * Id of visible text that names the field with its value, such as a
+         * FormRow's label: give the row `labelBy='aria-labelledby'` and pass
+         * `${controlId}-label`. A `<label for>` would replace the value in
+         * the name.
+         */
+        'aria-labelledby': string;
+        label?: never;
+        ariaLabel?: never;
+      }
+  );
 
 /** Looks like a closed Select but opens a dialog instead of a native menu. */
 export function PickerField({
@@ -59,9 +75,7 @@ export function PickerField({
         aria-haspopup="dialog"
         aria-label={ariaLabel}
         aria-labelledby={
-          ariaLabel === undefined && nameId !== undefined
-            ? `${nameId} ${controlId}`
-            : undefined
+          nameId === undefined ? undefined : `${nameId} ${controlId}`
         }
         aria-describedby={describedBy}
         onClick={onClick}

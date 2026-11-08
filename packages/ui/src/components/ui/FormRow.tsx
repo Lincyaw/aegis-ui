@@ -26,9 +26,10 @@ type FormRowProps = FormRowBaseProps &
          * How the label names the control. `'for'`, the default, renders a
          * `<label for={controlId}>`, for an input, select, textarea or
          * button. `'aria-labelledby'` is for a control a `<label>` cannot
-         * name, such as a meter or a radio group: the label is plain text,
-         * and the control takes `${controlId}-label` as its
-         * `aria-labelledby`.
+         * name, such as a meter, a radio group or a code editor, or a
+         * control whose content belongs in its name, such as PickerField:
+         * the label is plain text, and the control takes
+         * `${controlId}-label` as its `aria-labelledby`.
          */
         labelBy?: 'for' | 'aria-labelledby';
       }
