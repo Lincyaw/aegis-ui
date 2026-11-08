@@ -3,7 +3,12 @@ import { type ReactElement, useCallback, useMemo, useState } from 'react';
 import { Chip, EmptyState, MetricLabel, MonoValue } from '@lincyaw/aegis-ui';
 
 import { EventGraphView } from '../components';
-import type { AuditorFiring, CaseBundle, ExtractorFiring } from '../schemas';
+import {
+  type AuditorFiring,
+  type CaseBundle,
+  type ExtractorFiring,
+  snapshotSeenByAuditor,
+} from '../schemas';
 import { useCaseSelection } from '../selection';
 
 import { DetailModal } from './DetailModal';
@@ -100,7 +105,7 @@ export function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
           )}
           {droppedEdges.length > 0 && (
             <Chip
-              tone='warning'
+              tone='caution'
               onClick={() => {
                 setDroppedOpen(true);
               }}
@@ -135,13 +140,11 @@ export function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
               </header>
               {droppedEdges.map((d, i) => (
                 <div key={i} className='llmh-insp__pre'>
-                  <strong>{d.reason}</strong>
-                  {d.raw !== undefined && (
-                    <>
-                      {'\n'}
-                      {JSON.stringify(d.raw, null, 2)}
-                    </>
-                  )}
+                  <strong>
+                    #{d.src} → #{d.dst} · {d.kind}
+                  </strong>
+                  {'\n'}
+                  {d.last_error}
                 </div>
               ))}
             </section>
@@ -152,8 +155,8 @@ export function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
   }
 
   if (auditorFiring) {
-    const snapshotRef = auditorFiring.input.graph_snapshot_ref;
-    const snapshot = bundle.graphs.get(snapshotRef);
+    const seen = auditorFiring.input.payload.graph.length;
+    const snapshot = snapshotSeenByAuditor(bundle.graphs, auditorFiring);
     const idx = orderedAuditors.findIndex(
       (f) => f.sequence === auditorFiring.sequence
     );
@@ -170,8 +173,8 @@ export function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
           </MonoValue>
           <MetricLabel size='xs'>
             {snapshot
-              ? `${snapshot.events.length.toString()} events · ${snapshot.edges.length.toString()} edges (E#${snapshotRef.toString()})`
-              : `Snapshot E#${snapshotRef.toString()} missing`}
+              ? `${snapshot.events.length.toString()} events · ${snapshot.edges.length.toString()} edges (E#${snapshot.after_extractor_firing.toString()})`
+              : `${seen.toString()} events · no matching snapshot`}
           </MetricLabel>
           <div className='llmh-cdp__viewport-spacer' />
           {prev && (
@@ -209,7 +212,7 @@ export function GraphViewport({ bundle }: GraphViewportProps): ReactElement {
           ) : (
             <EmptyState
               title='No graph snapshot'
-              description={`bundle.graphs has no entry for E#${snapshotRef.toString()}`}
+              description={`No event_graph snapshot up to turn ${auditorFiring.turn_index.toString()} matches the ${seen.toString()} events this auditor saw.`}
             />
           )}
         </div>

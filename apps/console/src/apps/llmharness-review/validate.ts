@@ -108,6 +108,7 @@ const graphEdge = shape({ src: num, dst: num, kind: str });
 const firingCommon = {
   sequence: num,
   turn_index: num,
+  ts_ns: num,
   status: str,
   error: nullable(str),
 };
@@ -119,12 +120,17 @@ function phaseIs(phase: FiringPhase): Check<string> {
 const extractorFiring = shape({
   ...firingCommon,
   phase: phaseIs('extractor'),
-  input: shape({ payload: shape({ new_turns: each(mainTurn) }) }),
+  input: shape({
+    payload: shape({ new_turns: each(mainTurn) }),
+    summary_threshold: nullable(num),
+  }),
   output: nullable(
     shape({
       events: each(extractorEvent),
       edges: each(graphEdge),
-      dropped_edges: each(shape({ reason: str })),
+      dropped_edges: each(
+        shape({ src: num, dst: num, kind: str, last_error: str })
+      ),
     })
   ),
 });
@@ -133,7 +139,8 @@ const auditorFiring = shape({
   ...firingCommon,
   phase: phaseIs('auditor'),
   input: shape({
-    graph_snapshot_ref: num,
+    payload: shape({ graph: each(extractorEvent) }),
+    summary_threshold: nullable(num),
     findings: each(
       shape({
         index: num,
