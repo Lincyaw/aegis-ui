@@ -18,7 +18,7 @@ import {
 import type { PagesPageSiteResponse } from '@lincyaw/portal';
 import { App as AntdApp, Button } from 'antd';
 
-import { usePageSize } from '../../portal/hooks/usePageSize';
+import { usePageSize } from '../../../hooks/usePageSize';
 import {
   shareUrlForSlug,
   useDeletePage,

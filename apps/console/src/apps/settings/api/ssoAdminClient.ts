@@ -3,7 +3,7 @@
  * secret rotation). Goes through the vite proxy (`/v1/*` is forwarded
  * to the gateway / sso upstream; configure VITE_API_TARGET).
  */
-import { apiData, apiFetch } from './apiClient';
+import { apiData, apiFetch } from '../../../api/apiClient';
 
 export interface OidcClient {
   id: number;

@@ -5,9 +5,10 @@ import type {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
+import { injectionsApi } from '../../../api/portalClient';
+
 import { type ArrowColumnInfo, arrowStreamToRows } from './arrow';
 import { injectionsKeys } from './injections';
-import { injectionsApi } from './portal-client';
 import { required } from './response';
 
 export const datapackKeys = {

@@ -4,7 +4,7 @@
  * admin uses (forwarded to the sso upstream). client_secret is write-only —
  * it is never returned by the API.
  */
-import { apiData, apiFetch } from './apiClient';
+import { apiData, apiFetch } from '../../../api/apiClient';
 
 export interface IdentityProvider {
   id: number;

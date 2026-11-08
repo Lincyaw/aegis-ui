@@ -67,11 +67,9 @@ Set these in the environment or in `apps/console/.env.local`.
 
 These are inlined into the bundle.
 
-| Variable                      | Default                      | Effect                                      |
-| ----------------------------- | ---------------------------- | ------------------------------------------- |
-| `VITE_AGENTM_GATEWAY_URL`     | `ws://127.0.0.1:7777/agentm` | AgentM gateway WebSocket for the AI dock    |
-| `VITE_AGENTM_TOKEN`           | unset                        | Token sent to the AgentM gateway            |
-| `VITE_LLMHARNESS_DEFAULT_URL` | unset                        | Default case source for the Case Review app |
+| Variable                      | Default | Effect                                      |
+| ----------------------------- | ------- | ------------------------------------------- |
+| `VITE_LLMHARNESS_DEFAULT_URL` | unset   | Default case source for the Case Review app |
 
 ### Runtime endpoints
 
@@ -86,11 +84,12 @@ Endpoints that differ per deployment are read at runtime by
 
 The keys are `gatewayUrl`, `ssoOrigin`, `ssoClientId`, `ssoScope`,
 `clickhouseUrl`, `clickhouseDatabase`, `clickhouseTracesTable`,
-`clickhouseLogsTable`, `aiBaseUrl` and `aiModel`. `/config.js` is public,
-so it carries no secrets: ClickHouse credentials are added by the proxy in
-front of ClickHouse (the Go binary's `--clickhouse-user` /
-`--clickhouse-password`, or the gateway). The AI API key (`aiApiKey`) is accepted only
-from the `localStorage` override.
+`clickhouseLogsTable` and `agentmUrl`, the AgentM gateway WebSocket behind
+the AI assistant (empty, the default, hides the assistant). `/config.js` is
+public, so it carries no secrets: ClickHouse credentials are added by the
+proxy in front of ClickHouse (the Go binary's `--clickhouse-user` /
+`--clickhouse-password`, or the gateway). The AgentM token (`agentmToken`)
+is accepted only from the `localStorage` override.
 
 ## Deploy
 

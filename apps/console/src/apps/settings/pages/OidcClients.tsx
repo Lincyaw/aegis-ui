@@ -23,7 +23,7 @@ import {
   listClients,
   type OidcClient,
   rotateSecret,
-} from '../../../api/ssoAdminClient';
+} from '../api/ssoAdminClient';
 import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 

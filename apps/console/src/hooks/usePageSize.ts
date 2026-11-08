@@ -14,6 +14,8 @@ const usePageSizeStore = create<PageSizeState>()(
         set((s) => ({ sizes: { ...s.sizes, [scope]: size } }));
       },
     }),
+    // Why: the key predates this console-level module; renaming it would
+    // drop every page size users have already chosen.
     { name: 'portal:page-sizes' }
   )
 );

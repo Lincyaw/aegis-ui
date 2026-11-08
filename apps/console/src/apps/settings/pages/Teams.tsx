@@ -15,7 +15,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Form, Input, Modal, Spin } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
-import { teamsApi } from '../../portal/api/portal-client';
+import { teamsApi } from '../../../api/portalClient';
 import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 

@@ -16,27 +16,63 @@ import {
   TeamsApi,
   TracesApi,
 } from '@lincyaw/portal';
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig, isAxiosError } from 'axios';
 
-import { readTokens } from '../../../auth/tokenStore';
-import { getRuntimeConfig } from '../../../config/runtime';
+import {
+  getAccessToken,
+  renewAfterUnauthorized,
+  unauthorizedWithoutToken,
+} from '../auth/session';
+import { getRuntimeConfig } from '../config/runtime';
+
+interface PortalRequestConfig extends InternalAxiosRequestConfig {
+  retriedAfterUnauthorized?: boolean;
+}
+
+const BEARER_PREFIX = 'Bearer ';
 
 const portalAxios = axios.create();
 
-portalAxios.interceptors.request.use((req) => {
-  const tokens = readTokens();
-  if (tokens?.accessToken) {
-    req.headers = req.headers ?? {};
-    (req.headers as Record<string, string>).authorization =
-      `Bearer ${tokens.accessToken}`;
+portalAxios.interceptors.request.use(async (req) => {
+  req.baseURL = getRuntimeConfig().gatewayUrl || undefined;
+  const token = await getAccessToken();
+  if (token) {
+    req.headers.set('authorization', `${BEARER_PREFIX}${token}`);
   }
   return req;
 });
 
-// SDK paths already include `/api/v2/...`, so basePath is just the gateway
-// origin. Empty string keeps requests same-origin (vite proxy in dev,
+portalAxios.interceptors.response.use(undefined, async (error: unknown) => {
+  if (!isAxiosError(error) || error.response?.status !== 401 || !error.config) {
+    throw error;
+  }
+  const failed: PortalRequestConfig = error.config;
+  const sent = String(failed.headers.get('authorization') ?? '');
+  if (failed.retriedAfterUnauthorized) {
+    throw error;
+  }
+  if (!sent.startsWith(BEARER_PREFIX)) {
+    unauthorizedWithoutToken();
+    throw error;
+  }
+  const renewed = await renewAfterUnauthorized(
+    sent.slice(BEARER_PREFIX.length)
+  );
+  if (!renewed) {
+    throw error;
+  }
+  const retry: PortalRequestConfig = {
+    ...failed,
+    retriedAfterUnauthorized: true,
+  };
+  return portalAxios.request(retry);
+});
+
+// SDK paths already include `/api/v2/...`. An empty basePath keeps them
+// relative, so the request interceptor points each one at the gateway
+// configured when it is sent (empty = same origin: vite proxy in dev,
 // co-located gateway in prod).
-const basePath = getRuntimeConfig().gatewayUrl;
+const basePath = '';
 
 const config = new Configuration({ basePath });
 

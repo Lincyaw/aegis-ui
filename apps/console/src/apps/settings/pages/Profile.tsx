@@ -18,8 +18,8 @@ import { App, Button, Spin } from 'antd';
 import { isAxiosError } from 'axios';
 
 import { ApiError, errMsg } from '../../../api/apiClient';
-import { updateUser } from '../../../api/iamClient';
-import { authenticationApi } from '../../portal/api/portal-client';
+import { authenticationApi } from '../../../api/portalClient';
+import { updateUser } from '../api/iamClient';
 import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 

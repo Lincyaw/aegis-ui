@@ -2,8 +2,8 @@ import { useCallback } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { portalAxios } from '../../../api/portalClient';
 import { gatewayUrlFor } from '../../../config/runtime';
-import { portalAxios } from '../../portal/api/portal-client';
 
 // Defaults for the knowledge-base repo. Change these (or thread props through)
 // to point the reader at a different private repo.

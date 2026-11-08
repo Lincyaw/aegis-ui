@@ -26,12 +26,10 @@ export interface RuntimeConfig {
   clickhouseDatabase: string;
   clickhouseTracesTable: string;
   clickhouseLogsTable: string;
-  /** OpenAI-compatible chat completions base URL (no trailing slash). Empty disables AI. */
-  aiBaseUrl: string;
-  /** Model id for chat completions. */
-  aiModel: string;
-  /** Bearer token. Read from localStorage override only — never injected via window. */
-  aiApiKey: string;
+  /** AgentM gateway WebSocket behind the AI assistant. Empty hides the assistant. */
+  agentmUrl: string;
+  /** Token sent to the AgentM gateway. Read from localStorage override only — never injected via window. */
+  agentmToken: string;
 }
 
 declare global {
@@ -53,9 +51,8 @@ export const DEFAULTS: RuntimeConfig = {
   clickhouseDatabase: 'otel',
   clickhouseTracesTable: 'otel_traces',
   clickhouseLogsTable: 'otel_logs',
-  aiBaseUrl: '',
-  aiModel: 'gpt-4o-mini',
-  aiApiKey: '',
+  agentmUrl: '',
+  agentmToken: '',
 };
 
 function trimTrailingSlash(s: string): string {
@@ -77,10 +74,10 @@ function readLocalOverride(): Partial<RuntimeConfig> {
 function compose(): RuntimeConfig {
   const winRaw =
     (typeof window !== 'undefined' && window.__AEGIS_CONFIG__) || {};
-  // Why: aiApiKey is a secret — never accept it from /config.js (the page-injected
+  // Why: agentmToken is a secret — never accept it from /config.js (the page-injected
   // window blob). Only the per-user localStorage override may set it.
   const win: Partial<RuntimeConfig> = { ...winRaw };
-  delete win.aiApiKey;
+  delete win.agentmToken;
   const ls = readLocalOverride();
   const merged = { ...DEFAULTS, ...win, ...ls };
   const gateway = trimTrailingSlash(merged.gatewayUrl);
@@ -89,7 +86,6 @@ function compose(): RuntimeConfig {
     gatewayUrl: gateway,
     ssoOrigin: trimTrailingSlash(merged.ssoOrigin || gateway),
     clickhouseUrl: trimTrailingSlash(merged.clickhouseUrl),
-    aiBaseUrl: trimTrailingSlash(merged.aiBaseUrl),
   };
 }
 

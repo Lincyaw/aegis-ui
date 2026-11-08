@@ -30,7 +30,7 @@ import {
   listApiKeys,
   revokeApiKey,
   rotateApiKey,
-} from '../../../api/apiKeyClient';
+} from '../api/apiKeyClient';
 import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 

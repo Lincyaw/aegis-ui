@@ -39,6 +39,16 @@ export function writeTokens(tokens: TokenSet | null): void {
   }
 }
 
+/** Calls `listener` when another tab removes the stored tokens. */
+export function onTokensRemovedElsewhere(listener: () => void): void {
+  window.addEventListener('storage', (event) => {
+    // Why: the key is null when another tab clears localStorage outright.
+    if ((event.key === TOKEN_KEY || event.key === null) && !readTokens()) {
+      listener();
+    }
+  });
+}
+
 export function readPending(): PendingAuth | null {
   const raw = window.sessionStorage.getItem(PENDING_KEY);
   if (!raw) {

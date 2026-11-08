@@ -14,9 +14,9 @@ import {
 } from '@lincyaw/aegis-ui';
 import type { LabelLabelResp } from '@lincyaw/portal';
 
+import { usePageSize } from '../../../hooks/usePageSize';
 import { useLabelsList } from '../api/labels';
 import { LoadError } from '../components/LoadError';
-import { usePageSize } from '../hooks/usePageSize';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 

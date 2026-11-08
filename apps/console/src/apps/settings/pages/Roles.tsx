@@ -20,7 +20,7 @@ import {
   listPermissions,
   listRoles,
   removeRolePermissions,
-} from '../../../api/iamClient';
+} from '../api/iamClient';
 import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 

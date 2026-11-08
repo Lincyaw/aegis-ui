@@ -29,7 +29,7 @@ import {
   type IdentityProvider,
   listProviders,
   updateProvider,
-} from '../../../api/identityProviderClient';
+} from '../api/identityProviderClient';
 import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 

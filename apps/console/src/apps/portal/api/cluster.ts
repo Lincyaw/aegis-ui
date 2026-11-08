@@ -1,8 +1,9 @@
 import type { ClusterClusterStatusResp } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
+import { clusterApi } from '../../../api/portalClient';
+
 import { unlessFailed } from './polling';
-import { clusterApi } from './portal-client';
 import { required } from './response';
 
 export const clusterKeys = {

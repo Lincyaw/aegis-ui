@@ -14,7 +14,7 @@ import {
   pageQs,
   type PageReq,
   type Paginated,
-} from './apiClient';
+} from '../../../api/apiClient';
 
 export interface UserRole {
   id: number;

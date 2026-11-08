@@ -5,10 +5,10 @@ import type {
 } from '@lincyaw/portal';
 import { useQuery } from '@tanstack/react-query';
 
+import { tracesApi } from '../../../api/portalClient';
 import { isActive } from '../domain/status';
 
 import { pollMs, type RefreshInterval, unlessFailed } from './polling';
-import { tracesApi } from './portal-client';
 import { required } from './response';
 
 export interface TraceLogsOptions {

@@ -13,12 +13,12 @@ import {
 } from '@lincyaw/aegis-ui';
 import type { InjectionInjectionResp } from '@lincyaw/portal';
 
+import { usePageSize } from '../../../hooks/usePageSize';
 import { useInjectionsList } from '../api/injections';
 import { LoadError } from '../components/LoadError';
 import { ProjectRequired } from '../components/ProjectRequired';
 import { StatusChip } from '../components/StatusChip';
 import { useActiveProject } from '../hooks/useActiveProject';
-import { usePageSize } from '../hooks/usePageSize';
 import { useInjectBatch } from '../state/inject-batch';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];

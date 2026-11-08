@@ -1,4 +1,4 @@
-import { type ReactElement, useCallback, useEffect, useRef } from 'react';
+import { type KeyboardEvent, type ReactElement, type RefObject } from 'react';
 
 import {
   type AgentMessage,
@@ -12,105 +12,43 @@ import {
   useAgentChat,
 } from '@lincyaw/aegis-ui';
 
-import { useChatStore } from './chatStore';
 import { ChatSwitcher } from './ChatSwitcher';
 
 import './AiDock.css';
 
-const SAVE_DEBOUNCE_MS = 500;
-
 interface AiDockProps {
   open: boolean;
   onClose: () => void;
+  dockRef: RefObject<HTMLDivElement>;
 }
 
-export function AiDock({ open, onClose }: AiDockProps): ReactElement | null {
+export function AiDock({
+  open,
+  onClose,
+  dockRef,
+}: AiDockProps): ReactElement | null {
   const { messages, sending, send, clear } = useAgentChat();
-  const { currentId, saveMessages, maybeAutoTitle, touchActive } =
-    useChatStore();
 
-  // Debounced persistence: coalesce streaming writes to at most one per
-  // SAVE_DEBOUNCE_MS; flush on unmount / chat-switch so nothing is lost.
-  const lastSavedRef = useRef<string>('');
-  const pendingRef = useRef<{ id: string; messages: typeof messages } | null>(
-    null
-  );
-  useEffect(() => {
-    const serialized = JSON.stringify(messages);
-    if (serialized === lastSavedRef.current) {
-      return undefined;
+  // Popups inside the dock mark the Escape they handle with preventDefault.
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.key === 'Escape' && !event.defaultPrevented) {
+      event.preventDefault();
+      onClose();
     }
-    pendingRef.current = { id: currentId, messages };
-    const timer = window.setTimeout(() => {
-      const pending = pendingRef.current;
-      if (!pending) {
-        return;
-      }
-      saveMessages(pending.id, pending.messages);
-      lastSavedRef.current = JSON.stringify(pending.messages);
-      pendingRef.current = null;
-    }, SAVE_DEBOUNCE_MS);
-    return () => {
-      window.clearTimeout(timer);
-      const pending = pendingRef.current;
-      if (pending) {
-        saveMessages(pending.id, pending.messages);
-        lastSavedRef.current = JSON.stringify(pending.messages);
-        pendingRef.current = null;
-      }
-    };
-  }, [messages, currentId, saveMessages]);
-
-  // Title + lastActiveAt should bump only when a NEW user turn starts —
-  // i.e., the user-message count for this chat increases. Streaming
-  // assistant tokens must not reorder the chat list.
-  const prevUserCountRef = useRef<{ id: string; count: number }>({
-    id: currentId,
-    count: 0,
-  });
-  useEffect(() => {
-    const userMessages = messages.filter((m) => m.role === 'user');
-    const userCount = userMessages.length;
-    const prev = prevUserCountRef.current;
-    if (prev.id !== currentId) {
-      prevUserCountRef.current = { id: currentId, count: userCount };
-      return;
-    }
-    if (userCount > prev.count) {
-      prevUserCountRef.current = { id: currentId, count: userCount };
-      const firstUser = userMessages[0];
-      if (firstUser) {
-        maybeAutoTitle(currentId, firstUser.content);
-      }
-      touchActive(currentId);
-    }
-  }, [messages, currentId, maybeAutoTitle, touchActive]);
-
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    },
-    [onClose]
-  );
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [open, handleKeyDown]);
+  };
 
   if (!open) {
     return null;
   }
 
   return (
-    <div className='aegis-ai-dock' role='dialog' aria-label='AI assistant'>
+    <div
+      ref={dockRef}
+      className='aegis-ai-dock'
+      role='dialog'
+      aria-label='AI assistant'
+      onKeyDown={handleKeyDown}
+    >
       <AgentPanel
         title={<ChatSwitcher />}
         headerActions={
