@@ -6,17 +6,31 @@ import {
   Button,
   Chip,
   ErrorState,
+  MetricLabel,
   PanelTitle,
   SkeletonText,
+  TableOfContents,
+  type TableOfContentsItem,
 } from '@lincyaw/aegis-ui';
 
+import { errMsg } from '../../../api/apiClient';
 import { useFileContent } from '../api/github-client';
-import { TableOfContents } from '../components/TableOfContents';
 import { WikiMarkdown } from '../components/WikiMarkdown';
 import { parseFrontmatter } from '../lib/frontmatter';
+import { extractHeadings } from '../lib/headings';
 import { useNotesContext } from '../lib/notes-context';
 import { makeWikilinkResolver } from '../lib/routes';
 import { useMediaQuery } from '../lib/use-media-query';
+
+function tocItems(markdown: string): TableOfContentsItem[] {
+  const headings = extractHeadings(markdown);
+  const top = Math.min(...headings.map((h) => h.level));
+  return headings.map((h) => ({
+    id: h.id,
+    label: h.text,
+    level: (h.level - top + 1) as TableOfContentsItem['level'],
+  }));
+}
 
 function deriveTitle(path: string): string {
   const name = path.split('/').pop() ?? path;
@@ -35,6 +49,8 @@ export default function NoteView(): JSX.Element {
     () => makeWikilinkResolver(slugIndex),
     [slugIndex]
   );
+
+  const toc = useMemo(() => tocItems(parsed.content), [parsed.content]);
 
   const title = parsed.frontmatter.title ?? deriveTitle(path);
   const tags = parsed.frontmatter.tags ?? [];
@@ -73,7 +89,7 @@ export default function NoteView(): JSX.Element {
         ) : file.isError ? (
           <ErrorState
             title='Failed to load note'
-            description={`Could not fetch ${path}.`}
+            description={errMsg(file.error)}
             action={
               <Button tone='secondary' onClick={() => void file.refetch()}>
                 Try again
@@ -84,8 +100,11 @@ export default function NoteView(): JSX.Element {
           <WikiMarkdown content={parsed.content} resolveSlug={resolveSlug} />
         )}
       </article>
-      {showToc && !file.isLoading && !file.isError && parsed.content && (
-        <TableOfContents content={parsed.content} />
+      {showToc && file.isSuccess && toc.length >= 2 && (
+        <aside className='notes-toc'>
+          <MetricLabel>On this page</MetricLabel>
+          <TableOfContents items={toc} />
+        </aside>
       )}
     </div>
   );

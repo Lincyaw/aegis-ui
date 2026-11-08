@@ -11,17 +11,19 @@ import { Link, useParams } from 'react-router-dom';
 import {
   Chip,
   ContentInspectorDialog,
-  EmptyState,
   ErrorState,
   type InspectableContent,
   MetricLabel,
   MonoValue,
+  SkeletonText,
   useResizable,
 } from '@lincyaw/aegis-ui';
+import { useQuery } from '@tanstack/react-query';
 
+import { errMsg } from '../../../api/apiClient';
 import {
   getSessionRow,
-  listSessionRows,
+  listSessionFamily,
   type SessionRow,
 } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
@@ -31,6 +33,7 @@ import { lineageLabel, parentKey, useSessionData } from '../sessionRunAdapters';
 import './SessionDetail.css';
 
 const TREE_SINCE_HOURS = 720;
+const TREE_LIMIT = 5000;
 const MAX_TREE_INDENT_DEPTH = 4;
 const DEFAULT_LEFT_WIDTH = 320;
 const DEFAULT_RIGHT_WIDTH = 420;
@@ -47,11 +50,6 @@ interface SessionTreeNode {
   children: SessionTreeNode[];
   depth: number;
 }
-
-type LoadState =
-  | { kind: 'loading' }
-  | { kind: 'error'; message: string }
-  | { kind: 'ready'; rows: SessionRow[] };
 
 function buildTree(rows: SessionRow[], selectedId: string): SessionTreeNode[] {
   const byId = new Map(rows.map((row) => [row.sessionId, row]));
@@ -107,14 +105,20 @@ function flattenTree(nodes: SessionTreeNode[]): SessionTreeNode[] {
   return out;
 }
 
-function mergeSessionRows(
-  rows: SessionRow[],
-  required: SessionRow | null
-): SessionRow[] {
-  if (!required || rows.some((row) => row.sessionId === required.sessionId)) {
-    return rows;
+/** The session and every session sharing its root, so the tree query reads
+ *  one family rather than every session in the window. */
+async function loadSessionFamily(sessionId: string): Promise<SessionRow[]> {
+  const session = await getSessionRow(sessionId);
+  if (!session) {
+    return [];
   }
-  return [required, ...rows];
+  const rows = await listSessionFamily(
+    session.rootSessionId || session.sessionId,
+    { sinceHours: TREE_SINCE_HOURS, limit: TREE_LIMIT }
+  );
+  return rows.some((row) => row.sessionId === session.sessionId)
+    ? rows
+    : [session, ...rows];
 }
 
 export function SessionDetail(): ReactElement {
@@ -150,7 +154,11 @@ export function SessionDetail(): ReactElement {
     keyboardStep: PANE_KEYBOARD_STEP,
     constrainWidth: (width) => besideMinCenter(width, leftWidthRef.current),
   });
-  const [treeLoad, setTreeLoad] = useState<LoadState>({ kind: 'loading' });
+  const family = useQuery({
+    queryKey: ['trajectories', 'session-family', sessionId],
+    queryFn: () => loadSessionFamily(sessionId),
+    enabled: sessionId !== '',
+  });
   const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
   const sessionData = useSessionData(selectedSessionId);
   const [inspectedContent, setInspectedContent] =
@@ -165,41 +173,7 @@ export function SessionDetail(): ReactElement {
     setSelectedSessionId(sessionId);
   }, [sessionId]);
 
-  useEffect(() => {
-    if (!sessionId) {
-      return;
-    }
-    let cancelled = false;
-    setTreeLoad({ kind: 'loading' });
-    Promise.all([
-      listSessionRows({ sinceHours: TREE_SINCE_HOURS, limit: 5000 }),
-      getSessionRow(sessionId),
-    ])
-      .then(([rows, requiredRow]) => {
-        if (!cancelled) {
-          setTreeLoad({
-            kind: 'ready',
-            rows: mergeSessionRows(rows, requiredRow),
-          });
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setTreeLoad({
-            kind: 'error',
-            message: err instanceof Error ? err.message : String(err),
-          });
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [sessionId]);
-
-  const rows = useMemo(
-    () => (treeLoad.kind === 'ready' ? treeLoad.rows : []),
-    [treeLoad]
-  );
+  const rows = useMemo(() => family.data ?? [], [family.data]);
   const selectedRow = rows.find((row) => row.sessionId === selectedSessionId);
   const tree = useMemo(
     () => buildTree(rows, selectedSessionId || sessionId),
@@ -245,29 +219,27 @@ export function SessionDetail(): ReactElement {
           )}
           {pinned.length === 2 && (
             <Link to='/trajectories/compare'>
-              <Chip tone='warning'>compare 2 →</Chip>
+              <Chip tone='ink'>compare 2 →</Chip>
             </Link>
           )}
           <MetricLabel>{pinned.length}/2 pinned</MetricLabel>
         </div>
       </header>
 
-      {treeLoad.kind === 'error' && (
+      {family.isError && (
         <ErrorState
           title='Failed to load session tree'
-          description={treeLoad.message}
+          description={errMsg(family.error)}
         />
       )}
-      {treeLoad.kind === 'loading' && (
-        <EmptyState title='Loading session tree…' />
-      )}
-      {treeLoad.kind === 'ready' && !selectedRow && (
+      {family.isPending && <SkeletonText lines={6} />}
+      {family.isSuccess && !selectedRow && (
         <ErrorState
           title='Session not found'
           description='Try widening the session table time range, or verify the session id exists in ClickHouse.'
         />
       )}
-      {treeLoad.kind === 'ready' && selectedRow && (
+      {family.isSuccess && selectedRow && (
         <div
           ref={layoutRef}
           className={`session-tree-page${
@@ -353,12 +325,9 @@ function SessionTreeList({
           <button
             key={row.sessionId}
             type='button'
-            className={`session-tree-list__row${
+            className={`session-tree-list__row session-tree-list__row--depth-${indentDepth.toString()}${
               selected ? ' session-tree-list__row--selected' : ''
             }`}
-            style={{
-              paddingLeft: `calc(var(--space-2) + ${indentDepth.toString()} * var(--space-3))`,
-            }}
             onClick={() => onSelect(row.sessionId)}
           >
             <span className='session-tree-list__branch'>
@@ -366,8 +335,14 @@ function SessionTreeList({
             </span>
             <span className='session-tree-list__main'>
               <span className='session-tree-list__top'>
-                <MonoValue size='sm'>{row.sessionId.slice(0, 12)}</MonoValue>
-                <Chip tone={row.lineageKind === 'fork' ? 'warning' : 'ghost'}>
+                <MonoValue size='sm' inverted={selected}>
+                  {row.sessionId.slice(0, 12)}
+                </MonoValue>
+                <Chip
+                  tone={
+                    selected || row.lineageKind === 'fork' ? 'default' : 'ghost'
+                  }
+                >
                   {lineageLabel(row)}
                 </Chip>
               </span>

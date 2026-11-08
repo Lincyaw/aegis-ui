@@ -3,6 +3,7 @@ import { Outlet, useParams } from 'react-router-dom';
 
 import { MenuOutlined, ReloadOutlined } from '@ant-design/icons';
 import {
+  Alert,
   Button,
   EmptyState,
   ErrorState,
@@ -11,6 +12,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { Drawer } from 'antd';
 
+import { errMsg } from '../../../api/apiClient';
 import { NOTES_REPO, useRefreshNotes, useRepoTree } from '../api/github-client';
 import { NoteTree } from '../components/NoteTree';
 import type { NotesOutletContext } from '../lib/notes-context';
@@ -27,7 +29,7 @@ export default function NotesLayout(): JSX.Element {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const files = useMemo(
-    () => buildNoteFiles((tree.data ?? []).map((entry) => entry.path)),
+    () => buildNoteFiles((tree.data?.entries ?? []).map((entry) => entry.path)),
     [tree.data]
   );
   const slugIndex = useMemo(() => buildSlugIndex(files), [files]);
@@ -91,7 +93,7 @@ export default function NotesLayout(): JSX.Element {
           <ErrorState
             size='compact'
             title='Failed to load notes'
-            description='The repository tree could not be fetched.'
+            description={errMsg(tree.error)}
             action={
               <Button tone='secondary' onClick={refresh}>
                 Try again
@@ -101,11 +103,19 @@ export default function NotesLayout(): JSX.Element {
         ) : filtered.length === 0 ? (
           <EmptyState title={query ? 'No matching notes' : 'No notes'} />
         ) : (
-          <NoteTree
-            files={filtered}
-            currentPath={currentPath}
-            onSelect={handleNoteTreeSelect}
-          />
+          <>
+            {tree.data?.truncated && (
+              <Alert tone='warning'>
+                GitHub truncated the repository tree, so some notes are not
+                listed.
+              </Alert>
+            )}
+            <NoteTree
+              files={filtered}
+              currentPath={currentPath}
+              onSelect={handleNoteTreeSelect}
+            />
+          </>
         )}
       </div>
     </>

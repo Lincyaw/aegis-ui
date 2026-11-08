@@ -12,7 +12,7 @@ import {
 } from '@lincyaw/aegis-ui';
 import { Button } from 'antd';
 
-import type { ContainerStatus } from './data';
+import { containerStatusTone } from './data';
 import { useContainers } from './store';
 
 export function ContainerDetail(): ReactElement {
@@ -39,14 +39,8 @@ export function ContainerDetail(): ReactElement {
             {
               k: 'status',
               v: (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <StatusDot tone={statusTone(container.status)} />
+                <span className='containers-status'>
+                  <StatusDot tone={containerStatusTone(container.status)} />
                   <Chip tone='ghost'>{container.status}</Chip>
                 </span>
               ),
@@ -87,14 +81,4 @@ export function ContainerDetail(): ReactElement {
       </DangerZone>
     </>
   );
-}
-
-function statusTone(s: ContainerStatus): 'ink' | 'muted' | 'warning' {
-  if (s === 'running') {
-    return 'ink';
-  }
-  if (s === 'failed') {
-    return 'warning';
-  }
-  return 'muted';
 }

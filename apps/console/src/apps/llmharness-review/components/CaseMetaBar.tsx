@@ -1,16 +1,12 @@
 import { Chip, MetricLabel, MonoValue, TimeDisplay } from '@lincyaw/aegis-ui';
 
 import type { CaseMeta } from '../schemas';
+import { nsToIso } from '../time';
 
 import './CaseMetaBar.css';
 
 interface CaseMetaBarProps {
   meta: CaseMeta;
-}
-
-function nsToIso(ns: number): string | null {
-  if (!ns) return null;
-  return new Date(Math.round(ns / 1_000_000)).toISOString();
 }
 
 export function CaseMetaBar({ meta }: CaseMetaBarProps) {

@@ -9,7 +9,11 @@ import {
   StatusDot,
 } from '@lincyaw/aegis-ui';
 
-import type { ContainerStatus, DemoContainer } from './data';
+import {
+  type ContainerStatus,
+  containerStatusTone,
+  type DemoContainer,
+} from './data';
 import { useContainers } from './store';
 
 const STATUS_TABS: Array<{ value: ContainerStatus | 'all'; label: string }> = [
@@ -39,13 +43,7 @@ export function ContainerList(): ReactElement {
 
   return (
     <Panel>
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          padding: 'var(--space-3) var(--space-3) 0',
-        }}
-      >
+      <div className='containers-list__filters'>
         {STATUS_TABS.map((tab) => (
           <Chip
             key={tab.value}
@@ -63,7 +61,7 @@ export function ContainerList(): ReactElement {
             key: 'name',
             header: 'Name',
             render: (row) => (
-              <Link to={`./${row.id}`} style={{ color: 'inherit' }}>
+              <Link to={`./${row.id}`} className='containers-list__link'>
                 {row.name}
               </Link>
             ),
@@ -72,14 +70,8 @@ export function ContainerList(): ReactElement {
             key: 'status',
             header: 'Status',
             render: (row) => (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                <StatusDot tone={statusTone(row.status)} />
+              <span className='containers-status'>
+                <StatusDot tone={containerStatusTone(row.status)} />
                 <span>{row.status}</span>
               </span>
             ),
@@ -92,19 +84,14 @@ export function ContainerList(): ReactElement {
           {
             key: 'cpu',
             header: 'CPU',
-            align: 'right',
+            numeric: true,
             render: (row) => `${(row.cpu * 100).toFixed(0)}%`,
           },
           {
             key: 'mem',
             header: 'Memory',
-            align: 'right',
-            render: (row) =>
-              row.memMb === 0 ? (
-                <MonoValue size='sm'>—</MonoValue>
-              ) : (
-                <MonoValue size='sm'>{`${row.memMb} MB`}</MonoValue>
-              ),
+            numeric: true,
+            render: (row) => (row.memMb === 0 ? '—' : `${row.memMb} MB`),
           },
         ]}
         data={filtered}
@@ -114,14 +101,4 @@ export function ContainerList(): ReactElement {
       />
     </Panel>
   );
-}
-
-function statusTone(s: ContainerStatus): 'ink' | 'muted' | 'warning' {
-  if (s === 'running') {
-    return 'ink';
-  }
-  if (s === 'failed') {
-    return 'warning';
-  }
-  return 'muted';
 }

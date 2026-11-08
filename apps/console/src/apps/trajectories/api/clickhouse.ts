@@ -329,6 +329,7 @@ turns AS (
   FROM ${logsTbl}
   WHERE EventName = 'agentm.turn.summary'
     AND Timestamp >= now() - toIntervalHour({sinceHours:UInt32})
+    AND LogAttributes['agentm.session.id'] IN (SELECT session_id FROM starts)
   GROUP BY session_id
 ),
 tools AS (
@@ -339,6 +340,7 @@ tools AS (
   FROM ${tracesTbl}
   WHERE startsWith(SpanName, 'execute_tool ')
     AND Timestamp >= now() - toIntervalHour({sinceHours:UInt32})
+    AND SpanAttributes['agentm.session.id'] IN (SELECT session_id FROM starts)
   GROUP BY session_id
 )
 SELECT
@@ -369,6 +371,19 @@ FORMAT JSON`;
     ...whereParams,
   });
   return rows.map(mapSessionRow);
+}
+
+/** The root session and every session descending from it. */
+export function listSessionFamily(
+  rootSessionId: string,
+  opts: Pick<ListSessionsOpts, 'limit' | 'sinceHours'> = {}
+): Promise<SessionRow[]> {
+  return listSessionRows({
+    ...opts,
+    whereSql:
+      "LogAttributes['agentm.session.root_id'] = {familyRootId:String} OR LogAttributes['agentm.session.id'] = {familyRootId:String}",
+    whereParams: { familyRootId: rootSessionId },
+  });
 }
 
 export async function getSessionRow(

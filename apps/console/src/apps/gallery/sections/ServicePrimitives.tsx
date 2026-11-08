@@ -10,7 +10,6 @@ import {
 import {
   Button as AegisButton,
   Select as AegisSelect,
-  BucketCard,
   Chip,
   CodeEditor,
   type CodeEditorField,
@@ -1244,50 +1243,6 @@ export function ServicePrimitivesSection() {
         </Specimen>
         <Specimen caption='empty'>
           <UploadQueue items={[]} />
-        </Specimen>
-      </div>
-
-      <SectionDivider extra={<MetricLabel>Blob bucket summary</MetricLabel>}>
-        BucketCard
-      </SectionDivider>
-      <div className='gallery__row'>
-        <Specimen caption='s3 bucket'>
-          <BucketCard
-            name='artifacts'
-            driver='s3'
-            maxObjectBytes={5 * 1024 * 1024 * 1024}
-            retentionDays={90}
-            objectCount={1284}
-            totalBytes={42 * 1024 * 1024 * 1024}
-          />
-        </Specimen>
-        <Specimen caption='localfs · public · clickable'>
-          <BucketCard
-            name='scratch'
-            driver='localfs'
-            publicRead
-            objectCount={37}
-            totalBytes={4 * 1024 * 1024}
-            onClick={() => undefined}
-          />
-        </Specimen>
-        <Specimen caption='minimal'>
-          <BucketCard name='shared-uploads' driver='s3' />
-        </Specimen>
-        <Specimen caption='with quickActions (hover to reveal)'>
-          <BucketCard
-            name='model-artifacts'
-            driver='s3'
-            objectCount={5120}
-            totalBytes={128 * 1024 * 1024 * 1024}
-            quickActions={
-              <>
-                <Chip tone='ghost'>Settings</Chip>
-                <Chip tone='ghost'>Lifecycle</Chip>
-              </>
-            }
-            onClick={() => undefined}
-          />
         </Specimen>
       </div>
 

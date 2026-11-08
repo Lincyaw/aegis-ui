@@ -1,6 +1,6 @@
 /**
  * Hook + types for cross-pane selection. The matching <CaseSelectionProvider>
- * lives in selection.tsx; this file is split out so react-refresh can keep
+ * lives in CaseSelection.tsx; this file is split out so react-refresh can keep
  * the hook hot-swappable without disabling component-only-exports.
  */
 import { createContext, useContext } from 'react';

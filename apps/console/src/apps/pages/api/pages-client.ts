@@ -1,3 +1,4 @@
+import { formatBytes } from '@lincyaw/aegis-ui';
 import type {
   GenericResponsePagesPageSiteResponse,
   PagesPageSiteResponse,
@@ -33,6 +34,39 @@ export const PAGES_LIMITS = {
   maxFiles: 200,
   slugPattern: /^[a-z0-9][a-z0-9-]{0,62}$/,
 } as const;
+
+export function pagesUploadHelperText(): string {
+  return `${formatBytes(PAGES_LIMITS.maxFileBytes)} per file · ${formatBytes(PAGES_LIMITS.maxTotalBytes)} total · ${PAGES_LIMITS.maxFiles.toString()} files max`;
+}
+
+export interface UploadValidation {
+  ok: boolean;
+  errors: string[];
+}
+
+// File-count and size caps are enforced by FolderDropzone before files
+// reach page state, so only the checks it can't make live here.
+export function validateUpload(
+  files: File[],
+  slug: string | undefined
+): UploadValidation {
+  const errors: string[] = [];
+  if (files.length === 0) {
+    errors.push('Select at least one file.');
+  } else if (!files.some((f) => /\.md$/i.test(fileRelPath(f)))) {
+    errors.push('At least one .md file is required.');
+  }
+  if (
+    slug !== undefined &&
+    slug !== '' &&
+    !PAGES_LIMITS.slugPattern.test(slug)
+  ) {
+    errors.push(
+      'Slug must match ^[a-z0-9][a-z0-9-]{0,62}$ (lowercase, digits, hyphens).'
+    );
+  }
+  return { ok: errors.length === 0, errors };
+}
 
 // Sub-app name is the scope: keys are `['pages', …]` rather than
 // `['console', 'pages', …]` because the 'pages' sub-app owns the namespace.

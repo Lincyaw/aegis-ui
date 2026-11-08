@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import {
@@ -12,6 +12,11 @@ import {
   Panel,
   TextField,
 } from '@lincyaw/aegis-ui';
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { App as AntdApp, Button, DatePicker, Form, Modal } from 'antd';
 import type { Dayjs } from 'dayjs';
 
@@ -26,6 +31,7 @@ import {
   revokeApiKey,
   rotateApiKey,
 } from '../../../api/apiKeyClient';
+import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 
 const PAGE_SIZE = 20;
@@ -39,7 +45,7 @@ interface KeyFormValues {
 
 function statusChip(key: ApiKey) {
   if (key.revoked_at) {
-    return <Chip tone='warning'>revoked</Chip>;
+    return <Chip tone='ghost'>revoked</Chip>;
   }
   if (key.status === 1) {
     return <Chip tone='ink'>enabled</Chip>;
@@ -53,11 +59,13 @@ function fmtDate(value?: string | null): string {
 
 export default function ApiKeys() {
   const { message: msg, modal } = AntdApp.useApp();
-  const [keys, setKeys] = useState<ApiKey[]>([]);
-  const [total, setTotal] = useState(0);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const keysQuery = useQuery({
+    queryKey: settingsKeys.apiKeysPage(page),
+    queryFn: () => listApiKeys({ page, size: PAGE_SIZE }),
+    placeholderData: keepPreviousData,
+  });
 
   const [createOpen, setCreateOpen] = useState(false);
   const [form] = Form.useForm<KeyFormValues>();
@@ -68,23 +76,8 @@ export default function ApiKeys() {
     label: string;
   } | null>(null);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await listApiKeys({ page, size: PAGE_SIZE });
-      setKeys(res.items);
-      setTotal(res.total);
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const refresh = (): Promise<void> =>
+    queryClient.invalidateQueries({ queryKey: settingsKeys.apiKeys });
 
   const openCreate = (): void => {
     setCreateOpen(true);
@@ -328,15 +321,15 @@ export default function ApiKeys() {
           </span>
         }
       />
-      {error !== null ? (
+      {keysQuery.isError ? (
         <Panel>
           <ErrorState
             title='Could not load API keys'
-            description={error}
+            description={errMsg(keysQuery.error)}
             action={
               <Button
                 onClick={() => {
-                  void refresh();
+                  void keysQuery.refetch();
                 }}
               >
                 Try again
@@ -347,9 +340,9 @@ export default function ApiKeys() {
       ) : (
         <DataTable
           columns={columns}
-          data={keys}
+          data={keysQuery.data?.items ?? []}
           rowKey={(row) => row.id.toString()}
-          loading={loading}
+          loading={keysQuery.isFetching}
           emptyTitle='No API keys'
           emptyDescription='Generate your first key to start using the API.'
           emptyAction={
@@ -360,7 +353,7 @@ export default function ApiKeys() {
           pagination={{
             page,
             pageSize: PAGE_SIZE,
-            total,
+            total: keysQuery.data?.total ?? 0,
             onChange: setPage,
           }}
         />

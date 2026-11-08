@@ -16,6 +16,7 @@
  * → hyp → concl). Do not "fix" this flip back — the schema is canonical.
  */
 import {
+  type CSSProperties,
   type ReactElement,
   useCallback,
   useEffect,
@@ -74,8 +75,6 @@ interface EventGraphViewProps {
    * Receives the event id of the double-clicked node.
    */
   onOpenDetail?: (eventId: number) => void;
-  /** Optional fixed height; defaults via CSS. */
-  height?: number;
 }
 
 const NODE_TYPES: NodeTypes = { event: EventNode };
@@ -126,9 +125,13 @@ const EDGE_TYPES: EdgeTypes = { wrap: WrappingEdge };
 // overlap. We let nodes grow to fit their summary text, so we estimate
 // each node's rendered height from the summary length rather than
 // hardcoding one global value. Constants are tuned to the CSS in
-// `EventNode.css` (320px wide, ~11px line, ~1.45 line-height ⇒ ~16px /
-// line, ~38-40 chars / line at the current font stack).
+// `EventNode.css` (~11px line, ~1.45 line-height ⇒ ~16px / line,
+// ~38-40 chars / line at the current font stack); the width reaches that
+// CSS as `--llmh-node-width`, so the layout and the nodes never disagree.
 const NODE_WIDTH = 320;
+const GRAPH_STYLE = {
+  '--llmh-node-width': `${NODE_WIDTH.toString()}px`,
+} as CSSProperties;
 const NODE_HEAD_HEIGHT = 36; // kind chip + id + turn chip + bottom gap
 const NODE_LINE_HEIGHT = 16;
 const NODE_CHARS_PER_LINE = 40;
@@ -394,7 +397,6 @@ export function EventGraphView({
   onSelectEvent,
   onOpenTurns,
   onOpenDetail,
-  height,
 }: EventGraphViewProps) {
   const { resolved: colorMode } = useTheme();
   const topology = useMemo(() => topologyKey(events, edges), [events, edges]);
@@ -507,12 +509,11 @@ export function EventGraphView({
     );
   }
 
-  const style = height ? { height: `${height.toString()}px` } : undefined;
   const newCount = newEventIds?.size ?? 0;
   const selectedCount = selectedEventId !== null ? 1 : 0;
 
   return (
-    <div className='llmh-graph' style={style}>
+    <div className='llmh-graph' style={GRAPH_STYLE}>
       <ReactFlow
         nodes={rfNodes}
         edges={rfEdges}

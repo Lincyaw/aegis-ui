@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
   Avatar,
@@ -13,12 +13,14 @@ import {
   TextField,
 } from '@lincyaw/aegis-ui';
 import type { AuthUserProfileResp } from '@lincyaw/portal';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Spin } from 'antd';
 import { isAxiosError } from 'axios';
 
 import { ApiError, errMsg } from '../../../api/apiClient';
 import { updateUser } from '../../../api/iamClient';
 import { authenticationApi } from '../../portal/api/portal-client';
+import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 
 function isForbidden(e: unknown): boolean {
@@ -31,38 +33,75 @@ function isForbidden(e: unknown): boolean {
   return false;
 }
 
-export default function Profile() {
-  const { message: msg } = App.useApp();
-  const [profile, setProfile] = useState<AuthUserProfileResp | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function readProfile(): Promise<AuthUserProfileResp | null> {
+  const res = await authenticationApi.getCurrentUserProfile();
+  return res.data.data ?? null;
+}
 
-  const [fullName, setFullName] = useState('');
+const HEADER = (
+  <PageHeader
+    title='Profile'
+    description='Manage your personal information and security settings.'
+  />
+);
+
+export default function Profile() {
+  const profileQuery = useQuery({
+    queryKey: settingsKeys.profile,
+    queryFn: readProfile,
+  });
+
+  if (profileQuery.isPending) {
+    return (
+      <>
+        {HEADER}
+        <Panel>
+          <div className='settings-page__loading'>
+            <Spin />
+          </div>
+        </Panel>
+      </>
+    );
+  }
+
+  if (profileQuery.isError) {
+    return (
+      <>
+        {HEADER}
+        <Panel>
+          <ErrorState
+            title='Could not load profile'
+            description={errMsg(profileQuery.error)}
+            action={
+              <Button
+                onClick={() => {
+                  void profileQuery.refetch();
+                }}
+              >
+                Try again
+              </Button>
+            }
+          />
+        </Panel>
+      </>
+    );
+  }
+
+  return (
+    <ProfileForm key={profileQuery.data?.id} profile={profileQuery.data} />
+  );
+}
+
+function ProfileForm({ profile }: { profile: AuthUserProfileResp | null }) {
+  const { message: msg } = App.useApp();
+  const queryClient = useQueryClient();
+  const [fullName, setFullName] = useState(profile?.full_name ?? '');
   const [savingIdentity, setSavingIdentity] = useState(false);
 
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await authenticationApi.getCurrentUserProfile();
-      const data = res.data.data ?? null;
-      setProfile(data);
-      setFullName(data?.full_name ?? '');
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   const handleSaveIdentity = async (): Promise<void> => {
     if (profile?.id === undefined) {
@@ -72,7 +111,7 @@ export default function Profile() {
     try {
       await updateUser(profile.id, { full_name: fullName.trim() });
       void msg.success('Profile updated');
-      await refresh();
+      await queryClient.invalidateQueries({ queryKey: settingsKeys.profile });
     } catch (e) {
       if (isForbidden(e)) {
         void msg.warning(
@@ -114,57 +153,12 @@ export default function Profile() {
     }
   };
 
-  if (loading) {
-    return (
-      <>
-        <PageHeader
-          title='Profile'
-          description='Manage your personal information and security settings.'
-        />
-        <Panel>
-          <div className='settings-page__loading'>
-            <Spin />
-          </div>
-        </Panel>
-      </>
-    );
-  }
-
-  if (error !== null) {
-    return (
-      <>
-        <PageHeader
-          title='Profile'
-          description='Manage your personal information and security settings.'
-        />
-        <Panel>
-          <ErrorState
-            title='Could not load profile'
-            description={error}
-            action={
-              <Button
-                onClick={() => {
-                  void refresh();
-                }}
-              >
-                Try again
-              </Button>
-            }
-          />
-        </Panel>
-      </>
-    );
-  }
-
   const name = profile?.full_name || profile?.username || '';
   const email = profile?.email ?? '';
 
   return (
     <>
-      <PageHeader
-        title='Profile'
-        description='Manage your personal information and security settings.'
-      />
+      {HEADER}
       <Panel>
         <SettingsSection
           title='Identity'

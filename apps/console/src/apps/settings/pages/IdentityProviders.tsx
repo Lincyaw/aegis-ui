@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import {
@@ -10,6 +10,7 @@ import {
   Panel,
   TextField,
 } from '@lincyaw/aegis-ui';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App as AntdApp,
   Button,
@@ -29,6 +30,7 @@ import {
   listProviders,
   updateProvider,
 } from '../../../api/identityProviderClient';
+import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 
 interface CreateFormValues {
@@ -47,28 +49,17 @@ interface CreateFormValues {
 
 export default function IdentityProviders() {
   const { message: msg, modal } = AntdApp.useApp();
-  const [providers, setProviders] = useState<IdentityProvider[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const providersQuery = useQuery({
+    queryKey: settingsKeys.identityProviders,
+    queryFn: listProviders,
+  });
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm] = Form.useForm<CreateFormValues>();
   const [submitting, setSubmitting] = useState(false);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setProviders(await listProviders());
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const refresh = (): Promise<void> =>
+    queryClient.invalidateQueries({ queryKey: settingsKeys.identityProviders });
 
   const openCreate = (): void => {
     setCreateOpen(true);
@@ -180,7 +171,7 @@ export default function IdentityProviders() {
           r.enabled ? (
             <Chip tone='ink'>enabled</Chip>
           ) : (
-            <Chip tone='warning'>disabled</Chip>
+            <Chip tone='ghost'>disabled</Chip>
           ),
       },
       {
@@ -238,15 +229,15 @@ export default function IdentityProviders() {
           </span>
         }
       />
-      {error !== null ? (
+      {providersQuery.isError ? (
         <Panel>
           <ErrorState
             title='Could not load identity providers'
-            description={error}
+            description={errMsg(providersQuery.error)}
             action={
               <Button
                 onClick={() => {
-                  void refresh();
+                  void providersQuery.refetch();
                 }}
               >
                 Try again
@@ -257,9 +248,9 @@ export default function IdentityProviders() {
       ) : (
         <DataTable
           columns={columns}
-          data={providers}
+          data={providersQuery.data ?? []}
           rowKey={(row) => row.id.toString()}
-          loading={loading}
+          loading={providersQuery.isFetching}
           emptyTitle='No identity providers'
           emptyDescription='Add Google or GitHub to enable social login.'
           emptyAction={

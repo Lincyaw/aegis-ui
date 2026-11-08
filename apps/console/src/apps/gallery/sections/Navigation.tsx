@@ -447,6 +447,7 @@ const GALLERY_TOC_STATE_ITEMS: TableOfContentsItem[] = [
   },
   { id: 'gallery-toc-state-regrade', label: '重新评分', level: 2 },
   { id: 'gallery-toc-state-regrade-records', label: '读取哪些记录', level: 3 },
+  { id: 'gallery-toc-state-regrade-fields', label: '记录里的字段', level: 4 },
   { id: 'gallery-toc-state-bars', label: '结果条怎样读' },
 ];
 
@@ -501,11 +502,65 @@ function TableOfContentsStatesSpecimen(): ReactNode {
           onCurrentChange={setCurrent}
         />
       </Specimen>
-      <Specimen caption='level=2 current · level 2 and 3 labels indent by --space-3 and --space-6; a long label wraps and its indicator follows'>
+      <Specimen caption='level=2 current · level 2, 3 and 4 labels indent by --space-3, --space-6 and 3 × --space-3; a long label wraps and its indicator follows'>
         <TableOfContents
           items={GALLERY_TOC_STATE_ITEMS}
           currentId='gallery-toc-state-digest'
         />
+      </Specimen>
+    </div>
+  );
+}
+
+const GALLERY_TOC_LATE_SECTIONS = GALLERY_TOC_SCROLL_SECTIONS.map(
+  (section) => ({
+    ...section,
+    id: section.id.replace('gallery-toc-scroll-', 'gallery-toc-late-'),
+  })
+);
+
+function TableOfContentsLateSectionsSpecimen(): ReactNode {
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const [renders, setRenders] = useState(0);
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption='sections that mount after the table of contents (a lazily loaded Markdown body) or are re-created later are tracked from then on · the button mounts them, then replaces them'
+        span={3}
+      >
+        <div className='gallery__stack gallery__stack--fill'>
+          <div className='gallery__row'>
+            <AegisButton
+              tone='secondary'
+              onClick={() => setRenders((n) => n + 1)}
+            >
+              {renders === 0 ? 'Render sections' : 'Re-create sections'}
+            </AegisButton>
+            <MetricLabel>{renders} renders</MetricLabel>
+          </div>
+          <div className='gallery__toc-demo'>
+            <TableOfContents
+              items={GALLERY_TOC_LATE_SECTIONS}
+              scrollContainer={scroller}
+            />
+            <div ref={setScroller} className='gallery__toc-scroller'>
+              {renders === 0 ? (
+                <MetricLabel>No sections yet</MetricLabel>
+              ) : (
+                GALLERY_TOC_LATE_SECTIONS.map((section) => (
+                  <section
+                    key={`${section.id}-${renders.toString()}`}
+                    id={section.id}
+                    className='gallery__toc-section'
+                  >
+                    <h3 className='gallery__toc-heading'>{section.label}</h3>
+                    <p className='gallery__panel-body'>{section.body}</p>
+                  </section>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       </Specimen>
     </div>
   );
@@ -849,6 +904,11 @@ export function NavigationSection() {
 
       <SectionDivider>TableOfContents · scroll tracking</SectionDivider>
       <TableOfContentsScrollSpecimen />
+
+      <SectionDivider>
+        TableOfContents · sections that render later
+      </SectionDivider>
+      <TableOfContentsLateSectionsSpecimen />
 
       <SectionDivider>Avatar</SectionDivider>
       <div className='gallery__row'>

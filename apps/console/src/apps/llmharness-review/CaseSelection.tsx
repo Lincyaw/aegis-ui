@@ -6,9 +6,9 @@
  *   - extractorSeq / auditorSeq  (firing sequence within its phase)
  *   - eventId  (aggregator-renumbered global event id)
  *
- * Setting any one triggers cascading defaults so panes never need to
- * replicate the lookup (e.g. selecting an eventId auto-resolves the
- * extractorSeq that produced it via `links.eventOrigin`).
+ * Selecting a finding also selects its auditor firing, and moving to
+ * another auditor firing clears the finding, so panes never repeat that
+ * bookkeeping.
  *
  * The hook + Context object live in selection.ts.
  */
@@ -21,7 +21,6 @@ import {
   useState,
 } from 'react';
 
-import type { CaseLinks } from './schemas';
 import {
   type CaseSelection,
   type CaseSelectionApi,
@@ -108,8 +107,7 @@ function selectionToHash(sel: CaseSelection): string {
 
 function applyCascade(
   cur: CaseSelection,
-  patch: Partial<CaseSelection>,
-  _links: CaseLinks
+  patch: Partial<CaseSelection>
 ): CaseSelection {
   const next: CaseSelection = { ...cur, ...patch };
 
@@ -132,25 +130,21 @@ function applyCascade(
 }
 
 interface ProviderProps {
-  links: CaseLinks;
-  urlSync?: boolean;
   children: ReactNode;
 }
 
 export function CaseSelectionProvider({
-  links,
-  urlSync = true,
   children,
 }: ProviderProps): ReactElement {
   const [selection, setState] = useState<CaseSelection>(() => {
-    if (typeof window === 'undefined' || !urlSync) {
+    if (typeof window === 'undefined') {
       return EMPTY_SELECTION;
     }
     return { ...EMPTY_SELECTION, ...parseHash(window.location.hash) };
   });
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !urlSync) {
+    if (typeof window === 'undefined') {
       return undefined;
     }
     const onHash = (): void => {
@@ -164,10 +158,10 @@ export function CaseSelectionProvider({
     return () => {
       window.removeEventListener('hashchange', onHash);
     };
-  }, [urlSync]);
+  }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !urlSync) {
+    if (typeof window === 'undefined') {
       return;
     }
     const next = selectionToHash(selection);
@@ -175,14 +169,11 @@ export function CaseSelectionProvider({
       const url = `${window.location.pathname}${window.location.search}${next}`;
       window.history.replaceState(null, '', url);
     }
-  }, [selection, urlSync]);
+  }, [selection]);
 
-  const set = useCallback(
-    (patch: Partial<CaseSelection>) => {
-      setState((cur) => applyCascade(cur, patch, links));
-    },
-    [links]
-  );
+  const set = useCallback((patch: Partial<CaseSelection>) => {
+    setState((cur) => applyCascade(cur, patch));
+  }, []);
 
   const value = useMemo<CaseSelectionApi>(
     () => ({ selection, set }),

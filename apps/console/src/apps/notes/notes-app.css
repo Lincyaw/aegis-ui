@@ -1,7 +1,6 @@
 /* ---- Layout ---------------------------------------------------------- */
 .notes-app {
   --notes-sidebar-width: var(--sidebar-width-expanded);
-  --notes-toc-width: 12.5rem;
   --notes-measure: 45rem;
 
   --notes-sticky-top: calc(var(--header-height) + var(--space-6));
@@ -115,68 +114,19 @@
 .notes-toc {
   position: sticky;
   top: var(--notes-sticky-top);
-  flex: 0 0 var(--notes-toc-width);
+  flex: 0 0 var(--toc-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   max-height: var(--notes-sticky-height);
   overflow-y: auto;
-  padding-left: var(--space-3);
-  border-left: var(--size-hairline) solid var(--border-hairline);
-}
-
-.notes-toc__title {
-  font-family: var(--font-brand);
-  font-weight: var(--fw-semibold);
-  font-size: var(--fs-11);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-  margin-bottom: var(--space-2);
-  padding-left: var(--space-2);
-}
-
-.notes-toc__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.notes-toc__item {
-  margin: 0;
-}
-
-.notes-toc__link {
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  font-size: var(--fs-12);
-  line-height: 1.5;
-  color: var(--text-muted);
-  padding: var(--space-1) var(--space-2);
-  padding-left: calc(var(--space-2) + var(--notes-toc-depth) * var(--space-3));
-  border-radius: var(--radius-sm);
-  transition:
-    color var(--motion-fast),
-    background var(--motion-fast);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.notes-toc__link:hover {
-  color: var(--text-main);
-  background: var(--bg-muted);
-}
-
-.notes-toc__link--active,
-.notes-toc__link--active:hover {
-  color: var(--text-on-inverted);
-  background: var(--bg-inverted);
-  font-weight: var(--fw-medium);
 }
 
 /* ---- Markdown extras ------------------------------------------------- */
+.wiki-markdown :is(h1, h2, h3, h4)[id] {
+  scroll-margin-top: var(--notes-sticky-top);
+}
+
 .wiki-markdown img {
   max-width: 100%;
   border-radius: var(--radius-md);
@@ -212,10 +162,6 @@
 }
 
 /* ---- Callouts -------------------------------------------------------- */
-.wiki-markdown .callout {
-  border-left-width: var(--space-1);
-}
-
 .wiki-markdown .callout > :last-child {
   margin-bottom: 0;
 }
@@ -236,7 +182,6 @@
 .wiki-markdown .callout-note,
 .wiki-markdown .callout-info,
 .wiki-markdown .callout-abstract {
-  border-left-color: var(--accent-info);
   background: color-mix(in srgb, var(--accent-info) 10%, transparent);
 }
 .wiki-markdown .callout-note .callout-title,
@@ -248,7 +193,6 @@
 .wiki-markdown .callout-tip,
 .wiki-markdown .callout-success,
 .wiki-markdown .callout-hint {
-  border-left-color: var(--presence-online);
   background: color-mix(in srgb, var(--presence-online) 10%, transparent);
 }
 .wiki-markdown .callout-tip .callout-title,
@@ -260,7 +204,6 @@
 .wiki-markdown .callout-warning,
 .wiki-markdown .callout-caution,
 .wiki-markdown .callout-attention {
-  border-left-color: var(--accent-caution);
   background: color-mix(in srgb, var(--accent-caution) 12%, transparent);
 }
 .wiki-markdown .callout-warning .callout-title,
@@ -273,7 +216,6 @@
 .wiki-markdown .callout-error,
 .wiki-markdown .callout-bug,
 .wiki-markdown .callout-failure {
-  border-left-color: var(--accent-warning);
   background: color-mix(in srgb, var(--accent-warning) 10%, transparent);
 }
 .wiki-markdown .callout-danger .callout-title,
@@ -298,7 +240,10 @@
 }
 
 .wiki-mermaid__error {
-  border-left: var(--size-border-thick) solid var(--accent-warning);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
 }
 
 /* ---- Math ------------------------------------------------------------ */

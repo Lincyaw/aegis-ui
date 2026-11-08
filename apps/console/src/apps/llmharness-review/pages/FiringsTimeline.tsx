@@ -84,10 +84,10 @@ export function FiringsTimeline({
               ? `E#${seq.toString()}`
               : `A#${seq.toString()}`;
           const active = activeKey === key;
-          const tone: 'ink' | 'default' | 'warning' = active
+          const tone: 'ink' | 'default' | 'ghost' = active
             ? 'ink'
             : e.kind === 'auditor'
-              ? 'warning'
+              ? 'ghost'
               : 'default';
           const surfaced =
             e.kind === 'auditor' && Boolean(e.firing.output?.surface_reminder);

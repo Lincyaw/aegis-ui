@@ -1,23 +1,8 @@
 import type { ReactElement, ReactNode } from 'react';
-import { Link } from 'react-router-dom';
 
 import { Breadcrumb, useActiveApp } from '@lincyaw/aegis-ui';
 
-function RouterLink({
-  to,
-  className,
-  children,
-}: {
-  to: string;
-  className?: string;
-  children: ReactNode;
-}): ReactElement {
-  return (
-    <Link to={to} className={className}>
-      {children}
-    </Link>
-  );
-}
+import { RouterLink } from '../../routing/RouterLink';
 
 /**
  * The datasets app sets `breadcrumbBar: false`, so its sub-pages render

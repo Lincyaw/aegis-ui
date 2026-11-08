@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 
 import { BookOutlined } from '@ant-design/icons';
-import { EmptyState, SkeletonText } from '@lincyaw/aegis-ui';
+import { EmptyState, ErrorState, SkeletonText } from '@lincyaw/aegis-ui';
+import { isAxiosError } from 'axios';
 
+import { errMsg } from '../../../api/apiClient';
 import { NOTES_REPO, useFileContent } from '../api/github-client';
 import { WikiMarkdown } from '../components/WikiMarkdown';
 import { parseFrontmatter } from '../lib/frontmatter';
@@ -19,6 +21,17 @@ export default function NotesHome(): JSX.Element {
 
   if (readme.isLoading) {
     return <SkeletonText lines={8} />;
+  }
+
+  const readmeMissing =
+    isAxiosError(readme.error) && readme.error.response?.status === 404;
+  if (readme.isError && !readmeMissing) {
+    return (
+      <ErrorState
+        title='Failed to load README.md'
+        description={errMsg(readme.error)}
+      />
+    );
   }
 
   if (readme.isSuccess && readme.data) {

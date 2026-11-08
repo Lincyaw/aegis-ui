@@ -3,7 +3,7 @@
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-sm);
   padding: var(--space-2);
-  width: 320px;
+  width: var(--llmh-node-width);
   display: flex;
   flex-direction: column;
   font-family: var(--font-ui);
@@ -37,13 +37,13 @@
 
 .llmh-evt-node--new {
   border-color: var(--text-main);
-  box-shadow: 0 0 0 2px var(--text-main);
+  box-shadow: 0 0 0 var(--size-border-thick) var(--text-main);
 }
 
 .llmh-evt-node--new.llmh-evt-node--active {
   box-shadow:
-    0 0 0 2px var(--bg-panel),
-    0 0 0 4px var(--text-main);
+    0 0 0 var(--size-border-thick) var(--bg-panel),
+    0 0 0 calc(2 * var(--size-border-thick)) var(--text-main);
 }
 
 .llmh-evt-node__head {
@@ -96,8 +96,9 @@
 
 .llmh-evt-node__turns {
   margin-left: auto;
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-9);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   max-width: 100%;
   word-break: break-all;
@@ -126,7 +127,7 @@
 }
 
 .llmh-evt-node__handle {
-  width: 6px;
-  height: 6px;
+  width: var(--size-dot);
+  height: var(--size-dot);
   background: var(--border-emphasis);
 }

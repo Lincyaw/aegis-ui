@@ -57,46 +57,17 @@ export function DatasetBrowse(): ReactElement {
         {filtered.length === 0 ? (
           <EmptyState title='No datasets in this tab' />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className='datasets-list'>
             {filtered.map((d) => (
-              <Link
-                key={d.id}
-                to={d.id}
-                style={{
-                  display: 'block',
-                  padding: 'var(--space-3) var(--space-4)',
-                  borderTop: '1px solid var(--border-hairline)',
-                  color: 'inherit',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                    gap: 'var(--space-3)',
-                  }}
-                >
+              <Link key={d.id} to={d.id} className='datasets-row'>
+                <div className='datasets-row__head'>
                   <strong>{d.name}</strong>
-                  <span
-                    style={{
-                      fontSize: 'var(--fs-11)',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
+                  <span className='datasets-row__time'>
                     <TimeDisplay value={d.updatedAt} mode='relative' />
                   </span>
                 </div>
-                <div
-                  style={{
-                    color: 'var(--text-muted)',
-                    fontSize: 'var(--fs-11)',
-                    margin: 'var(--space-1) 0',
-                  }}
-                >
-                  {d.description}
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div className='datasets-row__description'>{d.description}</div>
+                <div className='datasets-chips'>
                   <Chip tone='ghost'>
                     <MonoValue size='sm'>{d.format}</MonoValue>
                   </Chip>

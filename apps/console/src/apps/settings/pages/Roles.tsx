@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   EmptyState,
@@ -7,6 +7,7 @@ import {
   PageHeader,
   Panel,
 } from '@lincyaw/aegis-ui';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Checkbox, Form, Input, Modal, Spin } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
@@ -20,6 +21,7 @@ import {
   listRoles,
   removeRolePermissions,
 } from '../../../api/iamClient';
+import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 
 import './Roles.css';
@@ -41,60 +43,53 @@ interface CreateRoleForm {
   description: string;
 }
 
+interface RoleMatrix {
+  roles: IamRole[];
+  permissions: IamPermission[];
+  /** Role id -> ids of the permissions it holds. */
+  rolePerms: Record<number, Set<number>>;
+}
+
+async function loadRoleMatrix(): Promise<RoleMatrix> {
+  const [rolesRes, permissions] = await Promise.all([
+    listRoles({ page: 1, size: 50 }),
+    listPermissions(),
+  ]);
+  // Fetch each role's permission set; the list endpoint may not embed it.
+  const details = await Promise.all(
+    rolesRes.items.map(async (r) => {
+      const embedded = r.permissions;
+      if (embedded && embedded.length > 0) {
+        return [r.id, embedded] as const;
+      }
+      const full = await getRole(r.id);
+      return [r.id, full.permissions ?? []] as const;
+    })
+  );
+  const rolePerms: Record<number, Set<number>> = {};
+  details.forEach(([id, perms]) => {
+    rolePerms[id] = new Set(perms.map((p) => p.id));
+  });
+  return { roles: rolesRes.items, permissions, rolePerms };
+}
+
+const EMPTY_PERMISSIONS: IamPermission[] = [];
+
 export default function Roles() {
   const { message: msg } = App.useApp();
-  const [roles, setRoles] = useState<IamRole[]>([]);
-  const [permissions, setPermissions] = useState<IamPermission[]>([]);
-  // role id -> set of permission ids it holds
-  const [rolePerms, setRolePerms] = useState<Record<number, Set<number>>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const matrix = useQuery({
+    queryKey: settingsKeys.roles,
+    queryFn: loadRoleMatrix,
+  });
+  const roles = matrix.data?.roles ?? [];
+  const permissions = matrix.data?.permissions ?? EMPTY_PERMISSIONS;
+  const rolePerms = matrix.data?.rolePerms ?? {};
   const [savingCell, setSavingCell] = useState<string | null>(null);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm] = Form.useForm<CreateRoleForm>();
   const [submitting, setSubmitting] = useState(false);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [rolesRes, perms] = await Promise.all([
-        listRoles({ page: 1, size: 50 }),
-        listPermissions(),
-      ]);
-      setPermissions(perms);
-      setRoles(rolesRes.items);
-      // Fetch each role's permission set; the list endpoint may not embed it.
-      const details = await Promise.all(
-        rolesRes.items.map(async (r) => {
-          const embedded = r.permissions;
-          if (embedded && embedded.length > 0) {
-            return [r.id, embedded] as const;
-          }
-          try {
-            const full = await getRole(r.id);
-            return [r.id, full.permissions ?? []] as const;
-          } catch {
-            return [r.id, [] as IamPermission[]] as const;
-          }
-        })
-      );
-      const map: Record<number, Set<number>> = {};
-      details.forEach(([id, perms2]) => {
-        map[id] = new Set(perms2.map((p) => p.id));
-      });
-      setRolePerms(map);
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   const categories = useMemo(() => {
     const byCat = new Map<string, IamPermission[]>();
@@ -123,16 +118,17 @@ export default function Roles() {
         } else {
           await removeRolePermissions(role.id, [perm.id]);
         }
-        setRolePerms((prev) => {
-          const next = { ...prev };
-          const set = new Set(next[role.id] ?? []);
+        queryClient.setQueryData<RoleMatrix>(settingsKeys.roles, (prev) => {
+          if (!prev) {
+            return prev;
+          }
+          const set = new Set(prev.rolePerms[role.id] ?? []);
           if (checked) {
             set.add(perm.id);
           } else {
             set.delete(perm.id);
           }
-          next[role.id] = set;
-          return next;
+          return { ...prev, rolePerms: { ...prev.rolePerms, [role.id]: set } };
         });
       } catch (e) {
         void msg.error(`Update failed: ${errMsg(e)}`);
@@ -156,7 +152,7 @@ export default function Roles() {
           void msg.success('Role created');
           setCreateOpen(false);
           createForm.resetFields();
-          await refresh();
+          await queryClient.invalidateQueries({ queryKey: settingsKeys.roles });
         } catch (e) {
           void msg.error(`Create failed: ${errMsg(e)}`);
         } finally {
@@ -184,15 +180,15 @@ export default function Roles() {
           </Button>
         }
       />
-      {error !== null ? (
+      {matrix.isError ? (
         <Panel>
           <ErrorState
             title='Could not load roles'
-            description={error}
+            description={errMsg(matrix.error)}
             action={
               <Button
                 onClick={() => {
-                  void refresh();
+                  void matrix.refetch();
                 }}
               >
                 Try again
@@ -200,7 +196,7 @@ export default function Roles() {
             }
           />
         </Panel>
-      ) : loading ? (
+      ) : matrix.isPending ? (
         <Panel>
           <div className='settings-page__loading'>
             <Spin />
