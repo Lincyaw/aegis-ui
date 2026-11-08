@@ -18,7 +18,6 @@ import {
   PageHeader,
   PageWrapper,
   Panel,
-  PanelTitle,
   PasswordField,
   PickerField,
   QueryAutocomplete,
@@ -37,9 +36,10 @@ import {
   Slider,
   TextField,
   ThemeToggle,
+  TimeDisplay,
 } from '@lincyaw/aegis-ui';
 
-import { GalleryRouterLink, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 const SITE_NAV_ITEMS: SiteNavItem[] = [
   { key: 'benchmarks', label: 'Benchmarks', to: '/gallery' },
@@ -316,6 +316,92 @@ function FormRowGroupSpecimen() {
   );
 }
 
+const SETTINGS_TIMEZONES = [
+  { value: 'utc', label: 'UTC' },
+  { value: 'shanghai', label: 'Asia/Shanghai' },
+  { value: 'new-york', label: 'America/New_York' },
+];
+
+function SettingsSectionSpecimen() {
+  const [timezone, setTimezone] = useState('utc');
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [slack, setSlack] = useState(false);
+  return (
+    <>
+      <SettingsSection
+        title='Profile'
+        description='Update your personal information and preferences.'
+      >
+        <FormRow
+          label='Display name'
+          description='Shown across the platform.'
+          controlId='gallery-settings-name'
+        >
+          <TextField
+            id='gallery-settings-name'
+            aria-describedby='gallery-settings-name-description'
+            defaultValue='Ada Lovelace'
+          />
+        </FormRow>
+        <FormRow
+          label='Email'
+          description='Used for notifications and login.'
+          controlId='gallery-settings-email'
+        >
+          <TextField
+            id='gallery-settings-email'
+            aria-describedby='gallery-settings-email-description'
+            type='email'
+            defaultValue='ada@aegislab.io'
+          />
+        </FormRow>
+        <FormRow
+          label='Timezone'
+          description='All times are displayed in this zone.'
+          controlId='gallery-settings-timezone'
+        >
+          <Select
+            id='gallery-settings-timezone'
+            aria-describedby='gallery-settings-timezone-description'
+            value={timezone}
+            options={SETTINGS_TIMEZONES}
+            onChange={setTimezone}
+          />
+        </FormRow>
+      </SettingsSection>
+      <SettingsSection
+        title='Notifications'
+        description='Choose what you want to be notified about.'
+      >
+        <FormRow
+          label='Email alerts'
+          description='Receive email for critical events.'
+          controlId='gallery-settings-email-alerts'
+        >
+          <Checkbox
+            id='gallery-settings-email-alerts'
+            aria-describedby='gallery-settings-email-alerts-description'
+            checked={emailAlerts}
+            onChange={setEmailAlerts}
+          />
+        </FormRow>
+        <FormRow
+          label='Slack integration'
+          description='Push notifications to your Slack channel.'
+          controlId='gallery-settings-slack'
+        >
+          <Checkbox
+            id='gallery-settings-slack'
+            aria-describedby='gallery-settings-slack-description'
+            checked={slack}
+            onChange={setSlack}
+          />
+        </FormRow>
+      </SettingsSection>
+    </>
+  );
+}
+
 function GallerySiteBrand() {
   return <span className='gallery__site-brand'>AEGIS</span>;
 }
@@ -349,7 +435,7 @@ function GallerySiteFooter() {
 
 export function LayoutsSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Layouts</PanelTitle>}>
+    <GallerySection title='Layouts'>
       <SectionDivider>PageHeader</SectionDivider>
       <div className='gallery__row'>
         <Specimen caption='title only' span={2}>
@@ -417,13 +503,16 @@ export function LayoutsSection() {
                 </>
               }
               description={
-                <IdentityCell
-                  avatar
-                  colorSlot={2}
-                  name='claude-opus-4-1'
-                  secondary='claude-code · 2026-10-27 09:14 UTC'
-                  inline
-                />
+                <span className='gallery__specimen-row'>
+                  <IdentityCell
+                    avatar
+                    colorSlot={2}
+                    name='claude-opus-4-1'
+                    secondary='claude-code'
+                    inline
+                  />
+                  <TimeDisplay value='2026-10-27T09:14:00Z' mode='utc' />
+                </span>
               }
             />
           </div>
@@ -523,86 +612,7 @@ export function LayoutsSection() {
       </div>
 
       <SectionDivider>SettingsSection</SectionDivider>
-      <SettingsSection
-        title='Profile'
-        description='Update your personal information and preferences.'
-      >
-        <FormRow
-          label='Display name'
-          description='Shown across the platform.'
-          controlId='gallery-settings-name'
-        >
-          <input
-            id='gallery-settings-name'
-            aria-describedby='gallery-settings-name-description'
-            type='text'
-            defaultValue='Ada Lovelace'
-            className='gallery__demo-input'
-          />
-        </FormRow>
-        <FormRow
-          label='Email'
-          description='Used for notifications and login.'
-          controlId='gallery-settings-email'
-        >
-          <input
-            id='gallery-settings-email'
-            aria-describedby='gallery-settings-email-description'
-            type='text'
-            defaultValue='ada@aegislab.io'
-            className='gallery__demo-input'
-          />
-        </FormRow>
-        <FormRow
-          label='Timezone'
-          description='All times are displayed in this zone.'
-          controlId='gallery-settings-timezone'
-        >
-          <select
-            id='gallery-settings-timezone'
-            aria-describedby='gallery-settings-timezone-description'
-            className='gallery__demo-input'
-          >
-            <option>UTC</option>
-            <option>Asia/Shanghai</option>
-            <option>America/New_York</option>
-          </select>
-        </FormRow>
-      </SettingsSection>
-      <SettingsSection
-        title='Notifications'
-        description='Choose what you want to be notified about.'
-      >
-        <FormRow
-          label='Email alerts'
-          description='Receive email for critical events.'
-          controlId='gallery-settings-email-alerts'
-        >
-          <label className='gallery__demo-toggle'>
-            <input
-              id='gallery-settings-email-alerts'
-              aria-describedby='gallery-settings-email-alerts-description'
-              type='checkbox'
-              defaultChecked
-            />
-            <span className='gallery__demo-toggle-track' />
-          </label>
-        </FormRow>
-        <FormRow
-          label='Slack integration'
-          description='Push notifications to your Slack channel.'
-          controlId='gallery-settings-slack'
-        >
-          <label className='gallery__demo-toggle'>
-            <input
-              id='gallery-settings-slack'
-              aria-describedby='gallery-settings-slack-description'
-              type='checkbox'
-            />
-            <span className='gallery__demo-toggle-track' />
-          </label>
-        </FormRow>
-      </SettingsSection>
+      <SettingsSectionSpecimen />
 
       <SectionDivider
         extra={
@@ -733,6 +743,6 @@ export function LayoutsSection() {
           <Button tone='caution'>Delete project</Button>
         </div>
       </DangerZone>
-    </Panel>
+    </GallerySection>
   );
 }

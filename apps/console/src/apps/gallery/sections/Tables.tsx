@@ -16,7 +16,6 @@ import {
   MetricLabel,
   MonoValue,
   Panel,
-  PanelTitle,
   SearchInput,
   SectionDivider,
   Toolbar,
@@ -29,7 +28,7 @@ import {
   GALLERY_RUNS,
   type GalleryModelRow,
 } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const GALLERY_SORTABLE_COLUMNS: Array<DataTableColumn<GalleryModelRow>> =
   GALLERY_MODEL_COLUMNS.map((col) => ({
@@ -110,9 +109,9 @@ function GalleryModelCard({ row }: { row: GalleryModelRow }): ReactNode {
   return (
     <div className='gallery__table-card'>
       <span className='gallery__table-card-title'>{row.model}</span>
-      <MonoValue size='sm' weight='regular'>
+      <span className='gallery__table-card-meta'>
         {`${row.passed}/${row.runs} passed · mean ${row.mean === null ? '—' : row.mean.toFixed(2)}`}
-      </MonoValue>
+      </span>
     </div>
   );
 }
@@ -790,7 +789,7 @@ function ResizableColumnsSpecimen(): ReactNode {
 
 export function TablesSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Tables & Toolbar</PanelTitle>}>
+    <GallerySection title='Tables & Toolbar'>
       <SectionDivider>Toolbar</SectionDivider>
       <ToolbarFiltersSpecimen />
 
@@ -1035,6 +1034,6 @@ export function TablesSection() {
         />
       </Specimen>
       <DataListSelectSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }

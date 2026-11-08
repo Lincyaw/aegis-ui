@@ -19,8 +19,6 @@ import {
   DataList,
   type DataListColumn,
   MetricLabel,
-  Panel,
-  PanelTitle,
   type SearchProvider,
   SectionDivider,
   TextField,
@@ -29,7 +27,7 @@ import {
   useAegisSurface,
 } from '@lincyaw/aegis-ui';
 
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 interface DemoDataset {
   id: string;
@@ -179,14 +177,10 @@ function AgentIntegrationSpecimen(): ReactNode {
       style={{ alignItems: 'flex-start' }}
     >
       <Specimen caption='Button with action prop' span={2}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-3)',
-          }}
-        >
-          <AegisButton action={toastAction}>Show toast</AegisButton>
+        <div className='gallery__stack gallery__stack--fill'>
+          <div>
+            <AegisButton action={toastAction}>Show toast</AegisButton>
+          </div>
           <DataList
             items={DEMO_DATASETS}
             columns={columns}
@@ -600,8 +594,8 @@ function AskAffordanceSpecimen(): ReactNode {
 
 export function AgentIntegrationSection() {
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Agent integration</PanelTitle>}
+    <GallerySection
+      title='Agent integration'
       extra={<MetricLabel>window.__aegis</MetricLabel>}
     >
       <SectionDivider>Button · action</SectionDivider>
@@ -612,6 +606,6 @@ export function AgentIntegrationSection() {
         AskOverlay · AskPanel
       </SectionDivider>
       <AskAffordanceSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }

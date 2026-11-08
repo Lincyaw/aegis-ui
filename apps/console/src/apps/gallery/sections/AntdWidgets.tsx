@@ -7,7 +7,6 @@ import {
   MetricLabel,
   MonoValue,
   Panel,
-  PanelTitle,
   SectionDivider,
   Terminal,
 } from '@lincyaw/aegis-ui';
@@ -28,7 +27,7 @@ import {
 
 import { GALLERY_RUN_COLUMNS } from '../columns';
 import { GALLERY_RUNS, KV_PARAMS, TERMINAL_LINES } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const TABLE_DATA = [
   {
@@ -74,11 +73,7 @@ const TABLE_COLUMNS = [
     title: 'Duration',
     dataIndex: 'duration',
     key: 'duration',
-    render: (v: string) => (
-      <MonoValue size='sm' weight='regular'>
-        {v}
-      </MonoValue>
-    ),
+    render: (v: string) => <span className='gallery__numeric'>{v}</span>,
   },
   {
     title: 'State',
@@ -142,8 +137,8 @@ export function AntdWidgetsSection() {
   const [switchOn, setSwitchOn] = useState(true);
 
   return (
-    <Panel
-      title={<PanelTitle size='lg'>AntD widgets · themed</PanelTitle>}
+    <GallerySection
+      title='AntD widgets · themed'
       extra={<MetricLabel>ConfigProvider</MetricLabel>}
     >
       <SectionDivider>Buttons</SectionDivider>
@@ -202,7 +197,7 @@ export function AntdWidgetsSection() {
           <Tag>queued</Tag>
         </Specimen>
         <Specimen caption='Tag — primary'>
-          <Tag color='black'>running</Tag>
+          <Tag color='var(--bg-inverted)'>running</Tag>
         </Specimen>
         <Specimen caption='Tag — error'>
           <Tag color='error'>failed</Tag>
@@ -352,6 +347,6 @@ export function AntdWidgetsSection() {
           <Button type='primary'>Save &amp; queue</Button>
         </Form.Item>
       </Form>
-    </Panel>
+    </GallerySection>
   );
 }

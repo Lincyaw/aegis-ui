@@ -19,7 +19,12 @@ import {
   useScrollProgress,
 } from '@lincyaw/aegis-ui';
 
-import { GalleryRouterLink, GalleryRunChecks, Specimen } from '../shared';
+import {
+  GalleryRouterLink,
+  GalleryRunChecks,
+  GallerySection,
+  Specimen,
+} from '../shared';
 
 /* ── Panel, AmbientBackground and Reveal specimens ─────────────────── */
 
@@ -328,7 +333,7 @@ function ScrollStorySpecimen(): ReactNode {
 
 export function SurfacesSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Surface — Panel</PanelTitle>}>
+    <GallerySection title='Surface — Panel'>
       <SectionDivider>Panel</SectionDivider>
       <div className='gallery__row gallery__row--panels'>
         <Panel
@@ -509,6 +514,6 @@ export function SurfacesSection() {
           <ScrollStorySpecimen />
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

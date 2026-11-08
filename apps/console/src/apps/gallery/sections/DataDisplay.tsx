@@ -3,7 +3,6 @@ import { type ReactNode, useState } from 'react';
 import { InboxOutlined } from '@ant-design/icons';
 import {
   Button as AegisButton,
-  Chip,
   EmptyState,
   formatDuration,
   FormRow,
@@ -11,8 +10,6 @@ import {
   KeyValueList,
   MetricCard,
   MonoValue,
-  Panel,
-  PanelTitle,
   SectionDivider,
   Skeleton,
   SkeletonText,
@@ -24,7 +21,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { KV_PARAMS } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const SPARK_RISING = [
   42, 41, 44, 43, 47, 50, 49, 52, 55, 58, 62, 60, 64, 68, 71, 73,
@@ -106,9 +103,26 @@ function StatBlockCountUpSpecimen(): ReactNode {
   );
 }
 
+function EmptyStateActionSpecimen(): ReactNode {
+  const [created, setCreated] = useState(0);
+  return (
+    <Specimen caption={`with action · onClick · pressed ${String(created)}`}>
+      <EmptyState
+        title='No projects'
+        description='Projects group experiments and their results.'
+        action={
+          <AegisButton onClick={() => setCreated((n) => n + 1)}>
+            New project
+          </AegisButton>
+        }
+      />
+    </Specimen>
+  );
+}
+
 export function DataDisplaySection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Data display</PanelTitle>}>
+    <GallerySection title='Data display'>
       <SectionDivider>StatBlock</SectionDivider>
       <div className='gallery__row'>
         <Specimen caption='vertical · emphasized · number role'>
@@ -322,13 +336,7 @@ export function DataDisplaySection() {
             description='Create your first fault injection to begin.'
           />
         </Specimen>
-        <Specimen caption='with action'>
-          <EmptyState
-            title='No projects'
-            description='Projects group experiments and their results.'
-            action={<Chip tone='ink'>+ New project</Chip>}
-          />
-        </Specimen>
+        <EmptyStateActionSpecimen />
         <Specimen caption='icon at --size-icon-xl'>
           <EmptyState
             icon={<InboxOutlined className='gallery__icon-xl' />}
@@ -450,6 +458,6 @@ export function DataDisplaySection() {
           </FormRow>
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

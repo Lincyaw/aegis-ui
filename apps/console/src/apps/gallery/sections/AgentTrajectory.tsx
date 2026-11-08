@@ -10,7 +10,6 @@ import {
   KeyMomentCard,
   MetricLabel,
   Panel,
-  PanelTitle,
   ReplayScrubber,
   ReplayStepStrip,
   ReplayTransport,
@@ -28,7 +27,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { TOOL_QUERY_METRICS } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const TOOL_GET_TRACES: ToolCallData = {
   name: 'get_traces',
@@ -435,8 +434,8 @@ function ContentInspectorSpecimen(): ReactNode {
 
 export function AgentTrajectorySection() {
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Agent trajectory</PanelTitle>}
+    <GallerySection
+      title='Agent trajectory'
       extra={<MetricLabel>Observation · reasoning · action</MetricLabel>}
     >
       <SectionDivider>ToolCallCard</SectionDivider>
@@ -671,6 +670,6 @@ export function AgentTrajectorySection() {
 
       <SectionDivider>ContentInspectorDialog · ContentPreview</SectionDivider>
       <ContentInspectorSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }
