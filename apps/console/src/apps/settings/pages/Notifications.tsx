@@ -92,20 +92,45 @@ export default function Notifications() {
     queryFn: readSubscriptions,
   });
   const toggle = useMutation({
+    mutationKey: settingsKeys.subscriptions,
     mutationFn: setSubscription,
-    onMutate: (row) => {
+    onMutate: async (row) => {
+      await queryClient.cancelQueries({
+        queryKey: settingsKeys.subscriptions,
+      });
+      const previous = queryClient.getQueryData<SubscriptionRow[]>(
+        settingsKeys.subscriptions
+      );
       queryClient.setQueryData<SubscriptionRow[]>(
         settingsKeys.subscriptions,
         (rows) => withSubscription(rows, row)
       );
+      return { previous };
     },
-    onError: (e, row) => {
+    onError: (e, row, context) => {
+      const before = context?.previous?.find(
+        (r) => key(r.category, r.channel) === key(row.category, row.channel)
+      );
+      queryClient.setQueryData<SubscriptionRow[]>(
+        settingsKeys.subscriptions,
+        (rows) => withSubscription(rows, before ?? { ...row, enabled: false })
+      );
       void msg.error(
         `Could not update ${row.category} / ${row.channel}: ${errMsg(e)}`
       );
     },
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: settingsKeys.subscriptions }),
+    onSettled: () => {
+      // A refetch while another toggle is still saving would read the
+      // server before that write lands and flip its switch back.
+      if (
+        queryClient.isMutating({ mutationKey: settingsKeys.subscriptions }) ===
+        1
+      ) {
+        void queryClient.invalidateQueries({
+          queryKey: settingsKeys.subscriptions,
+        });
+      }
+    },
   });
 
   const subs = useMemo(() => {
