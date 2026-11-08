@@ -22,9 +22,14 @@ Breaking changes:
   than a nanosecond either side of zero reads `<1 ns`, and a negative
   duration keeps its sign.
 - `TimelineChart`'s axis labels every tick in one unit picked from the
-  range, e.g. `0 ms` to `750 ms` or `0 min` to `10 min`, and draws fewer
-  ticks on a narrow track, one per `72px`, but never fewer than two and
-  never one past the end of the range.
+  range, e.g. `0 ms` to `750 ms` or `0 min` to `10 min`, and picks its
+  ticks by the room their labels take. It measures each label in the
+  axis's own font and keeps the densest 1, 2 or 5 × 10ⁿ step, at most six
+  ticks, whose labels stay inside the track at least `--space-2` apart; a
+  last label with no room after its tick sits before it. It picks again
+  when the track, the range or the font changes. It always draws at least
+  two ticks and never one past the end of the range: when no whole step
+  fits, it shows `0` and the largest round value that fits.
 - `UploadQueue`'s ETA reads in whole seconds, rounded up: `ETA 4 s`,
   `ETA 2 min 5 s`.
 - `TimelineChart` rows are buttons only when `onSelect` is set; without it
@@ -54,6 +59,9 @@ Breaking changes:
   and a tab the reader picks holds until then.
 - `TraceTree` renders its rows inside a `role="tree"` element and draws one
   resize handle for the name column instead of one per row.
+- `ShareLinkDialog` is the body of a dialog: it no longer draws its own
+  card or takes `onClose`. Place it in a `Dialog`, whose close control is
+  the only one.
 
 Additions:
 
@@ -63,7 +71,10 @@ Additions:
   never selected. The hint is a themed tooltip that opens on hover and on
   focus, and it is the tab's accessible description. The list's one tab
   stop follows focus, so Tab and Shift+Tab leave the list from a disabled
-  tab too, and it returns to the selected tab when focus leaves. `Tabs`
+  tab too, and it returns to the selected tab when focus leaves. It follows
+  the focused tab by key, so it stays on that tab when tabs are added or
+  removed before it, and falls back to the selected tab when that tab is
+  removed. `Tabs`
   takes `ariaLabel`, and `panelId` names the panel a `listOnly` tab row
   controls.
 - `TimeDisplay`'s `value` accepts `null` and `undefined`. An empty or
@@ -109,3 +120,6 @@ Fixes:
 - `ProjectSelector`'s trigger content is phrasing content, valid inside the
   dropdown's button.
 - `ScrollStory` tracks the current step with `useSectionSpy`.
+- The rolling digits of `StatBlock`, `MetricCard` and `HeadlineStat` no
+  longer make the scroll container around them scrollable: each digit
+  column is cropped with `overflow: clip`, which keeps it on the baseline.
