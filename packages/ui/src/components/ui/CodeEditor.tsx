@@ -55,6 +55,16 @@ interface CodeEditorProps {
   tables?: string[];
   /** Fires on Cmd/Ctrl+Enter — useful for run-this-query affordances. */
   onSubmit?: (value: string) => void;
+  /** Id of the editable area. */
+  id?: string;
+  /**
+   * Id of visible text that names the editable area, such as a FormRow's
+   * label: give the row `labelBy='aria-labelledby'`, since a `<label>`
+   * cannot name it.
+   */
+  'aria-labelledby'?: string;
+  /** Ids of the text that describes the editable area, such as a FormRow's description. */
+  'aria-describedby'?: string;
 }
 
 // Module constants: @uiw/react-codemirror reconfigures the whole editor
@@ -253,6 +263,9 @@ export function CodeEditor({
   fields,
   tables,
   onSubmit,
+  id,
+  'aria-labelledby': labelledBy,
+  'aria-describedby': describedBy,
 }: CodeEditorProps) {
   const { codeEditorPhrases } = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -286,6 +299,17 @@ export function CodeEditor({
       syntaxTheme,
       EditorState.phrases.of(codeEditorPhrases),
     ];
+    const contentAttributes: Record<string, string> = {};
+    if (id !== undefined) {
+      contentAttributes.id = id;
+    }
+    if (labelledBy !== undefined) {
+      contentAttributes['aria-labelledby'] = labelledBy;
+    }
+    if (describedBy !== undefined) {
+      contentAttributes['aria-describedby'] = describedBy;
+    }
+    exts.push(EditorView.contentAttributes.of(contentAttributes));
     if (language === 'json') {
       exts.push(json());
     } else if (language === 'yaml') {
@@ -326,7 +350,15 @@ export function CodeEditor({
       );
     }
     return exts;
-  }, [language, schemaKey, submittable, codeEditorPhrases]);
+  }, [
+    language,
+    schemaKey,
+    submittable,
+    codeEditorPhrases,
+    id,
+    labelledBy,
+    describedBy,
+  ]);
 
   const rootClass = ['aegis-code-editor', className ?? '']
     .filter(Boolean)
@@ -337,7 +369,13 @@ export function CodeEditor({
   };
 
   return (
-    <div ref={wrapRef} className={rootClass} style={rootStyle} {...agentAttrs}>
+    <div
+      ref={wrapRef}
+      className={rootClass}
+      style={rootStyle}
+      data-aegis-field
+      {...agentAttrs}
+    >
       <CodeMirror
         value={value}
         height="100%"

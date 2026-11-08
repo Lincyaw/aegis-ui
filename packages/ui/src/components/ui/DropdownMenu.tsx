@@ -4,7 +4,8 @@ import { Popover } from 'antd';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
-import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
 import { Button, type ButtonTone } from './Button';
 import './DropdownMenu.css';
 
@@ -95,7 +96,7 @@ export function DropdownMenu({
         open={menu.open}
         onOpenChange={menu.setOpen}
         placement={align === 'left' ? 'bottomLeft' : 'bottomRight'}
-        autoAdjustOverflow={MENU_OVERFLOW}
+        autoAdjustOverflow={POPOVER_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-dropdown__overlay' }}
         destroyOnHidden

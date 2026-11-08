@@ -23,6 +23,7 @@ import {
   Tabs,
   Tag,
   Tooltip,
+  Tree,
 } from 'antd';
 
 import { GALLERY_RUN_COLUMNS } from '../columns';
@@ -88,6 +89,29 @@ const TABLE_COLUMNS = [
         v === 'running' ? 'ink' : v === 'failed' ? 'warning' : 'default';
       return <Chip tone={tone}>{v}</Chip>;
     },
+  },
+];
+
+const TREE_DATA = [
+  {
+    key: 'eu-west-01',
+    title: 'EU-WEST-01',
+    children: [
+      {
+        key: 'order-svc',
+        title: 'order-svc',
+        children: [
+          { key: 'order-svc-0', title: 'order-svc-7d9f-0' },
+          { key: 'order-svc-1', title: 'order-svc-7d9f-1' },
+        ],
+      },
+      { key: 'cart-svc', title: 'cart-svc' },
+    ],
+  },
+  {
+    key: 'us-east-02',
+    title: 'US-EAST-02',
+    children: [{ key: 'inventory', title: 'inventory' }],
   },
 ];
 
@@ -215,6 +239,26 @@ export function AntdWidgetsSection() {
           },
         ]}
       />
+
+      <SectionDivider>Tree</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen caption='Tab in, then the arrow keys · selectable' span={2}>
+          <Tree
+            treeData={TREE_DATA}
+            defaultExpandAll
+            defaultSelectedKeys={['cart-svc']}
+          />
+        </Specimen>
+        <Specimen caption='checkable · blockNode' span={2}>
+          <Tree
+            treeData={TREE_DATA}
+            defaultExpandAll
+            checkable
+            blockNode
+            defaultCheckedKeys={['order-svc-0']}
+          />
+        </Specimen>
+      </div>
 
       <SectionDivider>Table</SectionDivider>
       <DataTableSelectionSpecimen />

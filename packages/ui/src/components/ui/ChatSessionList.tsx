@@ -11,7 +11,8 @@ import {
 
 import { Popover } from 'antd';
 
-import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
 import { useStrings } from '../../locale';
 import './ChatSessionList.css';
 import { relativeTime } from './relativeTime';
@@ -297,7 +298,7 @@ function RowActions({
           menu.setOpen(next);
         }}
         placement="bottomRight"
-        autoAdjustOverflow={MENU_OVERFLOW}
+        autoAdjustOverflow={POPOVER_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-chat-session-list__overlay' }}
         destroyOnHidden

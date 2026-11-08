@@ -1,7 +1,9 @@
-import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
+import { type ChangeEvent, type KeyboardEvent, useId, useState } from 'react';
 
 import { Popover } from 'antd';
 
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useDialogPopover } from '../../hooks/useDialogPopover';
 import {
   RELATIVE_TIME_PRESETS,
   type RelativeTimePreset,
@@ -62,7 +64,8 @@ export function TimeRangePicker({
 }: TimeRangePickerProps) {
   const strings = useStrings();
   const nowFn = now ?? ((): Date => new Date());
-  const [open, setOpen] = useState(false);
+  const popover = useDialogPopover<HTMLDivElement>();
+  const panelId = useId();
   const [input, setInput] = useState(value);
 
   const parsedValue = parseTimeRangeInput(value, nowFn());
@@ -85,7 +88,7 @@ export function TimeRangePicker({
         : `${strings.formatDateTime(parsedValue.from)} → ${strings.formatDateTime(parsedValue.to)}`;
 
   const handleOpen = (next: boolean): void => {
-    setOpen(next);
+    popover.setOpen(next);
     if (next) {
       setInput(value);
       if (parsedValue) {
@@ -98,7 +101,7 @@ export function TimeRangePicker({
   const applyInput = (): void => {
     if (parsedInput) {
       onChange(input.trim());
-      setOpen(false);
+      popover.close();
     }
   };
 
@@ -123,7 +126,7 @@ export function TimeRangePicker({
   const handleAbsApply = (): void => {
     if (absFromDate && absToDate && absValid) {
       onChange(absoluteValueString(absFromDate, absToDate));
-      setOpen(false);
+      popover.close();
     }
   };
 
@@ -131,7 +134,14 @@ export function TimeRangePicker({
     input.trim().length > 0 && !parsedInput ? strings.timeRangeUnparseable : '';
 
   const content = (
-    <div className="aegis-trp__pop">
+    <div
+      ref={popover.panelRef}
+      id={panelId}
+      className="aegis-trp__pop"
+      role="dialog"
+      aria-label="Time range"
+      tabIndex={-1}
+    >
       <div className="aegis-trp__section">
         <TextField
           label={strings.timeRangeExpression}
@@ -157,7 +167,7 @@ export function TimeRangePicker({
               tone={p.value === value ? 'ink' : 'default'}
               onClick={() => {
                 onChange(p.value);
-                setOpen(false);
+                popover.close();
               }}
             >
               {p.label}
@@ -213,19 +223,22 @@ export function TimeRangePicker({
     <Popover
       content={content}
       trigger="click"
-      open={disabled ? false : open}
+      open={disabled ? false : popover.open}
       onOpenChange={handleOpen}
       placement="bottomLeft"
+      autoAdjustOverflow={POPOVER_OVERFLOW}
       arrow={false}
       classNames={{ root: 'aegis-trp__overlay' }}
       destroyOnHidden
     >
       <button
+        ref={popover.triggerRef}
         type="button"
         className={triggerCls}
         disabled={disabled}
         aria-haspopup="dialog"
-        aria-expanded={open}
+        aria-expanded={popover.open}
+        aria-controls={popover.open ? panelId : undefined}
       >
         <span className="aegis-trp__trigger-label">{triggerLabel}</span>
         <span className="aegis-trp__trigger-caret" aria-hidden="true">

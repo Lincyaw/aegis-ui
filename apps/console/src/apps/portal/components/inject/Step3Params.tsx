@@ -39,6 +39,7 @@ function ParamControl({ id, field, value, onChange }: ControlProps) {
       return field.widget === 'slider' ? (
         <Slider
           id={id}
+          aria-describedby={`${id}-description`}
           min={field.min}
           max={field.max}
           value={typeof value === 'number' ? value : field.min}
@@ -48,6 +49,7 @@ function ParamControl({ id, field, value, onChange }: ControlProps) {
       ) : (
         <NumberField
           id={id}
+          aria-describedby={`${id}-description`}
           integer
           min={field.min}
           max={field.max}
@@ -72,6 +74,7 @@ function ParamControl({ id, field, value, onChange }: ControlProps) {
       return (
         <Select
           id={id}
+          aria-describedby={`${id}-description`}
           value={typeof value === 'string' ? value : ''}
           placeholder={`Select ${field.label.toLowerCase()}`}
           allowClear={!field.required}

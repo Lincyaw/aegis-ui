@@ -1,8 +1,10 @@
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useId } from 'react';
 
 import { Popover } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
 import { useStrings } from '../../locale';
 import { joinPath } from './paths';
 import type { AegisApp } from './types';
@@ -23,12 +25,13 @@ export function AppSwitcher({
   activeAppId,
   onAppSwitch,
 }: AppSwitcherProps): ReactElement {
-  const [open, setOpen] = useState(false);
+  const menu = useMenuPopover<HTMLUListElement>();
+  const menuId = useId();
   const navigate = useNavigate();
   const strings = useStrings();
 
   const handlePick = (app: AegisApp): void => {
-    setOpen(false);
+    menu.close();
     onAppSwitch?.(app.id);
     navigate(joinPath(app.basePath, ''));
   };
@@ -36,7 +39,14 @@ export function AppSwitcher({
   const visibleApps = apps.filter((app) => !app.hidden);
 
   const content = (
-    <ul className="aegis-shell__app-list" role="menu">
+    <ul
+      ref={menu.panelRef}
+      id={menuId}
+      className="aegis-shell__app-list"
+      role="menu"
+      tabIndex={-1}
+      onKeyDown={menu.onPanelKeyDown}
+    >
       {visibleApps.map((app) => {
         const active = app.id === activeAppId;
         const cls = active
@@ -68,21 +78,25 @@ export function AppSwitcher({
 
   return (
     <Popover
-      open={open}
-      onOpenChange={setOpen}
+      open={menu.open}
+      onOpenChange={menu.setOpen}
       trigger="click"
       placement="rightTop"
+      autoAdjustOverflow={POPOVER_OVERFLOW}
       arrow={false}
       content={content}
       classNames={{ root: 'aegis-shell__app-popover' }}
       destroyOnHidden
     >
       <button
+        ref={menu.triggerRef}
         type="button"
         className="aegis-shell__app-launcher"
         aria-label={strings.switchApp}
-        aria-haspopup="dialog"
-        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-expanded={menu.open}
+        aria-controls={menu.open ? menuId : undefined}
+        onKeyDown={menu.onTriggerKeyDown}
       >
         <span className="aegis-shell__app-launcher-glyph" aria-hidden="true">
           <svg

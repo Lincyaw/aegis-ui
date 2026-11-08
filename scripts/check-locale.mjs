@@ -79,6 +79,8 @@ const SAMPLES = {
   scrollStoryPosition: [[1, 4]],
   deleteNamed: [['report.csv']],
   moreActionsFor: [['report.csv']],
+  pinNamed: [['failed runs']],
+  unpinNamed: [['failed runs']],
   relativeTime: [
     [{ unit: 'now' }],
     [{ unit: 'minutes', count: 1 }],

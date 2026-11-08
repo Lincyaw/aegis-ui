@@ -2,31 +2,55 @@ import { type ReactNode, useId } from 'react';
 
 import './FormRow.css';
 
-interface FormRowProps {
+interface FormRowBaseProps {
   label: string;
   description?: string;
-  /**
-   * Id of the one control the label names; put the same id on that
-   * control. Inside an antd `Form.Item`, put it on the input, not on the
-   * item. The description's id is then `${controlId}-description`; set
-   * it as the control's `aria-describedby`. Without a controlId the row is
-   * a group the label names and the description describes, for several
-   * controls or a value that isn't a control.
-   */
-  controlId?: string;
   children: ReactNode;
   className?: string;
 }
 
+type FormRowProps = FormRowBaseProps &
+  (
+    | {
+        /**
+         * Id of the one control the label names; put the same id on that
+         * control. Inside an antd `Form.Item`, put it on the input, not on
+         * the item. The label's id is then `${controlId}-label` and the
+         * description's `${controlId}-description`; set the description's
+         * as the control's `aria-describedby`. Without a controlId the row
+         * is a group the label names and the description describes, for
+         * several controls or a value that isn't a control.
+         */
+        controlId: string;
+        /**
+         * How the label names the control. `'for'`, the default, renders a
+         * `<label for={controlId}>`, for an input, select, textarea or
+         * button. `'aria-labelledby'` is for a control a `<label>` cannot
+         * name, such as a meter, a radio group or a code editor, or a
+         * control whose content belongs in its name, such as PickerField:
+         * the label is plain text, and the control takes
+         * `${controlId}-label` as its `aria-labelledby`.
+         */
+        labelBy?: 'for' | 'aria-labelledby';
+      }
+    | { controlId?: undefined; labelBy?: never }
+  );
+
+/**
+ * Stacked at ≤768 px, the row stretches each direct child marked
+ * `data-aegis-field`, as the library's fields are; a host's own field can
+ * carry the marker too.
+ */
 export function FormRow({
   label,
   description,
   controlId,
+  labelBy = 'for',
   children,
   className,
 }: FormRowProps) {
   const baseId = useId();
-  const labelId = `${baseId}-label`;
+  const labelId = `${controlId ?? baseId}-label`;
   const descriptionId = description
     ? `${controlId ?? baseId}-description`
     : undefined;
@@ -35,8 +59,12 @@ export function FormRow({
   return (
     <div className={cls}>
       <div className="aegis-form-row__label-group">
-        {controlId ? (
-          <label className="aegis-form-row__label" htmlFor={controlId}>
+        {controlId && labelBy === 'for' ? (
+          <label
+            id={labelId}
+            className="aegis-form-row__label"
+            htmlFor={controlId}
+          >
             {label}
           </label>
         ) : (

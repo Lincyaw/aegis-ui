@@ -110,9 +110,12 @@ export function Step1Target({ spec, update }: Props) {
       <FormRow
         label='Namespace'
         description='Where the fault runs, as aegisctl inject guided chooses it.'
+        controlId='inject-namespace-mode'
+        labelBy='aria-labelledby'
       >
         <ChoiceCardGroup
-          ariaLabel='Namespace allocation'
+          aria-labelledby='inject-namespace-mode-label'
+          aria-describedby='inject-namespace-mode-description'
           value={spec.namespaceMode}
           onChange={(value) => {
             const mode = NAMESPACE_MODES.find((m) => m.value === value);
@@ -152,6 +155,7 @@ export function Step1Target({ spec, update }: Props) {
         ) : (
           <Select
             id='inject-system'
+            aria-describedby='inject-system-description'
             value={spec.systemCode}
             disabled={systemsQuery.isLoading}
             placeholder={
@@ -196,6 +200,7 @@ export function Step1Target({ spec, update }: Props) {
         ) : (
           <Select
             id='inject-app'
+            aria-describedby='inject-app-description'
             value={spec.app}
             disabled={candidatesQuery.isLoading}
             placeholder={

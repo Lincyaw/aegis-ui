@@ -133,6 +133,9 @@ export interface AegisStrings {
   send: string;
   pin: string;
   unpin: string;
+  /** Names a pin button by what it pins, e.g. "Pin failed runs". */
+  pinNamed: (name: string) => string;
+  unpinNamed: (name: string) => string;
   signIn: string;
   signOut: string;
   searchPlaceholder: string;
@@ -470,6 +473,8 @@ export const enStrings: AegisStrings = {
   send: 'Send',
   pin: 'Pin',
   unpin: 'Unpin',
+  pinNamed: (name) => `Pin ${name}`,
+  unpinNamed: (name) => `Unpin ${name}`,
   signIn: 'Sign in',
   signOut: 'Sign out',
   searchPlaceholder: 'Search…',
@@ -823,6 +828,8 @@ export const zhCNStrings: AegisStrings = {
   send: '发送',
   pin: '固定',
   unpin: '取消固定',
+  pinNamed: (name) => `固定“${name}”`,
+  unpinNamed: (name) => `取消固定“${name}”`,
   signIn: '登录',
   signOut: '退出登录',
   searchPlaceholder: '搜索…',

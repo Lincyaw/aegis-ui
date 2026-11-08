@@ -64,9 +64,24 @@
     visibility var(--motion-enter);
 }
 
+/* The row clips its content only while the panel is closed or moving, so
+ * an open panel never cuts off a focus ring or shadow at its edge. */
 .aegis-collapse__clip {
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
+}
+
+.aegis-collapse__panel--open > .aegis-collapse__clip {
+  overflow: visible;
+  animation: aegis-collapse-clip var(--motion-enter);
+}
+
+@keyframes aegis-collapse-clip {
+  from,
+  to {
+    overflow: hidden;
+  }
 }
 
 .aegis-collapse__body {
