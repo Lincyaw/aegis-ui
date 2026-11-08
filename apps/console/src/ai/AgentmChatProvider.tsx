@@ -41,7 +41,11 @@ interface ChatPersistenceProps {
   chatId: string;
 }
 
-/** Keeps one chat's messages saved under that chat. */
+/**
+ * Keeps one chat's messages saved under that chat, titles a still-untitled
+ * chat from its first user message, and bumps its `lastActiveAt` when a new
+ * user turn starts.
+ */
 function ChatPersistence({ chatId }: ChatPersistenceProps): null {
   const { messages } = useAgentChat();
   const { saveMessages, maybeAutoTitle, touchActive } = useChatStore();
