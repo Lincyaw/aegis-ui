@@ -31,8 +31,6 @@ interface ShareLinkDialogBaseProps {
   objectKey: string;
   /** Context under the object key, e.g. what the link opens and that it is read-only. */
   description?: ReactNode;
-  /** Optional cancel/close handler — renders a secondary button. */
-  onClose?: () => void;
   className?: string;
 }
 
@@ -71,13 +69,16 @@ function remainingParts(ms: number): {
   };
 }
 
+/**
+ * The body of a share dialog. Place it in a `Dialog`, which draws the
+ * surface and the one control that closes it.
+ */
 export function ShareLinkDialog({
   objectKey,
   description,
   url: plainUrl,
   ttlPresets: ttlPresetsProp,
   onGenerate,
-  onClose,
   className,
 }: ShareLinkDialogProps) {
   const strings = useStrings();
@@ -252,11 +253,6 @@ export function ShareLinkDialog({
       ) : null}
 
       <footer className="aegis-share-link__actions">
-        {onClose ? (
-          <Button onClick={onClose} tone="ghost">
-            {strings.close}
-          </Button>
-        ) : null}
         {url !== undefined || onGenerate === undefined ? (
           <Button
             onClick={() => {

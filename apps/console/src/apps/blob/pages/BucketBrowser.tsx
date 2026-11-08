@@ -1256,10 +1256,6 @@ export default function BucketBrowser() {
           <ShareLinkDialog
             objectKey={share.key}
             onGenerate={(opts) => generateShareLink(share, opts)}
-            onClose={() => {
-              setShareModalOpen(false);
-              setShare(null);
-            }}
           />
         ) : null}
       </Modal>

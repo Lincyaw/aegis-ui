@@ -14,6 +14,7 @@ import {
   Chip,
   CodeEditor,
   type CodeEditorField,
+  Dialog,
   DiffViewer,
   FileDropzone,
   FilePreview,
@@ -285,6 +286,41 @@ function CopyToClipboardSpecimen(): ReactNode {
     >
       {copied ? 'Copied' : 'Copy 3f9c2a1b7d04'}
     </AegisButton>
+  );
+}
+
+function ShareLinkInDialogSpecimen(): ReactNode {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <AegisButton
+        tone='secondary'
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        Share link
+      </AegisButton>
+      <Dialog
+        open={open}
+        title='Share link'
+        onClose={() => {
+          setOpen(false);
+        }}
+      >
+        <ShareLinkDialog
+          objectKey='datasets/2026-04/trace-snapshot.json'
+          onGenerate={(opts) =>
+            Promise.resolve({
+              url: 'https://example.com/blob/raw/eyJhbGciOiJIUzI1NiIs...',
+              expiresAt: new Date(
+                Date.now() + opts.ttlSeconds * 1000
+              ).toISOString(),
+            })
+          }
+        />
+      </Dialog>
+    </>
   );
 }
 
@@ -1727,7 +1763,6 @@ export function ServicePrimitivesSection() {
             objectKey='sre-incidents'
             description='23 tasks · 6 models · read-only'
             url='https://cgfs.example.com/dashboard/collections/sre-incidents'
-            onClose={() => undefined}
           />
         </Specimen>
         <Specimen caption='url · zh-CN strings' span={2}>
@@ -1736,9 +1771,14 @@ export function ServicePrimitivesSection() {
               objectKey='sre-incidents'
               description='23 道题目 · 6 个模型 · 只读'
               url='https://cgfs.example.com/dashboard/collections/sre-incidents'
-              onClose={() => undefined}
             />
           </LocaleProvider>
+        </Specimen>
+        <Specimen
+          caption='in a Dialog · the dialog draws the surface and the one close control'
+          span={2}
+        >
+          <ShareLinkInDialogSpecimen />
         </Specimen>
       </div>
 
