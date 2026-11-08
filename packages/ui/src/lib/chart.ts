@@ -62,9 +62,6 @@ export function zeroAnchoredDomain(
 
 /** The smallest 1, 2 or 5 × 10ⁿ step not below `raw`, as `digit × 10^exponent`. */
 function niceStep(raw: number): { digit: number; exponent: number } {
-  if (!(raw > 0) || !Number.isFinite(raw)) {
-    return { digit: 1, exponent: 0 };
-  }
   const exponent = Math.floor(Math.log10(raw));
   const normalized = raw / 10 ** exponent;
   return normalized <= 1
@@ -89,25 +86,44 @@ export function niceTicks(lo: number, hi: number, count = 5): number[] {
   if (!(hi > lo) || !Number.isFinite(lo) || !Number.isFinite(hi)) {
     return [];
   }
+  // Halving first keeps a span such as ±1e308 from overflowing; the
+  // halves are exact, so any other span gives the same quotient.
+  const raw = ((hi / 2 - lo / 2) / count) * 2;
+  if (!(raw > 0) || !Number.isFinite(raw)) {
+    return [];
+  }
   // A step finer than the doubles near the ends would round neighbouring
   // ticks onto one value.
   const resolution = Math.max(Math.abs(lo), Math.abs(hi)) * Number.EPSILON;
-  // Halving first keeps a span such as ±1e308 from overflowing; the
-  // halves are exact, so any other span gives the same quotient.
-  const { digit, exponent } = niceStep(
-    Math.max(((hi / 2 - lo / 2) / count) * 2, resolution),
-  );
+  const { digit, exponent } = niceStep(Math.max(raw, resolution));
   const tickAt = (index: number): number =>
     Number(`${String(BigInt(index) * BigInt(digit))}e${String(exponent)}`);
   const step = tickAt(1);
+  if (!Number.isFinite(step)) {
+    return [];
+  }
+  // How many steps from zero `value` lies, scaled through its decimal: a
+  // division by a subnormal step would be off by millions of steps.
+  const stepsTo = (value: number): number => {
+    const [mantissa, power] = value.toExponential().split('e');
+    return Number(`${mantissa}e${String(Number(power) - exponent)}`) / digit;
+  };
   // Absorbs float error in an end, such as 0.1 * 3 = 0.30000000000000004.
   const slack = step * 1e-9;
-  let first = Math.floor(lo / step);
-  if (tickAt(first) < lo - slack) {
+  // The estimates can miss by a step or two when the step is an ulp or
+  // two of the ends.
+  let first = Math.floor(stepsTo(lo));
+  while (tickAt(first - 1) >= lo - slack) {
+    first -= 1;
+  }
+  while (tickAt(first) < lo - slack) {
     first += 1;
   }
-  let last = Math.ceil(hi / step);
-  if (tickAt(last) > hi + slack) {
+  let last = Math.ceil(stepsTo(hi));
+  while (tickAt(last + 1) <= hi + slack) {
+    last += 1;
+  }
+  while (tickAt(last) > hi + slack) {
     last -= 1;
   }
   const ticks: number[] = [];

@@ -33,7 +33,9 @@ Fixed:
   from zero it lies (nanosecond timestamps, `123456.794` with a step of
   `0.001`), keeps ticks of steps from `1e23` up exact, and no longer
   returns duplicate ticks for a span only a few doubles wide or as wide
-  as ±1e308, nor throws for a step below `1e-100`.
+  as ±1e308. A step below `1e-100`, which threw, now gives the ticks of
+  that step, subnormal steps included. A `count` that is not positive, or
+  a step past the largest double, gives no ticks.
 
 The inject wizard's selects, sliders and number fields are described by
 their rows, and its Blast radius meter is named once.
