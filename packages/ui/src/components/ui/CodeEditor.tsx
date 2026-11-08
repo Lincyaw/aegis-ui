@@ -1,4 +1,4 @@
-import { type CSSProperties, useCallback, useMemo, useRef } from 'react';
+import { type CSSProperties, useCallback, useId, useMemo, useRef } from 'react';
 
 import { autocompletion, completeFromList } from '@codemirror/autocomplete';
 import { json } from '@codemirror/lang-json';
@@ -267,8 +267,9 @@ export function CodeEditor({
   'aria-labelledby': labelledBy,
   'aria-describedby': describedBy,
 }: CodeEditorProps) {
-  const { codeEditorPhrases } = useStrings();
+  const { codeEditorPhrases, codeEditorTabHint } = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
+  const hintId = useId();
   const agentAttrs = usePrimitiveSurface(
     surface,
     { value, language },
@@ -306,8 +307,12 @@ export function CodeEditor({
     if (labelledBy !== undefined) {
       contentAttributes['aria-labelledby'] = labelledBy;
     }
-    if (describedBy !== undefined) {
-      contentAttributes['aria-describedby'] = describedBy;
+    // Tab indents in an editable editor, so its content names the way out.
+    const description = [describedBy, readOnly ? undefined : hintId]
+      .filter(Boolean)
+      .join(' ');
+    if (description) {
+      contentAttributes['aria-describedby'] = description;
     }
     exts.push(EditorView.contentAttributes.of(contentAttributes));
     if (language === 'json') {
@@ -358,6 +363,8 @@ export function CodeEditor({
     id,
     labelledBy,
     describedBy,
+    readOnly,
+    hintId,
   ]);
 
   const rootClass = ['aegis-code-editor', className ?? '']
@@ -377,6 +384,7 @@ export function CodeEditor({
       {...agentAttrs}
     >
       <CodeMirror
+        className="aegis-code-editor__view"
         value={value}
         height="100%"
         extensions={extensions}
@@ -387,6 +395,11 @@ export function CodeEditor({
         onChange={handleChange}
         basicSetup={BASIC_SETUP}
       />
+      {readOnly ? null : (
+        <div id={hintId} className="aegis-code-editor__hint">
+          {codeEditorTabHint}
+        </div>
+      )}
     </div>
   );
 }

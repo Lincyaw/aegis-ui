@@ -363,6 +363,12 @@ export interface AegisStrings {
   askNoTools: string;
   askPlaceholder: string;
   askNoAgent: string;
+  /** Under a focused CodeEditor, where Tab indents. */
+  codeEditorTabHint: string;
+  /** System messages AgentmChannelProvider writes into the transcript. */
+  agentmNotConnected: string;
+  agentmSendFailed: (message: string) => string;
+  agentmGatewayError: string;
 }
 
 const ZH_TIME_UNITS: Readonly<Record<TimeRangeUnit, string>> = {
@@ -461,15 +467,19 @@ export const enStrings: AegisStrings = {
   clipboardUnavailable: 'clipboard unavailable',
   trajectoryHeading: 'agent trajectory',
   trajectoryStatus: (status) => status,
-  trajectoryActionType: (type) => type,
-  trajectoryThought: 'thought',
-  trajectoryAction: 'action',
-  trajectoryTool: 'tool',
-  trajectoryObservation: 'observation',
-  toolCallArguments: 'arguments',
-  toolCallResult: 'result',
-  toolCallError: 'error',
-  toolCallStatus: (status) => status,
+  trajectoryActionType: (type) =>
+    ({ tool_call: 'Tool call', message: 'Message', internal: 'Internal' })[
+      type
+    ],
+  trajectoryThought: 'Thought',
+  trajectoryAction: 'Action',
+  trajectoryTool: 'Tool',
+  trajectoryObservation: 'Observation',
+  toolCallArguments: 'Arguments',
+  toolCallResult: 'Result',
+  toolCallError: 'Error',
+  toolCallStatus: (status) =>
+    ({ running: 'Running', ok: 'OK', error: 'Error' })[status],
   expandRow: 'Expand',
   collapseRow: 'Collapse',
   resizeNameColumn: 'Resize name column',
@@ -782,6 +792,11 @@ export const enStrings: AegisStrings = {
   askNoTools: 'No tools in scope.',
   askPlaceholder: 'Ask about this…',
   askNoAgent: 'No agent is connected.',
+  codeEditorTabHint: 'Tab indents. Press Esc, then Tab, to leave the editor.',
+  agentmNotConnected:
+    'The AgentM gateway is not connected. The message was not sent.',
+  agentmSendFailed: (message) => `The message could not be sent: ${message}`,
+  agentmGatewayError: 'The AgentM gateway reported an error.',
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -1193,4 +1208,8 @@ export const zhCNStrings: AegisStrings = {
   askNoTools: '当前范围内没有可用工具。',
   askPlaceholder: '就此提问…',
   askNoAgent: '未连接 Agent。',
+  codeEditorTabHint: 'Tab 键用于缩进。先按 Esc，再按 Tab，即可离开编辑器。',
+  agentmNotConnected: 'AgentM 网关未连接，消息未发送。',
+  agentmSendFailed: (message) => `消息发送失败：${message}`,
+  agentmGatewayError: 'AgentM 网关报告了错误。',
 };
