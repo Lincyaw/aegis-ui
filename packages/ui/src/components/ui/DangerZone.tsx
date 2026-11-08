@@ -24,7 +24,7 @@ export function DangerZone({
   return (
     <section className={cls}>
       <div className="aegis-danger-zone__header">
-        <PanelTitle size="base" as="h3">
+        <PanelTitle size="base" as="h3" className="aegis-danger-zone__title">
           {title ?? strings.dangerZone}
         </PanelTitle>
         {description && <MetricLabel>{description}</MetricLabel>}

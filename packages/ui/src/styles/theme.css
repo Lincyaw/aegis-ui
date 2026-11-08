@@ -293,7 +293,7 @@
   --avatar-hue-1: #1f2937; /* slate */
   --avatar-hue-2: #4338ca; /* indigo */
   --avatar-hue-3: #047857; /* emerald */
-  --avatar-hue-4: #b45309; /* amber-700 */
+  --avatar-hue-4: #0369a1; /* sky-700 — distinct from the caution amber */
   --avatar-hue-5: #be123c; /* rose-700 — distinct from anomaly red */
 
   /* ── Presence (online / offline / busy / away) ───────────────────── */
@@ -521,14 +521,13 @@
   /* Thin bars: RankBar size='sm', ResultMatrix shape='bar'. */
   --rank-bar-height-sm: var(--space-2);
   --result-matrix-bar: 7px;
-  /* A bar's confidence interval (ColumnChart, RankBar), drawn over it in a
-   * faint ink inside a hairline halo of the panel colour, so it shows on a
-   * bar of any colour, the ink bar included. */
+  /* A bar's confidence interval (ColumnChart, RankBar) and the line joining
+   * a before and an after (DotRangeChart), drawn in a faint ink inside a
+   * hairline halo of the panel colour, so it shows on a bar of any colour,
+   * the ink bar included. */
   --chart-interval-weight: var(--size-border-thick);
   --chart-interval-color: var(--text-faint);
   --chart-interval-halo: var(--bg-panel);
-  /* DotRangeChart: the line joining a before and an after. */
-  --chart-interval-opacity: 0.35;
   /* ColumnChart: the plot, a bar and the space its axis labels sit in. */
   --column-chart-plot-height: 320px;
   --column-chart-bar-width: var(--space-16);
@@ -660,7 +659,7 @@
   --avatar-hue-1: #64748b;
   --avatar-hue-2: #818cf8;
   --avatar-hue-3: #34d399;
-  --avatar-hue-4: #fbbf24;
+  --avatar-hue-4: #7dd3fc; /* sky-300 — distinct from the caution amber */
   --avatar-hue-5: #f472b6; /* pink-400 — the lighter rose is the anomaly red */
 
   /* Presence — lighter for dark surfaces */

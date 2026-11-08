@@ -68,12 +68,12 @@
   color: var(--text-muted);
 }
 
-/* The label stays in the main ink: --ink-warn on the caution wash is too
- * faint to read at this size in the light theme. */
+/* The label takes --text-warn, which reads on the caution wash at this size
+ * where --ink-warn would not. */
 .aegis-button--caution {
   background: var(--bg-warn-soft);
   border-color: var(--ink-warn);
-  color: var(--text-main);
+  color: var(--text-warn);
   box-shadow: var(--shadow-rest);
 }
 

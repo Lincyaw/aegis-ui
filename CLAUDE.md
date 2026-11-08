@@ -93,7 +93,8 @@ Sans SC, so Apple devices render Chinese in the system face.
   `--accent-info`, which shares its value.
 - **Anomaly red** (`--accent-warning`, `#E11D48`) is reserved for _actual_
   anomalies — failures, breaches, alarms. Never decorative. Cautions that
-  are not failures use `--ink-warn`.
+  are not failures use `--ink-warn` for marks and large text and
+  `--text-warn` for text at smaller sizes.
 - **Type stack**: Geist (`--font-brand`) for brand lockups only; Hanken
   Grotesk (`--font-ui`, `--font-numeric`) for all text and numbers, with
   Chinese falling back to PingFang SC / Noto Sans SC; Google Sans Code

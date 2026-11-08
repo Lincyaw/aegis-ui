@@ -74,8 +74,13 @@
   background: var(--bg-muted);
 }
 
+/* Deleting is a caution, not a failure. */
 .aegis-dropdown__item--danger {
-  color: var(--accent-warning);
+  color: var(--text-warn);
+}
+
+.aegis-dropdown__item--danger:hover:not(:disabled) {
+  background: var(--bg-warn-soft);
 }
 
 .aegis-dropdown__item--disabled {

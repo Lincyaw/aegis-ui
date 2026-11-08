@@ -51,7 +51,8 @@
 
 /* A before and after: the line only joins the dots, which carry the reading. */
 .aegis-dot-range--extend .aegis-dot-range__line {
-  opacity: var(--chart-interval-opacity);
+  background: var(--chart-interval-color);
+  outline: var(--size-hairline) solid var(--chart-interval-halo);
 }
 
 /* Moved by a share of the plot's width, measured in container units, so it
