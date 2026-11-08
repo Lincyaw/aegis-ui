@@ -36,6 +36,11 @@ type FormRowProps = FormRowBaseProps &
     | { controlId?: undefined; labelBy?: never }
   );
 
+/**
+ * Stacked at ≤768 px, the row stretches each direct child marked
+ * `data-aegis-field`, as the library's fields are; a host's own field can
+ * carry the marker too.
+ */
 export function FormRow({
   label,
   description,
