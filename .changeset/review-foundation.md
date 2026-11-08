@@ -91,3 +91,6 @@ Fixed:
   diagram or image rendering), instead of waiting for the next scroll.
 - Firefox draws scrollbars in the theme's colours, so the dark theme no
   longer shows light scrollbars.
+- Links show the focus ring on keyboard focus: antd's global link reset
+  (`a:focus`, `a:hover { outline: 0 }`) no longer removes it. The shell's
+  sidebar links draw it inset, so the scrolling sidebar does not clip it.

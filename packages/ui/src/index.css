@@ -96,8 +96,12 @@ samp {
   }
 }
 
-/* Focus — keyboard-only ring in the brand colour. */
-:focus-visible {
+/* Focus — keyboard-only ring in the brand colour. antd's global link reset
+   (`a:focus`, `a:hover { outline: 0 }`, from its genLinkStyle) outranks a
+   bare :focus-visible, so links match through one more type selector; a
+   primitive's own class rule still outranks both. */
+:focus-visible,
+html a:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
 }

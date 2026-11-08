@@ -319,6 +319,11 @@
   background: var(--bg-inverted);
 }
 
+/* Inset, so the scrolling sidebar does not clip the ring. */
+.aegis-shell__nav-link:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
 .aegis-shell__nav-icon {
   display: inline-flex;
   align-items: center;
