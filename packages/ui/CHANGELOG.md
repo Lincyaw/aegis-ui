@@ -1,5 +1,231 @@
 # @lincyaw/aegis-ui
 
+## 0.12.0
+
+### Minor Changes
+
+- 4b3f75a: Fit tables, lists and navigation to narrow containers, ring every focus
+  the tables and pickers drew grey or hid, and name a TimeRangePicker from
+  a FormRow.
+
+  Changed behaviour:
+  - A `DataTable` with `stickyFirstColumn` caps the pinned first column at
+    40% of the table's visible width and truncates past it, so the other
+    columns keep room to scroll on a phone. An expanded row's detail stays
+    in view beside the lead columns instead of spanning the whole table.
+  - `TimelineChart` at 768 px and below puts each span's name on its own
+    line above its bar instead of a 40% label column.
+  - `ObjectBrowser` fills its container and wraps the main pane under the
+    tree when beside it the pane would have less than half the width,
+    whatever the container's width.
+  - `Tabs` that overflow fade out at the edge that has more tabs, and
+    scrolling a tab into view leaves room for the fade.
+
+  New API:
+  - `TimeRangePicker` takes `id`, `aria-labelledby` and `aria-describedby`.
+    Inside a FormRow, give the row `labelBy='aria-labelledby'` and pass
+    `${controlId}-label`: the picker is then named by the row's label
+    followed by its range.
+  - `--tabs-indicator-bg`: the selected tab's pill in segmented Tabs,
+    lighter than its track in both themes.
+
+  Fixes:
+  - `DataTable`, `EventTable` and `TimelineChart` draw the focus ring,
+    inset, around a focused scroller, over sticky headers and cells.
+    `DataTable`'s ring hugs the scroller and leaves out the pagination
+    footer: the scroller now sits in its own `.aegis-data-table__scroll-frame`
+    box, which draws the ring.
+    `TimeRangePicker`'s trigger, `PasswordField`'s show button,
+    `ObjectBrowser`'s tree items and `SavedQueryBar`'s chips, menu and
+    "+N more" button draw the focus ring instead of a grey outline, and
+    their text fields take the brand border and halo.
+  - `Chip`'s remove button and `Select`'s clear button take a 24 px target.
+  - `DataTable` cells pad less at 768 px and below, and a selection
+    checkbox sits centred in its cell. `EventTable`'s truncated cells line
+    their text up with the level chip.
+  - `DataList` sizes its columns to their content, so names are no longer
+    cut short beside narrow columns.
+  - `CheckGrid` breaks long row and column labels after `_ . / : -` rather
+    than mid-word.
+  - `KeyValueList` uses tabular figures and wraps a long value under its
+    key instead of squeezing the key.
+  - `Breadcrumb` stays on one line and truncates its items. `Toolbar`'s
+    right slot ends the line when the toolbar wraps. `SectionDivider` and
+    `Panel` headers wrap their extras under the title on a narrow card.
+  - `SearchInput` shrinks with its container instead of spilling out of it,
+    in `SavedQueryBar` and `ObjectBrowser`.
+  - `TimeRangePicker`'s popover keeps a margin from the screen's edges on a
+    phone; its hints and From / To labels are no longer uppercase, and its
+    date inputs use tabular figures and take `--radius-md`.
+  - `SavedQueryBar`'s "Save current" label is no longer uppercase. Its
+    delete action uses the caution text colour, `--text-warn`, instead of
+    anomaly red, in the chip menu and the overflow list. "Save current" and
+    the save form's Cancel and Save are pills (`--radius-pill`), and the name
+    field takes `--radius-xs`, nested inside the popover's corner.
+  - `Skeleton` is visible on dark surfaces.
+
+- d69b9f4: Fit the agent, content and code primitives on a phone, ring their focus where
+  it was clipped, and word and set their labels by the type rules.
+
+  Breaking:
+  - `AegisStrings` gained `codeEditorTabHint`, `agentmNotConnected`,
+    `agentmSendFailed` and `agentmGatewayError`. A host that builds its own
+    catalogue object must add them; a host that spreads `enStrings` or
+    `zhCNStrings` needs no change.
+
+  Changed behaviour:
+  - `AgentmChannelProvider` writes its "not connected", "send failed" and
+    gateway-error system messages from the catalogue, so they follow the
+    host's `LocaleProvider`. The English wording changed: "The AgentM gateway
+    is not connected. The message was not sent."
+  - An editable `CodeEditor` shows a line under the code while it has focus,
+    "Tab indents. Press Esc, then Tab, to leave the editor.", and names it as
+    the content's description. An editor with a fixed `height` keeps it: the
+    line takes its room from the code, so the page does not move. An editor
+    with `height='auto'` grows with its lines and by the line. Read-only
+    editors don't show it.
+  - A selectable `ReplayStepStrip` (with `onSelect`) gives each step at least
+    a 24 px column and scrolls sideways when the run is wider than the strip,
+    keeping the current step in view. A strip without `onSelect` still fits
+    every step into its width.
+  - `ToolCallCard` is a light card in the light theme and keeps the terminal
+    block in the dark theme. Its status reads "Running", "OK" or "Error" in
+    the UI face at the micro role instead of an uppercase code-face word, and
+    its JSON keeps its indent and scrolls instead of wrapping.
+  - `TrajectoryStep` labels (Thought, Action, Tool, Observation) are no longer
+    uppercase; the English catalogue words them in sentence case, as it does
+    the action type ("Tool call"). When a step has no `summary`, its header
+    shows the first line of the Markdown `action` instead of the raw source:
+    a heading, quote or list marker is dropped; a link gives way to its text,
+    and `**`, `__`, `*` and `_` emphasis to the text it wraps, while
+    snake_case names and paths such as `src/__init__.py` keep their
+    underscores; a code span is set in the code face. An action that opens
+    with a fenced code block shows the block's first line of code, in the
+    code face, instead of the fence.
+  - The English catalogue words the statuses in sentence case:
+    `CommandInvocationCard` (Pending, Done, Failed), `UploadQueue` (Queued,
+    Uploading, Done, Failed, and "Upload failed" when the host gives no
+    error) and `TrajectoryTimeline` (Running, Completed, Failed), whose
+    heading without an `agentName` reads "Agent trajectory".
+  - `TraceTree` with `wrapName` wraps a name between words and after
+    `_ . - / :`, breaking inside a word only when it cannot fit a line,
+    instead of anywhere. On a narrow row the note moves under the name
+    instead of being cut off.
+  - `DiffViewer`'s split view keeps a two-column width and scrolls sideways in
+    a narrow container instead of breaking code mid-token.
+  - `ContentPreview` wraps plain text and keeps its line breaks; code and JSON
+    still scroll in a `CodeBlock`.
+  - `CommandInvocationCard` wraps its arguments instead of cutting them off.
+  - `FilePreview` fits an image or video, and the fallback's size label, inside
+    `maxHeight`.
+  - `QueryAutocomplete`'s syntax help is a button: it opens on focus or a tap
+    as well as on hover, and Escape closes it. The field draws the brand
+    border and focus halo while its input has focus.
+  - `UploadQueue` rows let the meta move under a long name in a narrow queue,
+    so the name shows in full instead of truncating to a few letters.
+  - `AskPanel` is never wider than its container when inline, nor than the
+    viewport less its margin as a popover.
+
+  New API:
+  - `--text-warn`: caution text that must be read at small sizes, 4.5:1 on
+    the page, a panel and `--bg-warn-soft`. `--ink-warn` stays for marks and
+    large text.
+  - `--tool-call-bg`, `--tool-call-code-bg`, `--tool-call-border`,
+    `--tool-call-ink`, `--tool-call-ink-muted`: the `ToolCallCard` surface in
+    each theme.
+
+  Fixes:
+  - Focus rings that their container clipped are drawn inset: the
+    `ChatMessageList` scroller, the `TrajectoryStep` head, the `CodeBlock`
+    code and Copy button, `ToolCallCard`'s code, and `DiffViewer`'s fold row
+    and summary button. `TraceTree`'s resize handle draws the focus ring
+    instead of a hairline, and a selected row keeps its inverted surface while
+    it has focus.
+  - `Terminal`'s warn prefix, `ChatComposer`'s disabled banner and a
+    `Chip` with `tone='caution'` use `--text-warn` (3.0:1 before; the chip
+    now 4.8:1 on its wash). `ThoughtCard`'s clock uses `--text-muted`.
+  - `Markdown` links use `--accent-info` and draw the focus ring.
+  - `ChatComposer`'s Send, `CommandInvocationCard`'s Undo and
+    `ChatSessionList`'s delete confirm button take `--radius-pill`; Undo, `CodeBlock`'s Copy and `ChatSessionList`'s "more"
+    button are 24 px targets.
+  - `ChatSessionList`'s delete item and confirm button use the caution tone,
+    not anomaly red: deleting is a caution, not a failure.
+  - `Timeline` markers, meta and times, `ChatMessage` times, `FileDropzone`'s
+    size limit, `FilePreview`'s fallback size and `ContentPreview`'s duplicate
+    count are set in the numeric face with tabular figures instead of the code
+    face.
+
+  Gallery: the ParquetViewer specimen reads a 120-row `spans.parquet` from a
+  URL; the upload specimens carry real file sizes; the ChatSessionList,
+  AskPanel and SQL CodeEditor specimens fit a phone; the TrajectoryStep
+  fixture's extra sections are in sentence case.
+
+- 9f0f97d: Keep charts and ServiceMap readable on a phone, move destructive actions to
+  the caution tone, and fix focus rings, targets and dark-theme colours.
+
+  Breaking:
+  - The `--chart-interval-opacity` token is removed. `DotRangeChart`'s line
+    joining a before and an after is drawn in `--chart-interval-color`
+    inside a `--chart-interval-halo` hairline instead of the row's colour at
+    35%. A host that read or overrode the token drops it.
+  - `TableOfContents` no longer renders the `.aegis-toc__indicator` span, and
+    the `--toc-indicator-height` token is removed. The current item is marked
+    by `--accent-brand` text in the Strong role, with no rail. A host that
+    styled the indicator or read the token drops those rules.
+
+  New API:
+  - `Button` takes `tone='caution'` (and `DropdownMenu`'s `triggerTone` with
+    it): the caution wash and border for a destructive or irreversible
+    action, with the label in `--text-warn` (4.8:1 on the wash). Use it
+    instead of a red button; the anomaly red marks failures.
+  - Tokens `--chart-interval-color` and `--chart-interval-halo`: the interval
+    that ColumnChart and RankBar draw over a bar, and DotRangeChart's line
+    between a before and an after, in faint ink inside a hairline of the
+    panel colour, so it shows on an ink bar.
+
+  Changed behaviour:
+  - `DangerZone` is drawn in the caution tone (`--ink-warn` border on
+    `--bg-warn-soft`) with `--radius-lg`, and its title is set in
+    `--text-warn`, instead of the anomaly red.
+  - A `DropdownMenu` item with `danger` uses `--text-warn` and the caution
+    wash on hover instead of the anomaly red.
+  - Under `getAegisTheme`, an antd `Button` with `danger` is a caution: the
+    outlined, text and link variants use `--text-warn` ink with the caution
+    wash on hover, and the primary variant is a `--text-warn` fill with
+    `--text-on-inverted` text. The global `colorError` stays the anomaly red, so form
+    validation errors are unchanged.
+  - `--avatar-hue-4` is a sky blue in both themes (`#0369a1` light, `#7dd3fc`
+    dark) instead of the caution amber, so an avatar never reads as a
+    caution.
+  - `ServiceMap` shows a node's state with a dot before its label instead of
+    a side stripe. At 768 px and below, a map that would fit only below a
+    readable zoom opens at a readable zoom on its first node instead of
+    fitting whole; the fit-view control still shows the whole map. Each map
+    passes React Flow its own id, so the `react-flow__node-desc-*` and other
+    React Flow ids are unique per map.
+  - `AegisShell`'s "Sign in" is a `Button` instead of an ink `Chip`.
+  - `Carousel`'s tabs take two columns at 768 px and below.
+  - Dark `--shadow-raised` and `--shadow-overlay` add a light ring and a lit
+    top edge, brighter per level, so the dark elevations differ; the antd
+    dark overlay shadow follows.
+
+  Fixes:
+  - `ServiceMap`: a focused edge draws its ring along its path; the zoom
+    controls' ring is drawn inset so it is not clipped; a node or edge that
+    takes keyboard focus pans fully into view; the badge count and edge rate
+    use the numeric face with tabular figures.
+  - `ParetoChart`: point labels avoid the frontier and the y axis title.
+  - `SeriesLabel`: the detail shrinks before the name in a narrow slot.
+  - `SparkLine`: a flat series no longer fills the height.
+  - `ResizableSidePanel`: the handle and a scrolling body draw the full focus
+    ring, inset.
+  - `DropdownMenu`: a trigger is at least 24 by 24 px.
+  - `BlastRadiusBar`'s ticks and `NotificationBell`'s unread count are no
+    longer uppercase, and `NotificationBell`'s popover title is set in the UI
+    face instead of the brand face.
+  - Dark `--avatar-hue-5` no longer matches the dark anomaly red.
+  - The antd Tree's checkbox draws its tick and border in dark.
+
 ## 0.11.0
 
 ### Minor Changes
