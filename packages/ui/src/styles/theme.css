@@ -563,6 +563,8 @@
   --run-pips-bar-width: 64px;
   /* TimelineChart's label column; at 768 px and below the chart sets it to 40%. */
   --timeline-chart-label-width: 280px;
+  /* Tabs: the selected tab's pill, which stands out lighter than its track. */
+  --tabs-indicator-bg: var(--bg-panel);
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;
@@ -682,6 +684,9 @@
   /* Scrollbar */
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.32);
+
+  /* Tabs — the panel is darker than the track on dark, so the pill steps up. */
+  --tabs-indicator-bg: #30353f;
 }
 
 /* ── Page entrance (subtle — never steals attention) ───────────────── */

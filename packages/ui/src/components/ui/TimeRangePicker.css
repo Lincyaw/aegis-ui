@@ -21,8 +21,8 @@
 }
 
 .aegis-trp__trigger:focus-visible {
-  outline: var(--size-hairline) solid var(--text-main);
-  outline-offset: var(--space-px);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .aegis-trp__trigger:disabled {
@@ -46,12 +46,30 @@
   line-height: 1;
 }
 
+/* The panel portals to the body, above the shell's mobile drawer. Its inner
+ * padding is set here so the width below can leave room for it. */
+.aegis-trp__overlay.ant-popover {
+  z-index: var(--z-popover);
+}
+
+.aegis-trp__overlay.ant-popover .ant-popover-inner {
+  padding: var(--space-3);
+}
+
+/* On a phone the panel stays --space-4 from both edges of the screen: antd
+ * slides an overflowing popover flush to the edge, so the overlay carries
+ * the margin as its own padding. */
+@media (max-width: 768px) {
+  .aegis-trp__overlay.ant-popover {
+    padding-inline: var(--space-4);
+  }
+}
+
 .aegis-trp__pop {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  width: 22rem;
-  max-width: 100%;
+  width: min(22rem, calc(100vw - var(--space-4) * 2 - var(--space-3) * 2));
 }
 
 .aegis-trp__section {
@@ -65,12 +83,13 @@
   justify-content: flex-end;
 }
 
-.aegis-trp__hint {
+.aegis-trp__hint,
+.aegis-trp__abs-label {
   font-family: var(--font-ui);
-  font-size: var(--fs-10);
-  font-weight: var(--fw-medium);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
   color: var(--text-muted);
 }
 
@@ -92,27 +111,23 @@
   gap: var(--space-1);
 }
 
-.aegis-trp__abs-label {
-  font-family: var(--font-ui);
-  font-size: var(--fs-10);
-  font-weight: var(--fw-medium);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
-}
-
 .aegis-trp__abs-input {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
   color: var(--text-main);
   background: var(--bg-page);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-sm);
   padding: var(--space-1) var(--space-2);
-  outline: none;
-  transition: border-color var(--motion-fast);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
 }
 
-.aegis-trp__abs-input:focus {
-  border-color: var(--text-main);
+/* The transparent outline keeps a ring in forced-colors mode. */
+.aegis-trp__abs-input:focus-visible {
+  outline: var(--focus-ring-width) solid transparent;
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
 }

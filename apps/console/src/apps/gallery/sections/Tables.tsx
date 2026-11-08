@@ -576,7 +576,7 @@ const eventColumns: Array<EventTableColumn<SampleEvent>> = [
         row.level === 'error'
           ? 'warning'
           : row.level === 'warn'
-            ? 'ink'
+            ? 'caution'
             : 'default';
       return <Chip tone={tone}>{row.level}</Chip>;
     },
@@ -618,13 +618,7 @@ function EventTableSpecimen(): ReactNode {
   }, []);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-4)',
-      }}
-    >
+    <div className='gallery__stack gallery__stack--fill'>
       <div>
         <MetricLabel as='div' size='xs'>
           50 rows · onRowClick · rows take focus, ↑ ↓ move, Enter selects ·
@@ -697,30 +691,40 @@ const TOOLBAR_FILTERS = [
 function ToolbarFiltersSpecimen(): ReactNode {
   const [search, setSearch] = useState('latency');
   const [filters, setFilters] = useState(TOOLBAR_FILTERS);
+  const [created, setCreated] = useState(0);
   return (
-    <Toolbar
-      left={
-        <>
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            onClear={() => setSearch('')}
-            placeholder='Search injections…'
-          />
-          {filters.map((f) => (
-            <Chip
-              key={f.key}
-              onClose={() =>
-                setFilters((cur) => cur.filter((c) => c.key !== f.key))
-              }
-            >
-              {f.label}
-            </Chip>
-          ))}
-        </>
-      }
-      right={<Chip tone='ink'>+ New injection</Chip>}
-    />
+    <Specimen
+      caption={`left: SearchInput + removable filter Chips · right: a Button, kept at the row's end when the row wraps · created: ${created}`}
+      span={3}
+    >
+      <Toolbar
+        left={
+          <>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              onClear={() => setSearch('')}
+              placeholder='Search injections…'
+            />
+            {filters.map((f) => (
+              <Chip
+                key={f.key}
+                onClose={() =>
+                  setFilters((cur) => cur.filter((c) => c.key !== f.key))
+                }
+              >
+                {f.label}
+              </Chip>
+            ))}
+          </>
+        }
+        right={
+          <AegisButton onClick={() => setCreated((count) => count + 1)}>
+            New injection
+          </AegisButton>
+        }
+      />
+    </Specimen>
   );
 }
 
@@ -788,12 +792,7 @@ export function TablesSection() {
   return (
     <Panel title={<PanelTitle size='lg'>Tables & Toolbar</PanelTitle>}>
       <SectionDivider>Toolbar</SectionDivider>
-      <Specimen
-        caption='left: SearchInput + removable filter Chips · right: action'
-        span={3}
-      >
-        <ToolbarFiltersSpecimen />
-      </Specimen>
+      <ToolbarFiltersSpecimen />
 
       <SectionDivider>DataTable · framed</SectionDivider>
       <div className='gallery__row'>

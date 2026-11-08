@@ -1,6 +1,7 @@
 import {
   type KeyboardEvent,
   type ReactNode,
+  useCallback,
   useId,
   useRef,
   useState,
@@ -91,6 +92,17 @@ interface TabsIndicator extends TabBox {
   travel: TabsIndicatorTravel;
 }
 
+/** Which ends of a scrolling list have tabs out of view. */
+interface TabsOverflow {
+  start: boolean;
+  end: boolean;
+}
+
+function measureOverflow(list: HTMLElement): TabsOverflow {
+  const hidden = list.scrollWidth - list.clientWidth;
+  return { start: list.scrollLeft > 1, end: list.scrollLeft < hidden - 1 };
+}
+
 function isTabLinks(items: TabItem[] | TabLink[]): items is TabLink[] {
   return items.some((item) => 'to' in item);
 }
@@ -128,12 +140,13 @@ function tabClass(active: boolean): string {
   return active ? 'aegis-tabs__tab aegis-tabs__tab--active' : 'aegis-tabs__tab';
 }
 
+/** Scrolls the selected tab clear of the list's faded ends. */
 function scrollSelectedTabIntoView(list: HTMLElement): void {
   const tab = findSelectedTab(list);
   if (!tab) {
     return;
   }
-  const inset = parseFloat(getComputedStyle(list).paddingLeft);
+  const inset = parseFloat(getComputedStyle(list).scrollPaddingLeft);
   const listBox = list.getBoundingClientRect();
   const tabBox = tab.getBoundingClientRect();
   if (tabBox.left < listBox.left + inset) {
@@ -169,6 +182,10 @@ export function Tabs({
   const listRef = useRef<HTMLDivElement>(null);
   const placedKeyRef = useRef<string | undefined>(undefined);
   const [indicator, setIndicator] = useState<TabsIndicator | null>(null);
+  const [overflow, setOverflow] = useState<TabsOverflow>({
+    start: false,
+    end: false,
+  });
   const [focusedKey, setFocusedKey] = useState<string | null>(null);
   const itemKeys = entries.map((item) => item.key).join('\n');
 
@@ -221,6 +238,17 @@ export function Tabs({
     // or enabled again; the indicator leaves or returns.
   }, [activeKey, activeIndex]);
 
+  const updateOverflow = useCallback(() => {
+    const list = listRef.current;
+    if (!list) {
+      return;
+    }
+    const next = measureOverflow(list);
+    setOverflow((current) =>
+      current.start === next.start && current.end === next.end ? current : next,
+    );
+  }, []);
+
   // Tab widths change after web fonts load, when a label's count changes and
   // when a hidden list is first shown; follow them without sliding. The
   // indicator's right edge is measured from the list's width, so the update
@@ -238,6 +266,7 @@ export function Tabs({
             ? current
             : box && { ...box, travel: 'none' },
         );
+        updateOverflow();
       });
     });
     observer.observe(list);
@@ -247,7 +276,7 @@ export function Tabs({
     return () => {
       observer.disconnect();
     };
-  }, [itemKeys]);
+  }, [itemKeys, updateOverflow]);
 
   const handleClick = (key: string) => {
     if (controlledKey === undefined) {
@@ -288,6 +317,9 @@ export function Tabs({
       className="aegis-tabs__list"
       role={linked ? undefined : 'tablist'}
       aria-label={linked ? undefined : ariaLabel}
+      data-overflow-start={overflow.start || undefined}
+      data-overflow-end={overflow.end || undefined}
+      onScroll={updateOverflow}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) {
           setFocusedKey(null);

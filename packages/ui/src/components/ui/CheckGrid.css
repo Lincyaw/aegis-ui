@@ -39,7 +39,6 @@
 .aegis-check-grid__run {
   min-width: var(--check-grid-cell-width);
   text-align: center;
-  overflow-wrap: anywhere;
 }
 
 .aegis-check-grid__check {
@@ -52,7 +51,6 @@
   letter-spacing: var(--type-mono-tracking);
   text-align: left;
   vertical-align: middle;
-  overflow-wrap: anywhere;
 }
 
 .aegis-check-grid__slot {

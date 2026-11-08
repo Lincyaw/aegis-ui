@@ -43,6 +43,21 @@ export interface CheckGridProps<C extends string> {
 }
 
 /**
+ * A text label with a line-break opportunity after each `_ . - / :`, so an
+ * id such as `no_destructive_ddl` wraps between its words, never inside one.
+ */
+function breakAtSeparators(label: ReactNode): ReactNode {
+  if (typeof label !== 'string') {
+    return label;
+  }
+  return label
+    .split(/(?<=[_./:-])/)
+    .flatMap((part, index) =>
+      index === 0 ? [part] : [<wbr key={index} />, part],
+    );
+}
+
+/**
  * Checks against runs: one row per check, one column per run. Every cell
  * writes its outcome — the passed label, the miss, or an em dash — so the
  * colour is never the only signal.
@@ -72,7 +87,7 @@ export function CheckGrid<C extends string>({
                   scope="col"
                   className="aegis-check-grid__run"
                 >
-                  {column.label}
+                  {breakAtSeparators(column.label)}
                 </th>
               ))}
             </tr>
@@ -81,7 +96,7 @@ export function CheckGrid<C extends string>({
             {rows.map((row) => (
               <tr key={row.key}>
                 <th scope="row" className="aegis-check-grid__check">
-                  {row.label}
+                  {breakAtSeparators(row.label)}
                 </th>
                 {columns.map((column) => (
                   <td key={column.key} className="aegis-check-grid__slot">

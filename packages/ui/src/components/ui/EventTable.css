@@ -10,6 +10,8 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--bg-panel);
+  position: relative;
+  isolation: isolate;
 }
 
 .aegis-event-table__header {
@@ -50,6 +52,24 @@
   overflow: auto;
   min-height: 0;
   container-type: inline-size;
+}
+
+/* Without clickable rows the scroller is the tab stop. Its ring is drawn
+ * inside the table, over the sticky header that would cover the scroller's
+ * own outline, so neither the frame nor the header hides it. */
+.aegis-event-table__scroll:focus-visible {
+  outline: var(--focus-ring-width) solid transparent;
+}
+
+.aegis-event-table:has(> .aegis-event-table__scroll:focus-visible)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+  pointer-events: none;
 }
 
 .aegis-event-table__virtual {
@@ -125,11 +145,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A block, so the ellipsis applies; its own height lets the row centre it
+ * like the flex cells. */
 .aegis-event-table__td--truncate {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
+  height: auto;
   line-height: 1.4;
 }
 

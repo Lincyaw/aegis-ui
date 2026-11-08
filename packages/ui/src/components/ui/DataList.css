@@ -1,6 +1,13 @@
+/* Rows share the list's columns through subgrid. Each column is as wide as
+ * its widest cell; when they don't fit, the narrow columns keep their width
+ * and the wide ones share the rest, so a short id never squeezes a name. */
 .aegis-data-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(
+    var(--aegis-data-list-columns),
+    minmax(0, auto)
+  );
+  column-gap: var(--space-3);
   width: 100%;
   font-family: var(--font-ui);
   background: var(--bg-panel);
@@ -9,16 +16,21 @@
   overflow: hidden;
 }
 
+.aegis-data-list__head,
+.aegis-data-list__row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
 .aegis-data-list__head {
-  display: flex;
-  gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   background: var(--bg-muted);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-data-list__head-cell {
-  flex: 1;
+  min-width: 0;
   font-size: var(--type-label-size);
   line-height: var(--type-label-line);
   font-weight: var(--type-label-weight);
@@ -28,8 +40,6 @@
 }
 
 .aegis-data-list__row {
-  display: flex;
-  gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   font-size: var(--fs-13);
@@ -67,7 +77,6 @@
 }
 
 .aegis-data-list__cell {
-  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -75,6 +84,7 @@
 }
 
 .aegis-data-list__empty {
+  grid-column: 1 / -1;
   padding: var(--space-4) var(--space-3);
   text-align: center;
   color: var(--text-muted);
