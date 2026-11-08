@@ -16,6 +16,8 @@ Breaking:
   and the bar takes exactly one of `ariaLabel` and `aria-labelledby`.
   Replace `label="…"` with `ariaLabel="…"`, or, inside a FormRow, pass
   `aria-labelledby` so the row's label names the meter.
+- `Checkbox`'s `ariaLabelledBy`, released in 0.10.0, is renamed
+  `aria-labelledby`, as the other field controls spell it.
 
 Added:
 

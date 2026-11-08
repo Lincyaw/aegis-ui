@@ -489,7 +489,7 @@ function CommitList({
                       onChange={(checked) => {
                         toggle(commit.id, checked);
                       }}
-                      ariaLabelledBy={titleId}
+                      aria-labelledby={titleId}
                     />
                   )}
                 </span>
@@ -603,7 +603,7 @@ function CommitTable({
                               onChange={(checked) => {
                                 toggle(commit.id, checked);
                               }}
-                              ariaLabelledBy={firstId}
+                              aria-labelledby={firstId}
                             />
                           </span>
                         )}
