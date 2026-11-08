@@ -12,6 +12,7 @@ import { createPortal } from 'react-dom';
 
 import {
   matchRoutes,
+  useHref,
   useLocation,
   useNavigate,
   useRoutes,
@@ -146,6 +147,12 @@ export function AegisShell({
     <RouteErrorBoundary resetKey={location.key}>{element}</RouteErrorBoundary>
   );
 
+  const rootHref = useHref('/');
+  // A hash router's href is not a path prefix, so it reports none.
+  const basename = rootHref.startsWith('/')
+    ? rootHref.replace(/\/+$/, '')
+    : undefined;
+
   const shellSnapshot = useCallback((): ShellSnapshot => {
     const w = typeof window !== 'undefined' ? window : null;
     return {
@@ -154,6 +161,7 @@ export function AegisShell({
         pathname,
         search: location.search,
         params: {},
+        basename,
       },
       breadcrumbs: [],
       theme: themeCtx?.resolved ?? 'light',
@@ -162,7 +170,7 @@ export function AegisShell({
         height: w?.innerHeight ?? 0,
       },
     };
-  }, [activeApp, pathname, location.search, themeCtx]);
+  }, [activeApp, pathname, location.search, basename, themeCtx]);
 
   // Bare routes (e.g. /login) render without the shell chrome.
   if (topRoute && routeTree.bareRoutes.has(topRoute)) {

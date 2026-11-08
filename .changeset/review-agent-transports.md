@@ -24,9 +24,11 @@ Breaking:
   the router a path from the app's root. It refuses, with
   `invalid_params`, a URL on another origin or protocol, including
   `javascript:`, `data:` and `blob:` URLs, and a full URL outside the
-  router's basename, or any full URL while the basename cannot be told
-  from the route the shell reports (a root route, a stale route, or no
-  shell). A path that resolves to `//host` keeps one leading slash.
+  router's basename. `AegisShell` reports its basename, so full URLs work
+  on every route under it; without a reported basename the runtime infers
+  it from the route and refuses any full URL where the route cannot tell
+  it (a root route, a stale route, or no shell). A path that resolves to
+  `//host` keeps one leading slash.
 - MCP tools: `aegis_invoke` with `dryRun: true` previews the action
   instead of running it, and its `force` is gone; `aegis_snapshot` drops
   the `paths` it ignored; `aegis_wait_for` takes a `condition`;
@@ -43,6 +45,8 @@ Added:
 
 - `AegisRuntime.preview(id, params)`, returning the action and its
   `dryRun()` output without running it; `PreviewResult`.
+- `ShellSnapshot.route.basename`, the path the router puts in front of
+  every route; `AegisShell` fills it in.
 - `AegisActionDescriptor.confirm`; the `ActionConfirm`,
   `AegisSearchResponse`, `AegisWaitCondition` and `WaitForOptions` types.
 - A `signal` option on `dispatch` and `preview`, passed to the action as

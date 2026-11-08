@@ -202,10 +202,11 @@ function navigateTarget(params: unknown): string {
 }
 
 // The part of the page's path in front of the route the shell reports,
-// which the router adds back to every path it is given. Null when the route
-// cannot tell: every path ends with the root route, which is also what a
-// runtime without a shell reports, and a route that is not the end of the
-// page's path is stale.
+// which the router adds back to every path it is given, for a shell that
+// does not report its basename. Null when the route cannot tell: every
+// path ends with the root route, which is also what a runtime without a
+// shell reports, and a route that is not the end of the page's path is
+// stale.
 function routerBasename(routePathname: string): string | null {
   const page = window.location.pathname.replace(/\/+$/, '');
   const route = routePathname.replace(/\/+$/, '');
@@ -239,7 +240,7 @@ function appPath(to: string, route: ShellSnapshot['route']): string {
   const namesOrigin =
     new URL(to, `${page.protocol}//aegis.invalid/`).host !== 'aegis.invalid';
   if (namesOrigin) {
-    const basename = routerBasename(route.pathname);
+    const basename = route.basename ?? routerBasename(route.pathname);
     if (basename === null) {
       throw new InvalidParamsError(
         `aegis.navigate: "${to}" is a full URL, but the app's base path is unknown (route ${route.pathname} on page ${page.pathname}); pass a path in the app instead`,

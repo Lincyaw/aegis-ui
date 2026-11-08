@@ -61,7 +61,17 @@ export interface SurfaceSnapshot {
 
 export interface ShellSnapshot {
   currentAppId: string | null;
-  route: { pathname: string; search: string; params: Record<string, string> };
+  route: {
+    pathname: string;
+    search: string;
+    params: Record<string, string>;
+    /**
+     * The path the router puts in front of every route, without a trailing
+     * slash ('' at the site root). Without it the runtime infers it from
+     * the page's path, which a root or stale route cannot tell.
+     */
+    basename?: string;
+  };
   breadcrumbs: Array<{ label: string; href?: string }>;
   theme: 'light' | 'dark';
   viewport: { width: number; height: number };
