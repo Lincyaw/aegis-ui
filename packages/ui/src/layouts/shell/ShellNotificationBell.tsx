@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { type ReactElement, useCallback } from 'react';
 
 import { NotificationBell } from '../../components/ui/NotificationBell';
 import { useNotifications } from '../../notifications';
@@ -11,12 +11,18 @@ export function ShellNotificationBell({
 }: {
   inboxPath: string;
 }): ReactElement {
-  const { items, unreadCount } = useNotifications();
+  const { items, unreadCount, error, liveError, refetch } = useNotifications();
   const open = useOpenNotification();
+  const retry = useCallback(() => {
+    void refetch?.();
+  }, [refetch]);
   return (
     <NotificationBell
       items={items}
       unreadCount={unreadCount}
+      error={error}
+      liveError={liveError}
+      onRetry={refetch ? retry : undefined}
       onOpen={open}
       inboxPath={inboxPath}
       linkComponent={RouterLink}

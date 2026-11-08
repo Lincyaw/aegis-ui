@@ -178,7 +178,10 @@ function SavedQueryBarSpecimen(): ReactNode {
           onTogglePinned={stored.togglePinned}
         />
       </Specimen>
-      <Specimen caption='host-held · 2 pinned + 1 unpinned' span={2}>
+      <Specimen
+        caption='host-held · 2 pinned + 1 unpinned · maxInlineUnpinned={0} keeps it in the "+1 more" list'
+        span={2}
+      >
         <SearchInput
           value={hostValue}
           onChange={setHostValue}
@@ -212,6 +215,7 @@ function SavedQueryBarSpecimen(): ReactNode {
           onTogglePinned={(id) => {
             updateHostQuery(id, (q) => ({ ...q, pinned: !q.pinned }));
           }}
+          maxInlineUnpinned={0}
         />
         <pre
           style={{

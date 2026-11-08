@@ -4,6 +4,22 @@
   gap: var(--space-6);
 }
 
+.aegis-inbox__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* The list area holds focus after a retry when it has no item to take it. */
+.aegis-inbox__panel:focus-visible {
+  border-radius: var(--radius-md);
+}
+
+.aegis-inbox__stale-action {
+  display: flex;
+  padding-top: var(--space-2);
+}
+
 .aegis-inbox__list {
   list-style: none;
   margin: 0;
@@ -83,7 +99,8 @@
 
 .aegis-inbox__row-time {
   flex: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-11);
   color: var(--text-muted);
 }

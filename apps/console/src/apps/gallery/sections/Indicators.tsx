@@ -847,8 +847,23 @@ export function IndicatorsSection() {
       <SectionDivider>Collapse</SectionDivider>
       <div className='gallery__stack' id='collapse-specimen'>
         <Collapse
-          defaultActiveKeys={['first']}
+          defaultActiveKeys={['first', 'flush']}
           items={[
+            {
+              key: 'flush',
+              label: '评审备注 · 贴边的输入框与按钮',
+              children: (
+                <div className='gallery__stack'>
+                  <TextField
+                    aria-label='评审备注'
+                    placeholder='Tab 到这里，焦点光晕不被裁切'
+                  />
+                  <div>
+                    <AegisButton tone='secondary'>保存备注</AegisButton>
+                  </div>
+                </div>
+              ),
+            },
             {
               key: 'first',
               label: '完整理由与评分要求',

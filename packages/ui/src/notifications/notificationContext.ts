@@ -33,10 +33,20 @@ export interface NotificationContextValue<TItem = AegisNotification> {
   /** True while initial load or refetch is pending. */
   loading: boolean;
   /**
-   * Why the last load failed, or null once a load succeeds. The inbox
-   * shows it with a retry through `refetch`.
+   * Why loading failed with no list to show, or null once a load succeeds.
+   * The inbox shows it in place of the list, with a retry through
+   * `refetch`. Once a list has loaded, a failed refresh or retry is a
+   * `liveError` instead, and `items` stay.
    */
   error?: Error | null;
+  /**
+   * Why keeping `items` current is failing (a poll, a real-time stream, or
+   * a refresh or retry of a list that has loaded), or null once that
+   * succeeds again. `items` stay as last loaded: the bell shows a caution
+   * and the inbox a notice that they may be out of date, with a retry
+   * through `refetch`.
+   */
+  liveError?: Error | null;
   markRead?: (id: string) => Promise<void> | void;
   markAllRead?: () => Promise<void> | void;
   archive?: (id: string) => Promise<void> | void;

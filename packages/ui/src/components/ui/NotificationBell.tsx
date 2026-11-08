@@ -1,11 +1,15 @@
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useEffect, useId } from 'react';
 
-import { BellOutlined } from '@ant-design/icons';
+import { BellOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { Popover } from 'antd';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useDialogPopover } from '../../hooks/useDialogPopover';
 import type { AegisNotification } from '../../notifications';
+import { Button } from './Button';
+import { ErrorState } from './ErrorState';
 import './NotificationBell.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 import { relativeTime } from './relativeTime';
@@ -28,6 +32,22 @@ export interface NotificationBellProps {
   width?: number;
   /** Optional aegis-ui agent action — fired when the bell is clicked. */
   action?: AegisAction<void, unknown>;
+  /**
+   * Set while live updates are failing: the bell shows a caution mark and
+   * the popover says the items may be out of date. The count stays.
+   */
+  liveError?: Error | null;
+  /**
+   * Why loading failed. With no `items`, the bell shows the caution mark and
+   * the popover says the notifications couldn't load; with `items`, it is
+   * shown like `liveError`.
+   */
+  error?: Error | null;
+  /**
+   * Renders a "Try again" button where the popover says loading failed or
+   * the items may be out of date.
+   */
+  onRetry?: () => void;
 }
 
 const MAX_PREVIEW_ITEMS = 8;
@@ -41,26 +61,92 @@ export function NotificationBell({
   linkComponent: LinkImpl = DefaultLink,
   width = DEFAULT_WIDTH,
   action,
+  liveError,
+  error,
+  onRetry,
 }: NotificationBellProps): ReactElement {
-  const [open, setOpen] = useState(false);
+  const popover = useDialogPopover<HTMLDivElement>();
+  const { open, focusPanel } = popover;
+  const panelId = useId();
+  const staleId = `${panelId}-stale`;
   const bound = useAegisAction<void, unknown>(action);
 
   const preview = items.slice(0, MAX_PREVIEW_ITEMS);
+  const loadError = items.length === 0 ? (error ?? null) : null;
+  const staleError = loadError ? null : (liveError ?? error ?? null);
+  let caution: string | null = null;
+  if (loadError) {
+    caution = `Notifications couldn't load. ${loadError.message}`;
+  } else if (staleError) {
+    caution = `Notifications may be out of date. ${staleError.message}`;
+  }
+
+  // A retry that works removes the "Try again" button that had focus, which
+  // would leave the open panel without it.
+  useEffect(() => {
+    if (open && document.activeElement === document.body) {
+      focusPanel();
+    }
+  }, [loadError, staleError, open, focusPanel]);
 
   const handleItemClick = (item: AegisNotification): void => {
-    setOpen(false);
+    popover.close();
     onOpen?.(item);
   };
 
   const content = (
-    <div className="aegis-notif-pop" style={{ width }}>
+    <div
+      ref={popover.panelRef}
+      id={panelId}
+      className="aegis-notif-pop"
+      style={{ width }}
+      role="dialog"
+      aria-labelledby={`${panelId}-title`}
+      tabIndex={-1}
+    >
       <div className="aegis-notif-pop__head">
-        <span className="aegis-notif-pop__title">Notifications</span>
+        <span id={`${panelId}-title`} className="aegis-notif-pop__title">
+          Notifications
+        </span>
         {unreadCount > 0 && (
           <span className="aegis-notif-pop__count">{unreadCount} unread</span>
         )}
       </div>
-      {preview.length === 0 ? (
+      {staleError && (
+        <div className="aegis-notif-pop__stale">
+          <ExclamationCircleFilled
+            className="aegis-notif-pop__stale-icon"
+            aria-hidden
+          />
+          <div className="aegis-notif-pop__stale-body">
+            <span>
+              <span className="aegis-notif-pop__stale-title">
+                May be out of date.
+              </span>{' '}
+              {staleError.message}
+            </span>
+            {onRetry && (
+              <Button tone="secondary" onClick={onRetry}>
+                Try again
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+      {loadError ? (
+        <ErrorState
+          size="compact"
+          title="Couldn't load notifications"
+          description={loadError.message}
+          action={
+            onRetry && (
+              <Button tone="secondary" onClick={onRetry}>
+                Try again
+              </Button>
+            )
+          }
+        />
+      ) : preview.length === 0 ? (
         <div className="aegis-notif-pop__empty">You&apos;re all caught up.</div>
       ) : (
         <ul className="aegis-notif-pop__list">
@@ -104,12 +190,7 @@ export function NotificationBell({
         </ul>
       )}
       {/* Following the link closes the popover. */}
-      <div
-        className="aegis-notif-pop__foot"
-        onClickCapture={() => {
-          setOpen(false);
-        }}
-      >
+      <div className="aegis-notif-pop__foot" onClickCapture={popover.close}>
         <LinkImpl to={inboxPath} className="aegis-notif-pop__view-all">
           View all
         </LinkImpl>
@@ -121,30 +202,51 @@ export function NotificationBell({
     <Popover
       content={content}
       trigger="click"
-      open={open}
-      onOpenChange={setOpen}
+      open={popover.open}
+      onOpenChange={popover.setOpen}
       placement="bottomRight"
+      autoAdjustOverflow={POPOVER_OVERFLOW}
       arrow={false}
       classNames={{ root: 'aegis-notif-pop__overlay' }}
     >
-      <button
-        type="button"
-        className="aegis-notif-bell"
-        aria-label={
-          unreadCount > 0
-            ? `Notifications: ${String(unreadCount)} unread`
-            : 'Notifications'
-        }
-        data-agent-action-id={action?.id}
-        onClick={action ? () => void bound.invoke() : undefined}
-      >
-        <BellOutlined className="aegis-notif-bell__icon" />
-        {unreadCount > 0 && (
-          <span className="aegis-notif-bell__badge" aria-hidden="true">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        )}
-      </button>
+      {/* antd sets aria-describedby on its child to the popover's id, so
+          the wrapper takes that and the bell keeps its own description. */}
+      <span className="aegis-notif-bell__anchor">
+        <button
+          ref={popover.triggerRef}
+          type="button"
+          className="aegis-notif-bell"
+          aria-describedby={caution ? staleId : undefined}
+          aria-haspopup="dialog"
+          aria-expanded={popover.open}
+          aria-controls={popover.open ? panelId : undefined}
+          aria-label={
+            unreadCount > 0
+              ? `Notifications: ${String(unreadCount)} unread`
+              : 'Notifications'
+          }
+          data-agent-action-id={action?.id}
+          onClick={action ? () => void bound.invoke() : undefined}
+        >
+          <BellOutlined className="aegis-notif-bell__icon" />
+          {unreadCount > 0 && (
+            <span className="aegis-notif-bell__badge" aria-hidden="true">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+          {caution && (
+            <>
+              <ExclamationCircleFilled
+                className="aegis-notif-bell__stale"
+                aria-hidden
+              />
+              <span id={staleId} className="aegis-notif-bell__description">
+                {caution}
+              </span>
+            </>
+          )}
+        </button>
+      </span>
     </Popover>
   );
 }

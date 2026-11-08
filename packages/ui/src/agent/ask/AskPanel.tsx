@@ -125,6 +125,11 @@ function resolveTools(
   return runtime.listActions();
 }
 
+/**
+ * Mounting it opens it: focus moves to its question field, or to the panel
+ * when there is no agent to ask, and returns on unmount to the element that
+ * had it.
+ */
 export function AskPanel({
   context,
   tools,
@@ -201,6 +206,24 @@ export function AskPanel({
     };
   }, [onClose, popover]);
 
+  // A popover is hidden, and so cannot take focus, until it is placed.
+  const ready = !popover || placement !== null;
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    const returnFocusTo = document.activeElement;
+    const root = rootRef.current;
+    (
+      root?.querySelector<HTMLElement>('textarea:not(:disabled)') ?? root
+    )?.focus();
+    return () => {
+      if (returnFocusTo instanceof HTMLElement && returnFocusTo.isConnected) {
+        returnFocusTo.focus();
+      }
+    };
+  }, [ready]);
+
   useIsomorphicLayoutEffect(() => {
     if (!popover) {
       setPlacement(null);
@@ -258,6 +281,7 @@ export function AskPanel({
       className="aegis-ask-panel"
       role="dialog"
       aria-label="Ask AI"
+      tabIndex={-1}
       data-aegis-ask-panel="open"
       data-ask-origin={context.origin}
       style={style}

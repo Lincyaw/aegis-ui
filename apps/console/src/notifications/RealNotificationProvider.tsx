@@ -65,6 +65,14 @@ export function RealNotificationProvider({
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  // Keeping the list current fails on its own: a refresh, the count poll
+  // and the stream each hold their last failure until they next succeed.
+  const [refreshError, setRefreshError] = useState<Error | null>(null);
+  const [pollError, setPollError] = useState<Error | null>(null);
+  const [streamError, setStreamError] = useState<Error | null>(null);
+  const hasList = useRef(false);
+  // Reconnects the stream at once while it is waiting out its backoff.
+  const reconnectStreamNow = useRef<(() => void) | null>(null);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -80,11 +88,24 @@ export function RealNotificationProvider({
       if (!mounted.current) {
         return;
       }
+      hasList.current = true;
       setItems(list.items);
       setUnread(list.unread_count);
       setError(null);
+      setRefreshError(null);
+      // The list carries the unread count, so the count is current again.
+      setPollError(null);
     } catch (err) {
-      if (mounted.current) {
+      if (!mounted.current) {
+        return;
+      }
+      // `error` is a load with no list to show. Once a list has loaded, a
+      // failed refresh or retry leaves it on screen as possibly out of date.
+      if (hasList.current) {
+        setRefreshError(
+          new Error(`Couldn't refresh notifications: ${errMsg(err)}`)
+        );
+      } else {
         setError(new Error(errMsg(err)));
       }
     } finally {
@@ -99,21 +120,31 @@ export function RealNotificationProvider({
       const c = await unreadCountCall();
       if (mounted.current) {
         setUnread(c.unread_count);
+        setPollError(null);
       }
-    } catch {
+    } catch (err) {
       // `error` reports the items failing to load; the list is still what the
       // server last returned, so a failed count poll keeps the last count
-      // until the next poll or stream event corrects it.
+      // and reports the inbox as possibly out of date instead.
+      if (mounted.current) {
+        setPollError(
+          new Error(`Couldn't refresh the unread count: ${errMsg(err)}`)
+        );
+      }
     }
   }, []);
 
   // Initial load + safety-net polling. Independent of the stream lifecycle.
   useEffect(() => {
     if (!isAuthed) {
+      hasList.current = false;
       setItems([]);
       setUnread(0);
       setLoading(false);
       setError(null);
+      setRefreshError(null);
+      setPollError(null);
+      setStreamError(null);
       return;
     }
     void refetch();
@@ -161,12 +192,14 @@ export function RealNotificationProvider({
     };
 
     const connect = (): void => {
+      timer = undefined;
       if (stopped) {
         return;
       }
       controller = openSseStream({
         url: gatewayUrlFor(STREAM_URL),
         onOpen: () => {
+          setStreamError(null);
           healthyTimer = window.setTimeout(markHealthy, STREAM_HEALTHY_MS);
           if (reconnecting) {
             reconnecting = false;
@@ -180,13 +213,23 @@ export function RealNotificationProvider({
           }
           // 'ping' heartbeats only mark the stream healthy.
         },
-        onError: reconnect,
+        onError: (err) => {
+          setStreamError(new Error(`Live updates stopped: ${errMsg(err)}`));
+          reconnect();
+        },
         onClose: reconnect,
       });
     };
 
+    reconnectStreamNow.current = () => {
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+        connect();
+      }
+    };
     connect();
     return () => {
+      reconnectStreamNow.current = null;
       stopped = true;
       window.clearTimeout(timer);
       window.clearTimeout(healthyTimer);
@@ -236,18 +279,36 @@ export function RealNotificationProvider({
     [msg, refetch]
   );
 
+  // A retry also cuts short the stream's wait to reconnect.
+  const retry = useCallback(async (): Promise<void> => {
+    reconnectStreamNow.current?.();
+    await refetch();
+  }, [refetch]);
+
+  const liveError = refreshError ?? streamError ?? pollError;
   const value = useMemo<NotificationContextValue>(
     () => ({
       items,
       unreadCount: unread,
       loading,
       error,
+      liveError,
       markRead,
       markAllRead,
       archive,
-      refetch,
+      refetch: retry,
     }),
-    [items, unread, loading, error, markRead, markAllRead, archive, refetch]
+    [
+      items,
+      unread,
+      loading,
+      error,
+      liveError,
+      markRead,
+      markAllRead,
+      archive,
+      retry,
+    ]
   );
 
   return <NotificationProvider value={value}>{children}</NotificationProvider>;

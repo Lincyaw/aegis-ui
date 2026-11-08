@@ -2,6 +2,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
   type MouseEvent,
+  type Ref,
   useEffect,
   useId,
   useMemo,
@@ -17,6 +18,9 @@ import {
 } from '@ant-design/icons';
 import { Popover } from 'antd';
 
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useDialogPopover } from '../../hooks/useDialogPopover';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
 import type { SavedQuery } from '../../hooks/useSavedQueries';
 import './SavedQueryBar.css';
 
@@ -36,8 +40,23 @@ export interface SavedQueryBarProps {
   allowEmptySave?: boolean;
   /** Optional className. */
   className?: string;
-  /** Max number of unpinned queries shown inline (default 6). The rest live in an overflow menu. */
+  /** Max number of unpinned queries shown inline (default 6). The rest live in an overflow list. */
   maxInlineUnpinned?: number;
+}
+
+type FocusTarget =
+  | { kind: 'query'; id: string; inOverflow: boolean }
+  | { kind: 'save' };
+
+function findQueryControl(
+  container: ParentNode | null,
+  id: string,
+  selector: string,
+): HTMLElement | null {
+  const holder = Array.from(
+    container?.querySelectorAll<HTMLElement>('[data-query-id]') ?? [],
+  ).find((element) => element.dataset.queryId === id);
+  return holder?.querySelector<HTMLElement>(selector) ?? null;
 }
 
 export function SavedQueryBar({
@@ -52,53 +71,126 @@ export function SavedQueryBar({
   className,
   maxInlineUnpinned = 6,
 }: SavedQueryBarProps) {
-  const { pinned, inlineUnpinned, overflow } = useMemo(() => {
+  const { inline, overflow } = useMemo(() => {
     const pinnedQs = queries.filter((q) => q.pinned);
     const unpinnedQs = queries.filter((q) => !q.pinned);
     return {
-      pinned: pinnedQs,
-      inlineUnpinned: unpinnedQs.slice(0, maxInlineUnpinned),
+      inline: [...pinnedQs, ...unpinnedQs.slice(0, maxInlineUnpinned)],
       overflow: unpinnedQs.slice(maxInlineUnpinned),
     };
   }, [queries, maxInlineUnpinned]);
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const overflowPanelId = useId();
+  const [focusTarget, setFocusTarget] = useState<FocusTarget | null>(null);
+
+  // A pin toggle moves a chip, a delete removes the control that had focus,
+  // and a rename swaps its field back for the chip. Focus is placed once the
+  // host's new queries have rendered.
+  useEffect(() => {
+    if (focusTarget === null) {
+      return;
+    }
+    setFocusTarget(null);
+    const root = rootRef.current;
+    if (!root) {
+      return;
+    }
+    const chips = root.querySelectorAll<HTMLElement>('.aegis-sqb__chip');
+    // The overflow list is searched only for a delete inside it, which keeps
+    // it open; after a pin it is closing and may still hold the old row.
+    const candidates =
+      focusTarget.kind === 'query'
+        ? [
+            focusTarget.inOverflow
+              ? findQueryControl(
+                  document.getElementById(overflowPanelId),
+                  focusTarget.id,
+                  '.aegis-sqb__overflow-apply',
+                )
+              : null,
+            findQueryControl(root, focusTarget.id, '.aegis-sqb__chip'),
+            root.querySelector<HTMLElement>('.aegis-sqb__chip--ghost'),
+            root.querySelector<HTMLButtonElement>('.aegis-sqb__save-trigger'),
+            root,
+          ]
+        : [
+            root.querySelector<HTMLButtonElement>('.aegis-sqb__save-trigger'),
+            chips.length > 0 ? chips[chips.length - 1] : null,
+            root,
+          ];
+    candidates
+      .find(
+        (element) =>
+          element !== null &&
+          !(element instanceof HTMLButtonElement && element.disabled),
+      )
+      ?.focus();
+  }, [focusTarget, overflowPanelId]);
+
+  const togglePinned = (id: string): void => {
+    setFocusTarget({ kind: 'query', id, inOverflow: false });
+    onTogglePinned(id);
+  };
+
+  // Focus moves to the next query, or to "Save current" after the last, or
+  // to the bar itself while that is disabled. In the overflow list, which
+  // stays open, it moves back from the last row.
+  const remove = (id: string): void => {
+    const order = [...inline, ...overflow];
+    const index = order.findIndex((q) => q.id === id);
+    const inOverflow = index >= inline.length;
+    let next: SavedQuery | undefined;
+    if (index + 1 < order.length) {
+      next = order[index + 1];
+    } else if (inOverflow && overflow.length > 1) {
+      next = order[index - 1];
+    }
+    setFocusTarget(
+      next ? { kind: 'query', id: next.id, inOverflow } : { kind: 'save' },
+    );
+    onRemove(id);
+  };
+
+  const focusQuery = (id: string): void => {
+    setFocusTarget({ kind: 'query', id, inOverflow: false });
+  };
 
   const saveDisabled = !allowEmptySave && currentValue.trim() === '';
   const cls = ['aegis-sqb', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div className={cls} role="toolbar" aria-label="Saved queries">
+    <div
+      ref={rootRef}
+      className={cls}
+      role="toolbar"
+      aria-label="Saved queries"
+      tabIndex={-1}
+    >
       {queries.length === 0 ? (
         <span className="aegis-sqb__hint">
           No saved queries yet — save the current view to pin it.
         </span>
       ) : (
         <ul className="aegis-sqb__list">
-          {pinned.map((q) => (
+          {inline.map((q) => (
             <SavedQueryChip
               key={q.id}
               query={q}
               onApply={onApply}
               onRename={onRename}
-              onRemove={onRemove}
-              onTogglePinned={onTogglePinned}
-            />
-          ))}
-          {inlineUnpinned.map((q) => (
-            <SavedQueryChip
-              key={q.id}
-              query={q}
-              onApply={onApply}
-              onRename={onRename}
-              onRemove={onRemove}
-              onTogglePinned={onTogglePinned}
+              onRenameDone={focusQuery}
+              onRemove={remove}
+              onTogglePinned={togglePinned}
             />
           ))}
           {overflow.length > 0 ? (
-            <OverflowMenu
+            <OverflowQueries
+              panelId={overflowPanelId}
               items={overflow}
               onApply={onApply}
-              onRemove={onRemove}
-              onTogglePinned={onTogglePinned}
+              onRemove={remove}
+              onTogglePinned={togglePinned}
             />
           ) : null}
         </ul>
@@ -118,6 +210,8 @@ interface SavedQueryChipProps {
   query: SavedQuery;
   onApply: (q: SavedQuery) => void;
   onRename: (id: string, name: string) => void;
+  /** Called when the user ends a rename from the keyboard. */
+  onRenameDone: (id: string) => void;
   onRemove: (id: string) => void;
   onTogglePinned: (id: string) => void;
 }
@@ -126,11 +220,13 @@ function SavedQueryChip({
   query,
   onApply,
   onRename,
+  onRenameDone,
   onRemove,
   onTogglePinned,
 }: SavedQueryChipProps) {
   const [renaming, setRenaming] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const menu = useMenuPopover<HTMLDivElement>();
+  const menuId = useId();
 
   const handleClick = (): void => {
     if (renaming) {
@@ -141,38 +237,52 @@ function SavedQueryChip({
 
   const handleContextMenu = (event: MouseEvent<HTMLLIElement>): void => {
     event.preventDefault();
-    setMenuOpen(true);
+    menu.setOpen(true);
   };
 
-  const menu = (
+  // The bar places focus after Pin and Delete, once the chips have moved.
+  const menuPanel = (
     <ChipMenu
+      panelRef={menu.panelRef}
+      id={menuId}
+      onKeyDown={menu.onPanelKeyDown}
       query={query}
       onRename={() => {
-        setMenuOpen(false);
+        menu.setOpen(false);
         setRenaming(true);
       }}
       onTogglePinned={() => {
-        setMenuOpen(false);
+        menu.setOpen(false);
         onTogglePinned(query.id);
       }}
       onRemove={() => {
-        setMenuOpen(false);
+        menu.setOpen(false);
         onRemove(query.id);
       }}
     />
   );
 
   return (
-    <li className="aegis-sqb__item" onContextMenu={handleContextMenu}>
+    <li
+      className="aegis-sqb__item"
+      data-query-id={query.id}
+      onContextMenu={handleContextMenu}
+    >
       {renaming ? (
         <RenameInput
           initialName={query.name}
-          onSubmit={(name) => {
+          onSubmit={(name, fromKeyboard) => {
             onRename(query.id, name);
             setRenaming(false);
+            if (fromKeyboard) {
+              onRenameDone(query.id);
+            }
           }}
-          onCancel={() => {
+          onCancel={(fromKeyboard) => {
             setRenaming(false);
+            if (fromKeyboard) {
+              onRenameDone(query.id);
+            }
           }}
         />
       ) : (
@@ -192,19 +302,25 @@ function SavedQueryChip({
             <span className="aegis-sqb__chip-label">{query.name}</span>
           </button>
           <Popover
-            content={menu}
+            content={menuPanel}
             trigger="click"
-            open={menuOpen}
-            onOpenChange={setMenuOpen}
+            open={menu.open}
+            onOpenChange={menu.setOpen}
             placement="bottomRight"
+            autoAdjustOverflow={POPOVER_OVERFLOW}
             arrow={false}
             classNames={{ root: 'aegis-sqb__popover' }}
             destroyOnHidden
           >
             <button
+              ref={menu.triggerRef}
               type="button"
               className="aegis-sqb__menu-trigger"
               aria-label={`Options for ${query.name}`}
+              aria-haspopup="menu"
+              aria-expanded={menu.open}
+              aria-controls={menu.open ? menuId : undefined}
+              onKeyDown={menu.onTriggerKeyDown}
             >
               <EllipsisOutlined aria-hidden />
             </button>
@@ -216,6 +332,9 @@ function SavedQueryChip({
 }
 
 interface ChipMenuProps {
+  panelRef: Ref<HTMLDivElement>;
+  id: string;
+  onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
   query: SavedQuery;
   onRename: () => void;
   onTogglePinned: () => void;
@@ -223,13 +342,23 @@ interface ChipMenuProps {
 }
 
 function ChipMenu({
+  panelRef,
+  id,
+  onKeyDown,
   query,
   onRename,
   onTogglePinned,
   onRemove,
 }: ChipMenuProps) {
   return (
-    <div className="aegis-sqb__menu" role="menu">
+    <div
+      ref={panelRef}
+      id={id}
+      className="aegis-sqb__menu"
+      role="menu"
+      tabIndex={-1}
+      onKeyDown={onKeyDown}
+    >
       <button
         type="button"
         role="menuitem"
@@ -260,8 +389,8 @@ function ChipMenu({
 
 interface RenameInputProps {
   initialName: string;
-  onSubmit: (name: string) => void;
-  onCancel: () => void;
+  onSubmit: (name: string, fromKeyboard: boolean) => void;
+  onCancel: (fromKeyboard: boolean) => void;
 }
 
 function RenameInput({ initialName, onSubmit, onCancel }: RenameInputProps) {
@@ -276,13 +405,13 @@ function RenameInput({ initialName, onSubmit, onCancel }: RenameInputProps) {
     if (event.key === 'Enter') {
       event.preventDefault();
       if (value.trim() !== '') {
-        onSubmit(value);
+        onSubmit(value, true);
       } else {
-        onCancel();
+        onCancel(true);
       }
     } else if (event.key === 'Escape') {
       event.preventDefault();
-      onCancel();
+      onCancel(true);
     }
   };
 
@@ -298,9 +427,9 @@ function RenameInput({ initialName, onSubmit, onCancel }: RenameInputProps) {
       onKeyDown={handleKeyDown}
       onBlur={() => {
         if (value.trim() !== '' && value !== initialName) {
-          onSubmit(value);
+          onSubmit(value, false);
         } else {
-          onCancel();
+          onCancel(false);
         }
       }}
       aria-label="Rename saved query"
@@ -308,34 +437,55 @@ function RenameInput({ initialName, onSubmit, onCancel }: RenameInputProps) {
   );
 }
 
-interface OverflowMenuProps {
+interface OverflowQueriesProps {
+  panelId: string;
   items: SavedQuery[];
   onApply: (q: SavedQuery) => void;
   onRemove: (id: string) => void;
   onTogglePinned: (id: string) => void;
 }
 
-function OverflowMenu({
+/**
+ * The queries past `maxInlineUnpinned`, each with its own actions, in a
+ * dialog popover. It stays open through a delete; a pinned query leaves it
+ * for the bar, so a pin closes it.
+ */
+function OverflowQueries({
+  panelId,
   items,
   onApply,
   onRemove,
   onTogglePinned,
-}: OverflowMenuProps) {
-  const [open, setOpen] = useState(false);
+}: OverflowQueriesProps) {
+  const popover = useDialogPopover<HTMLDivElement>();
   const content = (
-    <div className="aegis-sqb__menu aegis-sqb__menu--overflow" role="menu">
-      {items.map((q) => (
-        <OverflowRow
-          key={q.id}
-          query={q}
-          onApply={() => {
-            setOpen(false);
-            onApply(q);
-          }}
-          onRemove={onRemove}
-          onTogglePinned={onTogglePinned}
-        />
-      ))}
+    <div
+      ref={popover.panelRef}
+      id={panelId}
+      className="aegis-sqb__menu aegis-sqb__menu--overflow"
+      role="dialog"
+      aria-label="More saved queries"
+      tabIndex={-1}
+    >
+      <ul className="aegis-sqb__overflow-list">
+        {items.map((q) => (
+          <OverflowRow
+            key={q.id}
+            query={q}
+            onApply={() => {
+              popover.close();
+              onApply(q);
+            }}
+            onTogglePinned={() => {
+              popover.setOpen(false);
+              onTogglePinned(q.id);
+            }}
+            onRemove={() => {
+              onRemove(q.id);
+            }}
+          />
+        ))}
+      </ul>
     </div>
   );
   return (
@@ -343,16 +493,21 @@ function OverflowMenu({
       <Popover
         content={content}
         trigger="click"
-        open={open}
-        onOpenChange={setOpen}
+        open={popover.open}
+        onOpenChange={popover.setOpen}
         placement="bottomRight"
+        autoAdjustOverflow={POPOVER_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-sqb__popover' }}
         destroyOnHidden
       >
         <button
+          ref={popover.triggerRef}
           type="button"
           className="aegis-sqb__chip aegis-sqb__chip--ghost"
+          aria-haspopup="dialog"
+          aria-expanded={popover.open}
+          aria-controls={popover.open ? panelId : undefined}
         >
           +{items.length.toString()} more
         </button>
@@ -364,21 +519,20 @@ function OverflowMenu({
 interface OverflowRowProps {
   query: SavedQuery;
   onApply: () => void;
-  onRemove: (id: string) => void;
-  onTogglePinned: (id: string) => void;
+  onTogglePinned: () => void;
+  onRemove: () => void;
 }
 
 function OverflowRow({
   query,
   onApply,
-  onRemove,
   onTogglePinned,
+  onRemove,
 }: OverflowRowProps) {
   return (
-    <div className="aegis-sqb__overflow-row">
+    <li className="aegis-sqb__overflow-row" data-query-id={query.id}>
       <button
         type="button"
-        role="menuitem"
         className="aegis-sqb__menu-item aegis-sqb__overflow-apply"
         onClick={onApply}
         title={query.value}
@@ -388,10 +542,8 @@ function OverflowRow({
       <button
         type="button"
         className="aegis-sqb__overflow-icon"
-        onClick={() => {
-          onTogglePinned(query.id);
-        }}
-        aria-label={query.pinned ? 'Unpin' : 'Pin'}
+        onClick={onTogglePinned}
+        aria-label={`${query.pinned ? 'Unpin' : 'Pin'} ${query.name}`}
       >
         {query.pinned ? (
           <StarFilled aria-hidden />
@@ -402,14 +554,12 @@ function OverflowRow({
       <button
         type="button"
         className="aegis-sqb__overflow-icon aegis-sqb__overflow-icon--danger"
-        onClick={() => {
-          onRemove(query.id);
-        }}
+        onClick={onRemove}
         aria-label={`Delete ${query.name}`}
       >
         ×
       </button>
-    </div>
+    </li>
   );
 }
 
@@ -424,24 +574,18 @@ function SaveCurrentControl({
   currentValue,
   onSave,
 }: SaveCurrentControlProps) {
-  const [open, setOpen] = useState(false);
+  const popover = useDialogPopover<HTMLFormElement>();
   const [name, setName] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
   const nameId = useId();
+  const formId = useId();
+  const { open } = popover;
 
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (next: boolean): void => {
+    if (next) {
       setName(currentValue.slice(0, 32));
-      const id = window.setTimeout(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }, 0);
-      return () => {
-        window.clearTimeout(id);
-      };
     }
-    return undefined;
-  }, [open, currentValue]);
+    popover.setOpen(next);
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -449,23 +593,35 @@ function SaveCurrentControl({
       return;
     }
     onSave(name);
-    setOpen(false);
+    popover.close();
     setName('');
   };
 
   const content = (
-    <form className="aegis-sqb__save-form" onSubmit={handleSubmit}>
+    <form
+      ref={popover.panelRef}
+      id={formId}
+      className="aegis-sqb__save-form"
+      role="dialog"
+      aria-label="Save the current query"
+      tabIndex={-1}
+      onSubmit={handleSubmit}
+    >
       <label className="aegis-sqb__save-label" htmlFor={nameId}>
         Name this query
       </label>
+      {/* The popover focuses the field; selecting it lets typing replace
+          the suggested name. */}
       <input
         id={nameId}
-        ref={inputRef}
         type="text"
         className="aegis-sqb__save-input"
         value={name}
         onChange={(e) => {
           setName(e.target.value);
+        }}
+        onFocus={(e) => {
+          e.currentTarget.select();
         }}
         placeholder="e.g. failed runs last 24h"
       />
@@ -473,9 +629,7 @@ function SaveCurrentControl({
         <button
           type="button"
           className="aegis-sqb__save-cancel"
-          onClick={() => {
-            setOpen(false);
-          }}
+          onClick={popover.close}
         >
           Cancel
         </button>
@@ -495,16 +649,20 @@ function SaveCurrentControl({
       content={content}
       trigger="click"
       open={disabled ? false : open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       placement="bottomRight"
       arrow={false}
       classNames={{ root: 'aegis-sqb__popover' }}
       destroyOnHidden
     >
       <button
+        ref={popover.triggerRef}
         type="button"
         className="aegis-sqb__save-trigger"
         disabled={disabled}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? formId : undefined}
       >
         <PlusOutlined aria-hidden />
         <span>Save current</span>

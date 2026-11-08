@@ -343,9 +343,42 @@ interface AskWindow extends Window {
   ) => void;
 }
 
+function InlineAskPanelSpecimen({
+  onSend,
+}: {
+  onSend?: (request: AskRequest) => void;
+}): ReactNode {
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => {
+    setOpen(false);
+  }, []);
+  return (
+    <div className='gallery__stack'>
+      <div>
+        <AegisButton
+          tone='secondary'
+          aria-expanded={open}
+          onClick={() => {
+            setOpen((current) => !current);
+          }}
+        >
+          {open ? 'Close the AskPanel' : 'Open the AskPanel'}
+        </AegisButton>
+      </div>
+      {open && (
+        <AskPanel
+          context={ASK_PANEL_CONTEXT}
+          popover={false}
+          onClose={close}
+          onSend={onSend}
+        />
+      )}
+    </div>
+  );
+}
+
 function AskAffordanceSpecimen(): ReactNode {
   const [log, setLog] = useState<string[]>([]);
-  const [inlineOpen, setInlineOpen] = useState(true);
   const [scope, setScope] = useState<HTMLDivElement | null>(null);
 
   const appendLog = useCallback((line: string) => {
@@ -418,10 +451,6 @@ function AskAffordanceSpecimen(): ReactNode {
     },
     [appendLog]
   );
-
-  const closeInline = useCallback(() => {
-    setInlineOpen(false);
-  }, []);
 
   const onTriggerJs = useCallback(() => {
     const w = window as AskWindow;
@@ -546,35 +575,18 @@ function AskAffordanceSpecimen(): ReactNode {
             </pre>
           </div>
         </Specimen>
-        {inlineOpen ? (
-          <>
-            <Specimen caption='AskPanel · popover={false} · onSend' span={3}>
-              <AskPanel
-                context={ASK_PANEL_CONTEXT}
-                popover={false}
-                onClose={closeInline}
-                onSend={onInlineAsk}
-              />
-            </Specimen>
-            <Specimen caption='AskPanel · no onSend (no agent)' span={2}>
-              <AskPanel
-                context={ASK_PANEL_CONTEXT}
-                popover={false}
-                onClose={closeInline}
-              />
-            </Specimen>
-          </>
-        ) : (
-          <Specimen caption='AskPanel · closed' span={2}>
-            <AegisButton
-              onClick={() => {
-                setInlineOpen(true);
-              }}
-            >
-              Show the AskPanels again
-            </AegisButton>
-          </Specimen>
-        )}
+        <Specimen
+          caption='AskPanel · popover={false} · onSend · focus moves to the field, and back on close'
+          span={3}
+        >
+          <InlineAskPanelSpecimen onSend={onInlineAsk} />
+        </Specimen>
+        <Specimen
+          caption='AskPanel · no onSend (no agent) · focus moves to the panel'
+          span={2}
+        >
+          <InlineAskPanelSpecimen />
+        </Specimen>
       </div>
     </AgentChatProvider>
   );

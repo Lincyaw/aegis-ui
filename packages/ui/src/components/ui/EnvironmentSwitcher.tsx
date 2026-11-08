@@ -4,7 +4,8 @@ import { Popover } from 'antd';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
-import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
 import './EnvironmentSwitcher.css';
 
 export type EnvironmentSwitcherBadge =
@@ -91,7 +92,7 @@ export function EnvironmentSwitcher({
         open={menu.open}
         onOpenChange={menu.setOpen}
         placement="bottomRight"
-        autoAdjustOverflow={MENU_OVERFLOW}
+        autoAdjustOverflow={POPOVER_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-env-switcher__overlay' }}
         destroyOnHidden

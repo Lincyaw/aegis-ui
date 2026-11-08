@@ -1,3 +1,7 @@
+.aegis-notif-bell__anchor {
+  display: inline-flex;
+}
+
 .aegis-notif-bell {
   position: relative;
   display: inline-flex;
@@ -42,14 +46,37 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-warning);
+  background: var(--bg-inverted);
   color: var(--text-on-inverted);
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-9);
   font-weight: var(--fw-semibold);
   line-height: 1;
   border-radius: var(--radius-pill);
   border: var(--size-hairline) solid var(--bg-panel);
+}
+
+/* Live updates are failing: a caution mark opposite the unread badge,
+ * cut out of the surface behind the bell. It sits on the bottom edge so the
+ * badge's surface border still parts the two. */
+.aegis-notif-bell__stale {
+  position: absolute;
+  right: var(--space-px);
+  bottom: 0;
+  font-size: var(--size-icon-sm);
+  color: var(--ink-warn);
+  background: var(--bg-panel);
+  border-radius: var(--radius-circle);
+}
+
+.aegis-notif-bell__description {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* ── Popover content ─────────────────────────────────────────────── */
@@ -74,11 +101,45 @@
 }
 
 .aegis-notif-pop__count {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-10);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
+}
+
+.aegis-notif-pop__stale {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  background: var(--bg-warn-soft);
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.aegis-notif-pop__stale-icon {
+  flex: none;
+  height: var(--type-small-line);
+  font-size: var(--size-icon-sm);
+  color: var(--ink-warn);
+}
+
+.aegis-notif-pop__stale-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.aegis-notif-pop__stale-title {
+  font-weight: var(--fw-semibold);
+  color: var(--text-main);
 }
 
 .aegis-notif-pop__list {
@@ -161,7 +222,8 @@
 
 .aegis-notif-pop__time {
   flex: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-10);
   color: var(--text-muted);
 }
