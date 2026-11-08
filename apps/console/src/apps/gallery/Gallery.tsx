@@ -7,6 +7,7 @@ import { AntdWidgetsSection } from './sections/AntdWidgets';
 import { ColorTokensSection } from './sections/ColorTokens';
 import { CommandsSection } from './sections/Commands';
 import { DataDisplaySection } from './sections/DataDisplay';
+import { EvidenceSection } from './sections/Evidence';
 import { IndicatorsSection } from './sections/Indicators';
 import { LayoutsSection } from './sections/Layouts';
 import { ListsRowsSection } from './sections/ListsRows';
@@ -57,6 +58,7 @@ export default function Gallery() {
       <NotificationsSection />
       <AgentSection />
       <ServicePrimitivesSection />
+      <EvidenceSection />
       <AntdWidgetsSection />
       <CommandsSection />
       <AgentIntegrationSection />

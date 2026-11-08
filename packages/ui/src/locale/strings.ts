@@ -316,6 +316,38 @@ export interface AegisStrings {
   serviceMapEdgeRole: string;
   /** Names a ServiceMap edge by the labels of the services it joins. */
   serviceMapEdgeName: (source: string, target: string) => string;
+  /**
+   * React Flow's own accessible names and descriptions in a CircuitGraph:
+   * the keyboard help of a chip or wire the host can select, the controls
+   * and the minimap.
+   */
+  circuitGraphAriaLabels: Readonly<AriaLabelConfig>;
+  /** What assistive technology calls a CircuitGraph chip. */
+  circuitChipRole: string;
+  /** What assistive technology calls a CircuitGraph wire. */
+  circuitWireRole: string;
+  /** Names a CircuitGraph wire by the labels of the chips it joins. */
+  circuitWireName: (source: string, target: string) => string;
+  /** The button that shows a chip's pins, named by the chip's label. */
+  circuitShowPins: (chip: string) => string;
+  /** The button that hides a chip's pins, named by the chip's label. */
+  circuitHidePins: (chip: string) => string;
+  /** Heads a chip's pins that wires arrive at, e.g. the endpoints a service serves. */
+  circuitPinsIn: string;
+  /** Heads a chip's pins that wires leave from, e.g. the calls a service makes. */
+  circuitPinsOut: string;
+  /** The row standing for a chip's pins that are not listed. */
+  circuitMorePins: (count: number) => string;
+  /** The control that fits the view to the chips in focus. */
+  circuitFitFocus: string;
+  circuitLegend: string;
+  circuitHideLegend: string;
+  /** Names TimeSeriesChart's time axis for assistive technology. */
+  timeSeriesTime: string;
+  /** The value TimeSeriesChart reads out where a series has no point. */
+  timeSeriesNoValue: string;
+  /** Describes a DecisionBar option's key, e.g. "Shortcut R". */
+  decisionShortcut: (key: string) => string;
   /** NumberField's error when its text is not a whole number. */
   enterWholeNumber: string;
   /** NumberField's error when its text is not a number. */
@@ -740,6 +772,35 @@ export const enStrings: AegisStrings = {
   serviceMapNodeRole: 'service',
   serviceMapEdgeRole: 'connection',
   serviceMapEdgeName: (source, target) => `${source} to ${target}`,
+  circuitGraphAriaLabels: {
+    'node.a11yDescription.default': 'Press Enter or Space to select this chip.',
+    'node.a11yDescription.keyboardDisabled':
+      'Press Enter or Space to select this chip.',
+    'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) =>
+      `Moved the selected chip ${direction}. New position: x ${String(x)}, y ${String(y)}.`,
+    'edge.a11yDescription.default': 'Press Enter or Space to select this wire.',
+    'controls.ariaLabel': 'Board controls',
+    'controls.zoomIn.ariaLabel': 'Zoom in',
+    'controls.zoomOut.ariaLabel': 'Zoom out',
+    'controls.fitView.ariaLabel': 'Fit the whole board',
+    'controls.interactive.ariaLabel': 'Toggle interactivity',
+    'minimap.ariaLabel': 'Mini map',
+    'handle.ariaLabel': 'Pin',
+  },
+  circuitChipRole: 'chip',
+  circuitWireRole: 'wire',
+  circuitWireName: (source, target) => `${source} to ${target}`,
+  circuitShowPins: (chip) => `Show the pins of ${chip}`,
+  circuitHidePins: (chip) => `Hide the pins of ${chip}`,
+  circuitPinsIn: 'Serves',
+  circuitPinsOut: 'Calls',
+  circuitMorePins: (count) => `${count.toLocaleString('en')} more`,
+  circuitFitFocus: 'Fit the focus',
+  circuitLegend: 'Legend',
+  circuitHideLegend: 'Hide the legend',
+  timeSeriesTime: 'Time',
+  timeSeriesNoValue: 'no data',
+  decisionShortcut: (key) => `Shortcut ${key}`,
   enterWholeNumber: 'Enter a whole number',
   enterNumber: 'Enter a number',
   timeRange: 'Time range',
@@ -1156,6 +1217,34 @@ export const zhCNStrings: AegisStrings = {
   serviceMapNodeRole: '服务',
   serviceMapEdgeRole: '连线',
   serviceMapEdgeName: (source, target) => `从 ${source} 到 ${target}`,
+  circuitGraphAriaLabels: {
+    'node.a11yDescription.default': '按 Enter 或空格键选中此芯片。',
+    'node.a11yDescription.keyboardDisabled': '按 Enter 或空格键选中此芯片。',
+    'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) =>
+      `已将选中的芯片向${ZH_DIRECTIONS[direction] ?? direction}移动。新位置：x ${String(x)}，y ${String(y)}。`,
+    'edge.a11yDescription.default': '按 Enter 或空格键选中此连线。',
+    'controls.ariaLabel': '电路板控件',
+    'controls.zoomIn.ariaLabel': '放大',
+    'controls.zoomOut.ariaLabel': '缩小',
+    'controls.fitView.ariaLabel': '显示整块电路板',
+    'controls.interactive.ariaLabel': '切换交互',
+    'minimap.ariaLabel': '缩略图',
+    'handle.ariaLabel': '引脚',
+  },
+  circuitChipRole: '芯片',
+  circuitWireRole: '连线',
+  circuitWireName: (source, target) => `从 ${source} 到 ${target}`,
+  circuitShowPins: (chip) => `展开 ${chip} 的引脚`,
+  circuitHidePins: (chip) => `收起 ${chip} 的引脚`,
+  circuitPinsIn: '提供',
+  circuitPinsOut: '调用',
+  circuitMorePins: (count) => `另外 ${count.toLocaleString('zh-CN')} 个`,
+  circuitFitFocus: '聚焦关注的芯片',
+  circuitLegend: '图例',
+  circuitHideLegend: '收起图例',
+  timeSeriesTime: '时间',
+  timeSeriesNoValue: '无数据',
+  decisionShortcut: (key) => `快捷键 ${key}`,
   enterWholeNumber: '请输入整数',
   enterNumber: '请输入数字',
   timeRange: '时间范围',

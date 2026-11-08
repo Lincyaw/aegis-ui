@@ -1,0 +1,713 @@
+@import url('@xyflow/react/dist/style.css');
+
+.aegis-circuit-graph {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: var(--circuit-graph-min-height);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  font-family: var(--font-ui);
+  background: var(--bg-page);
+  color: var(--text-main);
+}
+
+.aegis-circuit-graph__pane {
+  position: absolute;
+  inset: 0;
+}
+
+.aegis-circuit-graph .react-flow__attribution {
+  display: none;
+}
+
+.aegis-circuit-graph .react-flow__background {
+  background: var(--bg-page);
+}
+
+.aegis-circuit-graph .react-flow__node {
+  border-radius: var(--radius-sm);
+}
+
+/* React Flow clears the outline of a focused node or edge. */
+.aegis-circuit-graph .react-flow__node:focus-visible,
+.aegis-circuit-graph .react-flow__edge:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── Chip ─────────────────────────────────────────────────────────── */
+.aegis-circuit-graph__chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  box-shadow: var(--shadow-rest);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.aegis-circuit-graph__chip:hover {
+  border-color: var(--text-muted);
+  box-shadow: var(--shadow-raised);
+}
+
+.aegis-circuit-graph__chip:active {
+  box-shadow: var(--shadow-rest);
+}
+
+.aegis-circuit-graph__chip--emphasis {
+  border-color: var(--border-strong);
+}
+
+.aegis-circuit-graph__chip--selected,
+.aegis-circuit-graph__chip--selected:hover {
+  border-color: var(--bg-inverted);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-circuit-graph__chip--stub {
+  border-style: dashed;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+/* Nothing observed: a dashed outline with the board showing through. */
+.aegis-circuit-graph__chip--ghost {
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.aegis-circuit-graph__chip--ghost:not(.aegis-circuit-graph__chip--selected) {
+  border-color: var(--text-faint);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.aegis-circuit-graph__chip--ghost.aegis-circuit-graph__chip--emphasis:not(
+    .aegis-circuit-graph__chip--selected
+  ) {
+  border-color: var(--text-muted);
+}
+
+/* No wires to follow: recedes until selected. */
+.aegis-circuit-graph__chip--faint:not(.aegis-circuit-graph__chip--selected) {
+  opacity: 0.5;
+}
+
+.aegis-circuit-graph__chip-head {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: none;
+  padding: var(--aegis-circuit-pad-y) var(--space-3);
+}
+
+.aegis-circuit-graph__chip--expanded .aegis-circuit-graph__chip-head {
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__chip-head {
+  border-color: var(--border-on-inverted);
+}
+
+.aegis-circuit-graph__chip-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  height: var(--aegis-circuit-label-line);
+}
+
+.aegis-circuit-graph__glyph {
+  display: inline-flex;
+  flex: none;
+  font-size: var(--size-icon-md);
+  color: var(--text-muted);
+}
+
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__glyph {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-circuit-graph__chip-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--type-strong-size);
+  font-weight: var(--fw-semibold);
+  line-height: var(--aegis-circuit-label-line);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.aegis-circuit-graph__dot {
+  flex: none;
+  width: var(--size-dot);
+  height: var(--size-dot);
+  border-radius: var(--radius-circle);
+  background: var(--text-faint);
+}
+
+.aegis-circuit-graph__dot--alarm {
+  background: var(--accent-warning);
+}
+
+.aegis-circuit-graph__dot--caution {
+  background: var(--ink-warn);
+}
+
+.aegis-circuit-graph__dot--neutral {
+  background: var(--text-muted);
+}
+
+.aegis-circuit-graph__toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  margin-right: calc(-1 * var(--space-1));
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xs);
+  font-size: var(--size-icon-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.aegis-circuit-graph__toggle:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.aegis-circuit-graph__toggle:active {
+  background: var(--bg-tint);
+}
+
+.aegis-circuit-graph__toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.aegis-circuit-graph__toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__toggle {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__toggle:hover {
+  background: var(--border-on-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-circuit-graph__chip-meta {
+  overflow: hidden;
+  height: var(--aegis-circuit-meta-line);
+  font-family: var(--font-numeric);
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--aegis-circuit-meta-line);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+}
+
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__chip-meta {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-circuit-graph__chip-tags {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-1);
+  overflow: hidden;
+  height: var(--aegis-circuit-tag-row);
+}
+
+/* ── Pads and pins ────────────────────────────────────────────────── */
+
+/* A pin's pad, square on the chip's edge; React Flow positions it. */
+.aegis-circuit-graph .aegis-circuit-graph__pad {
+  width: var(--circuit-pad-size);
+  min-width: 0;
+  height: var(--circuit-pad-size);
+  min-height: 0;
+  border: var(--size-hairline) solid var(--text-muted);
+  border-radius: var(--radius-xs);
+  background: var(--bg-panel);
+  pointer-events: none;
+}
+
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__pad {
+  border-color: var(--text-on-inverted-muted);
+  background: var(--bg-inverted);
+}
+
+.aegis-circuit-graph__chip--stub .aegis-circuit-graph__pad {
+  border-style: dashed;
+  background: var(--bg-muted);
+}
+
+.aegis-circuit-graph__pins {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+}
+
+.aegis-circuit-graph__pins + .aegis-circuit-graph__pins {
+  border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__pins {
+  border-color: var(--border-on-inverted);
+}
+
+.aegis-circuit-graph__pins-head {
+  height: var(--aegis-circuit-section-h);
+  padding: 0 var(--space-3);
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  line-height: var(--aegis-circuit-section-h);
+  color: var(--text-faint);
+}
+
+.aegis-circuit-graph__pins--out .aegis-circuit-graph__pins-head {
+  text-align: right;
+}
+
+.aegis-circuit-graph__pin {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--aegis-circuit-pin-row-h);
+  padding: 0 var(--space-3);
+}
+
+.aegis-circuit-graph__pin--out {
+  flex-direction: row-reverse;
+}
+
+.aegis-circuit-graph__pin-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--type-micro-size);
+  line-height: var(--aegis-circuit-pin-row-h);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.aegis-circuit-graph__pin--out .aegis-circuit-graph__pin-label {
+  text-align: right;
+}
+
+.aegis-circuit-graph__pin--more .aegis-circuit-graph__pin-label {
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+}
+
+.aegis-circuit-graph__pin-value {
+  flex: none;
+  font-family: var(--font-numeric);
+  font-size: var(--type-micro-size);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.aegis-circuit-graph__pin--alarm .aegis-circuit-graph__pin-value {
+  color: var(--accent-warning);
+}
+
+.aegis-circuit-graph__pin--caution .aegis-circuit-graph__pin-value {
+  color: var(--ink-warn);
+}
+
+.aegis-circuit-graph__pin--faint .aegis-circuit-graph__pin-label {
+  color: var(--text-muted);
+}
+
+.aegis-circuit-graph__pin--alarm .aegis-circuit-graph__pad {
+  border-color: var(--accent-warning);
+  background: var(--accent-warning);
+}
+
+.aegis-circuit-graph__pin--caution .aegis-circuit-graph__pad {
+  border-color: var(--ink-warn);
+  background: var(--ink-warn);
+}
+
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__pin-value,
+.aegis-circuit-graph__chip--selected .aegis-circuit-graph__pins-head,
+.aegis-circuit-graph__chip--selected
+  .aegis-circuit-graph__pin--more
+  .aegis-circuit-graph__pin-label {
+  color: var(--text-on-inverted-muted);
+}
+
+/* ── Wires ────────────────────────────────────────────────────────── */
+.aegis-circuit-graph__wire {
+  --aegis-circuit-wire-color: var(--text-muted);
+  --aegis-circuit-wire-width: calc(
+    var(--circuit-wire-min) +
+      (var(--circuit-wire-max) - var(--circuit-wire-min)) *
+      var(--aegis-circuit-wire-weight, 0)
+  );
+
+  transition: opacity var(--motion-fast);
+}
+
+.aegis-circuit-graph__wire--alarm {
+  --aegis-circuit-wire-color: var(--accent-warning);
+}
+
+.aegis-circuit-graph__wire--caution {
+  --aegis-circuit-wire-color: var(--ink-warn);
+}
+
+.aegis-circuit-graph__wire--neutral {
+  --aegis-circuit-wire-color: var(--text-muted);
+}
+
+.aegis-circuit-graph__wire--faint {
+  --aegis-circuit-wire-color: var(--text-faint);
+}
+
+.aegis-circuit-graph__wire-path {
+  fill: none;
+  stroke: var(--aegis-circuit-wire-color);
+  stroke-width: var(--aegis-circuit-wire-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.aegis-circuit-graph__wire--dashed .aegis-circuit-graph__wire-path {
+  stroke-dasharray: var(--space-2) var(--space-1);
+  stroke-linecap: butt;
+}
+
+.aegis-circuit-graph__wire--dotted .aegis-circuit-graph__wire-path {
+  stroke-dasharray: var(--size-hairline) var(--space-1);
+}
+
+.aegis-circuit-graph__wire-arrow {
+  fill: none;
+  stroke: var(--aegis-circuit-wire-color);
+  stroke-width: var(--circuit-wire-min);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The link under review: drawn over a soft brand halo. */
+.aegis-circuit-graph__wire-halo {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent-brand) 22%, transparent);
+  stroke-width: calc(
+    var(--aegis-circuit-wire-width) + var(--circuit-wire-halo)
+  );
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Selected: an ink halo, or a stronger brand one on the link under review. */
+.aegis-circuit-graph__wire--selected .aegis-circuit-graph__wire-halo {
+  stroke: color-mix(in srgb, var(--text-main) 18%, transparent);
+}
+
+.aegis-circuit-graph__wire--selected.aegis-circuit-graph__wire--highlighted
+  .aegis-circuit-graph__wire-halo {
+  stroke: color-mix(in srgb, var(--accent-brand) 36%, transparent);
+}
+
+/* Nothing observed: a hollow dashed trace, a casing with the board showing through. */
+.aegis-circuit-graph__wire--ghost {
+  --aegis-circuit-wire-color: var(--bg-page);
+  --aegis-circuit-wire-width: var(--circuit-wire-min);
+}
+
+.aegis-circuit-graph__wire-casing {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: calc(var(--circuit-wire-min) + var(--size-border-thick) * 2);
+  stroke-dasharray: var(--space-2) var(--space-1);
+}
+
+.aegis-circuit-graph__wire--ghost .aegis-circuit-graph__wire-path {
+  stroke-dasharray: var(--space-2) var(--space-1);
+  stroke-linecap: butt;
+}
+
+.aegis-circuit-graph__wire--ghost .aegis-circuit-graph__wire-arrow {
+  stroke: var(--text-muted);
+}
+
+/* Counted from one end's own records: fine cross ticks along the trace. */
+.aegis-circuit-graph__wire-ticks {
+  fill: none;
+  stroke: var(--aegis-circuit-wire-color);
+  stroke-width: calc(var(--aegis-circuit-wire-width) + var(--space-1));
+  stroke-dasharray: var(--size-hairline)
+    calc(var(--space-2) - var(--size-hairline));
+}
+
+.aegis-circuit-graph__wire--dimmed {
+  opacity: 0.2;
+}
+
+.aegis-circuit-graph .react-flow__edge {
+  cursor: pointer;
+}
+
+.aegis-circuit-graph .react-flow__edge:hover .aegis-circuit-graph__wire-path {
+  stroke-width: calc(var(--aegis-circuit-wire-width) + var(--size-hairline));
+}
+
+/* Labels sit over every wire, the raised ones under review included. */
+.aegis-circuit-graph .react-flow__edgelabel-renderer {
+  z-index: 2;
+}
+
+.aegis-circuit-graph__wire-label {
+  position: absolute;
+  padding: 0 var(--space-2);
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-numeric);
+  font-size: var(--type-micro-size);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--type-micro-line);
+  white-space: nowrap;
+  background: var(--bg-panel);
+  color: var(--text-main);
+  box-shadow: var(--shadow-rest);
+  pointer-events: none;
+}
+
+.aegis-circuit-graph__wire-label--ghost {
+  border-style: dashed;
+  color: var(--text-muted);
+}
+
+.aegis-circuit-graph__wire-label--selected {
+  border-color: var(--bg-inverted);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+/* ── Overlays ─────────────────────────────────────────────────────── */
+.aegis-circuit-graph__toolbar {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+  /* Clear of the zoom controls in the top-left corner. */
+  max-width: calc(100% - var(--space-16) - var(--space-6));
+}
+
+/* A disabled button over the board fades its label, not its backing,
+   so a chip beneath does not show through. */
+.aegis-circuit-graph__toolbar .aegis-button:disabled {
+  opacity: 1;
+  color: var(--text-faint);
+}
+
+.aegis-circuit-graph__legend {
+  position: absolute;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  z-index: 5;
+  max-width: calc(100% - var(--space-6));
+  pointer-events: none;
+}
+
+/* Clear of the minimap in the bottom-right corner. */
+.aegis-circuit-graph__legend--beside-minimap {
+  max-width: calc(100% - var(--space-6) - var(--aegis-circuit-minimap-w));
+}
+
+/* React Flow chrome, themed */
+.aegis-circuit-graph .react-flow__controls {
+  overflow: hidden;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-rest);
+}
+
+.aegis-circuit-graph .react-flow__controls-button {
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  fill: var(--text-main);
+}
+
+.aegis-circuit-graph .react-flow__controls-button:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-circuit-graph .react-flow__controls-button:active {
+  background: var(--bg-tint);
+}
+
+.aegis-circuit-graph .react-flow__controls-button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.aegis-circuit-graph .react-flow__minimap {
+  --xy-minimap-background-color: var(--bg-panel);
+  --xy-minimap-mask-background-color: var(--bg-muted);
+  --xy-minimap-mask-stroke-color: var(--border-emphasis);
+  --xy-minimap-node-background-color: var(--border-emphasis);
+
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+
+/* ── Legend ───────────────────────────────────────────────────────── */
+.aegis-circuit-legend {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--size-hairline) solid var(--border-glass);
+  border-radius: var(--radius-md);
+  background: var(--bg-glass);
+  box-shadow: var(--shadow-rest);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.aegis-circuit-legend__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aegis-circuit-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  line-height: var(--type-micro-line);
+  color: var(--text-main);
+}
+
+.aegis-circuit-legend__swatch {
+  flex: none;
+  width: var(--space-6);
+  height: var(--space-3);
+  overflow: visible;
+}
+
+.aegis-circuit-legend__swatch .aegis-circuit-graph__wire-path {
+  stroke-width: var(--size-border-thick);
+}
+
+.aegis-circuit-legend__swatch.aegis-circuit-graph__wire--ghost
+  .aegis-circuit-graph__wire-path {
+  stroke: var(--bg-panel);
+  stroke-width: var(--size-hairline);
+}
+
+.aegis-circuit-legend__swatch .aegis-circuit-graph__wire-ticks {
+  stroke-width: var(--space-2);
+}
+
+.aegis-circuit-legend__swatch .aegis-circuit-graph__wire-halo {
+  stroke-width: var(--space-2);
+}
+
+.aegis-circuit-legend--folded {
+  font: inherit;
+  font-size: var(--type-micro-size);
+  font-weight: var(--fw-semibold);
+  line-height: var(--type-micro-line);
+  color: var(--text-main);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.aegis-circuit-legend--folded:hover {
+  background: var(--bg-glass-strong);
+}
+
+.aegis-circuit-legend__fold {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  padding: 0;
+  font-size: var(--fs-10);
+  color: var(--text-muted);
+  cursor: pointer;
+  pointer-events: auto;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.aegis-circuit-legend__fold:hover {
+  color: var(--text-main);
+  background: var(--bg-muted);
+}
+
+.aegis-circuit-legend__fold:focus-visible,
+.aegis-circuit-legend--folded:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.aegis-circuit-legend:has(.aegis-circuit-legend__fold) {
+  padding-right: calc(var(--space-3) + var(--size-control-sm));
+}
+
+.aegis-circuit-legend__note {
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .aegis-circuit-graph__legend {
+    right: var(--space-3);
+  }
+}

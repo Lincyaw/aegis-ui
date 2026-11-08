@@ -288,6 +288,35 @@ export type {
   ServiceMapProps,
   ServiceMapStatus,
 } from './ServiceMap';
+export { CircuitGraph, CircuitLegend } from './CircuitGraph';
+export type {
+  CircuitChip,
+  CircuitChipTag,
+  CircuitGraphFocus,
+  CircuitGraphProps,
+  CircuitLegendItem,
+  CircuitLegendProps,
+  CircuitPin,
+  CircuitStrand,
+  CircuitTone,
+  CircuitWire,
+  CircuitWirePattern,
+} from './CircuitGraph';
+export { TimeSeriesChart } from './TimeSeriesChart';
+export type {
+  TimeSeriesChartProps,
+  TimeSeriesLine,
+  TimeSeriesMarker,
+  TimeSeriesPoint,
+  TimeSeriesRow,
+  TimeSeriesWindow,
+} from './TimeSeriesChart';
+export { DecisionBar } from './DecisionBar';
+export type {
+  DecisionBarProps,
+  DecisionOption,
+  DecisionTone,
+} from './DecisionBar';
 export { CommitGraph } from './CommitGraph';
 export type {
   CommitGraphColumn,

@@ -1,0 +1,156 @@
+.aegis-time-series {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--aegis-time-series-height);
+  font-family: var(--font-ui);
+}
+
+.aegis-time-series__svg {
+  display: block;
+  overflow: visible;
+}
+
+.aegis-time-series__window--baseline {
+  fill: var(--time-series-baseline-fill);
+}
+
+.aegis-time-series__window--focus {
+  fill: var(--time-series-focus-fill);
+}
+
+.aegis-time-series__window-label {
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  fill: var(--text-muted);
+}
+
+.aegis-time-series__window-label--focus {
+  fill: var(--ink-warn);
+}
+
+.aegis-time-series__grid {
+  stroke: var(--border-hairline);
+  stroke-width: var(--size-hairline);
+  stroke-dasharray: var(--size-border-thick) var(--size-border-thick);
+}
+
+.aegis-time-series__baseline {
+  stroke: var(--border-emphasis);
+  stroke-width: var(--size-hairline);
+}
+
+.aegis-time-series__tick {
+  font-family: var(--font-numeric);
+  font-size: var(--type-micro-size);
+  font-weight: var(--type-micro-weight);
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-muted);
+}
+
+.aegis-time-series__line {
+  fill: none;
+  stroke-width: var(--line-chart-stroke);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.aegis-time-series__bar {
+  opacity: 0.55;
+}
+
+.aegis-time-series__marker {
+  stroke: var(--text-main);
+  stroke-width: var(--size-hairline);
+}
+
+.aegis-time-series__marker-label {
+  font-size: var(--type-micro-size);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-main);
+}
+
+.aegis-time-series__cursor line {
+  stroke: var(--text-muted);
+  stroke-width: var(--size-hairline);
+  stroke-dasharray: var(--size-border-thick) var(--size-border-thick);
+}
+
+.aegis-time-series__cursor-label {
+  font-family: var(--font-numeric);
+  font-size: var(--type-micro-size);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-main);
+  stroke: var(--bg-panel);
+  stroke-width: var(--space-1);
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+.aegis-time-series__overlay {
+  fill: transparent;
+  cursor: crosshair;
+}
+
+.aegis-time-series__overlay:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Each row's heading sits over the top of its band, in HTML so it cuts off cleanly. */
+.aegis-time-series__row-head {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--aegis-time-series-header-h);
+  padding: 0 var(--space-1);
+  overflow: hidden;
+  font-size: var(--type-micro-size);
+  line-height: var(--aegis-time-series-header-h);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.aegis-time-series__row-label {
+  flex: none;
+  font-weight: var(--fw-semibold);
+  color: var(--text-main);
+}
+
+.aegis-time-series__keys {
+  display: inline-flex;
+  flex: none;
+  gap: var(--space-2);
+  color: var(--text-muted);
+}
+
+.aegis-time-series__key {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.aegis-time-series__key-swatch {
+  width: var(--space-4);
+  height: var(--space-1);
+  overflow: visible;
+  stroke-width: var(--line-chart-stroke);
+}
+
+.aegis-time-series__readout {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+}
+
+.aegis-time-series--compact .aegis-time-series__row-label {
+  font-weight: var(--fw-medium);
+}

@@ -406,12 +406,30 @@
   --chat-session-menu-min-width: 140px;
   --parquet-created-by-max-width: 200px;
   --service-map-min-height: 360px;
-  /* ServiceMap's fillViewport: the viewport below the header and the
-   * breadcrumb bar, less the page's top and bottom padding. */
-  --service-map-viewport-height: calc(
+  /* The viewport below the header and the breadcrumb bar, less the
+   * page's top and bottom padding: the height of a page that is one
+   * workspace, such as ServiceMap's fillViewport. */
+  --page-viewport-height: calc(
     100vh - var(--header-height) - var(--breadcrumb-bar-height) -
       var(--space-6) * 2
   );
+  --service-map-viewport-height: var(--page-viewport-height);
+  /* CircuitGraph: the board's shortest height; a wire's stroke at the
+   * lightest and the heaviest weight; the halo under a highlighted wire;
+   * the square pad a pin draws on its chip's edge. */
+  --circuit-graph-min-height: 360px;
+  --circuit-wire-min: 1.25px;
+  --circuit-wire-max: 5px;
+  --circuit-wire-halo: 10px;
+  --circuit-pad-size: 6px;
+  /* TimeSeriesChart: the wash of the baseline window. */
+  --time-series-baseline-fill: color-mix(
+    in srgb,
+    var(--bg-muted) 70%,
+    transparent
+  );
+  /* The window under test: a faint amber wash in either theme. */
+  --time-series-focus-fill: color-mix(in srgb, var(--ink-warn) 9%, transparent);
   --trajectory-step-text-max-height: 320px;
   /* TableOfContents column (also the article page's left column) and the
    * height of its current-item indicator on one line. */
