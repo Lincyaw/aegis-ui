@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 
 import { uniqueId } from '../lib/id';
+import { useStrings } from '../locale';
 import { useStorageItem } from './useStorageItem';
 
 export interface SavedQuery {
@@ -80,6 +81,7 @@ function sortQueries(queries: SavedQuery[]): SavedQuery[] {
 export function useSavedQueries(
   opts: UseSavedQueriesOptions,
 ): UseSavedQueriesReturn {
+  const { untitledQuery } = useStrings();
   const [raw, setRaw] = useStorageItem(storageKey(opts.namespace));
   const queries = useMemo(() => sortQueries(parseQueries(raw)), [raw]);
   // Updates apply to the latest list even when several run before a render.
@@ -99,7 +101,7 @@ export function useSavedQueries(
     (name: string, value: string): SavedQuery => {
       const entry: SavedQuery = {
         id: uniqueId('sq'),
-        name: name.trim() === '' ? 'Untitled query' : name.trim(),
+        name: name.trim() === '' ? untitledQuery : name.trim(),
         value,
         pinned: false,
         lastUsedAt: Date.now(),
@@ -107,7 +109,7 @@ export function useSavedQueries(
       update((prev) => [...prev, entry]);
       return entry;
     },
-    [update],
+    [update, untitledQuery],
   );
 
   const remove = useCallback(
@@ -119,12 +121,12 @@ export function useSavedQueries(
 
   const rename = useCallback(
     (id: string, name: string): void => {
-      const trimmed = name.trim() === '' ? 'Untitled query' : name.trim();
+      const trimmed = name.trim() === '' ? untitledQuery : name.trim();
       update((prev) =>
         prev.map((q) => (q.id === id ? { ...q, name: trimmed } : q)),
       );
     },
-    [update],
+    [update, untitledQuery],
   );
 
   const togglePinned = useCallback(

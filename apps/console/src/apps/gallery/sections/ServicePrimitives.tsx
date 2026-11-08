@@ -22,6 +22,7 @@ import {
   FileDropzone,
   FilePreview,
   FolderDropzone,
+  KeyValueList,
   LocaleProvider,
   MetadataList,
   MetricLabel,
@@ -190,12 +191,11 @@ function SavedQueryBarSpecimen(): ReactNode {
           onTogglePinned={stored.togglePinned}
         />
       </Specimen>
-      <Specimen caption='host-held · 2 pinned + 1 unpinned' span={2}>
-        <SearchInput
-          value={hostValue}
-          onChange={setHostValue}
-          placeholder='Search…'
-        />
+      <Specimen
+        caption='host-held · 2 pinned + 1 unpinned · maxInlineUnpinned={0} keeps it in the "+1 more" list'
+        span={2}
+      >
+        <SearchInput value={hostValue} onChange={setHostValue} />
         <SavedQueryBar
           queries={hostQueries}
           currentValue={hostValue}
@@ -224,6 +224,7 @@ function SavedQueryBarSpecimen(): ReactNode {
           onTogglePinned={(id) => {
             updateHostQuery(id, (q) => ({ ...q, pinned: !q.pinned }));
           }}
+          maxInlineUnpinned={0}
         />
         <pre
           style={{
@@ -948,14 +949,45 @@ const SERVICE_MAP_MICRO_EDGES: ServiceMapEdge[] = [
   { id: 'e7', source: 'auth', target: 'db', label: '200/s', status: 'ok' },
 ];
 
+function serviceMapMicroLabel(id: string): string {
+  return SERVICE_MAP_MICRO_NODES.find((n) => n.id === id)?.label ?? id;
+}
+
 function ServiceMapMicroSpecimen(): ReactNode {
+  const [selectedNodeId, setSelectedNodeId] = useState('inventory');
+  const [lastEdge, setLastEdge] = useState<ServiceMapEdge | null>(null);
   return (
-    <ServiceMap
-      nodes={SERVICE_MAP_MICRO_NODES}
-      edges={SERVICE_MAP_MICRO_EDGES}
-      height={420}
-      selectedNodeId='inventory'
-    />
+    <div className='gallery__stack gallery__stack--fill'>
+      <ServiceMap
+        nodes={SERVICE_MAP_MICRO_NODES}
+        edges={SERVICE_MAP_MICRO_EDGES}
+        height={420}
+        selectedNodeId={selectedNodeId}
+        onNodeClick={(n) => {
+          setSelectedNodeId(n.id);
+        }}
+        onEdgeClick={setLastEdge}
+      />
+      <KeyValueList
+        items={[
+          {
+            k: 'onNodeClick',
+            v: <MonoValue>{serviceMapMicroLabel(selectedNodeId)}</MonoValue>,
+          },
+          {
+            k: 'onEdgeClick',
+            v:
+              lastEdge === null ? (
+                '—'
+              ) : (
+                <MonoValue>
+                  {`${serviceMapMicroLabel(lastEdge.source)} → ${serviceMapMicroLabel(lastEdge.target)}`}
+                </MonoValue>
+              ),
+          },
+        ]}
+      />
+    </div>
   );
 }
 
@@ -1968,11 +2000,7 @@ export function ServicePrimitivesSection() {
           <Toolbar
             left={
               <>
-                <SearchInput
-                  value=''
-                  onChange={() => undefined}
-                  placeholder='Search…'
-                />
+                <SearchInput value='' onChange={() => undefined} />
                 <Chip onClose={() => undefined}>type: image</Chip>
               </>
             }
@@ -1984,13 +2012,8 @@ export function ServicePrimitivesSection() {
         SearchInput
       </SectionDivider>
       <div className='gallery__row'>
-        <Specimen caption='empty with kbd hint'>
-          <SearchInput
-            value=''
-            onChange={() => undefined}
-            placeholder='Search…'
-            kbd='⌘K'
-          />
+        <Specimen caption='empty with kbd hint · default placeholder'>
+          <SearchInput value='' onChange={() => undefined} kbd='⌘K' />
         </Specimen>
         <Specimen caption='type to filter · clear'>
           <SearchInputSpecimen />
@@ -2677,11 +2700,14 @@ export function ServicePrimitivesSection() {
         ServiceMap
       </SectionDivider>
       <div className='gallery__stack'>
-        <Specimen caption='microservice topology · LR · status mix' span={3}>
+        <Specimen
+          caption='microservice topology · LR · onNodeClick + onEdgeClick · click, or Tab and press Enter or Space'
+          span={3}
+        >
           <ServiceMapMicroSpecimen />
         </Specimen>
         <Specimen
-          caption='AgentM session DAG · TB · root → turns → tools'
+          caption='AgentM session DAG · TB · no handlers, so nothing is focusable'
           span={3}
         >
           <ServiceMapAgentSpecimen />
@@ -2690,7 +2716,7 @@ export function ServicePrimitivesSection() {
           <ServiceMapSingleSpecimen />
         </Specimen>
         <Specimen
-          caption='groups · focusNodeId · active · fillViewport — 27 tasks in four phases, laid out left to right in the order the groups are given; the map opens at actual size on the failed task, fitted to it and its direct neighbours when they fit and centred on the task alone when they do not, with no minimap by default since a focused view runs past every edge; nodes widen with their label and wrap it past 320 px; the running task pulses; click a task to open on it · for assistive technology each task is a group named by its label, each edge a group named source → target, the selected task is aria-current and a phase box is plain text'
+          caption='groups · focusNodeId · active · fillViewport — 27 tasks in four phases, laid out left to right in the order the groups are given; the map opens at actual size on the failed task, fitted to it and its direct neighbours when they fit and centred on the task alone when they do not, with no minimap by default since a focused view runs past every edge; nodes widen with their label and wrap it past 320 px; the running task pulses; click a task, or Tab to it and press Enter or Space, to open on it · for assistive technology each task is a group named by its label and described by its phase, each edge is named "source to target", the selected task is aria-current and a phase box is plain text'
           span={3}
         >
           <ServiceMapTaskGraphSpecimen />

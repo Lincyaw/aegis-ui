@@ -9,6 +9,7 @@ import {
 import { useDropzone } from 'react-dropzone';
 
 import { formatBytes } from '../../lib/format';
+import { type AegisStrings, useStrings } from '../../locale';
 import { Button } from './Button';
 import './FolderDropzone.css';
 import { filesFromEvent } from './dropFiles';
@@ -44,6 +45,32 @@ export interface FolderDropzoneProps {
   className?: string;
 }
 
+type SelectionError =
+  | { kind: 'tooMany'; count: number; max: number }
+  | { kind: 'fileTooLarge'; name: string; size: number; max: number }
+  | { kind: 'totalTooLarge'; total: number; max: number };
+
+function selectionErrorText(
+  error: SelectionError,
+  strings: AegisStrings,
+): string {
+  switch (error.kind) {
+    case 'tooMany':
+      return strings.folderDropzoneTooMany(error.count, error.max);
+    case 'fileTooLarge':
+      return strings.folderDropzoneFileTooLarge(
+        error.name,
+        formatBytes(error.size),
+        formatBytes(error.max),
+      );
+    case 'totalTooLarge':
+      return strings.folderDropzoneTotalTooLarge(
+        formatBytes(error.total),
+        formatBytes(error.max),
+      );
+  }
+}
+
 export function FolderDropzone({
   value,
   onFilesChange,
@@ -57,9 +84,12 @@ export function FolderDropzone({
   summary,
   className,
 }: FolderDropzoneProps) {
+  const strings = useStrings();
   const folderInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [internalError, setInternalError] = useState<string>('');
+  const [internalError, setInternalError] = useState<SelectionError | null>(
+    null,
+  );
 
   const applyFiles = useCallback(
     (incoming: File[]) => {
@@ -70,30 +100,37 @@ export function FolderDropzone({
         return;
       }
       if (maxFiles !== undefined && incoming.length > maxFiles) {
-        setInternalError(
-          `Too many files: ${incoming.length.toString()} selected, ${maxFiles.toString()} allowed.`,
-        );
+        setInternalError({
+          kind: 'tooMany',
+          count: incoming.length,
+          max: maxFiles,
+        });
         return;
       }
       if (maxFileBytes !== undefined) {
         const offender = incoming.find((f) => f.size > maxFileBytes);
         if (offender) {
-          setInternalError(
-            `"${offender.name}" is ${formatBytes(offender.size)}, over the ${formatBytes(maxFileBytes)} per-file cap.`,
-          );
+          setInternalError({
+            kind: 'fileTooLarge',
+            name: offender.name,
+            size: offender.size,
+            max: maxFileBytes,
+          });
           return;
         }
       }
       if (maxTotalBytes !== undefined) {
         const total = incoming.reduce((acc, f) => acc + f.size, 0);
         if (total > maxTotalBytes) {
-          setInternalError(
-            `Selection totals ${formatBytes(total)}, over the ${formatBytes(maxTotalBytes)} aggregate cap.`,
-          );
+          setInternalError({
+            kind: 'totalTooLarge',
+            total,
+            max: maxTotalBytes,
+          });
           return;
         }
       }
-      setInternalError('');
+      setInternalError(null);
       onFilesChange(incoming);
     },
     [disabled, maxFiles, maxFileBytes, maxTotalBytes, onFilesChange],
@@ -111,7 +148,7 @@ export function FolderDropzone({
     if (disabled) {
       return;
     }
-    setInternalError('');
+    setInternalError(null);
     onFilesChange([]);
     if (folderInputRef.current) {
       folderInputRef.current.value = '';
@@ -139,7 +176,9 @@ export function FolderDropzone({
     [applyFiles],
   );
 
-  const errorMessage = validationError ?? internalError;
+  const errorMessage =
+    validationError ??
+    (internalError ? selectionErrorText(internalError, strings) : '');
   const hasFiles = value.length > 0;
   const totalBytes = value.reduce((acc, f) => acc + f.size, 0);
 
@@ -162,10 +201,13 @@ export function FolderDropzone({
         <div className="aegis-folder-dropzone__hint">
           <span className="aegis-folder-dropzone__primary">
             {dragActive
-              ? 'Drop folder to upload'
+              ? strings.dropzoneDropFolder
               : hasFiles
-                ? `${value.length.toString()} file${value.length === 1 ? '' : 's'} selected · ${formatBytes(totalBytes)}`
-                : 'Drag a folder here, or choose one below'}
+                ? strings.folderDropzoneSelected(
+                    value.length,
+                    formatBytes(totalBytes),
+                  )
+                : strings.folderDropzoneHint}
           </span>
           {!hasFiles && helperText !== undefined ? (
             <span className="aegis-folder-dropzone__meta">{helperText}</span>
@@ -177,18 +219,18 @@ export function FolderDropzone({
             onClick={handlePickFolder}
             disabled={disabled}
           >
-            Choose folder
+            {strings.chooseFolder}
           </Button>
           <Button
             tone="secondary"
             onClick={handlePickFiles}
             disabled={disabled}
           >
-            Choose files
+            {strings.chooseFiles}
           </Button>
           {hasFiles ? (
             <Button tone="ghost" onClick={handleClear} disabled={disabled}>
-              Clear
+              {strings.clear}
             </Button>
           ) : null}
         </div>

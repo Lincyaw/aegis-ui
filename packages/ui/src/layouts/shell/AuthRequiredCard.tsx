@@ -3,6 +3,7 @@ import { type ReactElement } from 'react';
 import type { AegisAuthUser, AuthStatus } from '../../auth';
 import { Chip } from '../../components/ui/Chip';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { useStrings } from '../../locale';
 import type { AegisApp } from './types';
 
 interface AuthRequiredCardProps {
@@ -23,21 +24,19 @@ export function AuthRequiredCard({
   user,
   onSignIn,
 }: AuthRequiredCardProps): ReactElement {
+  const strings = useStrings();
   if (status === 'loading') {
-    return <EmptyState title="Checking your session…" />;
+    return <EmptyState title={strings.authChecking} />;
   }
   if (status === 'unauthenticated') {
     return (
       <EmptyState
-        title={`Sign in to use ${app.label}`}
-        description={
-          app.description ??
-          'This app needs an authenticated session. Sign in to continue.'
-        }
+        title={strings.authSignInTo(app.label)}
+        description={app.description ?? strings.authSignInDescription}
         action={
           onSignIn ? (
             <Chip tone="ink" onClick={onSignIn}>
-              Sign in
+              {strings.signIn}
             </Chip>
           ) : undefined
         }
@@ -48,13 +47,11 @@ export function AuthRequiredCard({
   const required = app.requiredRoles ?? [];
   return (
     <EmptyState
-      title="Insufficient permissions"
+      title={strings.authForbiddenTitle}
       description={
         required.length
-          ? `${app.label} requires one of: ${required.join(', ')}. Your roles: ${
-              userRoles.length ? userRoles.join(', ') : '(none)'
-            }.`
-          : `You don't have access to ${app.label}.`
+          ? strings.authForbiddenRoles(app.label, required, userRoles)
+          : strings.authForbidden(app.label)
       }
     />
   );

@@ -17,19 +17,26 @@ export interface SearchInputProps {
    * that sizes the search (e.g. a flex-basis in a toolbar) sets this too.
    */
   block?: boolean;
+  /** Lets a caller's `<label htmlFor>` name the field; without an id the placeholder names it. */
+  id?: string;
+  /** Ids of the text that describes the field, such as a FormRow's description. */
+  'aria-describedby'?: string;
   className?: string;
 }
 
 export function SearchInput({
   value,
   onChange,
-  placeholder = 'Search…',
+  placeholder: placeholderProp,
   kbd,
   onClear,
   block = false,
+  id,
+  'aria-describedby': describedBy,
   className,
 }: SearchInputProps) {
   const strings = useStrings();
+  const placeholder = placeholderProp ?? strings.searchPlaceholder;
   const cls = [
     'aegis-search-input',
     block ? 'aegis-search-input--block' : '',
@@ -39,15 +46,17 @@ export function SearchInput({
     .join(' ');
 
   return (
-    <div className={cls}>
+    <div className={cls} data-aegis-field>
       <SearchOutlined className="aegis-search-input__icon" aria-hidden />
       <input
         type="text"
+        id={id}
         className="aegis-search-input__field"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        aria-label={placeholder}
+        aria-label={id === undefined ? placeholder : undefined}
+        aria-describedby={describedBy}
       />
       {value.length > 0 && onClear !== undefined ? (
         <button

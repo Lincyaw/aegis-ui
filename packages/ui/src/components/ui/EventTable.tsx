@@ -16,6 +16,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
+import { useStrings } from '../../locale';
 import { EmptyState } from './EmptyState';
 import './EventTable.css';
 import { Skeleton } from './Skeleton';
@@ -91,7 +92,7 @@ export function EventTable<T>({
   onRowClick,
   selectedKey,
   loading = false,
-  emptyTitle = 'No events',
+  emptyTitle,
   emptyDescription,
   estimatedRowHeight = DEFAULT_ROW_HEIGHT,
   maxVisibleRows = DEFAULT_MAX_VISIBLE_ROWS,
@@ -99,6 +100,7 @@ export function EventTable<T>({
   loadMoreThresholdPx = DEFAULT_LOAD_MORE_THRESHOLD,
   className,
 }: EventTableProps<T>) {
+  const strings = useStrings();
   const scrollRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef(new Map<number, HTMLDivElement>());
@@ -287,7 +289,10 @@ export function EventTable<T>({
               aria-rowindex={2}
             >
               <div role={cellRole} aria-colspan={columns.length}>
-                <EmptyState title={emptyTitle} description={emptyDescription} />
+                <EmptyState
+                  title={emptyTitle ?? strings.noEvents}
+                  description={emptyDescription}
+                />
               </div>
             </div>
           ) : (

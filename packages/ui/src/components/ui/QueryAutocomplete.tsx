@@ -22,6 +22,7 @@ import {
   replaceTokenAtCursor,
   tokenizeAtCursor,
 } from '../../lib/luceneQuery/tokenizeAtCursor';
+import { type AegisStrings, useStrings } from '../../locale';
 import './QueryAutocomplete.css';
 
 export interface QueryAutocompleteFieldSuggestion {
@@ -54,6 +55,12 @@ export interface QueryAutocompleteProps {
   className?: string;
   popoverClassName?: string;
   disabled?: boolean;
+  /** Lets a caller's `<label htmlFor>` name the field in place of its default name. */
+  id?: string;
+  /** Id of visible text that names the field in place of its default name. */
+  'aria-labelledby'?: string;
+  /** Ids of the text that describes the field, such as a FormRow's description. */
+  'aria-describedby'?: string;
 }
 
 interface RankedSuggestion {
@@ -67,13 +74,16 @@ interface RankedSuggestion {
 const SUGGESTIONS_LIMIT = 10;
 const OPERATOR_KEYWORDS: readonly string[] = ['AND', 'OR', 'NOT'];
 
-const HELP_LINES: ReadonlyArray<{ syntax: string; description: string }> = [
-  { syntax: 'field:value', description: 'exact match' },
-  { syntax: 'field:"a b"', description: 'phrase match' },
-  { syntax: 'field:foo*', description: 'wildcard' },
-  { syntax: 'field:>10', description: 'range / comparison' },
-  { syntax: 'AND OR NOT', description: 'boolean operators' },
-  { syntax: '(a OR b)', description: 'grouping' },
+const HELP_LINES: ReadonlyArray<{
+  syntax: string;
+  kind: Parameters<AegisStrings['querySyntax']>[0];
+}> = [
+  { syntax: 'field:value', kind: 'exact' },
+  { syntax: 'field:"a b"', kind: 'phrase' },
+  { syntax: 'field:foo*', kind: 'wildcard' },
+  { syntax: 'field:>10', kind: 'range' },
+  { syntax: 'AND OR NOT', kind: 'boolean' },
+  { syntax: '(a OR b)', kind: 'grouping' },
 ];
 
 function rankFieldSuggestions(
@@ -149,12 +159,16 @@ export function QueryAutocomplete({
   onSubmit,
   fieldSuggestions,
   valueSuggestions,
-  placeholder = 'Search…  e.g. service.name:foo AND duration:>1000',
+  placeholder,
   showHelp = true,
   className,
   popoverClassName,
   disabled = false,
+  id,
+  'aria-labelledby': labelledBy,
+  'aria-describedby': describedBy,
 }: QueryAutocompleteProps): JSX.Element {
+  const strings = useStrings();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listId = useId();
   const [caret, setCaret] = useState(0);
@@ -302,7 +316,7 @@ export function QueryAutocomplete({
       id={listId}
       className={`aegis-query-ac__list ${popoverClassName ?? ''}`.trim()}
       role="listbox"
-      aria-label="Suggestions"
+      aria-label={strings.suggestions}
     >
       {suggestions.map((s, i) => (
         <li
@@ -334,7 +348,9 @@ export function QueryAutocomplete({
         {HELP_LINES.map((line) => (
           <tr key={line.syntax}>
             <td className="aegis-query-ac__help-syntax">{line.syntax}</td>
-            <td className="aegis-query-ac__help-desc">{line.description}</td>
+            <td className="aegis-query-ac__help-desc">
+              {strings.querySyntax(line.kind)}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -344,7 +360,7 @@ export function QueryAutocomplete({
   const cls = ['aegis-query-ac', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div className={cls}>
+    <div className={cls} data-aegis-field>
       <Popover
         content={dropdown}
         open={open}
@@ -353,33 +369,44 @@ export function QueryAutocomplete({
         arrow={false}
         classNames={{ root: 'aegis-query-ac__popover' }}
       >
-        <input
-          ref={inputRef}
-          type="text"
-          className="aegis-query-ac__input"
-          value={value}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          onKeyUp={syncCaret}
-          onClick={syncCaret}
-          onFocus={() => {
-            syncCaret();
-            setDismissed(false);
-          }}
-          onBlur={() => {
-            setDismissed(true);
-          }}
-          placeholder={placeholder}
-          disabled={disabled}
-          spellCheck={false}
-          autoComplete="off"
-          role="combobox"
-          aria-label="Lucene query"
-          aria-autocomplete="list"
-          aria-expanded={open}
-          aria-controls={listId}
-          aria-activedescendant={open ? optionId(highlight) : undefined}
-        />
+        {/* The popover sets its child's aria-describedby to the popup, so it
+            anchors on this span and the input keeps its own description. */}
+        <span className="aegis-query-ac__anchor">
+          <input
+            ref={inputRef}
+            type="text"
+            id={id}
+            className="aegis-query-ac__input"
+            value={value}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onKeyUp={syncCaret}
+            onClick={syncCaret}
+            onFocus={() => {
+              syncCaret();
+              setDismissed(false);
+            }}
+            onBlur={() => {
+              setDismissed(true);
+            }}
+            placeholder={placeholder ?? strings.queryPlaceholder}
+            disabled={disabled}
+            spellCheck={false}
+            autoComplete="off"
+            role="combobox"
+            aria-label={
+              id === undefined && labelledBy === undefined
+                ? strings.queryLabel
+                : undefined
+            }
+            aria-labelledby={labelledBy}
+            aria-describedby={describedBy}
+            aria-autocomplete="list"
+            aria-expanded={open}
+            aria-controls={listId}
+            aria-activedescendant={open ? optionId(highlight) : undefined}
+          />
+        </span>
       </Popover>
       {showHelp ? (
         <Tooltip
@@ -390,7 +417,7 @@ export function QueryAutocomplete({
           <span
             className="aegis-query-ac__help-icon"
             role="img"
-            aria-label="LuceneQL syntax help"
+            aria-label={strings.querySyntaxHelp}
           >
             <QuestionCircleOutlined />
           </span>

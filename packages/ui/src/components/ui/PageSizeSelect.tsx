@@ -3,7 +3,8 @@ import { type ReactElement, useId } from 'react';
 import { DownOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
 
-import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
 import { useStrings } from '../../locale';
 import './PageSizeSelect.css';
 
@@ -97,7 +98,7 @@ export function PageSizeSelect({
         open={disabled ? false : menu.open}
         onOpenChange={menu.setOpen}
         placement={placement === 'top' ? 'topRight' : 'bottomRight'}
-        autoAdjustOverflow={MENU_OVERFLOW}
+        autoAdjustOverflow={POPOVER_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-page-size-select__overlay' }}
         destroyOnHidden
@@ -109,7 +110,7 @@ export function PageSizeSelect({
           aria-haspopup="listbox"
           aria-expanded={menu.open}
           aria-labelledby={label ? labelId : undefined}
-          aria-label={!label ? 'Page size' : undefined}
+          aria-label={!label ? strings.pageSize : undefined}
           disabled={disabled}
           onKeyDown={menu.onTriggerKeyDown}
         >

@@ -55,9 +55,20 @@ const INBOX_LOAD_ERROR = new Error(
   'GET /api/v2/inbox answered HTTP 503 Service Unavailable.'
 );
 
+const LIVE_UPDATES_ERROR = new Error(
+  'Live updates stopped: SSE connect failed: HTTP 502'
+);
+
 export function NotificationsSection() {
   const [items, setItems] = useState(MOCK_NOTIFS);
   const [loadError, setLoadError] = useState<Error | null>(INBOX_LOAD_ERROR);
+  const [bellLoadError, setBellLoadError] = useState<Error | null>(
+    INBOX_LOAD_ERROR
+  );
+  const [bellLiveError, setBellLiveError] = useState<Error | null>(
+    LIVE_UPDATES_ERROR
+  );
+  const [liveError, setLiveError] = useState<Error | null>(LIVE_UPDATES_ERROR);
   const markRead = (item: AegisNotification): void => {
     setItems((prev) =>
       prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
@@ -79,6 +90,34 @@ export function NotificationsSection() {
               inboxPath='/inbox'
               linkComponent={GalleryRouterLink}
               action={GALLERY_ACTIONS.notifOpen}
+            />
+          </div>
+        </Specimen>
+        <Specimen caption='liveError · live updates failing, the count stays · Retry clears it'>
+          <div className='gallery__notif-bell-host'>
+            <NotificationBell
+              items={items}
+              onOpen={markRead}
+              inboxPath='/inbox'
+              linkComponent={GalleryRouterLink}
+              liveError={bellLiveError}
+              onRetry={() => {
+                setBellLiveError(null);
+              }}
+            />
+          </div>
+        </Specimen>
+        <Specimen caption='error · the first load failed · Retry loads the list'>
+          <div className='gallery__notif-bell-host'>
+            <NotificationBell
+              items={bellLoadError ? [] : items}
+              onOpen={markRead}
+              inboxPath='/inbox'
+              linkComponent={GalleryRouterLink}
+              error={bellLoadError}
+              onRetry={() => {
+                setBellLoadError(null);
+              }}
             />
           </div>
         </Specimen>
@@ -107,7 +146,21 @@ export function NotificationsSection() {
         />
       </div>
       <div className='gallery__row'>
-        <Specimen caption='load failed · Try again clears the error'>
+        <Specimen caption='liveError · the list stays under a notice · Retry clears it'>
+          <div className='gallery__stack gallery__stack--fill'>
+            <InboxPage
+              items={items}
+              onOpen={markRead}
+              liveError={liveError}
+              onRetry={() => {
+                setLiveError(null);
+              }}
+            />
+          </div>
+        </Specimen>
+      </div>
+      <div className='gallery__row'>
+        <Specimen caption='load failed · Retry clears the error'>
           <div className='gallery__stack gallery__stack--fill'>
             <InboxPage
               items={loadError ? [] : items}

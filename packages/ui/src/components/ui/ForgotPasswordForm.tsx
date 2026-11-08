@@ -1,5 +1,6 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
+import { useStrings } from '../../locale';
 import { Alert } from './Alert';
 import { Button } from './Button';
 import './ForgotPasswordForm.css';
@@ -24,11 +25,12 @@ export function ForgotPasswordForm({
   error,
   success,
 }: ForgotPasswordFormProps): ReactElement {
+  const strings = useStrings();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const trimmedEmail = email.trim();
-  const fieldError = emailError(trimmedEmail);
+  const fieldError = emailError(trimmedEmail, strings);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
@@ -47,7 +49,7 @@ export function ForgotPasswordForm({
     <form className="aegis-forgotform" onSubmit={handleSubmit} noValidate>
       {error && <Alert tone="error">{error}</Alert>}
       <TextField
-        label="Email"
+        label={strings.authEmail}
         type="email"
         autoComplete="email"
         placeholder="you@example.com"
@@ -55,7 +57,7 @@ export function ForgotPasswordForm({
         onChange={(e) => setEmail(e.target.value)}
         disabled={submitting}
         required
-        helperText="We'll send a reset link to this address."
+        helperText={strings.authResetHint}
         error={submitted ? fieldError : undefined}
       />
       <Button
@@ -64,7 +66,7 @@ export function ForgotPasswordForm({
         className="aegis-forgotform__submit"
         disabled={submitting}
       >
-        {submitting ? 'Sending…' : 'Send reset link'}
+        {submitting ? strings.authSending : strings.authSendResetLink}
       </Button>
     </form>
   );

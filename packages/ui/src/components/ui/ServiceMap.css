@@ -30,6 +30,17 @@
   display: none;
 }
 
+/* React Flow clears the outline of a focused node or edge. */
+.aegis-service-map .react-flow__node {
+  border-radius: var(--radius-md);
+}
+
+.aegis-service-map .react-flow__node.selectable:focus-visible,
+.aegis-service-map .react-flow__edge.selectable:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 /* ── Node card ─────────────────────────────────────────────────── */
 .aegis-service-map__node {
   position: relative;

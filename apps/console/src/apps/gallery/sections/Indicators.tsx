@@ -858,8 +858,23 @@ export function IndicatorsSection() {
       <SectionDivider>Collapse</SectionDivider>
       <div className='gallery__stack' id='collapse-specimen'>
         <Collapse
-          defaultActiveKeys={['first']}
+          defaultActiveKeys={['first', 'flush']}
           items={[
+            {
+              key: 'flush',
+              label: '评审备注 · 贴边的输入框与按钮',
+              children: (
+                <div className='gallery__stack'>
+                  <TextField
+                    aria-label='评审备注'
+                    placeholder='Tab 到这里，焦点光晕不被裁切'
+                  />
+                  <div>
+                    <AegisButton tone='secondary'>保存备注</AegisButton>
+                  </div>
+                </div>
+              ),
+            },
             {
               key: 'first',
               label: '完整理由与评分要求',
@@ -1277,7 +1292,7 @@ export function IndicatorsSection() {
       <div className='gallery__stack'>
         <BlastRadiusBar
           value={20}
-          label='Blast radius'
+          ariaLabel='Blast radius'
           centerLabel='Node Group A · 20 %'
           surface={{
             id: 'gallery.blast.20',
@@ -1298,15 +1313,15 @@ export function IndicatorsSection() {
         />
         <BlastRadiusBar
           value={65}
-          label='Blast radius'
+          ariaLabel='Blast radius'
           centerLabel='Node Group A · 65 %'
         />
         <BlastRadiusBar
           value={92}
-          label='Blast radius'
+          ariaLabel='Blast radius'
           centerLabel='Node Group A · 92 %'
         />
-        <BlastRadiusBar value={50} label='Blast radius' hideTicks />
+        <BlastRadiusBar value={50} ariaLabel='Blast radius' hideTicks />
       </div>
     </Panel>
   );

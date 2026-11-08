@@ -280,7 +280,11 @@ export default function PedestalInstall() {
               placeholder={systemCode}
             />
           </FormRow>
-          <FormRow label='Helm values override (optional)'>
+          <FormRow
+            label='Helm values override (optional)'
+            controlId='pedestal-install-helm-values'
+            labelBy='aria-labelledby'
+          >
             {helmConfigQuery.isLoading ? (
               <SkeletonText />
             ) : (
@@ -291,6 +295,8 @@ export default function PedestalInstall() {
                   </Chip>
                 )}
                 <CodeEditor
+                  id='pedestal-install-helm-values'
+                  aria-labelledby='pedestal-install-helm-values-label'
                   value={helmValues}
                   onChange={(value) => {
                     setHelmTouched(true);

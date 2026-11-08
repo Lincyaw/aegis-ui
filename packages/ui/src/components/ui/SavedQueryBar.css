@@ -7,6 +7,11 @@
   font-family: var(--font-ui);
 }
 
+/* The bar holds focus when a delete leaves no control to move to. */
+.aegis-sqb:focus-visible {
+  border-radius: var(--radius-md);
+}
+
 .aegis-sqb__hint {
   font-size: var(--fs-11);
   color: var(--text-muted);
@@ -151,12 +156,23 @@
   transition: background var(--motion-fast);
 }
 
-.aegis-sqb__menu-item:hover {
+.aegis-sqb__menu-item:hover,
+.aegis-sqb__menu-item:focus-visible {
   background: var(--bg-muted);
+}
+
+.aegis-sqb__menu-item:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-sqb__menu-item--danger {
   color: var(--accent-warning);
+}
+
+.aegis-sqb__overflow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .aegis-sqb__overflow-row {
@@ -198,6 +214,11 @@
 .aegis-sqb__overflow-icon:hover {
   background: var(--bg-muted);
   color: var(--text-main);
+}
+
+/* Inset, so the scrolling list does not clip the ring. */
+.aegis-sqb__overflow-icon:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-sqb__overflow-icon--danger:hover {

@@ -5,6 +5,7 @@ import {
   useState,
 } from 'react';
 
+import { useStrings } from '../../locale';
 import './ChatComposer.css';
 
 interface ChatComposerProps {
@@ -19,10 +20,11 @@ interface ChatComposerProps {
 export function ChatComposer({
   onSend,
   sending = false,
-  placeholder = 'Ask the assistant…',
+  placeholder,
   disabledReason,
   className,
 }: ChatComposerProps) {
+  const strings = useStrings();
   const [value, setValue] = useState('');
   const disabled = Boolean(disabledReason);
   const canSend = !sending && !disabled && value.trim().length > 0;
@@ -73,27 +75,25 @@ export function ChatComposer({
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholder ?? strings.chatPlaceholder}
           disabled={disabled}
           rows={2}
-          aria-label="Message"
+          aria-label={strings.chatMessage}
         />
         <button
           type="submit"
           className="aegis-composer__send"
           disabled={!canSend}
-          aria-label="Send message"
+          aria-label={strings.chatSendMessage}
         >
           {sending ? (
             <span className="aegis-composer__sending" aria-hidden="true" />
           ) : (
-            'Send'
+            strings.send
           )}
         </button>
       </div>
-      <div className="aegis-composer__hint">
-        Enter to send · Shift+Enter for newline
-      </div>
+      <div className="aegis-composer__hint">{strings.chatHint}</div>
     </form>
   );
 }

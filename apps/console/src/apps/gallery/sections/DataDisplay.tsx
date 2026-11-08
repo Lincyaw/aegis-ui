@@ -422,6 +422,9 @@ export function DataDisplaySection() {
         <Specimen caption='controlled · logs to console'>
           <TimeRangePickerSpecimen initial='now-15m' logToConsole />
         </Specimen>
+        <Specimen caption='absolute range · dates in the locale’s format'>
+          <TimeRangePickerSpecimen initial='2026-05-10T01:00:00.000Z to 2026-05-10T03:30:00.000Z' />
+        </Specimen>
       </div>
     </Panel>
   );

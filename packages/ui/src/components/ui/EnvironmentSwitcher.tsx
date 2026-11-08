@@ -4,7 +4,9 @@ import { Popover } from 'antd';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
-import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
+import { useStrings } from '../../locale';
 import './EnvironmentSwitcher.css';
 
 export type EnvironmentSwitcherBadge =
@@ -45,8 +47,9 @@ export function EnvironmentSwitcher({
   onChange,
   hideWhenSingle = true,
   className,
-  ariaLabel = 'Switch environment',
+  ariaLabel,
 }: EnvironmentSwitcherProps): ReactElement | null {
+  const strings = useStrings();
   const menu = useMenuPopover<HTMLUListElement>();
 
   if (options.length === 0) {
@@ -91,7 +94,7 @@ export function EnvironmentSwitcher({
         open={menu.open}
         onOpenChange={menu.setOpen}
         placement="bottomRight"
-        autoAdjustOverflow={MENU_OVERFLOW}
+        autoAdjustOverflow={POPOVER_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-env-switcher__overlay' }}
         destroyOnHidden
@@ -102,7 +105,7 @@ export function EnvironmentSwitcher({
           className="aegis-env-switcher__trigger"
           aria-haspopup="listbox"
           aria-expanded={menu.open}
-          aria-label={ariaLabel}
+          aria-label={ariaLabel ?? strings.switchEnvironment}
           onKeyDown={menu.onTriggerKeyDown}
         >
           <span

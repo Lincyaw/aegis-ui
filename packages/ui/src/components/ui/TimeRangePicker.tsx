@@ -1,12 +1,15 @@
-import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
+import { type ChangeEvent, type KeyboardEvent, useId, useState } from 'react';
 
 import { Popover } from 'antd';
 
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useDialogPopover } from '../../hooks/useDialogPopover';
 import {
   RELATIVE_TIME_PRESETS,
   type RelativeTimePreset,
   parseTimeRangeInput,
 } from '../../lib/timeRange';
+import { useStrings } from '../../locale';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import { TextField } from './TextField';
@@ -55,12 +58,14 @@ export function TimeRangePicker({
   onChange,
   presets = RELATIVE_TIME_PRESETS,
   now,
-  placeholder = 'Select range',
+  placeholder,
   disabled = false,
   className,
 }: TimeRangePickerProps) {
+  const strings = useStrings();
   const nowFn = now ?? ((): Date => new Date());
-  const [open, setOpen] = useState(false);
+  const popover = useDialogPopover<HTMLDivElement>();
+  const panelId = useId();
   const [input, setInput] = useState(value);
 
   const parsedValue = parseTimeRangeInput(value, nowFn());
@@ -74,10 +79,16 @@ export function TimeRangePicker({
   );
 
   const triggerLabel =
-    parsedValue?.label ?? (value.length > 0 ? value : placeholder);
+    parsedValue === null
+      ? value.length > 0
+        ? value
+        : (placeholder ?? strings.timeRangePlaceholder)
+      : parsedValue.kind === 'relative'
+        ? strings.timeRangeLast(parsedValue)
+        : `${strings.formatDateTime(parsedValue.from)} → ${strings.formatDateTime(parsedValue.to)}`;
 
   const handleOpen = (next: boolean): void => {
-    setOpen(next);
+    popover.setOpen(next);
     if (next) {
       setInput(value);
       if (parsedValue) {
@@ -90,7 +101,7 @@ export function TimeRangePicker({
   const applyInput = (): void => {
     if (parsedInput) {
       onChange(input.trim());
-      setOpen(false);
+      popover.close();
     }
   };
 
@@ -115,33 +126,40 @@ export function TimeRangePicker({
   const handleAbsApply = (): void => {
     if (absFromDate && absToDate && absValid) {
       onChange(absoluteValueString(absFromDate, absToDate));
-      setOpen(false);
+      popover.close();
     }
   };
 
   const inputError =
-    input.trim().length > 0 && !parsedInput ? 'Unparseable expression' : '';
+    input.trim().length > 0 && !parsedInput ? strings.timeRangeUnparseable : '';
 
   const content = (
-    <div className="aegis-trp__pop">
+    <div
+      ref={popover.panelRef}
+      id={panelId}
+      className="aegis-trp__pop"
+      role="dialog"
+      aria-label={strings.timeRange}
+      tabIndex={-1}
+    >
       <div className="aegis-trp__section">
         <TextField
-          label="Expression"
+          label={strings.timeRangeExpression}
           value={input}
-          placeholder="now-15m, yesterday 10am to today 11am, …"
+          placeholder={strings.timeRangeExpressionPlaceholder}
           error={inputError.length > 0 ? inputError : undefined}
           onChange={handleInputChange}
           onKeyDown={handleInputKeyDown}
         />
         <div className="aegis-trp__row">
           <Button tone="secondary" disabled={!parsedInput} onClick={applyInput}>
-            Apply
+            {strings.apply}
           </Button>
         </div>
       </div>
 
       <div className="aegis-trp__section">
-        <div className="aegis-trp__hint">Quick presets</div>
+        <div className="aegis-trp__hint">{strings.timeRangePresets}</div>
         <div className="aegis-trp__chips">
           {presets.map((p) => (
             <Chip
@@ -149,7 +167,7 @@ export function TimeRangePicker({
               tone={p.value === value ? 'ink' : 'default'}
               onClick={() => {
                 onChange(p.value);
-                setOpen(false);
+                popover.close();
               }}
             >
               {p.label}
@@ -159,10 +177,12 @@ export function TimeRangePicker({
       </div>
 
       <div className="aegis-trp__section">
-        <div className="aegis-trp__hint">Absolute range</div>
+        <div className="aegis-trp__hint">{strings.timeRangeAbsolute}</div>
         <div className="aegis-trp__abs">
           <label className="aegis-trp__abs-field">
-            <span className="aegis-trp__abs-label">From</span>
+            <span className="aegis-trp__abs-label">
+              {strings.timeRangeFrom}
+            </span>
             <input
               type="datetime-local"
               className="aegis-trp__abs-input"
@@ -173,7 +193,7 @@ export function TimeRangePicker({
             />
           </label>
           <label className="aegis-trp__abs-field">
-            <span className="aegis-trp__abs-label">To</span>
+            <span className="aegis-trp__abs-label">{strings.timeRangeTo}</span>
             <input
               type="datetime-local"
               className="aegis-trp__abs-input"
@@ -188,7 +208,7 @@ export function TimeRangePicker({
             disabled={!absValid}
             onClick={handleAbsApply}
           >
-            Apply
+            {strings.apply}
           </Button>
         </div>
       </div>
@@ -203,19 +223,22 @@ export function TimeRangePicker({
     <Popover
       content={content}
       trigger="click"
-      open={disabled ? false : open}
+      open={disabled ? false : popover.open}
       onOpenChange={handleOpen}
       placement="bottomLeft"
+      autoAdjustOverflow={POPOVER_OVERFLOW}
       arrow={false}
       classNames={{ root: 'aegis-trp__overlay' }}
       destroyOnHidden
     >
       <button
+        ref={popover.triggerRef}
         type="button"
         className={triggerCls}
         disabled={disabled}
         aria-haspopup="dialog"
-        aria-expanded={open}
+        aria-expanded={popover.open}
+        aria-controls={popover.open ? panelId : undefined}
       >
         <span className="aegis-trp__trigger-label">{triggerLabel}</span>
         <span className="aegis-trp__trigger-caret" aria-hidden="true">

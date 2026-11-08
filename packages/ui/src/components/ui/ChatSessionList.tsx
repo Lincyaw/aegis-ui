@@ -11,7 +11,9 @@ import {
 
 import { Popover } from 'antd';
 
-import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
+import { useStrings } from '../../locale';
 import './ChatSessionList.css';
 import { relativeTime } from './relativeTime';
 
@@ -45,6 +47,7 @@ export function ChatSessionList({
   emptyState,
   className,
 }: ChatSessionListProps): ReactElement {
+  const strings = useStrings();
   const listId = useId();
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState<string>('');
@@ -106,7 +109,7 @@ export function ChatSessionList({
     .join(' ');
 
   return (
-    <ul className={cls} aria-label="Conversations">
+    <ul className={cls} aria-label={strings.conversations}>
       {items.map((item, index) => {
         const isSelected = Boolean(item.selected);
         const isRenaming = renamingId === item.id;
@@ -143,7 +146,7 @@ export function ChatSessionList({
                   onBlur={() => {
                     commitRename(item.id);
                   }}
-                  aria-label="Rename conversation"
+                  aria-label={strings.renameConversation}
                 />
               </div>
             ) : (
@@ -166,7 +169,7 @@ export function ChatSessionList({
                 </span>
                 {item.timestamp !== undefined && (
                   <span className="aegis-chat-session-list__time">
-                    {relativeTime(item.timestamp)}
+                    {relativeTime(item.timestamp, strings)}
                   </span>
                 )}
               </button>
@@ -214,6 +217,7 @@ function RowActions({
   onRename,
   onDelete,
 }: RowActionsProps): ReactElement {
+  const strings = useStrings();
   const menu = useMenuPopover<HTMLDivElement>();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const confirmRef = useRef<HTMLButtonElement | null>(null);
@@ -248,7 +252,7 @@ function RowActions({
             onRename();
           }}
         >
-          Rename
+          {strings.rename}
         </button>
       )}
       {onDelete &&
@@ -263,7 +267,7 @@ function RowActions({
                 onDelete();
               }}
             >
-              Confirm?
+              {strings.confirmDelete}
             </button>
           </span>
         ) : (
@@ -275,7 +279,7 @@ function RowActions({
               setConfirmingDelete(true);
             }}
           >
-            Delete
+            {strings.delete}
           </button>
         ))}
     </div>
@@ -294,7 +298,7 @@ function RowActions({
           menu.setOpen(next);
         }}
         placement="bottomRight"
-        autoAdjustOverflow={MENU_OVERFLOW}
+        autoAdjustOverflow={POPOVER_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-chat-session-list__overlay' }}
         destroyOnHidden
@@ -303,7 +307,7 @@ function RowActions({
           ref={menu.triggerRef}
           type="button"
           className="aegis-chat-session-list__more"
-          aria-label={`More actions for ${title}`}
+          aria-label={strings.moreActionsFor(title)}
           aria-haspopup="menu"
           aria-expanded={menu.open}
           aria-controls={menu.open ? menuId : undefined}

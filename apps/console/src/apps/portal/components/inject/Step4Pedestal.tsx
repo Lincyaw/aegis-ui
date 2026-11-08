@@ -88,6 +88,7 @@ function ContainerPicker({
         ) : (
           <Select
             id={id}
+            aria-describedby={`${id}-description`}
             value={choice.name}
             disabled={list.isLoading}
             placeholder={
@@ -112,6 +113,7 @@ function ContainerPicker({
       >
         <Select
           id={`${id}-version`}
+          aria-describedby={`${id}-version-description`}
           value={choice.version}
           disabled={chosen === undefined || versions.isLoading}
           options={versionOptions}
@@ -189,11 +191,14 @@ export function Step4Pedestal({ spec, update }: Props) {
       <FormRow
         label='Blast radius'
         description='Every fault runs for the fixed fault window the server sets.'
+        controlId='inject-blast-radius'
+        labelBy='aria-labelledby'
       >
         <div className='page-stack'>
           <BlastRadiusBar
             value={def ? BLAST_PERCENT[def.blastHint] : 0}
-            label='Blast radius'
+            aria-labelledby='inject-blast-radius-label'
+            aria-describedby='inject-blast-radius-description'
           />
           <MetricLabel size='xs'>
             {def

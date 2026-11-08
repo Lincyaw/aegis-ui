@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type ReactNode, useState } from 'react';
 
+import { useStrings } from '../../locale';
 import './NumberField.css';
 import { TextField } from './TextField';
 
@@ -25,6 +26,8 @@ interface NumberFieldProps {
   error?: string;
   disabled?: boolean;
   id?: string;
+  /** Ids of the text that describes the field, such as a FormRow's description; read before the field's own helper or error text. */
+  'aria-describedby'?: string;
   className?: string;
 }
 
@@ -62,8 +65,10 @@ export function NumberField({
   error,
   disabled = false,
   id,
+  'aria-describedby': describedBy,
   className,
 }: NumberFieldProps) {
+  const strings = useStrings();
   const pattern = integer ? INTEGER : DECIMAL;
   const parse = (raw: string): number | undefined =>
     pattern.test(raw.trim()) ? Number(raw.trim()) : undefined;
@@ -85,8 +90,8 @@ export function NumberField({
     partial || parsed !== undefined
       ? undefined
       : integer
-        ? 'Enter a whole number'
-        : 'Enter a number';
+        ? strings.enterWholeNumber
+        : strings.enterNumber;
 
   const edit = (next: string): void => {
     const nextValue = parse(next);
@@ -127,6 +132,7 @@ export function NumberField({
       id={id}
       label={label}
       aria-label={label === undefined ? ariaLabel : undefined}
+      aria-describedby={describedBy}
       role="spinbutton"
       aria-valuenow={parsed}
       aria-valuemin={min}

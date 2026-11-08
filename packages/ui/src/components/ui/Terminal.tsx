@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import './Terminal.css';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -26,10 +27,11 @@ interface TerminalProps {
 
 export function Terminal({
   lines,
-  ariaLabel = 'Experiment log',
+  ariaLabel,
   className,
   surface,
 }: TerminalProps) {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, lines, 'terminal', wrapRef);
   const cls = ['aegis-terminal', className ?? ''].filter(Boolean).join(' ');
@@ -38,7 +40,7 @@ export function Terminal({
       ref={wrapRef}
       className={cls}
       role="log"
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? strings.terminalLabel}
       aria-live="polite"
       {...agentAttrs}
     >

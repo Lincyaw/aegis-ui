@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { formatDuration } from '../../lib/format';
-import { useStrings } from '../../locale';
+import { type AegisStrings, useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { CodeBlock } from './CodeBlock';
 import { EmptyState } from './EmptyState';
@@ -64,7 +64,7 @@ function toJson(value: unknown, indent?: number): JsonText {
   }
 }
 
-function attributeText(value: unknown): ReactNode {
+function attributeText(value: unknown, strings: AegisStrings): ReactNode {
   if (typeof value === 'number') {
     return (
       <span className="aegis-trace-span-inspector__number">
@@ -80,7 +80,7 @@ function attributeText(value: unknown): ReactNode {
     <MonoValue size="sm">{text.json}</MonoValue>
   ) : (
     <MonoValue size="sm" tone="muted">
-      Not serialisable: {text.error}
+      {strings.notSerialisable(text.error)}
     </MonoValue>
   );
 }
@@ -185,7 +185,7 @@ export function TraceSpanInspector({
   const attrEntries = span.attrs ? Object.entries(span.attrs) : [];
   const attrItems: KeyValueItem[] = attrEntries.map(([k, v]) => ({
     k,
-    v: attributeText(v),
+    v: attributeText(v, strings),
   }));
 
   const rawJson = toJson(
@@ -229,7 +229,7 @@ export function TraceSpanInspector({
         ) : (
           <ErrorState
             size="compact"
-            title="The span cannot be shown as JSON"
+            title={strings.spanNotJson}
             description={rawJson.error}
           />
         ),

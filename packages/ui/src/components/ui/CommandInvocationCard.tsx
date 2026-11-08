@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import './CommandInvocationCard.css';
 import { MonoValue } from './MonoValue';
@@ -45,12 +46,6 @@ const STATUS_TONE: Record<
   error: 'warning',
 };
 
-const STATUS_LABEL: Record<CommandInvocationCardProps['status'], string> = {
-  pending: 'pending',
-  success: 'done',
-  error: 'failed',
-};
-
 export function CommandInvocationCard({
   commandId,
   args,
@@ -60,6 +55,7 @@ export function CommandInvocationCard({
   className,
   surface,
 }: CommandInvocationCardProps) {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(
     surface,
@@ -82,7 +78,7 @@ export function CommandInvocationCard({
         <span className="aegis-cmd-card__status">
           <StatusDot tone={STATUS_TONE[status]} pulse={status === 'pending'} />
           <Chip tone={status === 'error' ? 'warning' : 'ghost'}>
-            {STATUS_LABEL[status]}
+            {strings.commandStatus(status)}
           </Chip>
         </span>
       </div>
@@ -103,7 +99,7 @@ export function CommandInvocationCard({
             className="aegis-cmd-card__undo"
             onClick={onUndo}
           >
-            Undo
+            {strings.undo}
           </button>
         </div>
       )}

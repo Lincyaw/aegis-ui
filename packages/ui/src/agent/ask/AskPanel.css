@@ -14,6 +14,11 @@
   animation: aegis-ask-panel-in var(--motion-fast);
 }
 
+/* Focus lands on the panel only when it has no field; its controls ring. */
+.aegis-ask-panel:focus-visible {
+  outline: none;
+}
+
 @keyframes aegis-ask-panel-in {
   from {
     opacity: 0;

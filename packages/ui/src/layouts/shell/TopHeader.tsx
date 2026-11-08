@@ -184,10 +184,12 @@ export function TopHeader({
             className="aegis-shell__agent-toggle"
             onClick={onAgentPanelToggle}
             aria-label={
-              agentPanelOpen ? 'Hide agent panel' : 'Show agent panel'
+              agentPanelOpen ? strings.hideAgentPanel : strings.showAgentPanel
             }
             aria-pressed={agentPanelOpen}
-            title={agentPanelOpen ? 'Hide agent panel' : 'Show agent panel'}
+            title={
+              agentPanelOpen ? strings.hideAgentPanel : strings.showAgentPanel
+            }
           >
             <span
               className="aegis-shell__agent-toggle-glyph"
@@ -215,16 +217,19 @@ export function TopHeader({
 }
 
 function ActiveEnvironmentSwitcher(): ReactElement | null {
+  const strings = useStrings();
   const state = useEnvironmentManifest();
   if (state.status === 'error') {
     return (
-      <Tooltip title={`${state.error.message} Click to retry.`}>
+      <Tooltip title={strings.environmentsRetry(state.error.message)}>
         <span className="aegis-shell__env-error">
           <Chip tone="warning" onClick={state.retry}>
             <span className="aegis-shell__env-error-full">
-              Environments unavailable
+              {strings.environmentsUnavailable}
             </span>
-            <span className="aegis-shell__env-error-short">Env error</span>
+            <span className="aegis-shell__env-error-short">
+              {strings.environmentsUnavailableShort}
+            </span>
           </Chip>
         </span>
       </Tooltip>

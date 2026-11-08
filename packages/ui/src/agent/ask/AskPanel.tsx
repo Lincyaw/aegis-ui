@@ -11,6 +11,7 @@ import {
 import { ChatComposer } from '../../components/ui/ChatComposer';
 import { Chip } from '../../components/ui/Chip';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
+import { useStrings } from '../../locale';
 import { AegisRuntimeContext } from '../core/aegisRuntimeContext';
 import type { AegisRuntime } from '../core/runtime';
 import type {
@@ -125,6 +126,11 @@ function resolveTools(
   return runtime.listActions();
 }
 
+/**
+ * Mounting it opens it: focus moves to its question field, or to the panel
+ * when there is no agent to ask, and returns on unmount to the element that
+ * had it.
+ */
 export function AskPanel({
   context,
   tools,
@@ -135,6 +141,7 @@ export function AskPanel({
   sending = false,
   popover = true,
 }: AskPanelProps): ReactElement {
+  const strings = useStrings();
   const ctx = useContext(AegisRuntimeContext);
   const runtime = ctx?.runtime ?? null;
   const rootRef = useRef<HTMLDivElement>(null);
@@ -201,6 +208,24 @@ export function AskPanel({
     };
   }, [onClose, popover]);
 
+  // A popover is hidden, and so cannot take focus, until it is placed.
+  const ready = !popover || placement !== null;
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    const returnFocusTo = document.activeElement;
+    const root = rootRef.current;
+    (
+      root?.querySelector<HTMLElement>('textarea:not(:disabled)') ?? root
+    )?.focus();
+    return () => {
+      if (returnFocusTo instanceof HTMLElement && returnFocusTo.isConnected) {
+        returnFocusTo.focus();
+      }
+    };
+  }, [ready]);
+
   useIsomorphicLayoutEffect(() => {
     if (!popover) {
       setPlacement(null);
@@ -257,17 +282,18 @@ export function AskPanel({
       ref={rootRef}
       className="aegis-ask-panel"
       role="dialog"
-      aria-label="Ask AI"
+      aria-label={strings.askPanelTitle}
+      tabIndex={-1}
       data-aegis-ask-panel="open"
       data-ask-origin={context.origin}
       style={style}
     >
       <header className="aegis-ask-panel__header">
-        <div className="aegis-ask-panel__title">Ask AI</div>
+        <div className="aegis-ask-panel__title">{strings.askPanelTitle}</div>
         <button
           type="button"
           className="aegis-ask-panel__close"
-          aria-label="Close"
+          aria-label={strings.close}
           onClick={onClose}
         >
           ×
@@ -276,20 +302,26 @@ export function AskPanel({
       <div className="aegis-ask-panel__meta">
         {surfaceLabel && (
           <div className="aegis-ask-panel__meta-row">
-            <span className="aegis-ask-panel__meta-label">Surface</span>
+            <span className="aegis-ask-panel__meta-label">
+              {strings.askSurface}
+            </span>
             <span className="aegis-ask-panel__meta-value">{surfaceLabel}</span>
           </div>
         )}
         {headerLabel && (
           <div className="aegis-ask-panel__meta-row">
-            <span className="aegis-ask-panel__meta-label">Entity</span>
+            <span className="aegis-ask-panel__meta-label">
+              {strings.askEntity}
+            </span>
             <span className="aegis-ask-panel__meta-value">{headerLabel}</span>
           </div>
         )}
       </div>
       {context.suggestions.length > 0 && (
         <div className="aegis-ask-panel__section">
-          <div className="aegis-ask-panel__section-label">Suggestions</div>
+          <div className="aegis-ask-panel__section-label">
+            {strings.suggestions}
+          </div>
           <div className="aegis-ask-panel__chips">
             {context.suggestions.map((s) => (
               <Chip
@@ -311,10 +343,10 @@ export function AskPanel({
       )}
       <div className="aegis-ask-panel__section">
         <div className="aegis-ask-panel__section-label">
-          Tools available ({resolvedTools.length})
+          {strings.askToolsAvailable(resolvedTools.length)}
         </div>
         {resolvedTools.length === 0 ? (
-          <div className="aegis-ask-panel__empty">No tools in scope.</div>
+          <div className="aegis-ask-panel__empty">{strings.askNoTools}</div>
         ) : (
           <ul className="aegis-ask-panel__tools">
             {resolvedTools.slice(0, 8).map((t) => (
@@ -331,10 +363,10 @@ export function AskPanel({
           className="aegis-ask-panel__composer"
           onSend={ask}
           sending={sending}
-          placeholder="Ask about this…"
+          placeholder={strings.askPlaceholder}
         />
       ) : (
-        <p className="aegis-ask-panel__note">No agent is connected.</p>
+        <p className="aegis-ask-panel__note">{strings.askNoAgent}</p>
       )}
     </div>
   );

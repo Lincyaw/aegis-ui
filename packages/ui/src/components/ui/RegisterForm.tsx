@@ -1,5 +1,6 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
+import { useStrings } from '../../locale';
 import { Alert } from './Alert';
 import { Button } from './Button';
 import { PasswordField } from './PasswordField';
@@ -27,6 +28,7 @@ export function RegisterForm({
   error,
   minPasswordLength = 8,
 }: RegisterFormProps): ReactElement {
+  const strings = useStrings();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,11 +37,11 @@ export function RegisterForm({
   const trimmedName = name.trim();
   const trimmedEmail = email.trim();
   const errors = {
-    name: trimmedName === '' ? 'Enter your name.' : undefined,
-    email: emailError(trimmedEmail),
+    name: trimmedName === '' ? strings.authNameRequired : undefined,
+    email: emailError(trimmedEmail, strings),
     password:
       password.length < minPasswordLength
-        ? `Password must be at least ${String(minPasswordLength)} characters.`
+        ? strings.authPasswordTooShort(minPasswordLength)
         : undefined,
   };
 
@@ -56,9 +58,9 @@ export function RegisterForm({
     <form className="aegis-registerform" onSubmit={handleSubmit} noValidate>
       {error && <Alert tone="error">{error}</Alert>}
       <TextField
-        label="Name"
+        label={strings.authName}
         autoComplete="name"
-        placeholder="Ada Lovelace"
+        placeholder={strings.authNamePlaceholder}
         value={name}
         onChange={(e) => setName(e.target.value)}
         disabled={submitting}
@@ -66,7 +68,7 @@ export function RegisterForm({
         error={submitted ? errors.name : undefined}
       />
       <TextField
-        label="Email"
+        label={strings.authEmail}
         type="email"
         autoComplete="email"
         placeholder="you@example.com"
@@ -77,14 +79,14 @@ export function RegisterForm({
         error={submitted ? errors.email : undefined}
       />
       <PasswordField
-        label="Password"
+        label={strings.authPassword}
         autoComplete="new-password"
         placeholder="••••••••"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         disabled={submitting}
         required
-        helperText={`At least ${String(minPasswordLength)} characters.`}
+        helperText={strings.authPasswordHint(minPasswordLength)}
         error={submitted ? errors.password : undefined}
       />
       <Button
@@ -93,7 +95,7 @@ export function RegisterForm({
         className="aegis-registerform__submit"
         disabled={submitting}
       >
-        {submitting ? 'Creating account…' : 'Create account'}
+        {submitting ? strings.authCreatingAccount : strings.authCreateAccount}
       </Button>
     </form>
   );

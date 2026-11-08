@@ -124,6 +124,18 @@ html
 html .ant-radio-button-wrapper:has(:focus-visible) {
   --ant-color-primary-border: var(--focus-ring-color);
 }
+/* antd Tree takes keyboard focus on a hidden input. The tree rings itself,
+   inset, until an arrow key makes a node active; then the active node's
+   title rings instead, inset. antd drops its own tree outline on hover and
+   once a node is active, and marks the active node with a fill alone. */
+html .ant-tree:has(> div > input:focus-visible):not(.ant-tree-active-focused),
+html
+  .ant-tree:has(> div > input:focus-visible)
+  .ant-tree-treenode-active
+  .ant-tree-node-content-wrapper {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
 
 /* antd popovers and tooltips fade in from their trigger's side instead of
  * zooming out of it. Only the running phase is restyled: rc-trigger

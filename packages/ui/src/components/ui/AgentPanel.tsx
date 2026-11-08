@@ -4,6 +4,7 @@ import {
   type ContainerSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import './AgentPanel.css';
 
 export type AgentPanelSurface = ContainerSurface;
@@ -28,6 +29,7 @@ export function AgentPanel({
   className,
   surface,
 }: AgentPanelProps) {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, null, 'panel', wrapRef);
   const cls = ['aegis-agent-panel', className ?? ''].filter(Boolean).join(' ');
@@ -36,7 +38,7 @@ export function AgentPanel({
     <aside
       ref={wrapRef}
       className={cls}
-      aria-label="Agent panel"
+      aria-label={strings.agentPanel}
       {...agentAttrs}
     >
       {(title ?? headerActions) && (

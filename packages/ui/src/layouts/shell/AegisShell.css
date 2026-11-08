@@ -175,6 +175,11 @@
   background: var(--bg-inverted);
 }
 
+/* Inset, so the scrolling app list does not clip the ring. */
+.aegis-shell__app-row:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
 .aegis-shell__app-row-icon {
   display: inline-flex;
   align-items: center;

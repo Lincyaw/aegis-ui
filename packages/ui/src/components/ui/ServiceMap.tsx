@@ -2,8 +2,10 @@
 // https://github.com/hyperdxio/hyperdx/blob/main/packages/app/src/components/ServiceMap/ServiceMap.tsx
 import {
   type CSSProperties,
+  type KeyboardEvent,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useState,
 } from 'react';
@@ -37,6 +39,7 @@ import {
 } from '@xyflow/react';
 
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useStrings } from '../../locale';
 import './ServiceMap.css';
 import { StatusDot } from './StatusDot';
 
@@ -63,7 +66,7 @@ export interface ServiceMapGroup {
   nodeIds: string[];
 }
 
-/** For assistive technology, a `group` named `<source label> → <target label>`. */
+/** For assistive technology, named by its nodes' labels, e.g. "checkout to payments". */
 export interface ServiceMapEdge {
   id: string;
   source: string;
@@ -93,7 +96,12 @@ export interface ServiceMapProps {
    * can still scroll the page past it. `height` overrides it.
    */
   fillViewport?: boolean;
+  /**
+   * Called when a node is clicked, or gets Enter or Space while focused.
+   * Without it nodes can be neither focused nor selected.
+   */
   onNodeClick?: (node: ServiceMapNode) => void;
+  /** The same for edges. */
   onEdgeClick?: (edge: ServiceMapEdge) => void;
   /** Drawn inverted, and `aria-current` for assistive technology. */
   selectedNodeId?: string;
@@ -114,8 +122,9 @@ export interface ServiceMapProps {
    */
   minimap?: boolean;
   /**
-   * The map's accessible name. Each node is a `group` named by its label;
-   * a group's box is not.
+   * The map's accessible name. Each node is a `group` named by its label
+   * and, in a group, described by the group's label; a group's box is not
+   * a `group`.
    */
   ariaLabel?: string;
   className?: string;
@@ -128,6 +137,8 @@ interface ServiceNodeData extends Record<string, unknown> {
 
 interface ServiceGroupData extends Record<string, unknown> {
   label: string;
+  /** The label's element id, which the group's nodes are described by. */
+  labelId: string;
 }
 
 type ServiceFlowNode =
@@ -251,6 +262,8 @@ interface MapLayout {
   groups: ServiceFlowNode[];
   /** Each node's top-left corner. */
   positions: Map<string, XYPosition>;
+  /** The label id of the group each grouped node is in. */
+  groupLabels: Map<string, string>;
 }
 
 /**
@@ -260,7 +273,10 @@ interface MapLayout {
 function computeLayout(
   shape: MapShape,
   sizes: ReadonlyMap<string, Size>,
+  idPrefix: string,
 ): MapLayout {
+  const labelIdOf = (group: ServiceMapGroup): string =>
+    `${idPrefix}-group-${String(shape.groups.indexOf(group))}`;
   const horizontal = shape.direction === 'LR';
   const parts = partsOf(shape.ids, shape.groups).map((part) => {
     const laid = layoutPart(part.ids, shape.links, shape.direction, (id) => {
@@ -298,10 +314,18 @@ function computeLayout(
               position: part.origin,
               width: part.width,
               height: part.boxHeight,
-              data: { label: part.group.label },
+              data: {
+                label: part.group.label,
+                labelId: labelIdOf(part.group),
+              },
               // Not a group for assistive technology: the box contains no
-              // nodes in the DOM, so its label is plain text.
-              domAttributes: { 'aria-roledescription': undefined },
+              // nodes in the DOM, so its label is plain text, which its
+              // nodes are described by. It cannot be focused, so it has no
+              // keyboard help either.
+              domAttributes: {
+                'aria-roledescription': undefined,
+                'aria-describedby': undefined,
+              },
               // Under the edges, and letting clicks through to them: React
               // Flow gives every node's wrapper pointer events once the map
               // has onNodeClick.
@@ -325,6 +349,14 @@ function computeLayout(
         ]),
       ),
     ),
+    groupLabels: new Map(
+      placed.flatMap((part) => {
+        const { group } = part;
+        return group === undefined
+          ? []
+          : part.ids.map((id) => [id, labelIdOf(group)] as const);
+      }),
+    ),
   };
 }
 
@@ -333,7 +365,9 @@ function ServiceGroup({
 }: NodeProps<Node<ServiceGroupData, 'serviceGroup'>>): JSX.Element {
   return (
     <div className="aegis-service-map__group">
-      <span className="aegis-service-map__group-label">{data.label}</span>
+      <span id={data.labelId} className="aegis-service-map__group-label">
+        {data.label}
+      </span>
     </div>
   );
 }
@@ -531,6 +565,11 @@ function ServiceMapInner({
   ariaLabel,
   className,
 }: ServiceMapProps): JSX.Element {
+  const strings = useStrings();
+  const idPrefix = useId();
+  const rfId = useStore((state) => state.rfId);
+  const nodesSelectable = onNodeClick !== undefined;
+  const edgesSelectable = onEdgeClick !== undefined;
   // Node sizes as React Flow measured them; the layout reads them, so a
   // node can be as wide as its label.
   const [measured, setMeasured] = useState<ReadonlyMap<string, Size>>(
@@ -544,15 +583,25 @@ function ServiceMapInner({
   // changes, not when the parent passes equal arrays again.
   const shape = useMemo(() => JSON.parse(shapeJson) as MapShape, [shapeJson]);
   const layout = useMemo(
-    () => computeLayout(shape, measured),
-    [shape, measured],
+    () => computeLayout(shape, measured, idPrefix),
+    [shape, measured, idPrefix],
   );
   const isHorizontal = direction === 'LR';
   const flowNodes = useMemo(
     (): ServiceFlowNode[] => [
       ...layout.groups,
-      ...nodes.map(
-        (n): ServiceFlowNode => ({
+      ...nodes.map((n): ServiceFlowNode => {
+        // A node in a group is described by the group's label. React Flow
+        // describes a node by its keyboard help, the element it names
+        // `react-flow__node-desc-<rfId>`; a node that cannot be selected
+        // has none.
+        const describedBy = [
+          layout.groupLabels.get(n.id),
+          nodesSelectable ? `react-flow__node-desc-${rfId}` : undefined,
+        ]
+          .filter(Boolean)
+          .join(' ');
+        return {
           id: n.id,
           type: 'service',
           position: layout.positions.get(n.id) ?? { x: 0, y: 0 },
@@ -560,19 +609,35 @@ function ServiceMapInner({
           // size it measured instead of measuring the node again.
           measured: measured.get(n.id),
           ariaLabel: n.label,
-          // A group takes no aria-selected.
-          domAttributes:
-            selectedNodeId === n.id ? { 'aria-current': true } : undefined,
+          // React Flow gives only a focusable node a role, and the role
+          // description below needs one.
+          ariaRole: 'group',
+          domAttributes: {
+            'aria-roledescription': strings.serviceMapNodeRole,
+            // A group takes no aria-selected.
+            'aria-current': selectedNodeId === n.id ? true : undefined,
+            'aria-describedby': describedBy === '' ? undefined : describedBy,
+          },
           data: { node: n, selected: selectedNodeId === n.id },
           sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
           targetPosition: isHorizontal ? Position.Left : Position.Top,
           draggable: false,
           connectable: false,
-          selectable: true,
-        }),
-      ),
+          selectable: nodesSelectable,
+          focusable: nodesSelectable,
+        };
+      }),
     ],
-    [layout, nodes, measured, selectedNodeId, isHorizontal],
+    [
+      layout,
+      nodes,
+      measured,
+      selectedNodeId,
+      isHorizontal,
+      nodesSelectable,
+      rfId,
+      strings,
+    ],
   );
   const flowEdges = useMemo((): Array<Edge<ServiceEdgeData>> => {
     const labelOf = new Map(nodes.map((n) => [n.id, n.label]));
@@ -580,13 +645,19 @@ function ServiceMapInner({
       id: e.id,
       source: e.source,
       target: e.target,
-      ariaLabel: `${labelOf.get(e.source) ?? e.source} → ${labelOf.get(e.target) ?? e.target}`,
+      ariaLabel: strings.serviceMapEdgeName(
+        labelOf.get(e.source) ?? e.source,
+        labelOf.get(e.target) ?? e.target,
+      ),
+      domAttributes: { 'aria-roledescription': strings.serviceMapEdgeRole },
       type: 'service',
       data: { edge: e },
       label: e.label,
+      selectable: edgesSelectable,
+      focusable: edgesSelectable,
       className: `aegis-service-map__edge aegis-service-map__edge--${e.status ?? 'ok'}`,
     }));
-  }, [nodes, edges]);
+  }, [nodes, edges, edgesSelectable, strings]);
 
   const { getNode } = useReactFlow();
   const handleNodesChange = useCallback(
@@ -637,6 +708,35 @@ function ServiceMapInner({
     },
     [onEdgeClick],
   );
+  // React Flow's own Enter and Space only change its internal selection,
+  // which never reaches the host, so a focused node or edge answers the
+  // keys here, as a click would.
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if ((event.key !== 'Enter' && event.key !== ' ') || event.repeat) {
+        return;
+      }
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+      const id = target.getAttribute('data-id');
+      if (target.classList.contains('react-flow__node')) {
+        const node = nodes.find((n) => n.id === id);
+        if (node && onNodeClick) {
+          event.preventDefault();
+          onNodeClick(node);
+        }
+      } else if (target.classList.contains('react-flow__edge')) {
+        const edge = edges.find((e) => e.id === id);
+        if (edge && onEdgeClick) {
+          event.preventDefault();
+          onEdgeClick(edge);
+        }
+      }
+    },
+    [nodes, edges, onNodeClick, onEdgeClick],
+  );
 
   const style = {
     ...SIZE_VARS,
@@ -666,13 +766,14 @@ function ServiceMapInner({
           minZoom={MIN_ZOOM}
           nodesDraggable={false}
           nodesConnectable={false}
-          elementsSelectable
           panOnDrag
           zoomOnScroll
           proOptions={{ hideAttribution: true }}
+          ariaLabelConfig={strings.serviceMapAriaLabels}
           onNodesChange={handleNodesChange}
-          onNodeClick={handleNodeClick}
-          onEdgeClick={handleEdgeClick}
+          onNodeClick={nodesSelectable ? handleNodeClick : undefined}
+          onEdgeClick={edgesSelectable ? handleEdgeClick : undefined}
+          onKeyDown={handleKeyDown}
         >
           <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
           <Controls showInteractive={false} position="top-left" />

@@ -20,7 +20,7 @@ export function ShellInboxPage({
   defaultFilter,
   surface,
 }: ShellInboxPageProps): ReactElement {
-  const { items, unreadCount, markAllRead, error, refetch } =
+  const { items, unreadCount, markAllRead, error, liveError, refetch } =
     useNotifications();
   const open = useOpenNotification();
   const markAll = useCallback(() => {
@@ -36,6 +36,7 @@ export function ShellInboxPage({
       onOpen={open}
       onMarkAllRead={markAllRead ? markAll : undefined}
       error={error}
+      liveError={liveError}
       onRetry={refetch ? retry : undefined}
       defaultFilter={defaultFilter}
       surface={surface}

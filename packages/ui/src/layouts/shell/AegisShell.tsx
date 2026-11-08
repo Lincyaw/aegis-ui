@@ -222,7 +222,7 @@ export function AegisShell({
                       void auth.signIn?.({});
                     }}
                   >
-                    Sign in
+                    {strings.signIn}
                   </Chip>
                 )}
               </>
