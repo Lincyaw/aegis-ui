@@ -21,12 +21,6 @@ import { loadMessages, useChatStore } from './chatStore';
 const OPEN_KEY = 'aegis.ai.dock.open.v1';
 const SAVE_DEBOUNCE_MS = 500;
 
-const NOT_CONNECTED: AgentChatValue = {
-  messages: [],
-  sending: false,
-  send: () => undefined,
-};
-
 function readOpen(): boolean {
   try {
     return window.localStorage.getItem(OPEN_KEY) === '1';
@@ -43,23 +37,14 @@ function writeOpen(value: boolean): void {
   }
 }
 
-interface ChatRelayProps {
+interface ChatPersistenceProps {
   chatId: string;
-  onChange: (chat: AgentChatValue) => void;
 }
 
-/**
- * Sits inside one chat's channel: hands the chat up to the console and
- * keeps its messages saved under that chat.
- */
-function ChatRelay({ chatId, onChange }: ChatRelayProps): null {
-  const chat = useAgentChat();
-  const { messages } = chat;
+/** Keeps one chat's messages saved under that chat. */
+function ChatPersistence({ chatId }: ChatPersistenceProps): null {
+  const { messages } = useAgentChat();
   const { saveMessages, maybeAutoTitle, touchActive } = useChatStore();
-
-  useEffect(() => {
-    onChange(chat);
-  }, [chat, onChange]);
 
   // Debounced persistence: coalesce streaming writes to at most one per
   // SAVE_DEBOUNCE_MS; flush when the chat closes so nothing is lost.
@@ -107,6 +92,28 @@ function ChatRelay({ chatId, onChange }: ChatRelayProps): null {
   return null;
 }
 
+interface DockChatProviderProps {
+  children: ReactNode;
+}
+
+/** Serves the channel's chat together with whether the AI dock is open. */
+function DockChatProvider({ children }: DockChatProviderProps): ReactElement {
+  const { messages, sending, send, clear } = useAgentChat();
+  const [panelOpen, setOpen] = useState<boolean>(readOpen);
+
+  const setPanelOpen = useCallback((open: boolean): void => {
+    setOpen(open);
+    writeOpen(open);
+  }, []);
+
+  const value = useMemo<AgentChatValue>(
+    () => ({ messages, sending, send, clear, panelOpen, setPanelOpen }),
+    [messages, sending, send, clear, panelOpen, setPanelOpen]
+  );
+
+  return <AgentChatProvider value={value}>{children}</AgentChatProvider>;
+}
+
 interface AgentmChatProviderProps {
   /** AgentM gateway WebSocket URL. */
   url: string;
@@ -118,7 +125,8 @@ interface AgentmChatProviderProps {
 /**
  * Connects the current chat to the AgentM gateway and serves it, with
  * whether the AI dock is open, to everything below through
- * `useAgentChat`. Switching chats replaces the channel, not the console.
+ * `useAgentChat`. Switching chats reconnects the channel and restarts it
+ * from that chat's saved messages; the console stays mounted.
  */
 export function AgentmChatProvider({
   url,
@@ -126,46 +134,16 @@ export function AgentmChatProvider({
   children,
 }: AgentmChatProviderProps): ReactElement {
   const { currentId } = useChatStore();
-  const [chat, setChat] = useState<AgentChatValue>(NOT_CONNECTED);
-  const [panelOpen, setOpen] = useState<boolean>(readOpen);
-
-  const setPanelOpen = useCallback((open: boolean): void => {
-    setOpen(open);
-    writeOpen(open);
-  }, []);
-
-  // Why: the channel seeds a chat's messages only when it mounts, so it is
-  // keyed by chat; as a sibling of `children`, remounting it leaves the
-  // console in place.
-  const channel = useMemo(
-    () => (
-      <AgentmChannelProvider
-        key={currentId}
-        channel={{ url, token, chatId: currentId }}
-        initialMessages={loadMessages(currentId)}
-      >
-        <ChatRelay chatId={currentId} onChange={setChat} />
-      </AgentmChannelProvider>
-    ),
-    [url, token, currentId]
-  );
-
-  const value = useMemo<AgentChatValue>(
-    () => ({
-      messages: chat.messages,
-      sending: chat.sending,
-      send: chat.send,
-      clear: chat.clear,
-      panelOpen,
-      setPanelOpen,
-    }),
-    [chat, panelOpen, setPanelOpen]
-  );
+  const initialMessages = useMemo(() => loadMessages(currentId), [currentId]);
 
   return (
-    <AgentChatProvider value={value}>
-      {channel}
-      {children}
-    </AgentChatProvider>
+    <AgentmChannelProvider
+      channel={{ url, token, chatId: currentId }}
+      initialMessages={initialMessages}
+    >
+      {/* Why: keyed so its save and title counters reset per chat. */}
+      <ChatPersistence key={currentId} chatId={currentId} />
+      <DockChatProvider>{children}</DockChatProvider>
+    </AgentmChannelProvider>
   );
 }
