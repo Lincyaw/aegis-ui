@@ -164,6 +164,12 @@
   color: var(--accent-warning);
 }
 
+.aegis-sqb__overflow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .aegis-sqb__overflow-row {
   display: flex;
   align-items: center;
@@ -203,6 +209,11 @@
 .aegis-sqb__overflow-icon:hover {
   background: var(--bg-muted);
   color: var(--text-main);
+}
+
+/* Inset, so the scrolling list does not clip the ring. */
+.aegis-sqb__overflow-icon:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-sqb__overflow-icon--danger:hover {

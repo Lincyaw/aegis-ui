@@ -34,11 +34,19 @@ Fixes:
   and then around the arrow-key active node. Before, it was a grey outline
   that disappeared on hover, then a grey fill.
 - `NotificationBell`'s dropdown, `TimeRangePicker`, the shell's app
-  switcher and `SavedQueryBar`'s chip menu, overflow menu and save form
-  move focus into themselves when they open. Escape, item activation and
-  tabbing out return focus to the trigger. The menus take arrow keys, and
-  their triggers gain `aria-haspopup`, `aria-expanded` and `aria-controls`.
-  `NotificationBell` and `TimeRangePicker` slide along their trigger to stay
-  on a phone screen.
+  switcher and `SavedQueryBar`'s chip menu, "+N more" list and save form
+  move focus into themselves when they open. Escape, and Tab or Shift+Tab
+  out of either end, close them and return focus to the trigger, as does
+  picking an item that applies, navigates or saves. The menus take arrow
+  keys, and every trigger gains `aria-haspopup`, `aria-expanded` and
+  `aria-controls`. `NotificationBell` and `TimeRangePicker` slide along
+  their trigger to stay on a phone screen.
+- `SavedQueryBar` places focus itself when an action moves or removes a
+  chip: after Pin or Unpin on that query's chip, after Delete on the next
+  query or on "Save current" after the last, and after a rename ends with
+  Enter or Escape back on the chip. Before, focus fell to the page. Its
+  "+N more" list is now a dialog of queries, each with its Pin and Delete
+  buttons, instead of a menu whose rows held buttons that were not menu
+  items; it stays open through a delete.
 - `NotificationBell`'s unread badge is an inverted surface instead of anomaly
   red: an unread count is not a failure.
