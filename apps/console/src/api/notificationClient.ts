@@ -100,10 +100,12 @@ function parseItem(raw: unknown, index: number): AegisNotification {
   if (typeof read !== 'boolean') {
     throw malformed(`${at}.read is not true or false`);
   }
-  const knownSeverity = SEVERITIES.find((s) => s === severity);
-  if (severity !== undefined && severity !== null && !knownSeverity) {
-    throw malformed(`${at}.severity is not a known severity`);
-  }
+  // A severity the console doesn't know yet, from a newer backend, reads as
+  // info rather than costing the whole inbox.
+  const itemSeverity =
+    severity === undefined || severity === null
+      ? undefined
+      : (SEVERITIES.find((s) => s === severity) ?? 'info');
   return {
     id,
     title,
@@ -112,7 +114,7 @@ function parseItem(raw: unknown, index: number): AegisNotification {
     body: optionalString(raw, 'body', at),
     to: optionalString(raw, 'to', at),
     category: optionalString(raw, 'category', at),
-    severity: knownSeverity,
+    severity: itemSeverity,
     actor: optionalString(raw, 'actor', at),
   };
 }
