@@ -274,7 +274,7 @@ pnpm lint            # turbo run lint --max-warnings 0
 pnpm lint:css        # stylelint via turbo on packages/ui
 pnpm format:check    # root prettier (packages, docs, scripts, workflows, root files), then the console's own prettier over apps/console/src
 pnpm check:gallery   # every primitive export has a gallery specimen
-pnpm check:locale    # enStrings and zhCNStrings have the same keys, and no zh-CN text is left in English
+pnpm check:locale    # every zh-CN text, and each function key's zh-CN output for its sample arguments, differs from the English
 pnpm check:tokens    # every CSS custom property read with var() is defined
 pnpm check:mcp-tools # apps/console/server/mcp_tools.generated.json is up to date
 pnpm build           # turbo run build (packages/ui emits dist/, console builds)
@@ -471,7 +471,7 @@ Secondary tiebreaker: **fix the primitive before the page** — see "First princ
 | Format       | `pnpm format:check`                                                                          | Prettier (root config, then the console's) — fix with `pnpm format`                                                                                     |
 | Build        | `pnpm build`                                                                                 | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css                                                                                           |
 | Full gate    | `pnpm check`                                                                                 | type-check + lint + lint:css + format:check + check:gallery + check:locale + check:tokens + check:mcp-tools; run (plus `pnpm build`) before commit + PR |
-| Locale       | `pnpm check:locale`                                                                          | `enStrings` and `zhCNStrings` match key for key, and every zh-CN text is translated (also folded into `pnpm check`)                                     |
+| Locale       | `pnpm check:locale`                                                                          | Every zh-CN text, and each function key's zh-CN output for its sample arguments, differs from the English (also folded into `pnpm check`)               |
 | Dev server   | `pnpm dev`                                                                                   | apps/console at `:3323` — use for dual-theme + responsive checks                                                                                        |
 | Measure NS#2 | `pnpm check:gallery`                                                                         | Gallery specimen coverage (also folded into `pnpm check`)                                                                                               |
 | Measure NS#4 | see north-star target 4                                                                      | Token discipline grep                                                                                                                                   |
