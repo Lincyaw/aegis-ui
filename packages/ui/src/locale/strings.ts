@@ -299,7 +299,11 @@ export interface AegisStrings {
    */
   codeEditorPhrases: Readonly<Record<string, string>>;
   avatarStatus: (status: 'online' | 'offline' | 'busy' | 'away') => string;
-  /** React Flow's own accessible names and descriptions in a ServiceMap. */
+  /**
+   * React Flow's own accessible names and descriptions in a ServiceMap. The
+   * node and edge descriptions are the keyboard help of a node or edge the
+   * host can select.
+   */
   serviceMapAriaLabels: Readonly<AriaLabelConfig>;
   /** What assistive technology calls a ServiceMap node. */
   serviceMapNodeRole: string;
@@ -662,13 +666,14 @@ export const enStrings: AegisStrings = {
       status
     ],
   serviceMapAriaLabels: {
-    'node.a11yDescription.default': 'Press Enter or Space to select a service.',
+    'node.a11yDescription.default':
+      'Press Enter or Space to select this service.',
     'node.a11yDescription.keyboardDisabled':
-      'Press Enter or Space to select a service.',
+      'Press Enter or Space to select this service.',
     'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) =>
       `Moved the selected service ${direction}. New position: x ${String(x)}, y ${String(y)}.`,
     'edge.a11yDescription.default':
-      'Press Enter or Space to select a connection.',
+      'Press Enter or Space to select this connection.',
     'controls.ariaLabel': 'Map controls',
     'controls.zoomIn.ariaLabel': 'Zoom in',
     'controls.zoomOut.ariaLabel': 'Zoom out',
@@ -1035,12 +1040,12 @@ export const zhCNStrings: AegisStrings = {
   avatarStatus: (status) =>
     ({ online: '在线', offline: '离线', busy: '忙碌', away: '离开' })[status],
   serviceMapAriaLabels: {
-    'node.a11yDescription.default': '按 Enter 或空格键选中服务。',
-    'node.a11yDescription.keyboardDisabled': '按 Enter 或空格键选中服务。',
+    'node.a11yDescription.default': '按 Enter 或空格键选中此服务。',
+    'node.a11yDescription.keyboardDisabled': '按 Enter 或空格键选中此服务。',
     'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) =>
       `已将选中的服务向${ZH_DIRECTIONS[direction] ?? direction}移动。新位置：x ${String(x)}，y ${String(y)}。`,
-    'edge.a11yDescription.default': '按 Enter 或空格键选中连线。',
-    'controls.ariaLabel': '地图控件',
+    'edge.a11yDescription.default': '按 Enter 或空格键选中此连线。',
+    'controls.ariaLabel': '视图控件',
     'controls.zoomIn.ariaLabel': '放大',
     'controls.zoomOut.ariaLabel': '缩小',
     'controls.fitView.ariaLabel': '适应视图',
@@ -1050,5 +1055,5 @@ export const zhCNStrings: AegisStrings = {
   },
   serviceMapNodeRole: '服务',
   serviceMapEdgeRole: '连线',
-  serviceMapEdgeName: (source, target) => `${source} 到 ${target}`,
+  serviceMapEdgeName: (source, target) => `从 ${source} 到 ${target}`,
 };

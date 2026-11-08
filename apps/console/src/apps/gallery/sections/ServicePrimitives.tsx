@@ -11,6 +11,7 @@ import {
   FileDropzone,
   FilePreview,
   FolderDropzone,
+  KeyValueList,
   LocaleProvider,
   MetadataList,
   MetricLabel,
@@ -932,14 +933,45 @@ const SERVICE_MAP_MICRO_EDGES: ServiceMapEdge[] = [
   { id: 'e7', source: 'auth', target: 'db', label: '200/s', status: 'ok' },
 ];
 
+function serviceMapMicroLabel(id: string): string {
+  return SERVICE_MAP_MICRO_NODES.find((n) => n.id === id)?.label ?? id;
+}
+
 function ServiceMapMicroSpecimen(): ReactNode {
+  const [selectedNodeId, setSelectedNodeId] = useState('inventory');
+  const [lastEdge, setLastEdge] = useState<ServiceMapEdge | null>(null);
   return (
-    <ServiceMap
-      nodes={SERVICE_MAP_MICRO_NODES}
-      edges={SERVICE_MAP_MICRO_EDGES}
-      height={420}
-      selectedNodeId='inventory'
-    />
+    <div className='gallery__stack gallery__stack--fill'>
+      <ServiceMap
+        nodes={SERVICE_MAP_MICRO_NODES}
+        edges={SERVICE_MAP_MICRO_EDGES}
+        height={420}
+        selectedNodeId={selectedNodeId}
+        onNodeClick={(n) => {
+          setSelectedNodeId(n.id);
+        }}
+        onEdgeClick={setLastEdge}
+      />
+      <KeyValueList
+        items={[
+          {
+            k: 'onNodeClick',
+            v: <MonoValue>{serviceMapMicroLabel(selectedNodeId)}</MonoValue>,
+          },
+          {
+            k: 'onEdgeClick',
+            v:
+              lastEdge === null ? (
+                '—'
+              ) : (
+                <MonoValue>
+                  {`${serviceMapMicroLabel(lastEdge.source)} → ${serviceMapMicroLabel(lastEdge.target)}`}
+                </MonoValue>
+              ),
+          },
+        ]}
+      />
+    </div>
   );
 }
 
@@ -2101,11 +2133,14 @@ export function ServicePrimitivesSection() {
         ServiceMap
       </SectionDivider>
       <div className='gallery__stack'>
-        <Specimen caption='microservice topology · LR · status mix' span={3}>
+        <Specimen
+          caption='microservice topology · LR · onNodeClick + onEdgeClick · click, or Tab and press Enter or Space'
+          span={3}
+        >
           <ServiceMapMicroSpecimen />
         </Specimen>
         <Specimen
-          caption='AgentM session DAG · TB · root → turns → tools'
+          caption='AgentM session DAG · TB · no handlers, so nothing is focusable'
           span={3}
         >
           <ServiceMapAgentSpecimen />
