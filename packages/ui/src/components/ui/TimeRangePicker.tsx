@@ -5,7 +5,6 @@ import { Popover } from 'antd';
 import {
   RELATIVE_TIME_PRESETS,
   type RelativeTimePreset,
-  parseRelativeTime,
   parseTimeRangeInput,
 } from '../../lib/timeRange';
 import { useStrings } from '../../locale';
@@ -76,14 +75,14 @@ export function TimeRangePicker({
     parsedValue ? toDatetimeLocal(parsedValue.to) : '',
   );
 
-  const trimmedValue = value.trim();
   const triggerLabel =
-    parseRelativeTime(trimmedValue) !== null
-      ? strings.timeRangeLast(trimmedValue.slice('now-'.length))
-      : (parsedValue?.label ??
-        (value.length > 0
-          ? value
-          : (placeholder ?? strings.timeRangePlaceholder)));
+    parsedValue === null
+      ? value.length > 0
+        ? value
+        : (placeholder ?? strings.timeRangePlaceholder)
+      : parsedValue.kind === 'relative'
+        ? strings.timeRangeLast(parsedValue)
+        : `${strings.formatDateTime(parsedValue.from)} → ${strings.formatDateTime(parsedValue.to)}`;
 
   const handleOpen = (next: boolean): void => {
     setOpen(next);

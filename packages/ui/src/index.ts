@@ -40,7 +40,13 @@ export {
   parseRelativeTime,
   parseTimeRangeInput,
 } from './lib/timeRange';
-export type { RelativeTimePreset, TimeRange } from './lib/timeRange';
+export type {
+  AbsoluteTimeRange,
+  RelativeTimePreset,
+  RelativeTimeRange,
+  TimeRange,
+  TimeRangeUnit,
+} from './lib/timeRange';
 
 // LuceneQL cursor helpers used by QueryAutocomplete; hosts compile the
 // query into their own backend's language.

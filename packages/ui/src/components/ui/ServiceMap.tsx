@@ -24,6 +24,7 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 
+import { type AegisStrings, useStrings } from '../../locale';
 import './ServiceMap.css';
 
 export type ServiceMapStatus = 'ok' | 'warn' | 'error' | 'muted';
@@ -85,6 +86,7 @@ function computeLayout(
   edges: ServiceMapEdge[],
   direction: ServiceMapDirection,
   selectedNodeId: string | undefined,
+  strings: AegisStrings,
 ): LayoutResult {
   const g = new graphlib.Graph<GraphLabel, NodeLabel, EdgeLabel>();
   g.setDefaultEdgeLabel(() => ({}));
@@ -122,9 +124,11 @@ function computeLayout(
       draggable: false,
       connectable: false,
       selectable: true,
+      domAttributes: { 'aria-roledescription': strings.serviceMapNodeRole },
     };
   });
 
+  const labels = new Map(nodes.map((n) => [n.id, n.label]));
   const rfEdges: Array<Edge<ServiceEdgeData>> = edges.map((e) => {
     const status = e.status ?? 'ok';
     return {
@@ -134,6 +138,11 @@ function computeLayout(
       type: 'service',
       data: { edge: e },
       label: e.label,
+      ariaLabel: strings.serviceMapEdgeName(
+        labels.get(e.source) ?? e.source,
+        labels.get(e.target) ?? e.target,
+      ),
+      domAttributes: { 'aria-roledescription': strings.serviceMapEdgeRole },
       className: `aegis-service-map__edge aegis-service-map__edge--${status}`,
     };
   });
@@ -223,16 +232,17 @@ function ServiceMapInner({
   selectedNodeId,
   className,
 }: ServiceMapProps): JSX.Element {
+  const strings = useStrings();
   const layoutKey = useMemo(
     () => JSON.stringify({ direction, nodes, edges, selectedNodeId }),
     [direction, nodes, edges, selectedNodeId],
   );
   const layout = useMemo(
-    () => computeLayout(nodes, edges, direction, selectedNodeId),
+    () => computeLayout(nodes, edges, direction, selectedNodeId, strings),
     // Layout is keyed by the JSON-stringified inputs so structural-equality
     // changes recompute; including the raw arrays would re-run on every parent render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [layoutKey],
+    [layoutKey, strings],
   );
 
   const handleNodeClick = useCallback(
@@ -272,6 +282,7 @@ function ServiceMapInner({
         zoomOnScroll
         fitView
         proOptions={{ hideAttribution: true }}
+        ariaLabelConfig={strings.serviceMapAriaLabels}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
       >

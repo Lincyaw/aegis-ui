@@ -192,13 +192,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function pathLabel(path: string[]): string {
-  return path.length === 0 ? 'content' : path.join('.');
-}
-
 function collectSections(
   value: unknown,
   options: InspectableContentOptions,
+  rootLabel: string,
   path: string[],
   sections: ContentSection[],
 ): void {
@@ -207,6 +204,7 @@ function collectSections(
       collectSections(
         entry,
         options,
+        rootLabel,
         [...path, `[${String(index)}]`],
         sections,
       );
@@ -215,18 +213,18 @@ function collectSections(
   }
   if (isRecord(value)) {
     Object.entries(value).forEach(([key, entry]) => {
-      collectSections(entry, options, [...path, key], sections);
+      collectSections(entry, options, rootLabel, [...path, key], sections);
     });
     return;
   }
   if (typeof value !== 'string') {
     return;
   }
-  const label = pathLabel(path);
+  const label = path.length === 0 ? rootLabel : path.join('.');
   const prepared = prepareInspectableContent({ title: label, value }, options);
   if (prepared.kind === 'json' && prepared.value !== value) {
     const before = sections.length;
-    collectSections(prepared.value, options, path, sections);
+    collectSections(prepared.value, options, rootLabel, path, sections);
     if (sections.length === before) {
       sections.push({
         id: label,
@@ -254,13 +252,15 @@ function collectSections(
 /**
  * The rich-text strings (Markdown, SQL, multi-line text, JSON nested in a
  * string) inside a JSON value, each once, with every path it appears at.
+ * A string at the root takes `rootLabel` as its path.
  */
 export function collectContentSections(
   value: unknown,
+  rootLabel: string,
   options: InspectableContentOptions = {},
 ): ContentSection[] {
   const sections: ContentSection[] = [];
-  collectSections(value, options, [], sections);
+  collectSections(value, options, rootLabel, [], sections);
   const byContent = new Map<string, ContentSection>();
   sections.forEach((section) => {
     const key = `${section.kind}\u0000${section.value}`;

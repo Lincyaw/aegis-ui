@@ -108,7 +108,8 @@ function JsonCompactPreview({
   expanded,
   options,
 }: PartProps & { value: unknown }): ReactElement {
-  const sections = collectContentSections(value, options);
+  const strings = useStrings();
+  const sections = collectContentSections(value, strings.contentRoot, options);
 
   if (sections.length > 0) {
     return (

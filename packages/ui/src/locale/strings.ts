@@ -1,3 +1,7 @@
+import type { AriaLabelConfig } from '@xyflow/react';
+
+import type { TimeRangeUnit } from '../lib/timeRange';
+
 /** Every user-visible string a primitive renders on its own. */
 export interface AegisStrings {
   copy: string;
@@ -122,7 +126,6 @@ export interface AegisStrings {
   /** Names the menu button of one named item. */
   moreActionsFor: (name: string) => string;
   retry: string;
-  tryAgain: string;
   dismiss: string;
   clear: string;
   undo: string;
@@ -144,6 +147,8 @@ export interface AegisStrings {
       | { unit: 'minutes' | 'hours' | 'days'; count: number }
       | { unit: 'date'; date: Date },
   ) => string;
+  /** A day and time of day in this language, e.g. "Nov 8, 03:57 PM". */
+  formatDateTime: (date: Date) => string;
   routeErrorTitle: string;
   environmentsUnavailable: string;
   /** The same, where the header has no room for the long form. */
@@ -203,6 +208,8 @@ export interface AegisStrings {
   inspectorContentKind: (kind: 'json' | 'markdown' | 'sql' | 'text') => string;
   /** Marks a ContentPreview section found at more paths, e.g. "+2 duplicates". */
   contentDuplicates: (count: number) => string;
+  /** The path of a ContentPreview section that is the whole value. */
+  contentRoot: string;
   dangerZone: string;
   resizeColumn: string;
   pageSize: string;
@@ -230,13 +237,12 @@ export interface AegisStrings {
   expandFolders: string;
   collapseFolders: string;
   noSubPrefixes: string;
-  /** Follows an ObjectBrowser's selection count, e.g. "3 Selected". */
-  selected: string;
+  /** An ObjectBrowser's selection, e.g. "3 selected". */
+  selectionCount: (count: number) => string;
   parquetEmptyTitle: string;
   parquetEmptyDescription: string;
   parquetReadFailed: string;
-  /** A ParquetViewer's row count, already formatted. */
-  parquetRows: (count: string) => string;
+  parquetRows: (count: number) => string;
   parquetColumns: (count: number) => string;
   parquetEmptyPage: string;
   selectProject: string;
@@ -260,14 +266,14 @@ export interface AegisStrings {
   /** The chip that opens the saved queries that did not fit, e.g. "+3 more". */
   moreCount: (count: number) => string;
   sparkline: string;
-  /** Read after a step's label, e.g. "(current step)". */
+  /** Read after a step's label, brackets included, e.g. "(current step)". */
   stepStatus: (state: 'complete' | 'current' | 'unavailable') => string;
   terminalLabel: string;
   /** Names the ThemeToggle by what its next click does. */
   themeToggle: (preference: 'light' | 'dark' | 'system') => string;
   timeRangePlaceholder: string;
-  /** A relative range on the TimeRangePicker trigger, e.g. "Last 15m". */
-  timeRangeLast: (duration: string) => string;
+  /** A relative range on the TimeRangePicker trigger, e.g. "Last 15 minutes". */
+  timeRangeLast: (range: { amount: number; unit: TimeRangeUnit }) => string;
   timeRangeExpression: string;
   timeRangeExpressionPlaceholder: string;
   timeRangeUnparseable: string;
@@ -292,7 +298,45 @@ export interface AegisStrings {
    * this language, keyed by CodeMirror's English; empty keeps its English.
    */
   codeEditorPhrases: Readonly<Record<string, string>>;
+  avatarStatus: (status: 'online' | 'offline' | 'busy' | 'away') => string;
+  /** React Flow's own accessible names and descriptions in a ServiceMap. */
+  serviceMapAriaLabels: Readonly<AriaLabelConfig>;
+  /** What assistive technology calls a ServiceMap node. */
+  serviceMapNodeRole: string;
+  /** What assistive technology calls a ServiceMap edge. */
+  serviceMapEdgeRole: string;
+  /** Names a ServiceMap edge by the labels of the services it joins. */
+  serviceMapEdgeName: (source: string, target: string) => string;
 }
+
+const ZH_TIME_UNITS: Readonly<Record<TimeRangeUnit, string>> = {
+  millisecond: '毫秒',
+  second: '秒',
+  minute: '分钟',
+  hour: '小时',
+  day: '天',
+  week: '周',
+  year: '年',
+};
+
+const ZH_DIRECTIONS: Readonly<Record<string, string>> = {
+  up: '上',
+  down: '下',
+  left: '左',
+  right: '右',
+};
+
+const DATE_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+const SHORT_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+};
 
 export const enStrings: AegisStrings = {
   copy: 'Copy',
@@ -328,7 +372,7 @@ export const enStrings: AegisStrings = {
     `Pareto front of ${yLabel} against ${xLabel}`,
   paretoEmptyTitle: 'No metrics configured',
   runPipsLabel: ({ passed, failed, errored, pending, total }) =>
-    `${String(passed)} of ${String(total)} runs passed, ${String(failed)} failed, ${String(errored)} errored${pending > 0 ? `, ${String(pending)} pending` : ''}`,
+    `${String(passed)} of ${String(total)} ${total === 1 ? 'run' : 'runs'} passed, ${String(failed)} failed, ${String(errored)} errored${pending > 0 ? `, ${String(pending)} pending` : ''}`,
   shareLinkSharing: 'Sharing',
   shareLinkExpiresAfter: 'Expires after',
   shareLinkTtl: (seconds) => {
@@ -415,7 +459,6 @@ export const enStrings: AegisStrings = {
   deleteNamed: (name) => `Delete ${name}`,
   moreActionsFor: (name) => `More actions for ${name}`,
   retry: 'Retry',
-  tryAgain: 'Try again',
   dismiss: 'Dismiss',
   clear: 'Clear',
   undo: 'Undo',
@@ -443,12 +486,10 @@ export const enStrings: AegisStrings = {
       case 'days':
         return `${String(elapsed.count)}d ago`;
       case 'date':
-        return elapsed.date.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-        });
+        return elapsed.date.toLocaleDateString('en', SHORT_DATE_OPTIONS);
     }
   },
+  formatDateTime: (date) => date.toLocaleString('en', DATE_TIME_OPTIONS),
   routeErrorTitle: 'This page failed to render',
   environmentsUnavailable: 'Environments unavailable',
   environmentsUnavailableShort: 'Env error',
@@ -476,8 +517,9 @@ export const enStrings: AegisStrings = {
   authNameRequired: 'Enter your name.',
   authPasswordRequired: 'Enter your password.',
   authPasswordTooShort: (minLength) =>
-    `Password must be at least ${String(minLength)} characters.`,
-  authPasswordHint: (minLength) => `At least ${String(minLength)} characters.`,
+    `Password must be at least ${String(minLength)} ${minLength === 1 ? 'character' : 'characters'}.`,
+  authPasswordHint: (minLength) =>
+    `At least ${String(minLength)} ${minLength === 1 ? 'character' : 'characters'}.`,
   authRememberMe: 'Remember me',
   authForgotPassword: 'Forgot password?',
   authSigningIn: 'Signing in…',
@@ -510,6 +552,7 @@ export const enStrings: AegisStrings = {
     })[kind],
   contentDuplicates: (count) =>
     `+${String(count)} ${count === 1 ? 'duplicate' : 'duplicates'}`,
+  contentRoot: 'content',
   dangerZone: 'Danger zone',
   resizeColumn: 'Resize column',
   pageSize: 'Page size',
@@ -537,12 +580,14 @@ export const enStrings: AegisStrings = {
   expandFolders: 'Expand folders',
   collapseFolders: 'Collapse folders',
   noSubPrefixes: 'No sub-prefixes',
-  selected: 'Selected',
+  selectionCount: (count) => `${count.toLocaleString('en')} selected`,
   parquetEmptyTitle: 'No parquet file',
   parquetEmptyDescription: 'Pass a file or a src URL to inspect.',
   parquetReadFailed: 'Could not read the parquet file',
-  parquetRows: (count) => `${count} rows`,
-  parquetColumns: (count) => `${String(count)} cols`,
+  parquetRows: (count) =>
+    `${count.toLocaleString('en')} ${count === 1 ? 'row' : 'rows'}`,
+  parquetColumns: (count) =>
+    `${count.toLocaleString('en')} ${count === 1 ? 'column' : 'columns'}`,
   parquetEmptyPage: 'No rows in this page',
   selectProject: 'Select a project',
   searchProjects: 'Search projects',
@@ -572,9 +617,9 @@ export const enStrings: AegisStrings = {
   sparkline: 'sparkline',
   stepStatus: (state) =>
     ({
-      complete: 'completed',
-      current: 'current step',
-      unavailable: 'not yet available',
+      complete: '(completed)',
+      current: '(current step)',
+      unavailable: '(not yet available)',
     })[state],
   terminalLabel: 'Experiment log',
   themeToggle: (preference) =>
@@ -584,7 +629,8 @@ export const enStrings: AegisStrings = {
       system: 'Switch to light theme',
     })[preference],
   timeRangePlaceholder: 'Select range',
-  timeRangeLast: (duration) => `Last ${duration}`,
+  timeRangeLast: ({ amount, unit }) =>
+    `Last ${amount.toLocaleString('en')} ${amount === 1 ? unit : `${unit}s`}`,
   timeRangeExpression: 'Expression',
   timeRangeExpressionPlaceholder: 'now-15m, yesterday 10am to today 11am, …',
   timeRangeUnparseable: 'Unparseable expression',
@@ -611,6 +657,29 @@ export const enStrings: AegisStrings = {
   cancelUpload: 'Cancel upload',
   clearCompleted: 'Clear completed',
   codeEditorPhrases: {},
+  avatarStatus: (status) =>
+    ({ online: 'Online', offline: 'Offline', busy: 'Busy', away: 'Away' })[
+      status
+    ],
+  serviceMapAriaLabels: {
+    'node.a11yDescription.default': 'Press Enter or Space to select a service.',
+    'node.a11yDescription.keyboardDisabled':
+      'Press Enter or Space to select a service.',
+    'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) =>
+      `Moved the selected service ${direction}. New position: x ${String(x)}, y ${String(y)}.`,
+    'edge.a11yDescription.default':
+      'Press Enter or Space to select a connection.',
+    'controls.ariaLabel': 'Map controls',
+    'controls.zoomIn.ariaLabel': 'Zoom in',
+    'controls.zoomOut.ariaLabel': 'Zoom out',
+    'controls.fitView.ariaLabel': 'Fit to view',
+    'controls.interactive.ariaLabel': 'Toggle interactivity',
+    'minimap.ariaLabel': 'Mini map',
+    'handle.ariaLabel': 'Connection point',
+  },
+  serviceMapNodeRole: 'service',
+  serviceMapEdgeRole: 'connection',
+  serviceMapEdgeName: (source, target) => `${source} to ${target}`,
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -707,7 +776,7 @@ export const zhCNStrings: AegisStrings = {
     })[field],
   inspectorOverview: '概览',
   inspectorAttributes: '属性',
-  noAttributes: '没有属性',
+  noAttributes: '暂无属性',
   noAttributesDescription: '这个节点没有记录属性。',
   inspectorTabs: '详情标签页',
   maximizeInspector: '放大详情面板',
@@ -715,7 +784,7 @@ export const zhCNStrings: AegisStrings = {
   closeInspector: '关闭详情面板',
   maximize: '放大',
   restore: '还原',
-  timelineEmptyTitle: '没有时间区间',
+  timelineEmptyTitle: '暂无时间区间',
   timelineEmptyDescription: '暂无可绘制的内容。',
   alertTone: (tone) =>
     ({ info: '提示：', success: '成功：', warning: '注意：', error: '错误：' })[
@@ -742,7 +811,6 @@ export const zhCNStrings: AegisStrings = {
   deleteNamed: (name) => `删除“${name}”`,
   moreActionsFor: (name) => `“${name}”的更多操作`,
   retry: '重试',
-  tryAgain: '重试',
   dismiss: '移除',
   clear: '清除',
   undo: '撤销',
@@ -754,7 +822,7 @@ export const zhCNStrings: AegisStrings = {
   signOut: '退出登录',
   searchPlaceholder: '搜索…',
   suggestions: '建议',
-  noItems: '没有条目',
+  noItems: '暂无条目',
   noData: '暂无数据',
   noEvents: '暂无事件',
   relativeTime: (elapsed) => {
@@ -770,12 +838,10 @@ export const zhCNStrings: AegisStrings = {
       case 'days':
         return `${String(elapsed.count)} 天前`;
       case 'date':
-        return elapsed.date.toLocaleDateString('zh-CN', {
-          month: 'short',
-          day: 'numeric',
-        });
+        return elapsed.date.toLocaleDateString('zh-CN', SHORT_DATE_OPTIONS);
     }
   },
+  formatDateTime: (date) => date.toLocaleString('zh-CN', DATE_TIME_OPTIONS),
   routeErrorTitle: '页面渲染失败',
   environmentsUnavailable: '无法加载环境',
   environmentsUnavailableShort: '环境出错',
@@ -835,8 +901,9 @@ export const zhCNStrings: AegisStrings = {
       text: '文本内容',
     })[kind],
   contentDuplicates: (count) => `+${String(count)} 处重复`,
+  contentRoot: '内容',
   dangerZone: '危险操作',
-  resizeColumn: '调整列宽',
+  resizeColumn: '调整列宽度',
   pageSize: '每页条数',
   dropzoneDropFolder: '松开即可上传文件夹',
   dropzoneDropFiles: '松开即可上传',
@@ -861,14 +928,14 @@ export const zhCNStrings: AegisStrings = {
   folders: '文件夹',
   expandFolders: '展开文件夹',
   collapseFolders: '收起文件夹',
-  noSubPrefixes: '没有子前缀',
-  selected: '项已选中',
-  parquetEmptyTitle: '没有 Parquet 文件',
+  noSubPrefixes: '暂无子前缀',
+  selectionCount: (count) => `已选 ${count.toLocaleString('zh-CN')} 项`,
+  parquetEmptyTitle: '暂无 Parquet 文件',
   parquetEmptyDescription: '传入文件或 src 地址即可查看。',
   parquetReadFailed: '无法读取 Parquet 文件',
-  parquetRows: (count) => `${count} 行`,
-  parquetColumns: (count) => `${String(count)} 列`,
-  parquetEmptyPage: '此页没有数据',
+  parquetRows: (count) => `${count.toLocaleString('zh-CN')} 行`,
+  parquetColumns: (count) => `${count.toLocaleString('zh-CN')} 列`,
+  parquetEmptyPage: '此页暂无数据',
   selectProject: '选择项目',
   searchProjects: '搜索项目',
   searchProjectsPlaceholder: '搜索项目…',
@@ -888,7 +955,7 @@ export const zhCNStrings: AegisStrings = {
   expandPanel: '展开面板',
   resizePanel: '调整面板宽度',
   savedQueries: '已保存的查询',
-  savedQueriesEmpty: '还没有保存的查询，保存当前视图即可固定到这里。',
+  savedQueriesEmpty: '暂无已保存的查询，保存当前视图即可固定到这里。',
   renameSavedQuery: '重命名已保存的查询',
   savedQueryName: '为这个查询命名',
   savedQueryNamePlaceholder: '例如：最近 24 小时失败的运行',
@@ -896,9 +963,11 @@ export const zhCNStrings: AegisStrings = {
   moreCount: (count) => `还有 ${String(count)} 个`,
   sparkline: '迷你趋势图',
   stepStatus: (state) =>
-    ({ complete: '已完成', current: '当前步骤', unavailable: '暂不可用' })[
-      state
-    ],
+    ({
+      complete: '（已完成）',
+      current: '（当前步骤）',
+      unavailable: '（暂不可用）',
+    })[state],
   terminalLabel: '实验日志',
   themeToggle: (preference) =>
     ({
@@ -907,7 +976,8 @@ export const zhCNStrings: AegisStrings = {
       system: '切换到浅色主题',
     })[preference],
   timeRangePlaceholder: '选择时间范围',
-  timeRangeLast: (duration) => `最近 ${duration}`,
+  timeRangeLast: ({ amount, unit }) =>
+    `最近 ${amount.toLocaleString('zh-CN')} ${ZH_TIME_UNITS[unit]}`,
   timeRangeExpression: '表达式',
   timeRangeExpressionPlaceholder:
     '例如 now-15m 或 yesterday 10am to today 11am',
@@ -919,7 +989,7 @@ export const zhCNStrings: AegisStrings = {
   notSerialisable: (reason) => `无法序列化：${reason}`,
   spanNotJson: '无法以 JSON 显示这个节点',
   traceSpans: '调用链节点',
-  uploadQueueEmptyTitle: '没有上传任务',
+  uploadQueueEmptyTitle: '暂无上传任务',
   uploadQueueEmptyDescription: '将文件拖到上传区域即可开始上传。',
   uploadsDone: (done, total) => `已完成 ${String(done)}/${String(total)}`,
   uploadEta: (duration) => `剩余约 ${duration}`,
@@ -962,4 +1032,23 @@ export const zhCNStrings: AegisStrings = {
     'Control character': '控制字符',
     'Selection deleted': '已删除所选内容',
   },
+  avatarStatus: (status) =>
+    ({ online: '在线', offline: '离线', busy: '忙碌', away: '离开' })[status],
+  serviceMapAriaLabels: {
+    'node.a11yDescription.default': '按 Enter 或空格键选中服务。',
+    'node.a11yDescription.keyboardDisabled': '按 Enter 或空格键选中服务。',
+    'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) =>
+      `已将选中的服务向${ZH_DIRECTIONS[direction] ?? direction}移动。新位置：x ${String(x)}，y ${String(y)}。`,
+    'edge.a11yDescription.default': '按 Enter 或空格键选中连线。',
+    'controls.ariaLabel': '地图控件',
+    'controls.zoomIn.ariaLabel': '放大',
+    'controls.zoomOut.ariaLabel': '缩小',
+    'controls.fitView.ariaLabel': '适应视图',
+    'controls.interactive.ariaLabel': '切换交互',
+    'minimap.ariaLabel': '缩略图',
+    'handle.ariaLabel': '连接点',
+  },
+  serviceMapNodeRole: '服务',
+  serviceMapEdgeRole: '连线',
+  serviceMapEdgeName: (source, target) => `${source} 到 ${target}`,
 };

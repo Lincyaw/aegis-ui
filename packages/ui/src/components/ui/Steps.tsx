@@ -60,7 +60,7 @@ export function Steps({
             <span className="aegis-steps__hidden">{`${String(index + 1)}. `}</span>
             <span className="aegis-steps__label">{item.label}</span>
             {spoken !== undefined && (
-              <span className="aegis-steps__hidden">{` (${spoken})`}</span>
+              <span className="aegis-steps__hidden">{` ${spoken}`}</span>
             )}
           </>
         );

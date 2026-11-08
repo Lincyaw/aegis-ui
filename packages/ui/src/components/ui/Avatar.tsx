@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import './Avatar.css';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
@@ -61,6 +62,7 @@ export function Avatar({
   className,
   surface,
 }: AvatarProps) {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLSpanElement>(null);
   const agentAttrs = usePrimitiveSurface(
     surface,
@@ -109,7 +111,8 @@ export function Avatar({
       {content}
       <span
         className={`aegis-avatar__status aegis-avatar__status--${status}`}
-        aria-label={status}
+        role="img"
+        aria-label={strings.avatarStatus(status)}
       />
     </span>
   );

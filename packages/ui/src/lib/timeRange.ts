@@ -6,7 +6,8 @@
 //     `now-30d`) for relative ranges. Absolute ranges use the natural
 //     `chrono-node` syntax (e.g. "Apr 12 10:00 to Apr 12 11:30").
 //   - The parser returns a single `TimeRange | null` object instead of a
-//     `[from, to]` tuple, and carries a `label` for UI display.
+//     `[from, to]` tuple. A relative range also carries its amount and
+//     unit, so a UI words it in its own language.
 //   - `RELATIVE_TIME_PRESETS` is the curated shortlist surfaced in the
 //     picker UI (compact labels like `15m`, `1h`).
 import * as chrono from 'chrono-node';
@@ -14,19 +15,49 @@ import ms from 'ms';
 
 type MsStringValue = Parameters<typeof ms>[0];
 
-export interface TimeRange {
+export type TimeRangeUnit =
+  | 'millisecond'
+  | 'second'
+  | 'minute'
+  | 'hour'
+  | 'day'
+  | 'week'
+  | 'year';
+
+/** A `now-<duration>` range, e.g. `now-15m` is 15 minutes. */
+export interface RelativeTimeRange {
+  kind: 'relative';
   from: Date;
   to: Date;
-  /** Canonical human-readable label (e.g. "Last 15m"). */
-  label?: string;
+  amount: number;
+  unit: TimeRangeUnit;
 }
+
+/** A range between two dates. */
+export interface AbsoluteTimeRange {
+  kind: 'absolute';
+  from: Date;
+  to: Date;
+}
+
+export type TimeRange = RelativeTimeRange | AbsoluteTimeRange;
 
 export interface RelativeTimePreset {
   label: string;
   value: string;
 }
 
-const NOW_RELATIVE_RE = /^now-([0-9]+(?:\.[0-9]+)?(?:ms|s|m|h|d|w|y))$/i;
+const NOW_RELATIVE_RE = /^now-([0-9]+(?:\.[0-9]+)?)(ms|s|m|h|d|w|y)$/i;
+
+const UNITS: Readonly<Record<string, TimeRangeUnit>> = {
+  ms: 'millisecond',
+  s: 'second',
+  m: 'minute',
+  h: 'hour',
+  d: 'day',
+  w: 'week',
+  y: 'year',
+};
 
 /** Compact presets shown in the picker. Override via the `presets` prop. */
 export const RELATIVE_TIME_PRESETS: RelativeTimePreset[] = [
@@ -88,31 +119,24 @@ function normalizeParsedDate(
 export function parseRelativeTime(
   input: string,
   now: Date = new Date(),
-): TimeRange | null {
+): RelativeTimeRange | null {
   const match = NOW_RELATIVE_RE.exec(input.trim());
   if (!match) {
     return null;
   }
-  const duration = ms(match[1] as MsStringValue);
+  const [, amountText, unitText] = match;
+  const unit = UNITS[unitText.toLowerCase()];
+  const duration = ms(`${amountText}${unitText}` as MsStringValue);
   if (typeof duration !== 'number' || !Number.isFinite(duration)) {
     return null;
   }
   return {
+    kind: 'relative',
     from: new Date(now.getTime() - duration),
     to: new Date(now.getTime()),
-    label: `Last ${match[1]}`,
+    amount: Number(amountText),
+    unit,
   };
-}
-
-function formatAbsoluteLabel(from: Date, to: Date): string {
-  const fmt = (d: Date): string =>
-    d.toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  return `${fmt(from)} → ${fmt(to)}`;
 }
 
 /**
@@ -152,5 +176,5 @@ export function parseTimeRangeInput(
     return null;
   }
   const [from, to] = end < start ? [end, start] : [start, end];
-  return { from, to, label: formatAbsoluteLabel(from, to) };
+  return { kind: 'absolute', from, to };
 }

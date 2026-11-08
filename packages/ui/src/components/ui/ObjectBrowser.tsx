@@ -162,10 +162,7 @@ export function ObjectBrowser({
           <div className="aegis-object-browser__toolbar">
             {selectionCount > 0 ? (
               <span className="aegis-object-browser__selection">
-                <span className="aegis-object-browser__count">
-                  {selectionCount.toString()}
-                </span>
-                <MetricLabel>{strings.selected}</MetricLabel>
+                {strings.selectionCount(selectionCount)}
               </span>
             ) : null}
             {searchSlot !== undefined ? (

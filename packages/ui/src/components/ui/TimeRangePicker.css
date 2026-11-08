@@ -31,8 +31,9 @@
 }
 
 .aegis-trp__trigger-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;

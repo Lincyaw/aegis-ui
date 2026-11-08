@@ -325,7 +325,7 @@ export function ParquetViewer({
         <div className="aegis-parquet-viewer__title">{title ?? 'Parquet'}</div>
         {meta ? (
           <div className="aegis-parquet-viewer__summary">
-            <span>{strings.parquetRows(meta.totalRows.toLocaleString())}</span>
+            <span>{strings.parquetRows(meta.totalRows)}</span>
             <span className="aegis-parquet-viewer__dot">·</span>
             <span>{strings.parquetColumns(meta.columns.length)}</span>
             {meta.metadata.created_by ? (

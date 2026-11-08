@@ -65,7 +65,7 @@ export class RouteErrorBoundary extends Component<
           description={error.message}
           action={
             <Button tone="secondary" onClick={this.retry}>
-              {strings.tryAgain}
+              {strings.retry}
             </Button>
           }
         />
