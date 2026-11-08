@@ -11,6 +11,10 @@ interface CheckboxProps {
   disabled?: boolean;
   /** Accessible name for checkboxes whose label is not visible, e.g. row selectors. */
   ariaLabel?: string;
+  /** Lets a caller's `<label htmlFor>` point at the checkbox. */
+  id?: string;
+  /** Ids of the text that describes the checkbox, such as a FormRow's description. */
+  'aria-describedby'?: string;
   className?: string;
 }
 
@@ -21,6 +25,8 @@ export function Checkbox({
   indeterminate = false,
   disabled = false,
   ariaLabel,
+  id,
+  'aria-describedby': describedBy,
   className,
 }: CheckboxProps) {
   const cls = [
@@ -34,10 +40,12 @@ export function Checkbox({
     <label className={cls}>
       <input
         type="checkbox"
+        id={id}
         className="aegis-checkbox__input"
         checked={checked}
         disabled={disabled}
         aria-label={ariaLabel}
+        aria-describedby={describedBy}
         ref={(node) => {
           if (node) {
             node.indeterminate = indeterminate && !checked;

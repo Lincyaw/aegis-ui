@@ -1,20 +1,28 @@
 import { useState } from 'react';
 
 import {
+  BlastRadiusBar,
+  Button,
   Checkbox,
   Chip,
+  ChoiceCardGroup,
   ColumnLayout,
   DangerZone,
+  Dialog,
   FormRow,
   IdentityCell,
   MetricLabel,
   MonoValue,
+  NumberField,
   PageHeader,
   PageWrapper,
   Panel,
   PanelTitle,
   PasswordField,
+  PickerField,
+  SearchInput,
   SectionDivider,
+  Select,
   SettingsSection,
   SiteAnchorNav,
   SiteFooter,
@@ -24,6 +32,7 @@ import {
   type SiteNavItem,
   SiteSection,
   SiteSectionHeader,
+  Slider,
   TextField,
   ThemeToggle,
 } from '@lincyaw/aegis-ui';
@@ -67,6 +76,178 @@ const SITE_FOOTER_COLUMNS: SiteFooterColumn[] = [
     ],
   },
 ];
+
+const FORM_ROW_SCOPES = [
+  { value: 'recent', label: 'Last 7 days' },
+  { value: 'month', label: 'Last 30 days' },
+  { value: 'all', label: 'All runs since the first benchmark' },
+];
+
+const FORM_ROW_CHARTS = ['Ranking', 'Scatter', 'Radar'];
+
+function FormRowFieldsSpecimen() {
+  const [scope, setScope] = useState('recent');
+  const [workers, setWorkers] = useState<number | undefined>(2);
+  const [load, setLoad] = useState(70);
+  const [alerts, setAlerts] = useState(true);
+  const [filter, setFilter] = useState('');
+  return (
+    <>
+      <FormRow
+        label='Report scope'
+        description='Which runs the report covers.'
+        controlId='gallery-form-row-scope'
+      >
+        <Select
+          id='gallery-form-row-scope'
+          aria-describedby='gallery-form-row-scope-description'
+          value={scope}
+          options={FORM_ROW_SCOPES}
+          onChange={setScope}
+        />
+      </FormRow>
+      <FormRow
+        label='Workers'
+        description='1–8. Type 1.5: the field’s own error follows this description.'
+        controlId='gallery-form-row-workers'
+      >
+        <NumberField
+          id='gallery-form-row-workers'
+          aria-describedby='gallery-form-row-workers-description'
+          integer
+          min={1}
+          max={8}
+          value={workers}
+          onChange={setWorkers}
+        />
+      </FormRow>
+      <FormRow
+        label='CPU load'
+        description='The value above the track is read once, as the slider’s value.'
+        controlId='gallery-form-row-load'
+      >
+        <Slider
+          id='gallery-form-row-load'
+          aria-describedby='gallery-form-row-load-description'
+          min={1}
+          max={100}
+          value={load}
+          formatValue={(v) => `${String(v)}%`}
+          onChange={setLoad}
+        />
+      </FormRow>
+      <FormRow
+        label='Critical alerts'
+        description='Email me when a run fails.'
+        controlId='gallery-form-row-alerts'
+      >
+        <Checkbox
+          id='gallery-form-row-alerts'
+          aria-describedby='gallery-form-row-alerts-description'
+          checked={alerts}
+          onChange={setAlerts}
+        />
+      </FormRow>
+      <FormRow
+        label='Default filter'
+        description='Applied when the runs list opens.'
+        controlId='gallery-form-row-filter'
+      >
+        <SearchInput
+          id='gallery-form-row-filter'
+          aria-describedby='gallery-form-row-filter-description'
+          placeholder='status:failed'
+          value={filter}
+          onChange={setFilter}
+        />
+      </FormRow>
+    </>
+  );
+}
+
+function FormRowLabelledBySpecimen() {
+  const [mode, setMode] = useState('auto');
+  const [chart, setChart] = useState('Ranking');
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <FormRow
+        label='Blast radius'
+        description='A meter, named once by the row label.'
+        controlId='gallery-form-row-blast'
+        labelBy='aria-labelledby'
+      >
+        <BlastRadiusBar
+          aria-labelledby='gallery-form-row-blast-label'
+          aria-describedby='gallery-form-row-blast-description'
+          value={60}
+          centerLabel='Service · 60 %'
+        />
+      </FormRow>
+      <FormRow
+        label='Namespace'
+        description='A radio group of cards.'
+        controlId='gallery-form-row-namespace'
+        labelBy='aria-labelledby'
+      >
+        <ChoiceCardGroup
+          aria-labelledby='gallery-form-row-namespace-label'
+          aria-describedby='gallery-form-row-namespace-description'
+          value={mode}
+          onChange={setMode}
+          options={[
+            {
+              value: 'auto',
+              title: 'Auto-allocate',
+              description: 'Take a free namespace from the pool.',
+            },
+            {
+              value: 'specific',
+              title: 'Specific namespace',
+              description: 'Inject into a namespace you name.',
+            },
+          ]}
+        />
+      </FormRow>
+      <FormRow
+        label='Chart type'
+        description='A picker: the row label and the value name it together.'
+        controlId='gallery-form-row-chart'
+        labelBy='aria-labelledby'
+      >
+        <PickerField
+          aria-labelledby='gallery-form-row-chart-label'
+          aria-describedby='gallery-form-row-chart-description'
+          value={chart}
+          onClick={() => {
+            setOpen(true);
+          }}
+        />
+      </FormRow>
+      <Dialog
+        open={open}
+        title='Chart type'
+        width='sm'
+        onClose={() => {
+          setOpen(false);
+        }}
+      >
+        {FORM_ROW_CHARTS.map((type) => (
+          <Button
+            key={type}
+            tone={type === chart ? 'primary' : 'secondary'}
+            onClick={() => {
+              setChart(type);
+              setOpen(false);
+            }}
+          >
+            {type}
+          </Button>
+        ))}
+      </Dialog>
+    </>
+  );
+}
 
 function FormRowGroupSpecimen() {
   const [channels, setChannels] = useState({ email: true, slack: false });
@@ -291,6 +472,13 @@ export function LayoutsSection() {
             defaultValue='secret-token-xxx'
           />
         </FormRow>
+        <FormRowFieldsSpecimen />
+        <MetricLabel as='div' size='xs'>
+          {
+            "labelBy='aria-labelledby' names a control a <label> cannot: the control takes the label's id, ${controlId}-label."
+          }
+        </MetricLabel>
+        <FormRowLabelledBySpecimen />
         <FormRowGroupSpecimen />
       </div>
 

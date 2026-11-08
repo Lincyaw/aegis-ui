@@ -11,24 +11,43 @@ export type BlastRadiusBarSurface = PrimitiveSurface<{
   centerLabel?: string;
 }>;
 
-interface BlastRadiusBarProps {
+interface BlastRadiusBarBaseProps {
   /** 0 – 100 */
   value: number;
-  /** Names the measure for assistive technology, e.g. "Estimated blast radius". */
-  label: string;
   /** Optional descriptive label for the current value (right-aligned, mid). */
   centerLabel?: string;
   /** Hide the 0 / 100 endpoints. */
   hideTicks?: boolean;
+  /** Ids of the text that describes the measure, such as a FormRow's description. */
+  'aria-describedby'?: string;
   className?: string;
   surface?: BlastRadiusBarSurface;
 }
 
+type BlastRadiusBarProps = BlastRadiusBarBaseProps &
+  (
+    | {
+        /** Names the measure for assistive technology, e.g. "Estimated blast radius". */
+        label: string;
+        'aria-labelledby'?: never;
+      }
+    | {
+        /**
+         * Id of visible text that names the measure, such as a FormRow's
+         * label (`${controlId}-label` with `labelBy='aria-labelledby'`).
+         */
+        'aria-labelledby': string;
+        label?: never;
+      }
+  );
+
 export function BlastRadiusBar({
   value,
   label,
+  'aria-labelledby': labelledBy,
   centerLabel,
   hideTicks = false,
+  'aria-describedby': describedBy,
   className,
   surface,
 }: BlastRadiusBarProps) {
@@ -48,6 +67,8 @@ export function BlastRadiusBar({
         className="aegis-blast-radius__track"
         role="meter"
         aria-label={label}
+        aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
         aria-valuenow={clamped}
         aria-valuemin={0}
         aria-valuemax={100}

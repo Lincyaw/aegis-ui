@@ -12,15 +12,29 @@ export interface ChoiceCardOption {
   disabled?: boolean;
 }
 
-interface ChoiceCardGroupProps {
+interface ChoiceCardGroupBaseProps {
   options: ChoiceCardOption[];
   /** Value of the chosen card; `''` when none is chosen. */
   value: string;
   onChange: (value: string) => void;
-  /** Accessible name of the group. */
-  ariaLabel: string;
+  /** Ids of the text that describes the group, such as a FormRow's description. */
+  'aria-describedby'?: string;
   className?: string;
 }
+
+type ChoiceCardGroupProps = ChoiceCardGroupBaseProps &
+  (
+    | {
+        /** Accessible name of the group. */
+        ariaLabel: string;
+        'aria-labelledby'?: never;
+      }
+    | {
+        /** Id of the text that names the group, such as a FormRow's label. */
+        'aria-labelledby': string;
+        ariaLabel?: never;
+      }
+  );
 
 /**
  * A single choice drawn as a grid of cards. Each card is a native radio
@@ -31,6 +45,8 @@ export function ChoiceCardGroup({
   value,
   onChange,
   ariaLabel,
+  'aria-labelledby': labelledBy,
+  'aria-describedby': describedBy,
   className,
 }: ChoiceCardGroupProps) {
   const name = useId();
@@ -38,7 +54,13 @@ export function ChoiceCardGroup({
     .filter(Boolean)
     .join(' ');
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className={cls}>
+    <div
+      role="radiogroup"
+      aria-label={ariaLabel}
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
+      className={cls}
+    >
       {options.map((option) => {
         const selected = option.value === value;
         const cardCls = [

@@ -25,6 +25,8 @@ interface NumberFieldProps {
   error?: string;
   disabled?: boolean;
   id?: string;
+  /** Ids of the text that describes the field, such as a FormRow's description; read before the field's own helper or error text. */
+  'aria-describedby'?: string;
   className?: string;
 }
 
@@ -62,6 +64,7 @@ export function NumberField({
   error,
   disabled = false,
   id,
+  'aria-describedby': describedBy,
   className,
 }: NumberFieldProps) {
   const pattern = integer ? INTEGER : DECIMAL;
@@ -127,6 +130,7 @@ export function NumberField({
       id={id}
       label={label}
       aria-label={label === undefined ? ariaLabel : undefined}
+      aria-describedby={describedBy}
       role="spinbutton"
       aria-valuenow={parsed}
       aria-valuemin={min}

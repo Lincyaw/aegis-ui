@@ -15,6 +15,8 @@ interface SliderProps {
   formatValue?: (value: number) => string;
   disabled?: boolean;
   id?: string;
+  /** Ids of the text that describes the slider, such as a FormRow's description. */
+  'aria-describedby'?: string;
   className?: string;
 }
 
@@ -34,6 +36,7 @@ export function Slider({
   formatValue = String,
   disabled = false,
   id,
+  'aria-describedby': describedBy,
   className,
 }: SliderProps) {
   const reactId = useId();
@@ -70,6 +73,7 @@ export function Slider({
         disabled={disabled}
         aria-label={label === undefined ? ariaLabel : undefined}
         aria-valuetext={shown}
+        aria-describedby={describedBy}
         style={
           {
             '--aegis-slider-fill': `${String(Math.min(100, Math.max(0, fill)))}%`,

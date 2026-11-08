@@ -152,6 +152,7 @@ export function Step1Target({ spec, update }: Props) {
         ) : (
           <Select
             id='inject-system'
+            aria-describedby='inject-system-description'
             value={spec.systemCode}
             disabled={systemsQuery.isLoading}
             placeholder={
@@ -196,6 +197,7 @@ export function Step1Target({ spec, update }: Props) {
         ) : (
           <Select
             id='inject-app'
+            aria-describedby='inject-app-description'
             value={spec.app}
             disabled={candidatesQuery.isLoading}
             placeholder={
