@@ -232,6 +232,8 @@ async function main() {
     '--ignore-certificate-errors',
     '--disable-extensions',
     '--disable-gpu',
+    '--password-store=basic',
+    '--no-proxy-server',
     '--no-first-run',
     '--no-default-browser-check',
     'about:blank',
