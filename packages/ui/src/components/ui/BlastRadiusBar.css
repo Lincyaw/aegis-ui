@@ -21,9 +21,8 @@
   justify-content: space-between;
   margin-top: var(--space-1);
   font-size: var(--fs-10);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 .aegis-blast-radius__tick {
