@@ -280,13 +280,15 @@ function ReplayStripCompactSpecimen(): ReactNode {
   });
   return (
     <div className='gallery__row'>
-      <Specimen caption="size='sm' · no ticks · weight grades the bars by kind">
-        <div className='gallery__stack gallery__stack--fill'>
-          <ReplayStepStrip size='sm' steps={REPLAY_WEIGHTED_STEPS} />
-        </div>
+      <Specimen
+        caption="size='sm' · no ticks · weight grades the bars by kind"
+        align='start'
+      >
+        <ReplayStepStrip size='sm' steps={REPLAY_WEIGHTED_STEPS} />
       </Specimen>
       <Specimen
         caption={`playhead follows the scroll · later steps dim · ${progress.toFixed(2)}`}
+        align='start'
       >
         <div ref={setScroller} className='gallery__chart-scroller'>
           <p className='gallery__chart-scroller-spacer'>Scroll down.</p>

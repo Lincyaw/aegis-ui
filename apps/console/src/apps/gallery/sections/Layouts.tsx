@@ -433,6 +433,26 @@ function GallerySiteFooter() {
   );
 }
 
+function PageHeaderActionSpecimen() {
+  const [created, setCreated] = useState(0);
+  return (
+    <Specimen
+      caption={`with action · onClick · created: ${String(created)}`}
+      span={2}
+    >
+      <PageHeader
+        title='Teams'
+        description='Organize members into teams.'
+        action={
+          <Button onClick={() => setCreated((count) => count + 1)}>
+            Create team
+          </Button>
+        }
+      />
+    </Specimen>
+  );
+}
+
 export function LayoutsSection() {
   return (
     <GallerySection title='Layouts'>
@@ -447,13 +467,7 @@ export function LayoutsSection() {
             description='Manage SDK and service API keys for programmatic access.'
           />
         </Specimen>
-        <Specimen caption='with action' span={2}>
-          <PageHeader
-            title='Teams'
-            description='Organize members into teams.'
-            action={<Chip tone='ink'>+ Create team</Chip>}
-          />
-        </Specimen>
+        <PageHeaderActionSpecimen />
         <Specimen caption='with meta row' span={2}>
           <PageHeader
             title='Checkout latency regression'

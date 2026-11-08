@@ -155,6 +155,19 @@ export function AntdWidgetsSection() {
         <Specimen caption='text'>
           <Button type='text'>Skip</Button>
         </Specimen>
+        <Specimen caption='danger · a destructive action, in the caution tone'>
+          <Button danger>Delete run</Button>
+        </Specimen>
+        <Specimen caption='primary · danger'>
+          <Button type='primary' danger>
+            Delete run
+          </Button>
+        </Specimen>
+        <Specimen caption='text · danger'>
+          <Button type='text' danger>
+            Remove
+          </Button>
+        </Specimen>
         <Specimen caption='primary · loading'>
           <Button type='primary' loading>
             Running

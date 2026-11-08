@@ -5,6 +5,7 @@ import {
   CheckGrid,
   type LinkComponent,
   MetricLabel,
+  Panel,
   PanelTitle,
   useTheme,
 } from '@lincyaw/aegis-ui';
@@ -48,22 +49,24 @@ interface GallerySectionProps {
   children: ReactNode;
 }
 
-/** A group of specimens. Its frame has no shadow, so a specimen's own shadow is the only one on its layer. */
+/** A group of specimens, in a flat Panel, so a specimen's own shadow is the only one on its layer. */
 export function GallerySection({
   title,
   extra,
   children,
 }: GallerySectionProps) {
   return (
-    <section className='gallery__section' aria-label={title}>
-      <header className='gallery__section-header'>
+    <Panel
+      elevation='flat'
+      title={
         <PanelTitle size='lg' as='h2'>
           {title}
         </PanelTitle>
-        {extra}
-      </header>
+      }
+      extra={extra}
+    >
       <div className='gallery__section-body'>{children}</div>
-    </section>
+    </Panel>
   );
 }
 
