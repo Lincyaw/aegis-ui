@@ -27,6 +27,12 @@ New API:
   unread badge, which stays, describes the bell as possibly out of date and
   says so at the top of its popover. `ShellNotificationBell` fills it from
   the provider.
+- `NotificationBell` takes `error` and `onRetry`. When the first load failed
+  and there are no items, the bell draws the same caution mark and is
+  described as unable to load, and its popover says the notifications
+  couldn't load, with a "Try again" button when `onRetry` is set, instead of
+  "You're all caught up." An `error` with items is shown like `liveError`.
+  `ShellNotificationBell` fills both from the provider.
 - `InboxPage` takes `liveError`. It keeps the list under a caution notice
   with the `onRetry` button. `ShellInboxPage` fills it from the provider.
 

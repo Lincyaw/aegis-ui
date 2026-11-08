@@ -18,6 +18,8 @@ export interface DialogPopover<P extends HTMLElement> {
   triggerRef: RefObject<HTMLButtonElement>;
   /** The panel's ref; the hook listens on the panel for Escape and Tab. */
   panelRef: RefCallback<P>;
+  /** Focuses the panel's first control, or the panel when it has none. */
+  focusPanel: () => void;
 }
 
 /**
@@ -35,22 +37,24 @@ export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panel = useRef<P | null>(null);
 
+  const focusPanel = useCallback(() => {
+    const node = panel.current;
+    (node?.querySelector<HTMLElement>(TABBABLE) ?? node)?.focus({
+      preventScroll: true,
+    });
+  }, []);
+
   useEffect(() => {
     if (!open) {
       return;
     }
     // The portal container is attached in the popover's own effects, so
     // wait a frame before looking for the panel.
-    const frame = requestAnimationFrame(() => {
-      const node = panel.current;
-      (node?.querySelector<HTMLElement>(TABBABLE) ?? node)?.focus({
-        preventScroll: true,
-      });
-    });
+    const frame = requestAnimationFrame(focusPanel);
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [open]);
+  }, [open, focusPanel]);
 
   const close = useCallback(() => {
     setOpen(false);
@@ -104,5 +108,5 @@ export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
     [onKeyDown],
   );
 
-  return { open, setOpen, close, triggerRef, panelRef };
+  return { open, setOpen, close, triggerRef, panelRef, focusPanel };
 }

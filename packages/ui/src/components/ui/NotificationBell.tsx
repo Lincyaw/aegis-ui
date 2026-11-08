@@ -1,4 +1,4 @@
-import { type ReactElement, useId } from 'react';
+import { type ReactElement, useEffect, useId } from 'react';
 
 import { BellOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { Popover } from 'antd';
@@ -8,6 +8,8 @@ import type { AegisAction } from '../../agent/core/types';
 import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
 import { useDialogPopover } from '../../hooks/useDialogPopover';
 import type { AegisNotification } from '../../notifications';
+import { Button } from './Button';
+import { ErrorState } from './ErrorState';
 import './NotificationBell.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 import { relativeTime } from './relativeTime';
@@ -35,6 +37,14 @@ export interface NotificationBellProps {
    * the popover says the items may be out of date. The count stays.
    */
   liveError?: Error | null;
+  /**
+   * Why loading failed. With no `items`, the bell shows the caution mark and
+   * the popover says the notifications couldn't load; with `items`, it is
+   * shown like `liveError`.
+   */
+  error?: Error | null;
+  /** Renders a "Try again" button where the popover says loading failed. */
+  onRetry?: () => void;
 }
 
 const MAX_PREVIEW_ITEMS = 8;
@@ -49,13 +59,32 @@ export function NotificationBell({
   width = DEFAULT_WIDTH,
   action,
   liveError,
+  error,
+  onRetry,
 }: NotificationBellProps): ReactElement {
   const popover = useDialogPopover<HTMLDivElement>();
+  const { open, focusPanel } = popover;
   const panelId = useId();
   const staleId = `${panelId}-stale`;
   const bound = useAegisAction<void, unknown>(action);
 
   const preview = items.slice(0, MAX_PREVIEW_ITEMS);
+  const loadError = items.length === 0 ? (error ?? null) : null;
+  const staleError = loadError ? null : (liveError ?? error ?? null);
+  let caution: string | null = null;
+  if (loadError) {
+    caution = `Notifications couldn't load. ${loadError.message}`;
+  } else if (staleError) {
+    caution = `Notifications may be out of date. ${staleError.message}`;
+  }
+
+  // A retry that loads the list removes the "Try again" button that had
+  // focus, which would leave the open panel without it.
+  useEffect(() => {
+    if (open && document.activeElement === document.body) {
+      focusPanel();
+    }
+  }, [loadError, open, focusPanel]);
 
   const handleItemClick = (item: AegisNotification): void => {
     popover.close();
@@ -80,7 +109,7 @@ export function NotificationBell({
           <span className="aegis-notif-pop__count">{unreadCount} unread</span>
         )}
       </div>
-      {liveError && (
+      {staleError && (
         <div className="aegis-notif-pop__stale">
           <ExclamationCircleFilled
             className="aegis-notif-pop__stale-icon"
@@ -90,11 +119,24 @@ export function NotificationBell({
             <span className="aegis-notif-pop__stale-title">
               May be out of date.
             </span>{' '}
-            {liveError.message}
+            {staleError.message}
           </span>
         </div>
       )}
-      {preview.length === 0 ? (
+      {loadError ? (
+        <ErrorState
+          size="compact"
+          title="Couldn't load notifications"
+          description={loadError.message}
+          action={
+            onRetry && (
+              <Button tone="secondary" onClick={onRetry}>
+                Try again
+              </Button>
+            )
+          }
+        />
+      ) : preview.length === 0 ? (
         <div className="aegis-notif-pop__empty">You&apos;re all caught up.</div>
       ) : (
         <ul className="aegis-notif-pop__list">
@@ -164,7 +206,7 @@ export function NotificationBell({
           ref={popover.triggerRef}
           type="button"
           className="aegis-notif-bell"
-          aria-describedby={liveError ? staleId : undefined}
+          aria-describedby={caution ? staleId : undefined}
           aria-haspopup="dialog"
           aria-expanded={popover.open}
           aria-controls={popover.open ? panelId : undefined}
@@ -182,14 +224,14 @@ export function NotificationBell({
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
-          {liveError && (
+          {caution && (
             <>
               <ExclamationCircleFilled
                 className="aegis-notif-bell__stale"
                 aria-hidden
               />
               <span id={staleId} className="aegis-notif-bell__description">
-                {`Notifications may be out of date. ${liveError.message}`}
+                {caution}
               </span>
             </>
           )}

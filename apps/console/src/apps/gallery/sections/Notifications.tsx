@@ -62,6 +62,9 @@ const LIVE_UPDATES_ERROR = new Error(
 export function NotificationsSection() {
   const [items, setItems] = useState(MOCK_NOTIFS);
   const [loadError, setLoadError] = useState<Error | null>(INBOX_LOAD_ERROR);
+  const [bellLoadError, setBellLoadError] = useState<Error | null>(
+    INBOX_LOAD_ERROR
+  );
   const [liveError, setLiveError] = useState<Error | null>(LIVE_UPDATES_ERROR);
   const markRead = (item: AegisNotification): void => {
     setItems((prev) =>
@@ -95,6 +98,20 @@ export function NotificationsSection() {
               inboxPath='/inbox'
               linkComponent={GalleryRouterLink}
               liveError={LIVE_UPDATES_ERROR}
+            />
+          </div>
+        </Specimen>
+        <Specimen caption='error · the first load failed · Try again loads the list'>
+          <div className='gallery__notif-bell-host'>
+            <NotificationBell
+              items={bellLoadError ? [] : items}
+              onOpen={markRead}
+              inboxPath='/inbox'
+              linkComponent={GalleryRouterLink}
+              error={bellLoadError}
+              onRetry={() => {
+                setBellLoadError(null);
+              }}
             />
           </div>
         </Specimen>
