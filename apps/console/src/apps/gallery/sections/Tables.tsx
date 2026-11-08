@@ -239,7 +239,29 @@ function DataTableRowClickSpecimen(): ReactNode {
           }}
         />
       </Specimen>
+      <DataTableCurrentRowSpecimen />
     </div>
+  );
+}
+
+function DataTableCurrentRowSpecimen(): ReactNode {
+  const [current, setCurrent] = useState(GALLERY_MODEL_ROWS[1].model);
+  return (
+    <Specimen
+      caption={`selectedKeys without selectable · the row whose details show beside the table is aria-selected and drawn selected, with no checkbox column · onRowClick picks it · current: ${current}`}
+      span={3}
+    >
+      <DataTable
+        ariaLabel='Models'
+        columns={GALLERY_MODEL_COLUMNS.slice(0, 3)}
+        data={GALLERY_MODEL_ROWS}
+        rowKey={(row) => row.model}
+        selectedKeys={[current]}
+        onRowClick={(row) => {
+          setCurrent(row.model);
+        }}
+      />
+    </Specimen>
   );
 }
 

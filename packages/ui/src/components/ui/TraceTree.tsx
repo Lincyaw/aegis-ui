@@ -23,6 +23,7 @@ import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { StatusDot } from './StatusDot';
 import './TraceTree.css';
+import { DefaultLink, type LinkComponent } from './linkComponent';
 import { statusTone } from './traceStatus';
 
 export type TraceTreeSurface = PrimitiveSurface<TraceSpan[]>;
@@ -64,6 +65,12 @@ export interface TraceSpan {
   muted?: boolean;
   /** The accessible name of the span's `TraceTree` row. Default: the row's text. */
   ariaLabel?: string;
+  /**
+   * Makes the span's name in its `TraceTree` row a link to this
+   * destination. The row stays the tree's tab stop: the link is not a tab
+   * stop, and Enter on the row follows it.
+   */
+  to?: string;
   /** Free-form attributes — only used by the inspector pane, not by the row itself. */
   attrs?: Record<string, unknown>;
 }
@@ -91,6 +98,8 @@ interface TraceTreeProps {
   defaultCollapsedDepth?: number;
   /** The tree's accessible name. Default: `'Trace spans'`. */
   ariaLabel?: string;
+  /** Renders the names of spans with `to`. Defaults to an `<a href>`; routed apps pass their Link adapter. */
+  linkComponent?: LinkComponent;
   className?: string;
   style?: CSSProperties;
   surface?: TraceTreeSurface;
@@ -207,6 +216,7 @@ export function TraceTree({
   onSelect,
   defaultCollapsedDepth = Number.POSITIVE_INFINITY,
   ariaLabel = 'Trace spans',
+  linkComponent: Link = DefaultLink,
   className,
   style,
   surface,
@@ -343,7 +353,16 @@ export function TraceTree({
           focusRow(visible.findIndex((r) => r.node === parent));
         }
         break;
+      // The link's click reaches the row, which selects it too.
       case 'Enter':
+        if (node.span.to !== undefined) {
+          event.currentTarget
+            .querySelector<HTMLElement>('.aegis-trace-tree__name a')
+            ?.click();
+        } else {
+          onSelect?.(node.span);
+        }
+        break;
       case ' ':
         onSelect?.(node.span);
         break;
@@ -359,6 +378,15 @@ export function TraceTree({
       event.target.closest('[data-trace-tree-caret]') !== null
     ) {
       toggle(node.span.id);
+      return;
+    }
+    // A modified click opens the name's link elsewhere and leaves this
+    // page's selection alone.
+    if (
+      (event.ctrlKey || event.metaKey || event.shiftKey) &&
+      event.target instanceof Element &&
+      event.target.closest('.aegis-trace-tree__name a') !== null
+    ) {
       return;
     }
     onSelect?.(node.span);
@@ -474,7 +502,19 @@ export function TraceTree({
                   styles={{ root: { maxWidth: 'var(--tooltip-max-width)' } }}
                   title={tooltipContent}
                 >
-                  <span className="aegis-trace-tree__name">{span.name}</span>
+                  <span className="aegis-trace-tree__name">
+                    {span.to === undefined ? (
+                      span.name
+                    ) : (
+                      <Link
+                        to={span.to}
+                        className="aegis-trace-tree__link"
+                        tabIndex={-1}
+                      >
+                        {span.name}
+                      </Link>
+                    )}
+                  </span>
                 </Tooltip>
                 {hasNote ? (
                   <span

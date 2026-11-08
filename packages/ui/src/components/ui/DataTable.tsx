@@ -132,6 +132,11 @@ interface DataTableProps<T> {
   pagination?: DataTablePagination;
   /** Adds a leading checkbox column and drives `selectedKeys`. */
   selectable?: boolean;
+  /**
+   * The selected rows: `aria-selected` and drawn selected. Without
+   * `selectable` there is no checkbox column, e.g. for the row whose
+   * details show beside the table.
+   */
   selectedKeys?: Array<string | number>;
   onSelectedKeysChange?: (keys: Array<string | number>) => void;
   /**
@@ -591,13 +596,15 @@ export function DataTable<T>({
     }
   };
 
-  const rowClass = [
-    'aegis-data-table__row',
-    clickable ? 'aegis-data-table__row--clickable' : '',
-    expandable ? 'aegis-data-table__row--expandable' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const rowClass = (isSelected: boolean): string =>
+    [
+      'aegis-data-table__row',
+      clickable ? 'aegis-data-table__row--clickable' : '',
+      expandable ? 'aegis-data-table__row--expandable' : '',
+      isSelected ? 'aegis-data-table__row--selected' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
 
   const tableClass = [
     'aegis-data-table__table',
@@ -789,12 +796,15 @@ export function DataTable<T>({
               rows.map((row, idx) => {
                 const key = rowKey(row, idx);
                 const detailId = `${detailIdPrefix}-detail-${String(idx)}`;
+                const isSelected = selected.includes(key);
                 return (
                   <Fragment key={key}>
                     <tr
-                      className={rowClass}
+                      className={rowClass(isSelected)}
                       aria-selected={
-                        selectable ? selected.includes(key) : undefined
+                        selectable || selectedKeys !== undefined
+                          ? isSelected
+                          : undefined
                       }
                       tabIndex={clickable ? 0 : undefined}
                       onClick={
@@ -814,7 +824,7 @@ export function DataTable<T>({
                     >
                       {selectable && (
                         <td {...leadCellProps('select', 'td')}>
-                          {selectionCell(selected.includes(key), (checked) => {
+                          {selectionCell(isSelected, (checked) => {
                             toggleRow(key, checked);
                           })}
                         </td>

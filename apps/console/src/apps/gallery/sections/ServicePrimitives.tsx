@@ -60,7 +60,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { TOOL_QUERY_METRICS } from '../fixtures';
-import { Specimen } from '../shared';
+import { GalleryRouterLink, Specimen } from '../shared';
 
 /* ── EnvironmentSwitcher specimen ──────────────────────────────────── */
 
@@ -1090,6 +1090,45 @@ function TraceTreeNotedSpecimen(): ReactNode {
       onSelect={(span) => setSelected(span.id)}
       ariaLabel='Requirements of commit a41f09c against 7c2d1e0'
       wrapName
+    />
+  );
+}
+
+const TRACE_TREE_LINKED_SPANS: TraceSpan[] = [
+  { id: 'src', name: 'src', kind: 'directory' },
+  { id: 'booking', parentId: 'src', name: 'booking', kind: 'directory' },
+  {
+    id: 'refund',
+    parentId: 'booking',
+    name: 'refund.py',
+    kind: 'file',
+    to: '#src/booking/refund.py',
+  },
+  {
+    id: 'seats',
+    parentId: 'booking',
+    name: 'seats.py',
+    kind: 'file',
+    to: '#src/booking/seats.py',
+  },
+  {
+    id: 'tests',
+    parentId: 'src',
+    name: 'test_refund.py',
+    kind: 'file',
+    to: '#src/test_refund.py',
+  },
+];
+
+function TraceTreeLinkedSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string | undefined>('seats');
+  return (
+    <TraceTree
+      spans={TRACE_TREE_LINKED_SPANS}
+      selectedId={selected}
+      onSelect={(span) => setSelected(span.id)}
+      linkComponent={GalleryRouterLink}
+      ariaLabel='Files of commit a41f09c'
     />
   );
 }
@@ -2592,6 +2631,12 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <TraceTreeNotedSpecimen />
+        </Specimen>
+        <Specimen
+          caption='to · linkComponent — a file name is a link to the file · the row stays the one tab stop: the link takes no focus, Enter on the row follows it, Space selects'
+          span={3}
+        >
+          <TraceTreeLinkedSpecimen />
         </Specimen>
       </div>
 

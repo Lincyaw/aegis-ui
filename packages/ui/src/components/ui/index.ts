@@ -188,7 +188,7 @@ export type {
   ObjectInspectorTab,
 } from './ObjectInspector';
 export { Tabs } from './Tabs';
-export type { TabItem } from './Tabs';
+export type { TabItem, TabLink } from './Tabs';
 export { Steps } from './Steps';
 export type { StepsItem } from './Steps';
 export { Carousel } from './Carousel';

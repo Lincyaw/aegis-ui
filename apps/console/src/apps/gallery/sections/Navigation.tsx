@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import {
   AppstoreOutlined,
@@ -50,7 +51,7 @@ import { Button } from 'antd';
 
 import { GALLERY_RUN_COLUMNS } from '../columns';
 import { GALLERY_ACTIONS, GALLERY_RUNS } from '../fixtures';
-import { Specimen } from '../shared';
+import { GalleryRouterLink, Specimen } from '../shared';
 
 /* ── Button specimens ──────────────────────────────────────────────── */
 
@@ -201,6 +202,31 @@ function TabsSegmentedSpecimen(): ReactNode {
   );
 }
 
+const GALLERY_RUN_PAGES = [
+  { key: 'tasks', label: 'Task graph', to: '#run-tasks' },
+  { key: 'modules', label: 'Module tree', to: '#run-modules' },
+  { key: 'attempts', label: 'Attempts', to: '#run-attempts' },
+];
+
+function TabsLinkSpecimen(): ReactNode {
+  const { hash } = useLocation();
+  const current =
+    GALLERY_RUN_PAGES.find((page) => page.to === hash) ?? GALLERY_RUN_PAGES[0];
+  return (
+    <Specimen
+      caption='to · linkComponent — tabs that are pages: a nav of links that look like tabs, each a tab stop, the current page aria-current="page"'
+      span={2}
+    >
+      <RosettaTabs
+        items={GALLERY_RUN_PAGES}
+        activeKey={current.key}
+        linkComponent={GalleryRouterLink}
+        ariaLabel='Run pages'
+      />
+    </Specimen>
+  );
+}
+
 function TabsViewSwitchSpecimen(): ReactNode {
   const [view, setView] = useState('answer');
   const views = [
@@ -226,6 +252,7 @@ function TabsViewSwitchSpecimen(): ReactNode {
           onChange={setView}
         />
       </Specimen>
+      <TabsLinkSpecimen />
     </div>
   );
 }

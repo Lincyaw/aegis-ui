@@ -381,6 +381,15 @@ export function DataDisplaySection() {
         <Specimen caption='duration'>
           <TimeDisplay value={2840} mode='duration' />
         </Specimen>
+        <Specimen caption='utc · YYYY-MM-DD HH:MM:SS in UTC, the same text in every time zone and on every day'>
+          <TimeDisplay value='2026-05-10T14:22:01.482Z' mode='utc' />
+        </Specimen>
+        <Specimen caption='hms · H:MM:SS in whole seconds, the hours neither padded nor capped'>
+          <div className='gallery__stack'>
+            <TimeDisplay value={5_900} mode='hms' />
+            <TimeDisplay value={97_389_000} mode='hms' />
+          </div>
+        </Specimen>
         <Specimen caption="empty or unreadable value · an em dash, read out as the locale's no-value text">
           <TimeDisplay value='not a date' />
         </Specimen>

@@ -85,6 +85,19 @@
   background: var(--bg-inverted);
 }
 
+.aegis-trace-tree__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.aegis-trace-tree__link:active {
+  color: var(--text-muted);
+}
+
+.aegis-trace-tree__row--selected .aegis-trace-tree__link:active {
+  color: var(--text-on-inverted-muted);
+}
+
 .aegis-trace-tree__row--error .aegis-trace-tree__name {
   color: var(--accent-warning);
 }
