@@ -11,7 +11,12 @@ import type { AegisAction } from '../../agent/core/types';
 import './Button.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 
-export type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'glass';
+export type ButtonTone =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'glass'
+  | 'caution';
 
 type ButtonIconPosition = 'start' | 'end';
 
@@ -19,7 +24,9 @@ interface ButtonLookProps {
   children: ReactNode;
   /**
    * Visual treatment. `glass` is the secondary button frosted for a tinted,
-   * gradient or image background.
+   * gradient or image background. `caution` is a destructive or
+   * irreversible action, e.g. delete: the caution wash and border, never
+   * the anomaly red, which marks failures.
    */
   tone?: ButtonTone;
   /** Icon beside the label, sized to the button's icon slot. */

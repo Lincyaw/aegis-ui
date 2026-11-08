@@ -25,6 +25,14 @@
   overflow: auto;
 }
 
+/* The body scrolls, so the browser makes it a tab stop; the panel clips
+ * what lies outside it, so its ring and the handle's are inset. */
+.aegis-resizable-panel__body:focus-visible,
+.aegis-resizable-handle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
 .aegis-resizable-handle {
   flex: 0 0 auto;
   width: var(--size-resize-handle);
@@ -37,12 +45,6 @@
 
 .aegis-resizable-handle:hover,
 .aegis-resizable-panel--dragging .aegis-resizable-handle {
-  background: var(--border-emphasis);
-}
-
-.aegis-resizable-handle:focus-visible {
-  outline: var(--size-hairline) solid var(--border-strong);
-  outline-offset: calc(-1 * var(--size-hairline));
   background: var(--border-emphasis);
 }
 

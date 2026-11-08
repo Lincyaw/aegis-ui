@@ -477,7 +477,7 @@ export function SiteChartsSection() {
             ))}
           </div>
         </Specimen>
-        <Specimen caption='detail · a link · truncates in a narrow slot'>
+        <Specimen caption='detail · a link · in a narrow slot the detail gives up its room faster than the name'>
           <div className='gallery__stack gallery__stack--fill'>
             <SeriesLabel
               name='GPT-6.1 Sol'

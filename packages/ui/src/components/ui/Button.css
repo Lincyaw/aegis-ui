@@ -68,6 +68,15 @@
   color: var(--text-muted);
 }
 
+/* The label stays in the main ink: --ink-warn on the caution wash is too
+ * faint to read at this size in the light theme. */
+.aegis-button--caution {
+  background: var(--bg-warn-soft);
+  border-color: var(--ink-warn);
+  color: var(--text-main);
+  box-shadow: var(--shadow-rest);
+}
+
 .aegis-button[aria-pressed='true'] {
   background: var(--bg-inverted);
   border-color: var(--bg-inverted);
@@ -86,7 +95,8 @@
   }
 
   .aegis-button--secondary:hover:not(:disabled),
-  .aegis-button--glass:hover:not(:disabled) {
+  .aegis-button--glass:hover:not(:disabled),
+  .aegis-button--caution:hover:not(:disabled) {
     box-shadow: var(--shadow-raised);
   }
 

@@ -105,8 +105,6 @@
   font-variant-numeric: tabular-nums;
   font-size: var(--fs-10);
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 .aegis-notif-pop__stale {

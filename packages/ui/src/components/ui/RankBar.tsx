@@ -92,7 +92,7 @@ export function RankBar({
             style={{
               left: share(interval[0]),
               width: share(interval[1] - interval[0]),
-              opacity: `calc(var(--chart-interval-opacity) * ${stageProgress(drawn, 0.8, 1).toString()})`,
+              opacity: stageProgress(drawn, 0.8, 1),
             }}
           />
         );

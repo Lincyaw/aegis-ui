@@ -413,10 +413,8 @@
       var(--space-6) * 2
   );
   --trajectory-step-text-max-height: 320px;
-  /* TableOfContents column (also the article page's left column) and the
-   * height of its current-item indicator on one line. */
+  /* TableOfContents column (also the article page's left column). */
   --toc-width: 240px;
-  --toc-indicator-height: 20px;
   /* ScrollStory: where its pinned panel stops under the header, the
    * height of the view it pins in (a host with a scroll container sets
    * the container's height), and the shortest a step may be, so each step
@@ -513,8 +511,13 @@
   /* Thin bars: RankBar size='sm', ResultMatrix shape='bar'. */
   --rank-bar-height-sm: var(--space-2);
   --result-matrix-bar: 7px;
-  /* A bar's confidence interval, drawn over it in the main ink. */
+  /* A bar's confidence interval (ColumnChart, RankBar), drawn over it in a
+   * faint ink inside a hairline halo of the panel colour, so it shows on a
+   * bar of any colour, the ink bar included. */
   --chart-interval-weight: var(--size-border-thick);
+  --chart-interval-color: var(--text-faint);
+  --chart-interval-halo: var(--bg-panel);
+  /* DotRangeChart: the line joining a before and an after. */
   --chart-interval-opacity: 0.35;
   /* ColumnChart: the plot, a bar and the space its axis labels sit in. */
   --column-chart-plot-height: 320px;
@@ -644,7 +647,7 @@
   --avatar-hue-2: #818cf8;
   --avatar-hue-3: #34d399;
   --avatar-hue-4: #fbbf24;
-  --avatar-hue-5: #fb7185;
+  --avatar-hue-5: #f472b6; /* pink-400 — the lighter rose is the anomaly red */
 
   /* Presence — lighter for dark surfaces */
   --presence-online: #4ade80;
@@ -662,13 +665,19 @@
   --diff-removed-gutter: #361721;
   --diff-removed-word: #5c1f2a;
 
-  /* Elevation — black shadows, deeper so they read on dark surfaces */
+  /* Elevation — black shadows, deeper so they read on dark surfaces. A
+   * shadow barely shows on the dark page, so each level above rest also
+   * catches light: a ring round its edge and a lit top edge, brighter the
+   * higher it sits. Inset layers come last, so rest and raised still
+   * interpolate on hover. */
   --shadow-rest:
     0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px -6px rgba(0, 0, 0, 0.4);
   --shadow-raised:
-    0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+    0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 40px -12px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   --shadow-overlay:
-    0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6);
+    0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 
   /* Scrollbar */
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);

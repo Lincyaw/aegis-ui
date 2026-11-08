@@ -100,7 +100,6 @@ export function TableOfContents({
                   onLinkClick(event, item.id);
                 }}
               >
-                <span className="aegis-toc__indicator" aria-hidden="true" />
                 <span className="aegis-toc__label">{item.label}</span>
               </a>
             </li>
