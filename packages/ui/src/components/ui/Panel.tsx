@@ -15,8 +15,11 @@ export type PanelSurface = ContainerSurface;
  */
 export type PanelVariant = 'solid' | 'tint' | 'brand' | 'glass';
 
-/** `raised` lifts featured and hero cards above the resting cards. */
-export type PanelElevation = 'rest' | 'raised';
+/**
+ * `raised` lifts featured and hero cards above the resting cards. `flat`
+ * casts no shadow, for a panel inside another panel: one shadow per layer.
+ */
+export type PanelElevation = 'rest' | 'raised' | 'flat';
 
 interface PanelBaseProps {
   /**

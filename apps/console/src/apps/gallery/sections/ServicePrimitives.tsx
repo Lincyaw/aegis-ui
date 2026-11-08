@@ -1533,7 +1533,7 @@ const VERSION_TABLE_COLUMNS: CommitGraphColumn[] = [
   ...COMMIT_GRAPH_LANES.map((lane) => ({
     id: lane.id,
     label: lane.label,
-    grow: lane.id === 'requirements',
+    grow: true,
   })),
 ];
 
@@ -2760,7 +2760,7 @@ export function ServicePrimitivesSection() {
           <CommitGraphTableSpecimen />
         </Specimen>
         <Specimen
-          caption='columns with lanes — a version map: one row per event, its time and its content in the column of its lane; the lanes stay in the graph column'
+          caption='columns with lanes — a version map: one row per event, its time and its content in the column of its lane; the lane columns grow and share the width evenly; the lanes stay in the graph column'
           span={3}
         >
           <CommitGraphVersionTableSpecimen />

@@ -392,6 +392,34 @@ export function TypographySection() {
             </MonoValue>
           </div>
         </Specimen>
+        <Specimen caption='wrap · short values in squeezed table columns stay whole'>
+          <table className='gallery__squeezed-table'>
+            <tbody>
+              <tr>
+                <td>
+                  <MonoValue size='sm' wrap>
+                    null
+                  </MonoValue>
+                </td>
+                <td>
+                  <MonoValue size='sm' wrap>
+                    true
+                  </MonoValue>
+                </td>
+                <td>
+                  <MonoValue size='sm' wrap>
+                    {1}
+                  </MonoValue>
+                </td>
+                <td>
+                  <MonoValue size='sm' wrap>
+                    {'{"deadline":"P7D","channels":["email","sms"]}'}
+                  </MonoValue>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </Specimen>
       </div>
 
       <SectionDivider>MetricLabel</SectionDivider>

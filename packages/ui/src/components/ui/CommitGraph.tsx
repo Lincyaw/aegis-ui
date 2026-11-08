@@ -60,7 +60,9 @@ export interface CommitGraphColumn {
   /**
    * Takes the width the other columns leave, which are as wide as their
    * content, and cuts its cells off with an ellipsis, e.g. a message;
-   * hovering a cut cell shows it whole.
+   * hovering a cut cell shows it whole. Several growing columns share that
+   * width evenly. A growing column is never narrower than about 20
+   * characters: where the other columns leave less, the table scrolls.
    */
   grow?: boolean;
 }
@@ -687,6 +689,9 @@ export function CommitGraph({
   const rootStyle = {
     '--aegis-commit-graph-row-h': `${String(ROW_HEIGHT)}px`,
     '--aegis-commit-graph-graph-w': `${String(layout.width)}px`,
+    '--aegis-commit-graph-grow-count': String(
+      columns?.filter((column) => column.grow === true).length ?? 0,
+    ),
   } as CSSProperties;
 
   return (
