@@ -104,10 +104,10 @@ export function RealNotificationProvider({
       if (mounted.current) {
         setUnread(c.unread_count);
       }
-    } catch (err) {
-      if (mounted.current) {
-        setError(toError(err));
-      }
+    } catch {
+      // `error` reports the items failing to load; the list is still what the
+      // server last returned, so a failed count poll keeps the last count
+      // until the next poll or stream event corrects it.
     }
   }, []);
 
