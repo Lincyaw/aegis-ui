@@ -6,6 +6,7 @@ import {
   Checkbox,
   Chip,
   ChoiceCardGroup,
+  CodeEditor,
   ColumnLayout,
   DangerZone,
   Dialog,
@@ -20,6 +21,7 @@ import {
   PanelTitle,
   PasswordField,
   PickerField,
+  QueryAutocomplete,
   SearchInput,
   SectionDivider,
   Select,
@@ -85,12 +87,19 @@ const FORM_ROW_SCOPES = [
 
 const FORM_ROW_CHARTS = ['Ranking', 'Scatter', 'Radar'];
 
+const FORM_ROW_QUERY_FIELDS = [
+  { value: 'service.name' },
+  { value: 'status' },
+  { value: 'duration' },
+];
+
 function FormRowFieldsSpecimen() {
   const [scope, setScope] = useState('recent');
   const [workers, setWorkers] = useState<number | undefined>(2);
   const [load, setLoad] = useState(70);
   const [alerts, setAlerts] = useState(true);
   const [filter, setFilter] = useState('');
+  const [query, setQuery] = useState('status:failed');
   return (
     <>
       <FormRow
@@ -161,6 +170,20 @@ function FormRowFieldsSpecimen() {
           onChange={setFilter}
         />
       </FormRow>
+      <FormRow
+        label='Alert query'
+        description='Runs that match raise an alert.'
+        controlId='gallery-form-row-query'
+      >
+        <QueryAutocomplete
+          id='gallery-form-row-query'
+          aria-describedby='gallery-form-row-query-description'
+          value={query}
+          onChange={setQuery}
+          fieldSuggestions={FORM_ROW_QUERY_FIELDS}
+          showHelp={false}
+        />
+      </FormRow>
     </>
   );
 }
@@ -169,6 +192,7 @@ function FormRowLabelledBySpecimen() {
   const [mode, setMode] = useState('auto');
   const [chart, setChart] = useState('Ranking');
   const [open, setOpen] = useState(false);
+  const [values, setValues] = useState('replicas: 2\nimage:\n  tag: v1.2.0\n');
   return (
     <>
       <FormRow
@@ -222,6 +246,22 @@ function FormRowLabelledBySpecimen() {
           onClick={() => {
             setOpen(true);
           }}
+        />
+      </FormRow>
+      <FormRow
+        label='Helm values'
+        description='A code editor: its editable area takes the row label.'
+        controlId='gallery-form-row-values'
+        labelBy='aria-labelledby'
+      >
+        <CodeEditor
+          id='gallery-form-row-values'
+          aria-labelledby='gallery-form-row-values-label'
+          aria-describedby='gallery-form-row-values-description'
+          language='yaml'
+          value={values}
+          onChange={setValues}
+          height='calc(var(--space-16) * 2)'
         />
       </FormRow>
       <Dialog

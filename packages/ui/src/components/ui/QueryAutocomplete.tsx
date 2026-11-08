@@ -54,6 +54,12 @@ export interface QueryAutocompleteProps {
   className?: string;
   popoverClassName?: string;
   disabled?: boolean;
+  /** Lets a caller's `<label htmlFor>` name the field in place of its default name. */
+  id?: string;
+  /** Id of visible text that names the field in place of its default name. */
+  'aria-labelledby'?: string;
+  /** Ids of the text that describes the field, such as a FormRow's description. */
+  'aria-describedby'?: string;
 }
 
 interface RankedSuggestion {
@@ -154,6 +160,9 @@ export function QueryAutocomplete({
   className,
   popoverClassName,
   disabled = false,
+  id,
+  'aria-labelledby': labelledBy,
+  'aria-describedby': describedBy,
 }: QueryAutocompleteProps): JSX.Element {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listId = useId();
@@ -353,33 +362,44 @@ export function QueryAutocomplete({
         arrow={false}
         classNames={{ root: 'aegis-query-ac__popover' }}
       >
-        <input
-          ref={inputRef}
-          type="text"
-          className="aegis-query-ac__input"
-          value={value}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          onKeyUp={syncCaret}
-          onClick={syncCaret}
-          onFocus={() => {
-            syncCaret();
-            setDismissed(false);
-          }}
-          onBlur={() => {
-            setDismissed(true);
-          }}
-          placeholder={placeholder}
-          disabled={disabled}
-          spellCheck={false}
-          autoComplete="off"
-          role="combobox"
-          aria-label="Lucene query"
-          aria-autocomplete="list"
-          aria-expanded={open}
-          aria-controls={listId}
-          aria-activedescendant={open ? optionId(highlight) : undefined}
-        />
+        {/* The popover sets its child's aria-describedby to the popup, so it
+            anchors on this span and the input keeps its own description. */}
+        <span className="aegis-query-ac__anchor">
+          <input
+            ref={inputRef}
+            type="text"
+            id={id}
+            className="aegis-query-ac__input"
+            value={value}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onKeyUp={syncCaret}
+            onClick={syncCaret}
+            onFocus={() => {
+              syncCaret();
+              setDismissed(false);
+            }}
+            onBlur={() => {
+              setDismissed(true);
+            }}
+            placeholder={placeholder}
+            disabled={disabled}
+            spellCheck={false}
+            autoComplete="off"
+            role="combobox"
+            aria-label={
+              id === undefined && labelledBy === undefined
+                ? 'Lucene query'
+                : undefined
+            }
+            aria-labelledby={labelledBy}
+            aria-describedby={describedBy}
+            aria-autocomplete="list"
+            aria-expanded={open}
+            aria-controls={listId}
+            aria-activedescendant={open ? optionId(highlight) : undefined}
+          />
+        </span>
       </Popover>
       {showHelp ? (
         <Tooltip
