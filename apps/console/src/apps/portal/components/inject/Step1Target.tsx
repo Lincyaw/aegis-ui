@@ -91,9 +91,9 @@ export function Step1Target({ spec, update }: Props) {
   return (
     <Panel title={<PanelTitle size='base'>1. Target</PanelTitle>}>
       {templates.length > 0 && (
-        <FormRow label='Template'>
+        <FormRow label='Template' controlId='inject-template'>
           <Select
-            ariaLabel='Load from template'
+            id='inject-template'
             value=''
             placeholder='Load a saved template'
             options={templates.map((t) => ({ value: t.id, label: t.name }))}
@@ -125,9 +125,9 @@ export function Step1Target({ spec, update }: Props) {
       </FormRow>
 
       {spec.namespaceMode === 'specific' && (
-        <FormRow label='Namespace name'>
+        <FormRow label='Namespace name' controlId='inject-namespace'>
           <TextField
-            aria-label='Namespace name'
+            id='inject-namespace'
             value={spec.namespace}
             onChange={(e) => update({ namespace: e.target.value })}
             placeholder='e.g. ts-1'
@@ -135,10 +135,15 @@ export function Step1Target({ spec, update }: Props) {
         </FormRow>
       )}
 
-      <FormRow label='System' description='From the chaos systems registry.'>
+      <FormRow
+        label='System'
+        description='From the chaos systems registry.'
+        controlId='inject-system'
+      >
         {systemsQuery.isError ? (
           <TextField
-            aria-label='System'
+            id='inject-system'
+            aria-describedby='inject-system-description'
             value={spec.systemCode}
             onChange={(e) => setSystem(e.target.value)}
             placeholder='system short code'
@@ -146,7 +151,7 @@ export function Step1Target({ spec, update }: Props) {
           />
         ) : (
           <Select
-            ariaLabel='System'
+            id='inject-system'
             value={spec.systemCode}
             disabled={systemsQuery.isLoading}
             placeholder={
@@ -161,9 +166,11 @@ export function Step1Target({ spec, update }: Props) {
       <FormRow
         label='System type'
         description='Optional chaos.system_type tag.'
+        controlId='inject-system-type'
       >
         <TextField
-          aria-label='System type'
+          id='inject-system-type'
+          aria-describedby='inject-system-type-description'
           value={spec.systemType}
           onChange={(e) => update({ systemType: e.target.value })}
           placeholder='e.g. ts'
@@ -172,10 +179,11 @@ export function Step1Target({ spec, update }: Props) {
 
       <SectionDivider>App</SectionDivider>
 
-      <FormRow label='App' description={appHelp}>
+      <FormRow label='App' description={appHelp} controlId='inject-app'>
         {candidatesQuery.isError || !candidatesReady ? (
           <TextField
-            aria-label='App'
+            id='inject-app'
+            aria-describedby='inject-app-description'
             value={spec.app}
             onChange={(e) => update({ app: e.target.value })}
             placeholder='deployment label'
@@ -187,7 +195,7 @@ export function Step1Target({ spec, update }: Props) {
           />
         ) : (
           <Select
-            ariaLabel='App'
+            id='inject-app'
             value={spec.app}
             disabled={candidatesQuery.isLoading}
             placeholder={
@@ -202,9 +210,11 @@ export function Step1Target({ spec, update }: Props) {
       <FormRow
         label='Container'
         description='Optional. Container, memory, CPU and time faults act on it.'
+        controlId='inject-container'
       >
         <TextField
-          aria-label='Container'
+          id='inject-container'
+          aria-describedby='inject-container-description'
           value={spec.container}
           onChange={(e) => update({ container: e.target.value })}
           placeholder='e.g. main'
@@ -214,9 +224,11 @@ export function Step1Target({ spec, update }: Props) {
       <FormRow
         label='Target service'
         description='Optional. Network faults act on traffic to it.'
+        controlId='inject-target-service'
       >
         <TextField
-          aria-label='Target service'
+          id='inject-target-service'
+          aria-describedby='inject-target-service-description'
           value={spec.targetService}
           onChange={(e) => update({ targetService: e.target.value })}
           placeholder='e.g. checkoutservice'

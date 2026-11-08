@@ -26,18 +26,19 @@ interface Props {
 }
 
 interface ControlProps {
+  id: string;
   field: ParamField;
   value: ParamValue | undefined;
   onChange: (value: ParamValue | undefined) => void;
 }
 
-function ParamControl({ field, value, onChange }: ControlProps) {
+function ParamControl({ id, field, value, onChange }: ControlProps) {
   const problem = value === undefined ? undefined : paramProblem(field, value);
   switch (field.kind) {
     case 'number':
       return field.widget === 'slider' ? (
         <Slider
-          ariaLabel={field.label}
+          id={id}
           min={field.min}
           max={field.max}
           value={typeof value === 'number' ? value : field.min}
@@ -46,7 +47,7 @@ function ParamControl({ field, value, onChange }: ControlProps) {
         />
       ) : (
         <NumberField
-          ariaLabel={field.label}
+          id={id}
           integer
           min={field.min}
           max={field.max}
@@ -59,7 +60,8 @@ function ParamControl({ field, value, onChange }: ControlProps) {
     case 'text':
       return (
         <TextField
-          aria-label={field.label}
+          id={id}
+          aria-describedby={`${id}-description`}
           value={typeof value === 'string' ? value : ''}
           placeholder={field.placeholder}
           error={problem}
@@ -69,7 +71,7 @@ function ParamControl({ field, value, onChange }: ControlProps) {
     case 'choice':
       return (
         <Select
-          ariaLabel={field.label}
+          id={id}
           value={typeof value === 'string' ? value : ''}
           placeholder={`Select ${field.label.toLowerCase()}`}
           allowClear={!field.required}
@@ -139,13 +141,16 @@ export function Step3Params({ spec, update }: Props) {
       ) : (
         def.params.map((key) => {
           const field = PARAM_FIELDS[key];
+          const id = `inject-param-${key}`;
           return (
             <FormRow
               key={key}
               label={field.label}
               description={describe(field)}
+              controlId={id}
             >
               <ParamControl
+                id={id}
                 field={field}
                 value={spec.params[key]}
                 onChange={(v) => setParam(key, v)}

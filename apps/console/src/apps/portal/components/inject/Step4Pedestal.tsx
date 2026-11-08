@@ -71,13 +71,15 @@ function ContainerPicker({
       .map((n) => ({ value: n, label: n })),
   ];
   const noun = label.toLowerCase();
+  const id = `inject-${noun}`;
 
   return (
     <>
-      <FormRow label={label} description={description}>
+      <FormRow label={label} description={description} controlId={id}>
         {list.isError ? (
           <TextField
-            aria-label={label}
+            id={id}
+            aria-describedby={`${id}-description`}
             value={choice.name}
             onChange={(e) => onChange({ name: e.target.value, version: '' })}
             placeholder={`${noun} name`}
@@ -85,7 +87,7 @@ function ContainerPicker({
           />
         ) : (
           <Select
-            ariaLabel={label}
+            id={id}
             value={choice.name}
             disabled={list.isLoading}
             placeholder={
@@ -106,9 +108,10 @@ function ContainerPicker({
             ? `Versions failed to load: ${errMsg(versions.error)}. Latest is used.`
             : 'Latest unless you pick one.'
         }
+        controlId={`${id}-version`}
       >
         <Select
-          ariaLabel={`${label} version`}
+          id={`${id}-version`}
           value={choice.version}
           disabled={chosen === undefined || versions.isLoading}
           options={versionOptions}
