@@ -6,8 +6,8 @@
 Breaking:
 
 - Remove `BucketCard`. It mirrored the blob API and had one consumer, so the
-  blob sub-app now composes its own card from `Panel`, `Chip` and
-  `MetricLabel`. Hosts that rendered `BucketCard` should do the same.
+  blob sub-app now composes its own card from `Panel`, `MonoValue`, `Chip`
+  and `StatBlock`. Hosts that rendered `BucketCard` should do the same.
 
 Additions:
 
