@@ -50,7 +50,8 @@
 }
 
 .llmh-tl__btn-turn {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-9);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }

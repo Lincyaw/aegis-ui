@@ -96,8 +96,9 @@
 
 .llmh-evt-node__turns {
   margin-left: auto;
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-9);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   max-width: 100%;
   word-break: break-all;

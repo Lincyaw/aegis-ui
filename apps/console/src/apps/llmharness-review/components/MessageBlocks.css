@@ -52,6 +52,7 @@
 
 .llmh-msg__tool--error .llmh-msg__tool-tag,
 .llmh-msg__tool--error .llmh-msg__tool-id,
+.llmh-msg__tool--error .llmh-msg__tool-size,
 .llmh-msg__tool--error .llmh-msg__tool-head::before {
   color: var(--text-muted);
 }
@@ -99,6 +100,14 @@ details[open] > .llmh-msg__tool-head::before {
 .llmh-msg__tool-id {
   color: var(--text-terminal-muted);
   font-size: var(--fs-9);
+  margin-left: auto;
+}
+
+.llmh-msg__tool-size {
+  color: var(--text-terminal-muted);
+  font-family: var(--font-numeric);
+  font-size: var(--fs-9);
+  font-variant-numeric: tabular-nums;
   margin-left: auto;
 }
 

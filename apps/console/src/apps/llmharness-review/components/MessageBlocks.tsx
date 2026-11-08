@@ -65,7 +65,7 @@ function ToolResultBlock({
         {toolCallId && (
           <span className='llmh-msg__tool-id'>{shortId(toolCallId)}</span>
         )}
-        <span className='llmh-msg__tool-id'>
+        <span className='llmh-msg__tool-size'>
           {text.length.toString()} chars
         </span>
       </summary>

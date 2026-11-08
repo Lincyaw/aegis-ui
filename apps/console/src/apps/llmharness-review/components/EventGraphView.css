@@ -50,7 +50,7 @@
 }
 
 .llmh-graph__legend-title {
-  font-family: var(--font-brand);
+  font-family: var(--font-ui);
   font-size: var(--fs-10);
   font-weight: 600;
   text-transform: uppercase;
@@ -65,7 +65,7 @@
 }
 
 .llmh-graph__legend-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   color: var(--text-muted);
   min-width: 3.5rem;
 }
@@ -94,8 +94,9 @@
   align-items: center;
   padding: var(--size-hairline) var(--space-1);
   border-radius: var(--radius-xs);
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-9);
+  font-variant-numeric: tabular-nums;
   color: var(--text-main);
   background: var(--bg-muted);
 }
@@ -115,7 +116,7 @@
   pointer-events: all;
   max-width: 14rem;
   padding: var(--space-px) var(--space-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: var(--fs-9);
   line-height: 1.35;
   color: var(--text-muted);
