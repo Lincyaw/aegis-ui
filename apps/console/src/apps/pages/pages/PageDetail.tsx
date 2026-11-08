@@ -458,13 +458,8 @@ export default function PageDetail() {
             <FileTree
               files={files}
               ariaLabel='Site files'
-              onSelect={(path) => {
-                window.open(
-                  `${shareUrl}/${encodePath(path)}`,
-                  '_blank',
-                  'noopener'
-                );
-              }}
+              fileHref={(path) => `${shareUrl}/${encodePath(path)}`}
+              fileTarget='_blank'
             />
           </div>
         )}
