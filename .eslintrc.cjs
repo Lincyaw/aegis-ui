@@ -30,12 +30,16 @@ module.exports = {
     'commitlint.config.cjs',
     '**/vite.config.ts',
     'apps/console/**',
+    '**/*.gen.ts',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: ['./packages/ui/tsconfig.json'],
+    project: [
+      './packages/ui/tsconfig.json',
+      './packages/review-api/tsconfig.json',
+    ],
     tsconfigRootDir: __dirname,
     ecmaFeatures: { jsx: true },
   },
@@ -52,7 +56,10 @@ module.exports = {
     react: { version: 'detect' },
     'import/resolver': {
       typescript: {
-        project: ['./packages/ui/tsconfig.json'],
+        project: [
+          './packages/ui/tsconfig.json',
+          './packages/review-api/tsconfig.json',
+        ],
       },
       node: true,
     },

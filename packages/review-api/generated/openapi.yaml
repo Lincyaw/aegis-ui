@@ -1,0 +1,889 @@
+openapi: 3.0.0
+info:
+  title: Aegis Review API
+  description: |-
+    Contract of the review workbench: a reviewer works through the items of a
+    task, judges each against telemetry evidence drawn as a graph, and saves a
+    verdict.
+
+    Every GET maps to one JSON file, so a folder of files is a complete,
+    read-only implementation: `GET /api/review/<path>` is served by
+    `<root>/<path>.json` (for example `GET /api/review/contexts/c1/topology` by
+    `contexts/c1/topology.json`). A writable server adds the PUT.
+
+    Evidence comes from raw telemetry only. A blind task never carries the
+    reference answer or where a candidate came from; those stay outside the
+    folder, with whoever scores the verdicts.
+
+    Times are Unix seconds.
+  version: 0.0.0
+tags: []
+paths:
+  /api/review/contexts/{contextId}/links/{linkId}/series:
+    get:
+      operationId: Contexts_getLinkSeries
+      parameters:
+        - name: contextId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+        - name: linkId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkSeries'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '405':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /api/review/contexts/{contextId}/nodes/{nodeId}:
+    get:
+      operationId: Contexts_getNode
+      parameters:
+        - name: contextId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+        - name: nodeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeDetail'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '405':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /api/review/contexts/{contextId}/topology:
+    get:
+      operationId: Contexts_getTopology
+      parameters:
+        - name: contextId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topology'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '405':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /api/review/server:
+    get:
+      operationId: getServer
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerInfo'
+  /api/review/tasks:
+    get:
+      operationId: Tasks_list
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskSummary'
+  /api/review/tasks/{taskId}:
+    get:
+      operationId: Tasks_get
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '405':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /api/review/tasks/{taskId}/items:
+    get:
+      operationId: Tasks_listItems
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '405':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /api/review/tasks/{taskId}/verdicts/{reviewer}:
+    get:
+      operationId: Tasks_listVerdicts
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+        - name: reviewer
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Verdict'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '405':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /api/review/tasks/{taskId}/verdicts/{reviewer}/{itemId}:
+    put:
+      operationId: Tasks_putVerdict
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+        - name: reviewer
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SafeId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verdict'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '405':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerdictInput'
+components:
+  schemas:
+    ClaimedLink:
+      type: object
+      required:
+        - source
+        - target
+      properties:
+        source:
+          $ref: '#/components/schemas/SafeId'
+        target:
+          $ref: '#/components/schemas/SafeId'
+      description: |-
+        A relation the item asks about, in call direction: `source` calls
+        `target`. It may have no observed link.
+    Context:
+      type: object
+      required:
+        - id
+        - title
+        - windows
+        - markers
+      properties:
+        id:
+          $ref: '#/components/schemas/SafeId'
+        title:
+          type: string
+        group:
+          type: string
+        windows:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeWindow'
+        markers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeMarker'
+        facts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fact'
+      description: One case of telemetry that items are judged against.
+    ErrorBody:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+    Fact:
+      type: object
+      required:
+        - label
+        - value
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+        kind:
+          type: string
+          enum:
+            - text
+            - mono
+            - time
+          description: '`mono` for ids and names, `time` for a Unix-seconds value in `value`.'
+      description: A labelled value shown beside an item or a context.
+    Focus:
+      type: object
+      required:
+        - nodeIds
+        - claimedLinks
+      properties:
+        nodeIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafeId'
+        claimedLinks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClaimedLink'
+      description: What the evidence graph opens on and highlights.
+    GraphLink:
+      type: object
+      required:
+        - id
+        - source
+        - target
+        - kind
+        - stats
+        - ports
+        - hasSeries
+      properties:
+        id:
+          $ref: '#/components/schemas/SafeId'
+        source:
+          $ref: '#/components/schemas/SafeId'
+        target:
+          $ref: '#/components/schemas/SafeId'
+        kind:
+          type: string
+          enum:
+            - call
+        stats:
+          $ref: '#/components/schemas/StatsPair'
+        ports:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortLink'
+        basis:
+          type: string
+          enum:
+            - spans
+            - caller-spans
+            - callee-spans
+          description: |-
+            Which spans the link's calls are. `spans` (the default): the callee's
+            spans whose parent is a caller span. `caller-spans`: the callee emits no
+            spans; the calls are the caller's spans addressed to it, matched by span
+            kind and name: producer spans for a broker, and client spans that reached
+            no traced service for a database or a cache. `callee-spans`: the caller
+            emits no spans (a message broker); the calls are the callee's consumer
+            spans that start a consumption.
+        hasSeries:
+          type: boolean
+          description: Whether `GET contexts/{c}/links/{id}/series` exists.
+      description: Calls from `source` to `target`, observed in at least one window.
+    GraphNode:
+      type: object
+      required:
+        - id
+        - label
+        - kind
+        - tags
+        - ports
+        - stats
+        - hasDetail
+      properties:
+        id:
+          $ref: '#/components/schemas/SafeId'
+        label:
+          type: string
+        kind:
+          type: string
+          description: For example `service`, `database`, `cache`, `queue`, `gateway`, `loadgen`.
+        tags:
+          type: array
+          items:
+            type: string
+          description: |-
+            For example `fault-target` for a service named in the injection,
+            `fault-peer` for the other end of an injected network or HTTP fault, and
+            `no-traces` for a component seen only in metrics or logs (a broker, a
+            database, a cache), which serves no spans.
+        ports:
+          type: array
+          items:
+            $ref: '#/components/schemas/Port'
+        stats:
+          allOf:
+            - $ref: '#/components/schemas/StatsPair'
+          description: Spans the node serves.
+        hasDetail:
+          type: boolean
+          description: Whether `GET contexts/{c}/nodes/{id}` exists.
+    GroupCount:
+      type: object
+      required:
+        - group
+        - count
+      properties:
+        group:
+          type: string
+        count:
+          type: integer
+          format: int32
+    Item:
+      type: object
+      required:
+        - id
+        - contextId
+        - title
+        - claim
+        - facts
+        - focus
+      properties:
+        id:
+          $ref: '#/components/schemas/SafeId'
+        externalId:
+          type: string
+          description: The id the item has outside this API, kept for scoring scripts.
+        contextId:
+          $ref: '#/components/schemas/SafeId'
+        group:
+          type: string
+        title:
+          type: string
+        claim:
+          type: string
+          description: The statement the reviewer judges, in one sentence.
+        facts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fact'
+        focus:
+          $ref: '#/components/schemas/Focus'
+    LinkSeries:
+      type: object
+      required:
+        - linkId
+        - bucketSeconds
+        - points
+        - ports
+      properties:
+        linkId:
+          $ref: '#/components/schemas/SafeId'
+        bucketSeconds:
+          type: integer
+          format: int32
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeriesPoint'
+        ports:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortSeries'
+      description: A link's calls in fixed buckets across both windows.
+    LogTemplateStat:
+      type: object
+      required:
+        - template
+        - normal
+        - abnormal
+      properties:
+        template:
+          type: string
+        level:
+          type: string
+        normal:
+          type: integer
+          format: int32
+        abnormal:
+          type: integer
+          format: int32
+        sample:
+          type: string
+      description: How often one log template appears in each window.
+    MetricPoint:
+      type: object
+      required:
+        - t
+        - v
+      properties:
+        t:
+          $ref: '#/components/schemas/UnixSeconds'
+        v:
+          type: number
+          format: double
+    MetricSeries:
+      type: object
+      required:
+        - name
+        - points
+      properties:
+        name:
+          type: string
+        unit:
+          type: string
+        instance:
+          type: string
+          description: The pod or container the series belongs to.
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricPoint'
+    NodeDetail:
+      type: object
+      required:
+        - nodeId
+        - metrics
+        - logs
+      properties:
+        nodeId:
+          $ref: '#/components/schemas/SafeId'
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricSeries'
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogTemplateStat'
+    Port:
+      type: object
+      required:
+        - id
+        - label
+        - role
+      properties:
+        id:
+          $ref: '#/components/schemas/SafeId'
+        label:
+          type: string
+        role:
+          type: string
+          enum:
+            - server
+            - client
+        stats:
+          $ref: '#/components/schemas/StatsPair'
+      description: 'An endpoint of a node: a span name it serves or calls out from.'
+    PortLink:
+      type: object
+      required:
+        - sourcePort
+        - targetPort
+        - stats
+      properties:
+        sourcePort:
+          $ref: '#/components/schemas/SafeId'
+        targetPort:
+          $ref: '#/components/schemas/SafeId'
+        stats:
+          $ref: '#/components/schemas/StatsPair'
+      description: The calls between one pair of ports of a link.
+    PortSeries:
+      type: object
+      required:
+        - sourcePort
+        - targetPort
+        - points
+      properties:
+        sourcePort:
+          $ref: '#/components/schemas/SafeId'
+        targetPort:
+          $ref: '#/components/schemas/SafeId'
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeriesPoint'
+    SafeId:
+      type: string
+      pattern: ^[A-Za-z0-9._-]+$
+      description: An id that is safe as one path segment and one file name.
+    SeriesPoint:
+      type: object
+      required:
+        - t
+        - calls
+        - errorRate
+      properties:
+        t:
+          $ref: '#/components/schemas/UnixSeconds'
+        calls:
+          type: integer
+          format: int32
+        errorRate:
+          type: number
+          format: double
+        p50Ms:
+          type: number
+          format: double
+        p95Ms:
+          type: number
+          format: double
+    ServerInfo:
+      type: object
+      required:
+        - name
+        - version
+        - writable
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        writable:
+          type: boolean
+          description: 'False for a static folder: verdicts cannot be saved.'
+    StatsPair:
+      type: object
+      required:
+        - normal
+        - abnormal
+      properties:
+        normal:
+          $ref: '#/components/schemas/WindowStats'
+        abnormal:
+          $ref: '#/components/schemas/WindowStats'
+      description: The same summary in the normal window and in the abnormal window.
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - itemCount
+        - verdictOptions
+      properties:
+        id:
+          $ref: '#/components/schemas/SafeId'
+        title:
+          type: string
+        description:
+          type: string
+        itemCount:
+          type: integer
+          format: int32
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupCount'
+          description: Item counts per group (for example per system).
+        instructions:
+          type: string
+          description: How to judge an item, in Markdown.
+        verdictOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/VerdictOption'
+    TaskSummary:
+      type: object
+      required:
+        - id
+        - title
+        - itemCount
+      properties:
+        id:
+          $ref: '#/components/schemas/SafeId'
+        title:
+          type: string
+        description:
+          type: string
+        itemCount:
+          type: integer
+          format: int32
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupCount'
+          description: Item counts per group (for example per system).
+    TimeMarker:
+      type: object
+      required:
+        - at
+        - label
+        - kind
+      properties:
+        at:
+          $ref: '#/components/schemas/UnixSeconds'
+        label:
+          type: string
+        kind:
+          type: string
+          enum:
+            - injection
+            - other
+    TimeWindow:
+      type: object
+      required:
+        - name
+        - start
+        - end
+      properties:
+        name:
+          type: string
+          enum:
+            - normal
+            - abnormal
+        start:
+          $ref: '#/components/schemas/UnixSeconds'
+        end:
+          $ref: '#/components/schemas/UnixSeconds'
+    Tone:
+      type: string
+      enum:
+        - positive
+        - negative
+        - neutral
+        - undecided
+      description: 'How a verdict option is coloured: `undecided` for "cannot tell".'
+    Topology:
+      type: object
+      required:
+        - context
+        - nodes
+        - links
+      properties:
+        context:
+          $ref: '#/components/schemas/Context'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphLink'
+    UnixSeconds:
+      type: integer
+      format: int64
+      description: Unix time in seconds.
+    Verdict:
+      type: object
+      required:
+        - itemId
+        - reviewer
+        - value
+        - note
+        - updatedAt
+      properties:
+        itemId:
+          $ref: '#/components/schemas/SafeId'
+        reviewer:
+          $ref: '#/components/schemas/SafeId'
+        value:
+          type: string
+        note:
+          type: string
+        updatedAt:
+          $ref: '#/components/schemas/UnixSeconds'
+    VerdictInput:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+        note:
+          type: string
+    VerdictOption:
+      type: object
+      required:
+        - value
+        - label
+        - description
+        - tone
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+          description: When to choose this option, shown beside the button.
+        tone:
+          $ref: '#/components/schemas/Tone'
+        shortcut:
+          type: string
+          description: One key that selects this option.
+      description: One answer a reviewer can give.
+    WindowStats:
+      type: object
+      required:
+        - calls
+        - errorRate
+      properties:
+        calls:
+          type: integer
+          format: int32
+        errorRate:
+          type: number
+          format: double
+          description: Share of calls that failed, from 0 to 1.
+        p50Ms:
+          type: number
+          format: double
+        p95Ms:
+          type: number
+          format: double
+      description: Summary of the calls or spans in one window.

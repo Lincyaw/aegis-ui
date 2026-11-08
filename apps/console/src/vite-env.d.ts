@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_SSO_REDIRECT_URI?: string;
   readonly VITE_SSO_SCOPE?: string;
   readonly VITE_LLMHARNESS_DEFAULT_URL?: string;
+  readonly VITE_REVIEW_API_URL?: string;
+  readonly VITE_REVIEW_API_TARGET?: string;
 }
 
 interface ImportMeta {

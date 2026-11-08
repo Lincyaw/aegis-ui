@@ -1,0 +1,45 @@
+.review-tasks__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 32rem), 1fr));
+  gap: var(--space-6);
+}
+
+.review-tasks__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.review-tasks__stats {
+  display: flex;
+  gap: var(--space-10);
+}
+
+.review-tasks__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-tasks__group {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.review-tasks__count {
+  justify-self: end;
+  font-size: var(--type-small-size);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.review-tasks__hint {
+  margin: 0;
+  font-size: var(--type-small-size);
+  color: var(--ink-warn);
+}

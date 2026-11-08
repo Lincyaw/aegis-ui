@@ -1,0 +1,23 @@
+{
+  "name": "@lincyaw/review-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeSpec contract of the review workbench: tasks, items, evidence graphs and verdicts. Served by any backend or by a folder of JSON files.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsp compile . && openapi-typescript generated/openapi.yaml -o src/openapi.gen.ts && prettier --write src/openapi.gen.ts",
+    "type-check": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@typespec/compiler": "1.17.0",
+    "@typespec/http": "1.17.0",
+    "@typespec/json-schema": "1.17.0",
+    "@typespec/openapi": "1.17.0",
+    "@typespec/openapi3": "1.17.0",
+    "openapi-typescript": "7.13.0",
+    "typescript": "^5.4.0"
+  }
+}

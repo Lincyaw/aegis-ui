@@ -13,6 +13,7 @@ import { llmharnessReviewApp } from './apps/llmharness-review';
 import { notesApp } from './apps/notes';
 import { pagesApp } from './apps/pages';
 import { portalApp } from './apps/portal';
+import { reviewApp } from './apps/review';
 import { settingsApp } from './apps/settings';
 import { trajectoriesApp } from './apps/trajectories';
 
@@ -25,6 +26,7 @@ export const registeredApps: AegisApp[] = [
   ...devOnly([containersApp, datasetsApp]),
   trajectoriesApp,
   llmharnessReviewApp,
+  reviewApp,
   blobApp,
   pagesApp,
   notesApp,

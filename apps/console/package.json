@@ -32,6 +32,7 @@
     "@hyperdx/lucene": "^3.1.1",
     "@lincyaw/aegis-ui": "workspace:*",
     "@lincyaw/portal": "^2.5.0",
+    "@lincyaw/review-api": "workspace:*",
     "@tanstack/react-query": "^5.28.0",
     "@xyflow/react": "^12.10.2",
     "antd": "^5.25.0",

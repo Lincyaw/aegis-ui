@@ -46,6 +46,8 @@ export default defineConfig(({ mode }) => {
         const target = env.VITE_API_TARGET || 'http://127.0.0.1:8082';
         const clickhouseTarget =
           env.VITE_CLICKHOUSE_TARGET || 'http://127.0.0.1:8123';
+        const reviewTarget =
+          env.VITE_REVIEW_API_TARGET || 'http://127.0.0.1:8768';
         const opts: { target: string; changeOrigin: true } = {
           target,
           changeOrigin: true,
@@ -58,6 +60,9 @@ export default defineConfig(({ mode }) => {
             changeOrigin: true,
             rewrite: (p: string) => p.replace(/^\/api\/v2\/clickhouse/, ''),
           },
+          // The review workbench's own server, so a page served over https
+          // can reach it on the same origin.
+          '/api/review': { target: reviewTarget, changeOrigin: true },
           '/api': { ...opts, ws: true },
           '/.well-known': opts,
           '/authorize': opts,

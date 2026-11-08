@@ -1,7 +1,7 @@
 // Filter out files that ESLint's `ignorePatterns` skips so lint-staged
 // doesn't fail with "File ignored because of a matching ignore pattern"
-// under `--max-warnings 0`.
-const ESLINT_IGNORED = /(?:^|\/)(vite\.config\.ts|commitlint\.config\.cjs|\.eslintrc\.cjs)$/;
+// under `--max-warnings 0`. Generated `*.gen.ts` files are not linted.
+const ESLINT_IGNORED = /(?:^|\/)(vite\.config\.ts|commitlint\.config\.cjs|\.eslintrc\.cjs|[^/]*\.gen\.ts)$/;
 // apps/console/ owns its own eslint / prettier / stylelint configs and
 // runs them via its own scripts. Root lint-staged must not touch those
 // files.
