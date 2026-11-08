@@ -9,6 +9,8 @@ import {
   useState,
 } from 'react';
 
+import { flushSync } from 'react-dom';
+
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Tooltip } from 'antd';
 
@@ -282,7 +284,10 @@ export function TimelineChart({
       );
     };
     measure();
-    const observer = new ResizeObserver(measure);
+    // Re-picks before the browser paints the new width with the old ticks.
+    const observer = new ResizeObserver(() => {
+      flushSync(measure);
+    });
     observer.observe(track);
     for (const label of measurer.children) {
       observer.observe(label);

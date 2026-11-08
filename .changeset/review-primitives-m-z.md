@@ -27,7 +27,8 @@ Breaking changes:
   axis's own font and keeps the densest 1, 2 or 5 × 10ⁿ step, at most six
   ticks, whose labels stay inside the track at least `--space-2` apart; a
   last label with no room after its tick sits before it. It picks again
-  when the track, the range or the font changes. It always draws at least
+  when the track, the range or the font changes, before the next paint, so
+  no frame shows the old ticks at a new width. It always draws at least
   two ticks and never one past the end of the range: when no whole step
   fits, it shows `0` and the largest round value that fits.
 - `UploadQueue`'s ETA reads in whole seconds, rounded up: `ETA 4 s`,
@@ -119,7 +120,9 @@ Fixes:
   where half its stroke was clipped.
 - `ProjectSelector`'s trigger content is phrasing content, valid inside the
   dropdown's button.
-- `ScrollStory` tracks the current step with `useSectionSpy`.
+- `ScrollStory` tracks the current step with `useSectionSpy`. A stacked
+  `ScrollStory`, which spies on no sections, no longer looks up an empty
+  id, which Firefox warned about.
 - The rolling digits of `StatBlock`, `MetricCard` and `HeadlineStat` no
   longer make the scroll container around them scrollable: each digit
   column is cropped with `overflow: clip`, which keeps it on the baseline.
