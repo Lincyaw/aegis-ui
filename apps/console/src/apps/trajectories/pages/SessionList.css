@@ -9,14 +9,6 @@
   gap: var(--space-px);
 }
 
-.trajectories-list__number {
-  font-family: var(--font-numeric);
-  font-size: var(--type-numeric-size);
-  line-height: var(--type-numeric-line);
-  font-weight: var(--type-numeric-weight);
-  font-variant-numeric: tabular-nums;
-}
-
 .trajectories-list__extra {
   display: flex;
   align-items: center;

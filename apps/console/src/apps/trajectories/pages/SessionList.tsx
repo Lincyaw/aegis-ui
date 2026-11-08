@@ -171,31 +171,24 @@ export function SessionList(): ReactElement {
     {
       key: 'turns',
       header: 'Turns',
-      align: 'right',
+      numeric: true,
       width: 80,
-      render: (r) => (
-        <span className='trajectories-list__number'>{r.turnCount}</span>
-      ),
+      render: (r) => r.turnCount,
     },
     {
       key: 'tools',
       header: 'Tools',
-      align: 'right',
+      numeric: true,
       width: 80,
-      render: (r) => (
-        <span className='trajectories-list__number'>{r.toolCount}</span>
-      ),
+      render: (r) => r.toolCount,
     },
     {
       key: 'tokens',
       header: 'Tokens (in / out)',
-      align: 'right',
+      numeric: true,
       width: 160,
-      render: (r) => (
-        <span className='trajectories-list__number'>
-          {formatTokens(r.inputTokens)} / {formatTokens(r.outputTokens)}
-        </span>
-      ),
+      render: (r) =>
+        `${formatTokens(r.inputTokens)} / ${formatTokens(r.outputTokens)}`,
     },
     {
       key: 'root',
