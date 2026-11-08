@@ -65,6 +65,9 @@ export function NotificationsSection() {
   const [bellLoadError, setBellLoadError] = useState<Error | null>(
     INBOX_LOAD_ERROR
   );
+  const [bellLiveError, setBellLiveError] = useState<Error | null>(
+    LIVE_UPDATES_ERROR
+  );
   const [liveError, setLiveError] = useState<Error | null>(LIVE_UPDATES_ERROR);
   const markRead = (item: AegisNotification): void => {
     setItems((prev) =>
@@ -90,14 +93,17 @@ export function NotificationsSection() {
             />
           </div>
         </Specimen>
-        <Specimen caption='liveError · live updates failing, the count stays'>
+        <Specimen caption='liveError · live updates failing, the count stays · Try again clears it'>
           <div className='gallery__notif-bell-host'>
             <NotificationBell
               items={items}
               onOpen={markRead}
               inboxPath='/inbox'
               linkComponent={GalleryRouterLink}
-              liveError={LIVE_UPDATES_ERROR}
+              liveError={bellLiveError}
+              onRetry={() => {
+                setBellLiveError(null);
+              }}
             />
           </div>
         </Specimen>

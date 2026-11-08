@@ -10,6 +10,11 @@
   gap: var(--space-3);
 }
 
+/* The list area holds focus after a retry when it has no item to take it. */
+.aegis-inbox__panel:focus-visible {
+  border-radius: var(--radius-md);
+}
+
 .aegis-inbox__stale-action {
   display: flex;
   padding-top: var(--space-2);

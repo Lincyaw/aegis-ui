@@ -25,8 +25,8 @@ New API:
   has loaded), cleared when that succeeds.
 - `NotificationBell` takes `liveError`. It draws a caution mark opposite the
   unread badge, which stays, describes the bell as possibly out of date and
-  says so at the top of its popover. `ShellNotificationBell` fills it from
-  the provider.
+  says so at the top of its popover, with a "Try again" button when
+  `onRetry` is set. `ShellNotificationBell` fills it from the provider.
 - `NotificationBell` takes `error` and `onRetry`. When the first load failed
   and there are no items, the bell draws the same caution mark and is
   described as unable to load, and its popover says the notifications
@@ -61,6 +61,10 @@ Fixes:
   "+N more" list is now a dialog of queries, each with its Pin and Delete
   buttons, instead of a menu whose rows held buttons that were not menu
   items; it stays open through a delete.
+- After a "Try again" that works, focus no longer falls to the page with the
+  button. In `NotificationBell`'s popover it moves to the first control. In
+  `InboxPage` it moves to the first item, or to the list area when the list
+  is empty.
 - `NotificationBell`'s unread badge is an inverted surface instead of anomaly
   red: an unread count is not a failure.
 - `NotificationBell`'s badge, unread count and item times, and `InboxPage`'s

@@ -43,7 +43,10 @@ export interface NotificationBellProps {
    * shown like `liveError`.
    */
   error?: Error | null;
-  /** Renders a "Try again" button where the popover says loading failed. */
+  /**
+   * Renders a "Try again" button where the popover says loading failed or
+   * the items may be out of date.
+   */
   onRetry?: () => void;
 }
 
@@ -78,13 +81,13 @@ export function NotificationBell({
     caution = `Notifications may be out of date. ${staleError.message}`;
   }
 
-  // A retry that loads the list removes the "Try again" button that had
-  // focus, which would leave the open panel without it.
+  // A retry that works removes the "Try again" button that had focus, which
+  // would leave the open panel without it.
   useEffect(() => {
     if (open && document.activeElement === document.body) {
       focusPanel();
     }
-  }, [loadError, open, focusPanel]);
+  }, [loadError, staleError, open, focusPanel]);
 
   const handleItemClick = (item: AegisNotification): void => {
     popover.close();
@@ -115,12 +118,19 @@ export function NotificationBell({
             className="aegis-notif-pop__stale-icon"
             aria-hidden
           />
-          <span>
-            <span className="aegis-notif-pop__stale-title">
-              May be out of date.
-            </span>{' '}
-            {staleError.message}
-          </span>
+          <div className="aegis-notif-pop__stale-body">
+            <span>
+              <span className="aegis-notif-pop__stale-title">
+                May be out of date.
+              </span>{' '}
+              {staleError.message}
+            </span>
+            {onRetry && (
+              <Button tone="secondary" onClick={onRetry}>
+                Try again
+              </Button>
+            )}
+          </div>
         </div>
       )}
       {loadError ? (

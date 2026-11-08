@@ -1,4 +1,11 @@
-import { type ReactElement, useMemo, useRef, useState } from 'react';
+import {
+  type MouseEvent,
+  type ReactElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   type PrimitiveSurface,
@@ -80,6 +87,27 @@ export function InboxPage({
   const loadError = items.length === 0 ? error : null;
   const staleError = liveError ?? (items.length === 0 ? null : error);
 
+  const panelRef = useRef<HTMLDivElement>(null);
+  const retryButton = useRef<HTMLButtonElement | null>(null);
+  const retry = (event: MouseEvent<HTMLButtonElement>): void => {
+    retryButton.current = event.currentTarget;
+    onRetry?.();
+  };
+  // A retry that works removes its "Try again" button, and focus with it;
+  // focus goes on to the first item, or to the list area when it is empty.
+  useEffect(() => {
+    const button = retryButton.current;
+    if (!button || button.isConnected) {
+      return;
+    }
+    retryButton.current = null;
+    if (document.activeElement !== document.body) {
+      return;
+    }
+    const panel = panelRef.current;
+    (panel?.querySelector<HTMLElement>('.aegis-inbox__row') ?? panel)?.focus();
+  }, [loadError, staleError]);
+
   return (
     <div ref={wrapRef} className="aegis-inbox" {...agentAttrs}>
       <PageHeader
@@ -114,20 +142,20 @@ export function InboxPage({
             description={loadError.message}
             action={
               onRetry && (
-                <Button tone="secondary" onClick={onRetry}>
+                <Button tone="secondary" onClick={retry}>
                   Try again
                 </Button>
               )
             }
           />
         ) : (
-          <div className="aegis-inbox__panel">
+          <div ref={panelRef} className="aegis-inbox__panel" tabIndex={-1}>
             {staleError && (
               <Alert tone="warning" title="This list may be out of date">
                 {staleError.message}
                 {onRetry && (
                   <span className="aegis-inbox__stale-action">
-                    <Button tone="secondary" onClick={onRetry}>
+                    <Button tone="secondary" onClick={retry}>
                       Try again
                     </Button>
                   </span>
