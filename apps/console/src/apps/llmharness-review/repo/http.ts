@@ -19,6 +19,7 @@ import type { CaseRepo, CaseSftBundle } from './types';
 /** Talks to `llmharness serve` on a user-configured URL. */
 export class HttpCaseRepo implements CaseRepo {
   readonly label: string;
+  readonly sharedSft = null;
   private readonly base: string;
 
   constructor(baseUrl: string, label?: string) {

@@ -18,7 +18,12 @@ import { caseSummary, parse } from '../validate';
 
 import { isEmptySft, loadBundleViaRepo } from './bundle';
 import { isNotFound } from './notFound';
-import type { CaseRepo, CaseSftBundle, SftRepo } from './types';
+import type {
+  CaseRepo,
+  CaseSftBundle,
+  SftRepo,
+  SharedSftSource,
+} from './types';
 
 const META_CONCURRENCY = 8;
 
@@ -109,6 +114,8 @@ export class BlobCaseRepo implements CaseRepo {
   readonly bucket: string;
   /** Directory prefix inside the bucket. Either empty or ends with '/'. */
   readonly prefix: string;
+  /** The `<prefix>sft/` files beside the cases. */
+  readonly sharedSft: SharedSftSource;
   private readonly reader: BlobReader;
 
   constructor(bucket: string, prefix: string) {
@@ -116,6 +123,11 @@ export class BlobCaseRepo implements CaseRepo {
     this.prefix = prefix;
     this.label = rootLabel(bucket, prefix);
     this.reader = new BlobReader(bucket);
+    const sharedDir = `${prefix}sft/`;
+    this.sharedSft = {
+      key: `blob:${bucket}/${sharedDir}`,
+      read: () => this.reader.sftDir(sharedDir),
+    };
   }
 
   private keyFor(caseId: string, suffix: string): string {
@@ -204,12 +216,6 @@ export class BlobCaseRepo implements CaseRepo {
   async loadSftForCase(caseId: string): Promise<CaseSftBundle | null> {
     const own = await this.reader.sftDir(this.keyFor(caseId, 'sft/'));
     return isEmptySft(own) ? null : own;
-  }
-
-  /** The `<prefix>sft/` files beside the cases, which hold the rows of every
-   *  case; a case without its own sft/ takes its rows from here. */
-  readSharedSft(): Promise<CaseSftBundle> {
-    return this.reader.sftDir(`${this.prefix}sft/`);
   }
 }
 

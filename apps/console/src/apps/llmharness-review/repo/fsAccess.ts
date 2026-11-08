@@ -85,6 +85,7 @@ async function readSftDir(
 
 export class FSAccessCaseRepo implements CaseRepo {
   readonly label: string;
+  readonly sharedSft = null;
   private readonly root: DirectoryHandle;
 
   constructor(root: DirectoryHandle) {

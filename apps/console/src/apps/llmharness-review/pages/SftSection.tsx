@@ -8,28 +8,40 @@ import {
   SkeletonText,
   Tabs,
 } from '@lincyaw/aegis-ui';
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
 
 import { errMsg } from '../../../api/apiClient';
 import { SftRowDetail } from '../components';
 import { llmhKeys } from '../queryKeys';
-import {
-  BlobCaseRepo,
-  type CaseRepo,
-  type CaseSftBundle,
-  sftForSession,
-} from '../repo';
+import type { CaseRepo, CaseSftBundle } from '../repo';
 import type { SftRow } from '../schemas';
 
 type SftTab = 'extractor' | 'auditor' | 'dropped';
 
 const SECTION_KEY = 'sft';
-const NO_SFT: CaseSftBundle = { extractor: [], auditor: [], dropped: [] };
 
 interface SftSectionProps {
   repo: CaseRepo;
   caseId: string;
   rootSessionId: string;
+}
+
+/** The rows of one root session out of an export that holds many, or null
+ *  when it has none. */
+function rowsOfSession(
+  sft: CaseSftBundle,
+  rootSessionId: string
+): CaseSftBundle | null {
+  const ofSession = (row: { root_session_id?: string }): boolean =>
+    row.root_session_id === rootSessionId;
+  const rows = {
+    extractor: sft.extractor.filter(ofSession),
+    auditor: sft.auditor.filter(ofSession),
+    dropped: sft.dropped.filter(ofSession),
+  };
+  return rows.extractor.length + rows.auditor.length + rows.dropped.length > 0
+    ? rows
+    : null;
 }
 
 function SftRows({ sft }: { sft: CaseSftBundle }): ReactElement {
@@ -94,39 +106,33 @@ function SftRows({ sft }: { sft: CaseSftBundle }): ReactElement {
   );
 }
 
-/** The case's SFT export, read the first time the section is opened. */
+/** The case's SFT export, read the first time the section is opened: the
+ *  case's own rows, or else its rows in the source's shared export. */
 export function SftSection({
   repo,
   caseId,
   rootSessionId,
 }: SftSectionProps): ReactElement {
   const [open, setOpen] = useState<string[]>([]);
-  const sectionOpen = open.includes(SECTION_KEY);
   const own = useQuery({
     queryKey: llmhKeys.caseSft(repo, caseId),
     queryFn: () => repo.loadSftForCase(caseId),
-    enabled: sectionOpen,
+    enabled: open.includes(SECTION_KEY),
     retry: false,
   });
-  const blobRoot = repo instanceof BlobCaseRepo ? repo : null;
-  const needsShared = blobRoot !== null && own.data === null;
+  const sharedSource = own.data === null ? repo.sharedSft : null;
   const shared = useQuery({
-    queryKey: llmhKeys.sharedSft(
-      blobRoot?.bucket ?? '',
-      blobRoot?.prefix ?? ''
-    ),
-    queryFn: () =>
-      blobRoot ? blobRoot.readSharedSft() : Promise.resolve(NO_SFT),
-    enabled: sectionOpen && needsShared,
+    queryKey: llmhKeys.sharedSft(sharedSource?.key ?? null),
+    queryFn: sharedSource ? () => sharedSource.read() : skipToken,
     retry: false,
   });
-  const sft =
-    own.data ??
-    (needsShared && shared.data
-      ? sftForSession(shared.data, rootSessionId)
-      : null);
-  const error = own.error ?? (needsShared ? shared.error : null);
-  const pending = own.isPending || (needsShared && shared.isPending);
+  const sft = sharedSource
+    ? shared.data
+      ? rowsOfSession(shared.data, rootSessionId)
+      : null
+    : (own.data ?? null);
+  const error = own.error ?? (sharedSource ? shared.error : null);
+  const pending = own.isPending || (sharedSource !== null && shared.isPending);
   const counts =
     sft !== null
       ? `${sft.extractor.length.toString()} ext · ${sft.auditor.length.toString()} aud · ${sft.dropped.length.toString()} dropped`

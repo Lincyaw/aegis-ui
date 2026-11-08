@@ -18,6 +18,17 @@ export interface CaseSftBundle {
 }
 
 /**
+ * An SFT export kept beside the cases instead of inside each one, holding
+ * the rows of every case. A case without its own SFT shows the rows whose
+ * `root_session_id` is its root session.
+ */
+export interface SharedSftSource {
+  /** Names the export; sources with the same key read the same files. */
+  readonly key: string;
+  read(): Promise<CaseSftBundle>;
+}
+
+/**
  * Read-only access to a `cases/` root. Paths are relative to the case
  * directory; reads are lazy and return plain data, so UI state stays in the
  * pages. Every file is checked against its schema as it is read, and a file
@@ -47,6 +58,8 @@ export interface CaseRepo {
   loadBundle(caseId: string): Promise<CaseBundle>;
   /** The case's own SFT rows, or `null` when this source has none for it. */
   loadSftForCase(caseId: string): Promise<CaseSftBundle | null>;
+  /** The export shared by the source's cases, or `null` when it has none. */
+  readonly sharedSft: SharedSftSource | null;
 }
 
 /** A sibling `sft/` directory holding extractor / auditor / dropped JSONL. */

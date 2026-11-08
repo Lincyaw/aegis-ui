@@ -16,22 +16,6 @@ export function isEmptySft(sft: CaseSftBundle): boolean {
   );
 }
 
-/** The rows of one root session out of an SFT export holding many, or
- *  null when it has none. */
-export function sftForSession(
-  sft: CaseSftBundle,
-  rootSessionId: string
-): CaseSftBundle | null {
-  const forSession = (row: { root_session_id?: string }): boolean =>
-    row.root_session_id === rootSessionId;
-  const own = {
-    extractor: sft.extractor.filter(forSession),
-    auditor: sft.auditor.filter(forSession),
-    dropped: sft.dropped.filter(forSession),
-  };
-  return isEmptySft(own) ? null : own;
-}
-
 /** Firing files named `<seq>_turn_<turn>.json`, with their sequence. */
 function firingFiles(names: string[]): Array<{ file: string; seq: number }> {
   const out: Array<{ file: string; seq: number }> = [];
