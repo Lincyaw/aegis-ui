@@ -157,4 +157,11 @@
   .aegis-carousel__tabs {
     gap: var(--space-3);
   }
+
+  /* A phone row is too narrow for every label on one line, so the tabs
+   * take two columns and a label breaks between its words. */
+  .aegis-carousel__tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
