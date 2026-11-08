@@ -109,7 +109,6 @@ export class BlobCaseRepo implements CaseRepo {
   /** Directory prefix inside the bucket. Either empty or ends with '/'. */
   readonly prefix: string;
   private readonly reader: BlobReader;
-  private sharedSft: Promise<CaseSftBundle> | null = null;
 
   constructor(bucket: string, prefix: string) {
     this.bucket = bucket;
@@ -201,38 +200,15 @@ export class BlobCaseRepo implements CaseRepo {
     return loadBundleViaRepo(this, caseId);
   }
 
-  /** The shared `<prefix>sft/` files hold every case's rows; they are read
-   *  once per repo and filtered per case. */
-  private loadSharedSft(): Promise<CaseSftBundle> {
-    if (!this.sharedSft) {
-      const pending = this.reader.sftDir(`${this.prefix}sft/`);
-      this.sharedSft = pending;
-      void pending.catch(() => {
-        if (this.sharedSft === pending) {
-          this.sharedSft = null;
-        }
-      });
-    }
-    return this.sharedSft;
+  async loadSftForCase(caseId: string): Promise<CaseSftBundle | null> {
+    const own = await this.reader.sftDir(this.keyFor(caseId, 'sft/'));
+    return isEmptySft(own) ? null : own;
   }
 
-  async loadSftForCase(
-    caseId: string,
-    rootSessionId: string
-  ): Promise<CaseSftBundle | null> {
-    const own = await this.reader.sftDir(this.keyFor(caseId, 'sft/'));
-    if (!isEmptySft(own)) {
-      return own;
-    }
-    const shared = await this.loadSharedSft();
-    const forCase = (row: { root_session_id?: string }): boolean =>
-      row.root_session_id === rootSessionId;
-    const sft = {
-      extractor: shared.extractor.filter(forCase),
-      auditor: shared.auditor.filter(forCase),
-      dropped: shared.dropped.filter(forCase),
-    };
-    return isEmptySft(sft) ? null : sft;
+  /** The `<prefix>sft/` files beside the cases, which hold the rows of every
+   *  case; a case without its own sft/ takes its rows from here. */
+  readSharedSft(): Promise<CaseSftBundle> {
+    return this.reader.sftDir(`${this.prefix}sft/`);
   }
 }
 
@@ -260,7 +236,8 @@ export class BlobSftRepo implements SftRepo {
 let blobCaseRepo: BlobCaseRepo | null = null;
 
 /** The configured blob cases root, or null when none is set. The repo is
- *  kept while the root stays the same, so what it caches outlives a page. */
+ *  kept while the root stays the same, so the queries keyed on it keep
+ *  their cached rows from one page to the next. */
 export function probeBlobCaseRepo(): BlobCaseRepo | null {
   const root = casesBlobRoot.get();
   if (!root) {

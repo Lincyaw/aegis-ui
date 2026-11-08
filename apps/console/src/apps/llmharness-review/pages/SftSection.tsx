@@ -13,12 +13,18 @@ import { useQuery } from '@tanstack/react-query';
 import { errMsg } from '../../../api/apiClient';
 import { SftRowDetail } from '../components';
 import { llmhKeys } from '../queries';
-import type { CaseRepo, CaseSftBundle } from '../repo';
+import {
+  BlobCaseRepo,
+  type CaseRepo,
+  type CaseSftBundle,
+  sftForSession,
+} from '../repo';
 import type { SftRow } from '../schemas';
 
 type SftTab = 'extractor' | 'auditor' | 'dropped';
 
 const SECTION_KEY = 'sft';
+const NO_SFT: CaseSftBundle = { extractor: [], auditor: [], dropped: [] };
 
 interface SftSectionProps {
   repo: CaseRepo;
@@ -95,13 +101,32 @@ export function SftSection({
   rootSessionId,
 }: SftSectionProps): ReactElement {
   const [open, setOpen] = useState<string[]>([]);
-  const load = useQuery({
+  const sectionOpen = open.includes(SECTION_KEY);
+  const own = useQuery({
     queryKey: llmhKeys.caseSft(repo, caseId),
-    queryFn: () => repo.loadSftForCase(caseId, rootSessionId),
-    enabled: open.includes(SECTION_KEY),
+    queryFn: () => repo.loadSftForCase(caseId),
+    enabled: sectionOpen,
     retry: false,
   });
-  const sft = load.data ?? null;
+  const blobRoot = repo instanceof BlobCaseRepo ? repo : null;
+  const needsShared = blobRoot !== null && own.data === null;
+  const shared = useQuery({
+    queryKey: llmhKeys.sharedSft(
+      blobRoot?.bucket ?? '',
+      blobRoot?.prefix ?? ''
+    ),
+    queryFn: () =>
+      blobRoot ? blobRoot.readSharedSft() : Promise.resolve(NO_SFT),
+    enabled: sectionOpen && needsShared,
+    retry: false,
+  });
+  const sft =
+    own.data ??
+    (needsShared && shared.data
+      ? sftForSession(shared.data, rootSessionId)
+      : null);
+  const error = own.error ?? (needsShared ? shared.error : null);
+  const pending = own.isPending || (needsShared && shared.isPending);
   const counts =
     sft !== null
       ? `${sft.extractor.length.toString()} ext · ${sft.auditor.length.toString()} aud · ${sft.dropped.length.toString()} dropped`
@@ -121,13 +146,13 @@ export function SftSection({
                 <MetricLabel size='xs'>{counts}</MetricLabel>
               </span>
             ),
-            children: load.isError ? (
+            children: error ? (
               <ErrorState
                 size='compact'
                 title='Failed to load SFT'
-                description={errMsg(load.error)}
+                description={errMsg(error)}
               />
-            ) : load.isPending ? (
+            ) : pending ? (
               <SkeletonText lines={3} />
             ) : sft === null ? (
               <EmptyState

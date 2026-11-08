@@ -9,6 +9,7 @@ export {
   probeBlobCaseRepo,
   probeBlobSftRepo,
 } from './blob';
+export { sftForSession } from './bundle';
 export { FSAccessCaseRepo, FSAccessSftRepo } from './fsAccess';
 export {
   clearStoredRoot,

@@ -45,11 +45,8 @@ export interface CaseRepo {
   /** Meta, main turns, firings and graph snapshots with the cross-pane link
    *  index. SFT is excluded; pages load it lazily. */
   loadBundle(caseId: string): Promise<CaseBundle>;
-  /** The case's SFT rows, or `null` when this source has none for it. */
-  loadSftForCase(
-    caseId: string,
-    rootSessionId: string
-  ): Promise<CaseSftBundle | null>;
+  /** The case's own SFT rows, or `null` when this source has none for it. */
+  loadSftForCase(caseId: string): Promise<CaseSftBundle | null>;
 }
 
 /** A sibling `sft/` directory holding extractor / auditor / dropped JSONL. */

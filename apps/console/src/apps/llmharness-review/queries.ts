@@ -25,6 +25,8 @@ export const llmhKeys = {
     ['llmharness', 'sft', sourceId(source)] as const,
   caseSft: (source: object, caseId: string) =>
     ['llmharness', 'case-sft', sourceId(source), caseId] as const,
+  sharedSft: (bucket: string, prefix: string) =>
+    ['llmharness', 'shared-sft', bucket, prefix] as const,
   caseBundle: (caseId: string) =>
     ['llmharness', 'case-bundle', caseId] as const,
 };
