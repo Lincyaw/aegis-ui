@@ -61,7 +61,7 @@ export function PickerField({
   const nameId = labelledBy ?? (label !== undefined ? labelId : undefined);
   const cls = ['aegis-picker-field', className ?? ''].filter(Boolean).join(' ');
   return (
-    <div className={cls}>
+    <div className={cls} data-aegis-field>
       {label !== undefined && (
         <span id={labelId} className="aegis-picker-field__label">
           {label}

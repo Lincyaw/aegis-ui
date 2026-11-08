@@ -58,7 +58,7 @@ export function Select({
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={cls}>
+    <div className={cls} data-aegis-field>
       {label !== undefined && (
         <label className="aegis-select__label" htmlFor={selectId}>
           {label}

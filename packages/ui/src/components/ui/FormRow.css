@@ -50,11 +50,10 @@
     max-width: none;
   }
 
-  /* Fields that size to their content elsewhere, such as in a toolbar,
-   * fill a stacked row like the text fields beside them. */
-  .aegis-form-row__control > .aegis-select,
-  .aegis-form-row__control > .aegis-picker-field {
-    display: flex;
+  /* A field marks its root with data-aegis-field and fills a stacked row,
+   * even one that sizes to its content elsewhere, such as a Select in a
+   * toolbar. Unmarked controls, such as a checkbox, keep their width. */
+  .aegis-form-row__control > [data-aegis-field] {
     width: 100%;
   }
 }

@@ -353,7 +353,7 @@ export function QueryAutocomplete({
   const cls = ['aegis-query-ac', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div className={cls}>
+    <div className={cls} data-aegis-field>
       <Popover
         content={dropdown}
         open={open}

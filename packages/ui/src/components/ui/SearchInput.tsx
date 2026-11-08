@@ -45,7 +45,7 @@ export function SearchInput({
     .join(' ');
 
   return (
-    <div className={cls}>
+    <div className={cls} data-aegis-field>
       <SearchOutlined className="aegis-search-input__icon" aria-hidden />
       <input
         type="text"

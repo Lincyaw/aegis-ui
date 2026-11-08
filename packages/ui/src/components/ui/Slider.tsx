@@ -51,7 +51,7 @@ export function Slider({
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={cls}>
+    <div className={cls} data-aegis-field>
       <div className="aegis-slider__head">
         {label !== undefined && (
           <label htmlFor={inputId} className="aegis-slider__label">

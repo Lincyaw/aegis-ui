@@ -355,7 +355,13 @@ export function CodeEditor({
   };
 
   return (
-    <div ref={wrapRef} className={rootClass} style={rootStyle} {...agentAttrs}>
+    <div
+      ref={wrapRef}
+      className={rootClass}
+      style={rootStyle}
+      data-aegis-field
+      {...agentAttrs}
+    >
       <CodeMirror
         value={value}
         height="100%"
