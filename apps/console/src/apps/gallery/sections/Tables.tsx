@@ -184,10 +184,11 @@ function DataTableMatrixSpecimen(): ReactNode {
         />
       </Specimen>
       <Specimen
-        caption='stale · selectable · the selection column sticks too'
+        caption='stale · selectable · the selection column sticks too · ariaLabel names the table, header cells are column headers (scope="col") and a selected row is aria-selected'
         span={3}
       >
         <DataTable
+          ariaLabel='Pass rate by task and model'
           stale
           stickyFirstColumn
           selectable
@@ -238,7 +239,29 @@ function DataTableRowClickSpecimen(): ReactNode {
           }}
         />
       </Specimen>
+      <DataTableCurrentRowSpecimen />
     </div>
+  );
+}
+
+function DataTableCurrentRowSpecimen(): ReactNode {
+  const [current, setCurrent] = useState(GALLERY_MODEL_ROWS[1].model);
+  return (
+    <Specimen
+      caption={`selectedKeys without selectable · the row whose details show beside the table is aria-selected and drawn selected, with no checkbox column · onRowClick picks it · current: ${current}`}
+      span={3}
+    >
+      <DataTable
+        ariaLabel='Models'
+        columns={GALLERY_MODEL_COLUMNS.slice(0, 3)}
+        data={GALLERY_MODEL_ROWS}
+        rowKey={(row) => row.model}
+        selectedKeys={[current]}
+        onRowClick={(row) => {
+          setCurrent(row.model);
+        }}
+      />
+    </Specimen>
   );
 }
 
@@ -470,7 +493,10 @@ function DataTableMobileCardSpecimen(): ReactNode {
           }}
         />
       </Specimen>
-      <Specimen caption='renderMobileCard · loading' span={2}>
+      <Specimen
+        caption='renderMobileCard · loading · the table is aria-busy'
+        span={2}
+      >
         <DataTable
           columns={GALLERY_MODEL_COLUMNS}
           data={[]}
@@ -479,7 +505,10 @@ function DataTableMobileCardSpecimen(): ReactNode {
           loading
         />
       </Specimen>
-      <Specimen caption='renderMobileCard · empty' span={2}>
+      <Specimen
+        caption='renderMobileCard · empty · the empty state is not a table row'
+        span={2}
+      >
         <DataTable
           columns={GALLERY_MODEL_COLUMNS}
           data={[]}

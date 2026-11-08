@@ -21,9 +21,15 @@ export const GalleryRouterLink: LinkComponent = ({
   to,
   className,
   'aria-current': ariaCurrent,
+  tabIndex,
   children,
 }) => (
-  <RouterLink to={to} className={className} aria-current={ariaCurrent}>
+  <RouterLink
+    to={to}
+    className={className}
+    aria-current={ariaCurrent}
+    tabIndex={tabIndex}
+  >
     {children}
   </RouterLink>
 );

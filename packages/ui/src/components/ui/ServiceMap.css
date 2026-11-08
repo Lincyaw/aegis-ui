@@ -13,6 +13,19 @@
   color: var(--text-main);
 }
 
+/* A page whose main view is the map; touch screens keep the default height
+ * so the page still scrolls past it. */
+@media (min-width: 769px) {
+  .aegis-service-map--fill-viewport {
+    height: var(--service-map-viewport-height);
+  }
+}
+
+.aegis-service-map__pane {
+  position: absolute;
+  inset: 0;
+}
+
 .aegis-service-map .react-flow__attribution {
   display: none;
 }
@@ -34,7 +47,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  width: var(--aegis-service-map-node-w);
+  width: max-content;
+  min-width: var(--aegis-service-map-node-w);
+  max-width: var(--aegis-service-map-node-max-w);
   min-height: var(--aegis-service-map-node-h);
   padding: var(--space-2) var(--space-3) var(--space-2) var(--space-3);
   background: var(--bg-panel);
@@ -79,6 +94,10 @@
   background: var(--accent-warning);
 }
 
+.aegis-service-map__node--active .aegis-service-map__node-stripe {
+  background: var(--bg-inverted);
+}
+
 .aegis-service-map__node--muted .aegis-service-map__node-stripe {
   background: var(--text-muted);
 }
@@ -97,12 +116,19 @@
 }
 
 .aegis-service-map__node-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   font-weight: var(--fw-semibold);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+/* The node widens with its label up to its max width, then the label wraps. */
+.aegis-service-map__node-label-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .aegis-service-map__node-sublabel {
@@ -147,6 +173,34 @@
 .aegis-service-map__handle {
   opacity: 0;
   pointer-events: none;
+}
+
+/* ── Groups ───────────────────────────────────────────────────── */
+.aegis-service-map__group {
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--space-3);
+  border: var(--size-hairline) dashed var(--border-emphasis);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-muted) 40%, transparent);
+  pointer-events: none;
+}
+
+/* One line, centred in the band above the nodes; a long label is cut off. */
+.aegis-service-map__group-label {
+  display: block;
+  overflow: hidden;
+  padding-block: calc(
+    (var(--aegis-service-map-group-label-h) - var(--type-label-line)) / 2
+  );
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-ui);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  color: var(--text-muted);
 }
 
 /* ── Edges ────────────────────────────────────────────────────── */
@@ -211,12 +265,14 @@
   border-radius: var(--radius-sm);
 }
 
-.aegis-service-map .react-flow__background {
-  background: var(--bg-page);
+/* A group's box is an outline, so the nodes inside it stay visible. */
+.aegis-service-map .react-flow__minimap-node.aegis-service-map__minimap-group {
+  fill: none;
+  stroke: var(--border-emphasis);
+  stroke-width: var(--size-hairline);
+  vector-effect: non-scaling-stroke;
 }
 
-@media (max-width: 768px) {
-  .aegis-service-map .react-flow__minimap {
-    display: none;
-  }
+.aegis-service-map .react-flow__background {
+  background: var(--bg-page);
 }

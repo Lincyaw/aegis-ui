@@ -14,6 +14,7 @@ import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import './Tabs.css';
+import { DefaultLink, type LinkComponent } from './linkComponent';
 import { tablistKeyTarget } from './tablistKeyboard';
 
 export interface TabItem {
@@ -33,19 +34,36 @@ export interface TabItem {
   action?: AegisAction<void, unknown>;
 }
 
+/**
+ * A tab that is a link to a page. Tabs given links render a `nav` of links
+ * that look like tabs, each one a tab stop. The link a controlled
+ * `activeKey` names is `aria-current="page"`; without `activeKey` none is.
+ */
+export interface TabLink {
+  key: string;
+  label: ReactNode;
+  to: string;
+}
+
 interface TabsProps {
-  items: TabItem[];
+  /** The tabs, or the links of tabs that are pages; a list is one or the other. */
+  items: TabItem[] | TabLink[];
   activeKey?: string;
   defaultActiveKey?: string;
   onChange?: (key: string) => void;
   children?: ReactNode;
   /**
    * Renders the tab list without a tabpanel, for tabs that switch a view
-   * rendered elsewhere (site navigation, a toolbar view switch).
+   * rendered elsewhere, e.g. a toolbar view switch.
    */
   listOnly?: boolean;
-  /** The tab list's accessible name, when no visible heading names it. */
+  /**
+   * The tab list's accessible name, or with links the `nav`'s, when no
+   * visible heading names it.
+   */
   ariaLabel?: string;
+  /** Renders the `TabLink`s. Defaults to an `<a href>`; routed apps pass their Link adapter. */
+  linkComponent?: LinkComponent;
   /**
    * With `listOnly`, the id of the `role="tabpanel"` element that shows the
    * selected tab's content; the selected tab names it in `aria-controls`.
@@ -73,8 +91,12 @@ interface TabsIndicator extends TabBox {
   travel: TabsIndicatorTravel;
 }
 
+function isTabLinks(items: TabItem[] | TabLink[]): items is TabLink[] {
+  return items.some((item) => 'to' in item);
+}
+
 function findSelectedTab(list: HTMLElement): HTMLElement | null {
-  return list.querySelector<HTMLElement>(':scope > [aria-selected="true"]');
+  return list.querySelector<HTMLElement>(':scope > .aegis-tabs__tab--active');
 }
 
 function measureSelectedTab(list: HTMLElement): TabBox | null {
@@ -102,6 +124,10 @@ function isSameTabBox(a: TabBox | null, b: TabBox | null): boolean {
   );
 }
 
+function tabClass(active: boolean): string {
+  return active ? 'aegis-tabs__tab aegis-tabs__tab--active' : 'aegis-tabs__tab';
+}
+
 function scrollSelectedTabIntoView(list: HTMLElement): void {
   const tab = findSelectedTab(list);
   if (!tab) {
@@ -125,6 +151,7 @@ export function Tabs({
   children,
   listOnly = false,
   ariaLabel,
+  linkComponent: Link = DefaultLink,
   panelId,
   size = 'md',
   className,
@@ -133,33 +160,40 @@ export function Tabs({
   const tabId = (index: number): string => `${baseId}-tab-${String(index)}`;
   const ownPanelId = `${baseId}-panel`;
   const controlledPanelId = listOnly ? panelId : ownPanelId;
+  const entries: ReadonlyArray<TabItem | TabLink> = items;
+  const linked = isTabLinks(items);
   const [internalKey, setInternalKey] = useState(
-    defaultActiveKey ?? items[0]?.key,
+    defaultActiveKey ?? entries[0]?.key,
   );
   const activeKey = controlledKey ?? internalKey;
   const listRef = useRef<HTMLDivElement>(null);
   const placedKeyRef = useRef<string | undefined>(undefined);
   const [indicator, setIndicator] = useState<TabsIndicator | null>(null);
   const [focusedKey, setFocusedKey] = useState<string | null>(null);
-  const itemKeys = items.map((item) => item.key).join('\n');
+  const itemKeys = entries.map((item) => item.key).join('\n');
 
-  // Arrows, Home and End move between all the tabs and select the enabled
-  // ones. The list has one tab stop: the focused tab while focus is in the
-  // list, so Tab and Shift+Tab leave it from a disabled tab too; otherwise
-  // the selected tab, or the first enabled one when none is selected.
-  const activeIndex = items.findIndex(
-    (item) => item.key === activeKey && item.disabled !== true,
-  );
-  const focusedIndex = items.findIndex((item) => item.key === focusedKey);
+  // A link is current only when a controlled activeKey names it. Arrows,
+  // Home and End move between all the tabs and select the enabled ones. The
+  // list has one tab stop: the focused tab while focus is in the list, so
+  // Tab and Shift+Tab leave it from a disabled tab too; otherwise the
+  // selected tab, or the first enabled one when none is selected.
+  const activeIndex = linked
+    ? items.findIndex((item) => item.key === controlledKey)
+    : items.findIndex(
+        (item) => item.key === activeKey && item.disabled !== true,
+      );
+  const focusedIndex = entries.findIndex((item) => item.key === focusedKey);
   const tabStopIndex =
     focusedIndex >= 0
       ? focusedIndex
       : activeIndex >= 0
         ? activeIndex
-        : Math.max(
-            items.findIndex((item) => item.disabled !== true),
-            0,
-          );
+        : linked
+          ? 0
+          : Math.max(
+              items.findIndex((item) => item.disabled !== true),
+              0,
+            );
 
   useIsomorphicLayoutEffect(() => {
     const list = listRef.current;
@@ -207,7 +241,7 @@ export function Tabs({
       });
     });
     observer.observe(list);
-    for (const tab of list.querySelectorAll(':scope > [role="tab"]')) {
+    for (const tab of list.querySelectorAll(':scope > .aegis-tabs__tab')) {
       observer.observe(tab);
     }
     return () => {
@@ -226,7 +260,7 @@ export function Tabs({
     event: KeyboardEvent<HTMLButtonElement>,
     index: number,
   ): void => {
-    const target = tablistKeyTarget(event.key, index, items.length);
+    const target = tablistKeyTarget(event.key, index, entries.length);
     if (target === null) {
       return;
     }
@@ -248,49 +282,68 @@ export function Tabs({
     .filter(Boolean)
     .join(' ');
 
-  return (
-    <div className={cls}>
-      <div
-        ref={listRef}
-        className="aegis-tabs__list"
-        role="tablist"
-        aria-label={ariaLabel}
-        onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) {
-            setFocusedKey(null);
+  const list = (
+    <div
+      ref={listRef}
+      className="aegis-tabs__list"
+      role={linked ? undefined : 'tablist'}
+      aria-label={linked ? undefined : ariaLabel}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setFocusedKey(null);
+        }
+      }}
+    >
+      {indicator ? (
+        <span
+          aria-hidden="true"
+          className={
+            indicator.travel === 'none'
+              ? 'aegis-tabs__indicator'
+              : `aegis-tabs__indicator aegis-tabs__indicator--${indicator.travel}`
           }
-        }}
-      >
-        {indicator ? (
-          <span
-            aria-hidden="true"
-            className={
-              indicator.travel === 'none'
-                ? 'aegis-tabs__indicator'
-                : `aegis-tabs__indicator aegis-tabs__indicator--${indicator.travel}`
-            }
-            style={{
-              left: indicator.left,
-              right: indicator.right,
-              top: indicator.top,
-              height: indicator.height,
-            }}
-          />
-        ) : null}
-        {items.map((item, index) => (
-          <TabsTab
-            key={item.key}
-            id={tabId(index)}
-            item={item}
-            active={index === activeIndex}
-            controls={index === activeIndex ? controlledPanelId : undefined}
-            tabStop={index === tabStopIndex}
-            onActivate={() => handleClick(item.key)}
-            onFocus={() => setFocusedKey(item.key)}
-            onKeyDown={(event) => handleTabKeyDown(event, index)}
-          />
-        ))}
-      </div>
+          style={{
+            left: indicator.left,
+            right: indicator.right,
+            top: indicator.top,
+            height: indicator.height,
+          }}
+        />
+      ) : null}
+      {linked
+        ? items.map((item, index) => (
+            <Link
+              key={item.key}
+              to={item.to}
+              className={tabClass(index === activeIndex)}
+              aria-current={index === activeIndex ? 'page' : undefined}
+            >
+              {item.label}
+            </Link>
+          ))
+        : items.map((item, index) => (
+            <TabsTab
+              key={item.key}
+              id={tabId(index)}
+              item={item}
+              active={index === activeIndex}
+              controls={index === activeIndex ? controlledPanelId : undefined}
+              tabStop={index === tabStopIndex}
+              onActivate={() => handleClick(item.key)}
+              onFocus={() => setFocusedKey(item.key)}
+              onKeyDown={(event) => handleTabKeyDown(event, index)}
+            />
+          ))}
+    </div>
+  );
+
+  return linked ? (
+    <nav className={cls} aria-label={ariaLabel}>
+      {list}
+    </nav>
+  ) : (
+    <div className={cls}>
+      {list}
       {listOnly ? null : (
         <div
           id={ownPanelId}
@@ -345,9 +398,7 @@ function TabsTab({
       aria-controls={controls}
       aria-disabled={item.disabled === true ? true : undefined}
       tabIndex={tabStop ? 0 : -1}
-      className={
-        active ? 'aegis-tabs__tab aegis-tabs__tab--active' : 'aegis-tabs__tab'
-      }
+      className={tabClass(active)}
       onClick={handleClick}
       onFocus={onFocus}
       onKeyDown={onKeyDown}

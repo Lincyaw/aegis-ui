@@ -29,6 +29,8 @@ export interface AegisStrings {
   hideSidebar: string;
   selectRow: string;
   selectAllRows: string;
+  /** Tells assistive technology that a CommitGraph row is a merge. */
+  mergeCommit: string;
   previousPage: string;
   nextPage: string;
   rowsPerPage: string;
@@ -416,6 +418,7 @@ export const enStrings: AegisStrings = {
   hideSidebar: 'Hide sidebar',
   selectRow: 'Select row',
   selectAllRows: 'Select all rows',
+  mergeCommit: 'Merge commit',
   previousPage: 'Previous page',
   nextPage: 'Next page',
   rowsPerPage: 'Rows per page',
@@ -805,6 +808,7 @@ export const zhCNStrings: AegisStrings = {
   hideSidebar: '隐藏侧边导航',
   selectRow: '选择此行',
   selectAllRows: '选择全部行',
+  mergeCommit: '合并提交',
   previousPage: '上一页',
   nextPage: '下一页',
   rowsPerPage: '每页',

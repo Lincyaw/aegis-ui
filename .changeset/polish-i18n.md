@@ -41,10 +41,9 @@ Breaking:
   - `ServiceMap`'s controls read `Zoom in`, `Zoom out`, `Fit to view`,
     `Map controls` and `Mini map` instead of React Flow's `Zoom In`,
     `Zoom Out`, `Fit View`, `Control Panel` and `Mini Map`. An edge is
-    named by its services' labels, `gateway to auth-service`, instead of
-    `Edge from gateway to auth` by their ids, and a node or edge is
-    described as a `service` or a `connection` instead of a `node` or an
-    `edge`.
+    named `gateway to auth-service` instead of `gateway → auth-service`,
+    and a node or edge is described as a `service` or a `connection`
+    instead of a `node` or an `edge`.
   - `ObjectBrowser`'s selection reads `2 selected` instead of `2 Selected`.
   - `SavedQueryBar`'s chip menu button is named `More actions for <name>`,
     like the other row menus, instead of `Options for <name>`.
@@ -129,7 +128,9 @@ Fixes:
   does. Nodes can be focused, clicked and selected only when
   `onNodeClick` is passed, and edges only when `onEdgeClick` is; without
   the handler they carry no keyboard help. A focused node or edge shows
-  the focus ring, and the `selectedNodeId` node is `aria-current`.
+  the focus ring. A node in a group is described by the group's label, and
+  a group's box, which cannot be focused, no longer points at the keyboard
+  help.
 - The zh-CN empty states share one form (`暂无条目`, `暂无上传任务`,
   `暂无属性`), and the resize handles one wording (`调整…宽度`).
 - `Carousel` balances a tab label that wraps, so a four-character Chinese

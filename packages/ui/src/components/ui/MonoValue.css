@@ -35,3 +35,7 @@
 .aegis-mono--inverted {
   color: var(--text-on-inverted);
 }
+
+.aegis-mono--wrap {
+  overflow-wrap: anywhere;
+}

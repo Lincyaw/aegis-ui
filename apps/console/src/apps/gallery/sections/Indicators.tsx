@@ -757,6 +757,17 @@ export function IndicatorsSection() {
         </div>
       ))}
       <div className='gallery__row'>
+        <Specimen caption='inverted — on a --bg-inverted surface such as a selected row: default, ink and ghost take the inverted ink, the tinted tones keep theirs'>
+          <div className='gallery__inverted-host gallery__specimen-row'>
+            {CHIP_TONES.map((tone) => (
+              <Chip key={tone} tone={tone} inverted>
+                {CHIP_TONE_LABELS[tone]}
+              </Chip>
+            ))}
+          </div>
+        </Specimen>
+      </div>
+      <div className='gallery__row'>
         <Specimen caption='leading dot'>
           <Chip size='md' leading={<StatusDot pulse size={6} />}>
             运行中

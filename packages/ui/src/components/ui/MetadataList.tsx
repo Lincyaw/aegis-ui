@@ -18,6 +18,12 @@ export interface MetadataEntry {
 
 export interface MetadataListProps {
   entries: MetadataEntry[];
+  /**
+   * Wrap long values onto further lines instead of cutting them off with an
+   * ellipsis. Line breaks in a string value are kept, and mono values break
+   * at any character.
+   */
+  wrap?: boolean;
   className?: string;
 }
 
@@ -46,8 +52,16 @@ function CopyButton({ text }: { text: string }): ReactNode {
   );
 }
 
-export function MetadataList({ entries, className }: MetadataListProps) {
-  const cls = ['aegis-metadata-list', className ?? '']
+export function MetadataList({
+  entries,
+  wrap = false,
+  className,
+}: MetadataListProps) {
+  const cls = [
+    'aegis-metadata-list',
+    wrap ? 'aegis-metadata-list--wrap' : '',
+    className ?? '',
+  ]
     .filter(Boolean)
     .join(' ');
 
@@ -60,7 +74,9 @@ export function MetadataList({ entries, className }: MetadataListProps) {
           </dt>
           <dd className="aegis-metadata-list__value">
             {entry.mono ? (
-              <MonoValue size="sm">{entry.value}</MonoValue>
+              <MonoValue size="sm" wrap={wrap}>
+                {entry.value}
+              </MonoValue>
             ) : (
               <span className="aegis-metadata-list__text">{entry.value}</span>
             )}

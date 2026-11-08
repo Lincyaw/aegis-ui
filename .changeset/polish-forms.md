@@ -12,6 +12,10 @@ Breaking:
   `aria-labelledby`, and a `label` cannot be null. A PickerField with no
   name, or with both a `label` and an `ariaLabel`, no longer type-checks:
   keep the `label` when it is the visible caption, or pass only `ariaLabel`.
+- `BlastRadiusBar`'s `label`, released in 0.10.0, is renamed `ariaLabel`,
+  and the bar takes exactly one of `ariaLabel` and `aria-labelledby`.
+  Replace `label="…"` with `ariaLabel="…"`, or, inside a FormRow, pass
+  `aria-labelledby` so the row's label names the meter.
 
 Added:
 
@@ -32,9 +36,9 @@ Added:
   its placeholder, and a `QueryAutocomplete` with an `id` or an
   `aria-labelledby` drops its default name. `CodeEditor` puts its `id`,
   `aria-labelledby` and `aria-describedby` on its editable area.
-- `BlastRadiusBar` and `ChoiceCardGroup` take `aria-labelledby` in place
-  of `ariaLabel` (exactly one of the two), and `PickerField`, `CodeEditor`
-  and `QueryAutocomplete` take `aria-labelledby`, so a FormRow names them
+- `ChoiceCardGroup` takes `aria-labelledby` in place of `ariaLabel`
+  (exactly one of the two), and `PickerField`, `CodeEditor` and
+  `QueryAutocomplete` take `aria-labelledby`, so a FormRow names them
   once. `PickerField` keeps its value in its name.
 
 Fixed:
