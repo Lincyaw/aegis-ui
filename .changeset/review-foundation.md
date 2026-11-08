@@ -78,10 +78,16 @@ Fixed:
   badge dot, and a failed environment load reads "Env error".
 - `SavedQueryBar`'s save field gets a unique id, so two bars on one page
   no longer share a label target.
-- At 768 px and below an app's own header row is inset like the page
-  content, and the closed navigation drawer is hidden once it has slid
-  out, so it casts no shadow at the screen edge and its links leave the
-  tab order.
+- At 768 px and below the menu toggle, an app's own header row and the
+  page content share one inline edge, and the closed navigation drawer is
+  hidden once it has slid out, so it casts no shadow at the screen edge
+  and its links leave the tab order.
+- At 768 px and below the open navigation drawer is modal: focus moves to
+  its first link, the rest of the shell but the menu toggle is inert, and
+  Escape or the backdrop closes it and returns focus to the toggle, which
+  reports `aria-expanded`. Widening the window past 768 px closes it.
 - `TableOfContents` and `SiteAnchorNav` pick the current section again
-  when content around the sections grows or shrinks (a diagram or image
-  rendering), instead of waiting for the next scroll.
+  when content around the sections grows, shrinks, arrives or leaves (a
+  diagram or image rendering), instead of waiting for the next scroll.
+- Firefox draws scrollbars in the theme's colours, so the dark theme no
+  longer shows light scrollbars.
