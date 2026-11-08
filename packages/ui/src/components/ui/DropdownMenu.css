@@ -2,9 +2,13 @@
   display: inline-flex;
 }
 
+/* A small trigger, a chip or an icon, still gets a target big enough to tap. */
 .aegis-dropdown__trigger {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: var(--size-control-sm);
+  min-height: var(--size-control-sm);
   background: none;
   border: none;
   cursor: pointer;
