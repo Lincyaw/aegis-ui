@@ -1,16 +1,15 @@
 import { type ReactElement, useMemo, useRef, useState } from 'react';
 
-import { useNavigate } from 'react-router-dom';
-
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
-import { type AegisNotification, useNotifications } from '../../notifications';
+import type { AegisNotification } from '../../notifications';
 import { Avatar } from './Avatar';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import { EmptyState } from './EmptyState';
+import { ErrorState } from './ErrorState';
 import './InboxPage.css';
 import { PageHeader } from './PageHeader';
 import { Tabs } from './Tabs';
@@ -20,28 +19,46 @@ type Filter = 'all' | 'unread';
 
 export type InboxPageSurface = PrimitiveSurface<AegisNotification[]>;
 
-interface InboxPageProps {
+export interface InboxPageProps {
+  items: AegisNotification[];
+  /** Shown on the Unread tab. Defaults to the number of unread `items`. */
+  unreadCount?: number;
+  /**
+   * Fired when the user opens an item. The host marks it read and
+   * navigates to `item.to`.
+   */
+  onOpen?: (item: AegisNotification) => void;
+  /** Renders "Mark all as read" while anything is unread. */
+  onMarkAllRead?: () => void;
+  /** Set when the items failed to load; shown in place of the list. */
+  error?: Error | null;
+  /** Renders a retry button alongside `error`. */
+  onRetry?: () => void;
   defaultFilter?: Filter;
   surface?: InboxPageSurface;
 }
 
 const SEVERITY_TONE: Record<
   NonNullable<AegisNotification['severity']>,
-  'default' | 'ink' | 'warning' | 'ghost'
+  'default' | 'caution' | 'warning' | 'ghost'
 > = {
   info: 'ghost',
   success: 'default',
-  warning: 'warning',
+  warning: 'caution',
   error: 'warning',
 };
 
 export function InboxPage({
+  items,
+  unreadCount = items.filter((n) => !n.read).length,
+  onOpen,
+  onMarkAllRead,
+  error,
+  onRetry,
   defaultFilter = 'all',
   surface,
 }: InboxPageProps): ReactElement {
-  const { items, unreadCount, markRead, markAllRead } = useNotifications();
   const [filter, setFilter] = useState<Filter>(defaultFilter);
-  const navigate = useNavigate();
   const wrapRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, items, 'list', wrapRef);
 
@@ -50,28 +67,14 @@ export function InboxPage({
     [items, filter],
   );
 
-  const handleRowClick = (item: AegisNotification): void => {
-    if (!item.read && markRead) {
-      void markRead(item.id);
-    }
-    if (item.to) {
-      navigate(item.to);
-    }
-  };
-
   return (
     <div ref={wrapRef} className="aegis-inbox" {...agentAttrs}>
       <PageHeader
         title="Inbox"
         description="Workspace activity, alerts, and invites in one place."
         action={
-          markAllRead && unreadCount > 0 ? (
-            <Button
-              tone="secondary"
-              onClick={() => {
-                void markAllRead();
-              }}
-            >
+          onMarkAllRead && unreadCount > 0 ? (
+            <Button tone="secondary" onClick={onMarkAllRead}>
               Mark all as read
             </Button>
           ) : undefined
@@ -91,7 +94,20 @@ export function InboxPage({
           },
         ]}
       >
-        {visible.length === 0 ? (
+        {error ? (
+          <ErrorState
+            size="compact"
+            title="Couldn't load notifications"
+            description={error.message}
+            action={
+              onRetry && (
+                <Button tone="secondary" onClick={onRetry}>
+                  Try again
+                </Button>
+              )
+            }
+          />
+        ) : visible.length === 0 ? (
           <EmptyState
             title={filter === 'unread' ? 'No unread items' : 'No notifications'}
             description={
@@ -113,7 +129,7 @@ export function InboxPage({
                     .filter(Boolean)
                     .join(' ')}
                   onClick={() => {
-                    handleRowClick(item);
+                    onOpen?.(item);
                   }}
                 >
                   <Avatar name={item.actor ?? item.title} size="md" />

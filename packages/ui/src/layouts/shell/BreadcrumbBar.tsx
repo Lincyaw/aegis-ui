@@ -1,16 +1,16 @@
-import { type ReactElement, type ReactNode, useMemo } from 'react';
+import { type ReactElement, useMemo } from 'react';
 
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import {
   Breadcrumb,
   type BreadcrumbItem,
 } from '../../components/ui/Breadcrumb';
+import { RouterLink } from './RouterLink';
 import { joinPath, pathOf } from './paths';
 import type { AegisApp } from './types';
 
 interface BreadcrumbBarProps {
-  apps: AegisApp[];
   activeApp: AegisApp | undefined;
 }
 
@@ -20,7 +20,6 @@ interface BreadcrumbBarProps {
  * trail should render their own `<Breadcrumb>` and ignore this default.
  */
 export function BreadcrumbBar({
-  apps,
   activeApp,
 }: BreadcrumbBarProps): ReactElement | null {
   const { pathname } = useLocation();
@@ -54,31 +53,13 @@ export function BreadcrumbBar({
     return trail;
   }, [activeApp, pathname]);
 
-  if (!activeApp || items.length === 0 || apps.length === 0) {
+  if (!activeApp) {
     return null;
   }
 
   return (
     <div className="aegis-shell__breadcrumb">
-      <Breadcrumb items={items} linkComponent={InternalLink} />
+      <Breadcrumb items={items} linkComponent={RouterLink} />
     </div>
-  );
-}
-
-interface InternalLinkProps {
-  to: string;
-  className?: string;
-  children: ReactNode;
-}
-
-function InternalLink({
-  to,
-  className,
-  children,
-}: InternalLinkProps): ReactElement {
-  return (
-    <Link to={to} className={className}>
-      {children}
-    </Link>
   );
 }

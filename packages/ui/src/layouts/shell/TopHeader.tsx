@@ -1,16 +1,18 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode, Ref } from 'react';
 
+import { Tooltip } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { Avatar } from '../../components/ui/Avatar';
+import { Chip } from '../../components/ui/Chip';
 import {
   type DropdownItem,
   DropdownMenu,
 } from '../../components/ui/DropdownMenu';
 import { EnvironmentSwitcher } from '../../components/ui/EnvironmentSwitcher';
-import { NotificationBell } from '../../components/ui/NotificationBell';
 import { useStrings } from '../../locale';
 import { AppSwitcher } from './AppSwitcher';
+import { ShellNotificationBell } from './ShellNotificationBell';
 import { useEnvironmentManifest } from './environments';
 import type { AegisApp, AegisBrand, AegisUser } from './types';
 
@@ -30,6 +32,10 @@ interface TopHeaderProps {
   inboxPath?: string;
   /** Fired by the mobile hamburger; the shell owns the open state. */
   onMobileMenuToggle?: () => void;
+  /** Whether the navigation drawer is open — drives aria-expanded on the hamburger. */
+  mobileMenuOpen?: boolean;
+  /** The hamburger button, which takes focus back when the drawer is dismissed. */
+  menuToggleRef?: Ref<HTMLButtonElement>;
   /** Whether to render the mobile hamburger at all (only when sidebar exists). */
   showMobileMenu?: boolean;
   /** Whether to render the desktop sidebar collapse toggle. */
@@ -64,6 +70,8 @@ export function TopHeader({
   headerActions,
   inboxPath,
   onMobileMenuToggle,
+  mobileMenuOpen = false,
+  menuToggleRef,
   showMobileMenu,
   sidebarCollapsible,
   sidebarCollapsed,
@@ -94,10 +102,14 @@ export function TopHeader({
       <div className="aegis-shell__header-left">
         {showMobileMenu && onMobileMenuToggle && (
           <button
+            ref={menuToggleRef}
             type="button"
             className="aegis-shell__menu-toggle"
             onClick={onMobileMenuToggle}
-            aria-label={strings.openNavigation}
+            aria-label={
+              mobileMenuOpen ? strings.closeNavigation : strings.openNavigation
+            }
+            aria-expanded={mobileMenuOpen}
           >
             <span className="aegis-shell__menu-toggle-glyph" aria-hidden="true">
               ☰
@@ -164,7 +176,7 @@ export function TopHeader({
       <div className="aegis-shell__header-right">
         <ActiveEnvironmentSwitcher />
         {headerActions}
-        {inboxPath && <NotificationBell inboxPath={inboxPath} />}
+        {inboxPath && <ShellNotificationBell inboxPath={inboxPath} />}
         {user && <UserMenu user={user} />}
         {onAgentPanelToggle && (
           <button
@@ -204,6 +216,20 @@ export function TopHeader({
 
 function ActiveEnvironmentSwitcher(): ReactElement | null {
   const state = useEnvironmentManifest();
+  if (state.status === 'error') {
+    return (
+      <Tooltip title={`${state.error.message} Click to retry.`}>
+        <span className="aegis-shell__env-error">
+          <Chip tone="warning" onClick={state.retry}>
+            <span className="aegis-shell__env-error-full">
+              Environments unavailable
+            </span>
+            <span className="aegis-shell__env-error-short">Env error</span>
+          </Chip>
+        </span>
+      </Tooltip>
+    );
+  }
   if (state.status !== 'ready') {
     return null;
   }
@@ -215,6 +241,7 @@ function ActiveEnvironmentSwitcher(): ReactElement | null {
   }));
   return (
     <EnvironmentSwitcher
+      className="aegis-shell__env-switcher"
       options={options}
       currentId={state.currentEnvId}
       onChange={state.setCurrentEnv}

@@ -87,14 +87,38 @@ samp {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
 }
+/* Firefox draws its own scrollbars, light even in the dark theme, unless
+   given colours. Chrome drops the rules above once scrollbar-color is set,
+   so only browsers without them get it. */
+@supports not selector(::-webkit-scrollbar) {
+  :root {
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
 
-/* Focus — keyboard-only ring in the brand colour. */
-:focus-visible {
+/* Focus — keyboard-only ring in the brand colour. antd's global link reset
+   (`a:focus`, `a:hover { outline: 0 }`, from its genLinkStyle) outranks a
+   bare :focus-visible, so links match through one more type selector; a
+   primitive's own class rule still outranks both. */
+:focus-visible,
+html a:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
 }
 :focus:not(:focus-visible) {
   outline: none;
+}
+/* antd draws its own ring at lineWidthFocus (the token width) in
+   --ant-color-primary-border, which it derives from the ink primary. The
+   variable is repointed only where focus shows: on the focused control,
+   on its parent where antd rings a sibling (checkbox, radio), and on the
+   radio-button wrapper antd rings. Remapping the token instead would also
+   recolour the Slider track and handle. `html` outranks antd's
+   `.css-var-*` class that defines the variable. */
+html :focus-visible,
+html :has(> :focus-visible),
+html .ant-radio-button-wrapper:has(:focus-visible) {
+  --ant-color-primary-border: var(--focus-ring-color);
 }
 
 /* antd popovers and tooltips fade in from their trigger's side instead of

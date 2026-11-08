@@ -55,7 +55,8 @@ export interface DataTableColumn<T> {
   align?: 'left' | 'center' | 'right';
   /**
    * Whether the cell should ellipsis-truncate long content. Default true.
-   * Set false for action cells, chip rows, or anything with non-text content
+   * Set false for action cells, chip rows, links and other focusable content
+   * (the clip cuts off their focus ring), or anything with non-text content
    * that should keep its natural width without being clipped.
    */
   truncate?: boolean;

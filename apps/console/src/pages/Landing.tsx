@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Chip, PageHeader, useAuth } from '@lincyaw/aegis-ui';
+import { Chip, isAppVisible, PageHeader, useAuth } from '@lincyaw/aegis-ui';
 
 import { getRuntimeConfig } from '../config/runtime';
 import { registeredApps } from '../registry';
@@ -13,21 +13,9 @@ export function Landing(): ReactElement {
   const cfg = getRuntimeConfig();
   const needsClickhouse = !cfg.clickhouseUrl;
 
-  const apps = registeredApps.filter((a) => {
-    if (a.hidden) {
-      return false;
-    }
-    if (a.requiresAuth !== false && status !== 'authenticated') {
-      return false;
-    }
-    if (a.requiredRoles && a.requiredRoles.length > 0) {
-      const roles = user?.roles ?? [];
-      if (!a.requiredRoles.some((r) => roles.includes(r))) {
-        return false;
-      }
-    }
-    return true;
-  });
+  const apps = registeredApps.filter(
+    (a) => !a.hidden && isAppVisible(a, status, user)
+  );
 
   return (
     <>

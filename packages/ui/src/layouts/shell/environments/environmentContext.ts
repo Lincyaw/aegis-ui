@@ -2,10 +2,11 @@ import { createContext } from 'react';
 
 import type { EnvironmentManifestStatus } from './types';
 
-export interface AppEnvironmentContextValue {
+export interface EnvironmentContextValue {
   appId: string;
   state: EnvironmentManifestStatus;
 }
 
-export const AppEnvironmentContext =
-  createContext<AppEnvironmentContextValue | null>(null);
+export const EnvironmentContext = createContext<EnvironmentContextValue | null>(
+  null,
+);

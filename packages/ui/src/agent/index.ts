@@ -1,5 +1,5 @@
 export { AgentChatProvider } from './chat/AgentChatProvider';
-export { useAgentChat } from './chat/useAgentChat';
+export { useAgentChat, useHasAgentChatProvider } from './chat/useAgentChat';
 export type {
   AgentChatValue,
   AgentMessage,

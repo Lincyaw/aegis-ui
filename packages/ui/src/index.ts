@@ -89,15 +89,13 @@ export type {
 export {
   AegisShell,
   ENVIRONMENT_CHANGED_EVENT,
-  clearManifestCache,
-  fetchManifest,
-  manifestUrl,
+  ShellInboxPage,
+  isAppVisible,
   useActiveApp,
   useAppHref,
   useAppNavigate,
   useCurrentEnvironment,
   useEnvironmentManifest,
-  validateManifest,
 } from './layouts/shell';
 export type {
   ActiveAppContextValue,
@@ -117,7 +115,7 @@ export type {
 } from './layouts/shell';
 
 // AntD ConfigProvider theme mapped to aegis-ui tokens.
-export { aegisTheme, getAegisTheme } from './theme/antdTheme';
+export { getAegisTheme } from './theme/antdTheme';
 
 // Strings primitives render on their own; English unless a LocaleProvider says otherwise.
 export { LocaleProvider, enStrings, useStrings, zhCNStrings } from './locale';

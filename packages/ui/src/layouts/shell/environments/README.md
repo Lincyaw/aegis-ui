@@ -1,18 +1,12 @@
-# Backend-declared environment discovery
+# Backend-declared environments
 
-Lets each `AegisApp` self-declare which deployments it has (prod / stage /
-dev / …) by serving a small manifest at a well-known URL. The shell reads
-the manifest and renders an environment switcher in the header. If a
-backend doesn't serve the manifest, the switcher silently stays hidden —
-behavior is identical to a single-environment install.
+Lets each `AegisApp` say which deployments it has (prod / stage / dev / …).
+The app supplies a loader for its environment manifest; the shell calls it
+when the app becomes active and renders an environment switcher in the
+header. The library never fetches anything itself and knows no backend
+route — where the manifest comes from is the host's business.
 
-## Contract
-
-Each backend exposes:
-
-```
-GET <apiBaseUrl>/.well-known/aegis-environments.json
-```
+## Manifest
 
 ```json
 {
@@ -29,12 +23,6 @@ GET <apiBaseUrl>/.well-known/aegis-environments.json
       "label": "预发",
       "baseUrl": "https://api-stage.example.com",
       "badge": "warning"
-    },
-    {
-      "id": "dev",
-      "label": "开发",
-      "baseUrl": "https://api-dev.example.com",
-      "badge": "info"
     }
   ]
 }
@@ -42,10 +30,6 @@ GET <apiBaseUrl>/.well-known/aegis-environments.json
 
 - `badge` ∈ `default | info | warning | danger`
 - `default` must reference an existing `id`
-- 404 / network error / invalid schema → silently treated as "no manifest"
-
-CORS: the manifest endpoint must allow the console's origin
-(`Access-Control-Allow-Origin: *` is fine; allowlist is better in prod).
 
 ## Frontend integration (per app)
 
@@ -55,15 +39,22 @@ import type { AegisApp } from '@lincyaw/aegis-ui';
 export const myApp: AegisApp = {
   id: 'my-app',
   basePath: '/my-app',
-  apiBaseUrl: 'https://api.my-app.example.com', // seed; manifest may override per env
   environments: {
-    discoveryPath: '/.well-known/aegis-environments.json', // default
-    fallback: 'production',                                // default
-    storageKey: 'aegis.env.my-app',                        // default
+    // Resolve the manifest, `null` when the backend declares none, or
+    // reject: the header then reports the failure and offers a retry.
+    load: (signal) => loadMyManifest(signal),
+    // Reported while the backend declares none. Omit to report nothing.
+    fallback: { id: 'prod', label: 'Production', baseUrl: 'https://api.my-app.example.com' },
+    storageKey: 'aegis.env.my-app', // default
   },
   routes: [...],
 };
 ```
+
+The console's env demo loads the `/.well-known/aegis-environments.json`
+convention with `apps/console/src/apps/env-demo/wellKnownEnvironments.ts`:
+a 404 means "none", and any other failure — network, HTTP status, a
+manifest that doesn't match the shape above — rejects with the reason.
 
 Inside the app, react to the chosen env:
 
@@ -91,57 +82,31 @@ The shell does **not** rewrite axios base URLs for you. It surfaces the
 choice; each app decides how to consume it (typical: rebuild the API
 client + clear in-flight requests + force re-auth on the new env).
 
-## Backend integration (any stack)
+## Loading and persistence
 
-Any backend can serve the manifest — it's a well-known endpoint, not an
-AegisLab-specific protocol. Three options:
-
-1. **Inline in your existing server** — add one route returning the JSON
-   above. ~10 lines in any framework.
-2. **Sidecar binary** — reuse
-   `aegis/AegisLab/src/cmd/aegis-env-manifest-server` as a tiny standalone
-   process, configured via the `AEGIS_ENVIRONMENTS_JSON` env var. No
-   change to your main backend.
-3. **Static host** — serve a static JSON file from a CDN / S3 / nginx and
-   set the app's `environments.discoveryPath` to an absolute URL.
-
-For AegisLab specifically, the handler is at
-`src/platform/router/well_known.go` and is configured via the
-`AEGIS_ENVIRONMENTS_JSON` env var or the `aegis.environments` toml block.
-The helm chart exposes it as `aegisEnvironments.{enabled, manifest}` —
-see `aegis/AegisLab/helm/<chart>/values-multi-env.example.yaml`.
-
-## Caching
-
-The manifest is fetched on app mount and cached in-memory for 5 minutes,
-with `ETag` revalidation. The user's selection is persisted in
-`localStorage[storageKey]` and survives page reloads. To force a refetch,
-clear the storage key or call `clearManifestCache()` (exported from this
-module for advanced use).
+Each app's manifest loads once a session, the first time the app is
+active; a failed load is retried from the header. The user's selection is
+persisted in `localStorage[storageKey]` and survives page reloads.
 
 ## Multi-app patterns
 
-| Scenario                                                   | What to do                                                                                                      |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Each app has its own envs                                  | Each app ships its own manifest. Switchers are per-app and independent.                                         |
-| Multiple apps share the same envs (one cluster, many apps) | Have all apps point `discoveryPath` at the same absolute URL, or have each backend serve an identical manifest. |
-| Same env id, different `baseUrl` per app                   | Natural — the switcher selects an env id, and each app uses its own manifest's `baseUrl` for that id.           |
+| Scenario                                                   | What to do                                                                                            |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Each app has its own envs                                  | Each app loads its own manifest. Switchers are per-app and independent.                               |
+| Multiple apps share the same envs (one cluster, many apps) | Give the apps loaders that read the same manifest.                                                    |
+| Same env id, different `baseUrl` per app                   | Natural — the switcher selects an env id, and each app uses its own manifest's `baseUrl` for that id. |
 
 ## What's intentionally not done
 
 - **No global "switch all apps to stage"** — env choice is per-app on
-  purpose, since different backends may not share env semantics. If a
-  shell-wide selector is needed later, it can be layered on top.
+  purpose, since different backends may not share env semantics.
 - **No automatic API-client rebinding** — apps own their data layer; the
   shell only fires `ENVIRONMENT_CHANGED_EVENT`.
-- **No transport for "secret" envs** — the manifest is anonymous and
-  cacheable. Don't put auth-gated env URLs in it.
 
 ## Files
 
 - `types.ts` — `AegisAppEnvironmentsConfig`, `EnvironmentDescriptor`, `EnvironmentManifest`, status union, event detail.
-- `manifest.ts` — fetch + cache + ETag + schema validation.
-- `EnvironmentContext.tsx` — provider mounted by `AegisShell` for the active app.
-- `context.ts` — context object split out for fast-refresh.
-- `hooks.ts` — `useCurrentEnvironment()`, `useEnvironmentManifest()`.
+- `EnvironmentProvider.tsx` — provider mounted by `AegisShell` for the active app; calls `load`, holds the choice.
+- `environmentContext.ts` — the context the provider fills.
+- `useEnvironment.ts` — `useCurrentEnvironment()`, `useEnvironmentManifest()`.
 - `index.ts` — public re-exports.

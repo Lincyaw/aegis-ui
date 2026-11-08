@@ -10,8 +10,6 @@
  * Usage:
  *   const { resolved } = useTheme();
  *   <ConfigProvider theme={getAegisTheme(resolved)}>…</ConfigProvider>
- *
- * `aegisTheme` is the light palette, kept as a back-compat export.
  */
 import {
   type MappingAlgorithm,
@@ -323,6 +321,3 @@ const THEMES: Record<ThemeMode, ThemeConfig> = {
 export function getAegisTheme(scheme: ThemeMode): ThemeConfig {
   return THEMES[scheme];
 }
-
-/** Light palette — back-compat export. Prefer `getAegisTheme(resolved)`. */
-export const aegisTheme: ThemeConfig = THEMES.light;

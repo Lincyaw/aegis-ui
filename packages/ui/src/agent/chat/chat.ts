@@ -64,6 +64,4 @@ export const defaultAgentChatValue: AgentChatValue = {
   send: () => undefined,
 };
 
-export const AgentChatContext = createContext<AgentChatValue>(
-  defaultAgentChatValue,
-);
+export const AgentChatContext = createContext<AgentChatValue | null>(null);

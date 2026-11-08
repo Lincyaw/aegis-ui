@@ -1,4 +1,6 @@
 export { AegisShell } from './AegisShell';
+export { ShellInboxPage } from './ShellInboxPage';
+export { isAppVisible } from './apps';
 export { useActiveApp } from './activeAppContext';
 export type { ActiveAppContextValue } from './activeAppContext';
 export { useAppHref, useAppNavigate } from './useAppNavigate';
@@ -13,12 +15,8 @@ export type {
 } from './types';
 export {
   ENVIRONMENT_CHANGED_EVENT,
-  clearManifestCache,
-  fetchManifest,
-  manifestUrl,
   useCurrentEnvironment,
   useEnvironmentManifest,
-  validateManifest,
 } from './environments';
 export type {
   AegisAppEnvironmentsConfig,

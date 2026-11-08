@@ -280,6 +280,7 @@ const GALLERY_TASK_COLUMNS: Array<DataTableColumn<GalleryTaskRow>> = [
   {
     key: 'task',
     header: '题目',
+    truncate: false,
     render: (row) => (
       <IdentityCell
         name={row.title}

@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import {
   AegisShell,
   createAegisRuntime,
-  InboxPage,
+  ShellInboxPage,
   ThemeToggle,
 } from '@lincyaw/aegis-ui';
 import { connectAegisBridge } from '@lincyaw/aegis-ui/transports';
@@ -41,7 +41,7 @@ export function ConsoleApp(): ReactElement {
       notFoundElement={<NotFound />}
       rootRoutes={[
         { path: '/', element: <Landing /> },
-        { path: '/inbox', element: <InboxPage /> },
+        { path: '/inbox', element: <ShellInboxPage /> },
         {
           path: '/setup',
           element: <Navigate to='/settings/endpoints' replace />,
