@@ -51,7 +51,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     const message = hasError ? error : helperText;
 
     return (
-      <div className={rootCls}>
+      <div className={rootCls} data-aegis-field>
         {label && (
           <label htmlFor={inputId} className="aegis-textfield__label">
             {label}

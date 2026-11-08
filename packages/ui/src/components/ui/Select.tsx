@@ -26,6 +26,8 @@ interface SelectProps {
   disabled?: boolean;
   /** Lets a caller's `<label htmlFor>` point at the control. */
   id?: string;
+  /** Ids of the text that describes the select, such as a FormRow's description. */
+  'aria-describedby'?: string;
   className?: string;
 }
 
@@ -39,6 +41,7 @@ export function Select({
   allowClear = false,
   disabled = false,
   id,
+  'aria-describedby': describedBy,
   className,
 }: SelectProps) {
   const strings = useStrings();
@@ -55,7 +58,7 @@ export function Select({
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={cls}>
+    <div className={cls} data-aegis-field>
       {label !== undefined && (
         <label className="aegis-select__label" htmlFor={selectId}>
           {label}
@@ -68,6 +71,7 @@ export function Select({
           value={value}
           disabled={disabled}
           aria-label={ariaLabel}
+          aria-describedby={describedBy}
           onChange={(event) => {
             onChange(event.target.value);
           }}

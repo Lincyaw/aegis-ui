@@ -37,7 +37,7 @@ Breaking:
   `<agent_contract>` is no longer treated as Markdown by default: pass the
   new `markdownPatterns` option to `prepareInspectableContent`,
   `ContentPreview` or `ContentInspectorDialog`.
-- `BlastRadiusBar` requires a `label`, the accessible name of its
+- `BlastRadiusBar` requires an `ariaLabel`, the accessible name of its
   `role="meter"` track.
 - `DataListColumn.label` is renamed `header`, as in `DataTable`. DataList
   is a table (a grid with `onSelect`), and rows are focusable and
