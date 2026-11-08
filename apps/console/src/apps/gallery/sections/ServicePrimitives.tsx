@@ -2707,7 +2707,7 @@ export function ServicePrimitivesSection() {
           <ServiceMapMicroSpecimen />
         </Specimen>
         <Specimen
-          caption='AgentM session DAG · TB · no handlers, so nothing is focusable'
+          caption='AgentM session DAG · TB · no handlers, so nothing is focusable · for assistive technology each node and each edge is still a group, the edge named "source to target"'
           span={3}
         >
           <ServiceMapAgentSpecimen />

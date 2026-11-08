@@ -649,6 +649,8 @@ function ServiceMapInner({
         labelOf.get(e.source) ?? e.source,
         labelOf.get(e.target) ?? e.target,
       ),
+      // React Flow makes an unfocusable edge an img; aria-roledescription needs a group.
+      ariaRole: 'group',
       domAttributes: { 'aria-roledescription': strings.serviceMapEdgeRole },
       type: 'service',
       data: { edge: e },
