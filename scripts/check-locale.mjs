@@ -146,6 +146,13 @@ const SAMPLES = {
     [{ direction: 'left', x: 10, y: 20 }],
   ],
   serviceMapEdgeName: [['gateway', 'auth-service']],
+  notificationBellLabel: [[0], [1], [12]],
+  unreadCount: [[1], [12]],
+  notificationsLoadFailedNote: [['Network error.']],
+  notificationsStaleNote: [['Network error.']],
+  inboxUnread: [[0], [3]],
+  notificationSeverity: [['info'], ['success'], ['warning'], ['error']],
+  askToolsAvailable: [[0], [3]],
 };
 
 async function loadCatalogues() {

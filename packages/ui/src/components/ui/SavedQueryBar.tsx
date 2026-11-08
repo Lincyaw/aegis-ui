@@ -468,7 +468,7 @@ function OverflowQueries({
       id={panelId}
       className="aegis-sqb__menu aegis-sqb__menu--overflow"
       role="dialog"
-      aria-label="More saved queries"
+      aria-label={strings.moreSavedQueries}
       tabIndex={-1}
     >
       <ul className="aegis-sqb__overflow-list">
@@ -613,7 +613,7 @@ function SaveCurrentControl({
       id={formId}
       className="aegis-sqb__save-form"
       role="dialog"
-      aria-label="Save the current query"
+      aria-label={strings.saveCurrentQuery}
       tabIndex={-1}
       onSubmit={handleSubmit}
     >

@@ -6,7 +6,7 @@
 Breaking:
 
 - `AegisStrings` lost `totalCount` and `recordsUnit`, which no primitive
-  read, and gained 150 keys. A host that builds its own catalogue object
+  read, and gained 184 keys. A host that builds its own catalogue object
   must drop the two keys and add the new ones; a host that spreads
   `enStrings` or `zhCNStrings` only has to drop an override of a removed
   key.
@@ -26,10 +26,12 @@ Breaking:
   `title`, `DataList` `emptyText`, `DataTable` and `EventTable`
   `emptyTitle`, `EnvironmentSwitcher`, `SparkLine`, `Terminal` and
   `TraceTree` `ariaLabel`) take their default from the catalogue and still
-  override it. One known exception: `DiffViewer`'s line-number titles
+  override it. Known exceptions: `DiffViewer`'s line-number titles
   (`Added line`, `Removed line`) and its `expand` / `fold` controls are
-  drawn by react-diff-viewer-continued, which takes no text for them, so
-  they stay English.
+  drawn by react-diff-viewer-continued, which takes no text for them, and
+  the system messages `AgentmChannelProvider` writes into the chat
+  transcript (`AgentM gateway is not connected — message not delivered.`,
+  `send failed: …`) stay English.
 - `CommandPalette` files a command with no `group` under the catalogue's
   `commandGroupOther` (`Other`, `其他`), so a `groupOrder` that names the
   ungrouped bucket must use that value.
@@ -46,8 +48,8 @@ Breaking:
   - `ObjectBrowser`'s selection reads `2 selected` instead of `2 Selected`.
   - `SavedQueryBar`'s chip menu button is named `More actions for <name>`,
     like the other row menus, instead of `Options for <name>`.
-  - `RouteErrorBoundary`'s button reads `Retry` instead of `Try again`,
-    the same word as every other retry.
+  - `RouteErrorBoundary`'s and `InboxPage`'s retry buttons read `Retry`
+    instead of `Try again`, the same word as every other retry.
 - `FilePreview` and `ParquetViewer` show a non-`Error` rejection as its
   string instead of a fixed English message.
 
@@ -55,7 +57,8 @@ Added keys:
 
 - Actions and states: `cancel`, `save`, `apply`, `rename`, `delete`,
   `deleteNamed`, `moreActionsFor`, `retry`, `dismiss`, `clear`, `undo`,
-  `download`, `send`, `pin`, `unpin`, `signIn`, `signOut`,
+  `download`, `send`, `pin`, `unpin`, `pinNamed`, `unpinNamed`, `signIn`,
+  `signOut`,
   `searchPlaceholder`, `suggestions`, `noItems`, `noData`, `noEvents`,
   `relativeTime`, `formatDateTime`, `selectionCount`, `moreCount`.
 - Shell: `routeErrorTitle`, `environmentsUnavailable`,
@@ -99,7 +102,17 @@ Added keys:
   `savedQueryName`, `savedQueryNamePlaceholder`, `saveCurrent`,
   `timeRangePlaceholder`, `timeRangeLast`, `timeRangeExpression`,
   `timeRangeExpressionPlaceholder`, `timeRangeUnparseable`,
-  `timeRangePresets`, `timeRangeAbsolute`, `timeRangeFrom`, `timeRangeTo`.
+  `timeRangePresets`, `timeRangeAbsolute`, `timeRangeFrom`, `timeRangeTo`,
+  `timeRange`, `moreSavedQueries`, `saveCurrentQuery`, `untitledQuery`.
+- Fields: `enterWholeNumber`, `enterNumber`.
+- Notifications: `notifications`, `notificationBellLabel`, `unreadCount`,
+  `notificationsLoadFailedNote`, `notificationsStaleNote`,
+  `notificationsStale`, `notificationsLoadFailed`, `notificationsCaughtUp`,
+  `notificationSeverity`, `viewAll`, `inboxTitle`, `inboxDescription`,
+  `markAllRead`, `inboxAll`, `inboxUnread`, `inboxStale`, `inboxNoUnread`,
+  `inboxEmptyTitle`, `inboxEmptyDescription`.
+- Ask panel: `askPanelTitle`, `askSurface`, `askEntity`,
+  `askToolsAvailable`, `askNoTools`, `askPlaceholder`, `askNoAgent`.
 
 Fixes:
 

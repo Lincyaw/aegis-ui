@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type ReactNode, useState } from 'react';
 
+import { useStrings } from '../../locale';
 import './NumberField.css';
 import { TextField } from './TextField';
 
@@ -67,6 +68,7 @@ export function NumberField({
   'aria-describedby': describedBy,
   className,
 }: NumberFieldProps) {
+  const strings = useStrings();
   const pattern = integer ? INTEGER : DECIMAL;
   const parse = (raw: string): number | undefined =>
     pattern.test(raw.trim()) ? Number(raw.trim()) : undefined;
@@ -88,8 +90,8 @@ export function NumberField({
     partial || parsed !== undefined
       ? undefined
       : integer
-        ? 'Enter a whole number'
-        : 'Enter a number';
+        ? strings.enterWholeNumber
+        : strings.enterNumber;
 
   const edit = (next: string): void => {
     const nextValue = parse(next);

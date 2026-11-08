@@ -1,4 +1,4 @@
-import { type AegisStrings, enStrings } from '../../locale';
+import type { AegisStrings } from '../../locale';
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
@@ -7,12 +7,11 @@ const DAY = 24 * HOUR;
 /**
  * Short, human-friendly relative time in the strings' language, as
  * inbox-style UIs show it: "just now", "5m ago", "yesterday", "3d ago",
- * then the date, "Mar 4". The English default serves callers that have not
- * moved to the catalogue yet.
+ * then the date, "Mar 4".
  */
 export function relativeTime(
   value: string | number | Date,
-  strings: AegisStrings = enStrings,
+  strings: AegisStrings,
   now: number = Date.now(),
 ): string {
   const t = new Date(value).getTime();

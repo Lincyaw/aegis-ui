@@ -314,6 +314,53 @@ export interface AegisStrings {
   serviceMapEdgeRole: string;
   /** Names a ServiceMap edge by the labels of the services it joins. */
   serviceMapEdgeName: (source: string, target: string) => string;
+  /** NumberField's error when its text is not a whole number. */
+  enterWholeNumber: string;
+  /** NumberField's error when its text is not a number. */
+  enterNumber: string;
+  /** The accessible name of TimeRangePicker's popover. */
+  timeRange: string;
+  /** The accessible name of SavedQueryBar's overflow popover. */
+  moreSavedQueries: string;
+  /** The accessible name of SavedQueryBar's save popover. */
+  saveCurrentQuery: string;
+  /** The name useSavedQueries gives a query saved or renamed without one. */
+  untitledQuery: string;
+  notifications: string;
+  /** The bell's accessible name, e.g. "Notifications: 3 unread". */
+  notificationBellLabel: (unread: number) => string;
+  /** The count beside the bell popover's title, e.g. "3 unread". */
+  unreadCount: (count: number) => string;
+  /** The bell's description when loading failed, before the error's message. */
+  notificationsLoadFailedNote: (message: string) => string;
+  /** The bell's description while updates fail, before the error's message. */
+  notificationsStaleNote: (message: string) => string;
+  /** The lead of the bell popover's out-of-date band. */
+  notificationsStale: string;
+  notificationsLoadFailed: string;
+  /** The bell's empty state and the inbox's empty Unread tab. */
+  notificationsCaughtUp: string;
+  viewAll: string;
+  inboxTitle: string;
+  inboxDescription: string;
+  markAllRead: string;
+  inboxAll: string;
+  /** The inbox's Unread tab, with the count while anything is unread. */
+  inboxUnread: (count: number) => string;
+  inboxStale: string;
+  inboxNoUnread: string;
+  inboxEmptyTitle: string;
+  inboxEmptyDescription: string;
+  notificationSeverity: (
+    severity: 'info' | 'success' | 'warning' | 'error',
+  ) => string;
+  askPanelTitle: string;
+  askSurface: string;
+  askEntity: string;
+  askToolsAvailable: (count: number) => string;
+  askNoTools: string;
+  askPlaceholder: string;
+  askNoAgent: string;
 }
 
 const ZH_TIME_UNITS: Readonly<Record<TimeRangeUnit, string>> = {
@@ -690,6 +737,45 @@ export const enStrings: AegisStrings = {
   serviceMapNodeRole: 'service',
   serviceMapEdgeRole: 'connection',
   serviceMapEdgeName: (source, target) => `${source} to ${target}`,
+  enterWholeNumber: 'Enter a whole number',
+  enterNumber: 'Enter a number',
+  timeRange: 'Time range',
+  moreSavedQueries: 'More saved queries',
+  saveCurrentQuery: 'Save the current query',
+  untitledQuery: 'Untitled query',
+  notifications: 'Notifications',
+  notificationBellLabel: (unread) =>
+    unread > 0
+      ? `Notifications: ${unread.toLocaleString('en')} unread`
+      : 'Notifications',
+  unreadCount: (count) => `${count.toLocaleString('en')} unread`,
+  notificationsLoadFailedNote: (message) =>
+    `Notifications couldn't load. ${message}`,
+  notificationsStaleNote: (message) =>
+    `Notifications may be out of date. ${message}`,
+  notificationsStale: 'May be out of date.',
+  notificationsLoadFailed: "Couldn't load notifications",
+  notificationsCaughtUp: "You're all caught up.",
+  viewAll: 'View all',
+  inboxTitle: 'Inbox',
+  inboxDescription: 'Workspace activity, alerts, and invites in one place.',
+  markAllRead: 'Mark all as read',
+  inboxAll: 'All',
+  inboxUnread: (count) =>
+    count > 0 ? `Unread (${count.toLocaleString('en')})` : 'Unread',
+  inboxStale: 'This list may be out of date',
+  inboxNoUnread: 'No unread items',
+  inboxEmptyTitle: 'No notifications',
+  inboxEmptyDescription: 'Activity will appear here as it happens.',
+  notificationSeverity: (severity) => severity,
+  askPanelTitle: 'Ask AI',
+  askSurface: 'Surface',
+  askEntity: 'Entity',
+  askToolsAvailable: (count) =>
+    `Tools available (${count.toLocaleString('en')})`,
+  askNoTools: 'No tools in scope.',
+  askPlaceholder: 'Ask about this…',
+  askNoAgent: 'No agent is connected.',
 };
 
 export const zhCNStrings: AegisStrings = {
@@ -1063,4 +1149,41 @@ export const zhCNStrings: AegisStrings = {
   serviceMapNodeRole: '服务',
   serviceMapEdgeRole: '连线',
   serviceMapEdgeName: (source, target) => `从 ${source} 到 ${target}`,
+  enterWholeNumber: '请输入整数',
+  enterNumber: '请输入数字',
+  timeRange: '时间范围',
+  moreSavedQueries: '更多已保存的查询',
+  saveCurrentQuery: '保存当前查询',
+  untitledQuery: '未命名查询',
+  notifications: '通知',
+  notificationBellLabel: (unread) =>
+    unread > 0 ? `通知：${unread.toLocaleString('zh-CN')} 条未读` : '通知',
+  unreadCount: (count) => `${count.toLocaleString('zh-CN')} 条未读`,
+  notificationsLoadFailedNote: (message) => `通知加载失败。${message}`,
+  notificationsStaleNote: (message) => `通知可能不是最新的。${message}`,
+  notificationsStale: '可能不是最新的。',
+  notificationsLoadFailed: '无法加载通知',
+  notificationsCaughtUp: '你已看完所有通知。',
+  viewAll: '查看全部',
+  inboxTitle: '收件箱',
+  inboxDescription: '工作区动态、告警和邀请都在这里。',
+  markAllRead: '全部标为已读',
+  inboxAll: '全部',
+  inboxUnread: (count) =>
+    count > 0 ? `未读（${count.toLocaleString('zh-CN')}）` : '未读',
+  inboxStale: '此列表可能不是最新的',
+  inboxNoUnread: '暂无未读通知',
+  inboxEmptyTitle: '暂无通知',
+  inboxEmptyDescription: '有新动态时会显示在这里。',
+  notificationSeverity: (severity) =>
+    ({ info: '信息', success: '成功', warning: '警告', error: '错误' })[
+      severity
+    ],
+  askPanelTitle: '询问 AI',
+  askSurface: '区域',
+  askEntity: '对象',
+  askToolsAvailable: (count) => `可用工具（${count.toLocaleString('zh-CN')}）`,
+  askNoTools: '当前范围内没有可用工具。',
+  askPlaceholder: '就此提问…',
+  askNoAgent: '未连接智能体。',
 };

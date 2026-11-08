@@ -139,7 +139,7 @@ export function TimeRangePicker({
       id={panelId}
       className="aegis-trp__pop"
       role="dialog"
-      aria-label="Time range"
+      aria-label={strings.timeRange}
       tabIndex={-1}
     >
       <div className="aegis-trp__section">
