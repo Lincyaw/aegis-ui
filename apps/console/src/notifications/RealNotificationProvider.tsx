@@ -46,7 +46,10 @@ const RECONNECT_MAX_MS = 30_000;
 // A stream that stays open this long, or delivers an event, counts as
 // healthy and resets the backoff; one that opens and ends at once keeps it.
 const STREAM_HEALTHY_MS = 10_000;
-const LOAD_FAILED_KEY = 'aegis-inbox-load-failed';
+
+function toError(err: unknown): Error {
+  return new Error(errMsg(err));
+}
 
 /**
  * Talks to aegis-notify /api/v2/inbox/*. Real-time freshness comes
@@ -61,12 +64,12 @@ export function RealNotificationProvider({
 }: Props): ReactElement {
   const { status: authStatus } = useAuth();
   const isAuthed = authStatus === 'authenticated';
-  const { message: msg, notification: notice } = App.useApp();
+  const { message: msg } = App.useApp();
   const [items, setItems] = useState<AegisNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const mounted = useRef(true);
-  const loadFailed = useRef(false);
 
   useEffect(() => {
     mounted.current = true;
@@ -74,32 +77,6 @@ export function RealNotificationProvider({
       mounted.current = false;
     };
   }, []);
-
-  // One notice per outage: repeated failures leave it as it is, and the
-  // next successful load takes it down.
-  const reportLoadFailure = useCallback(
-    (err: unknown): void => {
-      if (!mounted.current || loadFailed.current) {
-        return;
-      }
-      loadFailed.current = true;
-      notice.error({
-        key: LOAD_FAILED_KEY,
-        message: "Couldn't load notifications",
-        description: errMsg(err),
-        duration: 0,
-      });
-    },
-    [notice]
-  );
-
-  const clearLoadFailure = useCallback((): void => {
-    if (!loadFailed.current) {
-      return;
-    }
-    loadFailed.current = false;
-    notice.destroy(LOAD_FAILED_KEY);
-  }, [notice]);
 
   const refetch = useCallback(async (): Promise<void> => {
     try {
@@ -109,15 +86,17 @@ export function RealNotificationProvider({
       }
       setItems(list.items);
       setUnread(list.unread_count);
-      clearLoadFailure();
+      setError(null);
     } catch (err) {
-      reportLoadFailure(err);
+      if (mounted.current) {
+        setError(toError(err));
+      }
     } finally {
       if (mounted.current) {
         setLoading(false);
       }
     }
-  }, [pageSize, clearLoadFailure, reportLoadFailure]);
+  }, [pageSize]);
 
   const refetchUnread = useCallback(async (): Promise<void> => {
     try {
@@ -126,9 +105,11 @@ export function RealNotificationProvider({
         setUnread(c.unread_count);
       }
     } catch (err) {
-      reportLoadFailure(err);
+      if (mounted.current) {
+        setError(toError(err));
+      }
     }
-  }, [reportLoadFailure]);
+  }, []);
 
   // Initial load + safety-net polling. Independent of the stream lifecycle.
   useEffect(() => {
@@ -136,7 +117,7 @@ export function RealNotificationProvider({
       setItems([]);
       setUnread(0);
       setLoading(false);
-      clearLoadFailure();
+      setError(null);
       return;
     }
     void refetch();
@@ -146,7 +127,7 @@ export function RealNotificationProvider({
     return () => {
       window.clearInterval(id);
     };
-  }, [isAuthed, refetch, refetchUnread, clearLoadFailure, pollMs]);
+  }, [isAuthed, refetch, refetchUnread, pollMs]);
 
   // Live SSE stream. Reconnects with exponential backoff whenever the
   // stream fails or the server ends it, refetches after reconnecting to
@@ -264,12 +245,13 @@ export function RealNotificationProvider({
       items,
       unreadCount: unread,
       loading,
+      error,
       markRead,
       markAllRead,
       archive,
       refetch,
     }),
-    [items, unread, loading, markRead, markAllRead, archive, refetch]
+    [items, unread, loading, error, markRead, markAllRead, archive, refetch]
   );
 
   return <NotificationProvider value={value}>{children}</NotificationProvider>;
