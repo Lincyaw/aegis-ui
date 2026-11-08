@@ -503,6 +503,17 @@
   min-width: 0;
 }
 
+/* theme.css's reduced-motion rule gives every element a 0.01ms transition,
+   which would fade the drawer's inherited visibility into its links, so
+   the first link could not take focus as the drawer opens. !important
+   outranks that rule's own. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-shell__sidebar,
+  .aegis-shell__sidebar * {
+    transition: none !important;
+  }
+}
+
 /* Collapsing the sidebar is a desktop preference; phones keep the drawer. */
 @media (min-width: 769px) {
   .aegis-shell--no-sidebar .aegis-shell__sidebar {

@@ -106,7 +106,9 @@ export function TopHeader({
             type="button"
             className="aegis-shell__menu-toggle"
             onClick={onMobileMenuToggle}
-            aria-label={strings.openNavigation}
+            aria-label={
+              mobileMenuOpen ? strings.closeNavigation : strings.openNavigation
+            }
             aria-expanded={mobileMenuOpen}
           >
             <span className="aegis-shell__menu-toggle-glyph" aria-hidden="true">
