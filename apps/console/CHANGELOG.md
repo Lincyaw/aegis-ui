@@ -1,5 +1,293 @@
 # @lincyaw/console
 
+## 0.3.9
+
+### Patch Changes
+
+- f007e03: Move focus into opened surfaces, ring focus where it was clipped or grey,
+  and say when notifications may be out of date.
+
+  Changed behaviour:
+  - `AskPanel` takes focus when it mounts: its question field, or the panel
+    when no agent is connected. On unmount focus returns to the element that
+    had it. A host that renders an inline panel should mount it when the user
+    opens it, not on page load.
+  - `NotificationContextValue.error` means only a load that left no list to
+    show. Once a list has loaded, a provider reports a failed refresh or retry
+    through `liveError` and keeps `items`. `InboxPage` follows the same rule:
+    an `error` with `items` keeps them under the out-of-date notice, and only
+    an `error` with no items replaces the list.
+
+  New API:
+  - `NotificationContextValue.liveError`: set while keeping the list current
+    fails (a poll, a real-time stream, or a refresh or retry of a list that
+    has loaded), cleared when that succeeds.
+  - `NotificationBell` takes `liveError`. It draws a caution mark opposite the
+    unread badge, which stays, describes the bell as possibly out of date and
+    says so at the top of its popover, with a "Try again" button when
+    `onRetry` is set. `ShellNotificationBell` fills it from the provider.
+  - `NotificationBell` takes `error` and `onRetry`. When the first load failed
+    and there are no items, the bell draws the same caution mark and is
+    described as unable to load, and its popover says the notifications
+    couldn't load, with a "Try again" button when `onRetry` is set, instead of
+    "You're all caught up." An `error` with items is shown like `liveError`.
+    `ShellNotificationBell` fills both from the provider.
+  - `InboxPage` takes `liveError`. It keeps the list under a caution notice
+    with the `onRetry` button. `ShellInboxPage` fills it from the provider.
+
+  Fixes:
+  - `Collapse` no longer clips the focus ring, field halo or shadow of content
+    at the edge of an open panel. It clips only while a panel is closed or
+    moving. Closed panels stay inert.
+  - antd `Tree` keyboard focus draws the focus ring, inset, around the tree
+    and then around the arrow-key active node. Before, it was a grey outline
+    that disappeared on hover, then a grey fill.
+  - `NotificationBell`'s dropdown, `TimeRangePicker`, the shell's app
+    switcher and `SavedQueryBar`'s chip menu, "+N more" list and save form
+    move focus into themselves when they open. Escape, and Tab or Shift+Tab
+    out of either end, close them and return focus to the trigger, as does
+    picking an item that applies, navigates or saves. The menus take arrow
+    keys, and every trigger gains `aria-haspopup`, `aria-expanded` and
+    `aria-controls`. `NotificationBell` and `TimeRangePicker` slide along
+    their trigger to stay on a phone screen.
+  - `SavedQueryBar` places focus itself when an action moves or removes a
+    chip. After Pin or Unpin it goes to that query's chip, or to "+N more"
+    when an unpin moves the query into that list. After Delete it goes to the
+    next query, or to "Save current" after the last, or to the bar itself
+    when "Save current" is disabled. After a rename ends with Enter or Escape
+    it goes back to the chip. Before, focus fell to the page. Its
+    "+N more" list is now a dialog of queries, each with its Pin and Delete
+    buttons, instead of a menu whose rows held buttons that were not menu
+    items; it stays open through a delete.
+  - After a "Try again" that works, focus no longer falls to the page with the
+    button. In `NotificationBell`'s popover it moves to the first control. In
+    `InboxPage` it moves to the first item, or to the list area when the list
+    is empty.
+  - `NotificationBell`'s unread badge is an inverted surface instead of anomaly
+    red: an unread count is not a failure.
+  - `NotificationBell`'s badge, unread count and item times, and `InboxPage`'s
+    row times, are set in the numeric face with tabular figures instead of the
+    code face.
+
+- 7f092d7: Let every field control in a FormRow be named by the row's label and
+  described by its description.
+
+  Breaking:
+  - `PickerField` takes exactly one of `label`, `ariaLabel` and
+    `aria-labelledby`, and a `label` cannot be null. A PickerField with no
+    name, or with both a `label` and an `ariaLabel`, no longer type-checks:
+    keep the `label` when it is the visible caption, or pass only `ariaLabel`.
+  - `BlastRadiusBar`'s `label`, released in 0.10.0, is renamed `ariaLabel`,
+    and the bar takes exactly one of `ariaLabel` and `aria-labelledby`.
+    Replace `label="…"` with `ariaLabel="…"`, or, inside a FormRow, pass
+    `aria-labelledby` so the row's label names the meter.
+  - `Checkbox`'s `ariaLabelledBy`, released in 0.10.0, is renamed
+    `aria-labelledby`, as the other field controls spell it.
+
+  Added:
+  - `FormRow` gives its label the id `${controlId}-label`, and takes
+    `labelBy='aria-labelledby'` for a control a `<label>` cannot name, such
+    as a meter, a radio group or a code editor, or a control whose content
+    belongs in its name, such as PickerField: the label is then plain text,
+    the row is no longer a group, and the control takes `${controlId}-label`
+    as its `aria-labelledby`. The default, `labelBy='for'`, renders the
+    `<label for={controlId}>` as before.
+  - `Select`, `Slider`, `NumberField`, `Checkbox`, `SearchInput`,
+    `PickerField`, `ChoiceCardGroup`, `BlastRadiusBar`, `CodeEditor` and
+    `QueryAutocomplete` take `aria-describedby`. `NumberField` reads it
+    before its own helper or error text; `Slider` keeps its value out of the
+    name and description.
+  - `Checkbox`, `SearchInput`, `CodeEditor` and `QueryAutocomplete` take
+    `id`. A `SearchInput` with an `id` is named by its `<label>` instead of
+    its placeholder, and a `QueryAutocomplete` with an `id` or an
+    `aria-labelledby` drops its default name. `CodeEditor` puts its `id`,
+    `aria-labelledby` and `aria-describedby` on its editable area.
+  - `ChoiceCardGroup` takes `aria-labelledby` in place of `ariaLabel`
+    (exactly one of the two), and `PickerField`, `CodeEditor` and
+    `QueryAutocomplete` take `aria-labelledby`, so a FormRow names them
+    once. `PickerField` keeps its value in its name.
+
+  Fixed:
+  - In a FormRow stacked at ≤768 px, every field whose root carries
+    `data-aegis-field` fills the row: `TextField` (with `NumberField` and
+    `PasswordField`), `Select`, `PickerField`, `SearchInput`, `Slider`,
+    `QueryAutocomplete` and `CodeEditor`. A `Checkbox` keeps its width, and
+    a consumer's own field can carry the attribute too.
+  - `QueryAutocomplete`'s suggestion popover no longer overwrites the
+    input's `aria-describedby` with its own id, so the input is described by
+    what its caller passes rather than by the suggestion list.
+  - `niceTicks` keeps an end tick that is a multiple of the step however far
+    from zero it lies (nanosecond timestamps, `123456.794` with a step of
+    `0.001`), keeps ticks of steps from `1e23` up exact, and no longer
+    returns duplicate ticks for a span only a few doubles wide or as wide
+    as ±1e308. A step below `1e-100`, which threw, now gives the ticks of
+    that step, subnormal steps included. A `count` that is not positive, or
+    a step past the largest double, gives no ticks.
+
+  The inject wizard's selects, sliders and number fields are described by
+  their rows, and its Namespace radio group and Blast radius meter are
+  named once by their row labels. Install pedestal names its Helm values
+  editor by its row label.
+
+- 04dacdd: Breaking:
+  - `AegisStrings` lost `totalCount` and `recordsUnit`, which no primitive
+    read, and gained 184 keys. A host that builds its own catalogue object
+    must drop the two keys and add the new ones; a host that spreads
+    `enStrings` or `zhCNStrings` only has to drop an override of a removed
+    key.
+  - `TimeRange`, which `parseTimeRangeInput` and `parseRelativeTime` return,
+    no longer carries an English `label`. It is a union on `kind`: a
+    `RelativeTimeRange` (`kind: 'relative'`) adds the `amount` and `unit` of
+    a `now-<duration>` expression, e.g. `now-15m` is `15` `'minute'`, and an
+    `AbsoluteTimeRange` (`kind: 'absolute'`) has only `from` and `to`. Word a
+    range with the catalogue's `timeRangeLast({ amount, unit })` and
+    `formatDateTime(date)`. The new types `RelativeTimeRange`,
+    `AbsoluteTimeRange` and `TimeRangeUnit` are exported.
+  - The text and accessible names that the primitives and the shell render on
+    their own come from the catalogue, so a `zhCNStrings` host sees them in
+    Chinese. Props that defaulted to English text (`CommandPalette` `title`
+    and `placeholder`, `SearchInput`, `ChatComposer`, `ProjectSelector`,
+    `QueryAutocomplete` and `TimeRangePicker` `placeholder`, `DangerZone`
+    `title`, `DataList` `emptyText`, `DataTable` and `EventTable`
+    `emptyTitle`, `EnvironmentSwitcher`, `SparkLine`, `Terminal` and
+    `TraceTree` `ariaLabel`) take their default from the catalogue and still
+    override it. Known exceptions: `DiffViewer`'s line-number titles
+    (`Added line`, `Removed line`) and its `expand` / `fold` controls are
+    drawn by react-diff-viewer-continued, which takes no text for them, and
+    the system messages `AgentmChannelProvider` writes into the chat
+    transcript (`AgentM gateway is not connected — message not delivered.`,
+    `send failed: …`) stay English.
+  - `CommandPalette` files a command with no `group` under the catalogue's
+    `commandGroupOther` (`Other`, `其他`), so a `groupOrder` that names the
+    ungrouped bucket must use that value.
+  - Some English wording changes, so an English host sees:
+    - `TimeRangePicker`'s trigger reads `Last 15 minutes` instead of
+      `Last 15m`, in the UI font instead of the mono font.
+    - `ServiceMap`'s controls read `Zoom in`, `Zoom out`, `Fit to view`,
+      `Map controls` and `Mini map` instead of React Flow's `Zoom In`,
+      `Zoom Out`, `Fit View`, `Control Panel` and `Mini Map`. An edge is
+      named `gateway to auth-service` instead of `gateway → auth-service`,
+      and a node or edge is described as a `service` or a `connection`
+      instead of a `node` or an `edge`.
+    - `ObjectBrowser`'s selection reads `2 selected` instead of `2 Selected`.
+    - `SavedQueryBar`'s chip menu button is named `More actions for <name>`,
+      like the other row menus, instead of `Options for <name>`.
+    - `RouteErrorBoundary`'s and `InboxPage`'s retry buttons read `Retry`
+      instead of `Try again`, the same word as every other retry.
+    - `InboxPage`'s severity chips read `Info`, `Success`, `Warning` and
+      `Error` instead of the raw `info`, `success`, `warning` and `error`.
+  - `FilePreview` and `ParquetViewer` show a non-`Error` rejection as its
+    string instead of a fixed English message.
+
+  Added keys:
+  - Actions and states: `cancel`, `save`, `apply`, `rename`, `delete`,
+    `deleteNamed`, `moreActionsFor`, `retry`, `dismiss`, `clear`, `undo`,
+    `download`, `send`, `pin`, `unpin`, `pinNamed`, `unpinNamed`, `signIn`,
+    `signOut`,
+    `searchPlaceholder`, `suggestions`, `noItems`, `noData`, `noEvents`,
+    `relativeTime`, `formatDateTime`, `selectionCount`, `moreCount`.
+  - Shell: `routeErrorTitle`, `environmentsUnavailable`,
+    `environmentsUnavailableShort`, `environmentsRetry`, `switchEnvironment`,
+    `agentPanel`, `showAgentPanel`, `hideAgentPanel`, `avatarStatus`.
+  - Auth: `authChecking`, `authSignInTo`, `authSignInDescription`,
+    `authForbiddenTitle`, `authForbiddenRoles`, `authForbidden`, `authEmail`,
+    `authPassword`, `authName`, `authNamePlaceholder`, `authEmailRequired`,
+    `authEmailInvalid`, `authNameRequired`, `authPasswordRequired`,
+    `authPasswordTooShort`, `authPasswordHint`, `authRememberMe`,
+    `authForgotPassword`, `authSigningIn`, `authCreateAccount`,
+    `authCreatingAccount`, `authResetHint`, `authSendResetLink`,
+    `authSending`, `showPassword`, `hidePassword`.
+  - Commands and chat: `commandPaletteTitle`, `commandPalettePlaceholder`,
+    `commandPaletteEmpty`, `commandGroupOther`, `commandStatus`,
+    `chatPlaceholder`, `chatMessage`, `chatSendMessage`, `chatHint`,
+    `conversations`, `renameConversation`, `confirmDelete`.
+  - Content and tables: `inspectorContentKind`, `contentDuplicates`,
+    `contentRoot`, `dangerZone`, `resizeColumn`, `pageSize`,
+    `notSerialisable`, `spanNotJson`, `traceSpans`, `sparkline`,
+    `stepStatus`, `terminalLabel`, `themeToggle`, `codeEditorPhrases`
+    (CodeMirror's search, go-to-line, fold and completion phrases).
+  - Service map: `serviceMapAriaLabels` (React Flow's control, minimap and
+    keyboard-help text, passed as its `ariaLabelConfig`),
+    `serviceMapNodeRole`, `serviceMapEdgeRole`, `serviceMapEdgeName`.
+  - Files: `dropzoneDropFolder`, `dropzoneDropFiles`, `dropzoneBrowseFolder`,
+    `dropzoneBrowseFiles`, `dropzoneMaxSize`, `folderDropzoneHint`,
+    `folderDropzoneSelected`, `folderDropzoneTooMany`,
+    `folderDropzoneFileTooLarge`, `folderDropzoneTotalTooLarge`,
+    `chooseFolder`, `chooseFiles`, `filePreviewLoading`, `filePreviewFailed`,
+    `pdfPreview`, `binaryFile`, `folders`, `expandFolders`,
+    `collapseFolders`, `noSubPrefixes`, `parquetEmptyTitle`,
+    `parquetEmptyDescription`, `parquetReadFailed`, `parquetRows`,
+    `parquetColumns`, `parquetEmptyPage`, `uploadQueueEmptyTitle`,
+    `uploadQueueEmptyDescription`, `uploadsDone`, `uploadEta`,
+    `uploadStatus`, `uploadFailed`, `cancelUpload`, `clearCompleted`.
+  - Pickers and queries: `selectProject`, `searchProjects`,
+    `searchProjectsPlaceholder`, `noProjectsFound`, `queryPlaceholder`,
+    `queryLabel`, `querySyntaxHelp`, `querySyntax`, `expandPanel`,
+    `resizePanel`, `savedQueries`, `savedQueriesEmpty`, `renameSavedQuery`,
+    `savedQueryName`, `savedQueryNamePlaceholder`, `saveCurrent`,
+    `timeRangePlaceholder`, `timeRangeLast`, `timeRangeExpression`,
+    `timeRangeExpressionPlaceholder`, `timeRangeUnparseable`,
+    `timeRangePresets`, `timeRangeAbsolute`, `timeRangeFrom`, `timeRangeTo`,
+    `timeRange`, `moreSavedQueries`, `saveCurrentQuery`, `untitledQuery`.
+  - Fields: `enterWholeNumber`, `enterNumber`.
+  - Notifications: `notifications`, `notificationBellLabel`, `unreadCount`,
+    `notificationsLoadFailedNote`, `notificationsStaleNote`,
+    `notificationsStale`, `notificationsLoadFailed`, `notificationsCaughtUp`,
+    `notificationSeverity`, `viewAll`, `inboxTitle`, `inboxDescription`,
+    `markAllRead`, `inboxAll`, `inboxUnread`, `inboxStale`, `inboxNoUnread`,
+    `inboxEmptyTitle`, `inboxEmptyDescription`.
+  - Ask panel: `askPanelTitle`, `askSurface`, `askEntity`,
+    `askToolsAvailable`, `askNoTools`, `askPlaceholder`, `askNoAgent`.
+
+  Fixes:
+  - Counts read in the right number, e.g. `1 row`, `1 column`,
+    `At least 1 character.` and `1 of 1 run passed`. The catalogue formats
+    the numbers it shows in its own locale, and `enStrings` formats dates in
+    English whatever the browser's language.
+  - `Avatar`'s presence dot is an image named by its status in the
+    catalogue's language (`Busy`, `忙碌`) instead of the raw `busy`.
+  - `ServiceMap`'s keyboard selection reaches the host: Enter or Space on a
+    focused node or edge calls `onNodeClick` or `onEdgeClick`, as a click
+    does. Nodes can be focused, clicked and selected only when
+    `onNodeClick` is passed, and edges only when `onEdgeClick` is; without
+    the handler they carry no keyboard help. A focused node or edge shows
+    the focus ring. A node in a group is described by the group's label, and
+    a group's box, which cannot be focused, no longer points at the keyboard
+    help.
+  - The zh-CN empty states share one form (`暂无条目`, `暂无上传任务`,
+    `暂无属性`), and the resize handles one wording (`调整…宽度`).
+  - `Carousel` balances a tab label that wraps, so a four-character Chinese
+    label breaks two and two instead of three and one.
+
+  Console:
+  - The gallery header has an English / 中文 switch that renders every
+    specimen with `enStrings` or `zhCNStrings`; `?lang=zh-CN` keeps the
+    choice in a review link.
+  - The microservice `ServiceMap` specimen passes `onNodeClick` and
+    `onEdgeClick` and shows what a click, Enter or Space chose; the session
+    DAG specimen passes neither.
+
+- 1a36705: Fixes from the specloop frontend review:
+  - Panel: `elevation="flat"` casts no shadow, for a panel inside another
+    panel, so each layer has one shadow.
+  - MonoValue: `wrap` still breaks a long value anywhere, but a text or
+    number value is never broken narrower than itself or 16 characters,
+    whichever is less, so `null`, `true` and `1` stay whole in a squeezed
+    column. The value is now an inline block.
+  - CommitGraph: several `grow` columns share the width the other columns
+    leave evenly, and a growing column is never narrower than about 20
+    characters; where the others leave less, the table scrolls sideways.
+    A message column stays readable at 768 px.
+
+  The gallery has a nested Panel, short and long wrapped MonoValues in a
+  squeezed table, and a version-map table whose lane columns grow.
+
+- Updated dependencies [f007e03]
+- Updated dependencies [7f092d7]
+- Updated dependencies [04dacdd]
+- Updated dependencies [1a36705]
+  - @lincyaw/aegis-ui@0.11.0
+
 ## 0.3.8
 
 ### Patch Changes
