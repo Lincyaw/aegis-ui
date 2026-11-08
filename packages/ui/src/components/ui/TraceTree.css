@@ -72,6 +72,10 @@
   grid-column: 3;
 }
 
+.aegis-trace-tree__row--muted {
+  color: var(--text-muted);
+}
+
 .aegis-trace-tree__row--selected {
   background: var(--bg-inverted);
   color: var(--text-on-inverted);
@@ -115,6 +119,35 @@
 
 .aegis-trace-tree__kind {
   flex-shrink: 0;
+}
+
+/* After the name, pushed to the end of the name column. */
+.aegis-trace-tree__note {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.aegis-trace-tree__row--selected .aegis-trace-tree__note {
+  color: var(--text-on-inverted-muted);
+}
+
+/* A deep row on a phone has no room left, so its note is cut off. */
+@media (max-width: 640px) {
+  .aegis-trace-tree__note {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
 }
 
 .aegis-trace-tree__name {

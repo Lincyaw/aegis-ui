@@ -4,6 +4,7 @@ import {
   type MouseEvent,
   type ReactNode,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -50,6 +51,19 @@ export interface TraceSpan {
   color?: ChartColor;
   /** Drawn at the end of the span's `TimelineChart` bar. */
   badge?: ReactNode;
+  /**
+   * Drawn at the end of the span's name in its `TraceTree` row, e.g. a change
+   * mark or a count. It is the row's accessible description, not part of its
+   * name. Give a Chip in it `inverted` while the span is selected.
+   */
+  note?: ReactNode;
+  /**
+   * Draws the span's `TraceTree` row in muted ink, e.g. for a span that only
+   * the trace it is compared with has.
+   */
+  muted?: boolean;
+  /** The accessible name of the span's `TraceTree` row. Default: the row's text. */
+  ariaLabel?: string;
   /** Free-form attributes — only used by the inspector pane, not by the row itself. */
   attrs?: Record<string, unknown>;
 }
@@ -206,6 +220,7 @@ export function TraceTree({
   const treeRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, spans, 'tree', wrapRef);
   const strings = useStrings();
+  const idPrefix = useId();
   const { roots, traceDuration, traceStart, timed } = useMemo(() => {
     const r = buildForest(spans);
     const timedSpans = spans.filter(isTimed);
@@ -379,6 +394,7 @@ export function TraceTree({
           const isSelected = selectedId === span.id;
           const rowCls = [
             'aegis-trace-tree__row',
+            span.muted ? 'aegis-trace-tree__row--muted' : '',
             isSelected ? 'aegis-trace-tree__row--selected' : '',
             span.status === 'error' ? 'aegis-trace-tree__row--error' : '',
           ]
@@ -393,6 +409,8 @@ export function TraceTree({
             : '';
           const kind = span.kind ?? '';
           const meta = [timing, kind].filter(Boolean).join(' · ');
+          const noteId = `${idPrefix}-note-${String(index)}`;
+          const hasNote = span.note !== undefined && span.note !== null;
           const tooltipContent = (
             <div className="aegis-trace-tree__tooltip">
               <div className="aegis-trace-tree__tooltip-name">{span.name}</div>
@@ -407,6 +425,8 @@ export function TraceTree({
               key={span.id}
               className={rowCls}
               role="treeitem"
+              aria-label={span.ariaLabel}
+              aria-describedby={hasNote ? noteId : undefined}
               aria-level={node.depth + 1}
               aria-posinset={position}
               aria-setsize={siblings}
@@ -456,6 +476,15 @@ export function TraceTree({
                 >
                   <span className="aegis-trace-tree__name">{span.name}</span>
                 </Tooltip>
+                {hasNote ? (
+                  <span
+                    id={noteId}
+                    className="aegis-trace-tree__note"
+                    aria-hidden="true"
+                  >
+                    {span.note}
+                  </span>
+                ) : null}
               </div>
               {timed && (
                 <>

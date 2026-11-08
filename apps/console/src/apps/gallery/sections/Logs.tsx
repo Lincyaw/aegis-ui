@@ -2,6 +2,7 @@ import { type ReactNode, useState } from 'react';
 
 import {
   Button as AegisButton,
+  Chip,
   CodeBlock,
   ColumnLayout,
   FileTree,
@@ -65,6 +66,42 @@ const GALLERY_TASK_FILES: GalleryTaskFile[] = [
     code: 'psql -f /solution/fix.sql',
   },
 ];
+
+type GalleryFileChange = 'added' | 'modified' | 'deleted';
+
+/** A commit's files compared with its parent's. */
+const GALLERY_COMMIT_CHANGES: Record<string, GalleryFileChange | undefined> = {
+  'backend/src/orders/lifecycle/service.py': 'modified',
+  'backend/src/orders/lifecycle/test_contract.py': 'added',
+  'frontend/src/orders/PayCountdown.tsx': 'added',
+};
+
+const GALLERY_COMMIT_FILES: FileTreeFile[] = [
+  'README.md',
+  'backend/src/catalog/service.py',
+  'backend/src/orders/lifecycle/contract.py',
+  'backend/src/orders/lifecycle/service.py',
+  'backend/src/orders/lifecycle/test_contract.py',
+  'frontend/src/App.tsx',
+  'frontend/src/orders/PayCountdown.tsx',
+].map((path) => {
+  const change = GALLERY_COMMIT_CHANGES[path];
+  return {
+    path,
+    note: change ? (
+      <Chip size='sm' tone='default'>
+        {change}
+      </Chip>
+    ) : undefined,
+  };
+});
+
+function changedBelow(_path: string, files: FileTreeFile[]): ReactNode {
+  const changed = files.filter(
+    (file) => GALLERY_COMMIT_CHANGES[file.path] !== undefined
+  ).length;
+  return changed > 0 ? `${String(changed)} changed` : undefined;
+}
 
 function FileTreeSpecimen(): ReactNode {
   const [selected, setSelected] = useState('tests/grading.toml');
@@ -287,6 +324,19 @@ export function LogsSection() {
                 ariaLabel='Task files, narrow'
                 selectedPath='tests/cases/replica_lag_within_budget_after_rollback.py'
                 defaultExpandedPaths={['tests/']}
+              />
+            </div>
+          </Specimen>
+          <Specimen
+            caption='directoryNote · a commit against its parent; collapsed directories count their changed files'
+            span={2}
+          >
+            <div style={{ width: '100%', maxWidth: 360 }}>
+              <FileTree
+                files={GALLERY_COMMIT_FILES}
+                ariaLabel='Changed files'
+                directoryNote={changedBelow}
+                defaultExpandedPaths={['frontend/']}
               />
             </div>
           </Specimen>

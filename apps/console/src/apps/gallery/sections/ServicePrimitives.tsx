@@ -1,4 +1,11 @@
-import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   Button as AegisButton,
@@ -6,6 +13,9 @@ import {
   Chip,
   CodeEditor,
   type CodeEditorField,
+  CommitGraph,
+  type CommitGraphCommit,
+  type CommitGraphLane,
   Dialog,
   DiffViewer,
   FileDropzone,
@@ -32,6 +42,7 @@ import {
   SectionDivider,
   ServiceMap,
   type ServiceMapEdge,
+  type ServiceMapGroup,
   type ServiceMapNode,
   ShareLinkDialog,
   Timeline,
@@ -1011,6 +1022,368 @@ function ServiceMapSingleSpecimen(): ReactNode {
   );
 }
 
+/**
+ * A requirement tree against an earlier commit: notes say what changed, a
+ * removed requirement stays muted. The selected row's Chip is inverted.
+ */
+function traceTreeNotedSpans(selected: string | undefined): TraceSpan[] {
+  const note = (id: string, text: string, tone?: 'ink'): ReactNode => (
+    <Chip size='sm' tone={tone} inverted={id === selected}>
+      {text}
+    </Chip>
+  );
+  return [
+    { id: 'booking', name: 'booking', kind: 'area' },
+    {
+      id: 'refund',
+      parentId: 'booking',
+      name: 'refund',
+      kind: 'area',
+      note: note('refund', 'changed'),
+    },
+    {
+      id: 'refund-window',
+      parentId: 'refund',
+      name: 'A ticket is refundable for 14 days after purchase',
+      kind: 'requirement',
+      note: note('refund-window', 'added', 'ink'),
+    },
+    {
+      id: 'refund-fee',
+      parentId: 'refund',
+      name: 'A refund keeps a 5 % fee',
+      kind: 'requirement',
+      muted: true,
+      note: note('refund-fee', 'removed'),
+      ariaLabel: 'Requirement: A refund keeps a 5 % fee',
+    },
+    {
+      id: 'pay-deadline',
+      parentId: 'booking',
+      name: 'pay-deadline',
+      kind: 'area',
+    },
+    {
+      id: 'pay-test',
+      parentId: 'pay-deadline',
+      name: 'test_unpaid_booking_is_released',
+      kind: 'test',
+      status: 'error',
+      note: '✕ failed',
+    },
+    {
+      id: 'pay-hold',
+      parentId: 'pay-deadline',
+      name: 'An unpaid booking is released after 30 minutes',
+      kind: 'requirement',
+    },
+  ];
+}
+
+function TraceTreeNotedSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string | undefined>('refund-fee');
+  return (
+    <TraceTree
+      spans={traceTreeNotedSpans(selected)}
+      selectedId={selected}
+      onSelect={(span) => setSelected(span.id)}
+      ariaLabel='Requirements of commit a41f09c against 7c2d1e0'
+      wrapName
+    />
+  );
+}
+
+const TASK_GRAPH_AREAS = [
+  'seats',
+  'refund',
+  'pay-deadline',
+  'tickets',
+  'group-booking-and-seat-allocation',
+];
+const TASK_GRAPH_MODULES = ['model', 'service', 'api'];
+
+/** A run's task graph: harness → design per area → implement per module → accept per area → accept all. */
+function buildTaskGraph(): {
+  nodes: ServiceMapNode[];
+  edges: ServiceMapEdge[];
+  groups: ServiceMapGroup[];
+} {
+  const failed = 'implement:refund/service';
+  const active = 'implement:tickets/api';
+  const statusOf = (id: string): ServiceMapNode['status'] =>
+    id === failed
+      ? 'error'
+      : id === active
+        ? 'active'
+        : id === 'implement:refund/api' || id.startsWith('accept')
+          ? 'muted'
+          : 'ok';
+  const sublabelOf = (id: string): string =>
+    id === failed
+      ? 'failed · 3 attempts'
+      : id === active
+        ? 'running'
+        : statusOf(id) === 'muted'
+          ? 'pending'
+          : 'succeeded · cache hit';
+  const node = (id: string): ServiceMapNode => ({
+    id,
+    label: id,
+    sublabel: sublabelOf(id),
+    status: statusOf(id),
+    badge: id === failed ? 3 : undefined,
+  });
+  const edge = (source: string, target: string): ServiceMapEdge => ({
+    id: `${source}→${target}`,
+    source,
+    target,
+    status: target === failed || source === failed ? 'error' : undefined,
+  });
+  const design = TASK_GRAPH_AREAS.map((area) => `design:${area}`);
+  const implement = TASK_GRAPH_AREAS.flatMap((area) =>
+    TASK_GRAPH_MODULES.map((module) => `implement:${area}/${module}`)
+  );
+  const accept = TASK_GRAPH_AREAS.map((area) => `accept:${area}`);
+  const ids = ['harness', ...design, ...implement, ...accept, 'accept'];
+  const edges = [
+    ...design.map((id) => edge('harness', id)),
+    ...TASK_GRAPH_AREAS.flatMap((area) =>
+      TASK_GRAPH_MODULES.map((module, index) =>
+        edge(
+          index === 0
+            ? `design:${area}`
+            : `implement:${area}/${TASK_GRAPH_MODULES[index - 1]}`,
+          `implement:${area}/${module}`
+        )
+      )
+    ),
+    ...TASK_GRAPH_AREAS.map((area) =>
+      edge(`implement:${area}/api`, `accept:${area}`)
+    ),
+    ...accept.map((id) => edge(id, 'accept')),
+  ];
+  return {
+    nodes: ids.map(node),
+    edges,
+    groups: [
+      { id: 'phase-harness', label: 'HARNESS', nodeIds: ['harness'] },
+      { id: 'phase-design', label: 'DESIGN', nodeIds: design },
+      { id: 'phase-implement', label: 'IMPLEMENT', nodeIds: implement },
+      { id: 'phase-accept', label: 'ACCEPT', nodeIds: [...accept, 'accept'] },
+    ],
+  };
+}
+
+function ServiceMapTaskGraphSpecimen(): ReactNode {
+  const { nodes, edges, groups } = useMemo(buildTaskGraph, []);
+  const [selected, setSelected] = useState('implement:refund/service');
+  return (
+    <ServiceMap
+      nodes={nodes}
+      edges={edges}
+      groups={groups}
+      fillViewport
+      selectedNodeId={selected}
+      focusNodeId={selected}
+      onNodeClick={(node) => setSelected(node.id)}
+      ariaLabel='Task graph of run 7f3a'
+    />
+  );
+}
+
+/** The whole task graph, with the running task's time ticking every 2 s. */
+function ServiceMapGroupsSpecimen(): ReactNode {
+  const { nodes, edges, groups } = useMemo(buildTaskGraph, []);
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setSeconds((previous) => previous + 2);
+    }, 2000);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+  return (
+    <ServiceMap
+      nodes={nodes.map((node) =>
+        node.status === 'active'
+          ? { ...node, sublabel: `running · ${String(seconds)} s` }
+          : node
+      )}
+      edges={edges}
+      groups={groups}
+      height={480}
+      ariaLabel='Task graph of run 7f3a, all phases'
+    />
+  );
+}
+
+function ServiceMapAutoHeightSpecimen(): ReactNode {
+  return (
+    <ServiceMap
+      nodes={SERVICE_MAP_MICRO_NODES}
+      edges={SERVICE_MAP_MICRO_EDGES}
+      minimap={false}
+      ariaLabel='Service topology'
+    />
+  );
+}
+
+const commitGraphHistory: CommitGraphCommit[] = [
+  {
+    id: 'a41f09c',
+    parents: ['5d7b3e2', '93c0a4f'],
+    title: 'Merge pay-deadline into main',
+    refs: ['main'],
+    meta: 'a41f09c · 2 h ago',
+  },
+  {
+    id: 'e81b6d4',
+    parents: ['c2f9a10'],
+    title: 'A refund keeps a 5 % fee',
+    refs: ['refund'],
+    meta: 'e81b6d4 · 3 h ago',
+  },
+  {
+    id: '93c0a4f',
+    parents: ['0b4e8c1'],
+    title: 'The pay deadline applies to group bookings too',
+    meta: '93c0a4f · 5 h ago',
+  },
+  {
+    id: '5d7b3e2',
+    parents: ['7c2d1e0'],
+    title: 'Rename the tickets area to bookings',
+    meta: '5d7b3e2 · 6 h ago',
+  },
+  {
+    id: 'c2f9a10',
+    parents: ['7c2d1e0'],
+    title: 'Add the refund area: a ticket is refundable for 14 days',
+    meta: 'c2f9a10 · 1 d ago',
+  },
+  {
+    id: '0b4e8c1',
+    parents: ['7c2d1e0'],
+    title: 'An unpaid booking is released after 30 minutes',
+    meta: '0b4e8c1 · 1 d ago',
+  },
+  {
+    id: '7c2d1e0',
+    parents: ['19ae5f3'],
+    title: 'A seat hold expires after 10 minutes',
+    meta: '7c2d1e0 · 2 d ago',
+  },
+  {
+    id: '19ae5f3',
+    parents: [],
+    title: 'Initial requirements',
+    meta: '19ae5f3 · 3 d ago',
+  },
+];
+
+function CommitGraphHistorySpecimen(): ReactNode {
+  const [selected, setSelected] = useState(['a41f09c', '7c2d1e0']);
+  return (
+    <CommitGraph
+      commits={commitGraphHistory}
+      selectedIds={selected}
+      onSelectedIdsChange={setSelected}
+      maxSelected={2}
+      ariaLabel='Requirement commits'
+    />
+  );
+}
+
+const COMMIT_GRAPH_LANES: CommitGraphLane[] = [
+  { id: 'requirements', label: 'requirements' },
+  { id: 'runs', label: 'runs' },
+  { id: 'trunk', label: 'trunk railway' },
+];
+
+/** Requirement commits, the runs built from them, and the trunk commits the runs published. */
+const commitGraphVersions: CommitGraphCommit[] = [
+  {
+    id: 't-4e1',
+    lane: 'trunk',
+    parents: ['t-b07'],
+    title: 'Publish the seats and tickets modules',
+    refs: ['railway'],
+    links: ['run-7f3a'],
+    meta: '4e1c2a9',
+  },
+  {
+    id: 'run-7f3a',
+    lane: 'runs',
+    parents: ['run-2b91'],
+    title: 'Run 7f3a · failed · 1 task',
+    links: ['a41f09c'],
+    meta: '7f3a0d2',
+  },
+  {
+    id: 'a41f09c',
+    lane: 'requirements',
+    parents: ['5d7b3e2', '93c0a4f'],
+    title: 'Merge pay-deadline into main',
+    refs: ['main'],
+    meta: 'a41f09c',
+  },
+  {
+    id: '93c0a4f',
+    lane: 'requirements',
+    parents: ['5d7b3e2'],
+    title: 'The pay deadline applies to group bookings too',
+    meta: '93c0a4f',
+  },
+  {
+    id: 't-b07',
+    lane: 'trunk',
+    parents: ['t-61d'],
+    title: 'Publish the booking modules',
+    links: ['run-2b91'],
+    meta: 'b07e4f1',
+  },
+  {
+    id: 'run-2b91',
+    lane: 'runs',
+    parents: [],
+    title: 'Run 2b91 · succeeded',
+    links: ['5d7b3e2'],
+    meta: '2b9184c',
+  },
+  {
+    id: '5d7b3e2',
+    lane: 'requirements',
+    parents: ['7c2d1e0'],
+    title: 'Rename the tickets area to bookings',
+    meta: '5d7b3e2',
+  },
+  {
+    id: 't-61d',
+    lane: 'trunk',
+    parents: [],
+    title: 'Initial trunk',
+    meta: '61d0e3b',
+  },
+  {
+    id: '7c2d1e0',
+    lane: 'requirements',
+    parents: ['19ae5f3'],
+    title: 'A seat hold expires after 10 minutes',
+    meta: '7c2d1e0',
+  },
+];
+
+function CommitGraphLanesSpecimen(): ReactNode {
+  return (
+    <CommitGraph
+      commits={commitGraphVersions}
+      lanes={COMMIT_GRAPH_LANES}
+      ariaLabel='Requirement commits, runs and trunk commits'
+    />
+  );
+}
+
 function ResizableSidePanelSpecimen(): ReactNode {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   return (
@@ -1564,6 +1937,35 @@ export function ServicePrimitivesSection() {
             ]}
           />
         </Specimen>
+        <Specimen caption='wrap · a requirement with long values' span={1}>
+          <MetadataList
+            wrap
+            entries={[
+              { label: 'id', value: 'unpaid-timeout', mono: true },
+              {
+                label: 'given',
+                value: 'o is an unpaid order that p submitted at time t',
+              },
+              {
+                label: 'then',
+                value:
+                  'o is canceled once 15 minutes have passed since t.\nThe seats o held return to the remaining count of its train.',
+              },
+              {
+                label: 'for_all',
+                value: '{\n  "p": "passenger",\n  "o": "order"\n}',
+                mono: true,
+              },
+              {
+                label: 'digest',
+                value:
+                  '9f2c6b1e47a03d58c2b9e0f71a4d6c83b5e29f07d1c4a68e3b70f925d6e1a4c2',
+                mono: true,
+                copyable: true,
+              },
+            ]}
+          />
+        </Specimen>
       </div>
 
       <SectionDivider extra={<MetricLabel>Object side-panel</MetricLabel>}>
@@ -2075,6 +2477,12 @@ export function ServicePrimitivesSection() {
         >
           <TraceTreeUnorderedSpecimen />
         </Specimen>
+        <Specimen
+          caption='note · muted · ariaLabel — a requirement tree against an earlier commit: a note at the end of each row says what changed and is its accessible description, a removed requirement stays in muted ink, a failed test notes it · the host passes inverted to the Chip of the selected row · a row is named by its text unless ariaLabel names it · wrapName'
+          span={3}
+        >
+          <TraceTreeNotedSpecimen />
+        </Specimen>
       </div>
 
       <SectionDivider extra={<MetricLabel>OTel agent traces</MetricLabel>}>
@@ -2125,6 +2533,44 @@ export function ServicePrimitivesSection() {
         </Specimen>
         <Specimen caption='single-node degenerate case' span={3}>
           <ServiceMapSingleSpecimen />
+        </Specimen>
+        <Specimen
+          caption='groups · focusNodeId · active · fillViewport — 27 tasks in four phases, laid out left to right in the order the groups are given; the map opens at actual size on the failed task, fitted to it and its direct neighbours when they fit and centred on the task alone when they do not, with no minimap by default since a focused view runs past every edge; nodes widen with their label and wrap it past 320 px; the running task pulses; click a task to open on it'
+          span={3}
+        >
+          <ServiceMapTaskGraphSpecimen />
+        </Specimen>
+        <Specimen
+          caption='groups · minimap — the whole map fitted; the minimap draws each group as an outline, so the tasks inside it show; the running task ticks every 2 s, and a new status or sublabel keeps your pan and zoom'
+          span={3}
+        >
+          <ServiceMapGroupsSpecimen />
+        </Specimen>
+        <Specimen
+          caption='no height · minimap={false} — fills its container, at least --service-map-min-height tall'
+          span={3}
+        >
+          <ServiceMapAutoHeightSpecimen />
+        </Specimen>
+      </div>
+
+      <SectionDivider
+        extra={<MetricLabel>parents · merges · lanes</MetricLabel>}
+      >
+        CommitGraph
+      </SectionDivider>
+      <div className='gallery__stack'>
+        <Specimen
+          caption='one history · a merged branch and an open one · refs · onSelectedIdsChange with maxSelected 2 picks two commits to compare · hover a cut-off title to read it whole'
+          span={3}
+        >
+          <CommitGraphHistorySpecimen />
+        </Specimen>
+        <Specimen
+          caption='lanes — requirement commits, the runs built from them and the trunk commits they published, each its own history; dashed links cross lanes · a parent outside the list runs off the bottom'
+          span={3}
+        >
+          <CommitGraphLanesSpecimen />
         </Specimen>
       </div>
 

@@ -385,6 +385,13 @@ export function TypographySection() {
         <Specimen caption="tone='muted'">
           <MonoValue tone='muted'>0</MonoValue>
         </Specimen>
+        <Specimen caption='wrap · a SHA-256 digest in a narrow column'>
+          <div className='gallery__narrow-cell'>
+            <MonoValue size='sm' wrap>
+              9f2c6b1e47a03d58c2b9e0f71a4d6c83b5e29f07d1c4a68e3b70f925d6e1a4c2
+            </MonoValue>
+          </div>
+        </Specimen>
       </div>
 
       <SectionDivider>MetricLabel</SectionDivider>

@@ -3,6 +3,7 @@ import {
   type HTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -17,7 +18,7 @@ export interface FileTreeFile {
   path: string;
   /** Shown in place of the file name, e.g. a note's name without `.md`. The row's title keeps the path. */
   label?: ReactNode;
-  /** Trailing note, typically the file size. */
+  /** Trailing note, typically the file size. It is the row's accessible description, not part of its name. */
   note?: ReactNode;
 }
 
@@ -46,6 +47,12 @@ export interface FileTreeProps {
   defaultExpandedPaths?: string[];
   /** Called with the open directories whenever one opens or closes. */
   onExpandedPathsChange?: (paths: string[]) => void;
+  /**
+   * A directory's trailing note, from its path (with a trailing `/`) and
+   * every file below it at any depth, e.g. how many of them changed. Return
+   * `undefined` for no note. Default: the number of files.
+   */
+  directoryNote?: (path: string, files: FileTreeFile[]) => ReactNode;
   className?: string;
 }
 
@@ -57,7 +64,8 @@ interface DirectoryEntry {
   depth: number;
   parentPath?: string;
   children: Entry[];
-  fileCount: number;
+  /** Every file below the directory, at any depth. */
+  files: FileTreeFile[];
 }
 
 interface FileEntry {
@@ -96,12 +104,12 @@ function buildEntries(files: FileTreeFile[]): Entry[] {
           depth,
           parentPath: parent?.path,
           children: [],
-          fileCount: 0,
+          files: [],
         };
         directories.set(path, directory);
         siblings.push(directory);
       }
-      directory.fileCount += 1;
+      directory.files.push(file);
       parent = directory;
       siblings = directory.children;
     }
@@ -154,8 +162,10 @@ export function FileTree({
   expandedPaths,
   defaultExpandedPaths = [],
   onExpandedPathsChange,
+  directoryNote,
   className,
 }: FileTreeProps) {
+  const idPrefix = useId();
   const entries = useMemo(() => buildEntries(files), [files]);
   const [trackedPaths, setTrackedPaths] = useState<string[]>(() => [
     ...defaultExpandedPaths,
@@ -270,13 +280,21 @@ export function FileTree({
       {rows.map(({ entry, position, setSize }, index) => {
         const isDirectory = entry.kind === 'directory';
         const selected = !isDirectory && entry.path === selectedPath;
-        const note = isDirectory ? String(entry.fileCount) : entry.note;
+        const note = !isDirectory
+          ? entry.note
+          : directoryNote
+            ? directoryNote(entry.path, entry.files)
+            : String(entry.files.length);
+        const nameId = `${idPrefix}-name-${String(index)}`;
+        const noteId = `${idPrefix}-note-${String(index)}`;
         const href = isDirectory ? undefined : fileHref?.(entry.path);
         const itemProps: HTMLAttributes<HTMLElement> = {
           className: selected
             ? 'aegis-file-tree__item aegis-file-tree__item--selected'
             : 'aegis-file-tree__item',
           style: { '--aegis-file-tree-depth': entry.depth } as CSSProperties,
+          'aria-labelledby': nameId,
+          'aria-describedby': note === undefined ? undefined : noteId,
           'aria-level': entry.depth + 1,
           'aria-setsize': setSize,
           'aria-posinset': position,
@@ -305,11 +323,17 @@ export function FileTree({
             ) : (
               <FileOutlined className="aegis-file-tree__icon" aria-hidden />
             )}
-            <span className="aegis-file-tree__name" title={entry.path}>
+            <span
+              id={nameId}
+              className="aegis-file-tree__name"
+              title={entry.path}
+            >
               {entry.kind === 'file' ? (entry.label ?? entry.name) : entry.name}
             </span>
             {note !== undefined && (
-              <span className="aegis-file-tree__note">{note}</span>
+              <span id={noteId} className="aegis-file-tree__note">
+                {note}
+              </span>
             )}
           </>
         );

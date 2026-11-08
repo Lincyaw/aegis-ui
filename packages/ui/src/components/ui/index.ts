@@ -283,9 +283,16 @@ export { ServiceMap } from './ServiceMap';
 export type {
   ServiceMapDirection,
   ServiceMapEdge,
+  ServiceMapGroup,
   ServiceMapNode,
   ServiceMapProps,
   ServiceMapStatus,
 } from './ServiceMap';
+export { CommitGraph } from './CommitGraph';
+export type {
+  CommitGraphCommit,
+  CommitGraphLane,
+  CommitGraphProps,
+} from './CommitGraph';
 export { SavedQueryBar } from './SavedQueryBar';
 export type { SavedQueryBarProps } from './SavedQueryBar';

@@ -494,8 +494,10 @@
   }
 }
 
+/* --breadcrumb-bar-height is this bar's height. */
 .aegis-shell__breadcrumb {
   padding: var(--space-3) var(--space-6) 0;
+  line-height: var(--type-body-line);
 }
 
 .aegis-shell__content {

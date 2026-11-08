@@ -1,0 +1,189 @@
+/* The row height and graph width come from CommitGraph.tsx, which draws the
+ * SVG in px from the same numbers. */
+.aegis-commit-graph {
+  --aegis-commit-graph-select-w: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-ui);
+  color: var(--text-main);
+}
+
+.aegis-commit-graph--selectable {
+  --aegis-commit-graph-select-w: var(--size-control-base);
+}
+
+.aegis-commit-graph__lanes {
+  display: grid;
+  grid-template-columns: var(--aegis-commit-graph-select-w) var(
+      --aegis-commit-graph-graph-w
+    );
+  padding-bottom: var(--space-2);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+.aegis-commit-graph__lane-labels {
+  display: flex;
+  align-items: flex-end;
+}
+
+.aegis-commit-graph__lane-label {
+  flex-shrink: 0;
+  padding: 0 var(--space-1);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  text-align: center;
+  overflow-wrap: break-word;
+  color: var(--text-muted);
+}
+
+.aegis-commit-graph__body {
+  position: relative;
+}
+
+.aegis-commit-graph__svg {
+  position: absolute;
+  top: 0;
+  left: var(--aegis-commit-graph-select-w);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aegis-commit-graph__lane-rule {
+  stroke: var(--border-hairline);
+  stroke-width: var(--size-hairline);
+}
+
+.aegis-commit-graph__edge {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: var(--size-border-thick);
+}
+
+.aegis-commit-graph__link {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: var(--size-hairline);
+  stroke-dasharray: 4 3;
+}
+
+.aegis-commit-graph__dot {
+  fill: var(--text-main);
+  stroke: var(--bg-panel);
+  stroke-width: var(--size-border-thick);
+}
+
+/* A merge is a ring, so it reads apart from the commits it joins. */
+.aegis-commit-graph__dot--merge {
+  fill: var(--bg-panel);
+  stroke: var(--text-main);
+}
+
+/* The dot's outline and the ring's hole take the selected row's fill. */
+.aegis-commit-graph__dot--selected {
+  stroke: var(--bg-muted);
+}
+
+.aegis-commit-graph__dot--merge.aegis-commit-graph__dot--selected {
+  fill: var(--bg-muted);
+  stroke: var(--text-main);
+}
+
+.aegis-commit-graph__rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aegis-commit-graph__row {
+  display: grid;
+  grid-template-columns:
+    var(--aegis-commit-graph-select-w) var(--aegis-commit-graph-graph-w)
+    minmax(0, 1fr) auto;
+  align-items: center;
+  height: var(--aegis-commit-graph-row-h);
+  border-radius: var(--radius-sm);
+}
+
+.aegis-commit-graph__row--selected {
+  background: var(--bg-muted);
+}
+
+.aegis-commit-graph__select {
+  display: inline-flex;
+  grid-column: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.aegis-commit-graph__text {
+  display: flex;
+  grid-column: 3;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding-left: var(--space-3);
+}
+
+/* The row's lane and merge for assistive technology; the drawing is not read. */
+.aegis-commit-graph__screen-reader-text {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.aegis-commit-graph__ref {
+  flex-shrink: 0;
+}
+
+.aegis-commit-graph__title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-main);
+}
+
+.aegis-commit-graph__meta {
+  grid-column: 4;
+  padding: 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-size);
+  line-height: var(--type-mono-line);
+  font-weight: var(--type-mono-weight);
+  letter-spacing: var(--type-mono-tracking);
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .aegis-commit-graph__meta {
+    display: none;
+  }
+
+  /* With no room left for the title, the refs are cut off too. */
+  .aegis-commit-graph__ref {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* The lanes narrow here, so a label too long for one is cut off. */
+  .aegis-commit-graph__lane-label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
