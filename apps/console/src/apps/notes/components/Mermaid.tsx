@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { useTheme } from '@lincyaw/aegis-ui';
+import { Alert, useTheme } from '@lincyaw/aegis-ui';
 
 interface MermaidProps {
   code: string;
@@ -45,9 +45,14 @@ export function Mermaid({ code }: MermaidProps): JSX.Element {
 
   if (error) {
     return (
-      <pre className='wiki-mermaid__error' title={error}>
-        <code>{code}</code>
-      </pre>
+      <div className='wiki-mermaid__error'>
+        <Alert tone='error' title='Diagram failed to render'>
+          {error}
+        </Alert>
+        <pre>
+          <code>{code}</code>
+        </pre>
+      </div>
     );
   }
   if (!svg) {

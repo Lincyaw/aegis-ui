@@ -6,6 +6,8 @@
  */
 import { type ReactElement } from 'react';
 
+import { StatusDot } from '@lincyaw/aegis-ui';
+
 import {
   type AgentBlock,
   jsonStringify,
@@ -33,7 +35,7 @@ function ToolCallBlock({
   id: string;
 }): ReactElement {
   return (
-    <details className='llmh-msg__tool llmh-msg__tool--call' open>
+    <details className='llmh-msg__tool' open>
       <summary className='llmh-msg__tool-head'>
         <span className='llmh-msg__tool-tag'>call</span>
         <span className='llmh-msg__tool-name'>{name}</span>
@@ -53,16 +55,12 @@ function ToolResultBlock({
   toolCallId: string;
   ok: boolean;
 }): ReactElement {
-  const cls = [
-    'llmh-msg__tool',
-    'llmh-msg__tool--result',
-    ok ? '' : 'llmh-msg__tool--error',
-  ]
-    .filter(Boolean)
-    .join(' ');
   return (
-    <details className={cls}>
+    <details
+      className={ok ? 'llmh-msg__tool' : 'llmh-msg__tool llmh-msg__tool--error'}
+    >
       <summary className='llmh-msg__tool-head'>
+        {!ok && <StatusDot tone='warning' />}
         <span className='llmh-msg__tool-tag'>{ok ? 'result' : 'error'}</span>
         {toolCallId && (
           <span className='llmh-msg__tool-id'>{shortId(toolCallId)}</span>

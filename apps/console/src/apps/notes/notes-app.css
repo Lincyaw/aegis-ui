@@ -162,10 +162,6 @@
 }
 
 /* ---- Callouts -------------------------------------------------------- */
-.wiki-markdown .callout {
-  border-left-width: var(--space-1);
-}
-
 .wiki-markdown .callout > :last-child {
   margin-bottom: 0;
 }
@@ -186,7 +182,6 @@
 .wiki-markdown .callout-note,
 .wiki-markdown .callout-info,
 .wiki-markdown .callout-abstract {
-  border-left-color: var(--accent-info);
   background: color-mix(in srgb, var(--accent-info) 10%, transparent);
 }
 .wiki-markdown .callout-note .callout-title,
@@ -198,7 +193,6 @@
 .wiki-markdown .callout-tip,
 .wiki-markdown .callout-success,
 .wiki-markdown .callout-hint {
-  border-left-color: var(--presence-online);
   background: color-mix(in srgb, var(--presence-online) 10%, transparent);
 }
 .wiki-markdown .callout-tip .callout-title,
@@ -210,7 +204,6 @@
 .wiki-markdown .callout-warning,
 .wiki-markdown .callout-caution,
 .wiki-markdown .callout-attention {
-  border-left-color: var(--accent-caution);
   background: color-mix(in srgb, var(--accent-caution) 12%, transparent);
 }
 .wiki-markdown .callout-warning .callout-title,
@@ -223,7 +216,6 @@
 .wiki-markdown .callout-error,
 .wiki-markdown .callout-bug,
 .wiki-markdown .callout-failure {
-  border-left-color: var(--accent-warning);
   background: color-mix(in srgb, var(--accent-warning) 10%, transparent);
 }
 .wiki-markdown .callout-danger .callout-title,
@@ -248,7 +240,10 @@
 }
 
 .wiki-mermaid__error {
-  border-left: var(--size-border-thick) solid var(--accent-warning);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
 }
 
 /* ---- Math ------------------------------------------------------------ */

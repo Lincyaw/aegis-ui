@@ -339,8 +339,14 @@ function SessionTreeList({
             </span>
             <span className='session-tree-list__main'>
               <span className='session-tree-list__top'>
-                <MonoValue size='sm'>{row.sessionId.slice(0, 12)}</MonoValue>
-                <Chip tone={row.lineageKind === 'fork' ? 'default' : 'ghost'}>
+                <MonoValue size='sm' inverted={selected}>
+                  {row.sessionId.slice(0, 12)}
+                </MonoValue>
+                <Chip
+                  tone={
+                    selected || row.lineageKind === 'fork' ? 'default' : 'ghost'
+                  }
+                >
                   {lineageLabel(row)}
                 </Chip>
               </span>
