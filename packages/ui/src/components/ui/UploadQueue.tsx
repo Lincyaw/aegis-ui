@@ -1,4 +1,5 @@
 import { formatBytes, formatDurationEstimate } from '../../lib/format';
+import { useStrings } from '../../locale';
 import { Button } from './Button';
 import { EmptyState } from './EmptyState';
 import { MetricLabel } from './MetricLabel';
@@ -38,13 +39,6 @@ function humanSpeed(bps: number): string {
   return `${formatBytes(bps)}/s`;
 }
 
-const STATUS_LABEL: Record<UploadQueueItem['status'], string> = {
-  queued: 'queued',
-  uploading: 'uploading',
-  done: 'done',
-  error: 'failed',
-};
-
 export function UploadQueue({
   items,
   onRetry,
@@ -52,6 +46,7 @@ export function UploadQueue({
   onClearCompleted,
   className,
 }: UploadQueueProps) {
+  const strings = useStrings();
   const cls = ['aegis-upload-queue', className ?? ''].filter(Boolean).join(' ');
   const hasCompleted = items.some(
     (i) => i.status === 'done' || i.status === 'error',
@@ -61,8 +56,8 @@ export function UploadQueue({
     return (
       <div className={cls}>
         <EmptyState
-          title="No uploads"
-          description="Drop files into the dropzone to start an upload."
+          title={strings.uploadQueueEmptyTitle}
+          description={strings.uploadQueueEmptyDescription}
         />
       </div>
     );
@@ -85,21 +80,21 @@ export function UploadQueue({
         <div className="aegis-upload-queue__summary">
           <div className="aegis-upload-queue__summary-line">
             <span className="aegis-upload-queue__piece aegis-upload-queue__figures aegis-upload-queue__figures--muted">
-              {doneCount.toString()}/{items.length.toString()} done
+              {strings.uploadsDone(doneCount, items.length)}
             </span>
             <span className="aegis-upload-queue__piece aegis-upload-queue__figures">
               {formatBytes(uploadedBytes)}/{formatBytes(totalBytes)}
             </span>
             {maxEta > 0 ? (
               <span className="aegis-upload-queue__piece aegis-upload-queue__figures">
-                ETA {formatDurationEstimate(maxEta * 1000)}
+                {strings.uploadEta(formatDurationEstimate(maxEta * 1000))}
               </span>
             ) : null}
           </div>
         </div>
         {hasCompleted && onClearCompleted ? (
           <Button tone="ghost" onClick={onClearCompleted}>
-            Clear completed
+            {strings.clearCompleted}
           </Button>
         ) : null}
       </header>
@@ -122,21 +117,23 @@ export function UploadQueue({
                       ? ' · '
                       : null}
                     {it.etaSeconds !== undefined
-                      ? `ETA ${formatDurationEstimate(it.etaSeconds * 1000)}`
+                      ? strings.uploadEta(
+                          formatDurationEstimate(it.etaSeconds * 1000),
+                        )
                       : null}
                   </span>
                 ) : null}
                 <span className="aegis-upload-queue__figures aegis-upload-queue__figures--muted">
                   {formatBytes(it.file.size)}
                 </span>
-                <MetricLabel>{STATUS_LABEL[it.status]}</MetricLabel>
+                <MetricLabel>{strings.uploadStatus(it.status)}</MetricLabel>
                 {it.status === 'uploading' && it.onCancel !== undefined ? (
                   <Button
                     tone="ghost"
                     onClick={it.onCancel}
-                    aria-label="Cancel upload"
+                    aria-label={strings.cancelUpload}
                   >
-                    Cancel
+                    {strings.cancel}
                   </Button>
                 ) : null}
               </span>
@@ -151,7 +148,7 @@ export function UploadQueue({
             </div>
             {it.status === 'error' ? (
               <div className="aegis-upload-queue__error">
-                <MetricLabel>{it.error ?? 'upload failed'}</MetricLabel>
+                <MetricLabel>{it.error ?? strings.uploadFailed}</MetricLabel>
                 <span className="aegis-upload-queue__actions">
                   {onRetry ? (
                     <Button
@@ -160,7 +157,7 @@ export function UploadQueue({
                         onRetry(it.id);
                       }}
                     >
-                      Retry
+                      {strings.retry}
                     </Button>
                   ) : null}
                   {onDismiss ? (
@@ -170,7 +167,7 @@ export function UploadQueue({
                         onDismiss(it.id);
                       }}
                     >
-                      Dismiss
+                      {strings.dismiss}
                     </Button>
                   ) : null}
                 </span>
@@ -184,7 +181,7 @@ export function UploadQueue({
                     onDismiss(it.id);
                   }}
                 >
-                  Dismiss
+                  {strings.dismiss}
                 </Button>
               </div>
             ) : null}

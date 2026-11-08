@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { type Accept, useDropzone } from 'react-dropzone';
 
 import { formatBytes } from '../../lib/format';
+import { useStrings } from '../../locale';
 import './FileDropzone.css';
 import { filesFromEvent } from './dropFiles';
 
@@ -44,6 +45,7 @@ export function FileDropzone({
   className,
   style,
 }: FileDropzoneProps) {
+  const strings = useStrings();
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
     useDropzone({
       onDrop,
@@ -89,11 +91,11 @@ export function FileDropzone({
               <span className="aegis-file-dropzone__primary">
                 {isDragActive
                   ? directory
-                    ? 'Drop folder to upload'
-                    : 'Drop to upload'
+                    ? strings.dropzoneDropFolder
+                    : strings.dropzoneDropFiles
                   : directory
-                    ? 'Drag a folder here or click to browse'
-                    : 'Drag files here or click to browse'}
+                    ? strings.dropzoneBrowseFolder
+                    : strings.dropzoneBrowseFiles}
               </span>
               {accept ? (
                 <span className="aegis-file-dropzone__meta">
@@ -102,7 +104,7 @@ export function FileDropzone({
               ) : null}
               {maxSize !== undefined ? (
                 <span className="aegis-file-dropzone__meta">
-                  max {formatBytes(maxSize)}
+                  {strings.dropzoneMaxSize(formatBytes(maxSize))}
                 </span>
               ) : null}
             </>

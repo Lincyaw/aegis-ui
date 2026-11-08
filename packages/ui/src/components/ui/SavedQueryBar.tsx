@@ -18,6 +18,7 @@ import {
 import { Popover } from 'antd';
 
 import type { SavedQuery } from '../../hooks/useSavedQueries';
+import { useStrings } from '../../locale';
 import './SavedQueryBar.css';
 
 export interface SavedQueryBarProps {
@@ -52,6 +53,7 @@ export function SavedQueryBar({
   className,
   maxInlineUnpinned = 6,
 }: SavedQueryBarProps) {
+  const strings = useStrings();
   const { pinned, inlineUnpinned, overflow } = useMemo(() => {
     const pinnedQs = queries.filter((q) => q.pinned);
     const unpinnedQs = queries.filter((q) => !q.pinned);
@@ -66,11 +68,9 @@ export function SavedQueryBar({
   const cls = ['aegis-sqb', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div className={cls} role="toolbar" aria-label="Saved queries">
+    <div className={cls} role="toolbar" aria-label={strings.savedQueries}>
       {queries.length === 0 ? (
-        <span className="aegis-sqb__hint">
-          No saved queries yet — save the current view to pin it.
-        </span>
+        <span className="aegis-sqb__hint">{strings.savedQueriesEmpty}</span>
       ) : (
         <ul className="aegis-sqb__list">
           {pinned.map((q) => (
@@ -129,6 +129,7 @@ function SavedQueryChip({
   onRemove,
   onTogglePinned,
 }: SavedQueryChipProps) {
+  const strings = useStrings();
   const [renaming, setRenaming] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -204,7 +205,7 @@ function SavedQueryChip({
             <button
               type="button"
               className="aegis-sqb__menu-trigger"
-              aria-label={`Options for ${query.name}`}
+              aria-label={strings.moreActionsFor(query.name)}
             >
               <EllipsisOutlined aria-hidden />
             </button>
@@ -228,6 +229,7 @@ function ChipMenu({
   onTogglePinned,
   onRemove,
 }: ChipMenuProps) {
+  const strings = useStrings();
   return (
     <div className="aegis-sqb__menu" role="menu">
       <button
@@ -236,7 +238,7 @@ function ChipMenu({
         className="aegis-sqb__menu-item"
         onClick={onRename}
       >
-        Rename
+        {strings.rename}
       </button>
       <button
         type="button"
@@ -244,7 +246,7 @@ function ChipMenu({
         className="aegis-sqb__menu-item"
         onClick={onTogglePinned}
       >
-        {query.pinned ? 'Unpin' : 'Pin'}
+        {query.pinned ? strings.unpin : strings.pin}
       </button>
       <button
         type="button"
@@ -252,7 +254,7 @@ function ChipMenu({
         className="aegis-sqb__menu-item aegis-sqb__menu-item--danger"
         onClick={onRemove}
       >
-        Delete
+        {strings.delete}
       </button>
     </div>
   );
@@ -265,6 +267,7 @@ interface RenameInputProps {
 }
 
 function RenameInput({ initialName, onSubmit, onCancel }: RenameInputProps) {
+  const strings = useStrings();
   const [value, setValue] = useState(initialName);
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -303,7 +306,7 @@ function RenameInput({ initialName, onSubmit, onCancel }: RenameInputProps) {
           onCancel();
         }
       }}
-      aria-label="Rename saved query"
+      aria-label={strings.renameSavedQuery}
     />
   );
 }
@@ -321,6 +324,7 @@ function OverflowMenu({
   onRemove,
   onTogglePinned,
 }: OverflowMenuProps) {
+  const strings = useStrings();
   const [open, setOpen] = useState(false);
   const content = (
     <div className="aegis-sqb__menu aegis-sqb__menu--overflow" role="menu">
@@ -354,7 +358,7 @@ function OverflowMenu({
           type="button"
           className="aegis-sqb__chip aegis-sqb__chip--ghost"
         >
-          +{items.length.toString()} more
+          {strings.moreCount(items.length)}
         </button>
       </Popover>
     </li>
@@ -374,6 +378,7 @@ function OverflowRow({
   onRemove,
   onTogglePinned,
 }: OverflowRowProps) {
+  const strings = useStrings();
   return (
     <div className="aegis-sqb__overflow-row">
       <button
@@ -391,7 +396,7 @@ function OverflowRow({
         onClick={() => {
           onTogglePinned(query.id);
         }}
-        aria-label={query.pinned ? 'Unpin' : 'Pin'}
+        aria-label={query.pinned ? strings.unpin : strings.pin}
       >
         {query.pinned ? (
           <StarFilled aria-hidden />
@@ -405,7 +410,7 @@ function OverflowRow({
         onClick={() => {
           onRemove(query.id);
         }}
-        aria-label={`Delete ${query.name}`}
+        aria-label={strings.deleteNamed(query.name)}
       >
         ×
       </button>
@@ -424,6 +429,7 @@ function SaveCurrentControl({
   currentValue,
   onSave,
 }: SaveCurrentControlProps) {
+  const strings = useStrings();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -456,7 +462,7 @@ function SaveCurrentControl({
   const content = (
     <form className="aegis-sqb__save-form" onSubmit={handleSubmit}>
       <label className="aegis-sqb__save-label" htmlFor={nameId}>
-        Name this query
+        {strings.savedQueryName}
       </label>
       <input
         id={nameId}
@@ -467,7 +473,7 @@ function SaveCurrentControl({
         onChange={(e) => {
           setName(e.target.value);
         }}
-        placeholder="e.g. failed runs last 24h"
+        placeholder={strings.savedQueryNamePlaceholder}
       />
       <div className="aegis-sqb__save-actions">
         <button
@@ -477,14 +483,14 @@ function SaveCurrentControl({
             setOpen(false);
           }}
         >
-          Cancel
+          {strings.cancel}
         </button>
         <button
           type="submit"
           className="aegis-sqb__save-submit"
           disabled={name.trim() === ''}
         >
-          Save
+          {strings.save}
         </button>
       </div>
     </form>
@@ -507,7 +513,7 @@ function SaveCurrentControl({
         disabled={disabled}
       >
         <PlusOutlined aria-hidden />
-        <span>Save current</span>
+        <span>{strings.saveCurrent}</span>
       </button>
     </Popover>
   );

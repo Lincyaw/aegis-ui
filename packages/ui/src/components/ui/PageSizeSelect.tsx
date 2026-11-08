@@ -109,7 +109,7 @@ export function PageSizeSelect({
           aria-haspopup="listbox"
           aria-expanded={menu.open}
           aria-labelledby={label ? labelId : undefined}
-          aria-label={!label ? 'Page size' : undefined}
+          aria-label={!label ? strings.pageSize : undefined}
           disabled={disabled}
           onKeyDown={menu.onTriggerKeyDown}
         >

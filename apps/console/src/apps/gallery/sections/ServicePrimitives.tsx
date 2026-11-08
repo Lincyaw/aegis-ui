@@ -179,11 +179,7 @@ function SavedQueryBarSpecimen(): ReactNode {
         />
       </Specimen>
       <Specimen caption='host-held · 2 pinned + 1 unpinned' span={2}>
-        <SearchInput
-          value={hostValue}
-          onChange={setHostValue}
-          placeholder='Search…'
-        />
+        <SearchInput value={hostValue} onChange={setHostValue} />
         <SavedQueryBar
           queries={hostQueries}
           currentValue={hostValue}
@@ -1446,11 +1442,7 @@ export function ServicePrimitivesSection() {
           <Toolbar
             left={
               <>
-                <SearchInput
-                  value=''
-                  onChange={() => undefined}
-                  placeholder='Search…'
-                />
+                <SearchInput value='' onChange={() => undefined} />
                 <Chip onClose={() => undefined}>type: image</Chip>
               </>
             }
@@ -1462,13 +1454,8 @@ export function ServicePrimitivesSection() {
         SearchInput
       </SectionDivider>
       <div className='gallery__row'>
-        <Specimen caption='empty with kbd hint'>
-          <SearchInput
-            value=''
-            onChange={() => undefined}
-            placeholder='Search…'
-            kbd='⌘K'
-          />
+        <Specimen caption='empty with kbd hint · default placeholder'>
+          <SearchInput value='' onChange={() => undefined} kbd='⌘K' />
         </Specimen>
         <Specimen caption='type to filter · clear'>
           <SearchInputSpecimen />

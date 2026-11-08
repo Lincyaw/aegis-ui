@@ -3,6 +3,7 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { FolderOutlined, SearchOutlined } from '@ant-design/icons';
 
 import type { AegisAction } from '../../agent/core/types';
+import { useStrings } from '../../locale';
 import { type DropdownItem, DropdownMenu } from './DropdownMenu';
 import './ProjectSelector.css';
 
@@ -31,10 +32,11 @@ export function ProjectSelector({
   selectedId,
   onSelect,
   footerItems,
-  placeholder = 'Select a project',
+  placeholder,
   className,
   align = 'left',
 }: ProjectSelectorProps) {
+  const strings = useStrings();
   const [search, setSearch] = useState('');
 
   const selected = useMemo(
@@ -52,7 +54,9 @@ export function ProjectSelector({
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     if (filtered.length === 0) {
-      return [{ key: '__empty', label: 'No projects found', disabled: true }];
+      return [
+        { key: '__empty', label: strings.noProjectsFound, disabled: true },
+      ];
     }
     return filtered.map((p) => ({
       key: p.id,
@@ -79,7 +83,7 @@ export function ProjectSelector({
       },
       action: p.action,
     }));
-  }, [filtered, selectedId, onSelect]);
+  }, [filtered, selectedId, onSelect, strings]);
 
   const searchField = (
     <label className="aegis-project-selector__search">
@@ -88,8 +92,8 @@ export function ProjectSelector({
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search projects…"
-        aria-label="Search projects"
+        placeholder={strings.searchProjectsPlaceholder}
+        aria-label={strings.searchProjects}
         className="aegis-project-selector__search-input"
       />
     </label>
@@ -99,7 +103,7 @@ export function ProjectSelector({
     <span className="aegis-project-selector__trigger">
       <FolderOutlined className="aegis-project-selector__trigger-icon" />
       <span className="aegis-project-selector__trigger-label">
-        {selected?.name ?? placeholder}
+        {selected?.name ?? placeholder ?? strings.selectProject}
       </span>
       {selected && (
         <span className="aegis-project-selector__trigger-chevron">▼</span>

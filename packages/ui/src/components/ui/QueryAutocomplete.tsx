@@ -22,6 +22,7 @@ import {
   replaceTokenAtCursor,
   tokenizeAtCursor,
 } from '../../lib/luceneQuery/tokenizeAtCursor';
+import { type AegisStrings, useStrings } from '../../locale';
 import './QueryAutocomplete.css';
 
 export interface QueryAutocompleteFieldSuggestion {
@@ -67,13 +68,16 @@ interface RankedSuggestion {
 const SUGGESTIONS_LIMIT = 10;
 const OPERATOR_KEYWORDS: readonly string[] = ['AND', 'OR', 'NOT'];
 
-const HELP_LINES: ReadonlyArray<{ syntax: string; description: string }> = [
-  { syntax: 'field:value', description: 'exact match' },
-  { syntax: 'field:"a b"', description: 'phrase match' },
-  { syntax: 'field:foo*', description: 'wildcard' },
-  { syntax: 'field:>10', description: 'range / comparison' },
-  { syntax: 'AND OR NOT', description: 'boolean operators' },
-  { syntax: '(a OR b)', description: 'grouping' },
+const HELP_LINES: ReadonlyArray<{
+  syntax: string;
+  kind: Parameters<AegisStrings['querySyntax']>[0];
+}> = [
+  { syntax: 'field:value', kind: 'exact' },
+  { syntax: 'field:"a b"', kind: 'phrase' },
+  { syntax: 'field:foo*', kind: 'wildcard' },
+  { syntax: 'field:>10', kind: 'range' },
+  { syntax: 'AND OR NOT', kind: 'boolean' },
+  { syntax: '(a OR b)', kind: 'grouping' },
 ];
 
 function rankFieldSuggestions(
@@ -149,12 +153,13 @@ export function QueryAutocomplete({
   onSubmit,
   fieldSuggestions,
   valueSuggestions,
-  placeholder = 'Search…  e.g. service.name:foo AND duration:>1000',
+  placeholder,
   showHelp = true,
   className,
   popoverClassName,
   disabled = false,
 }: QueryAutocompleteProps): JSX.Element {
+  const strings = useStrings();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listId = useId();
   const [caret, setCaret] = useState(0);
@@ -302,7 +307,7 @@ export function QueryAutocomplete({
       id={listId}
       className={`aegis-query-ac__list ${popoverClassName ?? ''}`.trim()}
       role="listbox"
-      aria-label="Suggestions"
+      aria-label={strings.suggestions}
     >
       {suggestions.map((s, i) => (
         <li
@@ -334,7 +339,9 @@ export function QueryAutocomplete({
         {HELP_LINES.map((line) => (
           <tr key={line.syntax}>
             <td className="aegis-query-ac__help-syntax">{line.syntax}</td>
-            <td className="aegis-query-ac__help-desc">{line.description}</td>
+            <td className="aegis-query-ac__help-desc">
+              {strings.querySyntax(line.kind)}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -369,12 +376,12 @@ export function QueryAutocomplete({
           onBlur={() => {
             setDismissed(true);
           }}
-          placeholder={placeholder}
+          placeholder={placeholder ?? strings.queryPlaceholder}
           disabled={disabled}
           spellCheck={false}
           autoComplete="off"
           role="combobox"
-          aria-label="Lucene query"
+          aria-label={strings.queryLabel}
           aria-autocomplete="list"
           aria-expanded={open}
           aria-controls={listId}
@@ -390,7 +397,7 @@ export function QueryAutocomplete({
           <span
             className="aegis-query-ac__help-icon"
             role="img"
-            aria-label="LuceneQL syntax help"
+            aria-label={strings.querySyntaxHelp}
           >
             <QuestionCircleOutlined />
           </span>

@@ -75,7 +75,7 @@ interface TraceTreeProps {
    * Default: every row expanded.
    */
   defaultCollapsedDepth?: number;
-  /** The tree's accessible name. Default: `'Trace spans'`. */
+  /** The tree's accessible name. Default: the locale's `traceSpans`. */
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -192,7 +192,7 @@ export function TraceTree({
   selectedId,
   onSelect,
   defaultCollapsedDepth = Number.POSITIVE_INFINITY,
-  ariaLabel = 'Trace spans',
+  ariaLabel,
   className,
   style,
   surface,
@@ -370,7 +370,7 @@ export function TraceTree({
         ref={treeRef}
         className="aegis-trace-tree__rows"
         role="tree"
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? strings.traceSpans}
       >
         {visible.map(({ node, position, siblings }, index) => {
           const span = node.span;

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { CheckOutlined } from '@ant-design/icons';
 
+import { useStrings } from '../../locale';
 import './Steps.css';
 
 export interface StepsItem {
@@ -24,13 +25,6 @@ interface StepsProps {
 
 type StepState = 'complete' | 'current' | 'upcoming';
 
-/** The state the marker shows, put into words for assistive tech. */
-const STATE_TEXT: Record<StepState, string | undefined> = {
-  complete: 'completed',
-  current: 'current step',
-  upcoming: undefined,
-};
-
 function stepState(index: number, current: number): StepState {
   if (index < current) {
     return 'complete';
@@ -45,15 +39,19 @@ export function Steps({
   ariaLabel,
   className,
 }: StepsProps) {
+  const strings = useStrings();
   const cls = ['aegis-steps', className ?? ''].filter(Boolean).join(' ');
   return (
     <ol className={cls} aria-label={ariaLabel}>
       {items.map((item, index) => {
         const state = stepState(index, current);
+        // The state the marker shows, put into words for assistive tech.
         const spoken =
-          item.disabled === true && state === 'upcoming'
-            ? 'not yet available'
-            : STATE_TEXT[state];
+          state !== 'upcoming'
+            ? strings.stepStatus(state)
+            : item.disabled === true
+              ? strings.stepStatus('unavailable')
+              : undefined;
         const content = (
           <>
             <span className="aegis-steps__marker" aria-hidden="true">

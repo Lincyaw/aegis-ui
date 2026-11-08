@@ -2,14 +2,9 @@ import type { ReactElement } from 'react';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
+import { useStrings } from '../../locale';
 import { useTheme } from '../../theme/useTheme';
 import './ThemeToggle.css';
-
-const LABELS = {
-  light: 'Switch to dark theme',
-  dark: 'Follow system theme',
-  system: 'Switch to light theme',
-} as const;
 
 const GLYPHS = {
   light: '☀',
@@ -31,8 +26,10 @@ export function ThemeToggle({
   className,
   action,
 }: ThemeToggleProps): ReactElement {
+  const strings = useStrings();
   const { preference, toggle } = useTheme();
   const bound = useAegisAction<void, unknown>(action);
+  const label = strings.themeToggle(preference);
   const cls = ['aegis-theme-toggle', className ?? ''].filter(Boolean).join(' ');
 
   const handleClick = (): void => {
@@ -47,8 +44,8 @@ export function ThemeToggle({
       type="button"
       className={cls}
       onClick={handleClick}
-      aria-label={LABELS[preference]}
-      title={LABELS[preference]}
+      aria-label={label}
+      title={label}
       data-agent-action-id={action?.id}
     >
       <span className="aegis-theme-toggle__glyph" aria-hidden="true">

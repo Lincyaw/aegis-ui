@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import './SparkLine.css';
 
 export type SparkLineSurface = PrimitiveSurface<number[]>;
@@ -57,9 +58,10 @@ export function SparkLine({
   withBackdrop = true,
   inverted = false,
   className,
-  ariaLabel = 'sparkline',
+  ariaLabel,
   surface,
 }: SparkLineProps) {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLSpanElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, points, 'chart', wrapRef);
   const path = buildPath(points, width, height);
@@ -76,7 +78,7 @@ export function SparkLine({
     <span
       ref={wrapRef}
       className={cls}
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? strings.sparkline}
       role="img"
       {...agentAttrs}
     >

@@ -11,6 +11,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
 import { formatBytes } from '../../lib/format';
+import { useStrings } from '../../locale';
 import './FilePreview.css';
 
 export type FilePreviewSurface = PrimitiveSurface<{
@@ -79,6 +80,7 @@ export function FilePreview({
   style,
   surface,
 }: FilePreviewProps) {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(
     surface,
@@ -108,7 +110,7 @@ export function FilePreview({
         <iframe
           className="aegis-file-preview__iframe"
           src={src}
-          title={name ?? 'pdf preview'}
+          title={name ?? strings.pdfPreview}
         />
       ) : kind === 'text' ? (
         // Keyed so a new file starts from a clean loading state.
@@ -121,6 +123,7 @@ export function FilePreview({
 }
 
 function TextPreview({ src }: { src: string }) {
+  const strings = useStrings();
   const [body, setBody] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -137,7 +140,7 @@ function TextPreview({ src }: { src: string }) {
         if (e instanceof DOMException && e.name === 'AbortError') {
           return;
         }
-        setErr(e instanceof Error ? e.message : 'load failed');
+        setErr(e instanceof Error ? e.message : String(e));
       }
     })();
     return () => {
@@ -147,11 +150,17 @@ function TextPreview({ src }: { src: string }) {
 
   if (err !== null) {
     return (
-      <div className="aegis-file-preview__error">preview failed: {err}</div>
+      <div className="aegis-file-preview__error">
+        {strings.filePreviewFailed(err)}
+      </div>
     );
   }
   if (body === null) {
-    return <div className="aegis-file-preview__loading">loading…</div>;
+    return (
+      <div className="aegis-file-preview__loading">
+        {strings.filePreviewLoading}
+      </div>
+    );
   }
   return <pre className="aegis-file-preview__text">{body}</pre>;
 }
@@ -164,13 +173,14 @@ interface BinaryFallbackProps {
 }
 
 function BinaryFallback({ src, name, size, fallback }: BinaryFallbackProps) {
+  const strings = useStrings();
   if (fallback !== undefined) {
     return <div className="aegis-file-preview__fallback">{fallback}</div>;
   }
   return (
     <div className="aegis-file-preview__fallback">
       <span className="aegis-file-preview__fallback-name">
-        {name ?? 'binary file'}
+        {name ?? strings.binaryFile}
       </span>
       {size !== undefined ? (
         <span className="aegis-file-preview__fallback-meta">
@@ -182,7 +192,7 @@ function BinaryFallback({ src, name, size, fallback }: BinaryFallbackProps) {
         href={src}
         download={name ?? true}
       >
-        Download
+        {strings.download}
       </a>
     </div>
   );

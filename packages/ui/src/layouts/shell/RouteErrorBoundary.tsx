@@ -1,7 +1,8 @@
-import { Component, type ReactNode } from 'react';
+import { Component, type ContextType, type ReactNode } from 'react';
 
 import { Button } from '../../components/ui/Button';
 import { ErrorState } from '../../components/ui/ErrorState';
+import { LocaleContext } from '../../locale/localeContext';
 import { PageWrapper } from '../PageWrapper';
 
 interface RouteErrorBoundaryProps {
@@ -24,6 +25,9 @@ export class RouteErrorBoundary extends Component<
   RouteErrorBoundaryProps,
   RouteErrorBoundaryState
 > {
+  static override contextType = LocaleContext;
+  declare context: ContextType<typeof LocaleContext>;
+
   override state: RouteErrorBoundaryState = {
     error: null,
     resetKey: this.props.resetKey,
@@ -53,14 +57,15 @@ export class RouteErrorBoundary extends Component<
     if (!error) {
       return this.props.children;
     }
+    const strings = this.context;
     return (
       <PageWrapper>
         <ErrorState
-          title="This page failed to render"
+          title={strings.routeErrorTitle}
           description={error.message}
           action={
             <Button tone="secondary" onClick={this.retry}>
-              Try again
+              {strings.tryAgain}
             </Button>
           }
         />

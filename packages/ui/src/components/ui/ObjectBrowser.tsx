@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from 'react';
 
 import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
+import { useStrings } from '../../locale';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
 import './ObjectBrowser.css';
@@ -72,6 +73,7 @@ export function ObjectBrowser({
   loading = false,
   className,
 }: ObjectBrowserProps) {
+  const strings = useStrings();
   const [treeCollapsed, setTreeCollapsed] = useState(defaultTreeCollapsed);
   const develop = useDevelopAfterLoad(loading);
 
@@ -93,17 +95,22 @@ export function ObjectBrowser({
   return (
     <div className={cls}>
       {!hideTree ? (
-        <aside className="aegis-object-browser__tree" aria-label="Folders">
+        <aside
+          className="aegis-object-browser__tree"
+          aria-label={strings.folders}
+        >
           <header className="aegis-object-browser__tree-head">
-            <MetricLabel>Folders</MetricLabel>
+            <MetricLabel>{strings.folders}</MetricLabel>
             <button
               type="button"
               className="aegis-object-browser__tree-toggle"
               onClick={() => {
                 setTreeCollapsed((prev) => !prev);
               }}
-              aria-label={treeCollapsed ? 'Expand folders' : 'Collapse folders'}
-              title={treeCollapsed ? 'Expand' : 'Collapse'}
+              aria-label={
+                treeCollapsed ? strings.expandFolders : strings.collapseFolders
+              }
+              title={treeCollapsed ? strings.expandRow : strings.collapseRow}
             >
               {treeCollapsed ? '›' : '‹'}
             </button>
@@ -126,7 +133,7 @@ export function ObjectBrowser({
               ) : null}
               {prefixes.length === 0 && currentPrefix === '' ? (
                 <li className="aegis-object-browser__tree-empty">
-                  <MetricLabel>No sub-prefixes</MetricLabel>
+                  <MetricLabel>{strings.noSubPrefixes}</MetricLabel>
                 </li>
               ) : null}
               {prefixes.map((p) => {
@@ -158,7 +165,7 @@ export function ObjectBrowser({
                 <span className="aegis-object-browser__count">
                   {selectionCount.toString()}
                 </span>
-                <MetricLabel>Selected</MetricLabel>
+                <MetricLabel>{strings.selected}</MetricLabel>
               </span>
             ) : null}
             {searchSlot !== undefined ? (

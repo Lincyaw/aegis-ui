@@ -77,10 +77,10 @@ export function TimeDisplay({
       return null;
     }
     if (mode === 'relative') {
-      return relativeTime(d, now);
+      return relativeTime(d, strings, now);
     }
     return formatAbsolute(d);
-  }, [d, mode, durationMs, hasDuration, now]);
+  }, [d, mode, durationMs, hasDuration, now, strings]);
 
   const tooltip = useMemo(() => {
     if (mode === 'duration') {

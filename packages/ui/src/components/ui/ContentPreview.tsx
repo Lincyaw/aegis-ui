@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 
+import { useStrings } from '../../locale';
 import { CodeBlock } from './CodeBlock';
 import './ContentPreview.css';
 import { Markdown } from './Markdown';
@@ -25,10 +26,6 @@ function stringifyJson(value: unknown): string {
   } catch {
     return String(value);
   }
-}
-
-function duplicateLabel(count: number): string {
-  return `+${String(count)} ${count === 1 ? 'duplicate' : 'duplicates'}`;
 }
 
 interface PartProps {
@@ -80,6 +77,7 @@ function JsonContentSectionPreview({
   expanded,
   options,
 }: PartProps & { section: ContentSection }): ReactElement {
+  const strings = useStrings();
   return (
     <section className="aegis-content-json__section">
       <div className="aegis-content-json__section-head">
@@ -89,10 +87,12 @@ function JsonContentSectionPreview({
             className="aegis-content-json__duplicates"
             title={section.paths.slice(1).join('\n')}
           >
-            {duplicateLabel(section.paths.length - 1)}
+            {strings.contentDuplicates(section.paths.length - 1)}
           </span>
         ) : null}
-        <span className="aegis-content-json__kind">{section.kind}</span>
+        <span className="aegis-content-json__kind">
+          {section.kind === 'text' ? strings.plainTextLanguage : section.kind}
+        </span>
       </div>
       <StringValuePreview
         value={section.value}

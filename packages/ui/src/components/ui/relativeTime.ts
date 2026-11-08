@@ -1,13 +1,18 @@
+import { type AegisStrings, enStrings } from '../../locale';
+
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;
 
 /**
- * Short, human-friendly relative time. Mirrors the conventions used in
- * inbox-style UIs ("just now", "5m", "2h", "yesterday", "Mon", "Mar 4").
+ * Short, human-friendly relative time in the strings' language, as
+ * inbox-style UIs show it: "just now", "5m ago", "yesterday", "3d ago",
+ * then the date, "Mar 4". The English default serves callers that have not
+ * moved to the catalogue yet.
  */
 export function relativeTime(
   value: string | number | Date,
+  strings: AegisStrings = enStrings,
   now: number = Date.now(),
 ): string {
   const t = new Date(value).getTime();
@@ -16,20 +21,28 @@ export function relativeTime(
   }
   const diff = now - t;
   if (diff < MIN) {
-    return 'just now';
+    return strings.relativeTime({ unit: 'now' });
   }
   if (diff < HOUR) {
-    return `${String(Math.floor(diff / MIN))}m ago`;
+    return strings.relativeTime({
+      unit: 'minutes',
+      count: Math.floor(diff / MIN),
+    });
   }
   if (diff < DAY) {
-    return `${String(Math.floor(diff / HOUR))}h ago`;
+    return strings.relativeTime({
+      unit: 'hours',
+      count: Math.floor(diff / HOUR),
+    });
   }
   if (diff < 2 * DAY) {
-    return 'yesterday';
+    return strings.relativeTime({ unit: 'yesterday' });
   }
   if (diff < 7 * DAY) {
-    return `${String(Math.floor(diff / DAY))}d ago`;
+    return strings.relativeTime({
+      unit: 'days',
+      count: Math.floor(diff / DAY),
+    });
   }
-  const d = new Date(t);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return strings.relativeTime({ unit: 'date', date: new Date(t) });
 }

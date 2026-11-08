@@ -12,6 +12,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { DataTable, type DataTableColumn } from './DataTable';
 import { EmptyState } from './EmptyState';
@@ -161,6 +162,7 @@ export function ParquetViewer({
   style,
   surface,
 }: ParquetViewerProps) {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
   const [meta, setMeta] = useState<MetaSummary | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
@@ -213,7 +215,7 @@ export function ParquetViewer({
         if (state.cancelled) {
           return;
         }
-        setError(e instanceof Error ? e.message : 'failed to read parquet');
+        setError(e instanceof Error ? e.message : String(e));
       } finally {
         if (!state.cancelled) {
           setLoading(false);
@@ -250,7 +252,7 @@ export function ParquetViewer({
         if (state.cancelled) {
           return;
         }
-        setError(e instanceof Error ? e.message : 'failed to read rows');
+        setError(e instanceof Error ? e.message : String(e));
       } finally {
         if (!state.cancelled) {
           setLoading(false);
@@ -298,8 +300,8 @@ export function ParquetViewer({
     return (
       <div ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
         <EmptyState
-          title="No parquet file"
-          description="Pass a file or a src URL to inspect."
+          title={strings.parquetEmptyTitle}
+          description={strings.parquetEmptyDescription}
         />
       </div>
     );
@@ -310,7 +312,7 @@ export function ParquetViewer({
       <div ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
         <ErrorState
           size="compact"
-          title="Could not read the parquet file"
+          title={strings.parquetReadFailed}
           description={error}
         />
       </div>
@@ -323,9 +325,9 @@ export function ParquetViewer({
         <div className="aegis-parquet-viewer__title">{title ?? 'Parquet'}</div>
         {meta ? (
           <div className="aegis-parquet-viewer__summary">
-            <span>{meta.totalRows.toLocaleString()} rows</span>
+            <span>{strings.parquetRows(meta.totalRows.toLocaleString())}</span>
             <span className="aegis-parquet-viewer__dot">·</span>
-            <span>{meta.columns.length} cols</span>
+            <span>{strings.parquetColumns(meta.columns.length)}</span>
             {meta.metadata.created_by ? (
               <>
                 <span className="aegis-parquet-viewer__dot">·</span>
@@ -354,7 +356,7 @@ export function ParquetViewer({
           data={rows}
           rowKey={(_row, i) => `${page.toString()}-${i.toString()}`}
           loading={loading}
-          emptyTitle="No rows in this page"
+          emptyTitle={strings.parquetEmptyPage}
           pagination={
             meta && meta.totalRows > pageSize
               ? {

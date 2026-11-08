@@ -11,6 +11,7 @@ import {
 import { SearchOutlined } from '@ant-design/icons';
 
 import { type Command, formatShortcut } from '../../commands';
+import { useStrings } from '../../locale';
 import './CommandPalette.css';
 import { Dialog } from './Dialog';
 
@@ -23,8 +24,8 @@ export interface CommandPaletteProps {
   onClose: () => void;
   /**
    * Group labels in display order. Groups it doesn't list follow in
-   * alphabetical order; commands without a group join 'Other', which
-   * comes last unless listed here.
+   * alphabetical order; commands without a group join the locale's
+   * `commandGroupOther` ("Other"), which comes last unless listed here.
    */
   groupOrder?: string[];
   title?: string;
@@ -35,8 +36,6 @@ interface CommandGroup {
   label: string;
   commands: Command[];
 }
-
-const UNGROUPED = 'Other';
 
 function scoreCommand(cmd: Command, query: string): number {
   if (!query) {
@@ -63,6 +62,7 @@ function groupCommands(
   commands: Command[],
   query: string,
   groupOrder: string[],
+  ungrouped: string,
 ): CommandGroup[] {
   const matches = commands
     .map((cmd) => ({ cmd, score: scoreCommand(cmd, query.trim()) }))
@@ -73,7 +73,7 @@ function groupCommands(
 
   const byGroup = new Map<string, Command[]>();
   for (const { cmd } of matches) {
-    const group = cmd.group ?? UNGROUPED;
+    const group = cmd.group ?? ungrouped;
     const list = byGroup.get(group) ?? [];
     list.push(cmd);
     byGroup.set(group, list);
@@ -84,7 +84,7 @@ function groupCommands(
     if (listed !== -1) {
       return listed;
     }
-    return group === UNGROUPED ? Number.MAX_SAFE_INTEGER : groupOrder.length;
+    return group === ungrouped ? Number.MAX_SAFE_INTEGER : groupOrder.length;
   };
   return Array.from(byGroup.entries())
     .sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b))
@@ -104,9 +104,12 @@ export function CommandPalette({
   onSelect,
   onClose,
   groupOrder = NO_GROUP_ORDER,
-  title = 'Commands',
-  placeholder = 'Type a command…',
+  title: titleProp,
+  placeholder: placeholderProp,
 }: CommandPaletteProps): ReactElement {
+  const strings = useStrings();
+  const title = titleProp ?? strings.commandPaletteTitle;
+  const placeholder = placeholderProp ?? strings.commandPalettePlaceholder;
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [wasOpen, setWasOpen] = useState(open);
@@ -130,9 +133,10 @@ export function CommandPalette({
     }
   }, [open]);
 
+  const ungrouped = strings.commandGroupOther;
   const groups = useMemo(
-    () => groupCommands(commands, query, groupOrder),
-    [commands, query, groupOrder],
+    () => groupCommands(commands, query, groupOrder, ungrouped),
+    [commands, query, groupOrder, ungrouped],
   );
   const flat = useMemo(() => groups.flatMap((g) => g.commands), [groups]);
   const hasIcons = flat.some((cmd) => Boolean(cmd.icon));
@@ -280,7 +284,7 @@ export function CommandPalette({
         </div>
         {flat.length === 0 && (
           <p className="aegis-cmdk__empty" role="status">
-            No commands match.
+            {strings.commandPaletteEmpty}
           </p>
         )}
       </div>
