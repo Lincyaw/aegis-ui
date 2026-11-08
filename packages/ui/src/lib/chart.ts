@@ -60,41 +60,59 @@ export function zeroAnchoredDomain(
   return hi <= lo ? [lo, lo + 1] : [lo, hi];
 }
 
-/** The smallest 1, 2 or 5 × 10ⁿ step not below `raw`. */
-export function niceStep(raw: number): number {
+/** The smallest 1, 2 or 5 × 10ⁿ step not below `raw`, as `digit × 10^exponent`. */
+function niceStep(raw: number): { digit: number; exponent: number } {
   if (!(raw > 0) || !Number.isFinite(raw)) {
-    return 1;
+    return { digit: 1, exponent: 0 };
   }
-  const base = 10 ** Math.floor(Math.log10(raw));
-  const normalized = raw / base;
-  const nice =
-    normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-  return nice * base;
+  const exponent = Math.floor(Math.log10(raw));
+  const normalized = raw / 10 ** exponent;
+  return normalized <= 1
+    ? { digit: 1, exponent }
+    : normalized <= 2
+      ? { digit: 2, exponent }
+      : normalized <= 5
+        ? { digit: 5, exponent }
+        : { digit: 1, exponent: exponent + 1 };
 }
 
 const MAX_TICKS = 50;
 
 /**
- * Round values from `lo` to `hi`, about `count` of them. Ticks are
- * computed by index rather than by repeated addition, so a span far from
- * zero (nanosecond timestamps) neither drifts nor stalls, and each is
- * rounded to the step's decimals, so 0.6 stays 0.6 and an end that is a
- * multiple of the step is a tick.
+ * Round values from `lo` to `hi`, about `count` of them. Each tick is read
+ * from its decimal, such as `3e-1`, so it is the double nearest that
+ * decimal: 0.6 stays 0.6, a span far from zero (nanosecond timestamps)
+ * neither drifts nor stalls, and an end that is a multiple of the step is
+ * a tick however many steps it lies from zero.
  */
 export function niceTicks(lo: number, hi: number, count = 5): number[] {
-  if (!(hi > lo)) {
+  if (!(hi > lo) || !Number.isFinite(lo) || !Number.isFinite(hi)) {
     return [];
   }
-  const step = niceStep((hi - lo) / count);
-  // Absorbs division error such as 0.6 / 0.2 = 2.9999999999999996.
-  const epsilon = 1e-9;
-  const first = Math.ceil(lo / step - epsilon);
-  const last = Math.floor(hi / step + epsilon);
-  const decimals = Math.max(0, -Math.floor(Math.log10(step)));
+  // A step finer than the doubles near the ends would round neighbouring
+  // ticks onto one value.
+  const resolution = Math.max(Math.abs(lo), Math.abs(hi)) * Number.EPSILON;
+  // Halving first keeps a span such as ±1e308 from overflowing; the
+  // halves are exact, so any other span gives the same quotient.
+  const { digit, exponent } = niceStep(
+    Math.max(((hi / 2 - lo / 2) / count) * 2, resolution),
+  );
+  const tickAt = (index: number): number =>
+    Number(`${String(BigInt(index) * BigInt(digit))}e${String(exponent)}`);
+  const step = tickAt(1);
+  // Absorbs float error in an end, such as 0.1 * 3 = 0.30000000000000004.
+  const slack = step * 1e-9;
+  let first = Math.floor(lo / step);
+  if (tickAt(first) < lo - slack) {
+    first += 1;
+  }
+  let last = Math.ceil(hi / step);
+  if (tickAt(last) > hi + slack) {
+    last -= 1;
+  }
   const ticks: number[] = [];
   for (let i = first; i <= last && ticks.length < MAX_TICKS; i += 1) {
-    const tick = Number((i * step).toFixed(decimals));
-    ticks.push(tick === 0 ? 0 : tick);
+    ticks.push(tickAt(i));
   }
   return ticks;
 }
