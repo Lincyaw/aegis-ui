@@ -373,6 +373,19 @@ FORMAT JSON`;
   return rows.map(mapSessionRow);
 }
 
+/** The root session and every session descending from it. */
+export function listSessionFamily(
+  rootSessionId: string,
+  opts: Pick<ListSessionsOpts, 'limit' | 'sinceHours'> = {}
+): Promise<SessionRow[]> {
+  return listSessionRows({
+    ...opts,
+    whereSql:
+      "LogAttributes['agentm.session.root_id'] = {familyRootId:String} OR LogAttributes['agentm.session.id'] = {familyRootId:String}",
+    whereParams: { familyRootId: rootSessionId },
+  });
+}
+
 export async function getSessionRow(
   sessionId: string
 ): Promise<SessionRow | null> {

@@ -23,7 +23,7 @@ import { useQuery } from '@tanstack/react-query';
 import { errMsg } from '../../../api/apiClient';
 import {
   getSessionRow,
-  listSessionRows,
+  listSessionFamily,
   type SessionRow,
 } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
@@ -34,8 +34,6 @@ import './SessionDetail.css';
 
 const TREE_SINCE_HOURS = 720;
 const TREE_LIMIT = 5000;
-const TREE_WHERE =
-  "LogAttributes['agentm.session.root_id'] = {treeRootId:String} OR LogAttributes['agentm.session.id'] = {treeRootId:String}";
 const MAX_TREE_INDENT_DEPTH = 4;
 const DEFAULT_LEFT_WIDTH = 320;
 const DEFAULT_RIGHT_WIDTH = 420;
@@ -114,12 +112,10 @@ async function loadSessionFamily(sessionId: string): Promise<SessionRow[]> {
   if (!session) {
     return [];
   }
-  const rows = await listSessionRows({
-    sinceHours: TREE_SINCE_HOURS,
-    limit: TREE_LIMIT,
-    whereSql: TREE_WHERE,
-    whereParams: { treeRootId: session.rootSessionId || session.sessionId },
-  });
+  const rows = await listSessionFamily(
+    session.rootSessionId || session.sessionId,
+    { sinceHours: TREE_SINCE_HOURS, limit: TREE_LIMIT }
+  );
   return rows.some((row) => row.sessionId === session.sessionId)
     ? rows
     : [session, ...rows];
