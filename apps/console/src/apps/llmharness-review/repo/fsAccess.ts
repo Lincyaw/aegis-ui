@@ -10,7 +10,7 @@ import type {
   MainTurn,
   SftRow,
 } from '../schemas';
-import { parse } from '../validate';
+import { caseSummary, parse } from '../validate';
 
 import { isEmptySft, isNotFound, loadBundleViaRepo } from './bundle';
 import type { CaseRepo, CaseSftBundle, SftRepo } from './types';
@@ -108,10 +108,11 @@ export class FSAccessCaseRepo implements CaseRepo {
       // Not every child directory is a case: only those with a meta.json.
       const text = await readOptionalText(entry, 'meta.json');
       if (text !== null) {
-        out.push({
-          caseId: entry.name,
-          meta: parse.meta(this.source(entry.name, 'meta.json'), text),
-        });
+        out.push(
+          caseSummary(entry.name, () =>
+            parse.meta(this.source(entry.name, 'meta.json'), text)
+          )
+        );
       }
     }
     out.sort((a, b) => a.caseId.localeCompare(b.caseId));

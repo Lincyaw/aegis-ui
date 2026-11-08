@@ -14,7 +14,7 @@ import type {
   MainTurn,
   SftRow,
 } from '../schemas';
-import { parse } from '../validate';
+import { caseSummary, parse } from '../validate';
 
 import { isEmptySft, isNotFound, loadBundleViaRepo } from './bundle';
 import type { CaseRepo, CaseSftBundle, SftRepo } from './types';
@@ -133,7 +133,9 @@ export class BlobCaseRepo implements CaseRepo {
         const text = await this.reader.optionalText(key);
         return text === null
           ? null
-          : { caseId, meta: parse.meta(this.reader.source(key), text) };
+          : caseSummary(caseId, () =>
+              parse.meta(this.reader.source(key), text)
+            );
       }
     );
     const out: CaseSummary[] = [];

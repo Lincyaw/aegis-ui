@@ -188,10 +188,11 @@ export interface DroppedRow {
   [k: string]: unknown;
 }
 
-export interface CaseSummary {
-  caseId: string;
-  meta: CaseMeta;
-}
+/** A case of a root. A case whose meta.json does not match its schema is
+ *  still listed, with the reason, so the rest of the root stays reviewable. */
+export type CaseSummary =
+  | { caseId: string; meta: CaseMeta; error?: undefined }
+  | { caseId: string; meta: null; error: string };
 
 export interface CaseLinks {
   turnToExtractor: Map<number, number[]>;

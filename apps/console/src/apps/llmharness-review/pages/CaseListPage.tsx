@@ -19,6 +19,7 @@ import {
   Panel,
   PanelTitle,
   SkeletonText,
+  StatusDot,
   TimeDisplay,
   Toolbar,
 } from '@lincyaw/aegis-ui';
@@ -90,7 +91,7 @@ export function CaseListPage(): ReactElement {
   const datasetOptions = useMemo(() => {
     const names = new Set<string>();
     for (const c of cases) {
-      if (c.meta.dataset_name) names.add(c.meta.dataset_name);
+      if (c.meta?.dataset_name) names.add(c.meta.dataset_name);
     }
     return [...names].sort();
   }, [cases]);
@@ -98,13 +99,17 @@ export function CaseListPage(): ReactElement {
   const visibleCases = useMemo(() => {
     const q = search.trim().toLowerCase();
     return cases.filter((c) => {
-      if (onlySurfaced && c.meta.surfaced_reminders === 0) return false;
-      if (datasetFilter && c.meta.dataset_name !== datasetFilter) return false;
+      if (onlySurfaced && (c.meta?.surfaced_reminders ?? 0) === 0) {
+        return false;
+      }
+      if (datasetFilter && c.meta?.dataset_name !== datasetFilter) {
+        return false;
+      }
       if (q) {
         const hay = [
           c.caseId,
-          c.meta.sample_id ?? '',
-          c.meta.dataset_name ?? '',
+          c.meta?.sample_id ?? '',
+          c.meta?.dataset_name ?? '',
         ]
           .join(' ')
           .toLowerCase();
@@ -187,8 +192,14 @@ export function CaseListPage(): ReactElement {
           className='llmh-cases__case-link'
         >
           <MonoValue size='sm'>{r.caseId}</MonoValue>
-          {r.meta.sample_id && r.meta.sample_id !== r.caseId && (
+          {r.meta?.sample_id && r.meta.sample_id !== r.caseId && (
             <MetricLabel size='xs'>Sample {r.meta.sample_id}</MetricLabel>
+          )}
+          {r.error !== undefined && (
+            <span className='llmh-cases__case-error'>
+              <StatusDot tone='warning' />
+              {r.error}
+            </span>
           )}
         </Link>
       ),
@@ -198,7 +209,7 @@ export function CaseListPage(): ReactElement {
       key: 'dataset',
       header: 'Dataset',
       render: (r) =>
-        r.meta.dataset_name ? (
+        r.meta?.dataset_name ? (
           <MonoValue size='sm'>{r.meta.dataset_name}</MonoValue>
         ) : (
           <MetricLabel size='xs'>—</MetricLabel>
@@ -209,7 +220,7 @@ export function CaseListPage(): ReactElement {
       header: 'Started',
       width: 180,
       render: (r) => {
-        const iso = nsToIso(r.meta.started_at_ns);
+        const iso = r.meta ? nsToIso(r.meta.started_at_ns) : null;
         return iso ? (
           <TimeDisplay value={iso} />
         ) : (
@@ -222,14 +233,14 @@ export function CaseListPage(): ReactElement {
       header: 'Extractor',
       numeric: true,
       width: 100,
-      render: (r) => r.meta.extractor_firings,
+      render: (r) => r.meta?.extractor_firings ?? '—',
     },
     {
       key: 'aud',
       header: 'Auditor',
       numeric: true,
       width: 90,
-      render: (r) => r.meta.auditor_firings,
+      render: (r) => r.meta?.auditor_firings ?? '—',
     },
     {
       key: 'surfaced',
@@ -237,7 +248,9 @@ export function CaseListPage(): ReactElement {
       numeric: true,
       width: 100,
       render: (r) =>
-        r.meta.surfaced_reminders > 0 ? (
+        r.meta === null ? (
+          '—'
+        ) : r.meta.surfaced_reminders > 0 ? (
           <Chip tone='warning'>{r.meta.surfaced_reminders}</Chip>
         ) : (
           0

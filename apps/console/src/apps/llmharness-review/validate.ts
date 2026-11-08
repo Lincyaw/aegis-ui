@@ -229,6 +229,21 @@ function rowsOf<T>(source: string, check: Check<unknown>, text: string): T[] {
   return rows;
 }
 
+/** A listed case, or its meta.json's shape error as the row's reason. */
+export function caseSummary(
+  caseId: string,
+  readMeta: () => CaseMeta
+): CaseSummary {
+  try {
+    return { caseId, meta: readMeta() };
+  } catch (err) {
+    if (err instanceof CaseFileError) {
+      return { caseId, meta: null, error: err.message };
+    }
+    throw err;
+  }
+}
+
 export const validate = {
   meta: (source: string, value: unknown): CaseMeta =>
     checked(source, caseMeta, value),
@@ -251,11 +266,15 @@ export const validate = {
   droppedRows: (source: string, value: unknown): DroppedRow[] =>
     checked(source, each(droppedRow), value),
   caseList: (source: string, value: unknown): CaseSummary[] =>
-    checked<{ cases: Array<{ case_id: string; meta: CaseMeta }> }>(
+    checked<{ cases: Array<{ case_id: string; meta: unknown }> }>(
       source,
-      shape({ cases: each(shape({ case_id: str, meta: caseMeta })) }),
+      shape({ cases: each(shape({ case_id: str, meta: record })) }),
       value
-    ).cases.map((c) => ({ caseId: c.case_id, meta: c.meta })),
+    ).cases.map((c) =>
+      caseSummary(c.case_id, () =>
+        validate.meta(`${source} cases[${c.case_id}].meta`, c.meta)
+      )
+    ),
   fileNames: (source: string, value: unknown): string[] =>
     checked<{ files: string[] }>(source, shape({ files: each(str) }), value)
       .files,
