@@ -49,4 +49,12 @@
   .aegis-form-row__control {
     max-width: none;
   }
+
+  /* Fields that size to their content elsewhere, such as in a toolbar,
+   * fill a stacked row like the text fields beside them. */
+  .aegis-form-row__control > .aegis-select,
+  .aegis-form-row__control > .aegis-picker-field {
+    display: flex;
+    width: 100%;
+  }
 }
