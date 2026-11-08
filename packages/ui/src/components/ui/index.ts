@@ -6,6 +6,7 @@
  */
 
 export { Button, ButtonLink } from './Button';
+export type { ButtonTone } from './Button';
 export { Panel } from './Panel';
 export type { PanelElevation, PanelSurface, PanelVariant } from './Panel';
 export { PanelTitle } from './PanelTitle';
@@ -42,6 +43,7 @@ export { Collapse } from './Collapse';
 export type { CollapseItem } from './Collapse';
 export { Alert } from './Alert';
 export { Pagination } from './Pagination';
+export type { PaginationProps } from './Pagination';
 export { Select } from './Select';
 export type { SelectOption } from './Select';
 export { RankBar } from './RankBar';
@@ -144,20 +146,17 @@ export { CodeBlock } from './CodeBlock';
 export type { CodeBlockSurface } from './CodeBlock';
 export { FileTree } from './FileTree';
 export type { FileTreeFile, FileTreeProps } from './FileTree';
-export {
-  ContentInspectorDialog,
-  ContentPreview,
-} from './ContentInspectorDialog';
-export type {
-  ContentInspectorDialogProps,
-  ContentPreviewProps,
-} from './ContentInspectorDialog';
-export { prepareInspectableContent } from './ContentInspectorContent';
+export { ContentInspectorDialog } from './ContentInspectorDialog';
+export type { ContentInspectorDialogProps } from './ContentInspectorDialog';
+export { ContentPreview } from './ContentPreview';
+export type { ContentPreviewProps } from './ContentPreview';
+export { prepareInspectableContent } from './classifyContent';
 export type {
   InspectableContent,
   InspectableContentKind,
+  InspectableContentOptions,
   PreparedInspectableContent,
-} from './ContentInspectorContent';
+} from './classifyContent';
 export { DataTable } from './DataTable';
 export type {
   DataTableCellTone,
@@ -243,7 +242,6 @@ export type { CommandInvocationCardSurface } from './CommandInvocationCard';
 export { AgentPanel } from './AgentPanel';
 export type { AgentPanelSurface } from './AgentPanel';
 export { FileDropzone } from './FileDropzone';
-export type { FileDropzoneItem } from './FileDropzone';
 export { FolderDropzone } from './FolderDropzone';
 export type { FolderDropzoneProps } from './FolderDropzone';
 export { FilePreview } from './FilePreview';
@@ -270,6 +268,7 @@ export { ObjectBrowser } from './ObjectBrowser';
 export { ShareLinkDialog } from './ShareLinkDialog';
 export type { ShareLinkOptions, ShareLinkResult } from './ShareLinkDialog';
 export { UploadQueue } from './UploadQueue';
+export type { UploadQueueItem } from './UploadQueue';
 export { ResizableSidePanel } from './ResizableSidePanel';
 export type { ResizableSidePanelProps } from './ResizableSidePanel';
 export { EnvironmentSwitcher } from './EnvironmentSwitcher';

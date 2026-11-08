@@ -125,8 +125,9 @@ export default function ContainerCreate({
         }
       />
       <Panel>
-        <FormRow label='Name'>
+        <FormRow label='Name' controlId='container-create-name'>
           <TextField
+            id='container-create-name'
             value={name}
             error={errors.name}
             onChange={(e) => {
@@ -138,8 +139,9 @@ export default function ContainerCreate({
         <FormRow label='Visibility'>
           <Checkbox label='Public' checked={isPublic} onChange={setIsPublic} />
         </FormRow>
-        <FormRow label='Version name'>
+        <FormRow label='Version name' controlId='container-create-version-name'>
           <TextField
+            id='container-create-version-name'
             value={versionName}
             error={errors.versionName}
             onChange={(e) => {
@@ -149,8 +151,9 @@ export default function ContainerCreate({
             placeholder='v1'
           />
         </FormRow>
-        <FormRow label='Image ref'>
+        <FormRow label='Image ref' controlId='container-create-image-ref'>
           <TextField
+            id='container-create-image-ref'
             value={imageRef}
             error={errors.imageRef}
             onChange={(e) => {
@@ -160,8 +163,9 @@ export default function ContainerCreate({
             placeholder={copy.imagePlaceholder}
           />
         </FormRow>
-        <FormRow label='Readme'>
+        <FormRow label='Readme' controlId='container-create-readme'>
           <TextField
+            id='container-create-readme'
             value={readme}
             onChange={(e) => setReadme(e.target.value)}
             placeholder='Optional notes'

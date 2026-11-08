@@ -1,14 +1,13 @@
-import type { ReactElement } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
-  Chip,
   EmptyState,
   FormRow,
-  MonoValue,
   PageHeader,
   Panel,
-  StatusDot,
+  UploadQueue,
+  type UploadQueueItem,
 } from '@lincyaw/aegis-ui';
 import { Button, Form, Input, Select } from 'antd';
 
@@ -24,6 +23,19 @@ interface UploadFormShape {
 export function DatasetUpload(): ReactElement {
   const { startUpload, uploads } = useDatasets();
   const [form] = Form.useForm<UploadFormShape>();
+  const queue = useMemo(
+    () =>
+      uploads.map(
+        (u): UploadQueueItem => ({
+          id: u.id,
+          file: u.file,
+          status: u.done ? 'done' : 'uploading',
+          progress: u.progress,
+          bytesUploaded: Math.round(u.progress * u.file.size),
+        })
+      ),
+    [uploads]
+  );
 
   const onFinish = (values: UploadFormShape): void => {
     startUpload(values.filename, values.format);
@@ -47,18 +59,22 @@ export function DatasetUpload(): ReactElement {
           onFinish={onFinish}
           className='datasets-form'
         >
-          <FormRow label='Filename'>
+          <FormRow label='Filename' controlId='dataset-upload-filename'>
             <Form.Item
               name='filename'
               rules={[{ required: true, message: 'Required' }]}
               noStyle
             >
-              <Input placeholder='my-dataset.parquet' />
+              <Input
+                id='dataset-upload-filename'
+                placeholder='my-dataset.parquet'
+              />
             </Form.Item>
           </FormRow>
-          <FormRow label='Format'>
+          <FormRow label='Format' controlId='dataset-upload-format'>
             <Form.Item name='format' noStyle>
               <Select
+                id='dataset-upload-format'
                 className='datasets-form__select'
                 options={[
                   { value: 'parquet', label: 'Parquet' },
@@ -77,40 +93,10 @@ export function DatasetUpload(): ReactElement {
       </Panel>
 
       <Panel title='Upload queue'>
-        {uploads.length === 0 ? (
+        {queue.length === 0 ? (
           <EmptyState title='No uploads yet' />
         ) : (
-          <div className='datasets-list'>
-            {uploads.map((u) => (
-              <div key={u.id} className='datasets-upload'>
-                <div>
-                  <div className='datasets-upload__head'>
-                    <StatusDot
-                      tone={u.done ? 'ink' : 'muted'}
-                      pulse={!u.done}
-                    />
-                    <MonoValue size='sm'>{u.filename}</MonoValue>
-                    <Chip tone='ghost'>{u.format}</Chip>
-                  </div>
-                  <div className='datasets-upload__bar'>
-                    <div
-                      className='datasets-upload__bar-fill'
-                      style={{ width: `${u.progress}%` }}
-                    />
-                  </div>
-                </div>
-                <div
-                  className={
-                    u.done
-                      ? 'datasets-upload__progress datasets-upload__progress--done'
-                      : 'datasets-upload__progress'
-                  }
-                >
-                  {u.done ? 'done' : `${Math.floor(u.progress)}%`}
-                </div>
-              </div>
-            ))}
-          </div>
+          <UploadQueue items={queue} />
         )}
       </Panel>
     </>

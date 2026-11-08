@@ -21,47 +21,6 @@
   flex-direction: column;
 }
 
-.datasets-upload {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-top: var(--size-hairline) solid var(--border-hairline);
-}
-
-.datasets-upload__head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
-}
-
-.datasets-upload__bar {
-  height: var(--space-1);
-  background: var(--bg-muted);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-}
-
-.datasets-upload__bar-fill {
-  height: 100%;
-  background: var(--bg-inverted);
-  transition: width var(--motion-fast);
-}
-
-.datasets-upload__progress {
-  font-family: var(--font-numeric);
-  font-size: var(--type-small-size);
-  line-height: var(--type-small-line);
-  font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
-}
-
-.datasets-upload__progress--done {
-  color: var(--text-main);
-}
-
 .datasets-row {
   display: block;
   padding: var(--space-3) var(--space-4);

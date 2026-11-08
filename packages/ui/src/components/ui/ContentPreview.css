@@ -121,58 +121,7 @@
   max-height: none;
 }
 
-.aegis-content-inspector-modal {
-  max-width: 92vw;
-}
-
-.aegis-content-inspector-modal .ant-modal-content {
-  background: var(--bg-panel);
-  color: var(--text-main);
-  border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-overlay);
-}
-
-.aegis-content-inspector-modal .ant-modal-header {
-  background: transparent;
-  border-bottom: var(--size-hairline) solid var(--border-hairline);
-  margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) var(--space-4);
-  padding: var(--space-4) var(--space-5);
-}
-
-.aegis-content-inspector-modal .ant-modal-title {
-  color: var(--text-main);
-  font-family: var(--font-brand);
-  font-size: var(--fs-16);
-  font-weight: var(--fw-semibold);
-}
-
-.aegis-content-inspector-modal .ant-modal-close {
-  color: var(--text-muted);
-}
-
-.aegis-content-inspector-modal .ant-modal-close:hover {
-  color: var(--text-main);
-}
-
-.aegis-content-inspector {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  min-width: 0;
-}
-
-.aegis-content-inspector__body {
-  max-height: min(68vh, 48rem);
-  overflow: auto;
-  min-width: 0;
-}
-
-@media (max-width: 48rem) {
-  .aegis-content-inspector-modal {
-    max-width: 94vw;
-  }
-
+@media (max-width: 768px) {
   .aegis-content-json__section-head {
     align-items: flex-start;
     flex-direction: column;

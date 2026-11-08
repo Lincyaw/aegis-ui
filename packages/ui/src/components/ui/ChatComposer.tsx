@@ -41,6 +41,11 @@ export function ChatComposer({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
+    // The Enter that confirms an IME candidate belongs to the composition.
+    // Safari reports it after compositionend, so only its keyCode 229 tells.
+    if (event.nativeEvent.isComposing || event.keyCode === 229) {
+      return;
+    }
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       submit();

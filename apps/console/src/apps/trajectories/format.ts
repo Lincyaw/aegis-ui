@@ -1,3 +1,6 @@
+// Agent prompts wrap their contract in <agent_contract>; render it as Markdown.
+export const SESSION_MARKDOWN_PATTERNS = [/<agent_contract>/];
+
 export function formatTokens(n: number): string {
   if (n < 1000) {
     return n.toString();

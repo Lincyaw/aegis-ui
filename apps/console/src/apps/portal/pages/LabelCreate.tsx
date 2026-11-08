@@ -79,8 +79,9 @@ export default function LabelCreate() {
         }
       />
       <Panel>
-        <FormRow label='Key'>
+        <FormRow label='Key' controlId='label-create-key'>
           <TextField
+            id='label-create-key'
             value={key}
             error={errors.key}
             onChange={(e) => {
@@ -90,8 +91,9 @@ export default function LabelCreate() {
             placeholder='env'
           />
         </FormRow>
-        <FormRow label='Value'>
+        <FormRow label='Value' controlId='label-create-value'>
           <TextField
+            id='label-create-value'
             value={value}
             error={errors.value}
             onChange={(e) => {
@@ -101,9 +103,9 @@ export default function LabelCreate() {
             placeholder='production'
           />
         </FormRow>
-        <FormRow label='Category'>
+        <FormRow label='Category' controlId='label-create-category'>
           <Select
-            ariaLabel='Category'
+            id='label-create-category'
             value={String(category)}
             onChange={(v) =>
               setCategory(
@@ -117,15 +119,17 @@ export default function LabelCreate() {
             }))}
           />
         </FormRow>
-        <FormRow label='Description'>
+        <FormRow label='Description' controlId='label-create-description'>
           <TextField
+            id='label-create-description'
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder='Optional description'
           />
         </FormRow>
-        <FormRow label='Color'>
+        <FormRow label='Color' controlId='label-create-color'>
           <TextField
+            id='label-create-color'
             value={color}
             onChange={(e) => setColor(e.target.value)}
             placeholder='Optional hex/name'

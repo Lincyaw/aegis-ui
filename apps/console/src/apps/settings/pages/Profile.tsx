@@ -164,8 +164,14 @@ function ProfileForm({ profile }: { profile: AuthUserProfileResp | null }) {
           title='Identity'
           description='How you appear across AegisLab.'
         >
-          <FormRow label='Display name' description='Shown to teammates.'>
+          <FormRow
+            label='Display name'
+            description='Shown to teammates.'
+            controlId='profile-full-name'
+          >
             <TextField
+              id='profile-full-name'
+              aria-describedby='profile-full-name-description'
               value={fullName}
               onChange={(e) => {
                 setFullName(e.target.value);
@@ -175,8 +181,15 @@ function ProfileForm({ profile }: { profile: AuthUserProfileResp | null }) {
           <FormRow
             label='Email'
             description='Used for sign-in and notifications.'
+            controlId='profile-email'
           >
-            <TextField type='email' value={email} disabled />
+            <TextField
+              id='profile-email'
+              aria-describedby='profile-email-description'
+              type='email'
+              value={email}
+              disabled
+            />
           </FormRow>
           <FormRow label='Avatar' description='Generated from your name.'>
             <Avatar name={name || 'Aegis User'} size='lg' />
@@ -199,16 +212,28 @@ function ProfileForm({ profile }: { profile: AuthUserProfileResp | null }) {
           title='Password'
           description='Change the password used to sign in.'
         >
-          <FormRow label='Current password' description='Confirm it’s you.'>
+          <FormRow
+            label='Current password'
+            description='Confirm it’s you.'
+            controlId='profile-current-password'
+          >
             <PasswordField
+              id='profile-current-password'
+              aria-describedby='profile-current-password-description'
               value={oldPassword}
               onChange={(e) => {
                 setOldPassword(e.target.value);
               }}
             />
           </FormRow>
-          <FormRow label='New password' description='At least 8 characters.'>
+          <FormRow
+            label='New password'
+            description='At least 8 characters.'
+            controlId='profile-new-password'
+          >
             <PasswordField
+              id='profile-new-password'
+              aria-describedby='profile-new-password-description'
               value={newPassword}
               onChange={(e) => {
                 setNewPassword(e.target.value);
@@ -216,8 +241,14 @@ function ProfileForm({ profile }: { profile: AuthUserProfileResp | null }) {
               helperText='Use a mix of letters, numbers, and symbols.'
             />
           </FormRow>
-          <FormRow label='Confirm new password' description='Type it again.'>
+          <FormRow
+            label='Confirm new password'
+            description='Type it again.'
+            controlId='profile-confirm-password'
+          >
             <PasswordField
+              id='profile-confirm-password'
+              aria-describedby='profile-confirm-password-description'
               value={confirmPassword}
               onChange={(e) => {
                 setConfirmPassword(e.target.value);

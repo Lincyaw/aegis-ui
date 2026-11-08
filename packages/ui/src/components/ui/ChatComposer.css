@@ -24,6 +24,7 @@
 
 .aegis-composer__input {
   flex: 1 1 auto;
+  min-width: 0;
   min-height: var(--size-control-base);
   max-height: var(--composer-input-max-height);
   padding: var(--space-2) var(--space-3);
@@ -35,12 +36,19 @@
   line-height: 1.5;
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
-  transition: border-color var(--motion-fast);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.aegis-composer__input:hover:not(:disabled) {
+  border-color: var(--border-emphasis);
 }
 
 .aegis-composer__input:focus {
   outline: none;
-  border-color: var(--border-emphasis);
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
 }
 
 .aegis-composer__input:disabled {
@@ -94,7 +102,11 @@
 }
 
 .aegis-composer__hint {
-  font-size: var(--fs-10);
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
   color: var(--text-muted);
-  font-family: var(--font-mono);
+  text-wrap: pretty;
 }

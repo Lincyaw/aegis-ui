@@ -50,6 +50,10 @@
   font-family: var(--font-ui);
 }
 
+.aegis-chat-session-list__main:focus-visible {
+  outline-offset: calc(var(--focus-ring-width) * -1);
+}
+
 .aegis-chat-session-list__row--compact .aegis-chat-session-list__main {
   padding: var(--space-2) var(--space-3);
 }
@@ -86,7 +90,6 @@
   font: inherit;
   font-family: var(--font-ui);
   padding: 0;
-  outline: none;
 }
 
 .aegis-chat-session-list__actions {

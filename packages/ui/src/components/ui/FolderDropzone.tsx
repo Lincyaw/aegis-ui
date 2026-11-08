@@ -1,18 +1,26 @@
 import {
-  type DragEvent,
+  type ChangeEvent,
   type ReactNode,
   useCallback,
   useRef,
   useState,
 } from 'react';
 
+import { useDropzone } from 'react-dropzone';
+
 import { formatBytes } from '../../lib/format';
 import { Button } from './Button';
 import './FolderDropzone.css';
+import { filesFromEvent } from './dropFiles';
 
 export interface FolderDropzoneProps {
   /** Currently-selected files; the component is controlled. */
   value: File[];
+  /**
+   * Called with the files of a picked or dropped folder (or picked files).
+   * Each file of a folder carries its path inside the dropped or picked
+   * folder in `webkitRelativePath`, e.g. `site/docs/intro.md`.
+   */
   onFilesChange: (files: File[]) => void;
   /** Per-file ceiling (bytes). Files larger than this are rejected. */
   maxFileBytes?: number;
@@ -27,7 +35,11 @@ export interface FolderDropzoneProps {
   helperText?: ReactNode;
   /** External validation message; rendered in error tone when present. */
   validationError?: string;
-  /** Slot rendered below the drop area, e.g. a per-file summary list. */
+  /**
+   * Slot rendered below the drop area, e.g. a per-file summary list. Its
+   * text is set in the UI face with tabular figures; wrap paths in
+   * `MonoValue`.
+   */
   summary?: ReactNode;
   className?: string;
 }
@@ -47,7 +59,6 @@ export function FolderDropzone({
 }: FolderDropzoneProps) {
   const folderInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [dragActive, setDragActive] = useState(false);
   const [internalError, setInternalError] = useState<string>('');
 
   const applyFiles = useCallback(
@@ -110,50 +121,16 @@ export function FolderDropzone({
     }
   }, [disabled, onFilesChange]);
 
-  const handleDragOver = useCallback(
-    (event: DragEvent<HTMLDivElement>) => {
-      if (disabled) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      setDragActive(true);
-    },
-    [disabled],
-  );
+  const { getRootProps, isDragActive: dragActive } = useDropzone({
+    onDrop: applyFiles,
+    disabled,
+    noClick: true,
+    noKeyboard: true,
+    getFilesFromEvent: filesFromEvent,
+  });
 
-  const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setDragActive(false);
-  }, []);
-
-  const handleDrop = useCallback(
-    (event: DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setDragActive(false);
-      if (disabled) {
-        return;
-      }
-      const dropped = Array.from(event.dataTransfer.files);
-      applyFiles(dropped);
-    },
-    [disabled, applyFiles],
-  );
-
-  const handleFolderInputChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const list = event.target.files;
-      if (list) {
-        applyFiles(Array.from(list));
-      }
-    },
-    [applyFiles],
-  );
-
-  const handleFileInputChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
       const list = event.target.files;
       if (list) {
         applyFiles(Array.from(list));
@@ -181,12 +158,7 @@ export function FolderDropzone({
 
   return (
     <div className={rootClass}>
-      <div
-        className={surfaceClass}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
+      <div {...getRootProps({ className: surfaceClass })}>
         <div className="aegis-folder-dropzone__hint">
           <span className="aegis-folder-dropzone__primary">
             {dragActive
@@ -226,10 +198,11 @@ export function FolderDropzone({
           multiple
           accept={accept}
           disabled={disabled}
+          tabIndex={-1}
           // @ts-expect-error -- non-standard but supported in Chromium/WebKit
           webkitdirectory=""
           className="aegis-folder-dropzone__input"
-          onChange={handleFolderInputChange}
+          onChange={handleInputChange}
         />
         <input
           ref={fileInputRef}
@@ -237,8 +210,9 @@ export function FolderDropzone({
           multiple
           accept={accept}
           disabled={disabled}
+          tabIndex={-1}
           className="aegis-folder-dropzone__input"
-          onChange={handleFileInputChange}
+          onChange={handleInputChange}
         />
       </div>
       {summary !== undefined && hasFiles ? (

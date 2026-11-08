@@ -5,10 +5,14 @@
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
   overflow: hidden;
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
 }
 
 .aegis-code-editor:focus-within {
-  border-color: var(--border-strong);
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
 }
 
 .aegis-code-editor .cm-editor {

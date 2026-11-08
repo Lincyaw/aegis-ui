@@ -599,6 +599,23 @@ const GALLERY_DIALOG_RUNS = Array.from({ length: 40 }, (_, index) => ({
   v: index % 7 === 3 ? '错误' : '正确',
 }));
 
+function PaginationSpecimen({ total }: { total?: number }): ReactNode {
+  const [page, setPage] = useState(2);
+  const [pageSize, setPageSize] = useState(10);
+  return (
+    <Pagination
+      page={page}
+      pageSize={pageSize}
+      total={total}
+      pageSizeOptions={[10, 25, 50]}
+      onChange={(nextPage, nextSize) => {
+        setPage(nextPage);
+        setPageSize(nextSize);
+      }}
+    />
+  );
+}
+
 function DialogSpecimen(): ReactNode {
   const [openKey, setOpenKey] = useState<GalleryDialogKey | null>(null);
   const [note, setNote] = useState('');
@@ -859,16 +876,12 @@ export function IndicatorsSection() {
 
       <SectionDivider>Pagination</SectionDivider>
       <div className='gallery__stack'>
-        <Pagination
-          page={2}
-          pageSize={10}
-          total={137}
-          unit='个步骤'
-          pageSizeOptions={[1, 5, 10, 25]}
-          onChange={() => {
-            /* no-op */
-          }}
-        />
+        <Specimen caption='known total · page size options'>
+          <PaginationSpecimen total={137} />
+        </Specimen>
+        <Specimen caption='unknown total · Next stays enabled while the page is full'>
+          <PaginationSpecimen />
+        </Specimen>
       </div>
 
       <SectionDivider>Checkbox</SectionDivider>
@@ -1253,6 +1266,7 @@ export function IndicatorsSection() {
       <div className='gallery__stack'>
         <BlastRadiusBar
           value={20}
+          label='Blast radius'
           centerLabel='Node Group A · 20 %'
           surface={{
             id: 'gallery.blast.20',
@@ -1271,9 +1285,17 @@ export function IndicatorsSection() {
             }),
           }}
         />
-        <BlastRadiusBar value={65} centerLabel='Node Group A · 65 %' />
-        <BlastRadiusBar value={92} centerLabel='Node Group A · 92 %' />
-        <BlastRadiusBar value={50} hideTicks />
+        <BlastRadiusBar
+          value={65}
+          label='Blast radius'
+          centerLabel='Node Group A · 65 %'
+        />
+        <BlastRadiusBar
+          value={92}
+          label='Blast radius'
+          centerLabel='Node Group A · 92 %'
+        />
+        <BlastRadiusBar value={50} label='Blast radius' hideTicks />
       </div>
     </Panel>
   );

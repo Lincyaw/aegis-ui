@@ -77,8 +77,9 @@ export default function EvalRunCreate() {
         }
       />
       <Panel>
-        <FormRow label='Algorithm name'>
+        <FormRow label='Algorithm name' controlId='eval-run-create-algorithm'>
           <TextField
+            id='eval-run-create-algorithm'
             value={algorithm}
             error={algorithmError}
             onChange={(e) => {
@@ -88,16 +89,20 @@ export default function EvalRunCreate() {
             placeholder='e.g. rca-baseline'
           />
         </FormRow>
-        <FormRow label='Algorithm version'>
+        <FormRow
+          label='Algorithm version'
+          controlId='eval-run-create-algorithm-version'
+        >
           <TextField
+            id='eval-run-create-algorithm-version'
             value={algorithmVersion}
             onChange={(e) => setAlgorithmVersion(e.target.value)}
           />
         </FormRow>
-        <FormRow label='Dataset'>
+        <FormRow label='Dataset' controlId='eval-run-create-dataset'>
           <div className='page-stack'>
             <Select
-              ariaLabel='Dataset'
+              id='eval-run-create-dataset'
               value={datasetName}
               onChange={setDatasetName}
               disabled={datasetsQ.isLoading}
@@ -116,8 +121,12 @@ export default function EvalRunCreate() {
             )}
           </div>
         </FormRow>
-        <FormRow label='Dataset version'>
+        <FormRow
+          label='Dataset version'
+          controlId='eval-run-create-dataset-version'
+        >
           <TextField
+            id='eval-run-create-dataset-version'
             value={datasetVersion}
             onChange={(e) => setDatasetVersion(e.target.value)}
           />

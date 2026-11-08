@@ -188,10 +188,11 @@ function BlobPathPicker({
         <MetricLabel size='xs'>Bucket</MetricLabel>
         <DropdownMenu
           align='left'
+          triggerTone='ghost'
           trigger={
-            <Button tone='ghost'>
+            <>
               {bucket || 'Choose a bucket…'} <CaretDownOutlined />
-            </Button>
+            </>
           }
           items={
             buckets.length > 0

@@ -3,6 +3,7 @@ import { type ReactNode, useState } from 'react';
 import {
   AppstoreOutlined,
   ArrowRightOutlined,
+  CaretDownOutlined,
   DeleteOutlined,
   DotChartOutlined,
   DownloadOutlined,
@@ -1170,6 +1171,17 @@ export function NavigationSection() {
             />
           </div>
         </Specimen>
+        <Specimen
+          caption='with error · submit empty to see field errors'
+          span={3}
+        >
+          <div className='gallery__form-frame'>
+            <RegisterForm
+              onSubmit={() => undefined}
+              error='An account with this email already exists.'
+            />
+          </div>
+        </Specimen>
       </div>
 
       <SectionDivider>ForgotPasswordForm</SectionDivider>
@@ -1215,7 +1227,7 @@ export function NavigationSection() {
 
       <SectionDivider>DropdownMenu</SectionDivider>
       <div className='gallery__row'>
-        <Specimen caption='basic'>
+        <Specimen caption='basic · trigger is the content of the menu button'>
           <DropdownMenu
             trigger={<Chip tone='ink'>Open menu</Chip>}
             items={[
@@ -1245,6 +1257,21 @@ export function NavigationSection() {
                 icon: <LogoutOutlined />,
                 danger: true,
               },
+            ]}
+          />
+        </Specimen>
+        <Specimen caption="triggerTone='secondary' · the menu button drawn as a Button">
+          <DropdownMenu
+            triggerTone='secondary'
+            trigger={
+              <>
+                Refresh: 30 s <CaretDownOutlined />
+              </>
+            }
+            items={[
+              { key: 'off', label: 'Off' },
+              { key: '10', label: 'Every 10 s' },
+              { key: '30', label: 'Every 30 s' },
             ]}
           />
         </Specimen>

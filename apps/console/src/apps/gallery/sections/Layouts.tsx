@@ -1,4 +1,7 @@
+import { useState } from 'react';
+
 import {
+  Checkbox,
   Chip,
   ColumnLayout,
   DangerZone,
@@ -10,6 +13,7 @@ import {
   PageWrapper,
   Panel,
   PanelTitle,
+  PasswordField,
   SectionDivider,
   SettingsSection,
   SiteAnchorNav,
@@ -20,6 +24,7 @@ import {
   type SiteNavItem,
   SiteSection,
   SiteSectionHeader,
+  TextField,
   ThemeToggle,
 } from '@lincyaw/aegis-ui';
 
@@ -62,6 +67,33 @@ const SITE_FOOTER_COLUMNS: SiteFooterColumn[] = [
     ],
   },
 ];
+
+function FormRowGroupSpecimen() {
+  const [channels, setChannels] = useState({ email: true, slack: false });
+  return (
+    <FormRow
+      label='Alert channels'
+      description='Several controls: the row is a group the label names.'
+    >
+      <div className='gallery__row'>
+        <Checkbox
+          label='Email'
+          checked={channels.email}
+          onChange={(email) => {
+            setChannels((c) => ({ ...c, email }));
+          }}
+        />
+        <Checkbox
+          label='Slack'
+          checked={channels.slack}
+          onChange={(slack) => {
+            setChannels((c) => ({ ...c, slack }));
+          }}
+        />
+      </div>
+    </FormRow>
+  );
+}
 
 function GallerySiteBrand() {
   return <span className='gallery__site-brand'>AEGIS</span>;
@@ -234,20 +266,32 @@ export function LayoutsSection() {
 
       <SectionDivider>FormRow</SectionDivider>
       <div className='gallery__stack'>
-        <FormRow label='Display name' description='Shown across the platform.'>
-          <input
-            type='text'
+        <MetricLabel as='div' size='xs'>
+          controlId names one control: click the label to focus the field.
+        </MetricLabel>
+        <FormRow
+          label='Display name'
+          description='Shown across the platform.'
+          controlId='gallery-form-row-name'
+        >
+          <TextField
+            id='gallery-form-row-name'
+            aria-describedby='gallery-form-row-name-description'
             defaultValue='Ada Lovelace'
-            className='gallery__demo-input'
           />
         </FormRow>
-        <FormRow label='API key' description='Treat as a secret.'>
-          <input
-            type='password'
+        <FormRow
+          label='API key'
+          description='Treat as a secret.'
+          controlId='gallery-form-row-key'
+        >
+          <PasswordField
+            id='gallery-form-row-key'
+            aria-describedby='gallery-form-row-key-description'
             defaultValue='secret-token-xxx'
-            className='gallery__demo-input'
           />
         </FormRow>
+        <FormRowGroupSpecimen />
       </div>
 
       <SectionDivider>SettingsSection</SectionDivider>
@@ -255,15 +299,27 @@ export function LayoutsSection() {
         title='Profile'
         description='Update your personal information and preferences.'
       >
-        <FormRow label='Display name' description='Shown across the platform.'>
+        <FormRow
+          label='Display name'
+          description='Shown across the platform.'
+          controlId='gallery-settings-name'
+        >
           <input
+            id='gallery-settings-name'
+            aria-describedby='gallery-settings-name-description'
             type='text'
             defaultValue='Ada Lovelace'
             className='gallery__demo-input'
           />
         </FormRow>
-        <FormRow label='Email' description='Used for notifications and login.'>
+        <FormRow
+          label='Email'
+          description='Used for notifications and login.'
+          controlId='gallery-settings-email'
+        >
           <input
+            id='gallery-settings-email'
+            aria-describedby='gallery-settings-email-description'
             type='text'
             defaultValue='ada@aegislab.io'
             className='gallery__demo-input'
@@ -272,8 +328,13 @@ export function LayoutsSection() {
         <FormRow
           label='Timezone'
           description='All times are displayed in this zone.'
+          controlId='gallery-settings-timezone'
         >
-          <select className='gallery__demo-input'>
+          <select
+            id='gallery-settings-timezone'
+            aria-describedby='gallery-settings-timezone-description'
+            className='gallery__demo-input'
+          >
             <option>UTC</option>
             <option>Asia/Shanghai</option>
             <option>America/New_York</option>
@@ -287,18 +348,29 @@ export function LayoutsSection() {
         <FormRow
           label='Email alerts'
           description='Receive email for critical events.'
+          controlId='gallery-settings-email-alerts'
         >
           <label className='gallery__demo-toggle'>
-            <input type='checkbox' defaultChecked />
+            <input
+              id='gallery-settings-email-alerts'
+              aria-describedby='gallery-settings-email-alerts-description'
+              type='checkbox'
+              defaultChecked
+            />
             <span className='gallery__demo-toggle-track' />
           </label>
         </FormRow>
         <FormRow
           label='Slack integration'
           description='Push notifications to your Slack channel.'
+          controlId='gallery-settings-slack'
         >
           <label className='gallery__demo-toggle'>
-            <input type='checkbox' />
+            <input
+              id='gallery-settings-slack'
+              aria-describedby='gallery-settings-slack-description'
+              type='checkbox'
+            />
             <span className='gallery__demo-toggle-track' />
           </label>
         </FormRow>

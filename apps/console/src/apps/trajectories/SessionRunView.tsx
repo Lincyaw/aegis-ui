@@ -16,6 +16,8 @@ import {
 
 import { normalizeBlock, normalizeContent } from '../../agentm/agentContent';
 
+import { SESSION_MARKDOWN_PATTERNS } from './format';
+
 import './SessionRunView.css';
 
 const EXCERPT_LIMIT = 140;
@@ -159,7 +161,9 @@ function InspectableRunContent({
   onInspectContent: (content: InspectableContent) => void;
   showHeader?: boolean;
 }): ReactElement {
-  const prepared = prepareInspectableContent(content);
+  const prepared = prepareInspectableContent(content, {
+    markdownPatterns: SESSION_MARKDOWN_PATTERNS,
+  });
   return (
     <div
       className={`trajectories-session-content trajectories-session-content--${prepared.kind}`}
@@ -178,7 +182,10 @@ function InspectableRunContent({
           />
         </div>
       )}
-      <ContentPreview content={content} />
+      <ContentPreview
+        content={content}
+        markdownPatterns={SESSION_MARKDOWN_PATTERNS}
+      />
     </div>
   );
 }

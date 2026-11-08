@@ -1,9 +1,11 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
-import './AuthForm.css';
+import { Alert } from './Alert';
 import { Button } from './Button';
 import { PasswordField } from './PasswordField';
+import './RegisterForm.css';
 import { TextField } from './TextField';
+import { emailError } from './authValidation';
 
 interface RegisterFormValues {
   name: string;
@@ -12,6 +14,7 @@ interface RegisterFormValues {
 }
 
 interface RegisterFormProps {
+  /** Called only once every field is valid; `name` and `email` arrive trimmed. */
   onSubmit: (values: RegisterFormValues) => void | Promise<void>;
   submitting?: boolean;
   error?: string;
@@ -27,27 +30,31 @@ export function RegisterForm({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [touched, setTouched] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  const passwordTooShort = password.length < minPasswordLength;
-  const showPasswordError = touched && passwordTooShort;
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim();
+  const errors = {
+    name: trimmedName === '' ? 'Enter your name.' : undefined,
+    email: emailError(trimmedEmail),
+    password:
+      password.length < minPasswordLength
+        ? `Password must be at least ${String(minPasswordLength)} characters.`
+        : undefined,
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    setTouched(true);
-    if (passwordTooShort) {
+    setSubmitted(true);
+    if (errors.name ?? errors.email ?? errors.password) {
       return;
     }
-    void onSubmit({ name, email, password });
+    void onSubmit({ name: trimmedName, email: trimmedEmail, password });
   };
 
   return (
     <form className="aegis-registerform" onSubmit={handleSubmit} noValidate>
-      {error && (
-        <div className="aegis-registerform__error" role="alert">
-          {error}
-        </div>
-      )}
+      {error && <Alert tone="error">{error}</Alert>}
       <TextField
         label="Name"
         autoComplete="name"
@@ -56,6 +63,7 @@ export function RegisterForm({
         onChange={(e) => setName(e.target.value)}
         disabled={submitting}
         required
+        error={submitted ? errors.name : undefined}
       />
       <TextField
         label="Email"
@@ -66,6 +74,7 @@ export function RegisterForm({
         onChange={(e) => setEmail(e.target.value)}
         disabled={submitting}
         required
+        error={submitted ? errors.email : undefined}
       />
       <PasswordField
         label="Password"
@@ -76,11 +85,7 @@ export function RegisterForm({
         disabled={submitting}
         required
         helperText={`At least ${String(minPasswordLength)} characters.`}
-        error={
-          showPasswordError
-            ? `Password must be at least ${String(minPasswordLength)} characters.`
-            : undefined
-        }
+        error={submitted ? errors.password : undefined}
       />
       <Button
         tone="primary"

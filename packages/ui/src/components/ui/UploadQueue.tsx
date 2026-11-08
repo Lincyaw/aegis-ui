@@ -1,13 +1,30 @@
 import { formatBytes, formatDurationEstimate } from '../../lib/format';
 import { Button } from './Button';
 import { EmptyState } from './EmptyState';
-import type { FileDropzoneItem } from './FileDropzone';
 import { MetricLabel } from './MetricLabel';
 import { MonoValue } from './MonoValue';
 import './UploadQueue.css';
 
+export interface UploadQueueItem {
+  /** Stable id so progress / errors can update in place. */
+  id: string;
+  file: File;
+  /** Fraction uploaded, 0–1; omit while it is unknown. */
+  progress?: number;
+  status: 'queued' | 'uploading' | 'done' | 'error';
+  error?: string;
+  /** Bytes transferred so far. */
+  bytesUploaded?: number;
+  /** Transfer speed in bytes per second. */
+  speedBps?: number;
+  /** Estimated seconds remaining. */
+  etaSeconds?: number;
+  /** Called when the user cancels an in-progress upload. */
+  onCancel?: () => void;
+}
+
 interface UploadQueueProps {
-  items: FileDropzoneItem[];
+  items: UploadQueueItem[];
   /** Retry one failed item. */
   onRetry?: (id: string) => void;
   /** Drop a finished/failed item from the queue. */
@@ -21,7 +38,7 @@ function humanSpeed(bps: number): string {
   return `${formatBytes(bps)}/s`;
 }
 
-const STATUS_LABEL: Record<FileDropzoneItem['status'], string> = {
+const STATUS_LABEL: Record<UploadQueueItem['status'], string> = {
   queued: 'queued',
   uploading: 'uploading',
   done: 'done',
@@ -66,21 +83,19 @@ export function UploadQueue({
     <div className={cls}>
       <header className="aegis-upload-queue__head">
         <div className="aegis-upload-queue__summary">
-          <MetricLabel>
-            {doneCount.toString()}/{items.length.toString()} done
-          </MetricLabel>
-          <MetricLabel>·</MetricLabel>
-          <MonoValue size="sm">
-            {formatBytes(uploadedBytes)}/{formatBytes(totalBytes)}
-          </MonoValue>
-          {maxEta > 0 ? (
-            <>
-              <MetricLabel>·</MetricLabel>
-              <MonoValue size="sm">
+          <div className="aegis-upload-queue__summary-line">
+            <span className="aegis-upload-queue__piece aegis-upload-queue__figures aegis-upload-queue__figures--muted">
+              {doneCount.toString()}/{items.length.toString()} done
+            </span>
+            <span className="aegis-upload-queue__piece aegis-upload-queue__figures">
+              {formatBytes(uploadedBytes)}/{formatBytes(totalBytes)}
+            </span>
+            {maxEta > 0 ? (
+              <span className="aegis-upload-queue__piece aegis-upload-queue__figures">
                 ETA {formatDurationEstimate(maxEta * 1000)}
-              </MonoValue>
-            </>
-          ) : null}
+              </span>
+            ) : null}
+          </div>
         </div>
         {hasCompleted && onClearCompleted ? (
           <Button tone="ghost" onClick={onClearCompleted}>
@@ -101,7 +116,7 @@ export function UploadQueue({
               <span className="aegis-upload-queue__meta">
                 {it.status === 'uploading' &&
                 (it.speedBps !== undefined || it.etaSeconds !== undefined) ? (
-                  <MonoValue size="sm" weight="regular">
+                  <span className="aegis-upload-queue__figures">
                     {it.speedBps !== undefined ? humanSpeed(it.speedBps) : null}
                     {it.speedBps !== undefined && it.etaSeconds !== undefined
                       ? ' · '
@@ -109,9 +124,11 @@ export function UploadQueue({
                     {it.etaSeconds !== undefined
                       ? `ETA ${formatDurationEstimate(it.etaSeconds * 1000)}`
                       : null}
-                  </MonoValue>
+                  </span>
                 ) : null}
-                <MetricLabel>{formatBytes(it.file.size)}</MetricLabel>
+                <span className="aegis-upload-queue__figures aegis-upload-queue__figures--muted">
+                  {formatBytes(it.file.size)}
+                </span>
                 <MetricLabel>{STATUS_LABEL[it.status]}</MetricLabel>
                 {it.status === 'uploading' && it.onCancel !== undefined ? (
                   <Button

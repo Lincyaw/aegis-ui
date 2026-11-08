@@ -14,6 +14,8 @@ export type BlastRadiusBarSurface = PrimitiveSurface<{
 interface BlastRadiusBarProps {
   /** 0 – 100 */
   value: number;
+  /** Names the measure for assistive technology, e.g. "Estimated blast radius". */
+  label: string;
   /** Optional descriptive label for the current value (right-aligned, mid). */
   centerLabel?: string;
   /** Hide the 0 / 100 endpoints. */
@@ -24,6 +26,7 @@ interface BlastRadiusBarProps {
 
 export function BlastRadiusBar({
   value,
+  label,
   centerLabel,
   hideTicks = false,
   className,
@@ -43,10 +46,12 @@ export function BlastRadiusBar({
     <div ref={wrapRef} className={cls} {...agentAttrs}>
       <div
         className="aegis-blast-radius__track"
-        role="progressbar"
+        role="meter"
+        aria-label={label}
         aria-valuenow={clamped}
         aria-valuemin={0}
         aria-valuemax={100}
+        aria-valuetext={centerLabel ?? `${clamped.toString()}%`}
       >
         <div
           className="aegis-blast-radius__fill"

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { FileDropzoneItem } from '@lincyaw/aegis-ui';
+import type { UploadQueueItem } from '@lincyaw/aegis-ui';
 
 import { errMsg } from '../../../api/apiClient';
 import { presignPut } from '../../../api/blobClient';
@@ -10,7 +10,7 @@ const UPLOAD_CONCURRENCY = 3;
 const EWMA_ALPHA = 0.3;
 
 export interface Uploads {
-  items: FileDropzoneItem[];
+  items: UploadQueueItem[];
   /** Uploads `files` under `prefix`, settling once each has finished, failed or been cancelled. */
   upload: (files: File[], prefix: string) => Promise<void>;
   dismiss: (id: string) => void;
@@ -19,7 +19,7 @@ export interface Uploads {
 
 /** Presigned XHR uploads into one bucket. Open uploads are aborted when the host unmounts. */
 export function useUploads(bucket: string): Uploads {
-  const [items, setItems] = useState<FileDropzoneItem[]>([]);
+  const [items, setItems] = useState<UploadQueueItem[]>([]);
   const xhrs = useRef(new Map<string, XMLHttpRequest>());
   const cancelled = useRef(new Set<string>());
   const mounted = useRef(false);
@@ -36,7 +36,7 @@ export function useUploads(bucket: string): Uploads {
   }, []);
 
   const patch = useCallback(
-    (id: string, change: Partial<FileDropzoneItem>): void => {
+    (id: string, change: Partial<UploadQueueItem>): void => {
       setItems((prev) =>
         prev.map((u) => (u.id === id ? { ...u, ...change } : u))
       );
@@ -50,7 +50,7 @@ export function useUploads(bucket: string): Uploads {
   }, []);
 
   const send = useCallback(
-    async (item: FileDropzoneItem, key: string): Promise<void> => {
+    async (item: UploadQueueItem, key: string): Promise<void> => {
       const stopped = (): boolean =>
         !mounted.current || cancelled.current.has(item.id);
       if (stopped()) {
@@ -80,7 +80,7 @@ export function useUploads(bucket: string): Uploads {
       await new Promise<void>((resolve) => {
         const xhr = new XMLHttpRequest();
         xhrs.current.set(item.id, xhr);
-        const finish = (change: Partial<FileDropzoneItem>): void => {
+        const finish = (change: Partial<UploadQueueItem>): void => {
           xhrs.current.delete(item.id);
           patch(item.id, change);
           resolve();
@@ -139,7 +139,7 @@ export function useUploads(bucket: string): Uploads {
 
   const upload = useCallback(
     async (files: File[], prefix: string): Promise<void> => {
-      const queued = files.map((file): FileDropzoneItem => {
+      const queued = files.map((file): UploadQueueItem => {
         const id = `${file.name}-${Date.now().toString()}-${Math.random().toString(36).slice(2, 6)}`;
         return {
           id,

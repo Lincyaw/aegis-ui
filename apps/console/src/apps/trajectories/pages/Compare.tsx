@@ -15,6 +15,7 @@ import {
 
 import { getSessionRow, type SessionRow } from '../api/clickhouse';
 import { useCompareList } from '../compareList';
+import { SESSION_MARKDOWN_PATTERNS } from '../format';
 import { OutputPane, TrajectoryPane } from '../SessionPanes';
 import { useSessionData } from '../sessionRunAdapters';
 
@@ -86,6 +87,7 @@ export function Compare(): ReactElement {
         open={inspectedContent !== null}
         content={inspectedContent}
         onClose={() => setInspectedContent(null)}
+        markdownPatterns={SESSION_MARKDOWN_PATTERNS}
       />
     </div>
   );

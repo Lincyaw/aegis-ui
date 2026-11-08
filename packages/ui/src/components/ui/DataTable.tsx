@@ -4,32 +4,27 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
-  type PointerEvent as ReactPointerEvent,
-  useCallback,
-  useEffect,
   useId,
   useMemo,
   useRef,
   useState,
 } from 'react';
 
-import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { RightOutlined } from '@ant-design/icons';
 
 import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
 import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
-import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
-import { readStorage, writeStorage } from '../../lib/storage';
 import { useStrings } from '../../locale';
-import { Button } from './Button';
 import { Checkbox } from './Checkbox';
 import './DataTable.css';
 import { EmptyState } from './EmptyState';
-import { PageSizeSelect } from './PageSizeSelect';
+import { Pagination, type PaginationProps } from './Pagination';
 import { Skeleton, SkeletonText } from './Skeleton';
+import { useColumnWidths } from './useColumnWidths';
 
 export type DataTableSurface<T> = PrimitiveSurface<T[]>;
 
@@ -60,7 +55,10 @@ export interface DataTableColumn<T> {
    * that should keep its natural width without being clipped.
    */
   truncate?: boolean;
-  /** Allow dragging the right edge of this column to resize. Default false. */
+  /**
+   * Gives the header a resize handle on its right edge, dragged with the
+   * pointer or moved with the arrow keys. Default false.
+   */
   resizable?: boolean;
   /**
    * `'actions'` lays the cell out as a right-aligned, gapped, wrapping row of
@@ -96,21 +94,15 @@ export interface DataTableSort {
   direction: DataTableSortDirection;
 }
 
-/** Server-side pagination: `data` is the current page, never sliced here. */
-export interface DataTablePagination {
-  /** 1-based. */
-  page: number;
-  pageSize: number;
-  /**
-   * Rows across all pages. Omit when the backend doesn't count them: the
-   * range label drops "of N" and Next stays enabled while the page is full.
-   */
-  total?: number;
-  /** Changing the page size always resets to page 1. */
-  onChange: (page: number, pageSize: number) => void;
-  /** Renders a "Rows per page" select offering these sizes. */
-  pageSizeOptions?: number[];
-}
+/**
+ * Server-side pagination: `data` is the current page, never sliced here.
+ * The table supplies the page's row count and disables the pager while
+ * loading.
+ */
+export type DataTablePagination = Pick<
+  PaginationProps,
+  'page' | 'pageSize' | 'total' | 'onChange' | 'pageSizeOptions'
+>;
 
 interface DataTableProps<T> {
   columns: Array<DataTableColumn<T>>;
@@ -183,8 +175,6 @@ interface DataTableProps<T> {
   surface?: DataTableSurface<T>;
 }
 
-const DEFAULT_MIN_WIDTH = 60;
-const AUTO_COLUMN_MIN_WIDTH = 120;
 const SELECTION_WIDTH = 44;
 const TOGGLE_WIDTH = 32;
 const CHEVRON_WIDTH = 40;
@@ -263,37 +253,6 @@ function SortIcon({
       />
     </svg>
   );
-}
-
-function toCssWidth(w: number | string | undefined): string | undefined {
-  if (w === undefined) {
-    return undefined;
-  }
-  return typeof w === 'number' ? `${w}px` : w;
-}
-
-function storageKey(persistKey: string): string {
-  return `aegis-data-table:${persistKey}`;
-}
-
-function readPersisted(key: string): Record<string, number> {
-  const raw = readStorage(storageKey(key));
-  if (!raw) {
-    return {};
-  }
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object') {
-      return parsed as Record<string, number>;
-    }
-    return {};
-  } catch {
-    return {};
-  }
-}
-
-function writePersisted(key: string, widths: Record<string, number>): void {
-  writeStorage(storageKey(key), JSON.stringify(widths));
 }
 
 export function DataTable<T>({
@@ -405,120 +364,19 @@ export function DataTable<T>({
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const agentAttrs = usePrimitiveSurface(surface, data, 'table', wrapRef);
-  const [overrides, setOverrides] = useState<Record<string, number>>(() =>
-    persistKey ? readPersisted(persistKey) : {},
-  );
-
-  useEffect(() => {
-    if (persistKey) {
-      writePersisted(persistKey, overrides);
-    }
-  }, [persistKey, overrides]);
-
-  const hasAnyWidth = useMemo(
-    () =>
-      columns.some(
-        (c) =>
-          c.width !== undefined || c.resizable === true || c.key in overrides,
-      ),
-    [columns, overrides],
-  );
-
-  const colWidths = useMemo(
-    () =>
-      columns.map((c) => {
-        if (c.key in overrides) {
-          return `${overrides[c.key]}px`;
-        }
-        return toCssWidth(c.width);
-      }),
-    [columns, overrides],
-  );
-
   const expandable = renderExpanded !== undefined;
   const clickable = onRowClick !== undefined;
   const leadWidth =
     (selectable ? SELECTION_WIDTH : 0) + (expandable ? TOGGLE_WIDTH : 0);
   const trailWidth = clickable ? CHEVRON_WIDTH : 0;
 
-  // A fixed-layout table squeezes width-less columns to zero once the sized
-  // ones fill the container; a min-width lets the scroll wrapper take over.
-  const tableMinWidth = useMemo(() => {
-    if (!hasAnyWidth) {
-      return undefined;
-    }
-    const total = columns.reduce((sum, c) => {
-      const px =
-        c.key in overrides
-          ? overrides[c.key]
-          : typeof c.width === 'number'
-            ? c.width
-            : undefined;
-      return sum + (px ?? c.minWidth ?? AUTO_COLUMN_MIN_WIDTH);
-    }, leadWidth + trailWidth);
-    return `${total.toString()}px`;
-  }, [columns, overrides, hasAnyWidth, leadWidth, trailWidth]);
-
-  const startResize = useCallback(
-    (col: DataTableColumn<T>, colIndex: number) =>
-      (event: ReactPointerEvent<HTMLSpanElement>): void => {
-        if (event.button !== 0) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-
-        const table = tableRef.current;
-        if (!table) {
-          return;
-        }
-        const th = table.querySelectorAll('thead th')[colIndex];
-        if (!(th instanceof HTMLElement)) {
-          return;
-        }
-
-        const startX = event.clientX;
-        const startWidth = th.getBoundingClientRect().width;
-        const min = col.minWidth ?? DEFAULT_MIN_WIDTH;
-        const max = col.maxWidth ?? Infinity;
-
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-
-        const onMove = (e: PointerEvent): void => {
-          const next = Math.min(
-            Math.max(startWidth + (e.clientX - startX), min),
-            max,
-          );
-          setOverrides((prev) => ({ ...prev, [col.key]: Math.round(next) }));
-        };
-
-        const onUp = (): void => {
-          document.body.style.cursor = '';
-          document.body.style.userSelect = '';
-          window.removeEventListener('pointermove', onMove);
-          window.removeEventListener('pointerup', onUp);
-        };
-
-        window.addEventListener('pointermove', onMove);
-        window.addEventListener('pointerup', onUp);
-      },
-    [],
-  );
-
-  // When the persisted layout changes (e.g. cross-tab), refresh.
-  useIsomorphicLayoutEffect(() => {
-    if (!persistKey || typeof window === 'undefined') {
-      return undefined;
-    }
-    const onStorage = (e: StorageEvent): void => {
-      if (e.key === storageKey(persistKey)) {
-        setOverrides(readPersisted(persistKey));
-      }
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, [persistKey]);
+  const columnWidths = useColumnWidths({
+    columns,
+    persistKey,
+    leadWidth,
+    trailWidth,
+    tableRef,
+  });
 
   const cls = [
     'aegis-data-table',
@@ -528,9 +386,11 @@ export function DataTable<T>({
   ]
     .filter(Boolean)
     .join(' ');
-  const fixedLayout = hasAnyWidth && !cardMode;
+  const fixedLayout = columnWidths.sized && !cardMode;
+  const filler = fixedLayout && columnWidths.fillerStyle !== undefined;
   const sticky = stickyFirstColumn && !cardMode;
-  const bodyColumnCount = (cardMode ? 1 : columns.length) + (clickable ? 1 : 0);
+  const bodyColumnCount =
+    (cardMode ? 1 : columns.length) + (filler ? 1 : 0) + (clickable ? 1 : 0);
   const columnCount =
     bodyColumnCount + (selectable ? 1 : 0) + (expandable ? 1 : 0);
   const toggleLeft = selectable ? SELECTION_WIDTH : 0;
@@ -639,6 +499,10 @@ export function DataTable<T>({
       ))
     );
 
+  const fillerCell = filler && (
+    <td className="aegis-data-table__td aegis-data-table__filler" aria-hidden />
+  );
+
   const chevronCell = clickable && (
     <td className="aegis-data-table__td aegis-data-table__chevron-cell">
       <RightOutlined className="aegis-data-table__chevron" aria-hidden />
@@ -746,11 +610,7 @@ export function DataTable<T>({
         <table
           ref={tableRef}
           className={tableClass}
-          style={
-            tableMinWidth && fixedLayout
-              ? { minWidth: tableMinWidth }
-              : undefined
-          }
+          style={fixedLayout ? columnWidths.tableStyle : undefined}
         >
           {fixedLayout && (
             <colgroup>
@@ -760,12 +620,23 @@ export function DataTable<T>({
               {expandable && (
                 <col key="__toggle" style={{ width: TOGGLE_WIDTH }} />
               )}
-              {columns.map((col, i) => (
+              {columns.map((col, i) => {
+                const width = columnWidths.widths[i];
+                return (
+                  <col
+                    key={col.key}
+                    data-column-key={col.key}
+                    style={width ? { width } : undefined}
+                  />
+                );
+              })}
+              {filler && (
                 <col
-                  key={col.key}
-                  style={colWidths[i] ? { width: colWidths[i] } : undefined}
+                  key="__filler"
+                  data-column-filler
+                  style={columnWidths.fillerStyle}
                 />
-              ))}
+              )}
               {clickable && (
                 <col key="__chevron" style={{ width: CHEVRON_WIDTH }} />
               )}
@@ -799,6 +670,7 @@ export function DataTable<T>({
                   columns.map((col, i) => (
                     <th
                       key={col.key}
+                      data-column-key={col.key}
                       className={cellClass('th', i)}
                       style={cellStyle(col, i)}
                       aria-sort={
@@ -837,15 +709,19 @@ export function DataTable<T>({
                       )}
                       {col.resizable && (
                         <span
-                          role="separator"
-                          aria-orientation="vertical"
                           aria-label="Resize column"
                           className="aegis-data-table__resizer"
-                          onPointerDown={startResize(col, i)}
+                          {...columnWidths.handleProps(col)}
                         />
                       )}
                     </th>
                   ))
+                )}
+                {filler && (
+                  <th
+                    className="aegis-data-table__th aegis-data-table__filler"
+                    aria-hidden
+                  />
                 )}
                 {clickable && (
                   <th className="aegis-data-table__th aegis-data-table__chevron-cell" />
@@ -864,6 +740,7 @@ export function DataTable<T>({
                     <td key="__toggle" {...leadCellProps('toggle', 'td')} />
                   )}
                   {renderSkeletonCells()}
+                  {fillerCell}
                   {clickable && <td className="aegis-data-table__td" />}
                 </tr>
               ))
@@ -919,6 +796,7 @@ export function DataTable<T>({
                         </td>
                       )}
                       {renderRowCells(row, idx)}
+                      {fillerCell}
                       {chevronCell}
                     </tr>
                     {expandable &&
@@ -931,87 +809,13 @@ export function DataTable<T>({
         </table>
       </div>
       {pagination && (
-        <DataTableFooter
-          pagination={pagination}
-          rowCount={data.length}
-          loading={loading}
+        <Pagination
+          {...pagination}
+          pageRowCount={data.length}
+          disabled={loading}
+          className="aegis-data-table__footer"
         />
       )}
-    </div>
-  );
-}
-
-interface DataTableFooterProps {
-  pagination: DataTablePagination;
-  rowCount: number;
-  loading: boolean;
-}
-
-function DataTableFooter({
-  pagination,
-  rowCount,
-  loading,
-}: DataTableFooterProps) {
-  const strings = useStrings();
-  const { page, pageSize, total, onChange, pageSizeOptions } = pagination;
-  const offset = (page - 1) * pageSize;
-  const shown =
-    total === undefined
-      ? rowCount
-      : Math.max(0, Math.min(pageSize, total - offset));
-  const hasNext =
-    total === undefined ? rowCount >= pageSize : offset + pageSize < total;
-
-  return (
-    <div className="aegis-data-table__footer">
-      {pageSizeOptions && (
-        <PageSizeSelect
-          value={pageSize}
-          options={pageSizeOptions}
-          onChange={(size) => {
-            onChange(1, size);
-          }}
-        />
-      )}
-      <div className="aegis-data-table__pager">
-        <span className="aegis-data-table__range">
-          <span className="aegis-data-table__range-num">
-            {shown > 0
-              ? `${(offset + 1).toLocaleString()}–${(offset + shown).toLocaleString()}`
-              : '0'}
-          </span>
-          {total !== undefined && (
-            <>
-              {strings.rangeOf}
-              <span className="aegis-data-table__range-num">
-                {total.toLocaleString()}
-              </span>
-            </>
-          )}
-        </span>
-        <Button
-          tone="secondary"
-          className="aegis-data-table__page-btn"
-          aria-label={strings.previousPage}
-          disabled={loading || page <= 1}
-          onClick={() => {
-            onChange(page - 1, pageSize);
-          }}
-        >
-          <LeftOutlined />
-        </Button>
-        <Button
-          tone="secondary"
-          className="aegis-data-table__page-btn"
-          aria-label={strings.nextPage}
-          disabled={loading || !hasNext}
-          onClick={() => {
-            onChange(page + 1, pageSize);
-          }}
-        >
-          <RightOutlined />
-        </Button>
-      </div>
     </div>
   );
 }

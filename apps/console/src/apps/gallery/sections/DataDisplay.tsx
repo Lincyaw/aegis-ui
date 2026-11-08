@@ -9,6 +9,7 @@ import {
   type KeyValueItem,
   KeyValueList,
   MetricCard,
+  MonoValue,
   Panel,
   PanelTitle,
   SectionDivider,
@@ -41,10 +42,10 @@ const DURATION_SAMPLES = [
 ];
 
 const KV_META: KeyValueItem[] = [
-  { k: 'Run ID', v: 'EXP-29F1-ALPHA' },
+  { k: 'Run ID', v: <MonoValue size='sm'>EXP-29F1-ALPHA</MonoValue> },
   { k: 'Duration', v: '00:14:22' },
-  { k: 'Cluster', v: 'EU-WEST-01' },
-  { k: 'Operator', v: 'rosetta@aegis' },
+  { k: 'Cluster', v: 'eu-west-01' },
+  { k: 'Operator', v: 'Rosetta' },
 ];
 
 interface TimeRangePickerSpecimenProps {
@@ -177,7 +178,7 @@ export function DataDisplaySection() {
 
       <SectionDivider>KeyValueList</SectionDivider>
       <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='mono keys (parameters)' span={2}>
+        <Specimen caption='numbers in tabular figures' span={2}>
           <KeyValueList
             items={KV_PARAMS}
             surface={{
@@ -195,8 +196,8 @@ export function DataDisplaySection() {
             }}
           />
         </Specimen>
-        <Specimen caption='uppercase keys (metadata)' span={2}>
-          <KeyValueList items={KV_META} uppercaseKeys />
+        <Specimen caption='an id in MonoValue' span={2}>
+          <KeyValueList items={KV_META} />
         </Specimen>
       </div>
 

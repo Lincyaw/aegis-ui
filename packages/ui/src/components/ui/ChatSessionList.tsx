@@ -5,7 +5,6 @@ import {
   useCallback,
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -47,17 +46,10 @@ export function ChatSessionList({
   className,
 }: ChatSessionListProps): ReactElement {
   const listId = useId();
-  const selectedIndex = useMemo(
-    () => items.findIndex((it) => it.selected),
-    [items],
-  );
-  const [focusIndex, setFocusIndex] = useState<number>(
-    selectedIndex >= 0 ? selectedIndex : 0,
-  );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState<string>('');
 
-  const rowRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+  const selectRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
   const renameInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -66,13 +58,6 @@ export function ChatSessionList({
       renameInputRef.current.select();
     }
   }, [renamingId]);
-
-  // Clamp focus when items change.
-  useEffect(() => {
-    if (focusIndex >= items.length && items.length > 0) {
-      setFocusIndex(items.length - 1);
-    }
-  }, [items.length, focusIndex]);
 
   const commitRename = useCallback(
     (id: string): void => {
@@ -87,24 +72,21 @@ export function ChatSessionList({
     [renameDraft, items, onRename],
   );
 
-  const handleRowKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLDivElement>, index: number): void => {
-      if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        const next = Math.min(items.length - 1, index + 1);
-        setFocusIndex(next);
-        rowRefs.current.get(items[next].id)?.focus();
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        const next = Math.max(0, index - 1);
-        setFocusIndex(next);
-        rowRefs.current.get(items[next].id)?.focus();
-      } else if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        onSelect(items[index].id);
+  // Up and Down move between the conversations' select buttons.
+  const handleSelectKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>, index: number): void => {
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+        return;
+      }
+      event.preventDefault();
+      const next = items[index + (event.key === 'ArrowDown' ? 1 : -1)] as
+        | ChatSessionItem
+        | undefined;
+      if (next) {
+        selectRefs.current.get(next.id)?.focus();
       }
     },
-    [items, onSelect],
+    [items],
   );
 
   if (items.length === 0) {
@@ -124,10 +106,9 @@ export function ChatSessionList({
     .join(' ');
 
   return (
-    <ul className={cls} role="listbox" aria-label="Conversations">
+    <ul className={cls} aria-label="Conversations">
       {items.map((item, index) => {
         const isSelected = Boolean(item.selected);
-        const isFocused = index === focusIndex;
         const isRenaming = renamingId === item.id;
 
         const rowCls = [
@@ -139,93 +120,79 @@ export function ChatSessionList({
           .join(' ');
 
         return (
-          <li key={item.id}>
-            <div
-              ref={(el) => {
-                rowRefs.current.set(item.id, el);
-              }}
-              className={rowCls}
-              role="option"
-              aria-selected={isSelected}
-              tabIndex={isFocused ? 0 : -1}
-              onKeyDown={(event) => {
-                if (isRenaming) {
-                  return;
-                }
-                handleRowKeyDown(event, index);
-              }}
-              onFocus={() => {
-                setFocusIndex(index);
-              }}
-            >
-              {isRenaming ? (
-                <div
-                  className={`aegis-chat-session-list__main aegis-chat-session-list__main--${density}`}
-                >
-                  <input
-                    ref={renameInputRef}
-                    className="aegis-chat-session-list__rename"
-                    value={renameDraft}
-                    onChange={(event) => {
-                      setRenameDraft(event.target.value);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                        commitRename(item.id);
-                      } else if (event.key === 'Escape') {
-                        event.preventDefault();
-                        setRenamingId(null);
-                        setRenameDraft('');
-                      }
-                    }}
-                    onBlur={() => {
-                      commitRename(item.id);
-                    }}
-                    aria-label="Rename conversation"
-                  />
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="aegis-chat-session-list__main"
-                  onClick={() => {
-                    onSelect(item.id);
+          <li key={item.id} className={rowCls}>
+            {isRenaming ? (
+              <div className="aegis-chat-session-list__main">
+                <input
+                  ref={renameInputRef}
+                  className="aegis-chat-session-list__rename"
+                  value={renameDraft}
+                  onChange={(event) => {
+                    setRenameDraft(event.target.value);
                   }}
-                  tabIndex={-1}
-                >
-                  <span className="aegis-chat-session-list__title">
-                    {item.title}
-                  </span>
-                  {item.timestamp !== undefined && (
-                    <span className="aegis-chat-session-list__time">
-                      {relativeTime(item.timestamp)}
-                    </span>
-                  )}
-                </button>
-              )}
-
-              {(onRename ?? onDelete) && !isRenaming && (
-                <RowActions
-                  menuId={`${listId}-menu-${item.id}`}
-                  onRename={
-                    onRename
-                      ? () => {
-                          setRenameDraft(item.title);
-                          setRenamingId(item.id);
-                        }
-                      : undefined
-                  }
-                  onDelete={
-                    onDelete
-                      ? () => {
-                          onDelete(item.id);
-                        }
-                      : undefined
-                  }
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      commitRename(item.id);
+                    } else if (event.key === 'Escape') {
+                      event.preventDefault();
+                      setRenamingId(null);
+                      setRenameDraft('');
+                    }
+                  }}
+                  onBlur={() => {
+                    commitRename(item.id);
+                  }}
+                  aria-label="Rename conversation"
                 />
-              )}
-            </div>
+              </div>
+            ) : (
+              <button
+                ref={(el) => {
+                  selectRefs.current.set(item.id, el);
+                }}
+                type="button"
+                className="aegis-chat-session-list__main"
+                aria-current={isSelected ? 'true' : undefined}
+                onClick={() => {
+                  onSelect(item.id);
+                }}
+                onKeyDown={(event) => {
+                  handleSelectKeyDown(event, index);
+                }}
+              >
+                <span className="aegis-chat-session-list__title">
+                  {item.title}
+                </span>
+                {item.timestamp !== undefined && (
+                  <span className="aegis-chat-session-list__time">
+                    {relativeTime(item.timestamp)}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {(onRename ?? onDelete) && !isRenaming && (
+              <RowActions
+                menuId={`${listId}-menu-${item.id}`}
+                title={item.title}
+                onRename={
+                  onRename
+                    ? () => {
+                        setRenameDraft(item.title);
+                        setRenamingId(item.id);
+                      }
+                    : undefined
+                }
+                onDelete={
+                  onDelete
+                    ? () => {
+                        onDelete(item.id);
+                      }
+                    : undefined
+                }
+              />
+            )}
           </li>
         );
       })}
@@ -235,12 +202,15 @@ export function ChatSessionList({
 
 interface RowActionsProps {
   menuId: string;
+  /** The conversation's title, naming its menu button. */
+  title: string;
   onRename?: () => void;
   onDelete?: () => void;
 }
 
 function RowActions({
   menuId,
+  title,
   onRename,
   onDelete,
 }: RowActionsProps): ReactElement {
@@ -254,8 +224,8 @@ function RowActions({
     }
   }, [confirmingDelete]);
 
-  // The row's own arrow / Enter navigation must not see keys meant for the
-  // menu; React bubbles the portalled panel's events through the row too.
+  // React bubbles the portalled menu's events up to the host too; Escape in
+  // the menu should close only the menu, not a dock around the list.
   const panel = (
     <div
       ref={menu.panelRef}
@@ -333,15 +303,22 @@ function RowActions({
           ref={menu.triggerRef}
           type="button"
           className="aegis-chat-session-list__more"
-          aria-label="More actions"
+          aria-label={`More actions for ${title}`}
           aria-haspopup="menu"
           aria-expanded={menu.open}
-          aria-controls={menuId}
+          aria-controls={menu.open ? menuId : undefined}
           onClick={(event) => {
             event.stopPropagation();
           }}
           onKeyDown={(event) => {
-            event.stopPropagation();
+            if (menu.open) {
+              event.stopPropagation();
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                menu.close();
+                return;
+              }
+            }
             menu.onTriggerKeyDown(event);
           }}
         >

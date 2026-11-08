@@ -188,7 +188,10 @@ export function Step4Pedestal({ spec, update }: Props) {
         description='Every fault runs for the fixed fault window the server sets.'
       >
         <div className='page-stack'>
-          <BlastRadiusBar value={def ? BLAST_PERCENT[def.blastHint] : 0} />
+          <BlastRadiusBar
+            value={def ? BLAST_PERCENT[def.blastHint] : 0}
+            label='Blast radius'
+          />
           <MetricLabel size='xs'>
             {def
               ? `A ${def.name} fault reaches the ${def.blastHint} · pod < service < namespace`

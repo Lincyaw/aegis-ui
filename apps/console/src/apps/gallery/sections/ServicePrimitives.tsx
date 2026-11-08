@@ -1209,30 +1209,32 @@ export function ServicePrimitivesSection() {
             maxSize={5 * 1024 * 1024}
           />
         </Specimen>
-        <Specimen caption='with queue · mixed states' span={2}>
-          <FileDropzone
-            onDrop={() => undefined}
-            items={[
-              {
-                id: 'a',
-                file: new File([''], 'corpus-2026-04.tar.gz'),
-                status: 'uploading',
-                progress: 64,
-              },
-              {
-                id: 'b',
-                file: new File([''], 'trace-snapshot.json'),
-                status: 'done',
-                progress: 100,
-              },
-              {
-                id: 'c',
-                file: new File([''], 'too-big.bin'),
-                status: 'error',
-                error: 'exceeds 5 MB cap',
-              },
-            ]}
-          />
+        <Specimen caption='with an UploadQueue below' span={2}>
+          <div className='gallery__stack'>
+            <FileDropzone onDrop={() => undefined} />
+            <UploadQueue
+              items={[
+                {
+                  id: 'a',
+                  file: new File([''], 'corpus-2026-04.tar.gz'),
+                  status: 'uploading',
+                  progress: 0.64,
+                },
+                {
+                  id: 'b',
+                  file: new File([''], 'trace-snapshot.json'),
+                  status: 'done',
+                  progress: 1,
+                },
+                {
+                  id: 'c',
+                  file: new File([''], 'too-big.bin'),
+                  status: 'error',
+                  error: 'exceeds 5 MB cap',
+                },
+              ]}
+            />
+          </div>
         </Specimen>
         <Specimen caption='disabled'>
           <FileDropzone onDrop={() => undefined} disabled />
@@ -1319,9 +1321,24 @@ export function ServicePrimitivesSection() {
             helperText='10 MiB per file · 50 MiB total · 200 files max'
             summary={
               <>
-                <div>README.md · 2.0 KB</div>
-                <div>docs/intro.md · 512 B</div>
-                <div>assets/cover.png · 128 KB</div>
+                <div>
+                  <MonoValue size='sm' tone='muted'>
+                    README.md
+                  </MonoValue>{' '}
+                  · 2.0 KB
+                </div>
+                <div>
+                  <MonoValue size='sm' tone='muted'>
+                    docs/intro.md
+                  </MonoValue>{' '}
+                  · 512 B
+                </div>
+                <div>
+                  <MonoValue size='sm' tone='muted'>
+                    assets/cover.png
+                  </MonoValue>{' '}
+                  · 128 KB
+                </div>
               </>
             }
           />

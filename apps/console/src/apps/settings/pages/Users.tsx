@@ -549,18 +549,18 @@ export default function Users() {
         destroyOnClose
       >
         <Form form={editForm} layout='vertical'>
-          <FormRow label='Display name'>
+          <FormRow label='Display name' controlId='user-edit-full-name'>
             <Form.Item name='full_name' noStyle>
-              <Input />
+              <Input id='user-edit-full-name' />
             </Form.Item>
           </FormRow>
-          <FormRow label='Email'>
+          <FormRow label='Email' controlId='user-edit-email'>
             <Form.Item
               name='email'
               noStyle
               rules={[{ type: 'email', message: 'must be a valid email' }]}
             >
-              <Input />
+              <Input id='user-edit-email' />
             </Form.Item>
           </FormRow>
         </Form>

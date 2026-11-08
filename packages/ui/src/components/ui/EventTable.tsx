@@ -9,17 +9,13 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { EmptyState } from './EmptyState';
 import './EventTable.css';
 import { Skeleton } from './Skeleton';
@@ -27,10 +23,20 @@ import { Skeleton } from './Skeleton';
 export interface EventTableColumn<T> {
   key: string;
   header: ReactNode;
-  /** Column width in px. Use 'flex' to take remaining space. Default 'flex'. */
+  /**
+   * Column width in px, or 'flex' (the default) to share the remaining
+   * space, never below 120 px. When the columns don't fit, the table
+   * scrolls sideways, header and rows together.
+   */
   width?: number | 'flex';
   /** Align cell content. Default 'left'. */
   align?: 'left' | 'right' | 'center';
+  /**
+   * Number column: header and cells right-aligned, figures in
+   * `--font-numeric` with tabular widths so digits and decimal points line
+   * up. Overrides `align`.
+   */
+  numeric?: boolean;
   /** Cell renderer. */
   render: (row: T) => ReactNode;
   /** When true, do not ellipsize overflowing text. */
@@ -42,7 +48,11 @@ export interface EventTableProps<T> {
   data: T[];
   /** Stable row key. */
   rowKey: (row: T) => string;
-  /** Optional row-click handler — caller mounts a side panel. */
+  /**
+   * Makes rows clickable: focusable, a muted hover background, Enter or
+   * Space on a focused row and the arrow keys between rows. Without it
+   * rows are plain, and links inside cells keep their own behaviour.
+   */
   onRowClick?: (row: T) => void;
   /** Visually mark a row as selected/highlighted. */
   selectedKey?: string;
@@ -68,6 +78,11 @@ const DEFAULT_LOAD_MORE_THRESHOLD = 200;
 const LOAD_MORE_DEBOUNCE_MS = 80;
 const SKELETON_ROW_COUNT = 6;
 const OVERSCAN = 8;
+const FLEX_COLUMN_MIN_WIDTH = 120;
+
+function columnAlign<T>(col: EventTableColumn<T>): 'left' | 'right' | 'center' {
+  return col.numeric ? 'right' : (col.align ?? 'left');
+}
 
 export function EventTable<T>({
   columns,
@@ -75,7 +90,7 @@ export function EventTable<T>({
   rowKey,
   onRowClick,
   selectedKey,
-  loading,
+  loading = false,
   emptyTitle = 'No events',
   emptyDescription,
   estimatedRowHeight = DEFAULT_ROW_HEIGHT,
@@ -84,32 +99,36 @@ export function EventTable<T>({
   loadMoreThresholdPx = DEFAULT_LOAD_MORE_THRESHOLD,
   className,
 }: EventTableProps<T>) {
-  const tableColumns = useMemo<Array<ColumnDef<T>>>(
-    () =>
-      columns.map((c) => ({
-        id: c.key,
-        header: () => c.header,
-        cell: ({ row }) => c.render(row.original),
-        size: c.width === 'flex' || c.width === undefined ? undefined : c.width,
-      })),
-    [columns],
-  );
-
-  const table = useReactTable<T>({
-    data,
-    columns: tableColumns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  const rows = table.getRowModel().rows;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef(new Map<number, HTMLDivElement>());
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const clickable = onRowClick !== undefined;
+
+  // The header scrolls with the rows, so both share the scrollbar's gutter
+  // and their columns line up; the rows start below it.
+  useIsomorphicLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) {
+      return undefined;
+    }
+    const measure = (): void => {
+      setHeaderHeight(header.offsetHeight);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const virtualizer = useVirtualizer({
-    count: rows.length,
+    count: data.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => estimatedRowHeight,
     overscan: OVERSCAN,
+    scrollMargin: headerHeight,
   });
 
   const loadMoreFiredRef = useRef(false);
@@ -154,183 +173,201 @@ export function EventTable<T>({
   const gridTemplate = useMemo(
     () =>
       columns
-        .map((c) => {
-          if (c.width === 'flex' || c.width === undefined) {
-            return 'minmax(0, 1fr)';
-          }
-          return `${c.width}px`;
-        })
+        .map((c) =>
+          c.width === 'flex' || c.width === undefined
+            ? 'minmax(0, 1fr)'
+            : `${c.width.toString()}px`,
+        )
         .join(' '),
+    [columns],
+  );
+
+  const contentStyle = useMemo(
+    (): CSSProperties => ({
+      minWidth: `${columns
+        .reduce(
+          (sum, c) =>
+            sum +
+            (typeof c.width === 'number' ? c.width : FLEX_COLUMN_MIN_WIDTH),
+          0,
+        )
+        .toString()}px`,
+    }),
     [columns],
   );
 
   const handleRowKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLDivElement>, index: number, row: T) => {
+      if (e.target !== e.currentTarget) {
+        return;
+      }
       if (e.key === 'Enter' || e.key === ' ') {
-        if (onRowClick) {
-          e.preventDefault();
-          onRowClick(row);
-        }
-        return;
-      }
-      if (e.key === 'ArrowDown') {
         e.preventDefault();
-        const next = rowRefs.current.get(index + 1);
-        if (next) {
-          next.focus();
-        }
-        return;
-      }
-      if (e.key === 'ArrowUp') {
+        onRowClick?.(row);
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
-        const prev = rowRefs.current.get(index - 1);
-        if (prev) {
-          prev.focus();
-        }
+        // Overscan keeps the neighbouring rows mounted.
+        rowRefs.current.get(index + (e.key === 'ArrowDown' ? 1 : -1))?.focus();
       }
     },
     [onRowClick],
   );
 
-  const rootCls = [
-    'aegis-event-table',
-    className ?? '',
-    onRowClick ? 'aegis-event-table--interactive' : '',
-  ]
+  const rootCls = ['aegis-event-table', className ?? '']
     .filter(Boolean)
     .join(' ');
 
   const scrollStyle: CSSProperties = {
-    maxHeight: `${estimatedRowHeight * maxVisibleRows}px`,
+    maxHeight: `${(estimatedRowHeight * maxVisibleRows + headerHeight).toString()}px`,
+    scrollPaddingTop: `${headerHeight.toString()}px`,
   };
 
-  const headerCells = table.getHeaderGroups()[0]?.headers ?? [];
-
-  const showEmpty = !loading && rows.length === 0;
-  const develop = useDevelopAfterLoad(loading ?? false);
+  const showEmpty = !loading && data.length === 0;
+  const develop = useDevelopAfterLoad(loading);
+  const cellRole = clickable ? 'gridcell' : 'cell';
 
   return (
-    <div className={rootCls} role="grid">
-      <div
-        className="aegis-event-table__header"
-        style={{ gridTemplateColumns: gridTemplate }}
-        role="row"
-      >
-        {headerCells.map((header, i) => {
-          const col = columns[i];
-          const align = col.align ?? 'left';
-          return (
-            <div
-              key={header.id}
-              role="columnheader"
-              className={`aegis-event-table__th aegis-event-table__th--${align}`}
-            >
-              {flexRender(header.column.columnDef.header, header.getContext())}
-            </div>
-          );
-        })}
-      </div>
-
+    <div
+      className={rootCls}
+      role={clickable ? 'grid' : 'table'}
+      aria-rowcount={data.length + (showEmpty ? 2 : 1)}
+      aria-busy={loading || undefined}
+    >
       <div
         ref={scrollRef}
         className="aegis-event-table__scroll"
         style={scrollStyle}
-        data-aegis-develop={develop || undefined}
         onScroll={handleScroll}
       >
-        {loading ? (
-          <div className="aegis-event-table__skeleton-list">
-            {Array.from({ length: SKELETON_ROW_COUNT }).map((_, i) => (
-              <div
-                key={i}
-                className="aegis-event-table__row aegis-event-table__row--skeleton"
-                style={{
-                  height: `${estimatedRowHeight}px`,
-                  gridTemplateColumns: gridTemplate,
-                }}
-              >
-                {columns.map((c) => (
-                  <div key={c.key} className="aegis-event-table__td">
-                    <Skeleton width="80%" height="var(--space-3)" />
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ) : showEmpty ? (
-          <div className="aegis-event-table__empty">
-            <EmptyState title={emptyTitle} description={emptyDescription} />
-          </div>
-        ) : (
-          <div
-            className="aegis-event-table__virtual"
-            style={{ height: `${virtualizer.getTotalSize()}px` }}
-          >
-            {virtualizer.getVirtualItems().map((vi) => {
-              const row = rows[vi.index];
-              const original = row.original;
-              const key = rowKey(original);
-              const isSelected = selectedKey === key;
-              const rowCls = [
-                'aegis-event-table__row',
-                isSelected ? 'aegis-event-table__row--selected' : '',
-              ]
-                .filter(Boolean)
-                .join(' ');
-              return (
+        <div
+          ref={headerRef}
+          className="aegis-event-table__header"
+          style={{ ...contentStyle, gridTemplateColumns: gridTemplate }}
+          role="row"
+          aria-rowindex={1}
+        >
+          {columns.map((col) => (
+            <div
+              key={col.key}
+              role="columnheader"
+              className={`aegis-event-table__th aegis-event-table__th--${columnAlign(col)}`}
+            >
+              {col.header}
+            </div>
+          ))}
+        </div>
+
+        <div data-aegis-develop={develop || undefined} style={contentStyle}>
+          {loading ? (
+            <div
+              className="aegis-event-table__skeleton-list"
+              aria-hidden="true"
+            >
+              {Array.from({ length: SKELETON_ROW_COUNT }).map((_, i) => (
                 <div
-                  key={key}
-                  ref={(el) => {
-                    if (el) {
-                      rowRefs.current.set(vi.index, el);
-                    } else {
-                      rowRefs.current.delete(vi.index);
-                    }
-                  }}
-                  role="row"
-                  tabIndex={0}
-                  className={rowCls}
+                  key={i}
+                  className="aegis-event-table__row aegis-event-table__row--skeleton"
                   style={{
-                    transform: `translateY(${vi.start}px)`,
-                    height: `${vi.size}px`,
+                    height: `${estimatedRowHeight.toString()}px`,
                     gridTemplateColumns: gridTemplate,
                   }}
-                  onClick={
-                    onRowClick
-                      ? () => {
-                          onRowClick(original);
-                        }
-                      : undefined
-                  }
-                  onKeyDown={(e) => {
-                    handleRowKeyDown(e, vi.index, original);
-                  }}
                 >
-                  {row.getVisibleCells().map((cell, i) => {
-                    const col = columns[i];
-                    const align = col.align ?? 'left';
-                    const truncate = col.truncate !== false;
-                    const cellCls = [
-                      'aegis-event-table__td',
-                      `aegis-event-table__td--${align}`,
-                      truncate ? 'aegis-event-table__td--truncate' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ');
-                    return (
-                      <div key={cell.id} role="gridcell" className={cellCls}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </div>
-                    );
-                  })}
+                  {columns.map((c) => (
+                    <div key={c.key} className="aegis-event-table__td">
+                      <Skeleton width="80%" height="var(--space-3)" />
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          ) : showEmpty ? (
+            <div
+              className="aegis-event-table__empty"
+              role="row"
+              aria-rowindex={2}
+            >
+              <div role={cellRole} aria-colspan={columns.length}>
+                <EmptyState title={emptyTitle} description={emptyDescription} />
+              </div>
+            </div>
+          ) : (
+            <div
+              className="aegis-event-table__virtual"
+              style={{
+                height: `${virtualizer.getTotalSize().toString()}px`,
+              }}
+            >
+              {virtualizer.getVirtualItems().map((vi) => {
+                const row = data[vi.index];
+                const key = rowKey(row);
+                const rowCls = [
+                  'aegis-event-table__row',
+                  clickable ? 'aegis-event-table__row--clickable' : '',
+                  selectedKey === key ? 'aegis-event-table__row--selected' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ');
+                return (
+                  <div
+                    key={key}
+                    ref={(el) => {
+                      if (el) {
+                        rowRefs.current.set(vi.index, el);
+                      } else {
+                        rowRefs.current.delete(vi.index);
+                      }
+                    }}
+                    role="row"
+                    aria-rowindex={vi.index + 2}
+                    aria-selected={
+                      clickable && selectedKey !== undefined
+                        ? selectedKey === key
+                        : undefined
+                    }
+                    tabIndex={clickable ? 0 : undefined}
+                    className={rowCls}
+                    style={{
+                      transform: `translateY(${(vi.start - headerHeight).toString()}px)`,
+                      height: `${vi.size.toString()}px`,
+                      gridTemplateColumns: gridTemplate,
+                    }}
+                    onClick={
+                      onRowClick
+                        ? () => {
+                            onRowClick(row);
+                          }
+                        : undefined
+                    }
+                    onKeyDown={
+                      clickable
+                        ? (e) => {
+                            handleRowKeyDown(e, vi.index, row);
+                          }
+                        : undefined
+                    }
+                  >
+                    {columns.map((col) => {
+                      const truncate = col.truncate !== false;
+                      const cellCls = [
+                        'aegis-event-table__td',
+                        `aegis-event-table__td--${columnAlign(col)}`,
+                        col.numeric ? 'aegis-event-table__td--numeric' : '',
+                        truncate ? 'aegis-event-table__td--truncate' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ');
+                      return (
+                        <div key={col.key} role={cellRole} className={cellCls}>
+                          {col.render(row)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

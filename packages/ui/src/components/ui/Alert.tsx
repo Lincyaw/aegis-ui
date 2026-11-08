@@ -33,7 +33,7 @@ export function Alert({
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={cls} role="status">
+    <div className={cls} role={tone === 'error' ? 'alert' : 'status'}>
       <span className="aegis-alert__marker" aria-hidden="true">
         {icon ?? <span className="aegis-alert__dot" />}
       </span>

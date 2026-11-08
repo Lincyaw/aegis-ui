@@ -64,8 +64,9 @@ export default function ProjectCreate() {
         }
       />
       <Panel>
-        <FormRow label='Name'>
+        <FormRow label='Name' controlId='project-create-name'>
           <TextField
+            id='project-create-name'
             value={name}
             error={nameError}
             onChange={(e) => {
@@ -75,8 +76,9 @@ export default function ProjectCreate() {
             placeholder='checkout-service'
           />
         </FormRow>
-        <FormRow label='Description'>
+        <FormRow label='Description' controlId='project-create-description'>
           <TextField
+            id='project-create-description'
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder='Optional description'

@@ -235,10 +235,11 @@ export default function BucketBrowser() {
         </Button>
         <DropdownMenu
           align='right'
+          triggerTone='secondary'
           trigger={
-            <Button icon={<UploadOutlined />}>
-              Upload <CaretDownOutlined />
-            </Button>
+            <>
+              <UploadOutlined /> Upload <CaretDownOutlined />
+            </>
           }
           items={[
             {

@@ -160,7 +160,14 @@ export default function PedestalInstall() {
 
       {step === 0 && (
         <Panel>
-          <FormRow label='System'>
+          <FormRow
+            label='System'
+            controlId={
+              systemsQuery.isLoading || systemsQuery.isError
+                ? undefined
+                : 'pedestal-install-system'
+            }
+          >
             {systemsQuery.isLoading ? (
               <SkeletonText lines={1} />
             ) : systemsQuery.isError ? (
@@ -169,7 +176,7 @@ export default function PedestalInstall() {
               </Chip>
             ) : (
               <Select
-                ariaLabel='System'
+                id='pedestal-install-system'
                 value={systemCode}
                 onChange={setSystemCode}
                 placeholder='Select a system'
@@ -185,7 +192,16 @@ export default function PedestalInstall() {
 
       {step === 1 && (
         <Panel>
-          <FormRow label='Pedestal container'>
+          <FormRow
+            label='Pedestal container'
+            controlId={
+              containersQuery.isLoading ||
+              containersQuery.isError ||
+              containers.length === 0
+                ? undefined
+                : 'pedestal-install-container'
+            }
+          >
             {containersQuery.isLoading ? (
               <SkeletonText lines={1} />
             ) : containersQuery.isError ? (
@@ -199,7 +215,7 @@ export default function PedestalInstall() {
               />
             ) : (
               <Select
-                ariaLabel='Pedestal container'
+                id='pedestal-install-container'
                 value={containerId === undefined ? '' : String(containerId)}
                 onChange={(value) => {
                   setContainerId(Number(value));
@@ -214,7 +230,16 @@ export default function PedestalInstall() {
               />
             )}
           </FormRow>
-          <FormRow label='Version'>
+          <FormRow
+            label='Version'
+            controlId={
+              containerId === undefined ||
+              versionsQuery.isLoading ||
+              versionsQuery.isError
+                ? undefined
+                : 'pedestal-install-version'
+            }
+          >
             {containerId === undefined ? (
               '—'
             ) : versionsQuery.isLoading ? (
@@ -225,7 +250,7 @@ export default function PedestalInstall() {
               </Chip>
             ) : (
               <Select
-                ariaLabel='Version'
+                id='pedestal-install-version'
                 value={versionId === undefined ? '' : String(versionId)}
                 onChange={(value) => {
                   setVersionId(Number(value));
@@ -244,8 +269,12 @@ export default function PedestalInstall() {
 
       {step === 2 && (
         <Panel>
-          <FormRow label='Namespace (optional)'>
+          <FormRow
+            label='Namespace (optional)'
+            controlId='pedestal-install-namespace'
+          >
             <TextField
+              id='pedestal-install-namespace'
               value={namespace}
               onChange={(e) => setNamespace(e.target.value)}
               placeholder={systemCode}

@@ -14,7 +14,6 @@ import {
   MonoValue,
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
-import { Button } from 'antd';
 
 import { lastSegment, type ObjItem } from '../objects';
 
@@ -63,10 +62,11 @@ export function objectColumns(
       render: (row) => (
         <DropdownMenu
           align='right'
+          triggerTone='ghost'
           trigger={
-            <Button size='small' type='text'>
+            <>
               Actions <CaretDownOutlined />
-            </Button>
+            </>
           }
           items={[
             {

@@ -67,8 +67,9 @@ export default function DatasetCreate() {
         }
       />
       <Panel>
-        <FormRow label='Name'>
+        <FormRow label='Name' controlId='dataset-create-name'>
           <TextField
+            id='dataset-create-name'
             value={name}
             error={nameError}
             onChange={(e) => {
@@ -78,16 +79,17 @@ export default function DatasetCreate() {
             placeholder='ts-fresh-replay-n100'
           />
         </FormRow>
-        <FormRow label='Description'>
+        <FormRow label='Description' controlId='dataset-create-description'>
           <TextField
+            id='dataset-create-description'
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder='Optional description'
           />
         </FormRow>
-        <FormRow label='Type'>
+        <FormRow label='Type' controlId='dataset-create-type'>
           <Select
-            ariaLabel='Type'
+            id='dataset-create-type'
             value={type}
             onChange={setType}
             options={TYPES}

@@ -55,12 +55,17 @@
   font-family: var(--font-ui);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
+  font-variant-numeric: tabular-nums;
   color: var(--text-main);
 }
 
 .aegis-folder-dropzone__meta {
-  font-family: var(--font-mono);
-  font-size: var(--fs-11);
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
 
@@ -84,8 +89,12 @@
   background: var(--bg-muted);
   border-radius: var(--radius-md);
   padding: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: var(--fs-11);
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   max-height: calc(var(--space-12) * 5);
   overflow: auto;

@@ -1,10 +1,12 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
-import './AuthForm.css';
+import { Alert } from './Alert';
 import { Button } from './Button';
+import { Checkbox } from './Checkbox';
 import './LoginForm.css';
 import { PasswordField } from './PasswordField';
 import { TextField } from './TextField';
+import { EMAIL_REQUIRED } from './authValidation';
 
 interface LoginFormValues {
   email: string;
@@ -13,14 +15,16 @@ interface LoginFormValues {
 }
 
 interface LoginFormProps {
+  /** Called only once both fields are filled; `email` arrives trimmed. */
   onSubmit?: (values: LoginFormValues) => void | Promise<void>;
   submitting?: boolean;
   error?: string;
   onForgotPassword?: () => void;
   showRememberMe?: boolean;
-  // When set, the form submits natively to this URL so the browser's
-  // password manager can detect the credential submission. onSubmit is
-  // still invoked (without preventDefault) for caller-side bookkeeping.
+  // When set, a filled-in form submits natively to this URL so the
+  // browser's password manager can detect the credential submission.
+  // onSubmit is still invoked (without preventDefault) for caller-side
+  // bookkeeping.
   action?: string;
   method?: 'GET' | 'POST';
   // Extra hidden inputs co-submitted with username/password — e.g. PKCE
@@ -41,12 +45,24 @@ export function LoginForm({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const trimmedEmail = email.trim();
+  const errors = {
+    email: trimmedEmail === '' ? EMAIL_REQUIRED : undefined,
+    password: password === '' ? 'Enter your password.' : undefined,
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+    setSubmitted(true);
+    if (errors.email ?? errors.password) {
+      e.preventDefault();
+      return;
+    }
     if (!action) {
       e.preventDefault();
     }
-    void onSubmit?.({ email, password, remember });
+    void onSubmit?.({ email: trimmedEmail, password, remember });
   };
 
   return (
@@ -57,11 +73,7 @@ export function LoginForm({
       method={action ? method : undefined}
       noValidate
     >
-      {error && (
-        <div className="aegis-loginform__error" role="alert">
-          {error}
-        </div>
-      )}
+      {error && <Alert tone="error">{error}</Alert>}
       {hiddenFields &&
         Object.entries(hiddenFields).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
@@ -81,6 +93,7 @@ export function LoginForm({
         onChange={(e) => setEmail(e.target.value)}
         readOnly={submitting}
         required
+        error={submitted ? errors.email : undefined}
       />
       <PasswordField
         label="Password"
@@ -91,19 +104,17 @@ export function LoginForm({
         onChange={(e) => setPassword(e.target.value)}
         readOnly={submitting}
         required
+        error={submitted ? errors.password : undefined}
       />
       {(showRememberMe || onForgotPassword) && (
         <div className="aegis-loginform__row">
           {showRememberMe ? (
-            <label className="aegis-loginform__remember">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                disabled={submitting}
-              />
-              <span>Remember me</span>
-            </label>
+            <Checkbox
+              checked={remember}
+              onChange={setRemember}
+              disabled={submitting}
+              label="Remember me"
+            />
           ) : (
             <span />
           )}

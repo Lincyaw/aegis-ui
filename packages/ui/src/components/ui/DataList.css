@@ -19,11 +19,11 @@
 
 .aegis-data-list__head-cell {
   flex: 1;
-  font-size: var(--fs-11);
-  font-weight: var(--fw-medium);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
   color: var(--text-muted);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
   text-align: left;
 }
 
@@ -31,14 +31,9 @@
   display: flex;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  background: transparent;
-  border: 0;
   border-bottom: var(--size-hairline) solid var(--border-hairline);
-  font-family: inherit;
   font-size: var(--fs-13);
   color: var(--text-main);
-  text-align: left;
-  cursor: default;
   transition: background-color var(--motion-fast);
 }
 
@@ -54,13 +49,21 @@
   background: var(--bg-muted);
 }
 
-.aegis-data-list__row--selected {
+.aegis-data-list__row--interactive:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+  background: var(--bg-muted);
+}
+
+.aegis-data-list__row--selected,
+.aegis-data-list__row--selected:hover,
+.aegis-data-list__row--selected:focus-visible {
   background: var(--bg-inverted);
   color: var(--text-on-inverted);
 }
 
-.aegis-data-list__row--selected:hover {
-  background: var(--bg-inverted);
+.aegis-data-list__row--selected :is(.aegis-mono, .aegis-metric-label) {
+  color: var(--text-on-inverted);
 }
 
 .aegis-data-list__cell {

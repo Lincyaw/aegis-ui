@@ -309,6 +309,22 @@
   --diff-removed-gutter: #ffdce0;
   --diff-removed-word: #fdb8c0;
 
+  /* ── Code syntax (CodeEditor) ────────────────────────────────────── */
+  /* The data palette's hues, so code reads in the same family as the
+   * charts; never anomaly red or brand blue. Each reaches 4.5:1 against
+   * --bg-panel, --bg-muted and --code-selection in both themes. */
+  --syntax-keyword: var(--data-seq);
+  --syntax-string: var(--data-cat-1);
+  --syntax-number: var(--data-cat-2);
+  --syntax-property: var(--data-cat-5);
+  --syntax-comment: var(--text-muted);
+  --syntax-punctuation: var(--text-muted);
+  /* The editor's selection, focused and not, and the line being typed on,
+   * translucent so a selection shows through it. */
+  --code-selection: var(--bg-brand-soft);
+  --code-selection-blur: var(--bg-muted);
+  --code-active-line: color-mix(in srgb, var(--bg-muted) 60%, transparent);
+
   /* ── Terminal surface (always dark in both themes) ───────────────── */
   --bg-terminal: #0d0d0d;
   --bg-terminal-soft: rgba(255, 255, 255, 0.04);

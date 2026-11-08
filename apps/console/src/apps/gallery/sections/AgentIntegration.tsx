@@ -131,9 +131,9 @@ function AgentIntegrationSpecimen(): ReactNode {
   }, [selectedId]);
 
   const columns: Array<DataListColumn<DemoDataset>> = [
-    { key: 'id', label: 'ID' },
-    { key: 'name', label: 'Name' },
-    { key: 'status', label: 'Status' },
+    { key: 'id', header: 'ID' },
+    { key: 'name', header: 'Name' },
+    { key: 'status', header: 'Status' },
   ];
 
   useEffect(() => {
