@@ -6,15 +6,13 @@ import {
   type DataTableColumn,
   MetricCard,
   MonoValue,
-  Panel,
-  PanelTitle,
   SectionDivider,
   StatBlock,
   Tabs,
 } from '@lincyaw/aegis-ui';
 
 import { AMBIENT_WASH, DATA_COLOR_TOKENS } from '../fixtures';
-import { Specimen, TokenValue } from '../shared';
+import { GallerySection, Specimen, TokenValue } from '../shared';
 
 const RADIUS_TOKENS: Array<{ name: string; use: string }> = [
   { name: '--radius-xs', use: 'checkboxes' },
@@ -196,9 +194,7 @@ function LayeredSurface({ overlay }: { overlay: CSSProperties }) {
 
 export function ShapeMotionSection() {
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Shape, elevation &amp; motion</PanelTitle>}
-    >
+    <GallerySection title='Shape, elevation & motion'>
       <SectionDivider>Radius</SectionDivider>
       <div className='gallery__row'>
         {RADIUS_TOKENS.map((t) => (
@@ -341,6 +337,6 @@ export function ShapeMotionSection() {
           <DevelopSpecimen />
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

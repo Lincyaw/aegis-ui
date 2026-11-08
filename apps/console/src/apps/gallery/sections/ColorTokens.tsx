@@ -1,12 +1,7 @@
-import {
-  MonoValue,
-  Panel,
-  PanelTitle,
-  SectionDivider,
-} from '@lincyaw/aegis-ui';
+import { MonoValue, SectionDivider } from '@lincyaw/aegis-ui';
 
 import { AMBIENT_WASH, DATA_COLOR_TOKENS } from '../fixtures';
-import { Specimen, TokenValue } from '../shared';
+import { GallerySection, Specimen, TokenValue } from '../shared';
 
 const COLOR_TOKEN_GROUPS: Array<{
   label: string;
@@ -96,9 +91,7 @@ function TokenSwatch({ name, desc }: { name: string; desc: string }) {
 
 export function ColorTokensSection() {
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Color &amp; surface tokens</PanelTitle>}
-    >
+    <GallerySection title='Color & surface tokens'>
       {COLOR_TOKEN_GROUPS.map((g) => (
         <div key={g.label} className='gallery__stack'>
           <SectionDivider>{g.label}</SectionDivider>
@@ -133,6 +126,6 @@ export function ColorTokensSection() {
           />
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

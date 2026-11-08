@@ -18,7 +18,6 @@ import {
   PageHeader,
   PageWrapper,
   Panel,
-  PanelTitle,
   PasswordField,
   PickerField,
   QueryAutocomplete,
@@ -39,7 +38,7 @@ import {
   ThemeToggle,
 } from '@lincyaw/aegis-ui';
 
-import { GalleryRouterLink, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 const SITE_NAV_ITEMS: SiteNavItem[] = [
   { key: 'benchmarks', label: 'Benchmarks', to: '/gallery' },
@@ -349,7 +348,7 @@ function GallerySiteFooter() {
 
 export function LayoutsSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Layouts</PanelTitle>}>
+    <GallerySection title='Layouts'>
       <SectionDivider>PageHeader</SectionDivider>
       <div className='gallery__row'>
         <Specimen caption='title only' span={2}>
@@ -735,6 +734,6 @@ export function LayoutsSection() {
           </button>
         </div>
       </DangerZone>
-    </Panel>
+    </GallerySection>
   );
 }

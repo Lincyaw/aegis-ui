@@ -13,8 +13,6 @@ import {
   LineChart,
   type LineChartPoint,
   MetricLabel,
-  Panel,
-  PanelTitle,
   ParetoChart,
   type ParetoPoint,
   RankBar,
@@ -26,7 +24,7 @@ import {
   useScrollProgress,
 } from '@lincyaw/aegis-ui';
 
-import { GalleryRouterLink, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 const percent = (value: number): string => `${(value * 100).toFixed(1)}%`;
 
@@ -460,8 +458,8 @@ function CostStorySpecimen(): ReactNode {
 export function SiteChartsSection() {
   const [segment, setSegment] = useState('none');
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Site charts</PanelTitle>}
+    <GallerySection
+      title='Site charts'
       extra={<MetricLabel>Findings on the public site</MetricLabel>}
     >
       <SectionDivider>SeriesLabel</SectionDivider>
@@ -727,6 +725,6 @@ export function SiteChartsSection() {
 
       <SectionDivider>Charts drawn by scroll</SectionDivider>
       <DrawnChartsSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }

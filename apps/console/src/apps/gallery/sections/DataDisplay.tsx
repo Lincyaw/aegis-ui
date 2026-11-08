@@ -10,8 +10,6 @@ import {
   KeyValueList,
   MetricCard,
   MonoValue,
-  Panel,
-  PanelTitle,
   SectionDivider,
   Skeleton,
   SkeletonText,
@@ -23,7 +21,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { KV_PARAMS } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const SPARK_RISING = [
   42, 41, 44, 43, 47, 50, 49, 52, 55, 58, 62, 60, 64, 68, 71, 73,
@@ -102,7 +100,7 @@ function StatBlockCountUpSpecimen(): ReactNode {
 
 export function DataDisplaySection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Data display</PanelTitle>}>
+    <GallerySection title='Data display'>
       <SectionDivider>StatBlock</SectionDivider>
       <div className='gallery__row'>
         <Specimen caption='vertical · emphasized · number role'>
@@ -426,6 +424,6 @@ export function DataDisplaySection() {
           <TimeRangePickerSpecimen initial='2026-05-10T01:00:00.000Z to 2026-05-10T03:30:00.000Z' />
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

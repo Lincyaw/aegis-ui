@@ -6,7 +6,6 @@ import {
   mdxTableOfContents,
   MetricLabel,
   MonoValue,
-  Panel,
   PanelTitle,
   SectionDivider,
   TableOfContents,
@@ -20,6 +19,7 @@ import GalleryDocument, {
 import {
   GalleryRouterLink,
   GalleryRunChecks,
+  GallerySection,
   Specimen,
   TokenValue,
 } from '../shared';
@@ -302,7 +302,7 @@ const GALLERY_DOCUMENT_COMPONENTS = { RunChecks: GalleryRunChecks };
 
 export function TypographySection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Typography</PanelTitle>}>
+    <GallerySection title='Typography'>
       <div className='gallery__type-list'>
         {TYPE_SAMPLES.map((s) => (
           <div className='gallery__type-row' key={s.label}>
@@ -479,6 +479,6 @@ export function TypographySection() {
           <ThemeToggle action={GALLERY_ACTIONS.themeCycle} />
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

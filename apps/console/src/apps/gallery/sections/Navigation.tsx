@@ -36,7 +36,6 @@ import {
   MonoValue,
   PageSizeSelect,
   Panel,
-  PanelTitle,
   PasswordField,
   ProjectSelector,
   RegisterForm,
@@ -51,7 +50,7 @@ import { Button } from 'antd';
 
 import { GALLERY_RUN_COLUMNS } from '../columns';
 import { GALLERY_ACTIONS, GALLERY_RUNS } from '../fixtures';
-import { GalleryRouterLink, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 /* ── Button specimens ──────────────────────────────────────────────── */
 
@@ -763,7 +762,7 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
 
 export function NavigationSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Navigation · Rosetta</PanelTitle>}>
+    <GallerySection title='Navigation · Rosetta'>
       <SectionDivider
         extra={
           <MetricLabel>Selected indicator slides · --motion-base</MetricLabel>
@@ -1433,6 +1432,6 @@ export function NavigationSection() {
 
       <SectionDivider>PageSizeSelect</SectionDivider>
       <PageSizeSelectSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }

@@ -4,13 +4,11 @@ import {
   type AegisNotification,
   InboxPage,
   NotificationBell,
-  Panel,
-  PanelTitle,
   SectionDivider,
 } from '@lincyaw/aegis-ui';
 
 import { GALLERY_ACTIONS, GALLERY_NOW } from '../fixtures';
-import { GalleryRouterLink, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 const MOCK_NOTIFS: AegisNotification[] = [
   {
@@ -79,7 +77,7 @@ export function NotificationsSection() {
   };
 
   return (
-    <Panel title={<PanelTitle size='lg'>Notifications</PanelTitle>}>
+    <GallerySection title='Notifications'>
       <SectionDivider>NotificationBell</SectionDivider>
       <div className='gallery__row'>
         <Specimen caption='trigger · click to open, an item to mark it read'>
@@ -173,6 +171,6 @@ export function NotificationsSection() {
           </div>
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

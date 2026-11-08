@@ -133,6 +133,8 @@ export interface SpecimenProps {
   caption: string;
   children: ReactNode;
   span?: 1 | 2 | 3;
+  /** `start` lays the content out from the stage's top edge at full width, for documents and other flowing content. */
+  align?: 'center' | 'start';
 }
 
 export interface GalleryRunRow {

@@ -30,8 +30,6 @@ import {
   ObjectBrowser,
   ObjectInspector,
   type ObjectInspectorTab,
-  Panel,
-  PanelTitle,
   ParquetViewer,
   PickerField,
   QueryAutocomplete,
@@ -61,7 +59,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { TOOL_QUERY_METRICS } from '../fixtures';
-import { GalleryRouterLink, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 /* ── EnvironmentSwitcher specimen ──────────────────────────────────── */
 
@@ -1743,8 +1741,8 @@ function ResizableSidePanelStackedSpecimen(): ReactNode {
 
 export function ServicePrimitivesSection() {
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Service primitives</PanelTitle>}
+    <GallerySection
+      title='Service primitives'
       extra={<MetricLabel>blob · configcenter · audit</MetricLabel>}
     >
       <SectionDivider extra={<MetricLabel>react-dropzone</MetricLabel>}>
@@ -2796,6 +2794,6 @@ export function ServicePrimitivesSection() {
           <ResizableSidePanelStackedSpecimen />
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

@@ -11,13 +11,11 @@ import {
   ChatSessionList,
   CommandInvocationCard,
   MetricLabel,
-  Panel,
-  PanelTitle,
   SectionDivider,
 } from '@lincyaw/aegis-ui';
 
 import { GALLERY_NOW } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const MOCK_INVOCATION_PENDING: AgentCommandInvocation = {
   commandId: 'projects.create',
@@ -75,7 +73,7 @@ const MOCK_AGENT_VALUE: AgentChatValue = {
 
 export function AgentSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Agent</PanelTitle>}>
+    <GallerySection title='Agent'>
       <SectionDivider>ChatMessage</SectionDivider>
       <div className='gallery__row gallery__row--wide'>
         <Specimen caption='user · plain text' span={2}>
@@ -372,6 +370,6 @@ export function AgentSection() {
           </AgentPanel>
         </div>
       </AgentChatProvider>
-    </Panel>
+    </GallerySection>
   );
 }

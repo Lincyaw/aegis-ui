@@ -7,7 +7,6 @@ import {
   MetricLabel,
   MonoValue,
   Panel,
-  PanelTitle,
   SectionDivider,
   Terminal,
 } from '@lincyaw/aegis-ui';
@@ -28,7 +27,7 @@ import {
 
 import { GALLERY_RUN_COLUMNS } from '../columns';
 import { GALLERY_RUNS, KV_PARAMS, TERMINAL_LINES } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const TABLE_DATA = [
   {
@@ -142,8 +141,8 @@ export function AntdWidgetsSection() {
   const [switchOn, setSwitchOn] = useState(true);
 
   return (
-    <Panel
-      title={<PanelTitle size='lg'>AntD widgets · themed</PanelTitle>}
+    <GallerySection
+      title='AntD widgets · themed'
       extra={<MetricLabel>ConfigProvider</MetricLabel>}
     >
       <SectionDivider>Buttons</SectionDivider>
@@ -352,6 +351,6 @@ export function AntdWidgetsSection() {
           <Button type='primary'>Save &amp; queue</Button>
         </Form.Item>
       </Form>
-    </Panel>
+    </GallerySection>
   );
 }

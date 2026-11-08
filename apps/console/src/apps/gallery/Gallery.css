@@ -37,6 +37,42 @@
   border-top: 1px solid var(--border-hairline);
 }
 
+/* ── Section frame ──────────────────────────────────────────────── */
+/* No shadow: the specimens inside carry their own, one layer each. */
+.gallery__section {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+}
+
+.gallery__section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+/* Blocks follow each other at --space-4; a SectionDivider opens the next
+ * specimen, so it takes a larger step above it than below. */
+.gallery__section-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-5);
+}
+
+.gallery__section-body > * + .aegis-section-divider {
+  margin-top: var(--space-6);
+}
+
 /* ── Generic row / stack / list ─────────────────────────────────── */
 .gallery__row {
   display: flex;
@@ -110,6 +146,12 @@
 
 .gallery__specimen-stage > * {
   max-width: 100%;
+}
+
+.gallery__specimen-stage--start {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 .gallery__specimen-caption {
@@ -274,6 +316,14 @@
 
   .gallery__intro {
     max-width: 100%;
+  }
+
+  .gallery__section-header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .gallery__section-body {
+    padding: var(--space-4);
   }
 
   .gallery__row--panels {
