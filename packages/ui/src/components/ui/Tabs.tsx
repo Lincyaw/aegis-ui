@@ -140,21 +140,25 @@ export function Tabs({
   const listRef = useRef<HTMLDivElement>(null);
   const placedKeyRef = useRef<string | undefined>(undefined);
   const [indicator, setIndicator] = useState<TabsIndicator | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const itemKeys = items.map((item) => item.key).join('\n');
 
-  // Tab reaches only the selected tab, or the first enabled one when none is
-  // selected; arrows, Home and End move between all the tabs and select the
-  // enabled ones.
+  // Arrows, Home and End move between all the tabs and select the enabled
+  // ones. The list has one tab stop: the focused tab while focus is in the
+  // list, so Tab and Shift+Tab leave it from a disabled tab too; otherwise
+  // the selected tab, or the first enabled one when none is selected.
   const activeIndex = items.findIndex(
     (item) => item.key === activeKey && item.disabled !== true,
   );
   const tabStopIndex =
-    activeIndex >= 0
-      ? activeIndex
-      : Math.max(
-          items.findIndex((item) => item.disabled !== true),
-          0,
-        );
+    focusedIndex !== null && focusedIndex < items.length
+      ? focusedIndex
+      : activeIndex >= 0
+        ? activeIndex
+        : Math.max(
+            items.findIndex((item) => item.disabled !== true),
+            0,
+          );
 
   useIsomorphicLayoutEffect(() => {
     const list = listRef.current;
@@ -250,6 +254,11 @@ export function Tabs({
         className="aegis-tabs__list"
         role="tablist"
         aria-label={ariaLabel}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setFocusedIndex(null);
+          }
+        }}
       >
         {indicator ? (
           <span
@@ -276,6 +285,7 @@ export function Tabs({
             controls={index === activeIndex ? controlledPanelId : undefined}
             tabStop={index === tabStopIndex}
             onActivate={() => handleClick(item.key)}
+            onFocus={() => setFocusedIndex(index)}
             onKeyDown={(event) => handleTabKeyDown(event, index)}
           />
         ))}
@@ -301,6 +311,7 @@ interface TabsTabProps {
   controls: string | undefined;
   tabStop: boolean;
   onActivate: () => void;
+  onFocus: () => void;
   onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
 }
 
@@ -311,6 +322,7 @@ function TabsTab({
   controls,
   tabStop,
   onActivate,
+  onFocus,
   onKeyDown,
 }: TabsTabProps) {
   const bound = useAegisAction<void, unknown>(item.action);
@@ -336,6 +348,7 @@ function TabsTab({
         active ? 'aegis-tabs__tab aegis-tabs__tab--active' : 'aegis-tabs__tab'
       }
       onClick={handleClick}
+      onFocus={onFocus}
       onKeyDown={onKeyDown}
       data-agent-action-id={item.action?.id}
     >
