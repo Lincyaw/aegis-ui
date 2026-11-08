@@ -2,14 +2,31 @@ import { type ReactElement, useEffect, useMemo, useRef } from 'react';
 
 import { MetricLabel, MonoValue } from '@lincyaw/aegis-ui';
 
-import { contentExcerpt } from '../../../agentm/agentContent';
 import { normalizeTurn } from '../messageAdapter';
-import type { CaseBundle } from '../schemas';
+import type { CaseBundle, MainTurn } from '../schemas';
 import { useCaseSelection } from '../selection';
 
 import { useDetailModal } from './detailModalContext';
 
 const EXCERPT_LIMIT = 80;
+
+function firstTextExcerpt(turn: MainTurn): string {
+  for (const block of normalizeTurn(turn).blocks) {
+    if (block.kind === 'text' || block.kind === 'tool_result') {
+      const text = block.text.trim();
+      if (text) {
+        return text.length > EXCERPT_LIMIT
+          ? `${text.slice(0, EXCERPT_LIMIT)}…`
+          : text;
+      }
+    } else if (block.kind === 'tool_call') {
+      return `→ ${block.name}`;
+    } else if (block.kind === 'thinking' && block.text.trim()) {
+      return '(thinking)';
+    }
+  }
+  return '';
+}
 
 interface TurnRailProps {
   bundle: CaseBundle;
@@ -148,7 +165,7 @@ export function TurnRail({ bundle }: TurnRailProps): ReactElement {
                 )}
               </div>
               <div className='llmh-cdp__rail-row-text'>
-                {contentExcerpt(normalizeTurn(turn).blocks, EXCERPT_LIMIT)}
+                {firstTextExcerpt(turn)}
               </div>
             </div>
           );

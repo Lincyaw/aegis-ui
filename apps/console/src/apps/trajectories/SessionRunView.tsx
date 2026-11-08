@@ -14,12 +14,7 @@ import {
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
 
-import {
-  type AgentBlock,
-  contentExcerpt,
-  normalizeBlock,
-  normalizeContent,
-} from '../../agentm/agentContent';
+import { normalizeBlock, normalizeContent } from '../../agentm/agentContent';
 
 import './SessionRunView.css';
 
@@ -78,20 +73,35 @@ export interface SessionRunOutputViewProps {
   onInspectContent: (content: InspectableContent) => void;
 }
 
-function blockTitle(block: AgentBlock): string {
-  switch (block.kind) {
-    case 'tool_call':
-      return block.name;
-    case 'tool_result':
-      return block.toolCallId || 'tool result';
-    case 'unknown': {
-      const raw = block.raw as { type?: unknown } | null;
-      return typeof raw?.type === 'string' ? raw.type : 'content';
+function contentExcerpt(message: SessionRunMessage): string {
+  for (const block of message.content) {
+    if (block != null && typeof block === 'object') {
+      const obj = block as Record<string, unknown>;
+      if (obj.type === 'text' && typeof obj.text === 'string') {
+        const text = obj.text.trim().replace(/\s+/g, ' ');
+        return text.length > EXCERPT_LIMIT
+          ? `${text.slice(0, EXCERPT_LIMIT)}…`
+          : text;
+      }
+      if (obj.type === 'tool_call' && typeof obj.name === 'string') {
+        return `→ ${obj.name}`;
+      }
+      if (obj.type === 'tool_result') {
+        return '⇐ tool result';
+      }
     }
-    case 'text':
-    case 'thinking':
-      return block.kind;
   }
+  return '';
+}
+
+function blockTitle(block: Record<string, unknown>): string {
+  if (typeof block.name === 'string') {
+    return block.name;
+  }
+  if (typeof block.type === 'string') {
+    return block.type;
+  }
+  return 'content';
 }
 
 function messageInspectContent(message: SessionRunMessage): InspectableContent {
@@ -207,6 +217,7 @@ function MessageBlock({
       />
     );
   }
+  const obj = block as Record<string, unknown>;
   const normalized = normalizeBlock(block);
   if (normalized.kind === 'text') {
     return (
@@ -218,15 +229,15 @@ function MessageBlock({
     );
   }
   const content = {
-    title: blockTitle(normalized),
+    title: blockTitle(obj),
     value: block,
     kind: 'json' as const,
   };
   return (
     <details className='trajectories-session-message__tool'>
       <summary>
-        <span>{normalized.kind === 'unknown' ? 'block' : normalized.kind}</span>
-        <MonoValue size='sm'>{blockTitle(normalized)}</MonoValue>
+        <span>{String(obj.type ?? 'block')}</span>
+        <MonoValue size='sm'>{blockTitle(obj)}</MonoValue>
         <InspectContentButton
           content={content}
           onInspectContent={onInspectContent}
@@ -270,7 +281,7 @@ function MessageCard({
           {message.id ? message.id.slice(0, 12) : 'message'}
         </MonoValue>
         <span className='trajectories-session-message__excerpt'>
-          {contentExcerpt(normalizeContent(message.content), EXCERPT_LIMIT)}
+          {contentExcerpt(message)}
         </span>
         <InspectContentButton
           content={content}

@@ -135,36 +135,3 @@ export function normalizeRole(role: unknown): AgentRole {
     ? role
     : 'user';
 }
-
-function truncate(text: string, limit: number): string {
-  const line = text.trim().replace(/\s+/g, ' ');
-  return line.length > limit ? `${line.slice(0, limit)}…` : line;
-}
-
-/** One line that stands for a message in a list: its first text, the tool
- *  it calls, or the start of the tool output it carries. */
-export function contentExcerpt(blocks: AgentBlock[], limit: number): string {
-  for (const block of blocks) {
-    switch (block.kind) {
-      case 'text':
-        if (block.text.trim()) {
-          return truncate(block.text, limit);
-        }
-        break;
-      case 'tool_call':
-        return `→ ${block.name}`;
-      case 'tool_result':
-        return block.text.trim()
-          ? `⇐ ${truncate(block.text, limit)}`
-          : '⇐ tool result';
-      case 'thinking':
-        if (block.text.trim()) {
-          return '(thinking)';
-        }
-        break;
-      case 'unknown':
-        break;
-    }
-  }
-  return '';
-}
