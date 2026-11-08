@@ -163,7 +163,8 @@ interface DataTableProps<T> {
   onRowClick?: (row: T, index: number) => void;
   /**
    * Keeps the first column (with the selection and expansion columns) in
-   * view while the other columns scroll sideways.
+   * view while the other columns scroll sideways. The first column takes
+   * at most 40% of the table's visible width, truncating past it.
    */
   stickyFirstColumn?: boolean;
   /**
@@ -186,6 +187,8 @@ interface DataTableProps<T> {
 const SELECTION_WIDTH = 44;
 const TOGGLE_WIDTH = 32;
 const CHEVRON_WIDTH = 40;
+/** The widest a pinned first column renders; DataTable.css sets the share. */
+const PINNED_MAX = 'var(--aegis-data-table-pinned-max)';
 const MOBILE_QUERY = '(max-width: 768px)';
 const CONTROL_SELECTOR =
   'a, button, input, select, textarea, label, [role="button"], [role="link"], [role="checkbox"]';
@@ -378,12 +381,14 @@ export function DataTable<T>({
   const leadWidth =
     (selectable ? SELECTION_WIDTH : 0) + (expandable ? TOGGLE_WIDTH : 0);
   const trailWidth = clickable ? CHEVRON_WIDTH : 0;
+  const sticky = stickyFirstColumn && !cardMode;
 
   const columnWidths = useColumnWidths({
     columns,
     persistKey,
     leadWidth,
     trailWidth,
+    firstColumnMax: sticky ? PINNED_MAX : undefined,
     tableRef,
   });
 
@@ -397,7 +402,6 @@ export function DataTable<T>({
     .join(' ');
   const fixedLayout = columnWidths.sized && !cardMode;
   const filler = fixedLayout && columnWidths.fillerStyle !== undefined;
-  const sticky = stickyFirstColumn && !cardMode;
   const bodyColumnCount =
     (cardMode ? 1 : columns.length) + (filler ? 1 : 0) + (clickable ? 1 : 0);
   const columnCount =
@@ -428,7 +432,7 @@ export function DataTable<T>({
     const block = `aegis-data-table__${cell}`;
     const classes = [block];
     if (sticky && colIndex === 0) {
-      classes.push(`${block}--sticky`);
+      classes.push(`${block}--sticky`, `${block}--pinned`);
     }
     if (tone !== undefined) {
       classes.push(
@@ -563,7 +567,13 @@ export function DataTable<T>({
           colSpan={bodyColumnCount}
           className="aegis-data-table__detail-cell"
         >
-          <div className="aegis-data-table__detail">
+          <div
+            className="aegis-data-table__detail"
+            style={{
+              left: leadWidth,
+              width: `calc(100cqi - ${String(leadWidth)}px)`,
+            }}
+          >
             <div className="aegis-data-table__detail-clip">
               <div className="aegis-data-table__detail-body">
                 {(open || visited.includes(key)) && render(row, idx)}

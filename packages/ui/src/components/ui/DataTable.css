@@ -1,4 +1,8 @@
 .aegis-data-table {
+  --aegis-data-table-cell-pad: var(--space-3);
+
+  position: relative;
+  isolation: isolate;
   width: 100%;
   min-width: 0;
 }
@@ -13,10 +17,30 @@
 }
 
 .aegis-data-table__scroll {
+  --aegis-data-table-pinned-max: 40cqi;
+
   overflow-x: auto;
   min-width: 0;
   container-type: inline-size;
   transition: opacity var(--motion-fast);
+}
+
+/* A table wider than its scroller makes the scroller a tab stop. Its ring
+ * is drawn inside the table, over the sticky cells that would cover the
+ * scroller's own outline, so neither the frame nor the cells hide it. */
+.aegis-data-table__scroll:focus-visible {
+  outline: var(--focus-ring-width) solid transparent;
+}
+
+.aegis-data-table:has(> .aegis-data-table__scroll:focus-visible)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+  pointer-events: none;
 }
 
 /* stale: the previous rows stay in place, dimmed, while newer ones load. */
@@ -41,7 +65,7 @@
 
 .aegis-data-table__th {
   position: relative;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--aegis-data-table-cell-pad);
   font-size: var(--type-label-size);
   line-height: var(--type-label-line);
   font-weight: var(--type-label-weight);
@@ -150,7 +174,7 @@
 /* A table cell's height is a minimum: taller content still grows the row. */
 .aegis-data-table__td {
   height: var(--data-table-row-min-height);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--aegis-data-table-cell-pad);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   vertical-align: middle;
 }
@@ -226,6 +250,21 @@
 
 .aegis-data-table__td--sticky {
   background: var(--bg-panel);
+}
+
+/* The pinned first column never takes more than its share of the scroller;
+ * a fixed layout caps its <col>, an automatic one caps the content here. */
+.aegis-data-table__td--pinned > .aegis-data-table__cell,
+.aegis-data-table__th--pinned > .aegis-data-table__th-label,
+.aegis-data-table__th--pinned > .aegis-data-table__sort {
+  max-width: calc(
+    var(--aegis-data-table-pinned-max) - var(--aegis-data-table-cell-pad) * 2
+  );
+}
+
+.aegis-data-table__th--pinned > .aegis-data-table__th-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* A sticky cell stays opaque over the cells scrolling under it, so its
@@ -310,6 +349,13 @@
   background: var(--bg-muted);
 }
 
+/* Block-level, so the checkbox centres in the row instead of sitting on
+ * the text baseline. */
+.aegis-data-table__select-cell .aegis-checkbox {
+  display: flex;
+  width: fit-content;
+}
+
 .aegis-data-table__chevron-cell {
   width: 1%;
   padding-left: 0;
@@ -382,7 +428,9 @@
 /* The detail row under an expandable row draws the separator, so a
  * collapsed row reads like any other. Its content opens by animating from
  * 0fr to 1fr; visibility flips with it, so a closed detail is out of the
- * tab order and the accessibility tree. */
+ * tab order and the accessibility tree. The detail spans the scroller's
+ * visible width after the leading columns (its left and width are set
+ * inline) and stays there while a wider table scrolls. */
 .aegis-data-table__row--expandable > .aegis-data-table__td {
   border-bottom: none;
 }
@@ -393,6 +441,7 @@
 }
 
 .aegis-data-table__detail {
+  position: sticky;
   display: grid;
   grid-template-rows: 0fr;
   visibility: hidden;
@@ -414,7 +463,7 @@
 }
 
 .aegis-data-table__detail-body {
-  padding: 0 var(--space-3) var(--space-3);
+  padding: 0 var(--aegis-data-table-cell-pad) var(--space-3);
 }
 
 /* Card mode (renderMobileCard at ≤768 px): one full-width cell per row. */
@@ -446,6 +495,13 @@
 }
 
 .aegis-data-table__footer {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--aegis-data-table-cell-pad);
   border-top: var(--size-hairline) solid var(--border-hairline);
+}
+
+/* Narrow screens give the columns the room the cell padding takes. */
+@media (max-width: 768px) {
+  .aegis-data-table {
+    --aegis-data-table-cell-pad: var(--space-2);
+  }
 }

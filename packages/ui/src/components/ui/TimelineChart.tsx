@@ -16,6 +16,7 @@ import { Tooltip } from 'antd';
 
 import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { type ChartColor, chartColorValue } from '../../lib/chart';
 import {
   type DurationTick,
@@ -39,6 +40,7 @@ export interface TimelineChartProps {
   minMs?: number;
   /** End of the axis in ms; defaults to the latest span end. */
   maxMs?: number;
+  /** A row's height in px; at ≤768 px a row stacks its name over its bar and takes two. */
   rowHeight?: number;
   maxVisibleRows?: number;
   /** Makes each row a button that selects its span. */
@@ -90,6 +92,7 @@ const DEFAULT_ROW_HEIGHT = 24;
 const DEFAULT_MAX_VISIBLE_ROWS = 20;
 /** However wide the track, the axis shows at most this many ticks. */
 const MAX_TICK_COUNT = 6;
+const STACKED_QUERY = '(max-width: 768px)';
 
 const KIND_COLORS: ChartColor[] = [
   'cat-1',
@@ -222,6 +225,8 @@ export function TimelineChart({
   const tickMeasureRef = useRef<HTMLDivElement>(null);
   const [axisMetrics, setAxisMetrics] = useState<AxisMetrics | null>(null);
   const rows = useMemo(() => timelineRows(spans), [spans]);
+  const stacked = useMediaQuery(STACKED_QUERY);
+  const rowSize = stacked ? rowHeight * 2 : rowHeight;
 
   const derived = useMemo(() => {
     if (rows.length === 0) {
@@ -319,11 +324,16 @@ export function TimelineChart({
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => rowHeight,
+    estimateSize: () => rowSize,
     overscan: 8,
   });
 
-  const bodyHeight = Math.min(rows.length, maxVisibleRows) * rowHeight;
+  // The virtualizer keeps the sizes it has laid out until told to measure.
+  useIsomorphicLayoutEffect(() => {
+    virtualizer.measure();
+  }, [virtualizer, rowSize]);
+
+  const bodyHeight = Math.min(rows.length, maxVisibleRows) * rowSize;
 
   // The guide reads the time under the pointer from the track column only;
   // over the labels it hides.
@@ -356,18 +366,13 @@ export function TimelineChart({
     }
   }, []);
 
-  const gridTemplate = 'var(--timeline-chart-label-width) 1fr';
-
   const rootClassName = ['aegis-timeline-chart', className]
     .filter(Boolean)
     .join(' ');
 
   return (
     <div className={rootClassName}>
-      <div
-        className="aegis-timeline-chart__axis"
-        style={{ gridTemplateColumns: gridTemplate }}
-      >
+      <div className="aegis-timeline-chart__axis">
         <div
           className="aegis-timeline-chart__axis-label-gutter"
           aria-hidden="true"
@@ -405,16 +410,13 @@ export function TimelineChart({
       {loading ? (
         <div
           className="aegis-timeline-chart__body"
-          style={{ height: `${bodyHeight || rowHeight * 6}px` }}
+          style={{ height: `${bodyHeight || rowSize * 6}px` }}
         >
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
               className="aegis-timeline-chart__skeleton-row"
-              style={{
-                gridTemplateColumns: gridTemplate,
-                height: `${rowHeight}px`,
-              }}
+              style={{ height: `${rowSize}px` }}
             >
               <div className="aegis-timeline-chart__skeleton">
                 <Skeleton block height="var(--space-3)" />
@@ -482,7 +484,6 @@ export function TimelineChart({
                   key={span.id}
                   className={classes}
                   style={{
-                    gridTemplateColumns: gridTemplate,
                     height: `${item.size}px`,
                     transform: `translateY(${item.start}px)`,
                   }}

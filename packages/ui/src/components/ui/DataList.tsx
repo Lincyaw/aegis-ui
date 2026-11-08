@@ -1,4 +1,10 @@
-import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   type PrimitiveSurface,
@@ -98,6 +104,7 @@ export function DataList<T extends DataListItem>({
       ref={wrapRef}
       className={cls}
       role={onSelect ? 'grid' : 'table'}
+      style={{ '--aegis-data-list-columns': columns.length } as CSSProperties}
       {...agentAttrs}
     >
       <div className="aegis-data-list__head" role="row">
