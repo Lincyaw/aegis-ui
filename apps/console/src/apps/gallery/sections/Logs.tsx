@@ -115,7 +115,7 @@ function FileTreeControlledSpecimen(): ReactNode {
   const [openPaths, setOpenPaths] = useState(['tests/']);
   return (
     <div className='gallery__stack gallery__stack--fill'>
-      <div style={{ width: 320 }}>
+      <div style={{ width: '100%', maxWidth: 320 }}>
         <FileTree
           files={GALLERY_TASK_FILES}
           ariaLabel='Task files, controlled'
@@ -270,7 +270,7 @@ export function LogsSection() {
             caption='directories collapsed · note = file count'
             span={2}
           >
-            <div style={{ width: 320 }}>
+            <div style={{ width: '100%', maxWidth: 320 }}>
               <FileTree
                 files={GALLERY_TASK_FILES}
                 ariaLabel='Task files, collapsed'
@@ -281,7 +281,7 @@ export function LogsSection() {
             caption='selected · long names end in an ellipsis, the title shows the path'
             span={2}
           >
-            <div style={{ width: 240 }}>
+            <div style={{ width: '100%', maxWidth: 240 }}>
               <FileTree
                 files={GALLERY_TASK_FILES}
                 ariaLabel='Task files, narrow'
@@ -297,10 +297,26 @@ export function LogsSection() {
             <FileTreeControlledSpecimen />
           </Specimen>
           <Specimen
+            caption='fileHref · file rows are links, so a new tab or a copied address works; Enter follows the link'
+            span={2}
+          >
+            <div style={{ width: '100%', maxWidth: 280 }}>
+              <FileTree
+                files={GALLERY_TASK_FILES}
+                ariaLabel='Task files, links'
+                fileHref={(path) =>
+                  `https://example.com/tasks/export-latency/${path}`
+                }
+                fileTarget='_blank'
+                defaultExpandedPaths={['environment/']}
+              />
+            </div>
+          </Specimen>
+          <Specimen
             caption='label · a file shows its label in place of its name, e.g. notes without .md; the title keeps the path'
             span={2}
           >
-            <div style={{ width: 280 }}>
+            <div style={{ width: '100%', maxWidth: 280 }}>
               <FileTree
                 files={GALLERY_NOTE_FILES}
                 ariaLabel='Notes'
