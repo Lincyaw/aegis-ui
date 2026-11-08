@@ -4,7 +4,7 @@ import type { FileDropzoneItem } from '@lincyaw/aegis-ui';
 
 import { errMsg } from '../../../api/apiClient';
 import { presignPut } from '../../../api/blobClient';
-import { runPool } from '../../shared/runPool';
+import { runPool } from '../../../async/runPool';
 
 const UPLOAD_CONCURRENCY = 3;
 const EWMA_ALPHA = 0.3;

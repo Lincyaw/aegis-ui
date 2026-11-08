@@ -12,7 +12,7 @@ import {
   type AgentBlock,
   jsonStringify,
   normalizeContent,
-} from '../../shared/agentContent';
+} from '../../../agentm/agentContent';
 import { normalizeTurn } from '../messageAdapter';
 import type { MainTurn } from '../schemas';
 

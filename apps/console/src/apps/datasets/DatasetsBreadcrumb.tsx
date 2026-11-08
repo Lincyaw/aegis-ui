@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode } from 'react';
 
 import { Breadcrumb, useActiveApp } from '@lincyaw/aegis-ui';
 
-import { RouterLink } from '../shared/RouterLink';
+import { RouterLink } from '../../routing/RouterLink';
 
 /**
  * The datasets app sets `breadcrumbBar: false`, so its sub-pages render

@@ -3,7 +3,7 @@ import {
   type AgentRole,
   normalizeContent,
   normalizeRole,
-} from '../shared/agentContent';
+} from '../../agentm/agentContent';
 
 import type { MainTurn } from './schemas';
 

@@ -19,7 +19,7 @@ import {
   contentExcerpt,
   normalizeBlock,
   normalizeContent,
-} from '../shared/agentContent';
+} from '../../agentm/agentContent';
 
 import './SessionRunView.css';
 

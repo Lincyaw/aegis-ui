@@ -1,6 +1,6 @@
 import { apiFetch } from '../../../api/apiClient';
 import { driverList, inlineUrl } from '../../../api/blobClient';
-import { runPool } from '../../shared/runPool';
+import { runPool } from '../../../async/runPool';
 import { casesBlobRoot, sftBlobRoot } from '../connection';
 import type {
   AuditorFiring,

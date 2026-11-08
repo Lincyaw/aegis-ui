@@ -33,7 +33,7 @@ import { Button } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import { driverList } from '../../../api/blobClient';
-import { RouterLink } from '../../shared/RouterLink';
+import { RouterLink } from '../../../routing/RouterLink';
 import '../blob-app.css';
 import { MoveDialog } from '../components/MoveDialog';
 import { NewFolderDialog } from '../components/NewFolderDialog';

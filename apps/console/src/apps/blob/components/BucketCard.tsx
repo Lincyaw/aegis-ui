@@ -9,7 +9,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import type { BucketSummary } from '../../../api/blobClient';
-import { RouterLink } from '../../shared/RouterLink';
+import { RouterLink } from '../../../routing/RouterLink';
 
 import './BucketCard.css';
 

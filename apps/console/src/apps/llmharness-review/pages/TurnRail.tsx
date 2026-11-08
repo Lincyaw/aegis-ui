@@ -2,7 +2,7 @@ import { type ReactElement, useEffect, useMemo, useRef } from 'react';
 
 import { MetricLabel, MonoValue } from '@lincyaw/aegis-ui';
 
-import { contentExcerpt } from '../../shared/agentContent';
+import { contentExcerpt } from '../../../agentm/agentContent';
 import { normalizeTurn } from '../messageAdapter';
 import type { CaseBundle } from '../schemas';
 import { useCaseSelection } from '../selection';

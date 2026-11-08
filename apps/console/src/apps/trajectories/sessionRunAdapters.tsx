@@ -10,7 +10,7 @@ import {
   type ToolCallRow,
 } from './api/clickhouse';
 
-import { jsonStringify } from '../shared/agentContent';
+import { jsonStringify } from '../../agentm/agentContent';
 
 import { formatDurationMs, formatTokens } from './format';
 import type {
