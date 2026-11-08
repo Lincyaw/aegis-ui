@@ -13,7 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { errMsg } from '../../../api/apiClient';
 import { CaseSelectionProvider } from '../CaseSelection';
 import { CaseMetaBar } from '../components';
-import { llmhKeys } from '../queries';
+import { llmhKeys } from '../queryKeys';
 import { type CaseRepo, resolveCaseRepo } from '../repo';
 import type { CaseBundle } from '../schemas';
 import { useCaseSelection } from '../selection';

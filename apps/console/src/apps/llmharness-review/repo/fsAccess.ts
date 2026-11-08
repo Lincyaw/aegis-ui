@@ -12,7 +12,8 @@ import type {
 } from '../schemas';
 import { caseSummary, parse } from '../validate';
 
-import { isEmptySft, isNotFound, loadBundleViaRepo } from './bundle';
+import { isEmptySft, loadBundleViaRepo } from './bundle';
+import { isNotFound } from './notFound';
 import type { CaseRepo, CaseSftBundle, SftRepo } from './types';
 
 export interface DirectoryHandle {

@@ -21,7 +21,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { errMsg } from '../../../api/apiClient';
 import { SftRowDetail, SftStats } from '../components';
-import { llmhKeys } from '../queries';
+import { llmhKeys } from '../queryKeys';
 import {
   clearStoredSftRoot,
   isFsAccessSupported,

@@ -12,7 +12,8 @@ import type {
 } from '../schemas';
 import { parse, validate } from '../validate';
 
-import { isNotFound, loadBundleViaRepo } from './bundle';
+import { loadBundleViaRepo } from './bundle';
+import { isNotFound } from './notFound';
 import type { CaseRepo, CaseSftBundle } from './types';
 
 /** Talks to `llmharness serve` on a user-configured URL. */

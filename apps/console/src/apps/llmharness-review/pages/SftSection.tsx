@@ -12,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { errMsg } from '../../../api/apiClient';
 import { SftRowDetail } from '../components';
-import { llmhKeys } from '../queries';
+import { llmhKeys } from '../queryKeys';
 import {
   BlobCaseRepo,
   type CaseRepo,
