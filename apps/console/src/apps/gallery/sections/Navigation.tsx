@@ -527,7 +527,7 @@ function TableOfContentsStatesSpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen
-        caption='currentId · current item Strong + --accent-brand indicator, others Body + --border-hairline; click to move it'
+        caption='currentId · the current item in Strong and --accent-brand, the others in Body and --text-muted, with no rail; click to move it'
         span={2}
       >
         <TableOfContents
@@ -536,7 +536,7 @@ function TableOfContentsStatesSpecimen(): ReactNode {
           onCurrentChange={setCurrent}
         />
       </Specimen>
-      <Specimen caption='level=2 current · level 2, 3 and 4 labels indent by --space-3, --space-6 and 3 × --space-3; a long label wraps and its indicator follows'>
+      <Specimen caption='level=2 current · level 2, 3 and 4 labels indent by --space-3, --space-6 and 3 × --space-3; a long label wraps under its own indent'>
         <TableOfContents
           items={GALLERY_TOC_STATE_ITEMS}
           currentId='gallery-toc-state-digest'

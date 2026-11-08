@@ -413,10 +413,8 @@
       var(--space-6) * 2
   );
   --trajectory-step-text-max-height: 320px;
-  /* TableOfContents column (also the article page's left column) and the
-   * height of its current-item indicator on one line. */
+  /* TableOfContents column (also the article page's left column). */
   --toc-width: 240px;
-  --toc-indicator-height: 20px;
   /* ScrollStory: where its pinned panel stops under the header, the
    * height of the view it pins in (a host with a scroll container sets
    * the container's height), and the shortest a step may be, so each step
