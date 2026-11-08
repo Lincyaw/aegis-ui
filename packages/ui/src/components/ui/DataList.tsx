@@ -4,6 +4,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import './DataList.css';
 
 export interface DataListColumn<T> {
@@ -40,9 +41,10 @@ export function DataList<T extends DataListItem>({
   selectedId,
   onSelect,
   surface,
-  emptyText = 'No items',
+  emptyText,
   className,
 }: DataListProps<T>) {
+  const strings = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef(new Map<string, HTMLDivElement>());
   const [focusedId, setFocusedId] = useState<string>();
@@ -112,7 +114,7 @@ export function DataList<T extends DataListItem>({
       {items.length === 0 ? (
         <div className="aegis-data-list__empty" role="row">
           <div role={cellRole} aria-colspan={columns.length}>
-            {emptyText}
+            {emptyText ?? strings.noItems}
           </div>
         </div>
       ) : (

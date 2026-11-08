@@ -260,7 +260,7 @@ export function DataTable<T>({
   data,
   rowKey,
   loading = false,
-  emptyTitle = 'No data',
+  emptyTitle,
   emptyDescription,
   emptyAction,
   className,
@@ -709,7 +709,7 @@ export function DataTable<T>({
                       )}
                       {col.resizable && (
                         <span
-                          aria-label="Resize column"
+                          aria-label={strings.resizeColumn}
                           className="aegis-data-table__resizer"
                           {...columnWidths.handleProps(col)}
                         />
@@ -752,7 +752,7 @@ export function DataTable<T>({
                 >
                   <div className="aegis-data-table__empty">
                     <EmptyState
-                      title={emptyTitle}
+                      title={emptyTitle ?? strings.noData}
                       description={emptyDescription}
                       action={emptyAction}
                     />

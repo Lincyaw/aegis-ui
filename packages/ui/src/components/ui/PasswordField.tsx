@@ -7,6 +7,7 @@ import {
 
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 
+import { useStrings } from '../../locale';
 import './PasswordField.css';
 import { TextField } from './TextField';
 
@@ -22,6 +23,7 @@ interface PasswordFieldProps extends Omit<
 
 export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
   (props, ref) => {
+    const strings = useStrings();
     const [visible, setVisible] = useState(false);
     const toggle = (): void => {
       setVisible((v) => !v);
@@ -32,7 +34,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
         type="button"
         className="aegis-passwordfield__toggle"
         onClick={toggle}
-        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-label={visible ? strings.hidePassword : strings.showPassword}
         aria-pressed={visible}
         tabIndex={0}
       >

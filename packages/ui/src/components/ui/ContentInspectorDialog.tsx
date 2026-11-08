@@ -7,7 +7,6 @@ import { Dialog } from './Dialog';
 import { type TabItem, Tabs } from './Tabs';
 import {
   type InspectableContent,
-  type InspectableContentKind,
   type InspectableContentOptions,
   codeLanguage,
   prepareInspectableContent,
@@ -18,13 +17,6 @@ export interface ContentInspectorDialogProps extends InspectableContentOptions {
   content: InspectableContent | null;
   onClose: () => void;
 }
-
-const KIND_NAMES: Record<InspectableContentKind, string> = {
-  json: 'JSON',
-  markdown: 'Markdown',
-  sql: 'SQL',
-  text: 'Text',
-};
 
 /** Shows one piece of content full size, rendered or raw. */
 export function ContentInspectorDialog({
@@ -62,7 +54,7 @@ export function ContentInspectorDialog({
     <Dialog
       open={current !== null}
       title={shown.title}
-      description={`${KIND_NAMES[prepared.kind]} content`}
+      description={strings.inspectorContentKind(prepared.kind)}
       onClose={onClose}
       width="lg"
       className="aegis-content-inspector"

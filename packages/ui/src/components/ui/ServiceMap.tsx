@@ -1,6 +1,11 @@
 // Service-map composition adapted from HyperDX (MIT, DeploySentinel Inc. 2023):
 // https://github.com/hyperdxio/hyperdx/blob/main/packages/app/src/components/ServiceMap/ServiceMap.tsx
-import { type CSSProperties, useCallback, useMemo } from 'react';
+import {
+  type CSSProperties,
+  type KeyboardEvent,
+  useCallback,
+  useMemo,
+} from 'react';
 
 import {
   type EdgeLabel,
@@ -24,6 +29,7 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 
+import { type AegisStrings, useStrings } from '../../locale';
 import './ServiceMap.css';
 
 export type ServiceMapStatus = 'ok' | 'warn' | 'error' | 'muted';
@@ -51,8 +57,14 @@ export interface ServiceMapProps {
   edges: ServiceMapEdge[];
   direction?: ServiceMapDirection;
   height?: number;
+  /**
+   * Called when a node is clicked, or gets Enter or Space while focused.
+   * Without it nodes can be neither focused nor selected.
+   */
   onNodeClick?: (node: ServiceMapNode) => void;
+  /** The same for edges. */
   onEdgeClick?: (edge: ServiceMapEdge) => void;
+  /** Marks a node as selected (inverted, and `aria-current`). */
   selectedNodeId?: string;
   className?: string;
 }
@@ -85,6 +97,8 @@ function computeLayout(
   edges: ServiceMapEdge[],
   direction: ServiceMapDirection,
   selectedNodeId: string | undefined,
+  selectable: { nodes: boolean; edges: boolean },
+  strings: AegisStrings,
 ): LayoutResult {
   const g = new graphlib.Graph<GraphLabel, NodeLabel, EdgeLabel>();
   g.setDefaultEdgeLabel(() => ({}));
@@ -121,10 +135,22 @@ function computeLayout(
       targetPosition: isHorizontal ? Position.Left : Position.Top,
       draggable: false,
       connectable: false,
-      selectable: true,
+      selectable: selectable.nodes,
+      focusable: selectable.nodes,
+      // React Flow gives only a focusable node a role, and the role
+      // description below needs one.
+      ariaRole: 'group',
+      domAttributes: {
+        'aria-roledescription': strings.serviceMapNodeRole,
+        'aria-current': selectedNodeId === n.id ? true : undefined,
+        // React Flow points every node at its keyboard help; a node that
+        // cannot be selected has none.
+        ...(selectable.nodes ? {} : { 'aria-describedby': undefined }),
+      },
     };
   });
 
+  const labels = new Map(nodes.map((n) => [n.id, n.label]));
   const rfEdges: Array<Edge<ServiceEdgeData>> = edges.map((e) => {
     const status = e.status ?? 'ok';
     return {
@@ -134,6 +160,13 @@ function computeLayout(
       type: 'service',
       data: { edge: e },
       label: e.label,
+      selectable: selectable.edges,
+      focusable: selectable.edges,
+      ariaLabel: strings.serviceMapEdgeName(
+        labels.get(e.source) ?? e.source,
+        labels.get(e.target) ?? e.target,
+      ),
+      domAttributes: { 'aria-roledescription': strings.serviceMapEdgeRole },
       className: `aegis-service-map__edge aegis-service-map__edge--${status}`,
     };
   });
@@ -223,16 +256,27 @@ function ServiceMapInner({
   selectedNodeId,
   className,
 }: ServiceMapProps): JSX.Element {
+  const strings = useStrings();
+  const nodesSelectable = onNodeClick !== undefined;
+  const edgesSelectable = onEdgeClick !== undefined;
   const layoutKey = useMemo(
     () => JSON.stringify({ direction, nodes, edges, selectedNodeId }),
     [direction, nodes, edges, selectedNodeId],
   );
   const layout = useMemo(
-    () => computeLayout(nodes, edges, direction, selectedNodeId),
+    () =>
+      computeLayout(
+        nodes,
+        edges,
+        direction,
+        selectedNodeId,
+        { nodes: nodesSelectable, edges: edgesSelectable },
+        strings,
+      ),
     // Layout is keyed by the JSON-stringified inputs so structural-equality
     // changes recompute; including the raw arrays would re-run on every parent render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [layoutKey],
+    [layoutKey, nodesSelectable, edgesSelectable, strings],
   );
 
   const handleNodeClick = useCallback(
@@ -248,6 +292,35 @@ function ServiceMapInner({
       }
     },
     [onEdgeClick],
+  );
+  // React Flow's own Enter and Space only change its internal selection,
+  // which never reaches the host, so a focused node or edge answers the
+  // keys here, as a click would.
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if ((event.key !== 'Enter' && event.key !== ' ') || event.repeat) {
+        return;
+      }
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+      const id = target.getAttribute('data-id');
+      if (target.classList.contains('react-flow__node')) {
+        const node = nodes.find((n) => n.id === id);
+        if (node && onNodeClick) {
+          event.preventDefault();
+          onNodeClick(node);
+        }
+      } else if (target.classList.contains('react-flow__edge')) {
+        const edge = edges.find((e) => e.id === id);
+        if (edge && onEdgeClick) {
+          event.preventDefault();
+          onEdgeClick(edge);
+        }
+      }
+    },
+    [nodes, edges, onNodeClick, onEdgeClick],
   );
 
   const style = {
@@ -267,13 +340,14 @@ function ServiceMapInner({
         edgeTypes={EDGE_TYPES}
         nodesDraggable={false}
         nodesConnectable={false}
-        elementsSelectable
         panOnDrag
         zoomOnScroll
         fitView
         proOptions={{ hideAttribution: true }}
-        onNodeClick={handleNodeClick}
-        onEdgeClick={handleEdgeClick}
+        ariaLabelConfig={strings.serviceMapAriaLabels}
+        onNodeClick={nodesSelectable ? handleNodeClick : undefined}
+        onEdgeClick={edgesSelectable ? handleEdgeClick : undefined}
+        onKeyDown={handleKeyDown}
       >
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
         <Controls showInteractive={false} position="top-left" />

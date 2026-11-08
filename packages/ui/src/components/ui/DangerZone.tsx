@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { useStrings } from '../../locale';
 import './DangerZone.css';
 import { MetricLabel } from './MetricLabel';
 import { PanelTitle } from './PanelTitle';
@@ -12,18 +13,19 @@ interface DangerZoneProps {
 }
 
 export function DangerZone({
-  title = 'Danger zone',
+  title,
   description,
   children,
   className,
 }: DangerZoneProps) {
+  const strings = useStrings();
   const cls = ['aegis-danger-zone', className ?? ''].filter(Boolean).join(' ');
 
   return (
     <section className={cls}>
       <div className="aegis-danger-zone__header">
         <PanelTitle size="base" as="h3">
-          {title}
+          {title ?? strings.dangerZone}
         </PanelTitle>
         {description && <MetricLabel>{description}</MetricLabel>}
       </div>

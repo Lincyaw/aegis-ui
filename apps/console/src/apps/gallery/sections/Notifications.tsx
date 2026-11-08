@@ -93,7 +93,7 @@ export function NotificationsSection() {
             />
           </div>
         </Specimen>
-        <Specimen caption='liveError · live updates failing, the count stays · Try again clears it'>
+        <Specimen caption='liveError · live updates failing, the count stays · Retry clears it'>
           <div className='gallery__notif-bell-host'>
             <NotificationBell
               items={items}
@@ -107,7 +107,7 @@ export function NotificationsSection() {
             />
           </div>
         </Specimen>
-        <Specimen caption='error · the first load failed · Try again loads the list'>
+        <Specimen caption='error · the first load failed · Retry loads the list'>
           <div className='gallery__notif-bell-host'>
             <NotificationBell
               items={bellLoadError ? [] : items}
@@ -146,7 +146,7 @@ export function NotificationsSection() {
         />
       </div>
       <div className='gallery__row'>
-        <Specimen caption='liveError · the list stays under a notice · Try again clears it'>
+        <Specimen caption='liveError · the list stays under a notice · Retry clears it'>
           <div className='gallery__stack gallery__stack--fill'>
             <InboxPage
               items={items}
@@ -160,7 +160,7 @@ export function NotificationsSection() {
         </Specimen>
       </div>
       <div className='gallery__row'>
-        <Specimen caption='load failed · Try again clears the error'>
+        <Specimen caption='load failed · Retry clears the error'>
           <div className='gallery__stack gallery__stack--fill'>
             <InboxPage
               items={loadError ? [] : items}

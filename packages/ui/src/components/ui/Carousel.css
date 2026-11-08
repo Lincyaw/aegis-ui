@@ -91,6 +91,7 @@
   letter-spacing: var(--type-body-tracking);
   color: var(--text-muted);
   text-align: start;
+  text-wrap: balance;
   overflow-wrap: anywhere;
   background: none;
   border: none;

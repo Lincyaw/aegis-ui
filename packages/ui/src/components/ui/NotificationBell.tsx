@@ -7,6 +7,7 @@ import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
 import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
 import { useDialogPopover } from '../../hooks/useDialogPopover';
+import { useStrings } from '../../locale';
 import type { AegisNotification } from '../../notifications';
 import { Button } from './Button';
 import { ErrorState } from './ErrorState';
@@ -44,8 +45,8 @@ export interface NotificationBellProps {
    */
   error?: Error | null;
   /**
-   * Renders a "Try again" button where the popover says loading failed or
-   * the items may be out of date.
+   * Renders a retry button where the popover says loading failed or the
+   * items may be out of date.
    */
   onRetry?: () => void;
 }
@@ -65,6 +66,7 @@ export function NotificationBell({
   error,
   onRetry,
 }: NotificationBellProps): ReactElement {
+  const strings = useStrings();
   const popover = useDialogPopover<HTMLDivElement>();
   const { open, focusPanel } = popover;
   const panelId = useId();
@@ -76,12 +78,12 @@ export function NotificationBell({
   const staleError = loadError ? null : (liveError ?? error ?? null);
   let caution: string | null = null;
   if (loadError) {
-    caution = `Notifications couldn't load. ${loadError.message}`;
+    caution = strings.notificationsLoadFailedNote(loadError.message);
   } else if (staleError) {
-    caution = `Notifications may be out of date. ${staleError.message}`;
+    caution = strings.notificationsStaleNote(staleError.message);
   }
 
-  // A retry that works removes the "Try again" button that had focus, which
+  // A retry that works removes the retry button that had focus, which
   // would leave the open panel without it.
   useEffect(() => {
     if (open && document.activeElement === document.body) {
@@ -106,10 +108,12 @@ export function NotificationBell({
     >
       <div className="aegis-notif-pop__head">
         <span id={`${panelId}-title`} className="aegis-notif-pop__title">
-          Notifications
+          {strings.notifications}
         </span>
         {unreadCount > 0 && (
-          <span className="aegis-notif-pop__count">{unreadCount} unread</span>
+          <span className="aegis-notif-pop__count">
+            {strings.unreadCount(unreadCount)}
+          </span>
         )}
       </div>
       {staleError && (
@@ -121,13 +125,13 @@ export function NotificationBell({
           <div className="aegis-notif-pop__stale-body">
             <span>
               <span className="aegis-notif-pop__stale-title">
-                May be out of date.
+                {strings.notificationsStale}
               </span>{' '}
               {staleError.message}
             </span>
             {onRetry && (
               <Button tone="secondary" onClick={onRetry}>
-                Try again
+                {strings.retry}
               </Button>
             )}
           </div>
@@ -136,18 +140,20 @@ export function NotificationBell({
       {loadError ? (
         <ErrorState
           size="compact"
-          title="Couldn't load notifications"
+          title={strings.notificationsLoadFailed}
           description={loadError.message}
           action={
             onRetry && (
               <Button tone="secondary" onClick={onRetry}>
-                Try again
+                {strings.retry}
               </Button>
             )
           }
         />
       ) : preview.length === 0 ? (
-        <div className="aegis-notif-pop__empty">You&apos;re all caught up.</div>
+        <div className="aegis-notif-pop__empty">
+          {strings.notificationsCaughtUp}
+        </div>
       ) : (
         <ul className="aegis-notif-pop__list">
           {preview.map((item) => (
@@ -175,7 +181,7 @@ export function NotificationBell({
                       {item.title}
                     </span>
                     <span className="aegis-notif-pop__time">
-                      {relativeTime(item.timestamp)}
+                      {relativeTime(item.timestamp, strings)}
                     </span>
                   </span>
                   {item.body && (
@@ -192,7 +198,7 @@ export function NotificationBell({
       {/* Following the link closes the popover. */}
       <div className="aegis-notif-pop__foot" onClickCapture={popover.close}>
         <LinkImpl to={inboxPath} className="aegis-notif-pop__view-all">
-          View all
+          {strings.viewAll}
         </LinkImpl>
       </div>
     </div>
@@ -220,11 +226,7 @@ export function NotificationBell({
           aria-haspopup="dialog"
           aria-expanded={popover.open}
           aria-controls={popover.open ? panelId : undefined}
-          aria-label={
-            unreadCount > 0
-              ? `Notifications: ${String(unreadCount)} unread`
-              : 'Notifications'
-          }
+          aria-label={strings.notificationBellLabel(unreadCount)}
           data-agent-action-id={action?.id}
           onClick={action ? () => void bound.invoke() : undefined}
         >

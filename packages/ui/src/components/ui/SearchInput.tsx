@@ -27,7 +27,7 @@ export interface SearchInputProps {
 export function SearchInput({
   value,
   onChange,
-  placeholder = 'Search…',
+  placeholder: placeholderProp,
   kbd,
   onClear,
   block = false,
@@ -36,6 +36,7 @@ export function SearchInput({
   className,
 }: SearchInputProps) {
   const strings = useStrings();
+  const placeholder = placeholderProp ?? strings.searchPlaceholder;
   const cls = [
     'aegis-search-input',
     block ? 'aegis-search-input--block' : '',

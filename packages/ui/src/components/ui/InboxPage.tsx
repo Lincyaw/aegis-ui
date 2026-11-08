@@ -11,6 +11,7 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { useStrings } from '../../locale';
 import type { AegisNotification } from '../../notifications';
 import { Alert } from './Alert';
 import { Avatar } from './Avatar';
@@ -76,6 +77,7 @@ export function InboxPage({
   defaultFilter = 'all',
   surface,
 }: InboxPageProps): ReactElement {
+  const strings = useStrings();
   const [filter, setFilter] = useState<Filter>(defaultFilter);
   const wrapRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(surface, items, 'list', wrapRef);
@@ -93,7 +95,7 @@ export function InboxPage({
     retryButton.current = event.currentTarget;
     onRetry?.();
   };
-  // A retry that works removes its "Try again" button, and focus with it;
+  // A retry that works removes its retry button, and focus with it;
   // focus goes on to the first item, or to the list area when it is empty.
   // Only the first state change after a press counts, so a later background
   // recovery leaves focus where it is.
@@ -113,12 +115,12 @@ export function InboxPage({
   return (
     <div ref={wrapRef} className="aegis-inbox" {...agentAttrs}>
       <PageHeader
-        title="Inbox"
-        description="Workspace activity, alerts, and invites in one place."
+        title={strings.inboxTitle}
+        description={strings.inboxDescription}
         action={
           onMarkAllRead && unreadCount > 0 ? (
             <Button tone="secondary" onClick={onMarkAllRead}>
-              Mark all as read
+              {strings.markAllRead}
             </Button>
           ) : undefined
         }
@@ -130,22 +132,19 @@ export function InboxPage({
           setFilter(key === 'unread' ? 'unread' : 'all');
         }}
         items={[
-          { key: 'all', label: 'All' },
-          {
-            key: 'unread',
-            label: `Unread${unreadCount > 0 ? ` (${String(unreadCount)})` : ''}`,
-          },
+          { key: 'all', label: strings.inboxAll },
+          { key: 'unread', label: strings.inboxUnread(unreadCount) },
         ]}
       >
         {loadError ? (
           <ErrorState
             size="compact"
-            title="Couldn't load notifications"
+            title={strings.notificationsLoadFailed}
             description={loadError.message}
             action={
               onRetry && (
                 <Button tone="secondary" onClick={retry}>
-                  Try again
+                  {strings.retry}
                 </Button>
               )
             }
@@ -153,12 +152,12 @@ export function InboxPage({
         ) : (
           <div ref={panelRef} className="aegis-inbox__panel" tabIndex={-1}>
             {staleError && (
-              <Alert tone="warning" title="This list may be out of date">
+              <Alert tone="warning" title={strings.inboxStale}>
                 {staleError.message}
                 {onRetry && (
                   <span className="aegis-inbox__stale-action">
                     <Button tone="secondary" onClick={retry}>
-                      Try again
+                      {strings.retry}
                     </Button>
                   </span>
                 )}
@@ -167,12 +166,14 @@ export function InboxPage({
             {visible.length === 0 ? (
               <EmptyState
                 title={
-                  filter === 'unread' ? 'No unread items' : 'No notifications'
+                  filter === 'unread'
+                    ? strings.inboxNoUnread
+                    : strings.inboxEmptyTitle
                 }
                 description={
                   filter === 'unread'
-                    ? "You're all caught up."
-                    : 'Activity will appear here as it happens.'
+                    ? strings.notificationsCaughtUp
+                    : strings.inboxEmptyDescription
                 }
               />
             ) : (
@@ -198,7 +199,7 @@ export function InboxPage({
                             {item.title}
                           </span>
                           <span className="aegis-inbox__row-time">
-                            {relativeTime(item.timestamp)}
+                            {relativeTime(item.timestamp, strings)}
                           </span>
                         </div>
                         {item.body && (
@@ -210,7 +211,7 @@ export function InboxPage({
                           <div className="aegis-inbox__row-meta">
                             {item.severity && (
                               <Chip tone={SEVERITY_TONE[item.severity]}>
-                                {item.severity}
+                                {strings.notificationSeverity(item.severity)}
                               </Chip>
                             )}
                             {item.category && (

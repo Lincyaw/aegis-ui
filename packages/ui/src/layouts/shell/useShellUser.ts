@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import type { AegisAuthUser, AuthContextValue } from '../../auth';
+import { useStrings } from '../../locale';
 import type { AegisUser, AegisUserMenuItem } from './types';
 
 /**
@@ -12,6 +13,7 @@ export function useShellUser(
   userMenu: AegisUserMenuItem[] | undefined,
   auth: AuthContextValue<AegisAuthUser>,
 ): AegisUser | undefined {
+  const { signOut: signOutLabel } = useStrings();
   return useMemo(() => {
     if (user) {
       return user;
@@ -24,12 +26,12 @@ export function useShellUser(
     if (signOut) {
       menu.push({
         key: 'sign-out',
-        label: 'Sign out',
+        label: signOutLabel,
         onClick: () => {
           void signOut();
         },
       });
     }
     return { name: auth.user.name, menu };
-  }, [user, userMenu, auth]);
+  }, [user, userMenu, auth, signOutLabel]);
 }

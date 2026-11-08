@@ -9,6 +9,7 @@ import {
   type RelativeTimePreset,
   parseTimeRangeInput,
 } from '../../lib/timeRange';
+import { useStrings } from '../../locale';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import { TextField } from './TextField';
@@ -57,10 +58,11 @@ export function TimeRangePicker({
   onChange,
   presets = RELATIVE_TIME_PRESETS,
   now,
-  placeholder = 'Select range',
+  placeholder,
   disabled = false,
   className,
 }: TimeRangePickerProps) {
+  const strings = useStrings();
   const nowFn = now ?? ((): Date => new Date());
   const popover = useDialogPopover<HTMLDivElement>();
   const panelId = useId();
@@ -77,7 +79,13 @@ export function TimeRangePicker({
   );
 
   const triggerLabel =
-    parsedValue?.label ?? (value.length > 0 ? value : placeholder);
+    parsedValue === null
+      ? value.length > 0
+        ? value
+        : (placeholder ?? strings.timeRangePlaceholder)
+      : parsedValue.kind === 'relative'
+        ? strings.timeRangeLast(parsedValue)
+        : `${strings.formatDateTime(parsedValue.from)} → ${strings.formatDateTime(parsedValue.to)}`;
 
   const handleOpen = (next: boolean): void => {
     popover.setOpen(next);
@@ -123,7 +131,7 @@ export function TimeRangePicker({
   };
 
   const inputError =
-    input.trim().length > 0 && !parsedInput ? 'Unparseable expression' : '';
+    input.trim().length > 0 && !parsedInput ? strings.timeRangeUnparseable : '';
 
   const content = (
     <div
@@ -131,27 +139,27 @@ export function TimeRangePicker({
       id={panelId}
       className="aegis-trp__pop"
       role="dialog"
-      aria-label="Time range"
+      aria-label={strings.timeRange}
       tabIndex={-1}
     >
       <div className="aegis-trp__section">
         <TextField
-          label="Expression"
+          label={strings.timeRangeExpression}
           value={input}
-          placeholder="now-15m, yesterday 10am to today 11am, …"
+          placeholder={strings.timeRangeExpressionPlaceholder}
           error={inputError.length > 0 ? inputError : undefined}
           onChange={handleInputChange}
           onKeyDown={handleInputKeyDown}
         />
         <div className="aegis-trp__row">
           <Button tone="secondary" disabled={!parsedInput} onClick={applyInput}>
-            Apply
+            {strings.apply}
           </Button>
         </div>
       </div>
 
       <div className="aegis-trp__section">
-        <div className="aegis-trp__hint">Quick presets</div>
+        <div className="aegis-trp__hint">{strings.timeRangePresets}</div>
         <div className="aegis-trp__chips">
           {presets.map((p) => (
             <Chip
@@ -169,10 +177,12 @@ export function TimeRangePicker({
       </div>
 
       <div className="aegis-trp__section">
-        <div className="aegis-trp__hint">Absolute range</div>
+        <div className="aegis-trp__hint">{strings.timeRangeAbsolute}</div>
         <div className="aegis-trp__abs">
           <label className="aegis-trp__abs-field">
-            <span className="aegis-trp__abs-label">From</span>
+            <span className="aegis-trp__abs-label">
+              {strings.timeRangeFrom}
+            </span>
             <input
               type="datetime-local"
               className="aegis-trp__abs-input"
@@ -183,7 +193,7 @@ export function TimeRangePicker({
             />
           </label>
           <label className="aegis-trp__abs-field">
-            <span className="aegis-trp__abs-label">To</span>
+            <span className="aegis-trp__abs-label">{strings.timeRangeTo}</span>
             <input
               type="datetime-local"
               className="aegis-trp__abs-input"
@@ -198,7 +208,7 @@ export function TimeRangePicker({
             disabled={!absValid}
             onClick={handleAbsApply}
           >
-            Apply
+            {strings.apply}
           </Button>
         </div>
       </div>

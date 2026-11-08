@@ -5,7 +5,7 @@ import { json } from '@codemirror/lang-json';
 import { MySQL, sql } from '@codemirror/lang-sql';
 import { yaml } from '@codemirror/lang-yaml';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
-import { Prec } from '@codemirror/state';
+import { EditorState, Prec } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
 import CodeMirror, {
@@ -18,6 +18,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
+import { useStrings } from '../../locale';
 import './CodeEditor.css';
 
 export type CodeEditorLanguage = 'json' | 'yaml' | 'sql' | 'text';
@@ -266,6 +267,7 @@ export function CodeEditor({
   'aria-labelledby': labelledBy,
   'aria-describedby': describedBy,
 }: CodeEditorProps) {
+  const { codeEditorPhrases } = useStrings();
   const wrapRef = useRef<HTMLDivElement>(null);
   const agentAttrs = usePrimitiveSurface(
     surface,
@@ -292,7 +294,11 @@ export function CodeEditor({
   } satisfies SqlSchema);
 
   const extensions = useMemo<Extension[]>(() => {
-    const exts: Extension[] = [baseTheme, syntaxTheme];
+    const exts: Extension[] = [
+      baseTheme,
+      syntaxTheme,
+      EditorState.phrases.of(codeEditorPhrases),
+    ];
     const contentAttributes: Record<string, string> = {};
     if (id !== undefined) {
       contentAttributes.id = id;
@@ -344,7 +350,15 @@ export function CodeEditor({
       );
     }
     return exts;
-  }, [language, schemaKey, submittable, id, labelledBy, describedBy]);
+  }, [
+    language,
+    schemaKey,
+    submittable,
+    codeEditorPhrases,
+    id,
+    labelledBy,
+    describedBy,
+  ]);
 
   const rootClass = ['aegis-code-editor', className ?? '']
     .filter(Boolean)

@@ -8,6 +8,7 @@ import {
 import { DoubleLeftOutlined, DoubleRightOutlined } from '@ant-design/icons';
 
 import { useResizable } from '../../hooks/useResizable';
+import { useStrings } from '../../locale';
 import './ResizableSidePanel.css';
 
 export interface ResizableSidePanelProps {
@@ -61,6 +62,7 @@ export function ResizableSidePanel({
   stackOnMobile = false,
   className,
 }: ResizableSidePanelProps) {
+  const strings = useStrings();
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const collapsed = collapsedProp ?? internalCollapsed;
 
@@ -111,7 +113,7 @@ export function ResizableSidePanel({
         type="button"
         className={rootClass}
         onClick={expand}
-        aria-label="Expand panel"
+        aria-label={strings.expandPanel}
       >
         <span className="aegis-resizable-panel__collapse-icon">
           {side === 'left' ? <DoubleRightOutlined /> : <DoubleLeftOutlined />}
@@ -124,7 +126,7 @@ export function ResizableSidePanel({
     <div
       {...handleProps}
       className="aegis-resizable-handle"
-      aria-label="Resize panel"
+      aria-label={strings.resizePanel}
       onDoubleClick={resetOnDoubleClick ? reset : undefined}
     />
   );

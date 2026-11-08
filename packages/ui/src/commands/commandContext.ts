@@ -16,7 +16,10 @@ export interface Command<TArgs = unknown> {
   keywords?: string[];
   /** Icon node shown in the palette row. */
   icon?: ReactNode;
-  /** UI grouping (e.g. 'Quick actions', 'Navigate'). Default: 'Other'. */
+  /**
+   * UI grouping (e.g. 'Quick actions', 'Navigate'). Without one, the
+   * palette files the command under the locale's `commandGroupOther`.
+   */
   group?: string;
   /** Keybinding using 'mod' for Cmd/Ctrl, e.g. 'mod+shift+p'. */
   shortcut?: string;

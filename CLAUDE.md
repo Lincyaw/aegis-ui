@@ -274,11 +274,12 @@ pnpm lint            # turbo run lint --max-warnings 0
 pnpm lint:css        # stylelint via turbo on packages/ui
 pnpm format:check    # root prettier (packages, docs, scripts, workflows, root files), then the console's own prettier over apps/console/src
 pnpm check:gallery   # every primitive export has a gallery specimen
+pnpm check:locale    # every zh-CN text, and each function key's zh-CN output for its sample arguments, differs from the English
 pnpm check:tokens    # every CSS custom property read with var() is defined
 pnpm check:mcp-tools # apps/console/server/mcp_tools.generated.json is up to date
 pnpm build           # turbo run build (packages/ui emits dist/, console builds)
 pnpm dev             # apps/console vite dev server (gallery + demo apps)
-pnpm check           # type-check + lint + lint:css + format:check + check:gallery + check:tokens + check:mcp-tools (not build)
+pnpm check           # type-check + lint + lint:css + format:check + check:gallery + check:locale + check:tokens + check:mcp-tools (not build)
 ```
 
 CI (`.github/workflows/check.yml`) runs `pnpm check`, then `pnpm build`,
@@ -442,7 +443,7 @@ Full text: `/home/ddq/.claude/plugins/cache/autoharness/autoharness/1.1.3/refere
    Measure: `pnpm check:gallery` (runs `scripts/check-gallery-coverage.mjs` — parses both barrels, walks every `<SectionDivider>…</SectionDivider>` block including multi-line dividers and ones carrying an `extra={…}` prop, exits non-zero with the missing-primitive list when coverage < 100%). Also runs as part of `pnpm check`.
    Mechanism: **script** + **agent** confirmation (visual review in `pnpm dev` that the specimen actually renders the variants worth shipping, not just an empty placeholder). Baseline: measure with `pnpm check:gallery`.
 
-3. **All CI gates green** — `pnpm check` (type-check + lint + lint:css + format:check + check:gallery + check:tokens + check:mcp-tools) and `pnpm build` both exit 0.
+3. **All CI gates green** — `pnpm check` (type-check + lint + lint:css + format:check + check:gallery + check:locale + check:tokens + check:mcp-tools) and `pnpm build` both exit 0.
    Measure: `pnpm check && pnpm build`
    Mechanism: **script**. Baseline: measure with the command.
 
@@ -462,18 +463,19 @@ Secondary tiebreaker: **fix the primitive before the page** — see "First princ
 
 ## Dev-loop stages
 
-| Stage        | Command                                                                                      | Notes                                                                                                                                    |
-| ------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Type check   | `pnpm type-check`                                                                            | Run after every TS change                                                                                                                |
-| Lint         | `pnpm lint`                                                                                  | ESLint `--max-warnings 0` enforced                                                                                                       |
-| Lint CSS     | `pnpm lint:css`                                                                              | Stylelint over `packages/ui/src/**/*.css`                                                                                                |
-| Format       | `pnpm format:check`                                                                          | Prettier (root config, then the console's) — fix with `pnpm format`                                                                      |
-| Build        | `pnpm build`                                                                                 | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css                                                                            |
-| Full gate    | `pnpm check`                                                                                 | type-check + lint + lint:css + format:check + check:gallery + check:tokens + check:mcp-tools; run (plus `pnpm build`) before commit + PR |
-| Dev server   | `pnpm dev`                                                                                   | apps/console at `:3323` — use for dual-theme + responsive checks                                                                         |
-| Measure NS#2 | `pnpm check:gallery`                                                                         | Gallery specimen coverage (also folded into `pnpm check`)                                                                                |
-| Measure NS#4 | see north-star target 4                                                                      | Token discipline grep                                                                                                                    |
-| Bundle size  | `pnpm -F @lincyaw/aegis-ui build && du -cb packages/ui/dist/*.js packages/ui/dist/style.css` | Compare before/after primitive changes                                                                                                   |
+| Stage        | Command                                                                                      | Notes                                                                                                                                                   |
+| ------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Type check   | `pnpm type-check`                                                                            | Run after every TS change                                                                                                                               |
+| Lint         | `pnpm lint`                                                                                  | ESLint `--max-warnings 0` enforced                                                                                                                      |
+| Lint CSS     | `pnpm lint:css`                                                                              | Stylelint over `packages/ui/src/**/*.css`                                                                                                               |
+| Format       | `pnpm format:check`                                                                          | Prettier (root config, then the console's) — fix with `pnpm format`                                                                                     |
+| Build        | `pnpm build`                                                                                 | turbo: emits `packages/ui/dist/` ESM + CJS + d.ts + style.css                                                                                           |
+| Full gate    | `pnpm check`                                                                                 | type-check + lint + lint:css + format:check + check:gallery + check:locale + check:tokens + check:mcp-tools; run (plus `pnpm build`) before commit + PR |
+| Locale       | `pnpm check:locale`                                                                          | Every zh-CN text, and each function key's zh-CN output for its sample arguments, differs from the English (also folded into `pnpm check`)               |
+| Dev server   | `pnpm dev`                                                                                   | apps/console at `:3323` — use for dual-theme + responsive checks                                                                                        |
+| Measure NS#2 | `pnpm check:gallery`                                                                         | Gallery specimen coverage (also folded into `pnpm check`)                                                                                               |
+| Measure NS#4 | see north-star target 4                                                                      | Token discipline grep                                                                                                                                   |
+| Bundle size  | `pnpm -F @lincyaw/aegis-ui build && du -cb packages/ui/dist/*.js packages/ui/dist/style.css` | Compare before/after primitive changes                                                                                                                  |
 
 No unit-test runner is configured. Visual verification in `pnpm dev` is the testing substrate for primitives; type-check + lint + build catch correctness regressions.
 

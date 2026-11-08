@@ -110,24 +110,18 @@
 .aegis-object-browser__selection {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-pill);
   background: var(--bg-inverted);
   color: var(--text-on-inverted);
-  flex-shrink: 0;
-}
-
-.aegis-object-browser__selection .aegis-metric-label {
-  color: var(--text-on-inverted);
-}
-
-.aegis-object-browser__count {
-  font-family: var(--font-numeric);
+  font-family: var(--font-ui);
   font-size: var(--type-small-size);
   line-height: var(--type-small-line);
   font-weight: var(--fw-medium);
+  letter-spacing: var(--type-small-tracking);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .aegis-object-browser__search-slot {

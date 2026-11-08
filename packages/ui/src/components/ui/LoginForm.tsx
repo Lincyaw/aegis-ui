@@ -1,12 +1,12 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
+import { useStrings } from '../../locale';
 import { Alert } from './Alert';
 import { Button } from './Button';
 import { Checkbox } from './Checkbox';
 import './LoginForm.css';
 import { PasswordField } from './PasswordField';
 import { TextField } from './TextField';
-import { EMAIL_REQUIRED } from './authValidation';
 
 interface LoginFormValues {
   email: string;
@@ -42,6 +42,7 @@ export function LoginForm({
   method = 'POST',
   hiddenFields,
 }: LoginFormProps): ReactElement {
+  const strings = useStrings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -49,8 +50,8 @@ export function LoginForm({
 
   const trimmedEmail = email.trim();
   const errors = {
-    email: trimmedEmail === '' ? EMAIL_REQUIRED : undefined,
-    password: password === '' ? 'Enter your password.' : undefined,
+    email: trimmedEmail === '' ? strings.authEmailRequired : undefined,
+    password: password === '' ? strings.authPasswordRequired : undefined,
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
@@ -84,7 +85,7 @@ export function LoginForm({
           synchronously inside the submit handler — the browser would then
           serialize the form with username/password missing. */}
       <TextField
-        label="Email"
+        label={strings.authEmail}
         type="email"
         name="username"
         autoComplete="username"
@@ -96,7 +97,7 @@ export function LoginForm({
         error={submitted ? errors.email : undefined}
       />
       <PasswordField
-        label="Password"
+        label={strings.authPassword}
         name="password"
         autoComplete="current-password"
         placeholder="••••••••"
@@ -113,7 +114,7 @@ export function LoginForm({
               checked={remember}
               onChange={setRemember}
               disabled={submitting}
-              label="Remember me"
+              label={strings.authRememberMe}
             />
           ) : (
             <span />
@@ -125,7 +126,7 @@ export function LoginForm({
               onClick={onForgotPassword}
               disabled={submitting}
             >
-              Forgot password?
+              {strings.authForgotPassword}
             </button>
           )}
         </div>
@@ -136,7 +137,7 @@ export function LoginForm({
         className="aegis-loginform__submit"
         disabled={submitting}
       >
-        {submitting ? 'Signing in…' : 'Sign in'}
+        {submitting ? strings.authSigningIn : strings.signIn}
       </Button>
     </form>
   );
