@@ -478,6 +478,21 @@ export const CHAOS_TYPES: ChaosTypeDef[] = [
     blastHint: 'service',
   },
   {
+    name: 'HTTPResponseReplaceBody',
+    family: 'http',
+    description: 'Replace the body of matching responses with an empty one.',
+    params: ['route', 'httpMethod'],
+    blastHint: 'service',
+  },
+  {
+    name: 'HTTPResponsePatchBody',
+    family: 'http',
+    description:
+      "Patch the JSON body of matching responses with the server's default patch.",
+    params: ['route', 'httpMethod'],
+    blastHint: 'service',
+  },
+  {
     name: 'DNSError',
     family: 'dns',
     description: 'Answer lookups with an error.',
