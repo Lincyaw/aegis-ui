@@ -37,6 +37,13 @@ export interface NotificationContextValue<TItem = AegisNotification> {
    * shows it with a retry through `refetch`.
    */
   error?: Error | null;
+  /**
+   * Why live updates (a poll, a real-time stream) are failing, or null
+   * once one succeeds again. `items` stay as last loaded: the bell shows a
+   * caution and the inbox a notice that they may be out of date, with a
+   * retry through `refetch`.
+   */
+  liveError?: Error | null;
   markRead?: (id: string) => Promise<void> | void;
   markAllRead?: () => Promise<void> | void;
   archive?: (id: string) => Promise<void> | void;

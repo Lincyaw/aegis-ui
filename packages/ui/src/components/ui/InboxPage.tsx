@@ -5,6 +5,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
 import type { AegisNotification } from '../../notifications';
+import { Alert } from './Alert';
 import { Avatar } from './Avatar';
 import { Button } from './Button';
 import { Chip } from './Chip';
@@ -32,7 +33,12 @@ export interface InboxPageProps {
   onMarkAllRead?: () => void;
   /** Set when the items failed to load; shown in place of the list. */
   error?: Error | null;
-  /** Renders a retry button alongside `error`. */
+  /**
+   * Set while live updates are failing; a notice above the list says it
+   * may be out of date, and the list stays.
+   */
+  liveError?: Error | null;
+  /** Renders a retry button alongside `error` and `liveError`. */
   onRetry?: () => void;
   defaultFilter?: Filter;
   surface?: InboxPageSurface;
@@ -54,6 +60,7 @@ export function InboxPage({
   onOpen,
   onMarkAllRead,
   error,
+  liveError,
   onRetry,
   defaultFilter = 'all',
   surface,
@@ -107,61 +114,81 @@ export function InboxPage({
               )
             }
           />
-        ) : visible.length === 0 ? (
-          <EmptyState
-            title={filter === 'unread' ? 'No unread items' : 'No notifications'}
-            description={
-              filter === 'unread'
-                ? "You're all caught up."
-                : 'Activity will appear here as it happens.'
-            }
-          />
         ) : (
-          <ul className="aegis-inbox__list">
-            {visible.map((item) => (
-              <li key={item.id} className="aegis-inbox__row-wrap">
-                <button
-                  type="button"
-                  className={[
-                    'aegis-inbox__row',
-                    item.read ? '' : 'aegis-inbox__row--unread',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  onClick={() => {
-                    onOpen?.(item);
-                  }}
-                >
-                  <Avatar name={item.actor ?? item.title} size="md" />
-                  <div className="aegis-inbox__row-body">
-                    <div className="aegis-inbox__row-head">
-                      <span className="aegis-inbox__row-title">
-                        {item.title}
-                      </span>
-                      <span className="aegis-inbox__row-time">
-                        {relativeTime(item.timestamp)}
-                      </span>
-                    </div>
-                    {item.body && (
-                      <div className="aegis-inbox__row-text">{item.body}</div>
-                    )}
-                    {(item.category ?? item.severity) && (
-                      <div className="aegis-inbox__row-meta">
-                        {item.severity && (
-                          <Chip tone={SEVERITY_TONE[item.severity]}>
-                            {item.severity}
-                          </Chip>
+          <div className="aegis-inbox__panel">
+            {liveError && (
+              <Alert tone="warning" title="This list may be out of date">
+                {liveError.message}
+                {onRetry && (
+                  <span className="aegis-inbox__stale-action">
+                    <Button tone="secondary" onClick={onRetry}>
+                      Try again
+                    </Button>
+                  </span>
+                )}
+              </Alert>
+            )}
+            {visible.length === 0 ? (
+              <EmptyState
+                title={
+                  filter === 'unread' ? 'No unread items' : 'No notifications'
+                }
+                description={
+                  filter === 'unread'
+                    ? "You're all caught up."
+                    : 'Activity will appear here as it happens.'
+                }
+              />
+            ) : (
+              <ul className="aegis-inbox__list">
+                {visible.map((item) => (
+                  <li key={item.id} className="aegis-inbox__row-wrap">
+                    <button
+                      type="button"
+                      className={[
+                        'aegis-inbox__row',
+                        item.read ? '' : 'aegis-inbox__row--unread',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      onClick={() => {
+                        onOpen?.(item);
+                      }}
+                    >
+                      <Avatar name={item.actor ?? item.title} size="md" />
+                      <div className="aegis-inbox__row-body">
+                        <div className="aegis-inbox__row-head">
+                          <span className="aegis-inbox__row-title">
+                            {item.title}
+                          </span>
+                          <span className="aegis-inbox__row-time">
+                            {relativeTime(item.timestamp)}
+                          </span>
+                        </div>
+                        {item.body && (
+                          <div className="aegis-inbox__row-text">
+                            {item.body}
+                          </div>
                         )}
-                        {item.category && (
-                          <Chip tone="ghost">{item.category}</Chip>
+                        {(item.category ?? item.severity) && (
+                          <div className="aegis-inbox__row-meta">
+                            {item.severity && (
+                              <Chip tone={SEVERITY_TONE[item.severity]}>
+                                {item.severity}
+                              </Chip>
+                            )}
+                            {item.category && (
+                              <Chip tone="ghost">{item.category}</Chip>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </Tabs>
     </div>

@@ -65,6 +65,12 @@ export function RealNotificationProvider({
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  // Live updates fail on their own: the count poll and the stream each
+  // hold their last failure until they next succeed.
+  const [pollError, setPollError] = useState<Error | null>(null);
+  const [streamError, setStreamError] = useState<Error | null>(null);
+  // Reconnects the stream at once while it is waiting out its backoff.
+  const reconnectStreamNow = useRef<(() => void) | null>(null);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -83,6 +89,8 @@ export function RealNotificationProvider({
       setItems(list.items);
       setUnread(list.unread_count);
       setError(null);
+      // The list carries the unread count, so the count is current again.
+      setPollError(null);
     } catch (err) {
       if (mounted.current) {
         setError(new Error(errMsg(err)));
@@ -99,11 +107,17 @@ export function RealNotificationProvider({
       const c = await unreadCountCall();
       if (mounted.current) {
         setUnread(c.unread_count);
+        setPollError(null);
       }
-    } catch {
+    } catch (err) {
       // `error` reports the items failing to load; the list is still what the
       // server last returned, so a failed count poll keeps the last count
-      // until the next poll or stream event corrects it.
+      // and reports the inbox as possibly out of date instead.
+      if (mounted.current) {
+        setPollError(
+          new Error(`Couldn't refresh the unread count: ${errMsg(err)}`)
+        );
+      }
     }
   }, []);
 
@@ -114,6 +128,8 @@ export function RealNotificationProvider({
       setUnread(0);
       setLoading(false);
       setError(null);
+      setPollError(null);
+      setStreamError(null);
       return;
     }
     void refetch();
@@ -161,12 +177,14 @@ export function RealNotificationProvider({
     };
 
     const connect = (): void => {
+      timer = undefined;
       if (stopped) {
         return;
       }
       controller = openSseStream({
         url: gatewayUrlFor(STREAM_URL),
         onOpen: () => {
+          setStreamError(null);
           healthyTimer = window.setTimeout(markHealthy, STREAM_HEALTHY_MS);
           if (reconnecting) {
             reconnecting = false;
@@ -180,13 +198,23 @@ export function RealNotificationProvider({
           }
           // 'ping' heartbeats only mark the stream healthy.
         },
-        onError: reconnect,
+        onError: (err) => {
+          setStreamError(new Error(`Live updates stopped: ${errMsg(err)}`));
+          reconnect();
+        },
         onClose: reconnect,
       });
     };
 
+    reconnectStreamNow.current = () => {
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+        connect();
+      }
+    };
     connect();
     return () => {
+      reconnectStreamNow.current = null;
       stopped = true;
       window.clearTimeout(timer);
       window.clearTimeout(healthyTimer);
@@ -236,18 +264,36 @@ export function RealNotificationProvider({
     [msg, refetch]
   );
 
+  // A retry also cuts short the stream's wait to reconnect.
+  const retry = useCallback(async (): Promise<void> => {
+    reconnectStreamNow.current?.();
+    await refetch();
+  }, [refetch]);
+
+  const liveError = streamError ?? pollError;
   const value = useMemo<NotificationContextValue>(
     () => ({
       items,
       unreadCount: unread,
       loading,
       error,
+      liveError,
       markRead,
       markAllRead,
       archive,
-      refetch,
+      refetch: retry,
     }),
-    [items, unread, loading, error, markRead, markAllRead, archive, refetch]
+    [
+      items,
+      unread,
+      loading,
+      error,
+      liveError,
+      markRead,
+      markAllRead,
+      archive,
+      retry,
+    ]
   );
 
   return <NotificationProvider value={value}>{children}</NotificationProvider>;

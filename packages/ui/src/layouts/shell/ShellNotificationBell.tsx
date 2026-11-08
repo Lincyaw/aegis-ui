@@ -11,12 +11,13 @@ export function ShellNotificationBell({
 }: {
   inboxPath: string;
 }): ReactElement {
-  const { items, unreadCount } = useNotifications();
+  const { items, unreadCount, liveError } = useNotifications();
   const open = useOpenNotification();
   return (
     <NotificationBell
       items={items}
       unreadCount={unreadCount}
+      liveError={liveError}
       onOpen={open}
       inboxPath={inboxPath}
       linkComponent={RouterLink}
