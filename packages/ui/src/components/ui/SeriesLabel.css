@@ -50,8 +50,12 @@
   outline-offset: var(--focus-ring-offset);
 }
 
+/* Gives up its room faster than the name, which identifies the series. */
 .aegis-series-label__detail {
-  flex-shrink: 0;
+  flex-shrink: 2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: var(--font-ui);
   font-size: var(--type-small-size);
   line-height: var(--type-small-line);

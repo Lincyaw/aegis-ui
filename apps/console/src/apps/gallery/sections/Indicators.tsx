@@ -203,7 +203,7 @@ function ParetoChartSpecimen(): ReactNode {
   const [selected, setSelected] = useState('none');
   return (
     <Specimen
-      caption={`formatX · formatY · zero-based axes · per-point color · frontier labels · legend · last: ${selected}`}
+      caption={`formatX · formatY · zero-based axes · per-point color · frontier labels, each beside its point clear of the frontier, the other points and labels and the axis title · legend · last: ${selected}`}
       span={3}
     >
       <ParetoChart

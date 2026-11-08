@@ -114,7 +114,8 @@ button.aegis-rank-bar__track:active {
   top: 50%;
   height: var(--chart-interval-weight);
   margin-top: calc(var(--chart-interval-weight) / -2);
-  background: var(--text-main);
+  background: var(--chart-interval-color);
+  outline: var(--size-hairline) solid var(--chart-interval-halo);
 }
 
 /* A zero score still marks the axis start — an empty track reads as missing. */

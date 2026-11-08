@@ -513,8 +513,13 @@
   /* Thin bars: RankBar size='sm', ResultMatrix shape='bar'. */
   --rank-bar-height-sm: var(--space-2);
   --result-matrix-bar: 7px;
-  /* A bar's confidence interval, drawn over it in the main ink. */
+  /* A bar's confidence interval (ColumnChart, RankBar), drawn over it in a
+   * faint ink inside a hairline halo of the panel colour, so it shows on a
+   * bar of any colour, the ink bar included. */
   --chart-interval-weight: var(--size-border-thick);
+  --chart-interval-color: var(--text-faint);
+  --chart-interval-halo: var(--bg-panel);
+  /* DotRangeChart: the line joining a before and an after. */
   --chart-interval-opacity: 0.35;
   /* ColumnChart: the plot, a bar and the space its axis labels sit in. */
   --column-chart-plot-height: 320px;

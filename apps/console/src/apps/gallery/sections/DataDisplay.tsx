@@ -231,7 +231,7 @@ export function DataDisplaySection() {
             <SparkLine points={SPARK_DIP} />
           </div>
         </Specimen>
-        <Specimen caption='flat (low signal)'>
+        <Specimen caption='flat (low signal) · varies by less than a quarter of its value, so it is drawn small about the middle'>
           <div className='gallery__spark-host'>
             <SparkLine points={SPARK_FLAT} />
           </div>
