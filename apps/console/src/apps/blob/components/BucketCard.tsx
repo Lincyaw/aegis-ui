@@ -3,9 +3,9 @@ import type { ReactElement } from 'react';
 import {
   Chip,
   formatBytes,
-  MetricLabel,
   MonoValue,
   Panel,
+  StatBlock,
 } from '@lincyaw/aegis-ui';
 
 import type { BucketSummary } from '../../../api/blobClient';
@@ -23,10 +23,10 @@ export function BucketCard({ bucket, to }: BucketCardProps): ReactElement {
     bucket.max_object_bytes !== undefined && bucket.max_object_bytes > 0
       ? formatBytes(bucket.max_object_bytes)
       : 'No limit';
-  const retention =
+  const keeps =
     bucket.retention_days !== undefined && bucket.retention_days > 0
-      ? `${bucket.retention_days.toString()} days`
-      : 'Kept';
+      ? bucket.retention_days
+      : null;
   return (
     <Panel
       title={<MonoValue size='lg'>{bucket.name}</MonoValue>}
@@ -39,20 +39,15 @@ export function BucketCard({ bucket, to }: BucketCardProps): ReactElement {
         </>
       }
     >
-      <dl className='blob-bucket-card__stats'>
-        <div className='blob-bucket-card__stat'>
-          <dt>
-            <MetricLabel>Max object</MetricLabel>
-          </dt>
-          <dd className='blob-bucket-card__value'>{maxObject}</dd>
-        </div>
-        <div className='blob-bucket-card__stat'>
-          <dt>
-            <MetricLabel>Retention</MetricLabel>
-          </dt>
-          <dd className='blob-bucket-card__value'>{retention}</dd>
-        </div>
-      </dl>
+      <div className='blob-bucket-card__stats'>
+        <StatBlock direction='vertical' label='Max object' value={maxObject} />
+        <StatBlock
+          direction='vertical'
+          label='Retention'
+          value={keeps ?? 'Kept'}
+          unit={keeps === null ? undefined : 'days'}
+        />
+      </div>
     </Panel>
   );
 }
