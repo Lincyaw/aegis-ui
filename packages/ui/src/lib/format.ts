@@ -1,4 +1,4 @@
-import { niceTicks } from './chart';
+import { niceStep } from './chart';
 
 const BYTE_UNITS = ['KB', 'MB', 'GB', 'TB'];
 
@@ -121,11 +121,27 @@ export interface DurationTick {
   label: string;
 }
 
+const MAX_DURATION_TICKS = 50;
+
+/** The largest 1, 2 or 5 × 10ⁿ step not above `span`. */
+function largestNiceStep(span: number): number {
+  let base = 10 ** Math.floor(Math.log10(span));
+  // Math.log10 can land a hair off a power of ten.
+  if (base * 10 <= span) {
+    base *= 10;
+  } else if (base > span) {
+    base /= 10;
+  }
+  const normalized = span / base;
+  return (normalized >= 5 ? 5 : normalized >= 2 ? 2 : 1) * base;
+}
+
 /**
- * About `count` ticks from 0 to `rangeMs` for a duration axis. Every tick is
- * labelled in the one unit the range calls for, at round values of that
- * unit and with the decimals their step needs: `0.0 s | 0.5 s | 1.0 s`, never
- * a mix such as `500 ms | 1.00 s`.
+ * About `count` ticks from 0 to `rangeMs` for a duration axis, never fewer
+ * than two and never one past `rangeMs`. Every tick is labelled in the one
+ * unit the range calls for, at round values of that unit and with the
+ * decimals their step needs: `0.0 s | 0.5 s | 1.0 s`, never a mix such as
+ * `500 ms | 1.00 s`.
  */
 export function durationTicks(rangeMs: number, count: number): DurationTick[] {
   if (!(rangeMs > 0) || !Number.isFinite(rangeMs)) {
@@ -137,11 +153,25 @@ export function durationTicks(rangeMs: number, count: number): DurationTick[] {
       unit = candidate;
     }
   }
-  const values = niceTicks(0, rangeMs / unit.ms, Math.max(count, 1));
-  const step = values.length > 1 ? values[1] - values[0] : 1;
+  const span = rangeMs / unit.ms;
+  // Absorbs the rounding of a tick computed as index × step; anything
+  // further out is past the range.
+  const limit = span * (1 + 1e-12);
+  let step = niceStep(span / Math.max(count, 1));
+  if (step > limit) {
+    step = largestNiceStep(span);
+  }
   const decimals = Math.max(0, -Math.floor(Math.log10(step) + 1e-9));
-  return values.map((value) => ({
-    ms: value * unit.ms,
-    label: `${value.toFixed(decimals)} ${unit.symbol}`,
-  }));
+  const ticks: DurationTick[] = [];
+  for (let i = 0; ticks.length < MAX_DURATION_TICKS; i += 1) {
+    const value = Number((i * step).toFixed(decimals));
+    if (value > limit) {
+      break;
+    }
+    ticks.push({
+      ms: Math.min(value * unit.ms, rangeMs),
+      label: `${value.toFixed(decimals)} ${unit.symbol}`,
+    });
+  }
+  return ticks;
 }
