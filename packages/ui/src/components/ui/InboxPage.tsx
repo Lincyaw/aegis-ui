@@ -31,11 +31,15 @@ export interface InboxPageProps {
   onOpen?: (item: AegisNotification) => void;
   /** Renders "Mark all as read" while anything is unread. */
   onMarkAllRead?: () => void;
-  /** Set when the items failed to load; shown in place of the list. */
+  /**
+   * Set when loading failed. With no `items` it is shown in place of the
+   * list; items from an earlier load stay under a notice, as for
+   * `liveError`.
+   */
   error?: Error | null;
   /**
-   * Set while live updates are failing; a notice above the list says it
-   * may be out of date, and the list stays.
+   * Set while keeping the items current is failing; a notice above the
+   * list says it may be out of date, and the list stays.
    */
   liveError?: Error | null;
   /** Renders a retry button alongside `error` and `liveError`. */
@@ -73,6 +77,8 @@ export function InboxPage({
     () => (filter === 'unread' ? items.filter((n) => !n.read) : items),
     [items, filter],
   );
+  const loadError = items.length === 0 ? error : null;
+  const staleError = liveError ?? (items.length === 0 ? null : error);
 
   return (
     <div ref={wrapRef} className="aegis-inbox" {...agentAttrs}>
@@ -101,11 +107,11 @@ export function InboxPage({
           },
         ]}
       >
-        {error ? (
+        {loadError ? (
           <ErrorState
             size="compact"
             title="Couldn't load notifications"
-            description={error.message}
+            description={loadError.message}
             action={
               onRetry && (
                 <Button tone="secondary" onClick={onRetry}>
@@ -116,9 +122,9 @@ export function InboxPage({
           />
         ) : (
           <div className="aegis-inbox__panel">
-            {liveError && (
+            {staleError && (
               <Alert tone="warning" title="This list may be out of date">
-                {liveError.message}
+                {staleError.message}
                 {onRetry && (
                   <span className="aegis-inbox__stale-action">
                     <Button tone="secondary" onClick={onRetry}>

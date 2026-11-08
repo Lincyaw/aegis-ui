@@ -12,12 +12,17 @@ Changed behaviour:
   when no agent is connected. On unmount focus returns to the element that
   had it. A host that renders an inline panel should mount it when the user
   opens it, not on page load.
+- `NotificationContextValue.error` means only a load that left no list to
+  show. Once a list has loaded, a provider reports a failed refresh or retry
+  through `liveError` and keeps `items`. `InboxPage` follows the same rule:
+  an `error` with `items` keeps them under the out-of-date notice, and only
+  an `error` with no items replaces the list.
 
 New API:
 
-- `NotificationContextValue.liveError`: set while live updates (a poll, a
-  real-time stream) are failing, cleared when one succeeds. `error` still
-  means the list failed to load.
+- `NotificationContextValue.liveError`: set while keeping the list current
+  fails (a poll, a real-time stream, or a refresh or retry of a list that
+  has loaded), cleared when that succeeds.
 - `NotificationBell` takes `liveError`. It draws a caution mark opposite the
   unread badge, which stays, describes the bell as possibly out of date and
   says so at the top of its popover. `ShellNotificationBell` fills it from
