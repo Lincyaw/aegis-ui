@@ -33,10 +33,21 @@ Breaking:
 - `CommandPalette` files a command with no `group` under the catalogue's
   `commandGroupOther` (`Other`, `其他`), so a `groupOrder` that names the
   ungrouped bucket must use that value.
-- `SavedQueryBar`'s chip menu button is named `More actions for <name>`,
-  like the other row menus, instead of `Options for <name>`.
-- `RouteErrorBoundary`'s button reads `Retry` instead of `Try again`, the
-  same word as every other retry.
+- Some English wording changes, so an English host sees:
+  - `TimeRangePicker`'s trigger reads `Last 15 minutes` instead of
+    `Last 15m`, in the UI font instead of the mono font.
+  - `ServiceMap`'s controls read `Zoom in`, `Zoom out`, `Fit to view`,
+    `Map controls` and `Mini map` instead of React Flow's `Zoom In`,
+    `Zoom Out`, `Fit View`, `Control Panel` and `Mini Map`. An edge is
+    named by its services' labels, `gateway to auth-service`, instead of
+    `Edge from gateway to auth` by their ids, and a node or edge is
+    described as a `service` or a `connection` instead of a `node` or an
+    `edge`.
+  - `ObjectBrowser`'s selection reads `2 selected` instead of `2 Selected`.
+  - `SavedQueryBar`'s chip menu button is named `More actions for <name>`,
+    like the other row menus, instead of `Options for <name>`.
+  - `RouteErrorBoundary`'s button reads `Retry` instead of `Try again`,
+    the same word as every other retry.
 - `FilePreview` and `ParquetViewer` show a non-`Error` rejection as its
   string instead of a fixed English message.
 
@@ -98,6 +109,12 @@ Fixes:
   English whatever the browser's language.
 - `Avatar`'s presence dot is an image named by its status in the
   catalogue's language (`Busy`, `忙碌`) instead of the raw `busy`.
+- `ServiceMap`'s keyboard selection reaches the host: Enter or Space on a
+  focused node or edge calls `onNodeClick` or `onEdgeClick`, as a click
+  does. Nodes can be focused, clicked and selected only when
+  `onNodeClick` is passed, and edges only when `onEdgeClick` is; without
+  the handler they carry no keyboard help. A focused node or edge shows
+  the focus ring, and the `selectedNodeId` node is `aria-current`.
 - The zh-CN empty states share one form (`暂无条目`, `暂无上传任务`,
   `暂无属性`), and the resize handles one wording (`调整…宽度`).
 - `Carousel` balances a tab label that wraps, so a four-character Chinese
@@ -108,3 +125,6 @@ Console:
 - The gallery header has an English / 中文 switch that renders every
   specimen with `enStrings` or `zhCNStrings`; `?lang=zh-CN` keeps the
   choice in a review link.
+- The microservice `ServiceMap` specimen passes `onNodeClick` and
+  `onEdgeClick` and shows what a click, Enter or Space chose; the session
+  DAG specimen passes neither.
