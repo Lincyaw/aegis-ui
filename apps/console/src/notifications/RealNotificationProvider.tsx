@@ -221,12 +221,9 @@ export function RealNotificationProvider({
       });
     };
 
-    // The retry that calls this fetches the list itself, so this reconnect
-    // skips the refetch a reconnect makes once it opens.
     reconnectStreamNow.current = () => {
       if (timer !== undefined) {
         window.clearTimeout(timer);
-        reconnecting = false;
         connect();
       }
     };
