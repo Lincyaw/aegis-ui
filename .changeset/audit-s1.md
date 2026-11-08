@@ -34,6 +34,9 @@ Fixes:
 
 - `DataTable`, `EventTable` and `TimelineChart` draw the focus ring,
   inset, around a focused scroller, over sticky headers and cells.
+  `DataTable`'s ring hugs the scroller and leaves out the pagination
+  footer: the scroller now sits in its own `.aegis-data-table__scroll-frame`
+  box, which draws the ring.
   `TimeRangePicker`'s trigger, `PasswordField`'s show button,
   `ObjectBrowser`'s tree items and `SavedQueryBar`'s chips, menu and
   "+N more" button draw the focus ring instead of a grey outline, and
@@ -55,7 +58,10 @@ Fixes:
   in `SavedQueryBar` and `ObjectBrowser`.
 - `TimeRangePicker`'s popover keeps a margin from the screen's edges on a
   phone; its hints and From / To labels are no longer uppercase, and its
-  date inputs use tabular figures.
-- `SavedQueryBar`'s "Save current" label is no longer uppercase, and its
-  delete action uses the caution ink instead of anomaly red.
+  date inputs use tabular figures and take `--radius-md`.
+- `SavedQueryBar`'s "Save current" label is no longer uppercase. Its
+  delete action uses the caution text colour, `--text-warn`, instead of
+  anomaly red, in the chip menu and the overflow list. "Save current" and
+  the save form's Cancel and Save are pills (`--radius-pill`), and the name
+  field takes `--radius-xs`, nested inside the popover's corner.
 - `Skeleton` is visible on dark surfaces.

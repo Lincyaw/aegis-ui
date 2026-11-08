@@ -571,7 +571,8 @@
   --score-bar-track-height: 6px;
   --run-pips-dot: 8px;
   --run-pips-bar-width: 64px;
-  /* TimelineChart's label column; at 768 px and below the chart sets it to 40%. */
+  /* TimelineChart's label column. At 768 px and below the chart has no label
+   * column: each name sits on its own line above its bar. */
   --timeline-chart-label-width: 280px;
   /* Tabs: the selected tab's pill, which stands out lighter than its track. */
   --tabs-indicator-bg: var(--bg-panel);

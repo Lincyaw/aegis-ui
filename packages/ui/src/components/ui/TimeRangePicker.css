@@ -118,7 +118,7 @@
   color: var(--text-main);
   background: var(--bg-page);
   border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: var(--space-1) var(--space-2);
   transition:
     border-color var(--motion-fast),

@@ -183,7 +183,7 @@
 }
 
 .aegis-sqb__menu-item--danger {
-  color: var(--ink-warn);
+  color: var(--text-warn);
 }
 
 .aegis-sqb__overflow-list {
@@ -239,7 +239,7 @@
 }
 
 .aegis-sqb__overflow-icon--danger:hover {
-  color: var(--ink-warn);
+  color: var(--text-warn);
 }
 
 .aegis-sqb__save-trigger {
@@ -248,7 +248,7 @@
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
   border: var(--size-hairline) dashed var(--border-emphasis);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   background: transparent;
   font-family: var(--font-ui);
   font-size: var(--fs-11);
@@ -288,10 +288,11 @@
   color: var(--text-muted);
 }
 
+/* The field sits --space-4 inside the popover's --radius-lg corner. */
 .aegis-sqb__save-input {
   padding: var(--space-1) var(--space-2);
   border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   background: var(--bg-page);
   color: var(--text-main);
   font-family: var(--font-ui);
@@ -317,7 +318,7 @@
 .aegis-sqb__save-cancel,
 .aegis-sqb__save-submit {
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   font-family: var(--font-ui);
   font-size: var(--fs-11);
   font-weight: var(--fw-medium);

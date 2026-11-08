@@ -26,13 +26,26 @@
 }
 
 /* A table wider than its scroller makes the scroller a tab stop. Its ring
- * is drawn inside the table, over the sticky cells that would cover the
- * scroller's own outline, so neither the frame nor the cells hide it. */
+ * is drawn by the frame around the scroller alone, inside it and over the
+ * sticky cells that would cover the scroller's own outline, so neither the
+ * table's frame nor the cells hide it and it leaves out the pagination. */
+.aegis-data-table__scroll-frame {
+  position: relative;
+  border-radius: inherit;
+}
+
+.aegis-data-table__scroll-frame:not(:last-child) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .aegis-data-table__scroll:focus-visible {
   outline: var(--focus-ring-width) solid transparent;
 }
 
-.aegis-data-table:has(> .aegis-data-table__scroll:focus-visible)::after {
+.aegis-data-table__scroll-frame:has(
+    > .aegis-data-table__scroll:focus-visible
+  )::after {
   content: '';
   position: absolute;
   inset: 0;
