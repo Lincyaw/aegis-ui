@@ -464,6 +464,7 @@ function SelectSpecimen(): ReactNode {
 function NumberFieldSpecimen(): ReactNode {
   const [delay, setDelay] = useState<number | undefined>(200);
   const [offset, setOffset] = useState<number | undefined>(-30);
+  const [ratio, setRatio] = useState<number | undefined>(undefined);
   return (
     <>
       <Specimen caption='integer · unit · ↑↓ step, PageUp/Down ×10 · type 1.5 to see the refusal'>
@@ -491,6 +492,15 @@ function NumberFieldSpecimen(): ReactNode {
               : undefined
           }
           onChange={setOffset}
+        />
+      </Specimen>
+      <Specimen caption='decimal · placeholder · helper text'>
+        <NumberField
+          label='Ratio'
+          value={ratio}
+          placeholder='0.5'
+          helperText='Any number; decimals allowed.'
+          onChange={setRatio}
         />
       </Specimen>
     </>
@@ -976,17 +986,6 @@ export function IndicatorsSection() {
       <SectionDivider>NumberField</SectionDivider>
       <div className='gallery__row'>
         <NumberFieldSpecimen />
-        <Specimen caption='decimal · placeholder · helper text'>
-          <NumberField
-            label='Ratio'
-            value={undefined}
-            placeholder='0.5'
-            helperText='Any number; decimals allowed.'
-            onChange={() => {
-              /* no-op */
-            }}
-          />
-        </Specimen>
         <Specimen caption='no label · ariaLabel · disabled'>
           <NumberField
             ariaLabel='Workers'

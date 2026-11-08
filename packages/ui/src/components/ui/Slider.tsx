@@ -55,9 +55,9 @@ export function Slider({
             {label}
           </label>
         )}
-        <output htmlFor={inputId} className="aegis-slider__value">
+        <span className="aegis-slider__value" aria-hidden="true">
           {shown}
-        </output>
+        </span>
       </div>
       <input
         type="range"
