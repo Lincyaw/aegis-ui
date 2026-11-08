@@ -63,9 +63,6 @@ export function NotificationBell({
   };
 
   const content = (
-    // The dialog takes Escape and Tab for the controls inside it. The rule
-    // allows that on <dialog> but cannot see role="dialog".
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       ref={popover.panelRef}
       id={panelId}
@@ -74,7 +71,6 @@ export function NotificationBell({
       role="dialog"
       aria-labelledby={`${panelId}-title`}
       tabIndex={-1}
-      onKeyDown={popover.onPanelKeyDown}
     >
       <div className="aegis-notif-pop__head">
         <span id={`${panelId}-title`} className="aegis-notif-pop__title">

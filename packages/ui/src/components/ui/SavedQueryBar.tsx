@@ -455,9 +455,6 @@ function OverflowQueries({
 }: OverflowQueriesProps) {
   const popover = useDialogPopover<HTMLDivElement>();
   const content = (
-    // The dialog takes Escape and Tab for the controls inside it. The rule
-    // allows that on <dialog> but cannot see role="dialog".
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       ref={popover.panelRef}
       id={panelId}
@@ -465,7 +462,6 @@ function OverflowQueries({
       role="dialog"
       aria-label="More saved queries"
       tabIndex={-1}
-      onKeyDown={popover.onPanelKeyDown}
     >
       <ul className="aegis-sqb__overflow-list">
         {items.map((q) => (
@@ -598,9 +594,6 @@ function SaveCurrentControl({
   };
 
   const content = (
-    // The dialog takes Escape and Tab for the controls inside it. The rule
-    // allows that on <dialog> but cannot see role="dialog".
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <form
       ref={popover.panelRef}
       id={formId}
@@ -608,7 +601,6 @@ function SaveCurrentControl({
       role="dialog"
       aria-label="Save the current query"
       tabIndex={-1}
-      onKeyDown={popover.onPanelKeyDown}
       onSubmit={handleSubmit}
     >
       <label className="aegis-sqb__save-label" htmlFor={nameId}>

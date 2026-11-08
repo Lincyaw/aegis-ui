@@ -1,5 +1,5 @@
 import {
-  type KeyboardEvent,
+  type RefCallback,
   type RefObject,
   useCallback,
   useEffect,
@@ -16,8 +16,8 @@ export interface DialogPopover<P extends HTMLElement> {
   /** Closes the popover and hands focus back to the trigger. */
   close: () => void;
   triggerRef: RefObject<HTMLButtonElement>;
-  panelRef: RefObject<P>;
-  onPanelKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
+  /** The panel's ref; the hook listens on the panel for Escape and Tab. */
+  panelRef: RefCallback<P>;
 }
 
 /**
@@ -27,11 +27,13 @@ export interface DialogPopover<P extends HTMLElement> {
  * first control on open. Escape, and Tab past the last control or
  * Shift+Tab past the first or from the panel itself, close it and hand
  * focus back to the trigger, from where Tab carries on through the page.
+ * Escape stops at the panel, so a dialog or drawer around the trigger
+ * stays open.
  */
 export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<P>(null);
+  const panel = useRef<P | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -40,8 +42,8 @@ export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
     // The portal container is attached in the popover's own effects, so
     // wait a frame before looking for the panel.
     const frame = requestAnimationFrame(() => {
-      const panel = panelRef.current;
-      (panel?.querySelector<HTMLElement>(TABBABLE) ?? panel)?.focus({
+      const node = panel.current;
+      (node?.querySelector<HTMLElement>(TABBABLE) ?? node)?.focus({
         preventScroll: true,
       });
     });
@@ -55,10 +57,13 @@ export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
     triggerRef.current?.focus();
   }, []);
 
-  const onPanelKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLElement>) => {
-      if (event.key === 'Escape' && !event.nativeEvent.isComposing) {
-        // Stops here, so a dialog or drawer around the trigger stays open.
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      const node = panel.current;
+      if (!node) {
+        return;
+      }
+      if (event.key === 'Escape' && !event.isComposing) {
         event.preventDefault();
         event.stopPropagation();
         close();
@@ -67,14 +72,13 @@ export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
       if (event.key !== 'Tab') {
         return;
       }
-      const panel = event.currentTarget;
       const tabbable = Array.from(
-        panel.querySelectorAll<HTMLElement>(TABBABLE),
+        node.querySelectorAll<HTMLElement>(TABBABLE),
       ).filter((element) => element.getClientRects().length > 0);
       // The panel itself holds focus when it has no control or after a click
       // on its background; Shift+Tab from there leaves it too.
       const atEdge = event.shiftKey
-        ? event.target === panel || event.target === tabbable[0]
+        ? event.target === node || event.target === tabbable[0]
         : tabbable.length === 0 ||
           event.target === tabbable[tabbable.length - 1];
       if (!atEdge) {
@@ -90,5 +94,15 @@ export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
     [close],
   );
 
-  return { open, setOpen, close, triggerRef, panelRef, onPanelKeyDown };
+  // Listening from the moment the panel mounts, before focus moves into it.
+  const panelRef = useCallback(
+    (node: P | null) => {
+      panel.current?.removeEventListener('keydown', onKeyDown);
+      panel.current = node;
+      node?.addEventListener('keydown', onKeyDown);
+    },
+    [onKeyDown],
+  );
+
+  return { open, setOpen, close, triggerRef, panelRef };
 }

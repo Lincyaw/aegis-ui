@@ -126,9 +126,6 @@ export function TimeRangePicker({
     input.trim().length > 0 && !parsedInput ? 'Unparseable expression' : '';
 
   const content = (
-    // The dialog takes Escape and Tab for the controls inside it. The rule
-    // allows that on <dialog> but cannot see role="dialog".
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       ref={popover.panelRef}
       id={panelId}
@@ -136,7 +133,6 @@ export function TimeRangePicker({
       role="dialog"
       aria-label="Time range"
       tabIndex={-1}
-      onKeyDown={popover.onPanelKeyDown}
     >
       <div className="aegis-trp__section">
         <TextField
