@@ -122,7 +122,8 @@ const DARK: Palette = {
   shadowRest:
     '0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px -6px rgba(0, 0, 0, 0.4)',
   shadowOverlay:
-    '0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6)',
+    '0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6), ' +
+    '0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.18)',
 };
 
 function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
@@ -208,6 +209,12 @@ function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
         nodeSelectedColor: p.textOnInverted,
         directoryNodeSelectedBg: p.bgInverted,
         directoryNodeSelectedColor: p.textOnInverted,
+        // The Tree draws its own checkboxes, so it takes the Checkbox
+        // block's tokens: on the dark scheme's ink the tick must be the
+        // inverted text colour. colorBorder also draws showLine's lines.
+        borderRadiusSM: RADIUS.xs,
+        colorBorder: p.borderEmphasis,
+        colorWhite: p.textOnInverted,
       },
       Button: {
         borderRadius: RADIUS.pill,

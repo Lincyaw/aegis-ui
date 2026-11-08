@@ -649,7 +649,7 @@
   --avatar-hue-2: #818cf8;
   --avatar-hue-3: #34d399;
   --avatar-hue-4: #fbbf24;
-  --avatar-hue-5: #fb7185;
+  --avatar-hue-5: #f472b6; /* pink-400 — the lighter rose is the anomaly red */
 
   /* Presence — lighter for dark surfaces */
   --presence-online: #4ade80;
@@ -667,13 +667,19 @@
   --diff-removed-gutter: #361721;
   --diff-removed-word: #5c1f2a;
 
-  /* Elevation — black shadows, deeper so they read on dark surfaces */
+  /* Elevation — black shadows, deeper so they read on dark surfaces. A
+   * shadow barely shows on the dark page, so each level above rest also
+   * catches light: a ring round its edge and a lit top edge, brighter the
+   * higher it sits. Inset layers come last, so rest and raised still
+   * interpolate on hover. */
   --shadow-rest:
     0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px -6px rgba(0, 0, 0, 0.4);
   --shadow-raised:
-    0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+    0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 40px -12px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   --shadow-overlay:
-    0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6);
+    0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 
   /* Scrollbar */
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);
