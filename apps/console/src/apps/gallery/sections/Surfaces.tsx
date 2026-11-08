@@ -381,6 +381,14 @@ export function SurfacesSection() {
           </p>
         </Panel>
 
+        <Panel title='Nested' description="inner elevation='flat'">
+          <Panel elevation='flat' title='Inner panel'>
+            <p className='gallery__panel-body'>
+              A panel inside a panel is flat: one shadow per layer.
+            </p>
+          </Panel>
+        </Panel>
+
         <Panel extra={<MetricLabel>Exported 2 min ago</MetricLabel>}>
           <p className='gallery__panel-body'>
             No title: extra alone still shows the header.

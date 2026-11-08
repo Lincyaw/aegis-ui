@@ -27,6 +27,10 @@
   box-shadow: var(--shadow-raised);
 }
 
+.aegis-panel--flat {
+  box-shadow: none;
+}
+
 /* The title link stretches over the panel; `extra` stays above it. */
 .aegis-panel--link {
   position: relative;
