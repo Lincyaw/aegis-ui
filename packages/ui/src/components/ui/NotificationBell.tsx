@@ -5,8 +5,8 @@ import { Popover } from 'antd';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
-import { MENU_OVERFLOW } from '../../hooks/useMenuPopover';
-import { usePopoverDialog } from '../../hooks/usePopoverDialog';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useDialogPopover } from '../../hooks/useDialogPopover';
 import type { AegisNotification } from '../../notifications';
 import './NotificationBell.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
@@ -50,7 +50,7 @@ export function NotificationBell({
   action,
   liveError,
 }: NotificationBellProps): ReactElement {
-  const popover = usePopoverDialog<HTMLDivElement>();
+  const popover = useDialogPopover<HTMLDivElement>();
   const panelId = useId();
   const staleId = `${panelId}-stale`;
   const bound = useAegisAction<void, unknown>(action);
@@ -63,6 +63,9 @@ export function NotificationBell({
   };
 
   const content = (
+    // The dialog takes Escape and Tab for the controls inside it. The rule
+    // allows that on <dialog> but cannot see role="dialog".
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       ref={popover.panelRef}
       id={panelId}
@@ -71,6 +74,7 @@ export function NotificationBell({
       role="dialog"
       aria-labelledby={`${panelId}-title`}
       tabIndex={-1}
+      onKeyDown={popover.onPanelKeyDown}
     >
       <div className="aegis-notif-pop__head">
         <span id={`${panelId}-title`} className="aegis-notif-pop__title">
@@ -153,7 +157,7 @@ export function NotificationBell({
       open={popover.open}
       onOpenChange={popover.setOpen}
       placement="bottomRight"
-      autoAdjustOverflow={MENU_OVERFLOW}
+      autoAdjustOverflow={POPOVER_OVERFLOW}
       arrow={false}
       classNames={{ root: 'aegis-notif-pop__overlay' }}
     >

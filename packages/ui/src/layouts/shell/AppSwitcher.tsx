@@ -3,7 +3,8 @@ import { type ReactElement, useId } from 'react';
 import { Popover } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
-import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
 import { useStrings } from '../../locale';
 import { joinPath } from './paths';
 import type { AegisApp } from './types';
@@ -81,7 +82,7 @@ export function AppSwitcher({
       onOpenChange={menu.setOpen}
       trigger="click"
       placement="rightTop"
-      autoAdjustOverflow={MENU_OVERFLOW}
+      autoAdjustOverflow={POPOVER_OVERFLOW}
       arrow={false}
       content={content}
       classNames={{ root: 'aegis-shell__app-popover' }}

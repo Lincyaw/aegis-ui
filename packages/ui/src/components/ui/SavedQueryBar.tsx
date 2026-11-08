@@ -18,8 +18,9 @@ import {
 } from '@ant-design/icons';
 import { Popover } from 'antd';
 
-import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
-import { usePopoverDialog } from '../../hooks/usePopoverDialog';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useDialogPopover } from '../../hooks/useDialogPopover';
+import { useMenuPopover } from '../../hooks/useMenuPopover';
 import type { SavedQuery } from '../../hooks/useSavedQueries';
 import './SavedQueryBar.css';
 
@@ -204,7 +205,7 @@ function SavedQueryChip({
             open={menu.open}
             onOpenChange={menu.setOpen}
             placement="bottomRight"
-            autoAdjustOverflow={MENU_OVERFLOW}
+            autoAdjustOverflow={POPOVER_OVERFLOW}
             arrow={false}
             classNames={{ root: 'aegis-sqb__popover' }}
             destroyOnHidden
@@ -380,7 +381,7 @@ function OverflowMenu({
         open={menu.open}
         onOpenChange={menu.setOpen}
         placement="bottomRight"
-        autoAdjustOverflow={MENU_OVERFLOW}
+        autoAdjustOverflow={POPOVER_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-sqb__popover' }}
         destroyOnHidden
@@ -464,7 +465,7 @@ function SaveCurrentControl({
   currentValue,
   onSave,
 }: SaveCurrentControlProps) {
-  const popover = usePopoverDialog<HTMLFormElement>();
+  const popover = useDialogPopover<HTMLFormElement>();
   const [name, setName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const nameId = useId();
@@ -496,12 +497,17 @@ function SaveCurrentControl({
   };
 
   const content = (
+    // The dialog takes Escape and Tab for the controls inside it. The rule
+    // allows that on <dialog> but cannot see role="dialog".
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <form
       ref={popover.panelRef}
       id={formId}
       className="aegis-sqb__save-form"
+      role="dialog"
       aria-label="Save the current query"
       tabIndex={-1}
+      onKeyDown={popover.onPanelKeyDown}
       onSubmit={handleSubmit}
     >
       <label className="aegis-sqb__save-label" htmlFor={nameId}>

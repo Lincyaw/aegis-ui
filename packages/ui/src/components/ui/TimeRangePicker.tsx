@@ -2,8 +2,8 @@ import { type ChangeEvent, type KeyboardEvent, useId, useState } from 'react';
 
 import { Popover } from 'antd';
 
-import { MENU_OVERFLOW } from '../../hooks/useMenuPopover';
-import { usePopoverDialog } from '../../hooks/usePopoverDialog';
+import { POPOVER_OVERFLOW } from '../../hooks/popoverOverflow';
+import { useDialogPopover } from '../../hooks/useDialogPopover';
 import {
   RELATIVE_TIME_PRESETS,
   type RelativeTimePreset,
@@ -62,7 +62,7 @@ export function TimeRangePicker({
   className,
 }: TimeRangePickerProps) {
   const nowFn = now ?? ((): Date => new Date());
-  const popover = usePopoverDialog<HTMLDivElement>();
+  const popover = useDialogPopover<HTMLDivElement>();
   const panelId = useId();
   const [input, setInput] = useState(value);
 
@@ -126,6 +126,9 @@ export function TimeRangePicker({
     input.trim().length > 0 && !parsedInput ? 'Unparseable expression' : '';
 
   const content = (
+    // The dialog takes Escape and Tab for the controls inside it. The rule
+    // allows that on <dialog> but cannot see role="dialog".
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       ref={popover.panelRef}
       id={panelId}
@@ -133,6 +136,7 @@ export function TimeRangePicker({
       role="dialog"
       aria-label="Time range"
       tabIndex={-1}
+      onKeyDown={popover.onPanelKeyDown}
     >
       <div className="aegis-trp__section">
         <TextField
@@ -216,7 +220,7 @@ export function TimeRangePicker({
       open={disabled ? false : popover.open}
       onOpenChange={handleOpen}
       placement="bottomLeft"
-      autoAdjustOverflow={MENU_OVERFLOW}
+      autoAdjustOverflow={POPOVER_OVERFLOW}
       arrow={false}
       classNames={{ root: 'aegis-trp__overlay' }}
       destroyOnHidden
