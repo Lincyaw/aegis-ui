@@ -21,8 +21,10 @@ Changed behaviour:
   is not connected. The message was not sent."
 - An editable `CodeEditor` shows a line under the code while it has focus,
   "Tab indents. Press Esc, then Tab, to leave the editor.", and names it as
-  the content's description. The line takes its height from the editor, so
-  the page does not move. Read-only editors don't show it.
+  the content's description. An editor with a fixed `height` keeps it: the
+  line takes its room from the code, so the page does not move. An editor
+  with `height='auto'` grows with its lines and by the line. Read-only
+  editors don't show it.
 - A selectable `ReplayStepStrip` (with `onSelect`) gives each step at least
   a 24 px column and scrolls sideways when the run is wider than the strip,
   keeping the current step in view. A strip without `onSelect` still fits
@@ -34,8 +36,22 @@ Changed behaviour:
 - `TrajectoryStep` labels (Thought, Action, Tool, Observation) are no longer
   uppercase; the English catalogue words them in sentence case, as it does
   the action type ("Tool call"). When a step has no `summary`, its header
-  shows the first line of the Markdown `action` without its syntax, with
-  inline code set in the code face, instead of raw backticks.
+  shows the first line of the Markdown `action` instead of the raw source:
+  a heading, quote or list marker is dropped; a link gives way to its text,
+  and `**`, `__`, `*` and `_` emphasis to the text it wraps, while
+  snake_case names and paths such as `src/__init__.py` keep their
+  underscores; a code span is set in the code face. An action that opens
+  with a fenced code block shows the block's first line of code, in the
+  code face, instead of the fence.
+- The English catalogue words the statuses in sentence case:
+  `CommandInvocationCard` (Pending, Done, Failed), `UploadQueue` (Queued,
+  Uploading, Done, Failed, and "Upload failed" when the host gives no
+  error) and `TrajectoryTimeline` (Running, Completed, Failed), whose
+  heading without an `agentName` reads "Agent trajectory".
+- `TraceTree` with `wrapName` wraps a name between words and after
+  `_ . - / :`, breaking inside a word only when it cannot fit a line,
+  instead of anywhere. On a narrow row the note moves under the name
+  instead of being cut off.
 - `DiffViewer`'s split view keeps a two-column width and scrolls sideways in
   a narrow container instead of breaking code mid-token.
 - `ContentPreview` wraps plain text and keeps its line breaks; code and JSON
@@ -68,11 +84,12 @@ Fixes:
   and summary button. `TraceTree`'s resize handle draws the focus ring
   instead of a hairline, and a selected row keeps its inverted surface while
   it has focus.
-- `Terminal`'s warn prefix and `ChatComposer`'s disabled banner use
-  `--text-warn` (3.0:1 before). `ThoughtCard`'s clock uses `--text-muted`.
+- `Terminal`'s warn prefix, `ChatComposer`'s disabled banner and a
+  `Chip` with `tone='caution'` use `--text-warn` (3.0:1 before; the chip
+  now 4.8:1 on its wash). `ThoughtCard`'s clock uses `--text-muted`.
 - `Markdown` links use `--accent-info` and draw the focus ring.
-- `ChatComposer`'s Send and `CommandInvocationCard`'s Undo take
-  `--radius-pill`; Undo, `CodeBlock`'s Copy and `ChatSessionList`'s "more"
+- `ChatComposer`'s Send, `CommandInvocationCard`'s Undo and
+  `ChatSessionList`'s delete confirm button take `--radius-pill`; Undo, `CodeBlock`'s Copy and `ChatSessionList`'s "more"
   button are 24 px targets.
 - `ChatSessionList`'s delete item and confirm button use the caution tone,
   not anomaly red: deleting is a caution, not a failure.

@@ -465,8 +465,9 @@ export const enStrings: AegisStrings = {
   shareLinkGenerating: 'Generating…',
   shareLinkGenerateFailed: 'failed to generate link',
   clipboardUnavailable: 'clipboard unavailable',
-  trajectoryHeading: 'agent trajectory',
-  trajectoryStatus: (status) => status,
+  trajectoryHeading: 'Agent trajectory',
+  trajectoryStatus: (status) =>
+    ({ running: 'Running', completed: 'Completed', failed: 'Failed' })[status],
   trajectoryActionType: (type) =>
     ({ tool_call: 'Tool call', message: 'Message', internal: 'Internal' })[
       type
@@ -604,7 +605,7 @@ export const enStrings: AegisStrings = {
   commandPaletteEmpty: 'No commands match.',
   commandGroupOther: 'Other',
   commandStatus: (status) =>
-    ({ pending: 'pending', success: 'done', error: 'failed' })[status],
+    ({ pending: 'Pending', success: 'Done', error: 'Failed' })[status],
   chatPlaceholder: 'Ask the assistant…',
   chatMessage: 'Message',
   chatSendMessage: 'Send message',
@@ -717,12 +718,12 @@ export const enStrings: AegisStrings = {
   uploadEta: (duration) => `ETA ${duration}`,
   uploadStatus: (status) =>
     ({
-      queued: 'queued',
-      uploading: 'uploading',
-      done: 'done',
-      error: 'failed',
+      queued: 'Queued',
+      uploading: 'Uploading',
+      done: 'Done',
+      error: 'Failed',
     })[status],
-  uploadFailed: 'upload failed',
+  uploadFailed: 'Upload failed',
   cancelUpload: 'Cancel upload',
   clearCompleted: 'Clear completed',
   codeEditorPhrases: {},

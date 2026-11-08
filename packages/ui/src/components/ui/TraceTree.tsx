@@ -17,6 +17,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
 import { useResizable } from '../../hooks/useResizable';
+import { breakAtSeparators } from '../../lib/breakAtSeparators';
 import type { ChartColor } from '../../lib/chart';
 import { formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
@@ -107,6 +108,10 @@ interface TraceTreeProps {
   defaultNameColumnWidth?: number;
   onNameColumnWidthChange?: (w: number) => void;
   persistKey?: string;
+  /**
+   * Wraps a long name over lines instead of truncating it: between words and
+   * after `_ . - / :`, and inside a word only when it cannot fit a line.
+   */
   wrapName?: boolean;
 }
 
@@ -439,6 +444,7 @@ export function TraceTree({
           const meta = [timing, kind].filter(Boolean).join(' · ');
           const noteId = `${idPrefix}-note-${String(index)}`;
           const hasNote = span.note !== undefined && span.note !== null;
+          const name = wrapName ? breakAtSeparators(span.name) : span.name;
           const tooltipContent = (
             <div className="aegis-trace-tree__tooltip">
               <div className="aegis-trace-tree__tooltip-name">{span.name}</div>
@@ -504,14 +510,14 @@ export function TraceTree({
                 >
                   <span className="aegis-trace-tree__name">
                     {span.to === undefined ? (
-                      span.name
+                      name
                     ) : (
                       <Link
                         to={span.to}
                         className="aegis-trace-tree__link"
                         tabIndex={-1}
                       >
-                        {span.name}
+                        {name}
                       </Link>
                     )}
                   </span>

@@ -155,9 +155,10 @@
   color: var(--text-on-inverted-muted);
 }
 
-/* A deep row on a phone has no room left, so its note is cut off. */
+/* A deep row on a phone has no room left, so its note is cut off, unless
+ * the name wraps to make room for it. */
 @media (max-width: 640px) {
-  .aegis-trace-tree__note {
+  .aegis-trace-tree:not(.aegis-trace-tree--wrap) .aegis-trace-tree__note {
     flex-shrink: 1;
     min-width: 0;
     overflow: hidden;
@@ -173,9 +174,18 @@
   min-width: 0;
 }
 
+/* A wrapping name moves under the caret and kind when less than its basis
+ * is left beside them. It wraps between words and after `_ . - / :` (the
+ * component marks those); a word breaks only when it cannot fit a line. */
+.aegis-trace-tree--wrap .aegis-trace-tree__label {
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+
 .aegis-trace-tree--wrap .aegis-trace-tree__name {
+  flex: 1 1 12ch;
   white-space: normal;
-  word-break: break-all;
+  overflow-wrap: anywhere;
   overflow: visible;
   text-overflow: clip;
 }

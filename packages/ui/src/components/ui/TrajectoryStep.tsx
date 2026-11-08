@@ -62,24 +62,64 @@ function StepSection({
   );
 }
 
+const FENCE = /^(`{3,}|~{3,})/;
+
+// A delimiter run opens after whitespace or an opening bracket or quote and
+// closes before whitespace or trailing punctuation, so the underscores in
+// snake_case and src/__init__.py stay as they are.
+const EMPHASIS = ['\\*\\*', '__', '\\*', '_'].map(
+  (delimiter) =>
+    new RegExp(
+      `(^|[\\s([{"'])${delimiter}(\\S(?:.*?\\S)?)${delimiter}(?=[.,;:!?)\\]}"']*(?:\\s|$))`,
+      'g',
+    ),
+);
+
+// Stands in for a code span while the syntax around it is removed, so
+// emphasis or a link may wrap code and the code itself is left alone.
+const CODE_MARK = '\uE000';
+const CODE_SPAN = /`([^`]+)`/g;
+const MARKED_CODE = new RegExp(`${CODE_MARK}(\\d+)${CODE_MARK}`);
+
 /**
- * The first line of an action written in Markdown, as the head shows it:
- * code spans stay code, while emphasis and link syntax give way to their text.
+ * The first line of an action written in Markdown, as the head shows it.
+ * A heading, quote or list marker is dropped; a link gives way to its text,
+ * and `**`, `__`, `*` and `_` emphasis to the text it wraps; a code span is
+ * set in the code face. An action that opens with a fenced code block shows
+ * the block's first line of code, in the code face, and nothing when the
+ * block is empty.
  */
-function actionPreview(markdown: string): ReactNode[] {
-  const line = markdown
-    .trim()
-    .split('\n')[0]
-    .replace(/^(#+|>|[-*+]|\d+\.)\s+/, '');
-  return line.split(/`([^`]+)`/).map((part, index) =>
+function actionPreview(markdown: string): ReactNode {
+  const lines = markdown.trim().split('\n');
+  const fence = FENCE.exec(lines[0])?.[1];
+  if (fence !== undefined) {
+    const close = new RegExp(`^\\s*${fence[0]}{${String(fence.length)},}\\s*$`);
+    const end = lines.findIndex((line, index) => index > 0 && close.test(line));
+    const code = lines
+      .slice(1, end === -1 ? undefined : end)
+      .find((line) => line.trim() !== '');
+    return code === undefined ? undefined : (
+      <code className="aegis-step__action-code">{code.trim()}</code>
+    );
+  }
+  const codes: string[] = [];
+  const masked = lines[0]
+    .replace(/^(#+|>|[-*+]|\d+\.)\s+/, '')
+    .replace(CODE_SPAN, (_span, code: string) => {
+      codes.push(code);
+      return `${CODE_MARK}${String(codes.length - 1)}${CODE_MARK}`;
+    });
+  const text = EMPHASIS.reduce(
+    (current, pattern) => current.replace(pattern, '$1$2'),
+    masked.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1'),
+  );
+  return text.split(MARKED_CODE).map((part, index) =>
     index % 2 === 1 ? (
       <code key={index} className="aegis-step__action-code">
-        {part}
+        {codes[Number(part)]}
       </code>
     ) : (
       part
-        .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-        .replace(/\*\*(.+?)\*\*/g, '$1')
     ),
   );
 }

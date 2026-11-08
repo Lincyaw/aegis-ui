@@ -198,7 +198,7 @@
   background: transparent;
   border: var(--size-hairline) solid var(--ink-warn);
   color: var(--text-warn);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   font: inherit;
   font-family: var(--font-ui);
   padding: var(--space-px) var(--space-2);

@@ -76,7 +76,7 @@
 
 .aegis-chip--caution {
   background: var(--bg-warn-soft);
-  color: var(--ink-warn);
+  color: var(--text-warn);
   border-color: var(--bg-warn-soft);
 }
 
