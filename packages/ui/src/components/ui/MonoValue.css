@@ -36,6 +36,12 @@
   color: var(--text-on-inverted);
 }
 
+/* Breaking anywhere makes the value's least width one character; the least
+ * width is raised back to the value's own length, capped at 16 characters,
+ * which MonoValue.tsx passes in for a text or number value. */
 .aegis-mono--wrap {
+  display: inline-block;
+  max-width: 100%;
+  min-width: min(calc(var(--aegis-mono-length, 0) * 1ch), 16ch);
   overflow-wrap: anywhere;
 }
