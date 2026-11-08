@@ -202,6 +202,8 @@ function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
     components: {
       Tree: {
         nodeHoverBg: p.bgMuted,
+        // The keyboard-active node's fill; index.css adds the focus ring.
+        controlItemBgHover: p.bgMuted,
         nodeSelectedBg: p.bgInverted,
         nodeSelectedColor: p.textOnInverted,
         directoryNodeSelectedBg: p.bgInverted,
