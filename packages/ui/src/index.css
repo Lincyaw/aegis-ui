@@ -108,6 +108,18 @@ html a:focus-visible {
 :focus:not(:focus-visible) {
   outline: none;
 }
+/* antd draws its own ring at lineWidthFocus (the token width) in
+   --ant-color-primary-border, which it derives from the ink primary. The
+   variable is repointed only where focus shows: on the focused control,
+   on its parent where antd rings a sibling (checkbox, radio), and on the
+   radio-button wrapper antd rings. Remapping the token instead would also
+   recolour the Slider track and handle. `html` outranks antd's
+   `.css-var-*` class that defines the variable. */
+html :focus-visible,
+html :has(> :focus-visible),
+html .ant-radio-button-wrapper:has(:focus-visible) {
+  --ant-color-primary-border: var(--focus-ring-color);
+}
 
 /* antd popovers and tooltips fade in from their trigger's side instead of
  * zooming out of it. Only the running phase is restyled: rc-trigger
