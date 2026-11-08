@@ -202,18 +202,26 @@ function navigateTarget(params: unknown): string {
 }
 
 // The part of the page's path in front of the route the shell reports,
-// which the router adds back to every path it is given.
-function routerBasename(routePathname: string): string {
+// which the router adds back to every path it is given. Null when the route
+// cannot tell: every path ends with the root route, which is also what a
+// runtime without a shell reports, and a route that is not the end of the
+// page's path is stale.
+function routerBasename(routePathname: string): string | null {
   const page = window.location.pathname.replace(/\/+$/, '');
   const route = routePathname.replace(/\/+$/, '');
-  return page.endsWith(route) ? page.slice(0, page.length - route.length) : '';
+  if (route === '') {
+    return page === '' ? '' : null;
+  }
+  return page.endsWith(route)
+    ? page.slice(0, page.length - route.length)
+    : null;
 }
 
-// Resolves `to` the way a router link resolves its `to` and returns a path
-// for the router: a relative path from the current route, an absolute path
-// from the app's root, and a full URL only on this page's origin and
-// protocol and under the router's basename. So the agent can neither run a
-// javascript: URL nor send the tab to another site.
+// Resolves `to` from the current route the way a URL path resolves (`x`
+// from /gallery is /x) and returns a path from the app's root for the
+// router. A full URL must keep this page's origin and protocol and lie
+// under the router's basename, so the agent can neither run a javascript:
+// URL nor send the tab to another site.
 function appPath(to: string, route: ShellSnapshot['route']): string {
   const page = window.location;
   let url: URL;
@@ -232,6 +240,11 @@ function appPath(to: string, route: ShellSnapshot['route']): string {
     new URL(to, `${page.protocol}//aegis.invalid/`).host !== 'aegis.invalid';
   if (namesOrigin) {
     const basename = routerBasename(route.pathname);
+    if (basename === null) {
+      throw new InvalidParamsError(
+        `aegis.navigate: "${to}" is a full URL, but the app's base path is unknown (route ${route.pathname} on page ${page.pathname}); pass a path in the app instead`,
+      );
+    }
     if (pathname !== basename && !pathname.startsWith(`${basename}/`)) {
       throw new InvalidParamsError(
         `aegis.navigate: "${to}" is outside this app, whose paths start with ${basename}/`,
@@ -1006,7 +1019,7 @@ export function createAegisRuntime(deps: RuntimeDeps = {}): AegisRuntime {
       id: 'aegis.navigate',
       label: 'Navigate',
       description:
-        'Navigate to a path in this app, resolved like a router link from the current route; other origins are refused.',
+        'Navigate to a path in this app. `to` resolves from the current route as a URL path does (x from /gallery goes to /x); other origins are refused.',
       paramsSchema: {
         type: 'object',
         properties: { to: { type: 'string' } },
