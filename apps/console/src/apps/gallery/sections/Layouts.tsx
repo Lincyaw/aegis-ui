@@ -730,9 +730,7 @@ export function LayoutsSection() {
           <span>
             Delete project <MonoValue size='sm'>catalog-service</MonoValue>
           </span>
-          <button type='button' className='gallery__danger-btn'>
-            Delete project
-          </button>
+          <Button tone='caution'>Delete project</Button>
         </div>
       </DangerZone>
     </Panel>

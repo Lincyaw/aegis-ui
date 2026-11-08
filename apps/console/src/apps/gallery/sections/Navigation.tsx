@@ -821,6 +821,9 @@ export function NavigationSection() {
         <Specimen caption="tone='ghost'">
           <AegisButton tone='ghost'>View script</AegisButton>
         </Specimen>
+        <Specimen caption="tone='caution' · a destructive action, in the caution tone, never the anomaly red">
+          <AegisButton tone='caution'>Delete project</AegisButton>
+        </Specimen>
         <Specimen caption="icon · iconPosition='start'">
           <AegisButton tone='secondary' icon={<DownloadOutlined />}>
             Download
@@ -852,6 +855,9 @@ export function NavigationSection() {
             </AegisButton>
             <AegisButton tone='ghost' disabled>
               View script
+            </AegisButton>
+            <AegisButton tone='caution' disabled>
+              Delete project
             </AegisButton>
           </div>
         </Specimen>
