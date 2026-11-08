@@ -8,6 +8,7 @@
   line-height: var(--type-small-line);
   font-weight: var(--type-small-weight);
   letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
 }
 
 .aegis-kv--ruled {
@@ -15,11 +16,14 @@
   padding-top: var(--space-3);
 }
 
+/* When a value doesn't fit beside its key it wraps under it, still flush
+ * right, rather than squeezing the key. */
 .aegis-kv__row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  column-gap: var(--space-3);
   padding: var(--space-1) 0;
   margin: 0;
 }
@@ -30,8 +34,9 @@
 }
 
 .aegis-kv__v {
-  margin: 0;
+  min-width: 0;
+  margin: 0 0 0 auto;
   color: var(--text-main);
-  font-variant-numeric: tabular-nums;
   text-align: right;
+  overflow-wrap: break-word;
 }

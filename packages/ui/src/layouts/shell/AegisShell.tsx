@@ -26,7 +26,7 @@ import {
 import { useAuth } from '../../auth';
 import { useHasCommandProvider } from '../../commands';
 import { AmbientBackground } from '../../components/ui/AmbientBackground';
-import { Chip } from '../../components/ui/Chip';
+import { Button } from '../../components/ui/Button';
 import { useStorageItem } from '../../hooks/useStorageItem';
 import { useWindowScrolled } from '../../hooks/useWindowScrolled';
 import { useStrings } from '../../locale';
@@ -216,14 +216,13 @@ export function AegisShell({
               <>
                 {headerActions}
                 {auth.status === 'unauthenticated' && auth.signIn && (
-                  <Chip
-                    tone="ink"
+                  <Button
                     onClick={() => {
                       void auth.signIn?.({});
                     }}
                   >
                     {strings.signIn}
-                  </Chip>
+                  </Button>
                 )}
               </>
             }

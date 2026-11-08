@@ -3,15 +3,13 @@ import { type ReactNode, useState } from 'react';
 import { InboxOutlined } from '@ant-design/icons';
 import {
   Button as AegisButton,
-  Chip,
   EmptyState,
   formatDuration,
+  FormRow,
   type KeyValueItem,
   KeyValueList,
   MetricCard,
   MonoValue,
-  Panel,
-  PanelTitle,
   SectionDivider,
   Skeleton,
   SkeletonText,
@@ -23,7 +21,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { KV_PARAMS } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const SPARK_RISING = [
   42, 41, 44, 43, 47, 50, 49, 52, 55, 58, 62, 60, 64, 68, 71, 73,
@@ -48,7 +46,10 @@ const KV_META: KeyValueItem[] = [
   { k: 'Operator', v: 'Rosetta' },
 ];
 
-interface TimeRangePickerSpecimenProps {
+interface TimeRangePickerSpecimenProps extends Pick<
+  TimeRangePickerProps,
+  'id' | 'aria-labelledby' | 'aria-describedby'
+> {
   initial: string;
   presets?: TimeRangePickerProps['presets'];
   logToConsole?: boolean;
@@ -58,10 +59,12 @@ function TimeRangePickerSpecimen({
   initial,
   presets,
   logToConsole = false,
+  ...naming
 }: TimeRangePickerSpecimenProps) {
   const [value, setValue] = useState(initial);
   return (
     <TimeRangePicker
+      {...naming}
       value={value}
       presets={presets}
       onChange={(next) => {
@@ -100,9 +103,26 @@ function StatBlockCountUpSpecimen(): ReactNode {
   );
 }
 
+function EmptyStateActionSpecimen(): ReactNode {
+  const [created, setCreated] = useState(0);
+  return (
+    <Specimen caption={`with action · onClick · pressed ${String(created)}`}>
+      <EmptyState
+        title='No projects'
+        description='Projects group experiments and their results.'
+        action={
+          <AegisButton onClick={() => setCreated((n) => n + 1)}>
+            New project
+          </AegisButton>
+        }
+      />
+    </Specimen>
+  );
+}
+
 export function DataDisplaySection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Data display</PanelTitle>}>
+    <GallerySection title='Data display'>
       <SectionDivider>StatBlock</SectionDivider>
       <div className='gallery__row'>
         <Specimen caption='vertical · emphasized · number role'>
@@ -231,7 +251,7 @@ export function DataDisplaySection() {
             <SparkLine points={SPARK_DIP} />
           </div>
         </Specimen>
-        <Specimen caption='flat (low signal)'>
+        <Specimen caption='flat (low signal) · varies by less than a quarter of its value, so it is drawn small about the middle'>
           <div className='gallery__spark-host'>
             <SparkLine points={SPARK_FLAT} />
           </div>
@@ -316,13 +336,7 @@ export function DataDisplaySection() {
             description='Create your first fault injection to begin.'
           />
         </Specimen>
-        <Specimen caption='with action'>
-          <EmptyState
-            title='No projects'
-            description='Projects group experiments and their results.'
-            action={<Chip tone='ink'>+ New project</Chip>}
-          />
-        </Specimen>
+        <EmptyStateActionSpecimen />
         <Specimen caption='icon at --size-icon-xl'>
           <EmptyState
             icon={<InboxOutlined className='gallery__icon-xl' />}
@@ -425,7 +439,25 @@ export function DataDisplaySection() {
         <Specimen caption='absolute range · dates in the locale’s format'>
           <TimeRangePickerSpecimen initial='2026-05-10T01:00:00.000Z to 2026-05-10T03:30:00.000Z' />
         </Specimen>
+        <Specimen
+          caption="in a FormRow · labelBy='aria-labelledby' · the trigger is named by the row's label and its range, and described by the row's description"
+          span={3}
+        >
+          <FormRow
+            label='Window'
+            description='Events outside the window are hidden.'
+            controlId='gallery-trp-window'
+            labelBy='aria-labelledby'
+          >
+            <TimeRangePickerSpecimen
+              initial='now-24h'
+              id='gallery-trp-window'
+              aria-labelledby='gallery-trp-window-label'
+              aria-describedby='gallery-trp-window-description'
+            />
+          </FormRow>
+        </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

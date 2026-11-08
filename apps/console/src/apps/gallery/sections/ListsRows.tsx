@@ -5,14 +5,12 @@ import {
   type ChoiceCardOption,
   ControlListItem,
   MetricLabel,
-  Panel,
-  PanelTitle,
   SectionDivider,
   StatusDot,
 } from '@lincyaw/aegis-ui';
 
 import { GALLERY_ACTIONS } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 function ControlListItemDescriptionSpecimen(): ReactNode {
   const [chart, setChart] = useState('ranking');
@@ -111,7 +109,7 @@ export function ListsRowsSection() {
   const [active, setActive] = useState<string>('item-2');
 
   return (
-    <Panel title={<PanelTitle size='lg'>Lists &amp; rows</PanelTitle>}>
+    <GallerySection title='Lists & rows'>
       <SectionDivider extra={<MetricLabel>Click any row</MetricLabel>}>
         ControlListItem
       </SectionDivider>
@@ -182,7 +180,7 @@ export function ListsRowsSection() {
         <ControlListItem
           left={
             <>
-              <StatusDot tone='warning' pulse />
+              <StatusDot tone='caution' pulse />
               <span>worker-gamma</span>
             </>
           }
@@ -201,6 +199,6 @@ export function ListsRowsSection() {
         ChoiceCardGroup
       </SectionDivider>
       <ChoiceCardGroupSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }

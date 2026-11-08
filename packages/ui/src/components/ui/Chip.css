@@ -76,7 +76,7 @@
 
 .aegis-chip--caution {
   background: var(--bg-warn-soft);
-  color: var(--ink-warn);
+  color: var(--text-warn);
   border-color: var(--bg-warn-soft);
 }
 
@@ -108,6 +108,7 @@
 }
 
 .aegis-chip__close {
+  position: relative;
   display: inline-flex;
   align-items: center;
   padding: 0;
@@ -124,4 +125,15 @@
 
 .aegis-chip__close:hover {
   opacity: 1;
+}
+
+/* A --size-control-sm hit area centred on the glyph, which keeps its size. */
+.aegis-chip__close::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  transform: translate(-50%, -50%);
 }

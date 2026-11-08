@@ -18,15 +18,48 @@
   overflow-x: auto;
   scrollbar-width: none;
   scroll-behavior: smooth;
+  scroll-padding-inline: var(--space-8);
 }
 
 .aegis-tabs__list::-webkit-scrollbar {
   display: none;
 }
 
+/* Where tabs run out of view the track fades over them, so a cut-off label
+ * reads as more to scroll to. Each fade is a sticky end item whose negative
+ * margin cancels its width and the gap, so the tabs do not move. */
+.aegis-tabs__list::before,
+.aegis-tabs__list::after {
+  content: '';
+  position: sticky;
+  z-index: 1;
+  flex: 0 0 var(--space-8);
+  align-self: stretch;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--motion-fast);
+}
+
+.aegis-tabs__list::before {
+  left: 0;
+  margin-right: calc(-1 * (var(--space-8) + var(--space-1)));
+  background: linear-gradient(to right, var(--bg-muted), transparent);
+}
+
+.aegis-tabs__list::after {
+  right: 0;
+  margin-left: calc(-1 * (var(--space-8) + var(--space-1)));
+  background: linear-gradient(to left, var(--bg-muted), transparent);
+}
+
+.aegis-tabs__list[data-overflow-start]::before,
+.aegis-tabs__list[data-overflow-end]::after {
+  opacity: 1;
+}
+
 .aegis-tabs__indicator {
   position: absolute;
-  background: var(--bg-panel);
+  background: var(--tabs-indicator-bg);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-rest);
   pointer-events: none;
@@ -96,6 +129,11 @@
 @media (prefers-reduced-motion: reduce) {
   .aegis-tabs__list {
     scroll-behavior: auto;
+  }
+
+  .aegis-tabs__list::before,
+  .aegis-tabs__list::after {
+    transition: none;
   }
 
   .aegis-tabs__indicator--forward,

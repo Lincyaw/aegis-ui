@@ -8,11 +8,14 @@
   border-radius: var(--radius-md);
   width: 100%;
   min-width: 0;
-  transition: border-color var(--motion-fast);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
 }
 
-.aegis-query-ac:focus-within {
-  border-color: var(--text-main);
+.aegis-query-ac:has(.aegis-query-ac__input:focus) {
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
 }
 
 .aegis-query-ac__anchor {
@@ -42,10 +45,21 @@
   cursor: not-allowed;
 }
 
+/* A 24 px target that reaches into the field's padding, so the field
+ * keeps its height. */
 .aegis-query-ac__help-icon {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-2))
+    calc(-1 * var(--space-1)) 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-pill);
   color: var(--text-muted);
   font-size: var(--fs-14);
   cursor: help;
@@ -54,6 +68,10 @@
 
 .aegis-query-ac__help-icon:hover {
   color: var(--text-main);
+}
+
+.aegis-query-ac__help-icon:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-query-ac__list {

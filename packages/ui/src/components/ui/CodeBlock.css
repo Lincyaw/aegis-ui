@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-1) var(--space-3);
+  padding: 0 var(--space-1) 0 var(--space-3);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   background: var(--bg-panel);
   flex-shrink: 0;
@@ -34,11 +34,12 @@
   font-size: var(--fs-10);
   font-weight: var(--fw-medium);
   color: var(--text-muted);
+  min-height: var(--size-control-sm);
   background: none;
   border: none;
   cursor: pointer;
-  padding: var(--space-px) var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
   transition:
     color var(--motion-fast),
     background var(--motion-fast);
@@ -54,6 +55,11 @@
   background: var(--bg-muted);
 }
 
+/* The button fills the header's height, so the block would clip an outer ring. */
+.aegis-code-block__copy:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
 .aegis-code-block__pre {
   margin: 0;
   padding: var(--space-3);
@@ -64,6 +70,12 @@
   color: var(--text-main);
   flex: 1 1 auto;
   min-height: 0;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* The pre scrolls, so it takes Tab; the block clips it to its corners. */
+.aegis-code-block__pre:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-code-block__line {

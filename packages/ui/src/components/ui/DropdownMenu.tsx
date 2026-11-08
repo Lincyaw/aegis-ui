@@ -14,6 +14,7 @@ export interface DropdownItem {
   label: ReactNode;
   onClick?: () => void;
   icon?: ReactNode;
+  /** A destructive item, e.g. delete: the caution ink and wash, never the anomaly red. */
   danger?: boolean;
   disabled?: boolean;
   /** Optional aegis-ui agent action — fired after onClick if not disabled. */

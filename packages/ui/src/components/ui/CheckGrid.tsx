@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 
+import { breakAtSeparators } from '../../lib/breakAtSeparators';
 import './CheckGrid.css';
 
 /**
@@ -72,7 +73,7 @@ export function CheckGrid<C extends string>({
                   scope="col"
                   className="aegis-check-grid__run"
                 >
-                  {column.label}
+                  {breakAtSeparators(column.label)}
                 </th>
               ))}
             </tr>
@@ -81,7 +82,7 @@ export function CheckGrid<C extends string>({
             {rows.map((row) => (
               <tr key={row.key}>
                 <th scope="row" className="aegis-check-grid__check">
-                  {row.label}
+                  {breakAtSeparators(row.label)}
                 </th>
                 {columns.map((column) => (
                   <td key={column.key} className="aegis-check-grid__slot">

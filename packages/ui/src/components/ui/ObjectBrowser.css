@@ -1,15 +1,16 @@
+/* The tree keeps its width beside the main pane. When that would leave the
+ * main pane less than half the width, the main pane wraps under the tree
+ * and both fill the row, however wide the browser's container is. */
 .aegis-object-browser {
-  display: grid;
-  grid-template-columns: var(--object-browser-tree-width) minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-4);
+  width: 100%;
   min-width: 0;
 }
 
-.aegis-object-browser--no-tree {
-  grid-template-columns: auto minmax(0, 1fr);
-}
-
 .aegis-object-browser__tree {
+  flex: 1 1 var(--object-browser-tree-width);
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
   background: var(--bg-panel);
@@ -18,6 +19,11 @@
   flex-direction: column;
   gap: var(--space-1);
   align-self: start;
+}
+
+/* Collapsed, the tree is only its head. */
+.aegis-object-browser--no-tree > .aegis-object-browser__tree {
+  flex: 0 0 auto;
 }
 
 .aegis-object-browser__tree-head {
@@ -78,8 +84,8 @@
 }
 
 .aegis-object-browser__tree-item:focus-visible {
-  outline: var(--size-hairline) solid var(--text-main);
-  outline-offset: var(--space-px);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-object-browser__tree-item--up {
@@ -93,9 +99,10 @@
 
 .aegis-object-browser__main {
   display: flex;
+  flex: 999 1 0;
   flex-direction: column;
   gap: var(--space-3);
-  min-width: 0;
+  min-width: 50%;
 }
 
 .aegis-object-browser__toolbar {
@@ -169,11 +176,7 @@
 }
 
 @media (max-width: 768px) {
-  .aegis-object-browser {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .aegis-object-browser--no-tree {
-    grid-template-columns: minmax(0, 1fr);
+  .aegis-object-browser > .aegis-object-browser__tree {
+    flex: 1 1 100%;
   }
 }

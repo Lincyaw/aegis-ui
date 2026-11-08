@@ -39,7 +39,7 @@
   letter-spacing: var(--type-body-tracking);
   color: var(--text-main);
   width: 15rem;
-  min-width: 7.5rem;
+  min-width: 0;
 }
 
 .aegis-search-input__field::placeholder {

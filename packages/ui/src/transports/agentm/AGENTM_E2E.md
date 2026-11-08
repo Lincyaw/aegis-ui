@@ -130,8 +130,9 @@ Open http://localhost:3323/.
    `AgentmChannelProvider.tsx` `appendOutbound` and the
    `reference_agentm_channels` memory.)
 4. **Reconnect**: stop the gateway (Ctrl-C). The next `send()` shows a
-   system message `AgentM gateway is not connected — message not
-delivered.`. Network → WS shows fresh attempts at 1 s / 2 s / 5 s /
+   system message `The AgentM gateway is not connected. The message was
+not sent.` (`agentmNotConnected` in the locale catalogue). Network → WS
+   shows fresh attempts at 1 s / 2 s / 5 s /
    10 s. Bring the gateway back up; the next attempt should reach
    `welcome` and chat resumes.
 

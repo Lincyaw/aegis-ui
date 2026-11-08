@@ -8,14 +8,12 @@ import {
   FileTree,
   type FileTreeFile,
   MetricLabel,
-  Panel,
-  PanelTitle,
   SectionDivider,
   Terminal,
 } from '@lincyaw/aegis-ui';
 
 import { TERMINAL_LINES } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 interface GalleryTaskFile extends FileTreeFile {
   language: string;
@@ -178,7 +176,7 @@ function FileTreeControlledSpecimen(): ReactNode {
 
 export function LogsSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Logs — Terminal</PanelTitle>}>
+    <GallerySection title='Logs — Terminal'>
       <SectionDivider>Terminal · plain</SectionDivider>
       <Terminal
         lines={TERMINAL_LINES}
@@ -376,6 +374,6 @@ export function LogsSection() {
           </Specimen>
         </div>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

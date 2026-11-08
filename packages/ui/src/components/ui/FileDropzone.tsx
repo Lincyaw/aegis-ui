@@ -103,7 +103,7 @@ export function FileDropzone({
                 </span>
               ) : null}
               {maxSize !== undefined ? (
-                <span className="aegis-file-dropzone__meta">
+                <span className="aegis-file-dropzone__meta aegis-file-dropzone__meta--size">
                   {strings.dropzoneMaxSize(formatBytes(maxSize))}
                 </span>
               ) : null}

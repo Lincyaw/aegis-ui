@@ -11,6 +11,7 @@ import {
   Button as AegisButton,
   Select as AegisSelect,
   Chip,
+  CodeBlock,
   CodeEditor,
   type CodeEditorField,
   CommitGraph,
@@ -30,8 +31,6 @@ import {
   ObjectBrowser,
   ObjectInspector,
   type ObjectInspectorTab,
-  Panel,
-  PanelTitle,
   ParquetViewer,
   PickerField,
   QueryAutocomplete,
@@ -61,7 +60,11 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { TOOL_QUERY_METRICS } from '../fixtures';
-import { GalleryRouterLink, Specimen } from '../shared';
+import heroImageUrl from '../hero.png?url';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
+// 120 spans written with pyarrow. The file stays above Vite's 4 KB inline
+// limit, so it is served as a file the viewer can read by range.
+import spansParquetUrl from '../spans.parquet?url';
 
 /* ── EnvironmentSwitcher specimen ──────────────────────────────────── */
 
@@ -119,7 +122,10 @@ function QueryAutocompleteSpecimen(): ReactNode {
           valueSuggestions={valueSuggestions}
         />
       </Specimen>
-      <Specimen caption='pre-filled' span={2}>
+      <Specimen
+        caption='pre-filled · the ? button opens the syntax sheet on hover, Tab or tap; Escape closes it'
+        span={2}
+      >
         <QueryAutocomplete
           value={prefilled}
           onChange={setPrefilled}
@@ -172,86 +178,91 @@ function SavedQueryBarSpecimen(): ReactNode {
   return (
     <div className='gallery__row gallery__row--wide'>
       <Specimen caption='useSavedQueries · kept in localStorage' span={2}>
-        <SearchInput
-          value={storedValue}
-          onChange={setStoredValue}
-          placeholder='Try a query, then save it…'
-        />
-        <SavedQueryBar
-          queries={stored.queries}
-          currentValue={storedValue}
-          onApply={(q) => {
-            stored.touch(q.id);
-            setStoredValue(q.value);
-            setLastApplied(q);
-          }}
-          onSave={stored.save}
-          onRename={stored.rename}
-          onRemove={stored.remove}
-          onTogglePinned={stored.togglePinned}
-        />
+        <div className='gallery__stack gallery__stack--fill'>
+          <SearchInput
+            block
+            value={storedValue}
+            onChange={setStoredValue}
+            placeholder='Try a query, then save it…'
+          />
+          <SavedQueryBar
+            queries={stored.queries}
+            currentValue={storedValue}
+            onApply={(q) => {
+              stored.touch(q.id);
+              setStoredValue(q.value);
+              setLastApplied(q);
+            }}
+            onSave={stored.save}
+            onRename={stored.rename}
+            onRemove={stored.remove}
+            onTogglePinned={stored.togglePinned}
+          />
+        </div>
       </Specimen>
       <Specimen
         caption='host-held · 2 pinned + 1 unpinned · maxInlineUnpinned={0} keeps it in the "+1 more" list'
         span={2}
       >
-        <SearchInput value={hostValue} onChange={setHostValue} />
-        <SavedQueryBar
-          queries={hostQueries}
-          currentValue={hostValue}
-          onApply={(q) => {
-            setHostValue(q.value);
-            setLastApplied(q);
-          }}
-          onSave={(name, value) => {
-            setHostQueries((prev) => [
-              ...prev,
-              {
-                id: crypto.randomUUID(),
-                name,
-                value,
-                pinned: false,
-                lastUsedAt: 0,
-              },
-            ]);
-          }}
-          onRename={(id, name) => {
-            updateHostQuery(id, (q) => ({ ...q, name }));
-          }}
-          onRemove={(id) => {
-            setHostQueries((prev) => prev.filter((q) => q.id !== id));
-          }}
-          onTogglePinned={(id) => {
-            updateHostQuery(id, (q) => ({ ...q, pinned: !q.pinned }));
-          }}
-          maxInlineUnpinned={0}
-        />
-        <pre
-          style={{
-            marginTop: 'var(--space-2)',
-            padding: 'var(--space-2) var(--space-3)',
-            background: 'var(--bg-muted)',
-            border: 'var(--size-hairline) solid var(--border-hairline)',
-            borderRadius: 'var(--radius-sm)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 'var(--fs-11)',
-            color: 'var(--text-main)',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-          }}
-        >
-          {lastApplied
-            ? `last applied = ${JSON.stringify(
+        <div className='gallery__stack gallery__stack--fill'>
+          <SearchInput block value={hostValue} onChange={setHostValue} />
+          <SavedQueryBar
+            queries={hostQueries}
+            currentValue={hostValue}
+            onApply={(q) => {
+              setHostValue(q.value);
+              setLastApplied(q);
+            }}
+            onSave={(name, value) => {
+              setHostQueries((prev) => [
+                ...prev,
                 {
-                  name: lastApplied.name,
-                  value: lastApplied.value,
-                  pinned: lastApplied.pinned,
+                  id: crypto.randomUUID(),
+                  name,
+                  value,
+                  pinned: false,
+                  lastUsedAt: 0,
                 },
-                null,
-                2
-              )}`
-            : '(click a chip to apply)'}
-        </pre>
+              ]);
+            }}
+            onRename={(id, name) => {
+              updateHostQuery(id, (q) => ({ ...q, name }));
+            }}
+            onRemove={(id) => {
+              setHostQueries((prev) => prev.filter((q) => q.id !== id));
+            }}
+            onTogglePinned={(id) => {
+              updateHostQuery(id, (q) => ({ ...q, pinned: !q.pinned }));
+            }}
+            maxInlineUnpinned={0}
+          />
+          <pre
+            style={{
+              margin: 0,
+              padding: 'var(--space-2) var(--space-3)',
+              background: 'var(--bg-muted)',
+              border: 'var(--size-hairline) solid var(--border-hairline)',
+              borderRadius: 'var(--radius-sm)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 'var(--fs-11)',
+              color: 'var(--text-main)',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
+          >
+            {lastApplied
+              ? `last applied = ${JSON.stringify(
+                  {
+                    name: lastApplied.name,
+                    value: lastApplied.value,
+                    pinned: lastApplied.pinned,
+                  },
+                  null,
+                  2
+                )}`
+              : '(click a chip to apply)'}
+          </pre>
+        </div>
       </Specimen>
     </div>
   );
@@ -264,13 +275,107 @@ const SQL_EDITOR_FIELDS: CodeEditorField[] = [
   { name: 'StatusCode', type: 'String' },
 ];
 
+function AutoHeightCodeEditorSpecimen(): ReactNode {
+  const [value, setValue] = useState('retries: 3\ntimeout: 30s\n');
+  return (
+    <Specimen
+      caption="height='auto' · grows with its lines · press Enter to add one"
+      span={2}
+    >
+      <CodeEditor
+        value={value}
+        language='yaml'
+        onChange={setValue}
+        height='auto'
+      />
+    </Specimen>
+  );
+}
+
+function ToolbarActionsSpecimen(): ReactNode {
+  const [lastAction, setLastAction] = useState('none');
+  return (
+    <Specimen caption={`left + right · last action: ${lastAction}`} span={2}>
+      <Toolbar
+        left={
+          <SearchInput
+            value=''
+            onChange={() => undefined}
+            placeholder='Search objects…'
+            kbd='⌘K'
+          />
+        }
+        right={
+          <>
+            <AegisButton
+              tone='secondary'
+              onClick={() => setLastAction('Upload')}
+            >
+              Upload
+            </AegisButton>
+            <AegisButton onClick={() => setLastAction('New folder')}>
+              New folder
+            </AegisButton>
+          </>
+        }
+      />
+    </Specimen>
+  );
+}
+
+function ToolbarCenterSpecimen(): ReactNode {
+  const [view, setView] = useState<'list' | 'grid'>('grid');
+  const [filtering, setFiltering] = useState(false);
+  return (
+    <Specimen
+      caption={`with center slot · view: ${view} · filter ${filtering ? 'on' : 'off'}`}
+      span={2}
+    >
+      <Toolbar
+        left={<SearchInput value='' onChange={() => undefined} />}
+        center={
+          <div
+            role='group'
+            aria-label='View'
+            style={{ display: 'flex', gap: 'var(--space-1)' }}
+          >
+            <AegisButton
+              tone='ghost'
+              aria-pressed={view === 'list'}
+              onClick={() => setView('list')}
+            >
+              List
+            </AegisButton>
+            <AegisButton
+              tone='ghost'
+              aria-pressed={view === 'grid'}
+              onClick={() => setView('grid')}
+            >
+              Grid
+            </AegisButton>
+          </div>
+        }
+        right={
+          <AegisButton
+            tone='ghost'
+            aria-pressed={filtering}
+            onClick={() => setFiltering((on) => !on)}
+          >
+            Filter
+          </AegisButton>
+        }
+      />
+    </Specimen>
+  );
+}
+
 function SqlCodeEditorSpecimen(): ReactNode {
   const [value, setValue] = useState(
     'SELECT TraceId, SpanName\nFROM otel_traces\nWHERE Duration > 1000'
   );
   const [submitted, setSubmitted] = useState<string | null>(null);
   return (
-    <>
+    <div className='gallery__stack gallery__stack--fill'>
       <CodeEditor
         value={value}
         language='sql'
@@ -280,25 +385,12 @@ function SqlCodeEditorSpecimen(): ReactNode {
         tables={['otel_traces', 'otel_logs', 'otel_metrics']}
         height={160}
       />
-      <pre
-        style={{
-          marginTop: 'var(--space-2)',
-          padding: 'var(--space-2) var(--space-3)',
-          background: 'var(--bg-muted)',
-          border: 'var(--size-hairline) solid var(--border-hairline)',
-          borderRadius: 'var(--radius-sm)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 'var(--fs-11)',
-          color: 'var(--text-main)',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-        }}
-      >
-        {submitted == null
-          ? 'press Cmd+Enter / Ctrl+Enter to submit'
-          : `submitted → ${submitted}`}
-      </pre>
-    </>
+      {submitted == null ? (
+        <MetricLabel>Press Cmd+Enter or Ctrl+Enter to submit.</MetricLabel>
+      ) : (
+        <CodeBlock language='sql' code={submitted} />
+      )}
+    </div>
   );
 }
 
@@ -447,9 +539,12 @@ function inspectorTabs(object: InspectorObject | null): ObjectInspectorTab[] {
 /** Mounted the way the blob browser mounts it: no tabs until an object opens. */
 function ObjectInspectorSpecimen(): ReactNode {
   const [object, setObject] = useState<InspectorObject | null>(null);
+  const [lastAction, setLastAction] = useState('none');
   return (
     <div className='gallery__row'>
-      <Specimen caption='each object opens on its defaultTabId · a picked tab holds until defaultTabId changes · disabled tab with hint'>
+      <Specimen
+        caption={`each object opens on its defaultTabId · a picked tab holds until defaultTabId changes · disabled tab with hint · last action: ${lastAction}`}
+      >
         <div
           style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}
         >
@@ -469,10 +564,30 @@ function ObjectInspectorSpecimen(): ReactNode {
           }
           actions={
             <>
-              <Chip tone='ghost'>Download</Chip>
-              <Chip tone='ghost'>Copy URL</Chip>
-              <Chip tone='ghost'>Share</Chip>
-              <Chip tone='warning'>Delete</Chip>
+              <AegisButton
+                tone='secondary'
+                onClick={() => setLastAction('Download')}
+              >
+                Download
+              </AegisButton>
+              <AegisButton
+                tone='secondary'
+                onClick={() => setLastAction('Copy URL')}
+              >
+                Copy URL
+              </AegisButton>
+              <AegisButton
+                tone='secondary'
+                onClick={() => setLastAction('Share')}
+              >
+                Share
+              </AegisButton>
+              <AegisButton
+                tone='caution'
+                onClick={() => setLastAction('Delete')}
+              >
+                Delete
+              </AegisButton>
             </>
           }
           tabs={inspectorTabs(object)}
@@ -483,10 +598,24 @@ function ObjectInspectorSpecimen(): ReactNode {
   );
 }
 
+/** A fixture file that reports `bytes` as its size without allocating them. */
+function sizedFile(name: string, bytes: number): File {
+  const file = new File([], name);
+  Object.defineProperty(file, 'size', { value: bytes });
+  return file;
+}
+
+const UPLOAD_FILES = {
+  waiting: sizedFile('waiting.tar.gz', 1_887_436),
+  corpus: sizedFile('corpus-2026-04.tar.gz', 5 * 1024 * 1024),
+  snapshot: sizedFile('trace-snapshot.json', 356_352),
+  tooBig: sizedFile('too-big.bin', 7_759_462),
+};
+
 function ParquetViewerSpecimen(): ReactNode {
   const [file, setFile] = useState<File | undefined>();
   return (
-    <div className='gallery__stack'>
+    <div className='gallery__stack gallery__stack--fill'>
       <FileDropzone
         onDrop={(files) => {
           if (files[0]) {
@@ -498,7 +627,9 @@ function ParquetViewerSpecimen(): ReactNode {
       />
       <ParquetViewer
         file={file}
-        title={file?.name ?? 'Parquet preview'}
+        src={spansParquetUrl}
+        pageSize={10}
+        title={file?.name ?? 'spans.parquet'}
         surface={{
           id: 'gallery.parquet.preview',
           kind: 'preview',
@@ -1568,17 +1699,8 @@ function CommitGraphVersionTableSpecimen(): ReactNode {
 function ResizableSidePanelSpecimen(): ReactNode {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 'var(--space-2)',
-        width: '100%',
-        height: 320,
-        alignItems: 'stretch',
-      }}
-    >
-      <ResizableSidePanel side='left' defaultWidth={280}>
+    <div className='gallery__resizable-stack gallery__resizable-stack--tall'>
+      <ResizableSidePanel side='left' defaultWidth={280} stackOnMobile>
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
             Left · 280px · non-collapsible
@@ -1591,6 +1713,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
         side='left'
         defaultWidth={240}
         persistKey='gallery.resizable.persist'
+        stackOnMobile
       >
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
@@ -1600,16 +1723,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
         </div>
       </ResizableSidePanel>
 
-      <div
-        style={{
-          flex: '1 1 auto',
-          minWidth: 0,
-          padding: 'var(--space-4)',
-          border: 'var(--size-hairline) dashed var(--border-hairline)',
-          borderRadius: 'var(--radius-md)',
-          background: 'var(--bg-page)',
-        }}
-      >
+      <div className='gallery__resizable-stack-main'>
         <MetricLabel as='div' size='xs'>
           Keyboard-only resize demo
         </MetricLabel>
@@ -1626,6 +1740,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
         collapsible
         collapsed={rightCollapsed}
         onCollapsedChange={setRightCollapsed}
+        stackOnMobile
       >
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
@@ -1720,9 +1835,8 @@ function ResizableSidePanelStackedSpecimen(): ReactNode {
             Turns · stackOnMobile
           </MetricLabel>
           {Array.from({ length: 12 }, (_, i) => (
-            <p key={i}>
-              <MonoValue size='sm'>{String(i + 1).padStart(2, '0')}</MonoValue>{' '}
-              turn {i + 1}
+            <p key={i} className='gallery__numeric'>
+              Turn {i + 1}
             </p>
           ))}
         </div>
@@ -1741,17 +1855,144 @@ function ResizableSidePanelStackedSpecimen(): ReactNode {
   );
 }
 
+function ObjectBrowserActionsSpecimen(): ReactNode {
+  const [browserAction, setBrowserAction] = useState('none');
+  return (
+    <Specimen
+      caption={`browse a prefix · 2 selected · last action: ${browserAction}`}
+      span={3}
+    >
+      <ObjectBrowser
+        prefixes={[
+          'datasets/2026-04/',
+          'datasets/2026-05/',
+          'datasets/archive/',
+        ]}
+        currentPrefix='datasets/'
+        onPrefixChange={() => undefined}
+        selectionCount={2}
+        toolbar={
+          <>
+            <AegisButton
+              tone='secondary'
+              onClick={() => setBrowserAction('Download')}
+            >
+              Download
+            </AegisButton>
+            <AegisButton
+              tone='secondary'
+              onClick={() => setBrowserAction('Share')}
+            >
+              Share
+            </AegisButton>
+            <AegisButton
+              tone='caution'
+              onClick={() => setBrowserAction('Delete')}
+            >
+              Delete
+            </AegisButton>
+          </>
+        }
+      >
+        <div
+          style={{
+            padding: 'var(--space-6)',
+            textAlign: 'center',
+            color: 'var(--text-muted)',
+            border: 'var(--size-hairline) dashed var(--border-hairline)',
+            borderRadius: 'var(--radius-sm)',
+          }}
+        >
+          <MetricLabel>Host renders DataTable here</MetricLabel>
+        </div>
+      </ObjectBrowser>
+    </Specimen>
+  );
+}
+
+function ObjectBrowserSlotsSpecimen(): ReactNode {
+  const [browserView, setBrowserView] = useState<'list' | 'grid'>('grid');
+  const [pagesLoaded, setPagesLoaded] = useState(1);
+  return (
+    <Specimen
+      caption={`searchSlot + viewModeSlot + footer · view: ${browserView} · pages loaded: ${String(pagesLoaded)}`}
+      span={3}
+    >
+      <ObjectBrowser
+        prefixes={['models/', 'experiments/']}
+        currentPrefix=''
+        onPrefixChange={() => undefined}
+        searchSlot={
+          <SearchInput
+            value=''
+            onChange={() => undefined}
+            placeholder='Filter objects…'
+          />
+        }
+        viewModeSlot={
+          <div
+            role='group'
+            aria-label='View'
+            style={{ display: 'flex', gap: 'var(--space-1)' }}
+          >
+            <AegisButton
+              tone='ghost'
+              aria-label='List view'
+              aria-pressed={browserView === 'list'}
+              onClick={() => setBrowserView('list')}
+            >
+              ≡
+            </AegisButton>
+            <AegisButton
+              tone='ghost'
+              aria-label='Grid view'
+              aria-pressed={browserView === 'grid'}
+              onClick={() => setBrowserView('grid')}
+            >
+              ⊞
+            </AegisButton>
+          </div>
+        }
+        footer={
+          <AegisButton
+            tone='secondary'
+            onClick={() => setPagesLoaded((count) => count + 1)}
+          >
+            Load more
+          </AegisButton>
+        }
+      >
+        <div
+          style={{
+            padding: 'var(--space-6)',
+            textAlign: 'center',
+            color: 'var(--text-muted)',
+            border: 'var(--size-hairline) dashed var(--border-hairline)',
+            borderRadius: 'var(--radius-sm)',
+          }}
+        >
+          <MetricLabel>DataTable content</MetricLabel>
+        </div>
+      </ObjectBrowser>
+    </Specimen>
+  );
+}
+
 export function ServicePrimitivesSection() {
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Service primitives</PanelTitle>}
+    <GallerySection
+      title='Service primitives'
       extra={<MetricLabel>blob · configcenter · audit</MetricLabel>}
     >
       <SectionDivider extra={<MetricLabel>react-dropzone</MetricLabel>}>
         FileDropzone
       </SectionDivider>
       <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='empty · multi · accept image/*' span={2}>
+        <Specimen
+          caption='empty · multi · accept image/*'
+          span={2}
+          align='start'
+        >
           <FileDropzone
             onDrop={(files) =>
               console.warn(
@@ -1763,26 +2004,27 @@ export function ServicePrimitivesSection() {
             maxSize={5 * 1024 * 1024}
           />
         </Specimen>
-        <Specimen caption='with an UploadQueue below' span={2}>
+        <Specimen caption='with an UploadQueue below' span={2} align='start'>
           <div className='gallery__stack'>
             <FileDropzone onDrop={() => undefined} />
             <UploadQueue
               items={[
                 {
                   id: 'a',
-                  file: new File([''], 'corpus-2026-04.tar.gz'),
+                  file: UPLOAD_FILES.corpus,
                   status: 'uploading',
                   progress: 0.64,
+                  bytesUploaded: 0.64 * UPLOAD_FILES.corpus.size,
                 },
                 {
                   id: 'b',
-                  file: new File([''], 'trace-snapshot.json'),
+                  file: UPLOAD_FILES.snapshot,
                   status: 'done',
                   progress: 1,
                 },
                 {
                   id: 'c',
-                  file: new File([''], 'too-big.bin'),
+                  file: UPLOAD_FILES.tooBig,
                   status: 'error',
                   error: 'exceeds 5 MB cap',
                 },
@@ -1790,10 +2032,10 @@ export function ServicePrimitivesSection() {
             />
           </div>
         </Specimen>
-        <Specimen caption='disabled'>
+        <Specimen caption='disabled' align='start'>
           <FileDropzone onDrop={() => undefined} disabled />
         </Specimen>
-        <Specimen caption='directory=true'>
+        <Specimen caption='directory=true' align='start'>
           <FileDropzone
             onDrop={() => undefined}
             directory
@@ -1809,7 +2051,7 @@ export function ServicePrimitivesSection() {
             }
           />
         </Specimen>
-        <Specimen caption='overlay variant (contained)' span={2}>
+        <Specimen caption='overlay variant (contained)' span={2} align='start'>
           <div
             style={{
               position: 'relative',
@@ -1918,20 +2160,21 @@ export function ServicePrimitivesSection() {
         UploadQueue
       </SectionDivider>
       <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='mixed states with progress + speed' span={3}>
+        <Specimen
+          caption='mixed states with progress + speed'
+          span={3}
+          align='start'
+        >
           <UploadQueue
             items={[
               {
                 id: 'q1',
-                file: new File([''], 'waiting.tar.gz'),
+                file: UPLOAD_FILES.waiting,
                 status: 'queued',
               },
               {
                 id: 'u1',
-                file: new File(
-                  [new Uint8Array(5 * 1024 * 1024)],
-                  'corpus-2026-04.tar.gz'
-                ),
+                file: UPLOAD_FILES.corpus,
                 status: 'uploading',
                 progress: 0.5,
                 bytesUploaded: 2.5 * 1024 * 1024,
@@ -1941,13 +2184,13 @@ export function ServicePrimitivesSection() {
               },
               {
                 id: 'd1',
-                file: new File([''], 'trace-snapshot.json'),
+                file: UPLOAD_FILES.snapshot,
                 status: 'done',
                 progress: 1,
               },
               {
                 id: 'e1',
-                file: new File([''], 'too-big.bin'),
+                file: UPLOAD_FILES.tooBig,
                 status: 'error',
                 error: 'exceeds 5 MB cap',
               },
@@ -1957,7 +2200,7 @@ export function ServicePrimitivesSection() {
             onClearCompleted={() => undefined}
           />
         </Specimen>
-        <Specimen caption='empty'>
+        <Specimen caption='empty' align='start'>
           <UploadQueue items={[]} />
         </Specimen>
       </div>
@@ -1966,36 +2209,8 @@ export function ServicePrimitivesSection() {
         Toolbar
       </SectionDivider>
       <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='left + right' span={2}>
-          <Toolbar
-            left={
-              <SearchInput
-                value=''
-                onChange={() => undefined}
-                placeholder='Search objects…'
-                kbd='⌘K'
-              />
-            }
-            right={
-              <>
-                <Chip tone='ghost'>Upload</Chip>
-                <Chip tone='ink'>New folder</Chip>
-              </>
-            }
-          />
-        </Specimen>
-        <Specimen caption='with center slot' span={2}>
-          <Toolbar
-            left={<SearchInput value='' onChange={() => undefined} />}
-            center={
-              <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                <Chip tone='ghost'>List</Chip>
-                <Chip tone='ink'>Grid</Chip>
-              </div>
-            }
-            right={<Chip tone='ghost'>Filter</Chip>}
-          />
-        </Specimen>
+        <ToolbarActionsSpecimen />
+        <ToolbarCenterSpecimen />
         <Specimen caption='left only · SearchInput + filter Chip' span={3}>
           <Toolbar
             left={
@@ -2091,7 +2306,7 @@ export function ServicePrimitivesSection() {
                 mono: true,
                 copyable: true,
               },
-              { label: 'Size', value: '4.2 MB', mono: true },
+              { label: 'Size', value: '4.2 MB' },
               {
                 label: 'Content-Type',
                 value: 'application/json',
@@ -2151,70 +2366,8 @@ export function ServicePrimitivesSection() {
         ObjectBrowser
       </SectionDivider>
       <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='browse a prefix · 2 selected' span={3}>
-          <ObjectBrowser
-            prefixes={[
-              'datasets/2026-04/',
-              'datasets/2026-05/',
-              'datasets/archive/',
-            ]}
-            currentPrefix='datasets/'
-            onPrefixChange={() => undefined}
-            selectionCount={2}
-            toolbar={
-              <>
-                <Chip tone='ghost'>Download</Chip>
-                <Chip tone='ghost'>Share</Chip>
-                <Chip tone='ghost'>Delete</Chip>
-              </>
-            }
-          >
-            <div
-              style={{
-                padding: 'var(--space-6)',
-                textAlign: 'center',
-                color: 'var(--text-muted)',
-                border: 'var(--size-hairline) dashed var(--border-hairline)',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              <MetricLabel>Host renders DataTable here</MetricLabel>
-            </div>
-          </ObjectBrowser>
-        </Specimen>
-        <Specimen caption='searchSlot + viewModeSlot + footer' span={3}>
-          <ObjectBrowser
-            prefixes={['models/', 'experiments/']}
-            currentPrefix=''
-            onPrefixChange={() => undefined}
-            searchSlot={
-              <SearchInput
-                value=''
-                onChange={() => undefined}
-                placeholder='Filter objects…'
-              />
-            }
-            viewModeSlot={
-              <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                <Chip tone='ghost'>≡</Chip>
-                <Chip tone='ink'>⊞</Chip>
-              </div>
-            }
-            footer={<Chip tone='ghost'>Load more</Chip>}
-          >
-            <div
-              style={{
-                padding: 'var(--space-6)',
-                textAlign: 'center',
-                color: 'var(--text-muted)',
-                border: 'var(--size-hairline) dashed var(--border-hairline)',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              <MetricLabel>DataTable content</MetricLabel>
-            </div>
-          </ObjectBrowser>
-        </Specimen>
+        <ObjectBrowserActionsSpecimen />
+        <ObjectBrowserSlotsSpecimen />
         <Specimen caption='loading skeleton' span={2}>
           <ObjectBrowser
             prefixes={[]}
@@ -2356,7 +2509,7 @@ export function ServicePrimitivesSection() {
       <div className='gallery__row gallery__row--wide'>
         <Specimen caption='image'>
           <FilePreview
-            src='https://placehold.co/600x400/png'
+            src={heroImageUrl}
             mimeType='image/png'
             name='hero.png'
             maxHeight={200}
@@ -2427,8 +2580,9 @@ export function ServicePrimitivesSection() {
             height={160}
           />
         </Specimen>
+        <AutoHeightCodeEditorSpecimen />
         <Specimen
-          caption='sql · field+table autocomplete · Cmd+Enter submit'
+          caption='sql · field+table autocomplete · Cmd+Enter submit · focused, a line says how Tab leaves'
           span={3}
         >
           <SqlCodeEditorSpecimen />
@@ -2493,7 +2647,7 @@ export function ServicePrimitivesSection() {
       </SectionDivider>
       <div className='gallery__row gallery__row--wide'>
         <Specimen
-          caption="variant='dot' · mono meta + timestamp · dotColor override"
+          caption="variant='dot' · numeric meta + timestamp · dotColor override"
           span={3}
         >
           <Timeline
@@ -2537,7 +2691,7 @@ export function ServicePrimitivesSection() {
           />
         </Specimen>
         <Specimen
-          caption="variant='numbered' · mono marker (3ch) · strong title · mono meta · body description · hairline rows · pre-wrap"
+          caption="variant='numbered' · numeric marker (3ch) · strong title · numeric meta · body description · hairline rows · pre-wrap"
           span={3}
         >
           <Timeline
@@ -2619,7 +2773,10 @@ export function ServicePrimitivesSection() {
         ParquetViewer
       </SectionDivider>
       <div className='gallery__stack'>
-        <Specimen caption='drop a .parquet to inspect' span={3}>
+        <Specimen
+          caption='120 spans read by range from a URL · pageSize={10} · drop a .parquet to inspect your own'
+          span={3}
+        >
           <ParquetViewerSpecimen />
         </Specimen>
       </div>
@@ -2701,13 +2858,13 @@ export function ServicePrimitivesSection() {
       </SectionDivider>
       <div className='gallery__stack'>
         <Specimen
-          caption='microservice topology · LR · onNodeClick + onEdgeClick · click, or Tab and press Enter or Space'
+          caption='microservice topology · LR · onNodeClick + onEdgeClick · click, or Tab and press Enter or Space · a dot before each label shows its state · a focused edge draws its ring along its path, and a focused node or edge pans fully into view · at 768 px and below the map opens on its start at a readable zoom, to pan from'
           span={3}
         >
           <ServiceMapMicroSpecimen />
         </Specimen>
         <Specimen
-          caption='AgentM session DAG · TB · no handlers, so nothing is focusable'
+          caption='AgentM session DAG · TB · no handlers, so nothing is focusable · at 768 px and below it opens on its root at a readable zoom'
           span={3}
         >
           <ServiceMapAgentSpecimen />
@@ -2796,6 +2953,6 @@ export function ServicePrimitivesSection() {
           <ResizableSidePanelStackedSpecimen />
         </Specimen>
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

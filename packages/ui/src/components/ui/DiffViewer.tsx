@@ -61,23 +61,29 @@ export function DiffViewer({
     'diff',
     wrapRef,
   );
-  const rootClass = ['aegis-diff-viewer', className ?? '']
+  const rootClass = [
+    'aegis-diff-viewer',
+    splitView ? 'aegis-diff-viewer--split' : '',
+    className ?? '',
+  ]
     .filter(Boolean)
     .join(' ');
   return (
     <div ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
-      <ReactDiffViewer
-        oldValue={oldValue}
-        newValue={newValue}
-        splitView={splitView}
-        compareMethod={methodMap[compareMethod]}
-        showDiffOnly={showDiffOnly}
-        hideLineNumbers={hideLineNumbers}
-        leftTitle={leftTitle}
-        rightTitle={rightTitle}
-        useDarkTheme={false}
-        styles={diffStyles}
-      />
+      <div className="aegis-diff-viewer__canvas">
+        <ReactDiffViewer
+          oldValue={oldValue}
+          newValue={newValue}
+          splitView={splitView}
+          compareMethod={methodMap[compareMethod]}
+          showDiffOnly={showDiffOnly}
+          hideLineNumbers={hideLineNumbers}
+          leftTitle={leftTitle}
+          rightTitle={rightTitle}
+          useDarkTheme={false}
+          styles={diffStyles}
+        />
+      </div>
     </div>
   );
 }

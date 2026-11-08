@@ -13,12 +13,12 @@ import {
   CommandPalette,
   CommandProvider,
   MetricLabel,
-  Panel,
-  PanelTitle,
   SectionDivider,
   useCommands,
   useRegisterCommands,
 } from '@lincyaw/aegis-ui';
+
+import { GallerySection } from '../shared';
 
 const GROUP_ORDER = ['Quick actions', 'Navigate', 'Settings'];
 
@@ -115,8 +115,8 @@ function CommandGallerySpecimen(): ReactNode {
 
 export function CommandsSection() {
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Commands · command palette</PanelTitle>}
+    <GallerySection
+      title='Commands · command palette'
       extra={<MetricLabel>cmdk</MetricLabel>}
     >
       <p className='gallery__panel-body'>
@@ -132,6 +132,6 @@ export function CommandsSection() {
       <CommandProvider>
         <CommandGallerySpecimen />
       </CommandProvider>
-    </Panel>
+    </GallerySection>
   );
 }

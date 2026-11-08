@@ -96,8 +96,8 @@
   position: absolute;
   left: 50%;
   width: var(--chart-interval-weight);
-  background: var(--text-main);
-  opacity: var(--chart-interval-opacity);
+  background: var(--chart-interval-color);
+  outline: var(--size-hairline) solid var(--chart-interval-halo);
   transform: translateX(-50%);
 }
 
@@ -132,9 +132,7 @@
 }
 
 .aegis-column-chart--scroll .aegis-column-chart__interval {
-  opacity: calc(
-    var(--chart-interval-opacity) * var(--aegis-column-chart-interval)
-  );
+  opacity: var(--aegis-column-chart-interval);
 }
 
 /* The global reduced-motion rule shortens durations but not delays. */

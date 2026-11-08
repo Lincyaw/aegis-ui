@@ -44,6 +44,9 @@
   --text-faint: #9aa0a6;
   --text-on-inverted: #ffffff;
   --text-on-inverted-muted: #aaaaaa;
+  /* Caution text that must be read at small sizes: 4.5:1 on the page, a
+   * panel and --bg-warn-soft. --ink-warn stays for marks and large text. */
+  --text-warn: #b45309;
 
   /* ── Border / divider ────────────────────────────────────────────── */
   --border-hairline: rgba(31, 35, 40, 0.08);
@@ -290,7 +293,7 @@
   --avatar-hue-1: #1f2937; /* slate */
   --avatar-hue-2: #4338ca; /* indigo */
   --avatar-hue-3: #047857; /* emerald */
-  --avatar-hue-4: #b45309; /* amber-700 */
+  --avatar-hue-4: #0369a1; /* sky-700 — distinct from the caution amber */
   --avatar-hue-5: #be123c; /* rose-700 — distinct from anomaly red */
 
   /* ── Presence (online / offline / busy / away) ───────────────────── */
@@ -332,6 +335,13 @@
   --text-terminal-muted: rgba(255, 255, 255, 0.5);
   --text-terminal-strong: rgba(255, 255, 255, 0.75);
   --border-terminal: rgba(255, 255, 255, 0.08);
+  /* ToolCallCard: a light card in the light theme; the dark theme gives it
+   * the terminal block. */
+  --tool-call-bg: var(--bg-panel);
+  --tool-call-code-bg: var(--bg-muted);
+  --tool-call-border: var(--border-hairline);
+  --tool-call-ink: var(--text-main);
+  --tool-call-ink-muted: var(--text-muted);
 
   /* ── Motion ──────────────────────────────────────────────────────── */
   /* Every state change decelerates into place, with no overshoot; only
@@ -413,10 +423,8 @@
       var(--space-6) * 2
   );
   --trajectory-step-text-max-height: 320px;
-  /* TableOfContents column (also the article page's left column) and the
-   * height of its current-item indicator on one line. */
+  /* TableOfContents column (also the article page's left column). */
   --toc-width: 240px;
-  --toc-indicator-height: 20px;
   /* ScrollStory: where its pinned panel stops under the header, the
    * height of the view it pins in (a host with a scroll container sets
    * the container's height), and the shortest a step may be, so each step
@@ -513,9 +521,13 @@
   /* Thin bars: RankBar size='sm', ResultMatrix shape='bar'. */
   --rank-bar-height-sm: var(--space-2);
   --result-matrix-bar: 7px;
-  /* A bar's confidence interval, drawn over it in the main ink. */
+  /* A bar's confidence interval (ColumnChart, RankBar) and the line joining
+   * a before and an after (DotRangeChart), drawn in a faint ink inside a
+   * hairline halo of the panel colour, so it shows on a bar of any colour,
+   * the ink bar included. */
   --chart-interval-weight: var(--size-border-thick);
-  --chart-interval-opacity: 0.35;
+  --chart-interval-color: var(--text-faint);
+  --chart-interval-halo: var(--bg-panel);
   /* ColumnChart: the plot, a bar and the space its axis labels sit in. */
   --column-chart-plot-height: 320px;
   --column-chart-bar-width: var(--space-16);
@@ -558,8 +570,11 @@
   --score-bar-track-height: 6px;
   --run-pips-dot: 8px;
   --run-pips-bar-width: 64px;
-  /* TimelineChart's label column; at 768 px and below the chart sets it to 40%. */
+  /* TimelineChart's label column. At 768 px and below the chart has no label
+   * column: each name sits on its own line above its bar. */
   --timeline-chart-label-width: 280px;
+  /* Tabs: the selected tab's pill, which stands out lighter than its track. */
+  --tabs-indicator-bg: var(--bg-panel);
 
   /* ── Z-index ─────────────────────────────────────────────────────── */
   --z-dropdown: 1000;
@@ -594,6 +609,7 @@
   --text-faint: #6b7280;
   --text-on-inverted: #0b0d12;
   --text-on-inverted-muted: #52525b;
+  --text-warn: #fbbf24;
 
   /* Borders */
   --border-hairline: rgba(255, 255, 255, 0.08);
@@ -643,8 +659,8 @@
   --avatar-hue-1: #64748b;
   --avatar-hue-2: #818cf8;
   --avatar-hue-3: #34d399;
-  --avatar-hue-4: #fbbf24;
-  --avatar-hue-5: #fb7185;
+  --avatar-hue-4: #7dd3fc; /* sky-300 — distinct from the caution amber */
+  --avatar-hue-5: #f472b6; /* pink-400 — the lighter rose is the anomaly red */
 
   /* Presence — lighter for dark surfaces */
   --presence-online: #4ade80;
@@ -662,17 +678,33 @@
   --diff-removed-gutter: #361721;
   --diff-removed-word: #5c1f2a;
 
-  /* Elevation — black shadows, deeper so they read on dark surfaces */
+  /* Elevation — black shadows, deeper so they read on dark surfaces. A
+   * shadow barely shows on the dark page, so each level above rest also
+   * catches light: a ring round its edge and a lit top edge, brighter the
+   * higher it sits. Inset layers come last, so rest and raised still
+   * interpolate on hover. */
   --shadow-rest:
     0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px -6px rgba(0, 0, 0, 0.4);
   --shadow-raised:
-    0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+    0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 40px -12px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   --shadow-overlay:
-    0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6);
+    0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 
   /* Scrollbar */
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.32);
+
+  /* Tabs — the panel is darker than the track on dark, so the pill steps up. */
+  --tabs-indicator-bg: #30353f;
+
+  /* ToolCallCard — the terminal block */
+  --tool-call-bg: var(--bg-terminal);
+  --tool-call-code-bg: var(--bg-terminal-soft);
+  --tool-call-border: var(--border-terminal);
+  --tool-call-ink: var(--text-terminal);
+  --tool-call-ink-muted: var(--text-terminal-muted);
 }
 
 /* ── Page entrance (subtle — never steals attention) ───────────────── */

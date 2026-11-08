@@ -10,7 +10,6 @@ import {
   KeyMomentCard,
   MetricLabel,
   Panel,
-  PanelTitle,
   ReplayScrubber,
   ReplayStepStrip,
   ReplayTransport,
@@ -28,7 +27,7 @@ import {
 } from '@lincyaw/aegis-ui';
 
 import { TOOL_QUERY_METRICS } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 const TOOL_GET_TRACES: ToolCallData = {
   name: 'get_traces',
@@ -224,7 +223,7 @@ function ReplayStepStripSpecimen(): ReactNode {
   return (
     <div className='gallery__stack'>
       <Specimen
-        caption={`bars by kind · course-changing steps taller · key moments numbered · the current step outlined · arrows move · #${String(current + 1)}`}
+        caption={`bars by kind · course-changing steps taller · key moments numbered · the current step outlined · arrows move · each step a 24 px target, scrolling when the run is wider · #${String(current + 1)}`}
         span={3}
       >
         <div className='gallery__stack gallery__stack--fill'>
@@ -281,13 +280,15 @@ function ReplayStripCompactSpecimen(): ReactNode {
   });
   return (
     <div className='gallery__row'>
-      <Specimen caption="size='sm' · no ticks · weight grades the bars by kind">
-        <div className='gallery__stack gallery__stack--fill'>
-          <ReplayStepStrip size='sm' steps={REPLAY_WEIGHTED_STEPS} />
-        </div>
+      <Specimen
+        caption="size='sm' · no ticks · weight grades the bars by kind"
+        align='start'
+      >
+        <ReplayStepStrip size='sm' steps={REPLAY_WEIGHTED_STEPS} />
       </Specimen>
       <Specimen
         caption={`playhead follows the scroll · later steps dim · ${progress.toFixed(2)}`}
+        align='start'
       >
         <div ref={setScroller} className='gallery__chart-scroller'>
           <p className='gallery__chart-scroller-spacer'>Scroll down.</p>
@@ -356,9 +357,9 @@ const TRAJECTORY_STEP_SEVERAL_CALLS: TrajectoryStepData = {
   thought: 'Compare the **cache** latency with the pool settings in one round.',
   actionType: 'tool_call',
   sections: [
-    { label: 'message', text: 'Checking the metric and the config together.' },
+    { label: 'Message', text: 'Checking the metric and the config together.' },
     {
-      label: 'recorded request body',
+      label: 'Recorded request body',
       text: '{"model": "claude-opus-4-7",\n "tools": ["query_metrics", "read_file"]}',
       format: 'text',
     },
@@ -435,8 +436,8 @@ function ContentInspectorSpecimen(): ReactNode {
 
 export function AgentTrajectorySection() {
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Agent trajectory</PanelTitle>}
+    <GallerySection
+      title='Agent trajectory'
       extra={<MetricLabel>Observation · reasoning · action</MetricLabel>}
     >
       <SectionDivider>ToolCallCard</SectionDivider>
@@ -671,6 +672,6 @@ export function AgentTrajectorySection() {
 
       <SectionDivider>ContentInspectorDialog · ContentPreview</SectionDivider>
       <ContentInspectorSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }

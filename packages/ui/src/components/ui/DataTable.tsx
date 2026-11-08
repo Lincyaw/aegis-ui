@@ -163,7 +163,8 @@ interface DataTableProps<T> {
   onRowClick?: (row: T, index: number) => void;
   /**
    * Keeps the first column (with the selection and expansion columns) in
-   * view while the other columns scroll sideways.
+   * view while the other columns scroll sideways. The first column takes
+   * at most 40% of the table's visible width, truncating past it.
    */
   stickyFirstColumn?: boolean;
   /**
@@ -186,6 +187,8 @@ interface DataTableProps<T> {
 const SELECTION_WIDTH = 44;
 const TOGGLE_WIDTH = 32;
 const CHEVRON_WIDTH = 40;
+/** The widest a pinned first column renders; DataTable.css sets the share. */
+const PINNED_MAX = 'var(--aegis-data-table-pinned-max)';
 const MOBILE_QUERY = '(max-width: 768px)';
 const CONTROL_SELECTOR =
   'a, button, input, select, textarea, label, [role="button"], [role="link"], [role="checkbox"]';
@@ -378,12 +381,14 @@ export function DataTable<T>({
   const leadWidth =
     (selectable ? SELECTION_WIDTH : 0) + (expandable ? TOGGLE_WIDTH : 0);
   const trailWidth = clickable ? CHEVRON_WIDTH : 0;
+  const sticky = stickyFirstColumn && !cardMode;
 
   const columnWidths = useColumnWidths({
     columns,
     persistKey,
     leadWidth,
     trailWidth,
+    firstColumnMax: sticky ? PINNED_MAX : undefined,
     tableRef,
   });
 
@@ -397,7 +402,6 @@ export function DataTable<T>({
     .join(' ');
   const fixedLayout = columnWidths.sized && !cardMode;
   const filler = fixedLayout && columnWidths.fillerStyle !== undefined;
-  const sticky = stickyFirstColumn && !cardMode;
   const bodyColumnCount =
     (cardMode ? 1 : columns.length) + (filler ? 1 : 0) + (clickable ? 1 : 0);
   const columnCount =
@@ -428,7 +432,7 @@ export function DataTable<T>({
     const block = `aegis-data-table__${cell}`;
     const classes = [block];
     if (sticky && colIndex === 0) {
-      classes.push(`${block}--sticky`);
+      classes.push(`${block}--sticky`, `${block}--pinned`);
     }
     if (tone !== undefined) {
       classes.push(
@@ -563,7 +567,13 @@ export function DataTable<T>({
           colSpan={bodyColumnCount}
           className="aegis-data-table__detail-cell"
         >
-          <div className="aegis-data-table__detail">
+          <div
+            className="aegis-data-table__detail"
+            style={{
+              left: leadWidth,
+              width: `calc(100cqi - ${String(leadWidth)}px)`,
+            }}
+          >
             <div className="aegis-data-table__detail-clip">
               <div className="aegis-data-table__detail-body">
                 {(open || visited.includes(key)) && render(row, idx)}
@@ -621,231 +631,239 @@ export function DataTable<T>({
       aria-busy={stale || loading ? true : undefined}
       {...agentAttrs}
     >
-      <div className="aegis-data-table__scroll">
-        <table
-          ref={tableRef}
-          aria-label={ariaLabel}
-          className={tableClass}
-          style={fixedLayout ? columnWidths.tableStyle : undefined}
-        >
-          {fixedLayout && (
-            <colgroup>
-              {selectable && (
-                <col key="__select" style={{ width: SELECTION_WIDTH }} />
-              )}
-              {expandable && (
-                <col key="__toggle" style={{ width: TOGGLE_WIDTH }} />
-              )}
-              {columns.map((col, i) => {
-                const width = columnWidths.widths[i];
-                return (
-                  <col
-                    key={col.key}
-                    data-column-key={col.key}
-                    style={width ? { width } : undefined}
-                  />
-                );
-              })}
-              {filler && (
-                <col
-                  key="__filler"
-                  data-column-filler
-                  style={columnWidths.fillerStyle}
-                />
-              )}
-              {clickable && (
-                <col key="__chevron" style={{ width: CHEVRON_WIDTH }} />
-              )}
-            </colgroup>
-          )}
-          {(!cardMode || selectable) && (
-            <thead>
-              <tr>
+      <div className="aegis-data-table__scroll-frame">
+        <div className="aegis-data-table__scroll">
+          <table
+            ref={tableRef}
+            aria-label={ariaLabel}
+            className={tableClass}
+            style={fixedLayout ? columnWidths.tableStyle : undefined}
+          >
+            {fixedLayout && (
+              <colgroup>
                 {selectable && (
-                  <th
-                    key="__select"
-                    scope="col"
-                    {...leadCellProps('select', 'th')}
-                  >
-                    <span className="aegis-data-table__th-label">
-                      <Checkbox
-                        checked={
-                          keys.length > 0 && selectedCount === keys.length
-                        }
-                        indeterminate={
-                          selectedCount > 0 && selectedCount < keys.length
-                        }
-                        onChange={togglePage}
-                        ariaLabel={strings.selectAllRows}
-                      />
-                    </span>
-                  </th>
+                  <col key="__select" style={{ width: SELECTION_WIDTH }} />
                 )}
                 {expandable && (
-                  <th
-                    key="__toggle"
-                    scope="col"
-                    {...leadCellProps('toggle', 'th')}
-                  />
+                  <col key="__toggle" style={{ width: TOGGLE_WIDTH }} />
                 )}
-                {cardMode ? (
-                  <th scope="col" className="aegis-data-table__th" />
-                ) : (
-                  columns.map((col, i) => (
-                    <th
+                {columns.map((col, i) => {
+                  const width = columnWidths.widths[i];
+                  return (
+                    <col
                       key={col.key}
-                      scope="col"
                       data-column-key={col.key}
-                      className={cellClass('th', i)}
-                      style={cellStyle(col, i)}
-                      aria-sort={
-                        col.sortable
-                          ? activeSort?.key === col.key
-                            ? activeSort.direction === 'asc'
-                              ? 'ascending'
-                              : 'descending'
-                            : 'none'
-                          : undefined
-                      }
-                    >
-                      {col.sortable ? (
-                        <button
-                          type="button"
-                          className="aegis-data-table__sort"
-                          onClick={() => {
-                            requestSort(col);
-                          }}
-                        >
-                          <span className="aegis-data-table__th-label">
-                            {col.header}
-                          </span>
-                          <SortIcon
-                            direction={
-                              activeSort?.key === col.key
-                                ? activeSort.direction
-                                : null
-                            }
-                          />
-                        </button>
-                      ) : (
-                        <span className="aegis-data-table__th-label">
-                          {col.header}
-                        </span>
-                      )}
-                      {col.resizable && (
-                        <span
-                          aria-label={strings.resizeColumn}
-                          className="aegis-data-table__resizer"
-                          {...columnWidths.handleProps(col)}
-                        />
-                      )}
-                    </th>
-                  ))
-                )}
+                      style={width ? { width } : undefined}
+                    />
+                  );
+                })}
                 {filler && (
-                  <th
-                    scope="col"
-                    className="aegis-data-table__th aegis-data-table__filler"
-                    aria-hidden
+                  <col
+                    key="__filler"
+                    data-column-filler
+                    style={columnWidths.fillerStyle}
                   />
                 )}
                 {clickable && (
-                  <th
-                    scope="col"
-                    className="aegis-data-table__th aegis-data-table__chevron-cell"
-                    aria-hidden
-                  />
+                  <col key="__chevron" style={{ width: CHEVRON_WIDTH }} />
                 )}
-              </tr>
-            </thead>
-          )}
-          <tbody data-aegis-develop={develop || undefined}>
-            {loading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={`sk-${i}`} className="aegis-data-table__row">
+              </colgroup>
+            )}
+            {(!cardMode || selectable) && (
+              <thead>
+                <tr>
                   {selectable && (
-                    <td key="__select" {...leadCellProps('select', 'td')} />
+                    <th
+                      key="__select"
+                      scope="col"
+                      {...leadCellProps('select', 'th')}
+                    >
+                      <span className="aegis-data-table__th-label">
+                        <Checkbox
+                          checked={
+                            keys.length > 0 && selectedCount === keys.length
+                          }
+                          indeterminate={
+                            selectedCount > 0 && selectedCount < keys.length
+                          }
+                          onChange={togglePage}
+                          ariaLabel={strings.selectAllRows}
+                        />
+                      </span>
+                    </th>
                   )}
                   {expandable && (
-                    <td key="__toggle" {...leadCellProps('toggle', 'td')} />
+                    <th
+                      key="__toggle"
+                      scope="col"
+                      {...leadCellProps('toggle', 'th')}
+                    />
                   )}
-                  {renderSkeletonCells()}
-                  {fillerCell}
+                  {cardMode ? (
+                    <th scope="col" className="aegis-data-table__th" />
+                  ) : (
+                    columns.map((col, i) => (
+                      <th
+                        key={col.key}
+                        scope="col"
+                        data-column-key={col.key}
+                        className={cellClass('th', i)}
+                        style={cellStyle(col, i)}
+                        aria-sort={
+                          col.sortable
+                            ? activeSort?.key === col.key
+                              ? activeSort.direction === 'asc'
+                                ? 'ascending'
+                                : 'descending'
+                              : 'none'
+                            : undefined
+                        }
+                      >
+                        {col.sortable ? (
+                          <button
+                            type="button"
+                            className="aegis-data-table__sort"
+                            onClick={() => {
+                              requestSort(col);
+                            }}
+                          >
+                            <span className="aegis-data-table__th-label">
+                              {col.header}
+                            </span>
+                            <SortIcon
+                              direction={
+                                activeSort?.key === col.key
+                                  ? activeSort.direction
+                                  : null
+                              }
+                            />
+                          </button>
+                        ) : (
+                          <span className="aegis-data-table__th-label">
+                            {col.header}
+                          </span>
+                        )}
+                        {col.resizable && (
+                          <span
+                            aria-label={strings.resizeColumn}
+                            className="aegis-data-table__resizer"
+                            {...columnWidths.handleProps(col)}
+                          />
+                        )}
+                      </th>
+                    ))
+                  )}
+                  {filler && (
+                    <th
+                      scope="col"
+                      className="aegis-data-table__th aegis-data-table__filler"
+                      aria-hidden
+                    />
+                  )}
                   {clickable && (
-                    <td className="aegis-data-table__td" aria-hidden />
+                    <th
+                      scope="col"
+                      className="aegis-data-table__th aegis-data-table__chevron-cell"
+                      aria-hidden
+                    />
                   )}
                 </tr>
-              ))
-            ) : rows.length === 0 ? (
-              // Not a data row, so an empty table has no rows to read.
-              <tr role="presentation">
-                <td
-                  colSpan={columnCount}
-                  className="aegis-data-table__empty-cell"
-                >
-                  <div className="aegis-data-table__empty">
-                    <EmptyState
-                      title={emptyTitle ?? strings.noData}
-                      description={emptyDescription}
-                      action={emptyAction}
-                    />
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              rows.map((row, idx) => {
-                const key = rowKey(row, idx);
-                const detailId = `${detailIdPrefix}-detail-${String(idx)}`;
-                const isSelected = selected.includes(key);
-                return (
-                  <Fragment key={key}>
-                    <tr
-                      className={rowClass(isSelected)}
-                      aria-selected={
-                        selectable || selectedKeys !== undefined
-                          ? isSelected
-                          : undefined
-                      }
-                      tabIndex={clickable ? 0 : undefined}
-                      onClick={
-                        clickable
-                          ? (event) => {
-                              handleRowClick(event, row, idx);
-                            }
-                          : undefined
-                      }
-                      onKeyDown={
-                        clickable
-                          ? (event) => {
-                              handleRowKeyDown(event, row, idx);
-                            }
-                          : undefined
-                      }
-                    >
-                      {selectable && (
-                        <td {...leadCellProps('select', 'td')}>
-                          {selectionCell(isSelected, (checked) => {
-                            toggleRow(key, checked);
-                          })}
-                        </td>
-                      )}
-                      {expandable && (
-                        <td {...leadCellProps('toggle', 'td')}>
-                          {renderToggle(key, detailId)}
-                        </td>
-                      )}
-                      {renderRowCells(row, idx)}
-                      {fillerCell}
-                      {chevronCell}
-                    </tr>
-                    {expandable &&
-                      renderDetailRow(row, idx, key, detailId, renderExpanded)}
-                  </Fragment>
-                );
-              })
+              </thead>
             )}
-          </tbody>
-        </table>
+            <tbody data-aegis-develop={develop || undefined}>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={`sk-${i}`} className="aegis-data-table__row">
+                    {selectable && (
+                      <td key="__select" {...leadCellProps('select', 'td')} />
+                    )}
+                    {expandable && (
+                      <td key="__toggle" {...leadCellProps('toggle', 'td')} />
+                    )}
+                    {renderSkeletonCells()}
+                    {fillerCell}
+                    {clickable && (
+                      <td className="aegis-data-table__td" aria-hidden />
+                    )}
+                  </tr>
+                ))
+              ) : rows.length === 0 ? (
+                // Not a data row, so an empty table has no rows to read.
+                <tr role="presentation">
+                  <td
+                    colSpan={columnCount}
+                    className="aegis-data-table__empty-cell"
+                  >
+                    <div className="aegis-data-table__empty">
+                      <EmptyState
+                        title={emptyTitle ?? strings.noData}
+                        description={emptyDescription}
+                        action={emptyAction}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row, idx) => {
+                  const key = rowKey(row, idx);
+                  const detailId = `${detailIdPrefix}-detail-${String(idx)}`;
+                  const isSelected = selected.includes(key);
+                  return (
+                    <Fragment key={key}>
+                      <tr
+                        className={rowClass(isSelected)}
+                        aria-selected={
+                          selectable || selectedKeys !== undefined
+                            ? isSelected
+                            : undefined
+                        }
+                        tabIndex={clickable ? 0 : undefined}
+                        onClick={
+                          clickable
+                            ? (event) => {
+                                handleRowClick(event, row, idx);
+                              }
+                            : undefined
+                        }
+                        onKeyDown={
+                          clickable
+                            ? (event) => {
+                                handleRowKeyDown(event, row, idx);
+                              }
+                            : undefined
+                        }
+                      >
+                        {selectable && (
+                          <td {...leadCellProps('select', 'td')}>
+                            {selectionCell(isSelected, (checked) => {
+                              toggleRow(key, checked);
+                            })}
+                          </td>
+                        )}
+                        {expandable && (
+                          <td {...leadCellProps('toggle', 'td')}>
+                            {renderToggle(key, detailId)}
+                          </td>
+                        )}
+                        {renderRowCells(row, idx)}
+                        {fillerCell}
+                        {chevronCell}
+                      </tr>
+                      {expandable &&
+                        renderDetailRow(
+                          row,
+                          idx,
+                          key,
+                          detailId,
+                          renderExpanded,
+                        )}
+                    </Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       {pagination && (
         <Pagination

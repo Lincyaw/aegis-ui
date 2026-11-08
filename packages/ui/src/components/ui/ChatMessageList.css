@@ -9,6 +9,12 @@
   background: var(--bg-page);
 }
 
+/* The list scrolls and takes Tab when nothing inside it can; its host
+ * usually clips it, so the ring is drawn inside. */
+.aegis-chat-list:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
 .aegis-chat-list__header {
   display: flex;
   flex-direction: column;

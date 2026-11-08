@@ -72,6 +72,8 @@ interface Palette {
   accentSuccess: string;
   accentWarning: string;
   inkWarn: string;
+  textWarn: string;
+  bgWarnSoft: string;
   shadowRest: string;
   shadowOverlay: string;
 }
@@ -94,6 +96,8 @@ const LIGHT: Palette = {
   accentSuccess: '#167a62',
   accentWarning: '#e11d48',
   inkWarn: '#d97706',
+  textWarn: '#b45309',
+  bgWarnSoft: '#fffbeb',
   shadowRest:
     '0 1px 2px rgba(31, 35, 40, 0.04), 0 6px 20px -6px rgba(31, 35, 40, 0.08)',
   shadowOverlay:
@@ -119,10 +123,13 @@ const DARK: Palette = {
   accentSuccess: '#4ade80',
   accentWarning: '#fb7185',
   inkWarn: '#fbbf24',
+  textWarn: '#fbbf24',
+  bgWarnSoft: '#2a200a',
   shadowRest:
     '0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px -6px rgba(0, 0, 0, 0.4)',
   shadowOverlay:
-    '0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6)',
+    '0 8px 24px -6px rgba(0, 0, 0, 0.45), 0 28px 64px -16px rgba(0, 0, 0, 0.6), ' +
+    '0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.18)',
 };
 
 function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
@@ -208,6 +215,12 @@ function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
         nodeSelectedColor: p.textOnInverted,
         directoryNodeSelectedBg: p.bgInverted,
         directoryNodeSelectedColor: p.textOnInverted,
+        // The Tree draws its own checkboxes, so it takes the Checkbox
+        // block's tokens: on the dark scheme's ink the tick must be the
+        // inverted text colour. colorBorder also draws showLine's lines.
+        borderRadiusSM: RADIUS.xs,
+        colorBorder: p.borderEmphasis,
+        colorWhite: p.textOnInverted,
       },
       Button: {
         borderRadius: RADIUS.pill,
@@ -230,6 +243,17 @@ function buildTheme(p: Palette, scheme: ThemeMode): ThemeConfig {
         defaultShadow: p.shadowRest,
         dangerShadow: 'none',
         textHoverBg: p.bgMuted,
+        // A danger button is a destructive action, a caution and not a
+        // failure: it takes the caution ink and wash. The global colorError
+        // stays the anomaly red, for form validation and other failures.
+        colorError: p.textWarn,
+        colorErrorHover: p.textWarn,
+        colorErrorActive: p.textWarn,
+        colorErrorBorderHover: p.inkWarn,
+        colorErrorBg: p.bgWarnSoft,
+        colorErrorBgFilledHover: p.bgWarnSoft,
+        colorErrorBgActive: p.bgWarnSoft,
+        dangerColor: p.textOnInverted,
       },
       Card: {
         borderRadiusLG: RADIUS.lg,

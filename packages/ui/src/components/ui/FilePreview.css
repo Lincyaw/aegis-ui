@@ -7,12 +7,17 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   min-height: var(--space-12);
+  max-height: var(--aegis-file-preview-max-height);
 }
 
+/* A percentage max-height cannot resolve against the root's max-height,
+ * so the media takes the cap itself, less the root's border. */
 .aegis-file-preview__image,
 .aegis-file-preview__video {
   max-width: 100%;
-  max-height: 100%;
+  max-height: calc(
+    var(--aegis-file-preview-max-height) - 2 * var(--size-hairline)
+  );
   width: auto;
   height: auto;
   object-fit: contain;
@@ -80,8 +85,9 @@
 }
 
 .aegis-file-preview__fallback-meta {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-11);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
 

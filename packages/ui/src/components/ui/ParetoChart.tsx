@@ -113,6 +113,8 @@ const GRID_STEPS = 4;
 const LABEL_CHAR = 6.2;
 const LABEL_WIDE_CHAR = 11;
 const LABEL_LINE = 14;
+/** The part of a label's line below its baseline. */
+const LABEL_DESCENT = LABEL_LINE / 4;
 const ALL_LABELS_MIN_WIDTH = 520;
 
 type Direction = 'lower' | 'higher';
@@ -135,16 +137,55 @@ function labelWidth(text: string): number {
   );
 }
 
+interface Box {
+  l: number;
+  r: number;
+  t: number;
+  b: number;
+}
+
+type Segment = [{ x: number; y: number }, { x: number; y: number }];
+
+/** Whether a straight segment crosses a box (Liang–Barsky clipping). */
+function segmentCrosses([a, b]: Segment, box: Box): boolean {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  let enter = 0;
+  let exit = 1;
+  for (const [p, q] of [
+    [-dx, a.x - box.l],
+    [dx, box.r - a.x],
+    [-dy, a.y - box.t],
+    [dy, box.b - a.y],
+  ]) {
+    if (p === 0) {
+      if (q < 0) {
+        return false;
+      }
+    } else if (p < 0) {
+      enter = Math.max(enter, q / p);
+    } else {
+      exit = Math.min(exit, q / p);
+    }
+  }
+  return enter <= exit;
+}
+
 /**
  * Puts each label beside its point on the first side where it stays on the
- * plot and clear of the labels already placed and of the other points.
+ * plot and clear of the labels already placed, of the `reserved` boxes, of
+ * the other points and of the frontier. The frontier runs through the
+ * points it joins, so the sides across it, diagonally off the point, are
+ * candidates too.
  */
 function placeLabels(
   labelled: Array<{ key: string; label: string; x: number; y: number }>,
   allPoints: Array<{ key: string; x: number; y: number }>,
+  frontier: Segment[],
+  reserved: Box[],
   bounds: { left: number; right: number; top: number; bottom: number },
 ): Map<string, LabelBox> {
-  const placed: Array<{ l: number; r: number; t: number; b: number }> = [];
+  const placed: Box[] = [...reserved];
   const result = new Map<string, LabelBox>();
   const reach = POINT_RADIUS + LABEL_GAP / 2;
   for (const point of labelled) {
@@ -154,14 +195,18 @@ function placeLabels(
       { x: point.x - reach, y: point.y + LABEL_LINE / 3, anchor: 'end' },
       { x: point.x - w / 2, y: point.y - reach, anchor: 'start' },
       { x: point.x - w / 2, y: point.y + reach + LABEL_LINE, anchor: 'start' },
+      { x: point.x - reach, y: point.y - reach, anchor: 'end' },
+      { x: point.x + reach, y: point.y + reach + LABEL_LINE, anchor: 'start' },
+      { x: point.x + reach, y: point.y - reach, anchor: 'start' },
+      { x: point.x - reach, y: point.y + reach + LABEL_LINE, anchor: 'end' },
     ];
-    const box = (candidate: LabelBox) => {
+    const box = (candidate: LabelBox): Box => {
       const l = candidate.anchor === 'end' ? candidate.x - w : candidate.x;
       return {
         l,
         r: l + w,
-        t: candidate.y - LABEL_LINE,
-        b: candidate.y,
+        t: candidate.y - LABEL_LINE + LABEL_DESCENT,
+        b: candidate.y + LABEL_DESCENT,
       };
     };
     const onPlot = (candidate: LabelBox): boolean => {
@@ -173,7 +218,7 @@ function placeLabels(
         b <= bounds.bottom
       );
     };
-    const clear = (candidate: LabelBox): boolean => {
+    const clearOfMarks = (candidate: LabelBox): boolean => {
       const { l, r, t, b } = box(candidate);
       return (
         onPlot(candidate) &&
@@ -190,9 +235,13 @@ function placeLabels(
         )
       );
     };
+    const clear = (candidate: LabelBox): boolean =>
+      clearOfMarks(candidate) &&
+      frontier.every((segment) => !segmentCrosses(segment, box(candidate)));
     // With no side free the label still stays on the plot, towards its middle.
     const chosen =
       candidates.find(clear) ??
+      candidates.find(clearOfMarks) ??
       candidates.find(onPlot) ??
       candidates[point.x > (bounds.left + bounds.right) / 2 ? 1 : 0];
     placed.push(box(chosen));
@@ -362,6 +411,7 @@ export function ParetoChart({
     highlightKeys === undefined ? null : new Set(highlightKeys);
   const dimmed = (key: string): boolean =>
     highlighted !== null && !highlighted.has(key);
+  const yTitleBaseline = top - LABEL_GAP * 2;
   const showAllLabels = labels === 'all' && width >= ALL_LABELS_MIN_WIDTH;
   const labelBoxes = placeLabels(
     points
@@ -382,6 +432,22 @@ export function ParetoChart({
       x: sx(point.x),
       y: sy(point.y),
     })),
+    front.slice(1).map((point, index): Segment => {
+      const previous = front[index];
+      return [
+        { x: sx(previous.x), y: sy(previous.y) },
+        { x: sx(point.x), y: sy(point.y) },
+      ];
+    }),
+    // The y axis's title, above the plot.
+    [
+      {
+        l: left - LABEL_GAP,
+        r: left - LABEL_GAP + labelWidth(yLabel),
+        t: yTitleBaseline - LABEL_LINE + LABEL_DESCENT,
+        b: yTitleBaseline + LABEL_DESCENT,
+      },
+    ],
     // A label may run up into the space above the plot.
     { left, right, top: 0, bottom },
   );
@@ -611,7 +677,7 @@ export function ParetoChart({
         <text
           className="aegis-pareto__axis-label"
           x={left - LABEL_GAP}
-          y={top - LABEL_GAP * 2}
+          y={yTitleBaseline}
           textAnchor="start"
         >
           {yLabel}

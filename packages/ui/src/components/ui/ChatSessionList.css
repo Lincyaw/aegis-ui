@@ -100,13 +100,18 @@
 }
 
 .aegis-chat-session-list__more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-control-sm);
+  min-height: var(--size-control-sm);
   background: transparent;
   border: none;
   cursor: pointer;
   color: var(--text-muted);
   font-size: var(--fs-13);
   line-height: 1;
-  padding: var(--space-1) var(--space-2);
+  padding: 0 var(--space-1);
   border-radius: var(--radius-sm);
   opacity: 0;
   transition:
@@ -178,8 +183,9 @@
   background: var(--bg-muted);
 }
 
+/* Deleting is a caution, not a failure. */
 .aegis-chat-session-list__menu-item--danger {
-  color: var(--accent-warning);
+  color: var(--text-warn);
 }
 
 .aegis-chat-session-list__confirm {
@@ -190,9 +196,9 @@
 
 .aegis-chat-session-list__confirm-btn {
   background: transparent;
-  border: var(--size-hairline) solid var(--accent-warning);
-  color: var(--accent-warning);
-  border-radius: var(--radius-sm);
+  border: var(--size-hairline) solid var(--ink-warn);
+  color: var(--text-warn);
+  border-radius: var(--radius-pill);
   font: inherit;
   font-family: var(--font-ui);
   padding: var(--space-px) var(--space-2);
@@ -200,8 +206,7 @@
 }
 
 .aegis-chat-session-list__confirm-btn:hover {
-  background: var(--accent-warning);
-  color: var(--text-on-inverted);
+  background: var(--bg-warn-soft);
 }
 
 .aegis-chat-session-list__empty {

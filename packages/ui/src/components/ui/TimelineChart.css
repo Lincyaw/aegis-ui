@@ -13,6 +13,12 @@
   overflow: hidden;
 }
 
+.aegis-timeline-chart__axis,
+.aegis-timeline-chart__row,
+.aegis-timeline-chart__skeleton-row {
+  grid-template-columns: var(--timeline-chart-label-width) 1fr;
+}
+
 .aegis-timeline-chart__axis {
   position: sticky;
   top: 0;
@@ -76,6 +82,15 @@
   overflow-x: hidden;
   min-height: 0;
   flex: 1 1 auto;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* Without selectable rows the scroller is the tab stop; its ring sits
+ * inside it, so the frame cannot clip it. */
+.aegis-timeline-chart__body:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-timeline-chart__virtual {
@@ -215,8 +230,28 @@
   padding: 0 var(--space-3);
 }
 
+/* Narrow screens stack each row's name over its bar, so the name has the
+ * full width and the axis spans it too; the chart doubles the row height. */
 @media (max-width: 768px) {
-  .aegis-timeline-chart {
-    --timeline-chart-label-width: 40%;
+  .aegis-timeline-chart__axis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .aegis-timeline-chart__axis-label-gutter {
+    display: none;
+  }
+
+  .aegis-timeline-chart__row,
+  .aegis-timeline-chart__skeleton-row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .aegis-timeline-chart__label {
+    border-right: none;
+  }
+
+  .aegis-timeline-chart__guide-track {
+    left: 0;
   }
 }

@@ -36,7 +36,6 @@ import {
   MonoValue,
   PageSizeSelect,
   Panel,
-  PanelTitle,
   PasswordField,
   ProjectSelector,
   RegisterForm,
@@ -51,7 +50,7 @@ import { Button } from 'antd';
 
 import { GALLERY_RUN_COLUMNS } from '../columns';
 import { GALLERY_ACTIONS, GALLERY_RUNS } from '../fixtures';
-import { GalleryRouterLink, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 /* ── Button specimens ──────────────────────────────────────────────── */
 
@@ -377,7 +376,7 @@ function GalleryCarouselCopy({
   return (
     <div className='gallery__carousel-copy'>
       <p className='gallery__carousel-eyebrow'>{eyebrow}</p>
-      <p className='gallery__carousel-title'>{title}</p>
+      <h3 className='gallery__carousel-title'>{title}</h3>
       <p className='gallery__carousel-lead'>{lead}</p>
       <AegisButton>{action}</AegisButton>
     </div>
@@ -527,7 +526,7 @@ function TableOfContentsStatesSpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen
-        caption='currentId · current item Strong + --accent-brand indicator, others Body + --border-hairline; click to move it'
+        caption='currentId · the current item in Strong and --accent-brand, the others in Body and --text-muted, with no rail; click to move it'
         span={2}
       >
         <TableOfContents
@@ -536,7 +535,7 @@ function TableOfContentsStatesSpecimen(): ReactNode {
           onCurrentChange={setCurrent}
         />
       </Specimen>
-      <Specimen caption='level=2 current · level 2, 3 and 4 labels indent by --space-3, --space-6 and 3 × --space-3; a long label wraps and its indicator follows'>
+      <Specimen caption='level=2 current · level 2, 3 and 4 labels indent by --space-3, --space-6 and 3 × --space-3; a long label wraps under its own indent'>
         <TableOfContents
           items={GALLERY_TOC_STATE_ITEMS}
           currentId='gallery-toc-state-digest'
@@ -763,7 +762,7 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
 
 export function NavigationSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Navigation · Rosetta</PanelTitle>}>
+    <GallerySection title='Navigation · Rosetta'>
       <SectionDivider
         extra={
           <MetricLabel>Selected indicator slides · --motion-base</MetricLabel>
@@ -821,6 +820,9 @@ export function NavigationSection() {
         <Specimen caption="tone='ghost'">
           <AegisButton tone='ghost'>View script</AegisButton>
         </Specimen>
+        <Specimen caption="tone='caution' · a destructive action, in the caution tone, never the anomaly red">
+          <AegisButton tone='caution'>Delete project</AegisButton>
+        </Specimen>
         <Specimen caption="icon · iconPosition='start'">
           <AegisButton tone='secondary' icon={<DownloadOutlined />}>
             Download
@@ -852,6 +854,9 @@ export function NavigationSection() {
             </AegisButton>
             <AegisButton tone='ghost' disabled>
               View script
+            </AegisButton>
+            <AegisButton tone='caution' disabled>
+              Delete project
             </AegisButton>
           </div>
         </Specimen>
@@ -1433,6 +1438,6 @@ export function NavigationSection() {
 
       <SectionDivider>PageSizeSelect</SectionDivider>
       <PageSizeSelectSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }

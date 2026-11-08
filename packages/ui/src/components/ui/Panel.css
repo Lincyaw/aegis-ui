@@ -74,11 +74,19 @@
 
 .aegis-panel__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+/* The heading takes the free width; when less than its basis is left beside
+ * the extra, the extra wraps under it. */
+.aegis-panel__header > :not(.aegis-panel__extra) {
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 .aegis-panel__title {

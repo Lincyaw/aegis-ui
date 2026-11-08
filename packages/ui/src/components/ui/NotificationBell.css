@@ -94,7 +94,7 @@
 }
 
 .aegis-notif-pop__title {
-  font-family: var(--font-brand);
+  font-family: var(--font-ui);
   font-size: var(--fs-13);
   font-weight: var(--fw-semibold);
   color: var(--text-main);
@@ -105,8 +105,6 @@
   font-variant-numeric: tabular-nums;
   font-size: var(--fs-10);
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 .aegis-notif-pop__stale {

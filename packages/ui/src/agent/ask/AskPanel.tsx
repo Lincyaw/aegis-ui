@@ -280,7 +280,9 @@ export function AskPanel({
   return (
     <div
       ref={rootRef}
-      className="aegis-ask-panel"
+      className={
+        popover ? 'aegis-ask-panel aegis-ask-panel--popover' : 'aegis-ask-panel'
+      }
       role="dialog"
       aria-label={strings.askPanelTitle}
       tabIndex={-1}

@@ -65,8 +65,9 @@
 
 .aegis-content-json__duplicates {
   color: var(--text-muted);
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-11);
+  font-variant-numeric: tabular-nums;
   line-height: 1;
   white-space: nowrap;
   flex-shrink: 0;
@@ -82,13 +83,15 @@
   margin-left: auto;
 }
 
+/* Prose wraps and keeps its line breaks; code and JSON scroll in a CodeBlock. */
 .aegis-content-json__text {
   margin: 0;
   color: var(--text-main);
   font-size: var(--fs-13);
   line-height: 1.55;
-  white-space: pre;
-  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
   max-width: 100%;
 }
 

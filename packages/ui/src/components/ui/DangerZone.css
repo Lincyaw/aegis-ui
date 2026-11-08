@@ -4,9 +4,12 @@
   gap: var(--space-4);
   padding: var(--space-5);
   margin-top: var(--space-4);
-  border: var(--size-hairline) solid var(--accent-warning);
-  border-radius: var(--radius-md);
-  background: var(--bg-warning-soft);
+  /* A destructive action is a caution, not a failure: the caution tone,
+   * never the anomaly red. The title takes --text-warn, which reads on the
+   * wash where --ink-warn would not. */
+  border: var(--size-hairline) solid var(--ink-warn);
+  border-radius: var(--radius-lg);
+  background: var(--bg-warn-soft);
 }
 
 .aegis-danger-zone__header {
@@ -15,8 +18,8 @@
   gap: var(--space-1);
 }
 
-.aegis-danger-zone__header .aegis-panel-title {
-  color: var(--accent-warning);
+.aegis-danger-zone__title {
+  color: var(--text-warn);
 }
 
 .aegis-danger-zone__body {

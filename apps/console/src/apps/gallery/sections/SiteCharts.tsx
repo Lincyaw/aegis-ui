@@ -13,8 +13,6 @@ import {
   LineChart,
   type LineChartPoint,
   MetricLabel,
-  Panel,
-  PanelTitle,
   ParetoChart,
   type ParetoPoint,
   RankBar,
@@ -26,7 +24,7 @@ import {
   useScrollProgress,
 } from '@lincyaw/aegis-ui';
 
-import { GalleryRouterLink, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 const percent = (value: number): string => `${(value * 100).toFixed(1)}%`;
 
@@ -377,21 +375,25 @@ function LineChartSpecimen(): ReactNode {
         caption='Line patterns and matching labels · progress follows the playhead above'
         span={3}
       >
-        {styledLines.map((line) => (
-          <SeriesLabel
-            key={line.key}
-            name={line.label}
-            color={line.color}
-            lineStyle={line.lineStyle}
+        <div className='gallery__stack gallery__stack--fill'>
+          <div className='gallery__row'>
+            {styledLines.map((line) => (
+              <SeriesLabel
+                key={line.key}
+                name={line.label}
+                color={line.color}
+                lineStyle={line.lineStyle}
+              />
+            ))}
+          </div>
+          <LineChart
+            label='Cumulative score with separate legend'
+            series={styledLines}
+            endLabels={false}
+            progress={turn / 80}
+            yTicks={[0, 50, 100, 150, 200]}
           />
-        ))}
-        <LineChart
-          label='Cumulative score with separate legend'
-          series={styledLines}
-          endLabels={false}
-          progress={turn / 80}
-          yTicks={[0, 50, 100, 150, 200]}
-        />
+        </div>
       </Specimen>
     </div>
   );
@@ -399,10 +401,10 @@ function LineChartSpecimen(): ReactNode {
 
 const COST_STORY_HIGHLIGHT = ['sol', 'opus'];
 
+/** Each step carries its own chart, so the stacked layout at ≤768 px, which tracks no current step, still shows every stage. */
 function CostStorySpecimen(): ReactNode {
-  const [step, setStep] = useState(0);
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
-  const costChart = (
+  const costChart = (step: number): ReactNode => (
     <ParetoChart
       points={COST_POINTS}
       xLabel='Mean cost per task (US$, log)'
@@ -423,31 +425,30 @@ function CostStorySpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen
-        caption={`ScrollStory drives the chart: points, then the frontier, then two points picked out · step ${String(step + 1)}`}
+        caption='one chart per step: points, then the frontier, then two points picked out · the pinned panel shows the current step’s chart; at ≤768 px each chart sits under its step'
         span={3}
       >
         <div ref={setScroller} className='gallery__story-scroller'>
           <ScrollStory
             scrollContainer={scroller}
-            onCurrentChange={setStep}
             steps={[
               {
                 id: 'points',
                 title: 'Every combination lands on the plot',
                 body: 'Cost on a log axis, pass rate up the side.',
-                visual: costChart,
+                visual: costChart(0),
               },
               {
                 id: 'front',
                 title: 'The frontier is traced',
                 body: 'Combinations nothing beats on both axes.',
-                visual: costChart,
+                visual: costChart(1),
               },
               {
                 id: 'pick',
                 title: 'Two points are picked out',
                 body: 'The finding in the section title.',
-                visual: costChart,
+                visual: costChart(2),
               },
             ]}
           />
@@ -460,8 +461,8 @@ function CostStorySpecimen(): ReactNode {
 export function SiteChartsSection() {
   const [segment, setSegment] = useState('none');
   return (
-    <Panel
-      title={<PanelTitle size='lg'>Site charts</PanelTitle>}
+    <GallerySection
+      title='Site charts'
       extra={<MetricLabel>Findings on the public site</MetricLabel>}
     >
       <SectionDivider>SeriesLabel</SectionDivider>
@@ -477,7 +478,7 @@ export function SiteChartsSection() {
             ))}
           </div>
         </Specimen>
-        <Specimen caption='detail · a link · truncates in a narrow slot'>
+        <Specimen caption='detail · a link · in a narrow slot the detail gives up its room faster than the name'>
           <div className='gallery__stack gallery__stack--fill'>
             <SeriesLabel
               name='GPT-6.1 Sol'
@@ -727,6 +728,6 @@ export function SiteChartsSection() {
 
       <SectionDivider>Charts drawn by scroll</SectionDivider>
       <DrawnChartsSpecimen />
-    </Panel>
+    </GallerySection>
   );
 }

@@ -1,12 +1,46 @@
 .aegis-diff-viewer {
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  overflow-x: auto;
   background: var(--bg-panel);
+}
+
+/* Each pane of a split diff keeps room for a readable line; a narrower
+ * viewer scrolls sideways instead of breaking the code into fragments. */
+.aegis-diff-viewer--split .aegis-diff-viewer__canvas {
+  min-width: 40rem;
+}
+
+/* The library's table holds a fixed 1000 px minimum above 768 px, which
+ * the viewer would clip; the canvas sets the minimum instead. */
+.aegis-diff-viewer table {
+  min-width: 0;
 }
 
 .aegis-diff-viewer pre,
 .aegis-diff-viewer code {
   font-family: var(--font-mono);
   font-size: var(--fs-13);
+}
+
+/* A long line breaks at its spaces and punctuation, not mid-token. */
+.aegis-diff-viewer pre {
+  line-break: auto;
+  overflow-wrap: anywhere;
+}
+
+/* The fold row spans the viewer, which clips its sides. */
+.aegis-diff-viewer tr[role='button']:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+/* The library rings its summary button with a hairline on any focus. */
+.aegis-diff-viewer button:focus {
+  outline: none;
+}
+
+.aegis-diff-viewer button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }

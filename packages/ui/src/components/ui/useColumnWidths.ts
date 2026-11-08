@@ -37,6 +37,11 @@ interface UseColumnWidthsOptions {
   /** Px taken by the fixed columns after the data columns. */
   trailWidth: number;
   /**
+   * The widest the first data column renders, as a CSS length, e.g. a
+   * share of the scroller for a pinned column.
+   */
+  firstColumnMax?: string;
+  /**
    * The table; its data columns' `<col>` and header `<th>` elements carry
    * `data-column-key`, and the filler's `<col>` carries
    * `data-column-filler`.
@@ -182,6 +187,7 @@ export function useColumnWidths({
   persistKey,
   leadWidth,
   trailWidth,
+  firstColumnMax,
   tableRef,
 }: UseColumnWidthsOptions): ColumnWidths {
   const [overrides, setOverrides] = useState<Widths>(() =>
@@ -260,20 +266,43 @@ export function useColumnWidths({
     (c) => c.width !== undefined || c.resizable === true || c.key in overrides,
   );
 
-  const widths = useMemo(
-    () =>
-      columns.map((c) =>
-        c.key in overrides
-          ? px(overrides[c.key])
-          : toCssWidth(c.width ?? c.minWidth),
-      ),
-    [columns, overrides],
+  const firstKey = columns.length > 0 ? columns[0].key : undefined;
+
+  /** A column's CSS width, the first column capped at `firstColumnMax`. */
+  const capped = useCallback(
+    (key: string, width: string): string =>
+      key === firstKey && firstColumnMax !== undefined
+        ? `min(${width}, ${firstColumnMax})`
+        : width,
+    [firstKey, firstColumnMax],
   );
 
+  const widths = useMemo(
+    () =>
+      columns.map((c) => {
+        const width =
+          c.key in overrides
+            ? px(overrides[c.key])
+            : toCssWidth(c.width ?? c.minWidth);
+        return width === undefined ? undefined : capped(c.key, width);
+      }),
+    [columns, overrides, capped],
+  );
+
+  /** The table's least width for these column widths, in CSS. */
   const totalWidth = useCallback(
-    (w: Widths): number =>
-      columns.reduce((sum, c) => sum + w[c.key], leadWidth + trailWidth),
-    [columns, leadWidth, trailWidth],
+    (w: Widths): string => {
+      const sum = columns.reduce(
+        (total, c) => total + w[c.key],
+        leadWidth + trailWidth,
+      );
+      if (firstKey === undefined || firstColumnMax === undefined) {
+        return px(sum);
+      }
+      const first = w[firstKey];
+      return `calc(${px(sum - first)} + ${capped(firstKey, px(first))})`;
+    },
+    [columns, leadWidth, trailWidth, firstKey, firstColumnMax, capped],
   );
 
   const tableStyle = useMemo((): CSSProperties | undefined => {
@@ -281,19 +310,20 @@ export function useColumnWidths({
       return undefined;
     }
     if (frozen) {
-      return { minWidth: px(totalWidth(overrides)) };
+      return { minWidth: totalWidth(overrides) };
     }
-    const minWidth = columns.reduce((sum, c) => {
+    const floors: Widths = {};
+    columns.forEach((c) => {
       const w =
         c.key in overrides
           ? overrides[c.key]
           : typeof c.width === 'number'
             ? c.width
             : undefined;
-      return sum + (w ?? c.minWidth ?? AUTO_COLUMN_MIN_WIDTH);
-    }, leadWidth + trailWidth);
-    return { minWidth: px(minWidth) };
-  }, [sized, frozen, totalWidth, overrides, columns, leadWidth, trailWidth]);
+      floors[c.key] = w ?? c.minWidth ?? AUTO_COLUMN_MIN_WIDTH;
+    });
+    return { minWidth: totalWidth(floors) };
+  }, [sized, frozen, totalWidth, overrides, columns]);
 
   const fillerStyle = useMemo(
     (): CSSProperties | undefined =>
@@ -342,7 +372,7 @@ export function useColumnWidths({
             cols.forEach((c) => {
               const key = c.dataset.columnKey;
               if (key !== undefined && key in start) {
-                c.style.width = px(start[key]);
+                c.style.width = capped(key, px(start[key]));
               }
             });
             if (fillerCol) {
@@ -351,11 +381,12 @@ export function useColumnWidths({
           }
           width = clamp(Math.round(startWidth + e.clientX - startX));
           if (col) {
-            col.style.width = px(width);
+            col.style.width = capped(column.key, px(width));
           }
-          table.style.minWidth = px(
-            totalWidth({ ...start, [column.key]: width }),
-          );
+          table.style.minWidth = totalWidth({
+            ...start,
+            [column.key]: width,
+          });
           handle.setAttribute('aria-valuenow', width.toString());
         };
         const stop = (): void => {
@@ -421,6 +452,7 @@ export function useColumnWidths({
       columns,
       tableRef,
       totalWidth,
+      capped,
       commit,
       leadWidth,
       trailWidth,

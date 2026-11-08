@@ -12,14 +12,14 @@ export interface TimelineItem {
   title: ReactNode;
   /** Body — optional secondary line. */
   description?: ReactNode;
-  /** Absolute timestamp, in the mono role. */
+  /** Absolute timestamp, in the numeric face. */
   timestamp?: ReactNode;
-  /** Slot at the end of the title row, in the mono role (e.g. a revision). */
+  /** Slot at the end of the title row, in the numeric face (e.g. a revision). */
   meta?: ReactNode;
   /** CSS colour for the dot, e.g. `var(--accent-success)`. */
   dotColor?: string;
   /**
-   * Leading mono label in the `numbered` variant, e.g. a step number.
+   * Leading label in the `numbered` variant, e.g. a step number.
    * Defaults to the 1-based position, zero-padded to two digits.
    */
   marker?: ReactNode;
@@ -30,7 +30,7 @@ export type TimelineSurface = PrimitiveSurface<TimelineItem[]>;
 interface TimelineProps {
   items: TimelineItem[];
   /**
-   * `numbered` replaces the dot and connector with a leading mono marker
+   * `numbered` replaces the dot and connector with a leading marker
    * column, separates rows with hairlines and keeps the line breaks of
    * each description.
    */

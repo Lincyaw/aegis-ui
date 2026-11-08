@@ -23,6 +23,25 @@
   );
 }
 
+/* A selectable strip keeps every step a tap target: its columns stay at
+ * least --size-control-sm wide, and a run too long for the width scrolls
+ * sideways. The padding keeps the rings of the end steps inside it. */
+.aegis-replay-step-strip--selectable {
+  overflow-x: auto;
+  padding: var(--space-1);
+}
+
+.aegis-replay-step-strip--selectable .aegis-replay-step-strip__moments,
+.aegis-replay-step-strip--selectable .aegis-replay-step-strip__bars,
+.aegis-replay-step-strip--selectable .aegis-replay-step-strip__ticks {
+  min-width: calc(
+    var(--aegis-replay-step-strip-count) *
+      (var(--size-control-sm) + var(--replay-step-strip-gap)) -
+      var(--replay-step-strip-gap)
+  );
+  column-gap: var(--replay-step-strip-gap);
+}
+
 .aegis-replay-step-strip__moments {
   height: var(--size-control-sm);
 }

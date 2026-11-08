@@ -26,7 +26,6 @@ import {
   NumberField,
   Pagination,
   Panel,
-  PanelTitle,
   ParetoChart,
   type ParetoPoint,
   PickerField,
@@ -49,7 +48,7 @@ import {
   GALLERY_MODEL_COLUMNS,
   GALLERY_MODEL_ROWS,
 } from '../fixtures';
-import { Specimen } from '../shared';
+import { GallerySection, Specimen } from '../shared';
 
 /* ── Chip and Avatar specimens ─────────────────────────────────────── */
 
@@ -203,7 +202,7 @@ function ParetoChartSpecimen(): ReactNode {
   const [selected, setSelected] = useState('none');
   return (
     <Specimen
-      caption={`formatX · formatY · zero-based axes · per-point color · frontier labels · legend · last: ${selected}`}
+      caption={`formatX · formatY · zero-based axes · per-point color · frontier labels, each beside its point clear of the frontier, the other points and labels and the axis title · legend · last: ${selected}`}
       span={3}
     >
       <ParetoChart
@@ -718,7 +717,7 @@ function DialogSpecimen(): ReactNode {
 
 export function IndicatorsSection() {
   return (
-    <Panel title={<PanelTitle size='lg'>Indicators</PanelTitle>}>
+    <GallerySection title='Indicators'>
       <SectionDivider>StatusDot</SectionDivider>
       <div className='gallery__row'>
         <Specimen caption='ink'>
@@ -1323,6 +1322,6 @@ export function IndicatorsSection() {
         />
         <BlastRadiusBar value={50} ariaLabel='Blast radius' hideTicks />
       </div>
-    </Panel>
+    </GallerySection>
   );
 }

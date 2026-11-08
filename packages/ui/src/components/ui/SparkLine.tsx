@@ -11,8 +11,11 @@ export type SparkLineSurface = PrimitiveSurface<number[]>;
 
 interface SparkLineProps {
   /**
-   * Sample values, spread evenly across the width. A series that does not
-   * vary, a single value included, draws a level line through the middle.
+   * Sample values, spread evenly across the width. The line fills the
+   * height when the series varies by at least a quarter of its largest
+   * absolute value; a smaller variation is drawn smaller about the middle,
+   * so a flat series looks flat. A series that does not vary, a single
+   * value included, draws a level line through the middle.
    */
   points: number[];
   /** Display dimensions (defaults give a strip-style sparkline). */
@@ -29,14 +32,22 @@ interface SparkLineProps {
   surface?: SparkLineSurface;
 }
 
+/** The least span the height stands for, as a share of the largest absolute value. */
+const MIN_SPAN_SHARE = 0.25;
+
 function buildPath(points: number[], w: number, h: number): string {
   if (points.length === 0) {
     return '';
   }
   const min = Math.min(...points);
-  const range = Math.max(...points) - min;
+  const max = Math.max(...points);
+  const span = Math.max(
+    max - min,
+    Math.max(Math.abs(min), Math.abs(max)) * MIN_SPAN_SHARE,
+  );
+  const low = (min + max - span) / 2;
   const yOf = (p: number): number =>
-    range === 0 ? h / 2 : h - ((p - min) / range) * h;
+    span === 0 ? h / 2 : h - ((p - low) / span) * h;
   if (points.length === 1) {
     const y = yOf(points[0]).toFixed(2);
     return `M0,${y} L${w.toFixed(2)},${y}`;

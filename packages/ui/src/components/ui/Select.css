@@ -117,6 +117,17 @@
   color: var(--text-main);
 }
 
+/* A --size-control-sm hit area centred on the glyph, which keeps its size. */
+.aegis-select__clear::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  transform: translate(-50%, -50%);
+}
+
 .aegis-select--clearable .aegis-select__chevron {
   right: calc(var(--space-3) + var(--size-icon-sm) + var(--space-2));
 }
