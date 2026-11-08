@@ -55,3 +55,6 @@ Fixes:
   items; it stays open through a delete.
 - `NotificationBell`'s unread badge is an inverted surface instead of anomaly
   red: an unread count is not a failure.
+- `NotificationBell`'s badge, unread count and item times, and `InboxPage`'s
+  row times, are set in the numeric face with tabular figures instead of the
+  code face.

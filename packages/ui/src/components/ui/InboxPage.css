@@ -94,7 +94,8 @@
 
 .aegis-inbox__row-time {
   flex: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-11);
   color: var(--text-muted);
 }

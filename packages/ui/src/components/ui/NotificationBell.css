@@ -48,7 +48,8 @@
   justify-content: center;
   background: var(--bg-inverted);
   color: var(--text-on-inverted);
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-9);
   font-weight: var(--fw-semibold);
   line-height: 1;
@@ -100,7 +101,8 @@
 }
 
 .aegis-notif-pop__count {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-10);
   color: var(--text-muted);
   text-transform: uppercase;
@@ -213,7 +215,8 @@
 
 .aegis-notif-pop__time {
   flex: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-10);
   color: var(--text-muted);
 }
