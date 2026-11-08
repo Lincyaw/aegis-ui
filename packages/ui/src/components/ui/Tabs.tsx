@@ -140,7 +140,7 @@ export function Tabs({
   const listRef = useRef<HTMLDivElement>(null);
   const placedKeyRef = useRef<string | undefined>(undefined);
   const [indicator, setIndicator] = useState<TabsIndicator | null>(null);
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [focusedKey, setFocusedKey] = useState<string | null>(null);
   const itemKeys = items.map((item) => item.key).join('\n');
 
   // Arrows, Home and End move between all the tabs and select the enabled
@@ -150,8 +150,9 @@ export function Tabs({
   const activeIndex = items.findIndex(
     (item) => item.key === activeKey && item.disabled !== true,
   );
+  const focusedIndex = items.findIndex((item) => item.key === focusedKey);
   const tabStopIndex =
-    focusedIndex !== null && focusedIndex < items.length
+    focusedIndex >= 0
       ? focusedIndex
       : activeIndex >= 0
         ? activeIndex
@@ -256,7 +257,7 @@ export function Tabs({
         aria-label={ariaLabel}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) {
-            setFocusedIndex(null);
+            setFocusedKey(null);
           }
         }}
       >
@@ -285,7 +286,7 @@ export function Tabs({
             controls={index === activeIndex ? controlledPanelId : undefined}
             tabStop={index === tabStopIndex}
             onActivate={() => handleClick(item.key)}
-            onFocus={() => setFocusedIndex(index)}
+            onFocus={() => setFocusedKey(item.key)}
             onKeyDown={(event) => handleTabKeyDown(event, index)}
           />
         ))}
