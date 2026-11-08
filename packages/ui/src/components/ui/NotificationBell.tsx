@@ -1,10 +1,12 @@
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useId } from 'react';
 
 import { BellOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
+import { MENU_OVERFLOW } from '../../hooks/useMenuPopover';
+import { usePopoverDialog } from '../../hooks/usePopoverDialog';
 import type { AegisNotification } from '../../notifications';
 import './NotificationBell.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
@@ -42,20 +44,31 @@ export function NotificationBell({
   width = DEFAULT_WIDTH,
   action,
 }: NotificationBellProps): ReactElement {
-  const [open, setOpen] = useState(false);
+  const popover = usePopoverDialog<HTMLDivElement>();
+  const panelId = useId();
   const bound = useAegisAction<void, unknown>(action);
 
   const preview = items.slice(0, MAX_PREVIEW_ITEMS);
 
   const handleItemClick = (item: AegisNotification): void => {
-    setOpen(false);
+    popover.close();
     onOpen?.(item);
   };
 
   const content = (
-    <div className="aegis-notif-pop" style={{ width }}>
+    <div
+      ref={popover.panelRef}
+      id={panelId}
+      className="aegis-notif-pop"
+      style={{ width }}
+      role="dialog"
+      aria-labelledby={`${panelId}-title`}
+      tabIndex={-1}
+    >
       <div className="aegis-notif-pop__head">
-        <span className="aegis-notif-pop__title">Notifications</span>
+        <span id={`${panelId}-title`} className="aegis-notif-pop__title">
+          Notifications
+        </span>
         {unreadCount > 0 && (
           <span className="aegis-notif-pop__count">{unreadCount} unread</span>
         )}
@@ -104,12 +117,7 @@ export function NotificationBell({
         </ul>
       )}
       {/* Following the link closes the popover. */}
-      <div
-        className="aegis-notif-pop__foot"
-        onClickCapture={() => {
-          setOpen(false);
-        }}
-      >
+      <div className="aegis-notif-pop__foot" onClickCapture={popover.close}>
         <LinkImpl to={inboxPath} className="aegis-notif-pop__view-all">
           View all
         </LinkImpl>
@@ -121,15 +129,20 @@ export function NotificationBell({
     <Popover
       content={content}
       trigger="click"
-      open={open}
-      onOpenChange={setOpen}
+      open={popover.open}
+      onOpenChange={popover.setOpen}
       placement="bottomRight"
+      autoAdjustOverflow={MENU_OVERFLOW}
       arrow={false}
       classNames={{ root: 'aegis-notif-pop__overlay' }}
     >
       <button
+        ref={popover.triggerRef}
         type="button"
         className="aegis-notif-bell"
+        aria-haspopup="dialog"
+        aria-expanded={popover.open}
+        aria-controls={popover.open ? panelId : undefined}
         aria-label={
           unreadCount > 0
             ? `Notifications: ${String(unreadCount)} unread`

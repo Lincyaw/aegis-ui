@@ -2,6 +2,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
   type MouseEvent,
+  type Ref,
   useEffect,
   useId,
   useMemo,
@@ -17,6 +18,8 @@ import {
 } from '@ant-design/icons';
 import { Popover } from 'antd';
 
+import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { usePopoverDialog } from '../../hooks/usePopoverDialog';
 import type { SavedQuery } from '../../hooks/useSavedQueries';
 import './SavedQueryBar.css';
 
@@ -130,7 +133,8 @@ function SavedQueryChip({
   onTogglePinned,
 }: SavedQueryChipProps) {
   const [renaming, setRenaming] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const menu = useMenuPopover<HTMLDivElement>();
+  const menuId = useId();
 
   const handleClick = (): void => {
     if (renaming) {
@@ -141,22 +145,25 @@ function SavedQueryChip({
 
   const handleContextMenu = (event: MouseEvent<HTMLLIElement>): void => {
     event.preventDefault();
-    setMenuOpen(true);
+    menu.setOpen(true);
   };
 
-  const menu = (
+  const menuPanel = (
     <ChipMenu
+      panelRef={menu.panelRef}
+      id={menuId}
+      onKeyDown={menu.onPanelKeyDown}
       query={query}
       onRename={() => {
-        setMenuOpen(false);
+        menu.setOpen(false);
         setRenaming(true);
       }}
       onTogglePinned={() => {
-        setMenuOpen(false);
+        menu.close();
         onTogglePinned(query.id);
       }}
       onRemove={() => {
-        setMenuOpen(false);
+        menu.close();
         onRemove(query.id);
       }}
     />
@@ -192,19 +199,25 @@ function SavedQueryChip({
             <span className="aegis-sqb__chip-label">{query.name}</span>
           </button>
           <Popover
-            content={menu}
+            content={menuPanel}
             trigger="click"
-            open={menuOpen}
-            onOpenChange={setMenuOpen}
+            open={menu.open}
+            onOpenChange={menu.setOpen}
             placement="bottomRight"
+            autoAdjustOverflow={MENU_OVERFLOW}
             arrow={false}
             classNames={{ root: 'aegis-sqb__popover' }}
             destroyOnHidden
           >
             <button
+              ref={menu.triggerRef}
               type="button"
               className="aegis-sqb__menu-trigger"
               aria-label={`Options for ${query.name}`}
+              aria-haspopup="menu"
+              aria-expanded={menu.open}
+              aria-controls={menu.open ? menuId : undefined}
+              onKeyDown={menu.onTriggerKeyDown}
             >
               <EllipsisOutlined aria-hidden />
             </button>
@@ -216,6 +229,9 @@ function SavedQueryChip({
 }
 
 interface ChipMenuProps {
+  panelRef: Ref<HTMLDivElement>;
+  id: string;
+  onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
   query: SavedQuery;
   onRename: () => void;
   onTogglePinned: () => void;
@@ -223,13 +239,23 @@ interface ChipMenuProps {
 }
 
 function ChipMenu({
+  panelRef,
+  id,
+  onKeyDown,
   query,
   onRename,
   onTogglePinned,
   onRemove,
 }: ChipMenuProps) {
   return (
-    <div className="aegis-sqb__menu" role="menu">
+    <div
+      ref={panelRef}
+      id={id}
+      className="aegis-sqb__menu"
+      role="menu"
+      tabIndex={-1}
+      onKeyDown={onKeyDown}
+    >
       <button
         type="button"
         role="menuitem"
@@ -321,15 +347,23 @@ function OverflowMenu({
   onRemove,
   onTogglePinned,
 }: OverflowMenuProps) {
-  const [open, setOpen] = useState(false);
+  const menu = useMenuPopover<HTMLDivElement>();
+  const menuId = useId();
   const content = (
-    <div className="aegis-sqb__menu aegis-sqb__menu--overflow" role="menu">
+    <div
+      ref={menu.panelRef}
+      id={menuId}
+      className="aegis-sqb__menu aegis-sqb__menu--overflow"
+      role="menu"
+      tabIndex={-1}
+      onKeyDown={menu.onPanelKeyDown}
+    >
       {items.map((q) => (
         <OverflowRow
           key={q.id}
           query={q}
           onApply={() => {
-            setOpen(false);
+            menu.close();
             onApply(q);
           }}
           onRemove={onRemove}
@@ -343,16 +377,22 @@ function OverflowMenu({
       <Popover
         content={content}
         trigger="click"
-        open={open}
-        onOpenChange={setOpen}
+        open={menu.open}
+        onOpenChange={menu.setOpen}
         placement="bottomRight"
+        autoAdjustOverflow={MENU_OVERFLOW}
         arrow={false}
         classNames={{ root: 'aegis-sqb__popover' }}
         destroyOnHidden
       >
         <button
+          ref={menu.triggerRef}
           type="button"
           className="aegis-sqb__chip aegis-sqb__chip--ghost"
+          aria-haspopup="menu"
+          aria-expanded={menu.open}
+          aria-controls={menu.open ? menuId : undefined}
+          onKeyDown={menu.onTriggerKeyDown}
         >
           +{items.length.toString()} more
         </button>
@@ -424,10 +464,12 @@ function SaveCurrentControl({
   currentValue,
   onSave,
 }: SaveCurrentControlProps) {
-  const [open, setOpen] = useState(false);
+  const popover = usePopoverDialog<HTMLFormElement>();
   const [name, setName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const nameId = useId();
+  const formId = useId();
+  const { open } = popover;
 
   useEffect(() => {
     if (open) {
@@ -449,12 +491,19 @@ function SaveCurrentControl({
       return;
     }
     onSave(name);
-    setOpen(false);
+    popover.close();
     setName('');
   };
 
   const content = (
-    <form className="aegis-sqb__save-form" onSubmit={handleSubmit}>
+    <form
+      ref={popover.panelRef}
+      id={formId}
+      className="aegis-sqb__save-form"
+      aria-label="Save the current query"
+      tabIndex={-1}
+      onSubmit={handleSubmit}
+    >
       <label className="aegis-sqb__save-label" htmlFor={nameId}>
         Name this query
       </label>
@@ -473,9 +522,7 @@ function SaveCurrentControl({
         <button
           type="button"
           className="aegis-sqb__save-cancel"
-          onClick={() => {
-            setOpen(false);
-          }}
+          onClick={popover.close}
         >
           Cancel
         </button>
@@ -495,16 +542,20 @@ function SaveCurrentControl({
       content={content}
       trigger="click"
       open={disabled ? false : open}
-      onOpenChange={setOpen}
+      onOpenChange={popover.setOpen}
       placement="bottomRight"
       arrow={false}
       classNames={{ root: 'aegis-sqb__popover' }}
       destroyOnHidden
     >
       <button
+        ref={popover.triggerRef}
         type="button"
         className="aegis-sqb__save-trigger"
         disabled={disabled}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? formId : undefined}
       >
         <PlusOutlined aria-hidden />
         <span>Save current</span>

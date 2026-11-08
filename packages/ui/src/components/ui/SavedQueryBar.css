@@ -151,8 +151,13 @@
   transition: background var(--motion-fast);
 }
 
-.aegis-sqb__menu-item:hover {
+.aegis-sqb__menu-item:hover,
+.aegis-sqb__menu-item:focus-visible {
   background: var(--bg-muted);
+}
+
+.aegis-sqb__menu-item:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-sqb__menu-item--danger {
