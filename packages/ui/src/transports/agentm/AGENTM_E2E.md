@@ -8,6 +8,13 @@ The library only ships the client + React adapter; the gateway lives in
 [`Lincyaw/AgentM`](https://github.com/Lincyaw/AgentM) — `contrib/channels`
 on `main` since merge commit `151d912`.
 
+**The client speaks wire v1 (`v: 1`), so current AgentM cannot serve it.**
+AgentM moved to wire v2 in #183 (`7584c216`), whose gateway answers a v1
+hello with `unsupported_wire_version`, and #207 (`f393a772`) removed the
+gateway server, its CLI and the WebSocket transport; `main` now keeps only
+the v2 envelope types in `src/agentm/gateway/wire.py`. Run this walkthrough
+against an AgentM checkout from before `7584c216`, such as `151d912`.
+
 ## Prerequisites
 
 - AgentM checked out at `/home/ddq/AoyangSpace/AgentM` (path is what the
@@ -56,39 +63,49 @@ channel** (it registers as `channel=web` on hello).
 
 ## 3. Point the console at the gateway
 
-`apps/console/src/main.tsx` defaults `VITE_AGENTM_GATEWAY_URL` to
-`ws://127.0.0.1:7777/agentm`, so if you bound the gateway to the same
-URL above you can skip this step entirely — the console will connect
-out of the box. Set `VITE_AGENTM_TOKEN` in `.env.local` if your token
-file is non-empty (the default gateway command requires one).
+The console has no built-in gateway URL. `apps/console/src/config/runtime.ts`
+reads `agentmUrl` at page load from two places, the second winning:
 
-Write `apps/console/.env.local` (gitignored) only when overriding the
-default URL or supplying a token. Vite picks up `VITE_*` vars at
-startup, so the dev server must be (re)started **after** this file
-exists:
+1. `window.__AEGIS_CONFIG__.agentmUrl`, set by `/config.js`. The dev server
+   and the nginx image serve `apps/console/public/config.js`; the Go
+   binary's generated `/config.js` has no AgentM key.
+2. The per-browser override saved from **Settings → Endpoints**
+   (`/settings/endpoints`) in `localStorage`.
 
-```bash
-TOKEN=$(cat /tmp/agentm-e2e/tokens)
-cat > apps/console/.env.local <<EOF
-VITE_AGENTM_GATEWAY_URL=ws://127.0.0.1:7777/agentm
-VITE_AGENTM_TOKEN=$TOKEN
-EOF
+While `agentmUrl` is empty the console mounts no AgentM provider: no **AI**
+button in the header, no Ctrl/Cmd+K, no WebSocket.
 
-pnpm dev          # or restart the existing :3323 dev server
-```
+`/config.js` is public, so the console never reads the token from it. The
+token is set only in Settings → Endpoints, which keeps it in this browser's
+`localStorage`.
 
-`apps/console/src/main.tsx` reads those two vars and, when both are
-present, wraps `<ConsoleApp />` in `<AgentmChannelProvider channel={…}>`.
-If they're absent the console renders identically to before — there's
-no gateway dependency.
-
-Sanity check that the env reached the bundle (no LLM call yet):
+For this walkthrough, set both in Settings → Endpoints:
 
 ```bash
-curl -s http://localhost:3323/src/main.tsx | grep VITE_AGENTM
+pnpm dev                      # console at http://localhost:3323/
+cat /tmp/agentm-e2e/tokens    # the token to paste
 ```
 
-Both vars should show up in the inlined `import.meta.env` object.
+Open http://localhost:3323/settings/endpoints, fill in
+
+- **AgentM gateway URL**: `ws://127.0.0.1:7777/agentm`
+- **AgentM token**: the token printed above
+
+and save. The page reloads to `/`; nothing is rebuilt and the dev server
+keeps running.
+
+Sanity check, before any LLM call: the header shows an **AI** button, and
+Settings → Endpoints reports `localStorage override active`.
+
+To give every user of a deployment the same gateway, set `agentmUrl` in the
+deployed `/config.js` instead:
+
+```js
+window.__AEGIS_CONFIG__ = { agentmUrl: 'wss://agentm.example.com/agentm' };
+```
+
+Each user still enters the token, if the gateway requires one, in their own
+Settings → Endpoints.
 
 ## 4. Verify in the browser
 
@@ -100,8 +117,8 @@ Open http://localhost:3323/.
    `kind=hello` (client → gateway) and `kind=welcome` (gateway →
    client). The gateway log prints
    `wire peer registered as channel 'web' (peer_id=peer-…)`.
-2. **Round trip**: open any page hosting `<AgentPanel>` (the gallery's
-   AI dock is the simplest) and send a short message such as `回答数字 5`.
+2. **Round trip**: open the AI dock (the **AI** header button, or
+   Ctrl/Cmd+K) and send a short message such as `回答数字 5`.
    You should see a user bubble immediately, then a single assistant
    bubble after the LLM responds. Gateway log shows
    `gateway dispatch …` → `gateway: prompting session=…` → an HTTP call
@@ -141,9 +158,9 @@ rm -rf /tmp/agentm-e2e/state /tmp/agentm-e2e/workspace
 # keep /tmp/agentm-e2e/tokens if you want stable creds across runs
 ```
 
-The console's `.env.local` can stay — without a gateway listening it
-just produces failed WS attempts in the background, no functional
-breakage.
+The Settings → Endpoints override can stay — without a gateway listening
+it just produces failed WS attempts in the background, no functional
+breakage. **Reset to defaults** there removes it.
 
 ## Known protocol quirks
 

@@ -21,6 +21,7 @@ export type {
   UseAegisSurfaceResult,
 } from './core/hooks';
 export { AskOverlay } from './ask/AskOverlay';
+export type { AskOverlayProps } from './ask/AskOverlay';
 export { AskPanel } from './ask/AskPanel';
 export type { AskPanelProps } from './ask/AskPanel';
 export { buildAskContext } from './ask/buildAskContext';
@@ -31,8 +32,10 @@ export type {
   ListActionsFilter,
   RuntimeDeps,
   SearchOptions,
+  WaitForOptions,
 } from './core/runtime';
 export type {
+  ActionConfirm,
   ActionContext,
   ActionPreview,
   ActionSource,
@@ -43,8 +46,10 @@ export type {
   AegisEvent,
   AegisInspectResult,
   AegisRef,
+  AegisSearchResponse,
   AegisSearchResult,
   AegisSnapshot,
+  AegisWaitCondition,
   AskContext,
   AskMessage,
   AskOrigin,
@@ -54,7 +59,7 @@ export type {
   EntityRef,
   FieldProjection,
   InvocationSource,
-  McpToolDefinition,
+  PreviewResult,
   SearchProvider,
   ShellSnapshot,
   SnapshotDiff,

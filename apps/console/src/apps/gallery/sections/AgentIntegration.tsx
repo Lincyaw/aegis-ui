@@ -10,6 +10,12 @@ import {
   type AegisAction,
   Button as AegisButton,
   type AegisSearchResult,
+  AgentChatProvider,
+  type AgentChatValue,
+  type AskContext,
+  AskOverlay,
+  AskPanel,
+  type AskRequest,
   DataList,
   type DataListColumn,
   MetricLabel,
@@ -156,8 +162,8 @@ function AgentIntegrationSpecimen(): ReactNode {
           2
         )
       );
-      void rt.search('imagenet').then((hits) => {
-        setSearchText(JSON.stringify(hits, null, 2));
+      void rt.search('imagenet').then((response) => {
+        setSearchText(JSON.stringify(response, null, 2));
       });
     };
     tick();
@@ -303,6 +309,28 @@ function AgentIntegrationSpecimen(): ReactNode {
   );
 }
 
+const ASK_PANEL_CONTEXT: AskContext = {
+  origin: 'entity',
+  appId: 'gallery',
+  surface: { id: 'gallery.ask.demo', kind: 'list', label: 'Ask demo' },
+  entity: { id: 'ask-row-1', type: 'dataset', label: 'imagenet-mini' },
+  suggestions: ['Why is this row flagged?', 'Summarise recent changes'],
+  snapshot: {
+    timestamp: 0,
+    shell: {
+      currentAppId: 'gallery',
+      route: { pathname: '/gallery', search: '', params: {} },
+      breadcrumbs: [],
+      theme: 'light',
+      viewport: { width: 0, height: 0 },
+    },
+    surfaces: [],
+    selection: [],
+    focus: { surfaceId: null, entityId: null },
+    appData: {},
+  },
+};
+
 interface AskWindow extends Window {
   __aegisOpenAskPanel?: (
     trigger: {
@@ -317,6 +345,26 @@ interface AskWindow extends Window {
 
 function AskAffordanceSpecimen(): ReactNode {
   const [log, setLog] = useState<string[]>([]);
+  const [inlineOpen, setInlineOpen] = useState(true);
+  const [scope, setScope] = useState<HTMLDivElement | null>(null);
+
+  const appendLog = useCallback((line: string) => {
+    const stamp = new Date().toISOString().slice(11, 19);
+    setLog((prev) => [...prev.slice(-9), `[${stamp}] ${line}`]);
+  }, []);
+
+  // A local chat, so the specimen works without an agent above the shell
+  // (the standalone gallery has none): it logs what the overlay sends.
+  const demoChat = useMemo<AgentChatValue>(
+    () => ({
+      messages: [],
+      sending: false,
+      send: (content) => {
+        appendLog(`send "${content.replace(/\s*\n+\s*/g, ' — ')}"`);
+      },
+    }),
+    [appendLog]
+  );
 
   const askRows = useMemo(
     () => [
@@ -346,21 +394,33 @@ function AskAffordanceSpecimen(): ReactNode {
   });
 
   useEffect(() => {
-    const w = window as AskWindow & {
-      __aegis?: { onAskTriggered?: (h: (ctx: unknown) => void) => () => void };
+    let unsubscribe: (() => void) | undefined;
+    // AegisRuntimeProvider sets window.__aegis in its own effect, which runs
+    // after this one, so subscribe once this commit has finished.
+    const timer = window.setTimeout(() => {
+      unsubscribe = window.__aegis?.onAskTriggered((ctx) => {
+        appendLog(
+          `askTriggered origin=${ctx.origin} entity=${ctx.entity?.id ?? '-'}`
+        );
+      });
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      unsubscribe?.();
     };
-    const rt = w.__aegis;
-    if (!rt?.onAskTriggered) {
-      return;
-    }
-    return rt.onAskTriggered((ctx) => {
-      const c = ctx as { origin: string; entity?: { id?: string } };
-      const stamp = new Date().toISOString().slice(11, 19);
-      setLog((prev) => [
-        ...prev.slice(-9),
-        `[${stamp}] askTriggered origin=${c.origin} entity=${c.entity?.id ?? '-'}`,
-      ]);
-    });
+  }, [appendLog]);
+
+  const onInlineAsk = useCallback(
+    (request: AskRequest) => {
+      appendLog(
+        `onSend prompt="${request.prompt}" tools=${request.tools.length}`
+      );
+    },
+    [appendLog]
+  );
+
+  const closeInline = useCallback(() => {
+    setInlineOpen(false);
   }, []);
 
   const onTriggerJs = useCallback(() => {
@@ -379,105 +439,144 @@ function AskAffordanceSpecimen(): ReactNode {
   }, []);
 
   return (
-    <div
-      className='gallery__row gallery__row--wide'
-      style={{ alignItems: 'flex-start' }}
-    >
-      <Specimen caption='right-click any row · or use Cmd/Ctrl + .' span={3}>
-        <div
-          data-agent-surface-id='gallery.ask.demo'
-          data-aegis-ask-demo-surface=''
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-1)',
-            border: '1px solid var(--border-hairline)',
-            borderRadius: 'var(--radius-sm)',
-            padding: 'var(--space-2)',
-          }}
+    <AgentChatProvider value={demoChat}>
+      <AskOverlay scope={scope} />
+      <div
+        ref={setScope}
+        className='gallery__row gallery__row--wide'
+        style={{ alignItems: 'flex-start' }}
+      >
+        <Specimen
+          caption='right-click a row or press Cmd/Ctrl + . · AskOverlay scope, demo chat'
+          span={3}
         >
-          {askRows.map((row) => (
-            <div
-              key={row.id}
-              data-agent-entity-id={row.id}
-              data-ask-demo-row={row.id}
-              tabIndex={0}
-              style={{
-                padding: 'var(--space-2) var(--space-3)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 'var(--fs-13)',
-                background: 'var(--bg-muted)',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'context-menu',
-              }}
-            >
-              {row.id} · {row.label}
-            </div>
-          ))}
-        </div>
-      </Specimen>
-      <Specimen caption='ask: false · right-click does NOT open panel' span={2}>
-        <div
-          data-agent-surface-id='gallery.ask.optout'
-          data-agent-ask='off'
-          data-aegis-ask-optout-surface=''
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-1)',
-            border: '1px solid var(--border-hairline)',
-            borderRadius: 'var(--radius-sm)',
-            padding: 'var(--space-2)',
-          }}
-        >
-          {askOptOutRows.map((row) => (
-            <div
-              key={row.id}
-              data-agent-entity-id={row.id}
-              data-ask-optout-row={row.id}
-              tabIndex={0}
-              style={{
-                padding: 'var(--space-2) var(--space-3)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 'var(--fs-13)',
-                background: 'var(--bg-muted)',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'context-menu',
-              }}
-            >
-              {row.id} · {row.label}
-            </div>
-          ))}
-        </div>
-      </Specimen>
-      <Specimen caption='programmatic open · ask event log' span={2}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-2)',
-          }}
-        >
-          <AegisButton onClick={onTriggerJs}>Trigger ask via JS</AegisButton>
-          <pre
-            aria-label='aegis-ask-event-log'
+          <div
+            data-agent-surface-id='gallery.ask.demo'
+            data-aegis-ask-demo-surface=''
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 'var(--fs-11)',
-              color: 'var(--text-main)',
-              background: 'var(--bg-muted)',
-              padding: 'var(--space-3)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-1)',
+              border: '1px solid var(--border-hairline)',
               borderRadius: 'var(--radius-sm)',
-              margin: 0,
-              maxHeight: 'calc(var(--space-12) * 3)',
-              overflow: 'auto',
+              padding: 'var(--space-2)',
             }}
           >
-            {log.length === 0 ? '(no ask events yet)' : log.join('\n')}
-          </pre>
-        </div>
-      </Specimen>
-    </div>
+            {askRows.map((row) => (
+              <div
+                key={row.id}
+                data-agent-entity-id={row.id}
+                data-ask-demo-row={row.id}
+                tabIndex={0}
+                style={{
+                  padding: 'var(--space-2) var(--space-3)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 'var(--fs-13)',
+                  background: 'var(--bg-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  cursor: 'context-menu',
+                }}
+              >
+                {row.id} · {row.label}
+              </div>
+            ))}
+          </div>
+        </Specimen>
+        <Specimen
+          caption='ask: false · right-click does NOT open panel'
+          span={2}
+        >
+          <div
+            data-agent-surface-id='gallery.ask.optout'
+            data-agent-ask='off'
+            data-aegis-ask-optout-surface=''
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-1)',
+              border: '1px solid var(--border-hairline)',
+              borderRadius: 'var(--radius-sm)',
+              padding: 'var(--space-2)',
+            }}
+          >
+            {askOptOutRows.map((row) => (
+              <div
+                key={row.id}
+                data-agent-entity-id={row.id}
+                data-ask-optout-row={row.id}
+                tabIndex={0}
+                style={{
+                  padding: 'var(--space-2) var(--space-3)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 'var(--fs-13)',
+                  background: 'var(--bg-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  cursor: 'context-menu',
+                }}
+              >
+                {row.id} · {row.label}
+              </div>
+            ))}
+          </div>
+        </Specimen>
+        <Specimen caption='programmatic open · ask event log' span={2}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-2)',
+            }}
+          >
+            <AegisButton onClick={onTriggerJs}>Trigger ask via JS</AegisButton>
+            <pre
+              aria-label='aegis-ask-event-log'
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--fs-11)',
+                color: 'var(--text-main)',
+                background: 'var(--bg-muted)',
+                padding: 'var(--space-3)',
+                borderRadius: 'var(--radius-sm)',
+                margin: 0,
+                maxHeight: 'calc(var(--space-12) * 3)',
+                overflow: 'auto',
+              }}
+            >
+              {log.length === 0 ? '(no ask events yet)' : log.join('\n')}
+            </pre>
+          </div>
+        </Specimen>
+        {inlineOpen ? (
+          <>
+            <Specimen caption='AskPanel · popover={false} · onSend' span={3}>
+              <AskPanel
+                context={ASK_PANEL_CONTEXT}
+                popover={false}
+                onClose={closeInline}
+                onSend={onInlineAsk}
+              />
+            </Specimen>
+            <Specimen caption='AskPanel · no onSend (no agent)' span={2}>
+              <AskPanel
+                context={ASK_PANEL_CONTEXT}
+                popover={false}
+                onClose={closeInline}
+              />
+            </Specimen>
+          </>
+        ) : (
+          <Specimen caption='AskPanel · closed' span={2}>
+            <AegisButton
+              onClick={() => {
+                setInlineOpen(true);
+              }}
+            >
+              Show the AskPanels again
+            </AegisButton>
+          </Specimen>
+        )}
+      </div>
+    </AgentChatProvider>
   );
 }
 
