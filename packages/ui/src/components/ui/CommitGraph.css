@@ -130,16 +130,6 @@
   padding-left: var(--space-3);
 }
 
-/* The row's lane and merge for assistive technology; the drawing is not read. */
-.aegis-commit-graph__screen-reader-text {
-  position: absolute;
-  width: var(--size-hairline);
-  height: var(--size-hairline);
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 .aegis-commit-graph__ref {
   flex-shrink: 0;
 }
@@ -166,6 +156,91 @@
   letter-spacing: var(--type-mono-tracking);
   white-space: nowrap;
   color: var(--text-muted);
+}
+
+/* ── Table ───────────────────────────────────────────────────── */
+.aegis-commit-graph__scroll {
+  overflow-x: auto;
+}
+
+/* Separate borders keep the header's rule out of the first row, so the
+ * drawing starts where the rows do. */
+.aegis-commit-graph__table {
+  width: 100%;
+  border-spacing: 0;
+}
+
+.aegis-commit-graph__th {
+  padding: 0 var(--space-3) var(--space-2);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  text-align: left;
+  vertical-align: bottom;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.aegis-commit-graph__th--graph {
+  padding-inline: 0;
+}
+
+/* Every row is as tall as the drawing's rows, so the dots line up: a row's
+ * height is only its least, so each cell's content is cut to it too. */
+.aegis-commit-graph__tr {
+  height: var(--aegis-commit-graph-row-h);
+}
+
+/* The padding sits inside the clip, so focus rings at a cell's edge show. */
+.aegis-commit-graph__cell {
+  display: block;
+  max-height: var(--aegis-commit-graph-row-h);
+  padding: var(--space-1) var(--space-3);
+  overflow: hidden;
+}
+
+.aegis-commit-graph__td {
+  padding: 0;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  white-space: nowrap;
+  color: var(--text-main);
+}
+
+.aegis-commit-graph__tr--selected > .aegis-commit-graph__td {
+  background: var(--bg-muted);
+}
+
+.aegis-commit-graph__td--graph {
+  width: var(--aegis-commit-graph-graph-w);
+  min-width: var(--aegis-commit-graph-graph-w);
+}
+
+/* The first row's graph cell holds the drawing, which runs down over the
+ * rows below. Only this cell is positioned, so the drawing paints over the
+ * selected rows' fill. */
+.aegis-commit-graph__td--drawing {
+  position: relative;
+}
+
+.aegis-commit-graph__td--grow {
+  width: 100%;
+  max-width: 0;
+}
+
+.aegis-commit-graph__td--grow > .aegis-commit-graph__cell {
+  text-overflow: ellipsis;
+}
+
+.aegis-commit-graph__cell-select {
+  display: inline-flex;
+  align-items: center;
+  margin-right: var(--space-2);
+  vertical-align: middle;
 }
 
 @media (max-width: 640px) {

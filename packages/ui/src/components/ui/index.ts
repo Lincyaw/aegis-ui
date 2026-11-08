@@ -290,6 +290,7 @@ export type {
 } from './ServiceMap';
 export { CommitGraph } from './CommitGraph';
 export type {
+  CommitGraphColumn,
   CommitGraphCommit,
   CommitGraphLane,
   CommitGraphProps,

@@ -108,6 +108,9 @@ interface DataTableProps<T> {
   columns: Array<DataTableColumn<T>>;
   data: T[];
   rowKey: (row: T, index: number) => string | number;
+  /** The table's accessible name. */
+  ariaLabel?: string;
+  /** Draws skeleton rows, and marks the table busy. */
   loading?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -259,6 +262,7 @@ export function DataTable<T>({
   columns,
   data,
   rowKey,
+  ariaLabel,
   loading = false,
   emptyTitle = 'No data',
   emptyDescription,
@@ -503,8 +507,12 @@ export function DataTable<T>({
     <td className="aegis-data-table__td aegis-data-table__filler" aria-hidden />
   );
 
+  // The row itself takes the click, so the chevron column is not read.
   const chevronCell = clickable && (
-    <td className="aegis-data-table__td aegis-data-table__chevron-cell">
+    <td
+      className="aegis-data-table__td aegis-data-table__chevron-cell"
+      aria-hidden
+    >
       <RightOutlined className="aegis-data-table__chevron" aria-hidden />
     </td>
   );
@@ -603,12 +611,13 @@ export function DataTable<T>({
     <div
       ref={wrapRef}
       className={cls}
-      aria-busy={stale ? true : undefined}
+      aria-busy={stale || loading ? true : undefined}
       {...agentAttrs}
     >
       <div className="aegis-data-table__scroll">
         <table
           ref={tableRef}
+          aria-label={ariaLabel}
           className={tableClass}
           style={fixedLayout ? columnWidths.tableStyle : undefined}
         >
@@ -646,7 +655,11 @@ export function DataTable<T>({
             <thead>
               <tr>
                 {selectable && (
-                  <th key="__select" {...leadCellProps('select', 'th')}>
+                  <th
+                    key="__select"
+                    scope="col"
+                    {...leadCellProps('select', 'th')}
+                  >
                     <span className="aegis-data-table__th-label">
                       <Checkbox
                         checked={
@@ -662,14 +675,19 @@ export function DataTable<T>({
                   </th>
                 )}
                 {expandable && (
-                  <th key="__toggle" {...leadCellProps('toggle', 'th')} />
+                  <th
+                    key="__toggle"
+                    scope="col"
+                    {...leadCellProps('toggle', 'th')}
+                  />
                 )}
                 {cardMode ? (
-                  <th className="aegis-data-table__th" />
+                  <th scope="col" className="aegis-data-table__th" />
                 ) : (
                   columns.map((col, i) => (
                     <th
                       key={col.key}
+                      scope="col"
                       data-column-key={col.key}
                       className={cellClass('th', i)}
                       style={cellStyle(col, i)}
@@ -719,12 +737,17 @@ export function DataTable<T>({
                 )}
                 {filler && (
                   <th
+                    scope="col"
                     className="aegis-data-table__th aegis-data-table__filler"
                     aria-hidden
                   />
                 )}
                 {clickable && (
-                  <th className="aegis-data-table__th aegis-data-table__chevron-cell" />
+                  <th
+                    scope="col"
+                    className="aegis-data-table__th aegis-data-table__chevron-cell"
+                    aria-hidden
+                  />
                 )}
               </tr>
             </thead>
@@ -741,11 +764,14 @@ export function DataTable<T>({
                   )}
                   {renderSkeletonCells()}
                   {fillerCell}
-                  {clickable && <td className="aegis-data-table__td" />}
+                  {clickable && (
+                    <td className="aegis-data-table__td" aria-hidden />
+                  )}
                 </tr>
               ))
             ) : rows.length === 0 ? (
-              <tr>
+              // Not a data row, so an empty table has no rows to read.
+              <tr role="presentation">
                 <td
                   colSpan={columnCount}
                   className="aegis-data-table__empty-cell"
@@ -767,6 +793,9 @@ export function DataTable<T>({
                   <Fragment key={key}>
                     <tr
                       className={rowClass}
+                      aria-selected={
+                        selectable ? selected.includes(key) : undefined
+                      }
                       tabIndex={clickable ? 0 : undefined}
                       onClick={
                         clickable

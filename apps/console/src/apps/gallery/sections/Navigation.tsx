@@ -1207,7 +1207,7 @@ export function NavigationSection() {
 
       <SectionDivider>ErrorState</SectionDivider>
       <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='404 not found' span={3}>
+        <Specimen caption='404 not found · role="alert"' span={3}>
           <ErrorState
             code={404}
             title='Page not found'

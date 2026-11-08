@@ -354,7 +354,8 @@ export function SurfacesSection() {
           <p className='gallery__panel-body'>
             Hairline border, 20 px radius, resting shadow. The title accepts a
             string or a rich node; the description carries the metric and its
-            direction.
+            direction. The title also names the panel, which is then a region
+            named “Default panel”.
           </p>
         </Panel>
 

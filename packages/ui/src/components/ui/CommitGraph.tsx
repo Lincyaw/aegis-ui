@@ -24,12 +24,21 @@ export interface CommitGraphCommit {
    * more parents drawn is a merge.
    */
   parents: string[];
-  /** One line, cut off with an ellipsis when it is too long; hovering shows it whole. */
-  title: ReactNode;
-  /** Shown at the end of the row, e.g. a short id or a time. */
+  /**
+   * Without `columns`: one line, cut off with an ellipsis when it is too
+   * long; hovering shows it whole. It names the row's checkbox.
+   */
+  title?: ReactNode;
+  /** Without `columns`: shown at the end of the row, e.g. a short id or a time. */
   meta?: ReactNode;
-  /** Names that point at the commit, e.g. branch heads, as chips before the title. */
+  /** Without `columns`: names that point at the commit, e.g. branch heads, as chips before the title. */
   refs?: string[];
+  /**
+   * With `columns`: the row's cells, by column id. A cell is one line: its
+   * content is cut to the row's height, so every row lines up with the
+   * drawing.
+   */
+  cells?: Record<string, ReactNode>;
   /** The `lanes` id of the column the commit is drawn in. Default, and for an unknown id: the first lane. */
   lane?: string;
   /**
@@ -44,6 +53,18 @@ export interface CommitGraphLane {
   label: string;
 }
 
+export interface CommitGraphColumn {
+  id: string;
+  /** The column's name, in its header. */
+  label: string;
+  /**
+   * Takes the width the other columns leave, which are as wide as their
+   * content, and cuts its cells off with an ellipsis, e.g. a message;
+   * hovering a cut cell shows it whole.
+   */
+  grow?: boolean;
+}
+
 export interface CommitGraphProps {
   /** The commits, newest first: each comes before its parents. */
   commits: CommitGraphCommit[];
@@ -53,12 +74,22 @@ export interface CommitGraphProps {
    * its `lane` names. Without lanes the graph is one history.
    */
   lanes?: CommitGraphLane[];
-  /** Ids of the selected commits. With `onSelectedIdsChange`, each row has a checkbox. */
+  /**
+   * Draws the commits as a table: the graph in the first column, then these
+   * columns, one row per commit with its `cells`. A table scrolls sideways
+   * when its columns do not fit. Without `columns` the commits are a list.
+   */
+  columns?: CommitGraphColumn[];
+  /**
+   * Ids of the selected commits. With `onSelectedIdsChange`, each row has a
+   * checkbox, at the start of the first column in a table, named by that
+   * cell; a selected table row is `aria-selected`.
+   */
   selectedIds?: string[];
   onSelectedIdsChange?: (ids: string[]) => void;
   /** The most commits selected at once: selecting one more drops the one selected first. */
   maxSelected?: number;
-  /** The accessible name of the list of commits. */
+  /** The accessible name of the list or table of commits. */
   ariaLabel: string;
   className?: string;
 }
@@ -246,13 +277,15 @@ function edgePath({ from, to, fromX, toX, viaX }: Edge): string {
   return [start, out, down, into].filter(Boolean).join(' ');
 }
 
-/** Shows the whole title on hover only when it is cut off. */
-function CommitTitle({
+/** Text cut off with an ellipsis, shown whole on hover only when it is cut. */
+function CutText({
   id,
-  title,
+  className,
+  children,
 }: {
-  id: string;
-  title: ReactNode;
+  id?: string;
+  className: string;
+  children: ReactNode;
 }): JSX.Element {
   const [cut, setCut] = useState(false);
   return (
@@ -260,138 +293,185 @@ function CommitTitle({
       placement="topLeft"
       mouseEnterDelay={0.3}
       styles={{ root: { maxWidth: 'var(--tooltip-max-width)' } }}
-      title={cut ? title : undefined}
+      title={cut ? children : undefined}
     >
       <span
         id={id}
-        className="aegis-commit-graph__title"
+        className={className}
         onMouseEnter={(event: MouseEvent<HTMLSpanElement>) => {
           setCut(
             event.currentTarget.scrollWidth > event.currentTarget.clientWidth,
           );
         }}
       >
-        {title}
+        {children}
       </span>
     </Tooltip>
   );
 }
 
-export function CommitGraph({
+/**
+ * What a row's drawing shows and assistive technology does not read: the
+ * commit's lane and whether it is a merge. The row names these hidden spans
+ * as its description.
+ */
+function rowDescription(
+  idPrefix: string,
+  row: number,
+  layout: GraphLayout,
+  mergeText: string,
+): { describedBy: string | undefined; spans: ReactNode } {
+  const lane = layout.laneLabel[row];
+  const merge = layout.merge[row];
+  const laneId = `${idPrefix}-lane-${String(row)}`;
+  const mergeId = `${idPrefix}-merge-${String(row)}`;
+  const ids = [lane === undefined ? '' : laneId, merge ? mergeId : ''].filter(
+    Boolean,
+  );
+  return {
+    describedBy: ids.length === 0 ? undefined : ids.join(' '),
+    spans: (
+      <>
+        {lane !== undefined && (
+          <span id={laneId} hidden>
+            {lane}
+          </span>
+        )}
+        {merge && (
+          <span id={mergeId} hidden>
+            {mergeText}
+          </span>
+        )}
+      </>
+    ),
+  };
+}
+
+/** The edges, links and dots, drawn over the rows; assistive technology reads the rows. */
+function GraphDrawing({
+  commits,
+  layout,
+  selected,
+}: {
+  commits: CommitGraphCommit[];
+  layout: GraphLayout;
+  selected: ReadonlySet<string>;
+}): JSX.Element {
+  const height = commits.length * ROW_HEIGHT;
+  return (
+    <svg
+      className="aegis-commit-graph__svg"
+      width={layout.width}
+      height={height}
+      viewBox={`0 0 ${String(layout.width)} ${String(height)}`}
+      aria-hidden="true"
+    >
+      {layout.lanes.slice(1).map((lane) => (
+        <line
+          key={lane.x}
+          className="aegis-commit-graph__lane-rule"
+          x1={lane.x}
+          x2={lane.x}
+          y1={0}
+          y2={height}
+        />
+      ))}
+      {layout.links.map((link) => (
+        <path
+          key={`${String(link.from)}-${String(link.to)}`}
+          className="aegis-commit-graph__link"
+          d={`M ${String(link.fromX)} ${String(rowY(link.from))} ${bend(link.fromX, rowY(link.from), link.toX, rowY(link.to))}`}
+        />
+      ))}
+      {layout.edges.map((edge) => (
+        <path
+          key={`${String(edge.from)}-${String(edge.to)}-${String(edge.viaX)}`}
+          className="aegis-commit-graph__edge"
+          d={edgePath(edge)}
+        />
+      ))}
+      {commits.map((commit, row) => (
+        <circle
+          key={commit.id}
+          className={[
+            'aegis-commit-graph__dot',
+            layout.merge[row] ? 'aegis-commit-graph__dot--merge' : '',
+            selected.has(commit.id) ? 'aegis-commit-graph__dot--selected' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          cx={layout.dotX[row]}
+          cy={rowY(row)}
+          r={DOT_RADIUS}
+        />
+      ))}
+    </svg>
+  );
+}
+
+function LaneLabels({
+  lanes,
+  layout,
+}: {
+  lanes: CommitGraphLane[];
+  layout: GraphLayout;
+}): JSX.Element {
+  return (
+    <span className="aegis-commit-graph__lane-labels">
+      {lanes.map((lane, index) => (
+        <span
+          key={lane.id}
+          className="aegis-commit-graph__lane-label"
+          style={{ width: `${String(layout.lanes[index].width)}px` }}
+        >
+          {lane.label}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** What the list and the table both draw from. */
+interface RowsProps {
+  commits: CommitGraphCommit[];
+  lanes: CommitGraphLane[] | undefined;
+  layout: GraphLayout;
+  selected: ReadonlySet<string>;
+  /** Set when the rows have checkboxes. */
+  toggle: ((id: string, checked: boolean) => void) | undefined;
+  ariaLabel: string;
+}
+
+function CommitList({
   commits,
   lanes,
-  selectedIds = [],
-  onSelectedIdsChange,
-  maxSelected,
+  layout,
+  selected,
+  toggle,
   ariaLabel,
-  className,
-}: CommitGraphProps) {
+}: RowsProps): JSX.Element {
   const strings = useStrings();
   const idPrefix = useId();
-  const narrow = useMediaQuery(NARROW_QUERY);
-  const laneMinWidth = narrow ? LANE_MIN_WIDTH_NARROW : LANE_MIN_WIDTH;
-  const layout = useMemo(
-    () => layoutGraph(commits, lanes, laneMinWidth),
-    [commits, lanes, laneMinWidth],
-  );
-  const selectable = onSelectedIdsChange !== undefined;
-  const selected = new Set(selectedIds);
-
-  const toggle = (id: string, checked: boolean): void => {
-    const next = checked
-      ? [...selectedIds.filter((each) => each !== id), id]
-      : selectedIds.filter((each) => each !== id);
-    onSelectedIdsChange?.(
-      maxSelected === undefined ? next : next.slice(-maxSelected),
-    );
-  };
-
-  const cls = [
-    'aegis-commit-graph',
-    selectable ? 'aegis-commit-graph--selectable' : '',
-    className ?? '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  const rootStyle = {
-    '--aegis-commit-graph-row-h': `${String(ROW_HEIGHT)}px`,
-    '--aegis-commit-graph-graph-w': `${String(layout.width)}px`,
-  } as CSSProperties;
-  const height = commits.length * ROW_HEIGHT;
-
   return (
-    <div className={cls} style={rootStyle}>
+    <>
       {lanes !== undefined && (
         <div className="aegis-commit-graph__lanes" aria-hidden="true">
           <span className="aegis-commit-graph__lane-spacer" />
-          <span className="aegis-commit-graph__lane-labels">
-            {lanes.map((lane, index) => (
-              <span
-                key={lane.id}
-                className="aegis-commit-graph__lane-label"
-                style={{ width: `${String(layout.lanes[index].width)}px` }}
-              >
-                {lane.label}
-              </span>
-            ))}
-          </span>
+          <LaneLabels lanes={lanes} layout={layout} />
         </div>
       )}
       <div className="aegis-commit-graph__body">
-        <svg
-          className="aegis-commit-graph__svg"
-          width={layout.width}
-          height={height}
-          viewBox={`0 0 ${String(layout.width)} ${String(height)}`}
-          aria-hidden="true"
-        >
-          {layout.lanes.slice(1).map((lane) => (
-            <line
-              key={lane.x}
-              className="aegis-commit-graph__lane-rule"
-              x1={lane.x}
-              x2={lane.x}
-              y1={0}
-              y2={height}
-            />
-          ))}
-          {layout.links.map((link) => (
-            <path
-              key={`${String(link.from)}-${String(link.to)}`}
-              className="aegis-commit-graph__link"
-              d={`M ${String(link.fromX)} ${String(rowY(link.from))} ${bend(link.fromX, rowY(link.from), link.toX, rowY(link.to))}`}
-            />
-          ))}
-          {layout.edges.map((edge) => (
-            <path
-              key={`${String(edge.from)}-${String(edge.to)}-${String(edge.viaX)}`}
-              className="aegis-commit-graph__edge"
-              d={edgePath(edge)}
-            />
-          ))}
-          {commits.map((commit, row) => (
-            <circle
-              key={commit.id}
-              className={[
-                'aegis-commit-graph__dot',
-                layout.merge[row] ? 'aegis-commit-graph__dot--merge' : '',
-                selected.has(commit.id)
-                  ? 'aegis-commit-graph__dot--selected'
-                  : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              cx={layout.dotX[row]}
-              cy={rowY(row)}
-              r={DOT_RADIUS}
-            />
-          ))}
-        </svg>
+        <GraphDrawing commits={commits} layout={layout} selected={selected} />
         <ol className="aegis-commit-graph__rows" aria-label={ariaLabel}>
           {commits.map((commit, row) => {
             const isSelected = selected.has(commit.id);
             const titleId = `${idPrefix}-title-${String(row)}`;
-            const lane = layout.laneLabel[row];
+            const description = rowDescription(
+              idPrefix,
+              row,
+              layout,
+              strings.mergeCommit,
+            );
             return (
               <li
                 key={commit.id}
@@ -400,9 +480,10 @@ export function CommitGraph({
                     ? 'aegis-commit-graph__row aegis-commit-graph__row--selected'
                     : 'aegis-commit-graph__row'
                 }
+                aria-describedby={description.describedBy}
               >
                 <span className="aegis-commit-graph__select">
-                  {selectable && (
+                  {toggle !== undefined && (
                     <Checkbox
                       checked={isSelected}
                       onChange={(checked) => {
@@ -413,23 +494,15 @@ export function CommitGraph({
                   )}
                 </span>
                 <span className="aegis-commit-graph__text">
-                  {/* The drawing is not read, so its lane and merge are told here. */}
-                  {lane !== undefined && (
-                    <span className="aegis-commit-graph__screen-reader-text">
-                      {lane}
-                    </span>
-                  )}
-                  {layout.merge[row] && (
-                    <span className="aegis-commit-graph__screen-reader-text">
-                      {strings.mergeCommit}
-                    </span>
-                  )}
+                  {description.spans}
                   {commit.refs?.map((ref) => (
                     <Chip key={ref} className="aegis-commit-graph__ref">
                       {ref}
                     </Chip>
                   ))}
-                  <CommitTitle id={titleId} title={commit.title} />
+                  <CutText id={titleId} className="aegis-commit-graph__title">
+                    {commit.title}
+                  </CutText>
                 </span>
                 {commit.meta !== undefined && (
                   <span className="aegis-commit-graph__meta">
@@ -441,6 +514,188 @@ export function CommitGraph({
           })}
         </ol>
       </div>
+    </>
+  );
+}
+
+function CommitTable({
+  commits,
+  lanes,
+  layout,
+  selected,
+  toggle,
+  ariaLabel,
+  columns,
+}: RowsProps & { columns: CommitGraphColumn[] }): JSX.Element {
+  const strings = useStrings();
+  const idPrefix = useId();
+  return (
+    <div className="aegis-commit-graph__scroll">
+      <table className="aegis-commit-graph__table" aria-label={ariaLabel}>
+        <thead>
+          <tr>
+            <th
+              scope="col"
+              className="aegis-commit-graph__th aegis-commit-graph__th--graph"
+              aria-hidden="true"
+            >
+              {lanes !== undefined && (
+                <LaneLabels lanes={lanes} layout={layout} />
+              )}
+            </th>
+            {columns.map((column) => (
+              <th
+                key={column.id}
+                scope="col"
+                className="aegis-commit-graph__th"
+              >
+                {column.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {commits.map((commit, row) => {
+            const isSelected = selected.has(commit.id);
+            const firstId = `${idPrefix}-first-${String(row)}`;
+            const description = rowDescription(
+              idPrefix,
+              row,
+              layout,
+              strings.mergeCommit,
+            );
+            return (
+              <tr
+                key={commit.id}
+                className={
+                  isSelected
+                    ? 'aegis-commit-graph__tr aegis-commit-graph__tr--selected'
+                    : 'aegis-commit-graph__tr'
+                }
+                aria-selected={toggle === undefined ? undefined : isSelected}
+                aria-describedby={description.describedBy}
+              >
+                <td
+                  className={
+                    row === 0
+                      ? 'aegis-commit-graph__td aegis-commit-graph__td--graph aegis-commit-graph__td--drawing'
+                      : 'aegis-commit-graph__td aegis-commit-graph__td--graph'
+                  }
+                  aria-hidden="true"
+                >
+                  {description.spans}
+                  {row === 0 && (
+                    <GraphDrawing
+                      commits={commits}
+                      layout={layout}
+                      selected={selected}
+                    />
+                  )}
+                </td>
+                {columns.map((column, index) => {
+                  const content =
+                    index === 0 ? (
+                      <>
+                        {toggle !== undefined && (
+                          <span className="aegis-commit-graph__cell-select">
+                            <Checkbox
+                              checked={isSelected}
+                              onChange={(checked) => {
+                                toggle(commit.id, checked);
+                              }}
+                              ariaLabelledBy={firstId}
+                            />
+                          </span>
+                        )}
+                        <span id={firstId}>{commit.cells?.[column.id]}</span>
+                      </>
+                    ) : (
+                      commit.cells?.[column.id]
+                    );
+                  return column.grow === true ? (
+                    <td
+                      key={column.id}
+                      className="aegis-commit-graph__td aegis-commit-graph__td--grow"
+                    >
+                      <CutText className="aegis-commit-graph__cell">
+                        {content}
+                      </CutText>
+                    </td>
+                  ) : (
+                    <td key={column.id} className="aegis-commit-graph__td">
+                      <span className="aegis-commit-graph__cell">
+                        {content}
+                      </span>
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function CommitGraph({
+  commits,
+  lanes,
+  columns,
+  selectedIds = [],
+  onSelectedIdsChange,
+  maxSelected,
+  ariaLabel,
+  className,
+}: CommitGraphProps) {
+  const narrow = useMediaQuery(NARROW_QUERY);
+  const laneMinWidth = narrow ? LANE_MIN_WIDTH_NARROW : LANE_MIN_WIDTH;
+  const layout = useMemo(
+    () => layoutGraph(commits, lanes, laneMinWidth),
+    [commits, lanes, laneMinWidth],
+  );
+  const toggle =
+    onSelectedIdsChange === undefined
+      ? undefined
+      : (id: string, checked: boolean): void => {
+          const next = checked
+            ? [...selectedIds.filter((each) => each !== id), id]
+            : selectedIds.filter((each) => each !== id);
+          onSelectedIdsChange(
+            maxSelected === undefined ? next : next.slice(-maxSelected),
+          );
+        };
+  const rows: RowsProps = {
+    commits,
+    lanes,
+    layout,
+    selected: new Set(selectedIds),
+    toggle,
+    ariaLabel,
+  };
+
+  const cls = [
+    'aegis-commit-graph',
+    // The list's checkboxes take a column of their own; the table's sit in its first column.
+    toggle !== undefined && columns === undefined
+      ? 'aegis-commit-graph--selectable'
+      : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const rootStyle = {
+    '--aegis-commit-graph-row-h': `${String(ROW_HEIGHT)}px`,
+    '--aegis-commit-graph-graph-w': `${String(layout.width)}px`,
+  } as CSSProperties;
+
+  return (
+    <div className={cls} style={rootStyle}>
+      {columns === undefined ? (
+        <CommitList {...rows} />
+      ) : (
+        <CommitTable {...rows} columns={columns} />
+      )}
     </div>
   );
 }

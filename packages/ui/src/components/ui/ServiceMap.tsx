@@ -63,6 +63,7 @@ export interface ServiceMapGroup {
   nodeIds: string[];
 }
 
+/** For assistive technology, a `group` named `<source label> → <target label>`. */
 export interface ServiceMapEdge {
   id: string;
   source: string;
@@ -94,6 +95,7 @@ export interface ServiceMapProps {
   fillViewport?: boolean;
   onNodeClick?: (node: ServiceMapNode) => void;
   onEdgeClick?: (edge: ServiceMapEdge) => void;
+  /** Drawn inverted, and `aria-current` for assistive technology. */
   selectedNodeId?: string;
   /**
    * Opens at actual size on this node instead of fitting the whole map, and
@@ -111,7 +113,10 @@ export interface ServiceMapProps {
    * is not shown at 768 px and below.
    */
   minimap?: boolean;
-  /** The map's accessible name. */
+  /**
+   * The map's accessible name. Each node is a `group` named by its label;
+   * a group's box is not.
+   */
   ariaLabel?: string;
   className?: string;
 }
@@ -294,8 +299,9 @@ function computeLayout(
               width: part.width,
               height: part.boxHeight,
               data: { label: part.group.label },
-              ariaRole: 'group',
-              ariaLabel: part.group.label,
+              // Not a group for assistive technology: the box contains no
+              // nodes in the DOM, so its label is plain text.
+              domAttributes: { 'aria-roledescription': undefined },
               // Under the edges, and letting clicks through to them: React
               // Flow gives every node's wrapper pointer events once the map
               // has onNodeClick.
@@ -554,6 +560,9 @@ function ServiceMapInner({
           // size it measured instead of measuring the node again.
           measured: measured.get(n.id),
           ariaLabel: n.label,
+          // A group takes no aria-selected.
+          domAttributes:
+            selectedNodeId === n.id ? { 'aria-current': true } : undefined,
           data: { node: n, selected: selectedNodeId === n.id },
           sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
           targetPosition: isHorizontal ? Position.Left : Position.Top,
@@ -565,19 +574,19 @@ function ServiceMapInner({
     ],
     [layout, nodes, measured, selectedNodeId, isHorizontal],
   );
-  const flowEdges = useMemo(
-    (): Array<Edge<ServiceEdgeData>> =>
-      edges.map((e) => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        type: 'service',
-        data: { edge: e },
-        label: e.label,
-        className: `aegis-service-map__edge aegis-service-map__edge--${e.status ?? 'ok'}`,
-      })),
-    [edges],
-  );
+  const flowEdges = useMemo((): Array<Edge<ServiceEdgeData>> => {
+    const labelOf = new Map(nodes.map((n) => [n.id, n.label]));
+    return edges.map((e) => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      ariaLabel: `${labelOf.get(e.source) ?? e.source} → ${labelOf.get(e.target) ?? e.target}`,
+      type: 'service',
+      data: { edge: e },
+      label: e.label,
+      className: `aegis-service-map__edge aegis-service-map__edge--${e.status ?? 'ok'}`,
+    }));
+  }, [nodes, edges]);
 
   const { getNode } = useReactFlow();
   const handleNodesChange = useCallback(

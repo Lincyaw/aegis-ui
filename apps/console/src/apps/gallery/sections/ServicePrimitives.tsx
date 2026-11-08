@@ -14,6 +14,7 @@ import {
   CodeEditor,
   type CodeEditorField,
   CommitGraph,
+  type CommitGraphColumn,
   type CommitGraphCommit,
   type CommitGraphLane,
   Dialog,
@@ -1384,6 +1385,115 @@ function CommitGraphLanesSpecimen(): ReactNode {
   );
 }
 
+const COMMIT_TABLE_COLUMNS: CommitGraphColumn[] = [
+  { id: 'commit', label: 'commit' },
+  { id: 'message', label: 'message', grow: true },
+  { id: 'committed', label: 'committed' },
+  { id: 'parents', label: 'parents' },
+  { id: 'main', label: 'main' },
+  { id: 'refund', label: 'refund' },
+];
+
+/** Commits on each branch, newest first; the first is the branch's head. */
+const COMMIT_TABLE_BRANCHES: Record<string, string[]> = {
+  main: ['a41f09c', '93c0a4f', '5d7b3e2', '0b4e8c1', '7c2d1e0', '19ae5f3'],
+  refund: ['e81b6d4', 'c2f9a10', '7c2d1e0', '19ae5f3'],
+};
+
+const commitGraphTable: CommitGraphCommit[] = commitGraphHistory.map(
+  (commit) => ({
+    id: commit.id,
+    parents: commit.parents,
+    cells: {
+      commit: (
+        <a href={`#${commit.id}`} className='gallery__table-link'>
+          {commit.id}
+        </a>
+      ),
+      message: commit.title,
+      committed: String(commit.meta).split(' · ')[1],
+      parents: commit.parents.map((parent) => (
+        <a key={parent} href={`#${parent}`} className='gallery__table-link'>
+          {parent}{' '}
+        </a>
+      )),
+      ...Object.fromEntries(
+        Object.entries(COMMIT_TABLE_BRANCHES).map(([branch, ids]) => [
+          branch,
+          ids[0] === commit.id
+            ? 'head'
+            : ids.includes(commit.id)
+              ? 'reachable'
+              : '',
+        ])
+      ),
+    },
+  })
+);
+
+function CommitGraphTableSpecimen(): ReactNode {
+  const [selected, setSelected] = useState(['a41f09c', '7c2d1e0']);
+  return (
+    <CommitGraph
+      commits={commitGraphTable}
+      columns={COMMIT_TABLE_COLUMNS}
+      selectedIds={selected}
+      onSelectedIdsChange={setSelected}
+      maxSelected={2}
+      ariaLabel='Requirement commits'
+    />
+  );
+}
+
+const VERSION_TABLE_TIMES = [
+  '09:40',
+  '09:32',
+  '09:20',
+  '08:55',
+  '08:10',
+  '08:02',
+  '07:45',
+  '07:30',
+  '07:05',
+];
+
+const VERSION_TABLE_COLUMNS: CommitGraphColumn[] = [
+  { id: 'time', label: 'time' },
+  ...COMMIT_GRAPH_LANES.map((lane) => ({
+    id: lane.id,
+    label: lane.label,
+    grow: lane.id === 'requirements',
+  })),
+];
+
+const versionTable: CommitGraphCommit[] = commitGraphVersions.map(
+  (commit, row) => ({
+    ...commit,
+    cells: {
+      time: VERSION_TABLE_TIMES[row],
+      [commit.lane ?? 'requirements']: (
+        <>
+          <a href={`#${commit.id}`} className='gallery__table-link'>
+            {String(commit.meta)}
+          </a>{' '}
+          {commit.title}
+        </>
+      ),
+    },
+  })
+);
+
+function CommitGraphVersionTableSpecimen(): ReactNode {
+  return (
+    <CommitGraph
+      commits={versionTable}
+      lanes={COMMIT_GRAPH_LANES}
+      columns={VERSION_TABLE_COLUMNS}
+      ariaLabel='Versions'
+    />
+  );
+}
+
 function ResizableSidePanelSpecimen(): ReactNode {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   return (
@@ -2535,7 +2645,7 @@ export function ServicePrimitivesSection() {
           <ServiceMapSingleSpecimen />
         </Specimen>
         <Specimen
-          caption='groups · focusNodeId · active · fillViewport — 27 tasks in four phases, laid out left to right in the order the groups are given; the map opens at actual size on the failed task, fitted to it and its direct neighbours when they fit and centred on the task alone when they do not, with no minimap by default since a focused view runs past every edge; nodes widen with their label and wrap it past 320 px; the running task pulses; click a task to open on it'
+          caption='groups · focusNodeId · active · fillViewport — 27 tasks in four phases, laid out left to right in the order the groups are given; the map opens at actual size on the failed task, fitted to it and its direct neighbours when they fit and centred on the task alone when they do not, with no minimap by default since a focused view runs past every edge; nodes widen with their label and wrap it past 320 px; the running task pulses; click a task to open on it · for assistive technology each task is a group named by its label, each edge a group named source → target, the selected task is aria-current and a phase box is plain text'
           span={3}
         >
           <ServiceMapTaskGraphSpecimen />
@@ -2571,6 +2681,18 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <CommitGraphLanesSpecimen />
+        </Specimen>
+        <Specimen
+          caption='columns — a table: the graph in the first column, then one column per entry of columns with the cells of each commit; message grows and is cut off; a branch column marks its head and the commits it reaches · onSelectedIdsChange puts a checkbox in the first column, named by that cell, and a selected row is aria-selected · the graph column is hidden from assistive technology, so the table reads as its named columns'
+          span={3}
+        >
+          <CommitGraphTableSpecimen />
+        </Specimen>
+        <Specimen
+          caption='columns with lanes — a version map: one row per event, its time and its content in the column of its lane; the lanes stay in the graph column'
+          span={3}
+        >
+          <CommitGraphVersionTableSpecimen />
         </Specimen>
       </div>
 

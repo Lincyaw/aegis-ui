@@ -184,10 +184,11 @@ function DataTableMatrixSpecimen(): ReactNode {
         />
       </Specimen>
       <Specimen
-        caption='stale · selectable · the selection column sticks too'
+        caption='stale · selectable · the selection column sticks too · ariaLabel names the table, header cells are column headers (scope="col") and a selected row is aria-selected'
         span={3}
       >
         <DataTable
+          ariaLabel='Pass rate by task and model'
           stale
           stickyFirstColumn
           selectable
@@ -470,7 +471,10 @@ function DataTableMobileCardSpecimen(): ReactNode {
           }}
         />
       </Specimen>
-      <Specimen caption='renderMobileCard · loading' span={2}>
+      <Specimen
+        caption='renderMobileCard · loading · the table is aria-busy'
+        span={2}
+      >
         <DataTable
           columns={GALLERY_MODEL_COLUMNS}
           data={[]}
@@ -479,7 +483,10 @@ function DataTableMobileCardSpecimen(): ReactNode {
           loading
         />
       </Specimen>
-      <Specimen caption='renderMobileCard · empty' span={2}>
+      <Specimen
+        caption='renderMobileCard · empty · the empty state is not a table row'
+        span={2}
+      >
         <DataTable
           columns={GALLERY_MODEL_COLUMNS}
           data={[]}
