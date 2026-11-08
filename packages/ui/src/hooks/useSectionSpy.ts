@@ -136,37 +136,61 @@ export function useSectionSpy({
     for (const section of sections) {
       observer.observe(section);
     }
-    /* Content that grows or shrinks after the first measurement (a diagram
-     * or image rendering) moves the sections without a scroll and often
-     * without an intersection change, so their parents and siblings are
-     * watched too. */
+    /* Content that grows, shrinks, arrives or leaves after the first
+     * measurement (a diagram or image rendering) moves the sections without
+     * a scroll and often without an intersection change, so their parents
+     * and siblings are watched too, including siblings added later. */
     let frame = 0;
-    const resizeObserver = new ResizeObserver(() => {
+    const syncNextFrame = (): void => {
       if (frame === 0) {
         frame = requestAnimationFrame(() => {
           frame = 0;
           sync();
         });
       }
-    });
-    const resized = new Set<Element>(sections);
-    for (const section of sections) {
-      const parent = section.parentElement;
-      if (parent) {
-        resized.add(parent);
-        for (const sibling of parent.children) {
-          resized.add(sibling);
+    };
+    const resizeObserver = new ResizeObserver(syncNextFrame);
+    const parents = new Set(
+      sections.flatMap((section) =>
+        section.parentElement ? [section.parentElement] : [],
+      ),
+    );
+    const watched = new Set<Element>();
+    const watchAround = (): void => {
+      const around = new Set<Element>(sections);
+      for (const parent of parents) {
+        around.add(parent);
+        for (const child of parent.children) {
+          around.add(child);
         }
       }
-    }
-    for (const element of resized) {
-      resizeObserver.observe(element);
+      for (const element of watched) {
+        if (!around.has(element)) {
+          resizeObserver.unobserve(element);
+          watched.delete(element);
+        }
+      }
+      for (const element of around) {
+        if (!watched.has(element)) {
+          resizeObserver.observe(element);
+          watched.add(element);
+        }
+      }
+    };
+    watchAround();
+    const mutationObserver = new MutationObserver(() => {
+      watchAround();
+      syncNextFrame();
+    });
+    for (const parent of parents) {
+      mutationObserver.observe(parent, { childList: true });
     }
     const scrollEvents: EventTarget = scrollContainer ?? document;
     scrollEvents.addEventListener('scrollend', handleScrollEnd);
     return () => {
       observer.disconnect();
       resizeObserver.disconnect();
+      mutationObserver.disconnect();
       cancelAnimationFrame(frame);
       scrollEvents.removeEventListener('scrollend', handleScrollEnd);
     };
