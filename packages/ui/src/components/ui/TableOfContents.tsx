@@ -56,20 +56,23 @@ function useSectionElementsVersion(sectionIds: string): number {
   return version;
 }
 
-function TableOfContentsNav({
+export function TableOfContents({
   items,
   currentId,
   onCurrentChange,
-  scrollContainer,
+  scrollContainer = null,
   className,
 }: TableOfContentsProps): ReactElement {
   const strings = useStrings();
+  const ids = items.map((item) => item.id);
+  const sectionsVersion = useSectionElementsVersion(ids.join(' '));
   const { activeId, onLinkClick } = useSectionSpy({
-    ids: items.map((item) => item.id),
+    ids,
     activationPercent: ACTIVATION_PERCENT,
     currentId,
     onCurrentChange,
     scrollContainer,
+    sectionsVersion,
   });
 
   const cls = ['aegis-toc', className ?? ''].filter(Boolean).join(' ');
@@ -105,21 +108,5 @@ function TableOfContentsNav({
         })}
       </ol>
     </nav>
-  );
-}
-
-export function TableOfContents({
-  scrollContainer = null,
-  ...props
-}: TableOfContentsProps): ReactElement {
-  const version = useSectionElementsVersion(
-    props.items.map((item) => item.id).join(' '),
-  );
-  return (
-    <TableOfContentsNav
-      key={version}
-      scrollContainer={scrollContainer}
-      {...props}
-    />
   );
 }

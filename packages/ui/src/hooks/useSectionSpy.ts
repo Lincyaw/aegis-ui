@@ -58,6 +58,11 @@ export interface UseSectionSpyOptions {
   onCurrentChange?: (id: string) => void;
   /** The element that scrolls the sections; omitted or null means the viewport. */
   scrollContainer?: HTMLElement | null;
+  /**
+   * Changes when a section element appears, disappears or is replaced;
+   * tracking then starts over on the elements now in the document.
+   */
+  sectionsVersion?: number;
 }
 
 export interface UseSectionSpyResult {
@@ -76,6 +81,7 @@ export function useSectionSpy({
   currentId,
   onCurrentChange,
   scrollContainer = null,
+  sectionsVersion = 0,
 }: UseSectionSpyOptions): UseSectionSpyResult {
   const [trackedId, setTrackedId] = useState<string | undefined>(ids[0]);
   const trackedIdRef = useRef(trackedId);
@@ -196,7 +202,7 @@ export function useSectionSpy({
       cancelAnimationFrame(frame);
       scrollEvents.removeEventListener('scrollend', handleScrollEnd);
     };
-  }, [sectionIds, activationPercent, scrollContainer, track]);
+  }, [sectionIds, activationPercent, scrollContainer, track, sectionsVersion]);
 
   const onLinkClick = (
     event: MouseEvent<HTMLAnchorElement>,
