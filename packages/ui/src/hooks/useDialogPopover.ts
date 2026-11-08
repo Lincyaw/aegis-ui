@@ -25,8 +25,8 @@ export interface DialogPopover<P extends HTMLElement> {
  * `Popover` that is not a menu, such as a small form or a list of links.
  * The popover portals to `document.body`, so focus is moved to the panel's
  * first control on open. Escape, and Tab past the last control or
- * Shift+Tab past the first, close it and hand focus back to the trigger,
- * from where Tab carries on through the page.
+ * Shift+Tab past the first or from the panel itself, close it and hand
+ * focus back to the trigger, from where Tab carries on through the page.
  */
 export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
   const [open, setOpen] = useState(false);
@@ -67,13 +67,16 @@ export function useDialogPopover<P extends HTMLElement>(): DialogPopover<P> {
       if (event.key !== 'Tab') {
         return;
       }
+      const panel = event.currentTarget;
       const tabbable = Array.from(
-        event.currentTarget.querySelectorAll<HTMLElement>(TABBABLE),
+        panel.querySelectorAll<HTMLElement>(TABBABLE),
       ).filter((element) => element.getClientRects().length > 0);
-      const atEdge =
-        tabbable.length === 0 ||
-        event.target ===
-          (event.shiftKey ? tabbable[0] : tabbable[tabbable.length - 1]);
+      // The panel itself holds focus when it has no control or after a click
+      // on its background; Shift+Tab from there leaves it too.
+      const atEdge = event.shiftKey
+        ? event.target === panel || event.target === tabbable[0]
+        : tabbable.length === 0 ||
+          event.target === tabbable[tabbable.length - 1];
       if (!atEdge) {
         return;
       }
