@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 
 import { CloseOutlined, DownOutlined } from '@ant-design/icons';
 
@@ -15,7 +15,7 @@ interface SelectProps {
   value: string;
   options: SelectOption[];
   onChange: (value: string) => void;
-  /** Caption rendered above the control. */
+  /** Caption above the control, as its `<label>`, so it names the select. */
   label?: ReactNode;
   /** Accessible name for a select shown without a visible caption, e.g. a compact filter. */
   ariaLabel?: string;
@@ -42,6 +42,8 @@ export function Select({
   className,
 }: SelectProps) {
   const strings = useStrings();
+  const ownId = useId();
+  const selectId = id ?? ownId;
   const clearable = allowClear && value !== '' && !disabled;
   const showsPlaceholder = placeholder !== undefined && value === '';
   const cls = [
@@ -55,17 +57,17 @@ export function Select({
   return (
     <div className={cls}>
       {label !== undefined && (
-        <span className="aegis-select__label">{label}</span>
+        <label className="aegis-select__label" htmlFor={selectId}>
+          {label}
+        </label>
       )}
       <div className="aegis-select__control">
         <select
           className="aegis-select__native"
-          id={id}
+          id={selectId}
           value={value}
           disabled={disabled}
-          aria-label={
-            ariaLabel ?? (typeof label === 'string' ? label : undefined)
-          }
+          aria-label={ariaLabel}
           onChange={(event) => {
             onChange(event.target.value);
           }}

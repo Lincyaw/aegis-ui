@@ -716,6 +716,9 @@ export function IndicatorsSection() {
         <Specimen caption='warning · pulse'>
           <StatusDot tone='warning' pulse />
         </Specimen>
+        <Specimen caption='caution · --ink-warn, not a failure'>
+          <StatusDot tone='caution' />
+        </Specimen>
         <Specimen caption='size 10'>
           <StatusDot size={10} />
         </Specimen>
@@ -931,9 +934,23 @@ export function IndicatorsSection() {
 
       <SectionDivider>Select</SectionDivider>
       <div className='gallery__row'>
-        <Specimen caption='label · value'>
+        <Specimen caption='label · value · the caption is the select’s <label>'>
           <AegisSelect
             label='标签'
+            value='first'
+            options={GALLERY_SELECT_OPTIONS}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+        <Specimen caption='rich label · still names the select'>
+          <AegisSelect
+            label={
+              <>
+                比较指标 <MetricLabel as='span'>· 越高越好</MetricLabel>
+              </>
+            }
             value='first'
             options={GALLERY_SELECT_OPTIONS}
             onChange={() => {
@@ -946,6 +963,7 @@ export function IndicatorsSection() {
         </Specimen>
         <Specimen caption='placeholder · --text-muted'>
           <AegisSelect
+            ariaLabel='横轴指标'
             value=''
             placeholder='选择横轴指标'
             options={[{ value: 'score', label: '结果均分' }]}
@@ -973,6 +991,7 @@ export function IndicatorsSection() {
         </Specimen>
         <Specimen caption='disabled'>
           <AegisSelect
+            ariaLabel='版本'
             value='v1'
             disabled
             options={[{ value: 'v1', label: 'V1 · 当前版本' }]}

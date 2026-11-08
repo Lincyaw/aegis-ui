@@ -1,6 +1,17 @@
 .aegis-time-display {
-  font-family: var(--font-mono);
+  position: relative;
+  font-family: var(--font-numeric);
   font-size: var(--fs-11);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.aegis-time-display__no-value {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
 }

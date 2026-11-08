@@ -32,7 +32,7 @@ export type {
   UseScrollProgressResult,
 } from './hooks';
 
-export { formatBytes } from './lib/format';
+export { formatBytes, formatDuration } from './lib/format';
 
 // Headless time-range parsing (consumers can use it without the picker).
 export {

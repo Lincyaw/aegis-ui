@@ -1,54 +1,73 @@
-/* Long-form documents: the article type roles, Markdown elements in the
- * document flow, and room above each section heading. Only the classes of
- * the Markdown elements are styled, so embedded components keep their own
- * type and spacing. */
-.aegis-mdx {
+/* Long-form documents (MdxDocument and Markdown variant="document"): the
+ * article type roles, Markdown elements in the document flow, and room above
+ * each section heading. Only the classes of the Markdown elements are styled,
+ * so embedded components keep their own type and spacing. */
+.aegis-document {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   min-width: 0;
+  color: var(--text-main);
 }
 
-.aegis-mdx__heading,
-.aegis-mdx__subheading {
+.aegis-document__title,
+.aegis-document__heading,
+.aegis-document__subheading,
+.aegis-document__minor-heading {
   margin: 0;
   color: var(--text-main);
   scroll-margin-top: calc(var(--header-height) + var(--space-6));
 }
 
-.aegis-mdx__heading {
+.aegis-document__title {
+  font-size: var(--type-article-title-size);
+  line-height: var(--type-article-title-line);
+  font-weight: var(--type-article-title-weight);
+  letter-spacing: var(--type-article-title-tracking);
+}
+
+.aegis-document__heading {
   font-size: var(--type-article-heading-size);
   line-height: var(--type-article-heading-line);
   font-weight: var(--type-article-heading-weight);
   letter-spacing: var(--type-article-heading-tracking);
 }
 
-.aegis-mdx__subheading {
+.aegis-document__subheading {
   font-size: var(--type-article-subheading-size);
   line-height: var(--type-article-subheading-line);
   font-weight: var(--type-article-subheading-weight);
   letter-spacing: var(--type-article-subheading-tracking);
 }
 
+/* Fourth to sixth levels: body size, set apart by weight. */
+.aegis-document__minor-heading {
+  font-size: var(--type-article-body-size);
+  line-height: var(--type-article-body-line);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--type-article-body-tracking);
+}
+
 /* A section heading after content opens a new section. */
-.aegis-mdx > * + .aegis-mdx__heading {
+.aegis-document > * + .aegis-document__title,
+.aegis-document > * + .aegis-document__heading {
   margin-top: var(--space-6);
 }
 
-.aegis-mdx > * + .aegis-mdx__subheading {
+.aegis-document > * + .aegis-document__subheading,
+.aegis-document > * + .aegis-document__minor-heading {
   margin-top: var(--space-2);
 }
 
-.aegis-mdx__paragraph,
-.aegis-mdx__list,
-.aegis-mdx__quote,
-.aegis-mdx__table {
+.aegis-document__paragraph,
+.aegis-document__list,
+.aegis-document__quote {
   overflow-wrap: anywhere;
 }
 
-.aegis-mdx__paragraph,
-.aegis-mdx__list,
-.aegis-mdx__quote {
+.aegis-document__paragraph,
+.aegis-document__list,
+.aegis-document__quote {
   font-size: var(--type-article-body-size);
   line-height: var(--type-article-body-line);
   font-weight: var(--type-article-body-weight);
@@ -56,11 +75,11 @@
   color: var(--text-main);
 }
 
-.aegis-mdx__paragraph {
+.aegis-document__paragraph {
   margin: 0;
 }
 
-.aegis-mdx__list {
+.aegis-document__list {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -68,27 +87,27 @@
   padding-left: var(--space-5);
 }
 
-.aegis-mdx__strong {
+.aegis-document__strong {
   font-weight: var(--fw-semibold);
 }
 
-.aegis-mdx__link {
+.aegis-document__link {
   color: var(--accent-info);
   text-decoration: underline;
   text-underline-offset: var(--space-1);
 }
 
-.aegis-mdx__link:hover {
+.aegis-document__link:hover {
   color: var(--text-main);
 }
 
-.aegis-mdx__link:focus-visible {
+.aegis-document__link:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
   border-radius: var(--radius-xs);
 }
 
-.aegis-mdx__code {
+.aegis-document__code {
   font-family: var(--font-mono);
   font-size: var(--type-article-caption-size);
   padding: var(--size-hairline) var(--space-1);
@@ -96,7 +115,11 @@
   background: var(--bg-muted);
 }
 
-.aegis-mdx__quote {
+/* A quote holds paragraphs and lists of its own, a step apart. */
+.aegis-document__quote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   margin: 0;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
@@ -104,31 +127,42 @@
   color: var(--text-muted);
 }
 
-.aegis-mdx__table {
+.aegis-document__quote .aegis-document__paragraph,
+.aegis-document__quote .aegis-document__list {
+  color: inherit;
+}
+
+/* Cells break only between words; a table wider than the column scrolls
+ * sideways instead. The block wraps an anonymous table box, which inherits
+ * the collapsed borders. */
+.aegis-document__table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   font-size: var(--type-body-size);
   line-height: var(--type-body-line);
 }
 
-.aegis-mdx__table th,
-.aegis-mdx__table td {
+.aegis-document__table th,
+.aegis-document__table td {
   padding: var(--space-2) var(--space-3);
   border: var(--size-hairline) solid var(--border-hairline);
   text-align: left;
 }
 
-.aegis-mdx__table th {
+.aegis-document__table th {
   background: var(--bg-muted);
   font-weight: var(--fw-semibold);
 }
 
-.aegis-mdx__rule {
+.aegis-document__rule {
   margin: 0;
   border: none;
   border-top: var(--size-hairline) solid var(--border-hairline);
 }
 
-.aegis-mdx__image {
+.aegis-document__image {
   max-width: 100%;
   border-radius: var(--radius-md);
 }

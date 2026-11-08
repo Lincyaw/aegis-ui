@@ -13,11 +13,11 @@ import {
   type DataTableColumn,
   EmptyState,
   ErrorState,
-  type FilterChip,
   MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
+  SearchInput,
   SkeletonText,
   StatusDot,
   TimeDisplay,
@@ -174,12 +174,27 @@ export function CaseListPage(): ReactElement {
       ? 'blob · '
       : '';
 
-  const filterChips: FilterChip[] = [
-    ...(onlySurfaced ? [{ key: 'surfaced', label: 'surfaced only' }] : []),
-    ...(datasetFilter
-      ? [{ key: 'dataset', label: `dataset: ${datasetFilter}` }]
-      : []),
-  ];
+  const filterChips: Array<{ key: string; label: string; remove: () => void }> =
+    [
+      ...(onlySurfaced
+        ? [
+            {
+              key: 'surfaced',
+              label: 'surfaced only',
+              remove: () => setOnlySurfaced(false),
+            },
+          ]
+        : []),
+      ...(datasetFilter
+        ? [
+            {
+              key: 'dataset',
+              label: `dataset: ${datasetFilter}`,
+              remove: () => setDatasetFilter(null),
+            },
+          ]
+        : []),
+    ];
 
   const columns: Array<DataTableColumn<CaseSummary>> = [
     {
@@ -279,11 +294,22 @@ export function CaseListPage(): ReactElement {
       }
     >
       <Toolbar
-        searchPlaceholder='case_id / sample_id / dataset_name'
-        searchValue={search}
-        onSearchChange={setSearch}
-        filters={filterChips}
-        action={
+        left={
+          <>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              onClear={() => setSearch('')}
+              placeholder='case_id / sample_id / dataset_name'
+            />
+            {filterChips.map((f) => (
+              <Chip key={f.key} onClose={f.remove}>
+                {f.label}
+              </Chip>
+            ))}
+          </>
+        }
+        right={
           <div className='llmh-cases__filters'>
             <Chip
               tone={onlySurfaced ? 'ink' : 'default'}

@@ -1,4 +1,4 @@
-import { formatBytes } from '../../lib/format';
+import { formatBytes, formatDurationEstimate } from '../../lib/format';
 import { Button } from './Button';
 import { EmptyState } from './EmptyState';
 import type { FileDropzoneItem } from './FileDropzone';
@@ -19,13 +19,6 @@ interface UploadQueueProps {
 
 function humanSpeed(bps: number): string {
   return `${formatBytes(bps)}/s`;
-}
-
-function humanEta(seconds: number): string {
-  if (seconds < 60) {
-    return `${Math.round(seconds).toString()}s`;
-  }
-  return `${Math.round(seconds / 60).toString()}m`;
 }
 
 const STATUS_LABEL: Record<FileDropzoneItem['status'], string> = {
@@ -83,7 +76,9 @@ export function UploadQueue({
           {maxEta > 0 ? (
             <>
               <MetricLabel>·</MetricLabel>
-              <MonoValue size="sm">ETA {humanEta(maxEta)}</MonoValue>
+              <MonoValue size="sm">
+                ETA {formatDurationEstimate(maxEta * 1000)}
+              </MonoValue>
             </>
           ) : null}
         </div>
@@ -112,7 +107,7 @@ export function UploadQueue({
                       ? ' · '
                       : null}
                     {it.etaSeconds !== undefined
-                      ? `ETA ${humanEta(it.etaSeconds)}`
+                      ? `ETA ${formatDurationEstimate(it.etaSeconds * 1000)}`
                       : null}
                   </MonoValue>
                 ) : null}

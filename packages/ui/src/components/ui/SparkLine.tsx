@@ -9,7 +9,10 @@ import './SparkLine.css';
 export type SparkLineSurface = PrimitiveSurface<number[]>;
 
 interface SparkLineProps {
-  /** Sample values; rendered evenly on the X axis. */
+  /**
+   * Sample values, spread evenly across the width. A series that does not
+   * vary, a single value included, draws a level line through the middle.
+   */
   points: number[];
   /** Display dimensions (defaults give a strip-style sparkline). */
   width?: number;
@@ -30,15 +33,18 @@ function buildPath(points: number[], w: number, h: number): string {
     return '';
   }
   const min = Math.min(...points);
-  const max = Math.max(...points);
-  const range = max - min || 1;
-  const step = points.length > 1 ? w / (points.length - 1) : 0;
-
+  const range = Math.max(...points) - min;
+  const yOf = (p: number): number =>
+    range === 0 ? h / 2 : h - ((p - min) / range) * h;
+  if (points.length === 1) {
+    const y = yOf(points[0]).toFixed(2);
+    return `M0,${y} L${w.toFixed(2)},${y}`;
+  }
+  const step = w / (points.length - 1);
   return points
     .map((p, i) => {
       const x = i * step;
-      const y = h - ((p - min) / range) * h;
-      return `${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`;
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${yOf(p).toFixed(2)}`;
     })
     .join(' ');
 }

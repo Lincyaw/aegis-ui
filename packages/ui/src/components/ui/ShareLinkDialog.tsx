@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -30,8 +31,6 @@ interface ShareLinkDialogBaseProps {
   objectKey: string;
   /** Context under the object key, e.g. what the link opens and that it is read-only. */
   description?: ReactNode;
-  /** Optional cancel/close handler — renders a secondary button. */
-  onClose?: () => void;
   className?: string;
 }
 
@@ -70,13 +69,16 @@ function remainingParts(ms: number): {
   };
 }
 
+/**
+ * The body of a share dialog. Place it in a `Dialog`, which draws the
+ * surface and the one control that closes it.
+ */
 export function ShareLinkDialog({
   objectKey,
   description,
   url: plainUrl,
   ttlPresets: ttlPresetsProp,
   onGenerate,
-  onClose,
   className,
 }: ShareLinkDialogProps) {
   const strings = useStrings();
@@ -99,7 +101,16 @@ export function ShareLinkDialog({
   const [error, setError] = useState<string | null>(null);
   const { copied, copy, reset: resetCopied } = useCopyToClipboard(2000);
   const [now, setNow] = useState<number>(Date.now());
+  // Counts requests and option changes: a link generated for options the
+  // reader has since changed is dropped, never shown under the new ones.
+  const requestRef = useRef(0);
   const url = plainUrl ?? result?.url;
+
+  const discardLink = (): void => {
+    requestRef.current += 1;
+    setResult(null);
+    setGenerating(false);
+  };
 
   useEffect(() => {
     if (!result) {
@@ -115,18 +126,26 @@ export function ShareLinkDialog({
 
   const handleGenerate = useCallback(
     async (generate: (opts: ShareLinkOptions) => Promise<ShareLinkResult>) => {
+      requestRef.current += 1;
+      const request = requestRef.current;
       setGenerating(true);
       setError(null);
       resetCopied();
       try {
         const r = await generate({ ttlSeconds: ttl, asAttachment });
-        setResult(r);
+        if (request === requestRef.current) {
+          setResult(r);
+        }
       } catch (e) {
-        setError(
-          e instanceof Error ? e.message : strings.shareLinkGenerateFailed,
-        );
+        if (request === requestRef.current) {
+          setError(
+            e instanceof Error ? e.message : strings.shareLinkGenerateFailed,
+          );
+        }
       } finally {
-        setGenerating(false);
+        if (request === requestRef.current) {
+          setGenerating(false);
+        }
       }
     },
     [asAttachment, ttl, resetCopied, strings],
@@ -164,11 +183,16 @@ export function ShareLinkDialog({
         <>
           <div className="aegis-share-link__row">
             <MetricLabel>{strings.shareLinkExpiresAfter}</MetricLabel>
-            <div className="aegis-share-link__ttl">
+            <div
+              className="aegis-share-link__ttl"
+              role="group"
+              aria-label={strings.shareLinkExpiresAfter}
+            >
               {ttlPresets.map((p) => (
                 <button
                   key={p.seconds}
                   type="button"
+                  aria-pressed={p.seconds === ttl}
                   className={
                     p.seconds === ttl
                       ? 'aegis-share-link__ttl-pill aegis-share-link__ttl-pill--active'
@@ -176,7 +200,7 @@ export function ShareLinkDialog({
                   }
                   onClick={() => {
                     setTtl(p.seconds);
-                    setResult(null);
+                    discardLink();
                   }}
                 >
                   {p.label}
@@ -193,7 +217,7 @@ export function ShareLinkDialog({
                 checked={asAttachment}
                 onChange={(e) => {
                   setAsAttachment(e.target.checked);
-                  setResult(null);
+                  discardLink();
                 }}
               />
               <span>{strings.shareLinkForceDownload}</span>
@@ -229,11 +253,6 @@ export function ShareLinkDialog({
       ) : null}
 
       <footer className="aegis-share-link__actions">
-        {onClose ? (
-          <Button onClick={onClose} tone="ghost">
-            {strings.close}
-          </Button>
-        ) : null}
         {url !== undefined || onGenerate === undefined ? (
           <Button
             onClick={() => {

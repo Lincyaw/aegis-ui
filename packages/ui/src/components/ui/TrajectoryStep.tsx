@@ -4,11 +4,11 @@ import {
   type PrimitiveSurface,
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
+import { formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { Markdown } from './Markdown';
 import { MetricLabel } from './MetricLabel';
-import { MonoValue } from './MonoValue';
 import { StatusDot } from './StatusDot';
 import { ToolCallCard, type ToolCallData } from './ToolCallCard';
 import './TrajectoryStep.css';
@@ -112,9 +112,7 @@ export function TrajectoryStep({
       >
         <div className="aegis-step__head-left">
           <span className="aegis-step__number">
-            <MonoValue size="sm" weight="medium">
-              {String(data.step).padStart(2, '0')}
-            </MonoValue>
+            {String(data.step).padStart(2, '0')}
           </span>
           {data.actionType ? (
             <Chip tone={actionTone}>
@@ -129,18 +127,13 @@ export function TrajectoryStep({
         </div>
         <div className="aegis-step__head-right">
           {data.durationMs !== undefined && (
-            <MetricLabel size="xs">
-              <MonoValue size="sm" weight="regular">
-                {data.durationMs}
-              </MonoValue>{' '}
-              ms
+            <MetricLabel size="xs" className="aegis-step__meta-number">
+              {formatDuration(data.durationMs)}
             </MetricLabel>
           )}
           {data.timestamp && (
-            <MetricLabel size="xs">
-              <MonoValue size="sm" weight="regular">
-                {data.timestamp}
-              </MonoValue>
+            <MetricLabel size="xs" className="aegis-step__meta-number">
+              {data.timestamp}
             </MetricLabel>
           )}
           {hasBody && (

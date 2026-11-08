@@ -1,11 +1,9 @@
+/* The body of the host's dialog, which draws the surface and the one close
+ * control. */
 .aegis-share-link {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4);
-  border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-md);
-  background: var(--bg-panel);
   min-width: 0;
 }
 

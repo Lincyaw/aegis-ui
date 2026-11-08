@@ -19,13 +19,13 @@
   content: attr(data-char);
 }
 
-/* The digit's own face, transparent, sizes the column. clip-path, not
- * overflow, crops it: an inline-block that hides its overflow sits on its
- * bottom edge instead of the text baseline. */
+/* The digit's own face, transparent, sizes the column. overflow: clip crops
+ * the rest of the column out of the paint and out of every scroll container
+ * around it; unlike hidden it leaves the inline-block on the text baseline. */
 .aegis-rolling-value__digit {
   position: relative;
   display: inline-block;
-  clip-path: inset(0);
+  overflow: clip;
 }
 
 .aegis-rolling-value__digit::before {

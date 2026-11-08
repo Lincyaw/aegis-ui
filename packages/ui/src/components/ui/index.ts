@@ -172,7 +172,7 @@ export type { EventTableColumn, EventTableProps } from './EventTable';
 export { DataList } from './DataList';
 export type { DataListColumn, DataListItem, DataListSurface } from './DataList';
 export { Toolbar } from './Toolbar';
-export type { FilterChip, ToolbarProps } from './Toolbar';
+export type { ToolbarProps } from './Toolbar';
 export { SearchInput } from './SearchInput';
 export type { SearchInputProps } from './SearchInput';
 export { QueryAutocomplete } from './QueryAutocomplete';

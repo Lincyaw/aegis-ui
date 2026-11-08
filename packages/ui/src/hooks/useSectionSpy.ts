@@ -98,10 +98,12 @@ export function useSectionSpy({
   }, []);
 
   useEffect(() => {
-    const sections = sectionIds.split(' ').flatMap((id) => {
-      const section = document.getElementById(id);
-      return section ? [section] : [];
-    });
+    const sections = (sectionIds === '' ? [] : sectionIds.split(' ')).flatMap(
+      (id) => {
+        const section = document.getElementById(id);
+        return section ? [section] : [];
+      },
+    );
     if (sections.length === 0) {
       return undefined;
     }

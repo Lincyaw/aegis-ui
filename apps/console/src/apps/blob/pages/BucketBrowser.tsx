@@ -434,9 +434,6 @@ export default function BucketBrowser() {
           <ShareLinkDialog
             objectKey={share.key}
             onGenerate={(opts) => actions.share(share, opts)}
-            onClose={() => {
-              setShare(null);
-            }}
           />
         ) : null}
       </Dialog>

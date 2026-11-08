@@ -6,6 +6,7 @@ import {
   Chip,
   CodeEditor,
   type CodeEditorField,
+  Dialog,
   DiffViewer,
   FileDropzone,
   FilePreview,
@@ -16,6 +17,7 @@ import {
   MonoValue,
   ObjectBrowser,
   ObjectInspector,
+  type ObjectInspectorTab,
   Panel,
   PanelTitle,
   ParquetViewer,
@@ -93,7 +95,10 @@ function QueryAutocompleteSpecimen(): ReactNode {
   );
   return (
     <div className='gallery__row gallery__row--wide'>
-      <Specimen caption='empty · field-name suggestions on focus' span={2}>
+      <Specimen
+        caption='empty · type a field name for suggestions · Escape closes; typing, focus or ↓ reopens · a field pick goes on to its values'
+        span={2}
+      >
         <QueryAutocomplete
           value={empty}
           onChange={setEmpty}
@@ -298,6 +303,41 @@ function CopyToClipboardSpecimen(): ReactNode {
   );
 }
 
+function ShareLinkInDialogSpecimen(): ReactNode {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <AegisButton
+        tone='secondary'
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        Share link
+      </AegisButton>
+      <Dialog
+        open={open}
+        title='Share link'
+        onClose={() => {
+          setOpen(false);
+        }}
+      >
+        <ShareLinkDialog
+          objectKey='datasets/2026-04/trace-snapshot.json'
+          onGenerate={(opts) =>
+            Promise.resolve({
+              url: 'https://example.com/blob/raw/eyJhbGciOiJIUzI1NiIs...',
+              expiresAt: new Date(
+                Date.now() + opts.ttlSeconds * 1000
+              ).toISOString(),
+            })
+          }
+        />
+      </Dialog>
+    </>
+  );
+}
+
 function SearchInputSpecimen(): ReactNode {
   const [query, setQuery] = useState('trace-snapshot.json');
   return (
@@ -312,20 +352,108 @@ function SearchInputSpecimen(): ReactNode {
   );
 }
 
+interface InspectorObject {
+  key: string;
+  size: string;
+  contentType: string;
+  parquet: boolean;
+}
+
+const INSPECTOR_OBJECTS: InspectorObject[] = [
+  {
+    key: 'datasets/2026-05/trace-snapshot.json',
+    size: '4.2 MB',
+    contentType: 'application/json',
+    parquet: false,
+  },
+  {
+    key: 'datasets/2026-05/spans.parquet',
+    size: '18.6 MB',
+    contentType: 'application/vnd.apache.parquet',
+    parquet: true,
+  },
+];
+
+const INSPECTOR_PLACEHOLDER_STYLE = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: 'var(--fs-13)',
+  color: 'var(--text-muted)',
+};
+
+function inspectorTabs(object: InspectorObject | null): ObjectInspectorTab[] {
+  if (!object) {
+    return [];
+  }
+  return [
+    {
+      id: 'summary',
+      label: 'Summary',
+      content: (
+        <MetadataList
+          entries={[
+            { label: 'Key', value: object.key, mono: true, copyable: true },
+            { label: 'Size', value: object.size, mono: true },
+            { label: 'Content-Type', value: object.contentType, mono: true },
+            { label: 'Last modified', value: '2026-05-14 08:21 UTC' },
+          ]}
+        />
+      ),
+    },
+    {
+      id: 'preview',
+      label: 'Preview',
+      content: (
+        <div style={INSPECTOR_PLACEHOLDER_STYLE}>
+          Preview placeholder — host renders FilePreview here.
+        </div>
+      ),
+    },
+    ...(object.parquet
+      ? [
+          {
+            id: 'parquet',
+            label: 'Parquet',
+            content: (
+              <div style={INSPECTOR_PLACEHOLDER_STYLE}>
+                Parquet viewer placeholder — host renders ParquetViewer here.
+              </div>
+            ),
+          },
+        ]
+      : []),
+    {
+      id: 'audit-log',
+      label: 'Audit log',
+      disabled: true,
+      hint: 'Audit logging is off for this bucket',
+      content: null,
+    },
+  ];
+}
+
+/** Mounted the way the blob browser mounts it: no tabs until an object opens. */
 function ObjectInspectorSpecimen(): ReactNode {
-  const [open, setOpen] = useState(false);
+  const [object, setObject] = useState<InspectorObject | null>(null);
   return (
     <div className='gallery__row'>
-      <Specimen caption='toggle to open inspector'>
-        <AegisButton onClick={() => setOpen(true)}>
-          Open ObjectInspector
-        </AegisButton>
+      <Specimen caption='each object opens on its defaultTabId · a picked tab holds until defaultTabId changes · disabled tab with hint'>
+        <div
+          style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}
+        >
+          {INSPECTOR_OBJECTS.map((o) => (
+            <AegisButton key={o.key} onClick={() => setObject(o)}>
+              Open {o.key.split('/').pop()}
+            </AegisButton>
+          ))}
+        </div>
         <ObjectInspector
-          open={open}
-          onClose={() => setOpen(false)}
-          title='trace-snapshot.json'
-          subtitle='datasets/2026-05/trace-snapshot.json'
-          defaultTabId='summary'
+          open={object !== null}
+          onClose={() => setObject(null)}
+          title={object ? (object.key.split('/').pop() ?? '') : ''}
+          subtitle={object?.key}
+          defaultTabId={
+            object ? (object.parquet ? 'parquet' : 'preview') : undefined
+          }
           actions={
             <>
               <Chip tone='ghost'>Download</Chip>
@@ -334,74 +462,7 @@ function ObjectInspectorSpecimen(): ReactNode {
               <Chip tone='warning'>Delete</Chip>
             </>
           }
-          tabs={[
-            {
-              id: 'summary',
-              label: 'Summary',
-              content: (
-                <MetadataList
-                  entries={[
-                    {
-                      label: 'Key',
-                      value: 'datasets/2026-05/trace-snapshot.json',
-                      mono: true,
-                      copyable: true,
-                    },
-                    { label: 'Size', value: '4.2 MB', mono: true },
-                    {
-                      label: 'Content-Type',
-                      value: 'application/json',
-                      mono: true,
-                    },
-                    { label: 'Last modified', value: '2026-05-14 08:21 UTC' },
-                    {
-                      label: 'ETag',
-                      value: '"a3f29c8d0e11b7ce2a4f1d6e90b5a823"',
-                      mono: true,
-                      copyable: true,
-                    },
-                  ]}
-                />
-              ),
-            },
-            {
-              id: 'preview',
-              label: 'Preview',
-              content: (
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'var(--fs-13)',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  Preview placeholder — host renders FilePreview here.
-                </div>
-              ),
-            },
-            {
-              id: 'parquet',
-              label: 'Parquet',
-              content: (
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'var(--fs-13)',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  Parquet viewer placeholder — host renders ParquetViewer here.
-                </div>
-              ),
-            },
-            {
-              id: 'audit-log',
-              label: 'Audit log',
-              disabled: true,
-              hint: 'Coming soon',
-              content: null,
-            },
-          ]}
+          tabs={inspectorTabs(object)}
           width={680}
         />
       </Specimen>
@@ -575,6 +636,64 @@ const traceTreeUntimedSpans: TraceSpan[] = [
   { id: 'r2-in', parentId: 'r2', name: 'function_call_output: 482 ms' },
 ];
 
+/** Children before their parents, as OTel exports rows, and a parent cycle. */
+const traceTreeUnorderedSpans: TraceSpan[] = [
+  {
+    id: 'q-row',
+    parentId: 'q',
+    name: 'pg.fetch row',
+    startMs: 41,
+    durationMs: 12,
+    status: 'ok',
+    kind: 'db',
+  },
+  {
+    id: 'q',
+    parentId: 'h',
+    name: 'pg.exec SELECT * FROM spans',
+    startMs: 30,
+    durationMs: 40,
+    status: 'ok',
+    kind: 'db',
+  },
+  {
+    id: 'h',
+    name: 'GET /api/v2/traces',
+    startMs: 0,
+    durationMs: 120,
+    status: 'ok',
+    kind: 'http',
+  },
+  {
+    id: 'loop-a',
+    parentId: 'loop-b',
+    name: 'retry.attempt · parent is retry.backoff',
+    startMs: 80,
+    durationMs: 22,
+    status: 'error',
+    kind: 'retry',
+  },
+  {
+    id: 'loop-b',
+    parentId: 'loop-a',
+    name: 'retry.backoff · parent is retry.attempt',
+    startMs: 90,
+    durationMs: 0.4,
+    kind: 'retry',
+  },
+];
+
+function TraceTreeUnorderedSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string | undefined>();
+  return (
+    <TraceTree
+      spans={traceTreeUnorderedSpans}
+      selectedId={selected}
+      onSelect={(span) => setSelected(span.id)}
+    />
+  );
+}
+
 function TraceTreeMixedTimingSpecimen(): ReactNode {
   const [selected, setSelected] = useState<TraceSpan | null>(null);
   return (
@@ -613,11 +732,22 @@ function TraceSpanInspectorSpecimen(): ReactNode {
       'rpc.service': 'aegislab.OrchestratorService',
     },
   };
+  const looped: Record<string, unknown> = { 'retry.count': 3 };
+  looped.self = looped;
+  const unserialisable: TraceSpan = {
+    ...sample,
+    id: 'unserialisable',
+    name: 'POST /api/v2/retry',
+    attrs: { ...sample.attrs, 'retry.state': looped },
+  };
   const [open, setOpen] = useState<TraceSpan | null>(null);
   return (
-    <div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
       <AegisButton tone='secondary' onClick={() => setOpen(sample)}>
         Open span inspector
+      </AegisButton>
+      <AegisButton tone='secondary' onClick={() => setOpen(unserialisable)}>
+        Open a span with a circular attribute
       </AegisButton>
       <TraceSpanInspector span={open} onClose={() => setOpen(null)} />
     </div>
@@ -1295,15 +1425,18 @@ export function ServicePrimitivesSection() {
             right={<Chip tone='ghost'>Filter</Chip>}
           />
         </Specimen>
-        <Specimen caption='legacy search + filter chips' span={3}>
+        <Specimen caption='left only · SearchInput + filter Chip' span={3}>
           <Toolbar
-            searchPlaceholder='Search…'
-            searchValue=''
-            onSearchChange={() => undefined}
-            filters={[{ key: 'type', label: 'type: image' }]}
-            onFilterRemove={() => undefined}
-            onClearFilters={() => undefined}
-            action={<Chip tone='ghost'>Export</Chip>}
+            left={
+              <>
+                <SearchInput
+                  value=''
+                  onChange={() => undefined}
+                  placeholder='Search…'
+                />
+                <Chip onClose={() => undefined}>type: image</Chip>
+              </>
+            }
           />
         </Specimen>
       </div>
@@ -1573,12 +1706,31 @@ export function ServicePrimitivesSection() {
             }
           />
         </Specimen>
+        <Specimen
+          caption='slow generate (2 s) · change the TTL or download while it runs and the stale link is dropped; the URL names the options it was made for'
+          span={2}
+        >
+          <ShareLinkDialog
+            objectKey='datasets/2026-04/trace-snapshot.json'
+            onGenerate={(opts) =>
+              new Promise((resolve) => {
+                window.setTimeout(() => {
+                  resolve({
+                    url: `https://example.com/blob/raw/trace-snapshot.json?ttl=${String(opts.ttlSeconds)}&download=${String(opts.asAttachment)}`,
+                    expiresAt: new Date(
+                      Date.now() + opts.ttlSeconds * 1000
+                    ).toISOString(),
+                  });
+                }, 2000);
+              })
+            }
+          />
+        </Specimen>
         <Specimen caption='url · a page link that does not expire' span={2}>
           <ShareLinkDialog
             objectKey='sre-incidents'
             description='23 tasks · 6 models · read-only'
             url='https://cgfs.example.com/dashboard/collections/sre-incidents'
-            onClose={() => undefined}
           />
         </Specimen>
         <Specimen caption='url · zh-CN strings' span={2}>
@@ -1587,9 +1739,14 @@ export function ServicePrimitivesSection() {
               objectKey='sre-incidents'
               description='23 道题目 · 6 个模型 · 只读'
               url='https://cgfs.example.com/dashboard/collections/sre-incidents'
-              onClose={() => undefined}
             />
           </LocaleProvider>
+        </Specimen>
+        <Specimen
+          caption='in a Dialog · the dialog draws the surface and the one close control'
+          span={2}
+        >
+          <ShareLinkInDialogSpecimen />
         </Specimen>
       </div>
 
@@ -1895,13 +2052,22 @@ export function ServicePrimitivesSection() {
         <Specimen caption='no span timed · labels only' span={3}>
           <TraceTree spans={traceTreeUntimedSpans} />
         </Specimen>
+        <Specimen
+          caption='children listed before parents nest at their depth · a parent cycle is cut, not dropped · one tab stop: ↑ ↓ move, → expands then enters, ← collapses then leaves, Enter selects'
+          span={3}
+        >
+          <TraceTreeUnorderedSpecimen />
+        </Specimen>
       </div>
 
       <SectionDivider extra={<MetricLabel>OTel agent traces</MetricLabel>}>
         TraceSpanInspector
       </SectionDivider>
       <div className='gallery__stack'>
-        <Specimen caption='Overview · Attributes · Raw tabs' span={3}>
+        <Specimen
+          caption='Overview · Attributes · Raw tabs · an attribute that is not JSON shows why, and Raw says so'
+          span={3}
+        >
           <TraceSpanInspectorSpecimen />
         </Specimen>
       </div>
@@ -1910,13 +2076,19 @@ export function ServicePrimitivesSection() {
         TimelineChart
       </SectionDivider>
       <div className='gallery__stack'>
-        <Specimen caption='8-span trace · depth tree' span={3}>
+        <Specimen
+          caption='8-span trace · depth tree · no onSelect, so rows are not buttons · the axis keeps one unit and drops ticks on a narrow track · hover the track for the time under the pointer'
+          span={3}
+        >
           <TimelineChartDepthSpecimen />
         </Specimen>
         <Specimen caption='500 spans · virtualized · 3 kinds' span={3}>
           <TimelineChartLargeSpecimen />
         </Specimen>
-        <Specimen caption='selectable · click logs to console' span={3}>
+        <Specimen
+          caption='onSelect · each row is a button · the selected row is aria-current'
+          span={3}
+        >
           <TimelineChartSelectableSpecimen />
         </Specimen>
       </div>

@@ -19,8 +19,12 @@ export type PanelVariant = 'solid' | 'tint' | 'brand' | 'glass';
 export type PanelElevation = 'rest' | 'raised';
 
 interface PanelBaseProps {
-  /** Muted line under the title, e.g. a chart's metric and direction. */
+  /**
+   * Muted line under the title, e.g. a chart's metric and direction. Shows
+   * the header on its own, as `title` does.
+   */
   description?: ReactNode;
+  /** Controls at the header's end. Show the header on their own, as `title` does. */
   extra?: ReactNode;
   variant?: PanelVariant;
   elevation?: PanelElevation;
@@ -33,6 +37,11 @@ interface PanelBaseProps {
 }
 
 interface PanelStaticProps extends PanelBaseProps {
+  /**
+   * The panel's heading. The header shows when `title`, `description` or
+   * `extra` has content, i.e. anything React renders: `0` counts, while
+   * `undefined`, `null`, `true`, `false` and `''` do not.
+   */
   title?: ReactNode;
   to?: undefined;
   linkComponent?: undefined;
@@ -51,6 +60,15 @@ interface PanelLinkProps extends PanelBaseProps {
 }
 
 type PanelProps = PanelStaticProps | PanelLinkProps;
+
+function hasContent(node: ReactNode): boolean {
+  return (
+    node !== undefined &&
+    node !== null &&
+    typeof node !== 'boolean' &&
+    node !== ''
+  );
+}
 
 export function Panel({
   title,
@@ -79,13 +97,14 @@ export function Panel({
     .filter(Boolean)
     .join(' ');
 
-  const showHeader = Boolean(title ?? extra ?? description);
-  const titleText =
-    typeof title === 'string' ? (
-      <span className="aegis-panel__title">{title}</span>
-    ) : (
-      title
-    );
+  const hasDescription = hasContent(description);
+  const hasExtra = hasContent(extra);
+  const showHeader = hasContent(title) || hasDescription || hasExtra;
+  const titleText = !hasContent(title) ? null : typeof title === 'string' ? (
+    <span className="aegis-panel__title">{title}</span>
+  ) : (
+    title
+  );
   const titleNode =
     to === undefined ? (
       titleText
@@ -99,7 +118,7 @@ export function Panel({
     <section ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
       {showHeader && (
         <header className="aegis-panel__header">
-          {description === undefined ? (
+          {!hasDescription ? (
             titleNode
           ) : (
             <div className="aegis-panel__heading">
@@ -107,7 +126,7 @@ export function Panel({
               <span className="aegis-panel__description">{description}</span>
             </div>
           )}
-          {extra && <div className="aegis-panel__extra">{extra}</div>}
+          {hasExtra && <div className="aegis-panel__extra">{extra}</div>}
         </header>
       )}
       <div
