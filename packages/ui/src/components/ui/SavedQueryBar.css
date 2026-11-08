@@ -33,12 +33,31 @@
   border: var(--size-hairline) solid var(--border-hairline);
   border-radius: var(--radius-sm);
   background: var(--bg-panel);
-  overflow: hidden;
-  transition: border-color var(--motion-fast);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast),
+    transform var(--motion-fast);
 }
 
 .aegis-sqb__item:hover {
   border-color: var(--border-emphasis);
+}
+
+/* A saved query is a button: it rises on hover and settles when pressed. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .aegis-sqb__item:has(> .aegis-sqb__chip:hover) {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+  }
+
+  .aegis-sqb__item:has(> .aegis-sqb__chip:active) {
+    transform: none;
+  }
+}
+
+/* Renaming: the item is the field. */
+.aegis-sqb__item:has(> .aegis-sqb__rename-input:focus-visible) {
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
 }
 
 .aegis-sqb__chip {
@@ -52,36 +71,33 @@
   font-size: var(--fs-11);
   font-weight: var(--fw-medium);
   color: var(--text-main);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   max-width: 16ch;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition:
-    background var(--motion-fast),
-    transform var(--motion-fast);
+  transition: background var(--motion-fast);
+}
+
+/* The chip and its menu trigger share the item's frame, so their rings sit
+ * inside them. */
+.aegis-sqb__chip:focus-visible,
+.aegis-sqb__menu-trigger:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.aegis-sqb__chip:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .aegis-sqb__chip:hover {
   background: var(--bg-muted);
 }
 
-/* A saved query is a button: it rises on hover and settles when pressed. */
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .aegis-sqb__chip:hover {
-    transform: translateY(calc(-1 * var(--motion-lift)));
-  }
-
-  .aegis-sqb__chip:active {
-    transform: none;
-  }
-}
-
 .aegis-sqb__chip--ghost {
   color: var(--text-muted);
-  font-size: var(--fs-10);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 .aegis-sqb__chip-star {
@@ -105,6 +121,7 @@
   padding: 0 var(--space-1);
   border: 0;
   border-left: var(--size-hairline) solid var(--border-hairline);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
@@ -166,7 +183,7 @@
 }
 
 .aegis-sqb__menu-item--danger {
-  color: var(--accent-warning);
+  color: var(--ink-warn);
 }
 
 .aegis-sqb__overflow-list {
@@ -222,7 +239,7 @@
 }
 
 .aegis-sqb__overflow-icon--danger:hover {
-  color: var(--accent-warning);
+  color: var(--ink-warn);
 }
 
 .aegis-sqb__save-trigger {
@@ -264,10 +281,11 @@
 
 .aegis-sqb__save-label {
   font-family: var(--font-ui);
-  font-size: var(--fs-10);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 .aegis-sqb__save-input {
@@ -278,12 +296,16 @@
   color: var(--text-main);
   font-family: var(--font-ui);
   font-size: var(--fs-13);
-  outline: none;
-  transition: border-color var(--motion-fast);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
 }
 
-.aegis-sqb__save-input:focus {
-  border-color: var(--text-main);
+/* The transparent outline keeps a ring in forced-colors mode. */
+.aegis-sqb__save-input:focus-visible {
+  outline: var(--focus-ring-width) solid transparent;
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
 }
 
 .aegis-sqb__save-actions {

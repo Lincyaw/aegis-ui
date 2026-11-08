@@ -6,6 +6,7 @@ import {
   Chip,
   EmptyState,
   formatDuration,
+  FormRow,
   type KeyValueItem,
   KeyValueList,
   MetricCard,
@@ -48,7 +49,10 @@ const KV_META: KeyValueItem[] = [
   { k: 'Operator', v: 'Rosetta' },
 ];
 
-interface TimeRangePickerSpecimenProps {
+interface TimeRangePickerSpecimenProps extends Pick<
+  TimeRangePickerProps,
+  'id' | 'aria-labelledby' | 'aria-describedby'
+> {
   initial: string;
   presets?: TimeRangePickerProps['presets'];
   logToConsole?: boolean;
@@ -58,10 +62,12 @@ function TimeRangePickerSpecimen({
   initial,
   presets,
   logToConsole = false,
+  ...naming
 }: TimeRangePickerSpecimenProps) {
   const [value, setValue] = useState(initial);
   return (
     <TimeRangePicker
+      {...naming}
       value={value}
       presets={presets}
       onChange={(next) => {
@@ -424,6 +430,24 @@ export function DataDisplaySection() {
         </Specimen>
         <Specimen caption='absolute range · dates in the locale’s format'>
           <TimeRangePickerSpecimen initial='2026-05-10T01:00:00.000Z to 2026-05-10T03:30:00.000Z' />
+        </Specimen>
+        <Specimen
+          caption="in a FormRow · labelBy='aria-labelledby' · the trigger is named by the row's label and its range, and described by the row's description"
+          span={3}
+        >
+          <FormRow
+            label='Window'
+            description='Events outside the window are hidden.'
+            controlId='gallery-trp-window'
+            labelBy='aria-labelledby'
+          >
+            <TimeRangePickerSpecimen
+              initial='now-24h'
+              id='gallery-trp-window'
+              aria-labelledby='gallery-trp-window-label'
+              aria-describedby='gallery-trp-window-description'
+            />
+          </FormRow>
         </Specimen>
       </div>
     </Panel>

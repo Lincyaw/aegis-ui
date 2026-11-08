@@ -172,86 +172,91 @@ function SavedQueryBarSpecimen(): ReactNode {
   return (
     <div className='gallery__row gallery__row--wide'>
       <Specimen caption='useSavedQueries · kept in localStorage' span={2}>
-        <SearchInput
-          value={storedValue}
-          onChange={setStoredValue}
-          placeholder='Try a query, then save it…'
-        />
-        <SavedQueryBar
-          queries={stored.queries}
-          currentValue={storedValue}
-          onApply={(q) => {
-            stored.touch(q.id);
-            setStoredValue(q.value);
-            setLastApplied(q);
-          }}
-          onSave={stored.save}
-          onRename={stored.rename}
-          onRemove={stored.remove}
-          onTogglePinned={stored.togglePinned}
-        />
+        <div className='gallery__stack gallery__stack--fill'>
+          <SearchInput
+            block
+            value={storedValue}
+            onChange={setStoredValue}
+            placeholder='Try a query, then save it…'
+          />
+          <SavedQueryBar
+            queries={stored.queries}
+            currentValue={storedValue}
+            onApply={(q) => {
+              stored.touch(q.id);
+              setStoredValue(q.value);
+              setLastApplied(q);
+            }}
+            onSave={stored.save}
+            onRename={stored.rename}
+            onRemove={stored.remove}
+            onTogglePinned={stored.togglePinned}
+          />
+        </div>
       </Specimen>
       <Specimen
         caption='host-held · 2 pinned + 1 unpinned · maxInlineUnpinned={0} keeps it in the "+1 more" list'
         span={2}
       >
-        <SearchInput value={hostValue} onChange={setHostValue} />
-        <SavedQueryBar
-          queries={hostQueries}
-          currentValue={hostValue}
-          onApply={(q) => {
-            setHostValue(q.value);
-            setLastApplied(q);
-          }}
-          onSave={(name, value) => {
-            setHostQueries((prev) => [
-              ...prev,
-              {
-                id: crypto.randomUUID(),
-                name,
-                value,
-                pinned: false,
-                lastUsedAt: 0,
-              },
-            ]);
-          }}
-          onRename={(id, name) => {
-            updateHostQuery(id, (q) => ({ ...q, name }));
-          }}
-          onRemove={(id) => {
-            setHostQueries((prev) => prev.filter((q) => q.id !== id));
-          }}
-          onTogglePinned={(id) => {
-            updateHostQuery(id, (q) => ({ ...q, pinned: !q.pinned }));
-          }}
-          maxInlineUnpinned={0}
-        />
-        <pre
-          style={{
-            marginTop: 'var(--space-2)',
-            padding: 'var(--space-2) var(--space-3)',
-            background: 'var(--bg-muted)',
-            border: 'var(--size-hairline) solid var(--border-hairline)',
-            borderRadius: 'var(--radius-sm)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 'var(--fs-11)',
-            color: 'var(--text-main)',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-          }}
-        >
-          {lastApplied
-            ? `last applied = ${JSON.stringify(
+        <div className='gallery__stack gallery__stack--fill'>
+          <SearchInput block value={hostValue} onChange={setHostValue} />
+          <SavedQueryBar
+            queries={hostQueries}
+            currentValue={hostValue}
+            onApply={(q) => {
+              setHostValue(q.value);
+              setLastApplied(q);
+            }}
+            onSave={(name, value) => {
+              setHostQueries((prev) => [
+                ...prev,
                 {
-                  name: lastApplied.name,
-                  value: lastApplied.value,
-                  pinned: lastApplied.pinned,
+                  id: crypto.randomUUID(),
+                  name,
+                  value,
+                  pinned: false,
+                  lastUsedAt: 0,
                 },
-                null,
-                2
-              )}`
-            : '(click a chip to apply)'}
-        </pre>
+              ]);
+            }}
+            onRename={(id, name) => {
+              updateHostQuery(id, (q) => ({ ...q, name }));
+            }}
+            onRemove={(id) => {
+              setHostQueries((prev) => prev.filter((q) => q.id !== id));
+            }}
+            onTogglePinned={(id) => {
+              updateHostQuery(id, (q) => ({ ...q, pinned: !q.pinned }));
+            }}
+            maxInlineUnpinned={0}
+          />
+          <pre
+            style={{
+              margin: 0,
+              padding: 'var(--space-2) var(--space-3)',
+              background: 'var(--bg-muted)',
+              border: 'var(--size-hairline) solid var(--border-hairline)',
+              borderRadius: 'var(--radius-sm)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 'var(--fs-11)',
+              color: 'var(--text-main)',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
+          >
+            {lastApplied
+              ? `last applied = ${JSON.stringify(
+                  {
+                    name: lastApplied.name,
+                    value: lastApplied.value,
+                    pinned: lastApplied.pinned,
+                  },
+                  null,
+                  2
+                )}`
+              : '(click a chip to apply)'}
+          </pre>
+        </div>
       </Specimen>
     </div>
   );

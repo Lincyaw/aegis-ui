@@ -27,6 +27,17 @@ export interface TimeRangePickerProps {
   placeholder?: string;
   /** Disabled state. */
   disabled?: boolean;
+  /** The trigger's id, so a caller's `<label htmlFor>` can point at it. */
+  id?: string;
+  /**
+   * Id of visible text that names the picker with its range, such as a
+   * FormRow's label: give the row `labelBy='aria-labelledby'` and pass
+   * `${controlId}-label`. A `<label for>` would replace the range in the
+   * name.
+   */
+  'aria-labelledby'?: string;
+  /** Ids of the text that describes the picker, such as a FormRow's description. */
+  'aria-describedby'?: string;
   /** Optional className passed to the trigger button. */
   className?: string;
 }
@@ -60,12 +71,16 @@ export function TimeRangePicker({
   now,
   placeholder,
   disabled = false,
+  id,
+  'aria-labelledby': labelledBy,
+  'aria-describedby': describedBy,
   className,
 }: TimeRangePickerProps) {
   const strings = useStrings();
   const nowFn = now ?? ((): Date => new Date());
   const popover = useDialogPopover<HTMLDivElement>();
   const panelId = useId();
+  const triggerLabelId = useId();
   const [input, setInput] = useState(value);
 
   const parsedValue = parseTimeRangeInput(value, nowFn());
@@ -234,13 +249,22 @@ export function TimeRangePicker({
       <button
         ref={popover.triggerRef}
         type="button"
+        id={id}
         className={triggerCls}
         disabled={disabled}
         aria-haspopup="dialog"
         aria-expanded={popover.open}
         aria-controls={popover.open ? panelId : undefined}
+        aria-labelledby={
+          labelledBy === undefined
+            ? undefined
+            : `${labelledBy} ${triggerLabelId}`
+        }
+        aria-describedby={describedBy}
       >
-        <span className="aegis-trp__trigger-label">{triggerLabel}</span>
+        <span id={triggerLabelId} className="aegis-trp__trigger-label">
+          {triggerLabel}
+        </span>
         <span className="aegis-trp__trigger-caret" aria-hidden="true">
           ▾
         </span>
