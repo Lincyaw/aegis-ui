@@ -7,6 +7,11 @@
   font-family: var(--font-ui);
 }
 
+/* The bar holds focus when a delete leaves no control to move to. */
+.aegis-sqb:focus-visible {
+  border-radius: var(--radius-md);
+}
+
 .aegis-sqb__hint {
   font-size: var(--fs-11);
   color: var(--text-muted);

@@ -47,9 +47,11 @@ Fixes:
   `aria-controls`. `NotificationBell` and `TimeRangePicker` slide along
   their trigger to stay on a phone screen.
 - `SavedQueryBar` places focus itself when an action moves or removes a
-  chip: after Pin or Unpin on that query's chip, after Delete on the next
-  query or on "Save current" after the last, and after a rename ends with
-  Enter or Escape back on the chip. Before, focus fell to the page. Its
+  chip. After Pin or Unpin it goes to that query's chip, or to "+N more"
+  when an unpin moves the query into that list. After Delete it goes to the
+  next query, or to "Save current" after the last, or to the bar itself
+  when "Save current" is disabled. After a rename ends with Enter or Escape
+  it goes back to the chip. Before, focus fell to the page. Its
   "+N more" list is now a dialog of queries, each with its Pin and Delete
   buttons, instead of a menu whose rows held buttons that were not menu
   items; it stays open through a delete.

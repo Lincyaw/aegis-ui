@@ -112,10 +112,12 @@ export function SavedQueryBar({
             findQueryControl(root, focusTarget.id, '.aegis-sqb__chip'),
             root.querySelector<HTMLElement>('.aegis-sqb__chip--ghost'),
             root.querySelector<HTMLButtonElement>('.aegis-sqb__save-trigger'),
+            root,
           ]
         : [
             root.querySelector<HTMLButtonElement>('.aegis-sqb__save-trigger'),
             chips.length > 0 ? chips[chips.length - 1] : null,
+            root,
           ];
     candidates
       .find(
@@ -131,8 +133,9 @@ export function SavedQueryBar({
     onTogglePinned(id);
   };
 
-  // Focus moves to the next query, or to "Save current" after the last. In
-  // the overflow list, which stays open, it moves back from the last row.
+  // Focus moves to the next query, or to "Save current" after the last, or
+  // to the bar itself while that is disabled. In the overflow list, which
+  // stays open, it moves back from the last row.
   const remove = (id: string): void => {
     const order = [...inline, ...overflow];
     const index = order.findIndex((q) => q.id === id);
@@ -162,6 +165,7 @@ export function SavedQueryBar({
       className={cls}
       role="toolbar"
       aria-label="Saved queries"
+      tabIndex={-1}
     >
       {queries.length === 0 ? (
         <span className="aegis-sqb__hint">
