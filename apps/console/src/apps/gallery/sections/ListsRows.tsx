@@ -180,7 +180,7 @@ export function ListsRowsSection() {
         <ControlListItem
           left={
             <>
-              <StatusDot tone='warning' pulse />
+              <StatusDot tone='caution' pulse />
               <span>worker-gamma</span>
             </>
           }

@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+
 import { MonoValue, SectionDivider } from '@lincyaw/aegis-ui';
 
 import { AMBIENT_WASH, DATA_COLOR_TOKENS } from '../fixtures';
@@ -10,14 +12,17 @@ const COLOR_TOKEN_GROUPS: Array<{
   {
     label: 'Surface',
     tokens: [
-      { name: '--bg-page', desc: 'Page — very light cool grey' },
+      { name: '--bg-page', desc: 'Page background, under every surface' },
       { name: '--bg-panel', desc: 'Cards, tables, dialogs' },
       { name: '--bg-muted', desc: 'Table header, segmented track, code' },
       { name: '--bg-tint', desc: 'Cool showcase blocks' },
       { name: '--bg-brand-soft', desc: 'Featured cards, category tags' },
       { name: '--bg-glass', desc: 'Top navigation, floating toolbars' },
       { name: '--bg-glass-strong', desc: 'Dialogs and cards on glass' },
-      { name: '--bg-inverted', desc: 'Active / primary — soft near-black' },
+      {
+        name: '--bg-inverted',
+        desc: 'Active and primary fills, inverted against the page',
+      },
       { name: '--bg-backdrop', desc: 'Dialog backdrop, blurred' },
     ],
   },
@@ -25,7 +30,7 @@ const COLOR_TOKEN_GROUPS: Array<{
     label: 'Ink',
     tokens: [
       { name: '--text-main', desc: 'Body and titles' },
-      { name: '--text-muted', desc: 'Secondary text, AA on white' },
+      { name: '--text-muted', desc: 'Secondary text, AA on page and panel' },
       { name: '--text-faint', desc: 'Axis ticks, disabled — not for reading' },
       { name: '--text-on-inverted', desc: 'Text on --bg-inverted' },
     ],
@@ -93,14 +98,14 @@ export function ColorTokensSection() {
   return (
     <GallerySection title='Color & surface tokens'>
       {COLOR_TOKEN_GROUPS.map((g) => (
-        <div key={g.label} className='gallery__stack'>
+        <Fragment key={g.label}>
           <SectionDivider>{g.label}</SectionDivider>
           <div className='gallery__swatches'>
             {g.tokens.map((t) => (
               <TokenSwatch key={t.name} name={t.name} desc={t.desc} />
             ))}
           </div>
-        </div>
+        </Fragment>
       ))}
 
       <SectionDivider>Data-viz colours</SectionDivider>

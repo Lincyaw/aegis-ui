@@ -73,11 +73,7 @@ const TABLE_COLUMNS = [
     title: 'Duration',
     dataIndex: 'duration',
     key: 'duration',
-    render: (v: string) => (
-      <MonoValue size='sm' weight='regular'>
-        {v}
-      </MonoValue>
-    ),
+    render: (v: string) => <span className='gallery__numeric'>{v}</span>,
   },
   {
     title: 'State',
@@ -201,7 +197,7 @@ export function AntdWidgetsSection() {
           <Tag>queued</Tag>
         </Specimen>
         <Specimen caption='Tag — primary'>
-          <Tag color='black'>running</Tag>
+          <Tag color='var(--bg-inverted)'>running</Tag>
         </Specimen>
         <Specimen caption='Tag — error'>
           <Tag color='error'>failed</Tag>

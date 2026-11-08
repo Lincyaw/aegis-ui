@@ -470,7 +470,7 @@ function ObjectInspectorSpecimen(): ReactNode {
               <Chip tone='ghost'>Download</Chip>
               <Chip tone='ghost'>Copy URL</Chip>
               <Chip tone='ghost'>Share</Chip>
-              <Chip tone='warning'>Delete</Chip>
+              <Chip tone='caution'>Delete</Chip>
             </>
           }
           tabs={inspectorTabs(object)}
@@ -1566,17 +1566,8 @@ function CommitGraphVersionTableSpecimen(): ReactNode {
 function ResizableSidePanelSpecimen(): ReactNode {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 'var(--space-2)',
-        width: '100%',
-        height: 320,
-        alignItems: 'stretch',
-      }}
-    >
-      <ResizableSidePanel side='left' defaultWidth={280}>
+    <div className='gallery__resizable-stack gallery__resizable-stack--tall'>
+      <ResizableSidePanel side='left' defaultWidth={280} stackOnMobile>
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
             Left · 280px · non-collapsible
@@ -1589,6 +1580,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
         side='left'
         defaultWidth={240}
         persistKey='gallery.resizable.persist'
+        stackOnMobile
       >
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
@@ -1598,16 +1590,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
         </div>
       </ResizableSidePanel>
 
-      <div
-        style={{
-          flex: '1 1 auto',
-          minWidth: 0,
-          padding: 'var(--space-4)',
-          border: 'var(--size-hairline) dashed var(--border-hairline)',
-          borderRadius: 'var(--radius-md)',
-          background: 'var(--bg-page)',
-        }}
-      >
+      <div className='gallery__resizable-stack-main'>
         <MetricLabel as='div' size='xs'>
           Keyboard-only resize demo
         </MetricLabel>
@@ -1624,6 +1607,7 @@ function ResizableSidePanelSpecimen(): ReactNode {
         collapsible
         collapsed={rightCollapsed}
         onCollapsedChange={setRightCollapsed}
+        stackOnMobile
       >
         <div style={{ padding: 'var(--space-4)' }}>
           <MetricLabel as='div' size='xs'>
@@ -1718,9 +1702,8 @@ function ResizableSidePanelStackedSpecimen(): ReactNode {
             Turns · stackOnMobile
           </MetricLabel>
           {Array.from({ length: 12 }, (_, i) => (
-            <p key={i}>
-              <MonoValue size='sm'>{String(i + 1).padStart(2, '0')}</MonoValue>{' '}
-              turn {i + 1}
+            <p key={i} className='gallery__numeric'>
+              Turn {i + 1}
             </p>
           ))}
         </div>
@@ -2089,7 +2072,7 @@ export function ServicePrimitivesSection() {
                 mono: true,
                 copyable: true,
               },
-              { label: 'Size', value: '4.2 MB', mono: true },
+              { label: 'Size', value: '4.2 MB' },
               {
                 label: 'Content-Type',
                 value: 'application/json',

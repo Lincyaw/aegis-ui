@@ -3,7 +3,6 @@ import { type ReactNode, useState } from 'react';
 import { InboxOutlined } from '@ant-design/icons';
 import {
   Button as AegisButton,
-  Chip,
   EmptyState,
   formatDuration,
   type KeyValueItem,
@@ -95,6 +94,23 @@ function StatBlockCountUpSpecimen(): ReactNode {
         Replay
       </AegisButton>
     </div>
+  );
+}
+
+function EmptyStateActionSpecimen(): ReactNode {
+  const [created, setCreated] = useState(0);
+  return (
+    <Specimen caption={`with action · onClick · pressed ${String(created)}`}>
+      <EmptyState
+        title='No projects'
+        description='Projects group experiments and their results.'
+        action={
+          <AegisButton onClick={() => setCreated((n) => n + 1)}>
+            New project
+          </AegisButton>
+        }
+      />
+    </Specimen>
   );
 }
 
@@ -314,13 +330,7 @@ export function DataDisplaySection() {
             description='Create your first fault injection to begin.'
           />
         </Specimen>
-        <Specimen caption='with action'>
-          <EmptyState
-            title='No projects'
-            description='Projects group experiments and their results.'
-            action={<Chip tone='ink'>+ New project</Chip>}
-          />
-        </Specimen>
+        <EmptyStateActionSpecimen />
         <Specimen caption='icon at --size-icon-xl'>
           <EmptyState
             icon={<InboxOutlined className='gallery__icon-xl' />}

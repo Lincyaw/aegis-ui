@@ -347,43 +347,43 @@ export function TypographySection() {
 
       <SectionDivider>MonoValue scale</SectionDivider>
       <div className='gallery__row'>
-        <Specimen caption='sm · regular'>
+        <Specimen caption='sm · regular · a path'>
           <MonoValue size='sm' weight='regular'>
-            0.142
+            src/booking/refund.py
           </MonoValue>
         </Specimen>
-        <Specimen caption='sm · medium'>
-          <MonoValue size='sm'>0.142</MonoValue>
+        <Specimen caption='sm · medium · a service'>
+          <MonoValue size='sm'>catalog-service</MonoValue>
         </Specimen>
-        <Specimen caption='base · medium'>
+        <Specimen caption='base · medium · an injection id'>
           <MonoValue
             size='base'
             surface={{
               id: 'gallery.mono.value',
               kind: 'value',
-              label: 'Demo numeric value',
-              askSuggestions: ['What does this number mean?'],
+              label: 'Demo injection id',
+              askSuggestions: ['What does this injection id point to?'],
               project: (children) => ({
                 fields: [
-                  { name: 'value', type: 'number', value: String(children) },
+                  { name: 'value', type: 'string', value: String(children) },
                 ],
               }),
             }}
           >
-            0.142
+            INJ-0001
           </MonoValue>
         </Specimen>
-        <Specimen caption='lg · medium'>
-          <MonoValue size='lg'>0.142</MonoValue>
+        <Specimen caption='lg · medium · a commit'>
+          <MonoValue size='lg'>3f9c2a1b</MonoValue>
         </Specimen>
-        <Specimen caption="tone='success'">
-          <MonoValue tone='success'>12</MonoValue>
+        <Specimen caption="tone='success' · a passed run">
+          <MonoValue tone='success'>run-7d04e2</MonoValue>
         </Specimen>
-        <Specimen caption="tone='danger'">
-          <MonoValue tone='danger'>3</MonoValue>
+        <Specimen caption="tone='danger' · a failed run">
+          <MonoValue tone='danger'>run-3b81c9</MonoValue>
         </Specimen>
-        <Specimen caption="tone='muted'">
-          <MonoValue tone='muted'>0</MonoValue>
+        <Specimen caption="tone='muted' · a parent id">
+          <MonoValue tone='muted'>run-0a6f17</MonoValue>
         </Specimen>
         <Specimen caption='wrap · a SHA-256 digest in a narrow column'>
           <div className='gallery__narrow-cell'>
@@ -420,6 +420,7 @@ export function TypographySection() {
         <Specimen
           caption='inline + block · fences render as CodeBlock'
           span={2}
+          align='start'
         >
           <Markdown>
             {`### Quick **markdown** sample\n\n- Lists work\n- Inline \`code\` and [links](https://example.com)\n\n\`\`\`bash\nkubectl get pods -n aegis\n\`\`\`\n\n> Blockquotes too.`}
@@ -428,6 +429,7 @@ export function TypographySection() {
         <Specimen
           caption='remarkPlugins · rehypePlugins · components · urlTransform'
           span={2}
+          align='start'
         >
           <Markdown
             remarkPlugins={GALLERY_REMARK_PLUGINS}
@@ -438,9 +440,12 @@ export function TypographySection() {
             {GALLERY_WIKI_MARKDOWN}
           </Markdown>
         </Specimen>
+      </div>
+      <div className='gallery__row'>
         <Specimen
           caption="variant='document' · the MdxDocument style: article type roles, the same headings, quotes, lists, tables and code"
           span={3}
+          align='start'
         >
           <Markdown variant='document'>{MARKDOWN_DOCUMENT_SAMPLE}</Markdown>
         </Specimen>

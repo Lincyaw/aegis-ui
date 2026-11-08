@@ -109,9 +109,9 @@ function GalleryModelCard({ row }: { row: GalleryModelRow }): ReactNode {
   return (
     <div className='gallery__table-card'>
       <span className='gallery__table-card-title'>{row.model}</span>
-      <MonoValue size='sm' weight='regular'>
+      <span className='gallery__table-card-meta'>
         {`${row.passed}/${row.runs} passed · mean ${row.mean === null ? '—' : row.mean.toFixed(2)}`}
-      </MonoValue>
+      </span>
     </div>
   );
 }

@@ -177,14 +177,10 @@ function AgentIntegrationSpecimen(): ReactNode {
       style={{ alignItems: 'flex-start' }}
     >
       <Specimen caption='Button with action prop' span={2}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-3)',
-          }}
-        >
-          <AegisButton action={toastAction}>Show toast</AegisButton>
+        <div className='gallery__stack gallery__stack--fill'>
+          <div>
+            <AegisButton action={toastAction}>Show toast</AegisButton>
+          </div>
           <DataList
             items={DEMO_DATASETS}
             columns={columns}

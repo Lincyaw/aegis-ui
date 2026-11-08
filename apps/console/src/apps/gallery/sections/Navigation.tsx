@@ -376,7 +376,7 @@ function GalleryCarouselCopy({
   return (
     <div className='gallery__carousel-copy'>
       <p className='gallery__carousel-eyebrow'>{eyebrow}</p>
-      <p className='gallery__carousel-title'>{title}</p>
+      <h3 className='gallery__carousel-title'>{title}</h3>
       <p className='gallery__carousel-lead'>{lead}</p>
       <AegisButton>{action}</AegisButton>
     </div>

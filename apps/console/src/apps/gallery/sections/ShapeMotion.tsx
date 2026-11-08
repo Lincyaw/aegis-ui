@@ -202,7 +202,7 @@ export function ShapeMotionSection() {
             <div
               style={{
                 width: '100%',
-                height: 'var(--space-12)',
+                height: 'calc(var(--space-16) * 1.5)',
                 borderRadius: `var(${t.name})`,
                 background: 'var(--bg-panel)',
                 border: 'var(--size-hairline) solid var(--border-emphasis)',
