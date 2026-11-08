@@ -529,6 +529,13 @@ select.gallery__demo-input:focus {
   }
 }
 
+/* A figure inside host text: the numeric face with tabular figures. */
+.gallery__figure {
+  font-weight: var(--fw-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+}
+
 /* ── Component-token overrides ──────────────────────────────────── */
 /* What a host sets to restyle primitives structurally: a page header with
  * a larger title and a larger description. */

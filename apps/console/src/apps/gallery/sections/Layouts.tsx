@@ -156,10 +156,10 @@ export function LayoutsSection() {
                     Failed
                   </Chip>
                   <span>
-                    <MonoValue size='sm'>10/11</MonoValue> checks passed
+                    <span className='gallery__figure'>10/11</span> checks passed
                   </span>
                   <span>
-                    Outcome <MonoValue size='sm'>0.82</MonoValue>
+                    Outcome <span className='gallery__figure'>0.82</span>
                   </span>
                 </>
               }
