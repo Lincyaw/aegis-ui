@@ -111,12 +111,16 @@ html a:focus-visible {
 /* antd draws its own ring at lineWidthFocus (the token width) in
    --ant-color-primary-border, which it derives from the ink primary. The
    variable is repointed only where focus shows: on the focused control,
-   on its parent where antd rings a sibling (checkbox, radio), and on the
-   radio-button wrapper antd rings. Remapping the token instead would also
-   recolour the Slider track and handle. `html` outranks antd's
-   `.css-var-*` class that defines the variable. */
+   and on the antd wrappers that ring around or beside a focused child.
+   Any parent of focus would restyle its whole subtree on every Tab.
+   Remapping the token instead would also recolour the Slider track and
+   handle. `html` outranks antd's `.css-var-*` class that defines the
+   variable. */
 html :focus-visible,
-html :has(> :focus-visible),
+html
+  :is(.ant-checkbox, .ant-radio, .ant-tabs-tab, .ant-segmented-item):has(
+    > :focus-visible
+  ),
 html .ant-radio-button-wrapper:has(:focus-visible) {
   --ant-color-primary-border: var(--focus-ring-color);
 }

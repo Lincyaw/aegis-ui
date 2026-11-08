@@ -95,8 +95,7 @@ Fixed:
   longer shows light scrollbars.
 - Links show the focus ring on keyboard focus: antd's global link reset
   (`a:focus`, `a:hover { outline: 0 }`) no longer removes it. The shell's
-  sidebar links and `IdentityCell`'s link draw it inset, so a scrolling
-  sidebar or a truncating table cell does not clip it.
+  sidebar links draw it inset, so the scrolling sidebar does not clip it.
 - antd controls (buttons, breadcrumb, pagination, menu, tabs, checkbox,
   radio, switch and the rest) draw their keyboard focus ring in
   `--focus-ring-color` instead of the ink primary.
