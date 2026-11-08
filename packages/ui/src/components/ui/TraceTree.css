@@ -81,7 +81,8 @@
   color: var(--text-on-inverted);
 }
 
-.aegis-trace-tree__row--selected:hover {
+.aegis-trace-tree__row--selected:hover,
+.aegis-trace-tree__row--selected:focus-visible {
   background: var(--bg-inverted);
 }
 
@@ -202,8 +203,8 @@
 }
 
 .aegis-trace-tree__handle:focus-visible {
-  outline: var(--size-hairline) solid var(--border-strong);
-  outline-offset: calc(-1 * var(--size-hairline));
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
   background: var(--border-emphasis);
 }
 

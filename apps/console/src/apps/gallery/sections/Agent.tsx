@@ -236,7 +236,7 @@ export function AgentSection() {
       <SectionDivider>ChatSessionList</SectionDivider>
       <div className='gallery__row gallery__row--wide'>
         <Specimen caption='compact · 3 items · second selected' span={2}>
-          <div style={{ maxWidth: 280 }}>
+          <div style={{ maxWidth: 'min(100%, 280px)' }}>
             <ChatSessionList
               density='compact'
               items={[
@@ -270,7 +270,7 @@ export function AgentSection() {
           </div>
         </Specimen>
         <Specimen caption='comfortable · long titles · first selected' span={2}>
-          <div style={{ maxWidth: 320 }}>
+          <div style={{ maxWidth: 'min(100%, 320px)' }}>
             <ChatSessionList
               density='comfortable'
               items={[
@@ -314,7 +314,7 @@ export function AgentSection() {
           </div>
         </Specimen>
         <Specimen caption='empty state' span={2}>
-          <div style={{ maxWidth: 280 }}>
+          <div style={{ maxWidth: 'min(100%, 280px)' }}>
             <ChatSessionList
               items={[]}
               onSelect={() => undefined}

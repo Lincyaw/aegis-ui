@@ -56,11 +56,31 @@ function StepSection({
 }) {
   return (
     <div className="aegis-step__section">
-      <MetricLabel size="xs" className="aegis-step__section-label">
-        {label}
-      </MetricLabel>
+      <MetricLabel size="xs">{label}</MetricLabel>
       <div className="aegis-step__section-body">{children}</div>
     </div>
+  );
+}
+
+/**
+ * The first line of an action written in Markdown, as the head shows it:
+ * code spans stay code, while emphasis and link syntax give way to their text.
+ */
+function actionPreview(markdown: string): ReactNode[] {
+  const line = markdown
+    .trim()
+    .split('\n')[0]
+    .replace(/^(#+|>|[-*+]|\d+\.)\s+/, '');
+  return line.split(/`([^`]+)`/).map((part, index) =>
+    index % 2 === 1 ? (
+      <code key={index} className="aegis-step__action-code">
+        {part}
+      </code>
+    ) : (
+      part
+        .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+    ),
   );
 }
 
@@ -80,7 +100,8 @@ export function TrajectoryStep({
     ...(data.toolCalls ?? []),
   ];
   const sections = data.sections ?? [];
-  const summary = data.summary ?? data.action;
+  const summary =
+    data.summary ?? (data.action ? actionPreview(data.action) : undefined);
   const hasBody =
     [data.thought, data.action, data.observation].some(Boolean) ||
     toolCalls.length > 0 ||

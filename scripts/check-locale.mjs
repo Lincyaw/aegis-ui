@@ -153,6 +153,7 @@ const SAMPLES = {
   inboxUnread: [[0], [3]],
   notificationSeverity: [['info'], ['success'], ['warning'], ['error']],
   askToolsAvailable: [[0], [3]],
+  agentmSendFailed: [['Network error.']],
 };
 
 async function loadCatalogues() {

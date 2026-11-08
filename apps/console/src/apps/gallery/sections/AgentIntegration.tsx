@@ -470,123 +470,129 @@ function AskAffordanceSpecimen(): ReactNode {
   return (
     <AgentChatProvider value={demoChat}>
       <AskOverlay scope={scope} />
-      <div
-        ref={setScope}
-        className='gallery__row gallery__row--wide'
-        style={{ alignItems: 'flex-start' }}
-      >
-        <Specimen
-          caption='right-click a row or press Cmd/Ctrl + . · AskOverlay scope, demo chat'
-          span={3}
+      <div className='gallery__stack'>
+        <div
+          ref={setScope}
+          className='gallery__row gallery__row--wide'
+          style={{ alignItems: 'flex-start' }}
         >
-          <div
-            data-agent-surface-id='gallery.ask.demo'
-            data-aegis-ask-demo-surface=''
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-1)',
-              border: '1px solid var(--border-hairline)',
-              borderRadius: 'var(--radius-sm)',
-              padding: 'var(--space-2)',
-            }}
+          <Specimen
+            caption='right-click a row or press Cmd/Ctrl + . · AskOverlay scope, demo chat'
+            span={3}
           >
-            {askRows.map((row) => (
-              <div
-                key={row.id}
-                data-agent-entity-id={row.id}
-                data-ask-demo-row={row.id}
-                tabIndex={0}
-                style={{
-                  padding: 'var(--space-2) var(--space-3)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 'var(--fs-13)',
-                  background: 'var(--bg-muted)',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'context-menu',
-                }}
-              >
-                {row.id} · {row.label}
-              </div>
-            ))}
-          </div>
-        </Specimen>
-        <Specimen
-          caption='ask: false · right-click does NOT open panel'
-          span={2}
-        >
-          <div
-            data-agent-surface-id='gallery.ask.optout'
-            data-agent-ask='off'
-            data-aegis-ask-optout-surface=''
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-1)',
-              border: '1px solid var(--border-hairline)',
-              borderRadius: 'var(--radius-sm)',
-              padding: 'var(--space-2)',
-            }}
-          >
-            {askOptOutRows.map((row) => (
-              <div
-                key={row.id}
-                data-agent-entity-id={row.id}
-                data-ask-optout-row={row.id}
-                tabIndex={0}
-                style={{
-                  padding: 'var(--space-2) var(--space-3)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 'var(--fs-13)',
-                  background: 'var(--bg-muted)',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'context-menu',
-                }}
-              >
-                {row.id} · {row.label}
-              </div>
-            ))}
-          </div>
-        </Specimen>
-        <Specimen caption='programmatic open · ask event log' span={2}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-2)',
-            }}
-          >
-            <AegisButton onClick={onTriggerJs}>Trigger ask via JS</AegisButton>
-            <pre
-              aria-label='aegis-ask-event-log'
+            <div
+              data-agent-surface-id='gallery.ask.demo'
+              data-aegis-ask-demo-surface=''
               style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 'var(--fs-11)',
-                color: 'var(--text-main)',
-                background: 'var(--bg-muted)',
-                padding: 'var(--space-3)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-1)',
+                border: '1px solid var(--border-hairline)',
                 borderRadius: 'var(--radius-sm)',
-                margin: 0,
-                maxHeight: 'calc(var(--space-12) * 3)',
-                overflow: 'auto',
+                padding: 'var(--space-2)',
               }}
             >
-              {log.length === 0 ? '(no ask events yet)' : log.join('\n')}
-            </pre>
-          </div>
-        </Specimen>
-        <Specimen
-          caption='AskPanel · popover={false} · onSend · focus moves to the field, and back on close'
-          span={3}
-        >
-          <InlineAskPanelSpecimen onSend={onInlineAsk} />
-        </Specimen>
-        <Specimen
-          caption='AskPanel · no onSend (no agent) · focus moves to the panel'
-          span={2}
-        >
-          <InlineAskPanelSpecimen />
-        </Specimen>
+              {askRows.map((row) => (
+                <div
+                  key={row.id}
+                  data-agent-entity-id={row.id}
+                  data-ask-demo-row={row.id}
+                  tabIndex={0}
+                  style={{
+                    padding: 'var(--space-2) var(--space-3)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--fs-13)',
+                    background: 'var(--bg-muted)',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'context-menu',
+                  }}
+                >
+                  {row.id} · {row.label}
+                </div>
+              ))}
+            </div>
+          </Specimen>
+          <Specimen
+            caption='ask: false · right-click does NOT open panel'
+            span={2}
+          >
+            <div
+              data-agent-surface-id='gallery.ask.optout'
+              data-agent-ask='off'
+              data-aegis-ask-optout-surface=''
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-1)',
+                border: '1px solid var(--border-hairline)',
+                borderRadius: 'var(--radius-sm)',
+                padding: 'var(--space-2)',
+              }}
+            >
+              {askOptOutRows.map((row) => (
+                <div
+                  key={row.id}
+                  data-agent-entity-id={row.id}
+                  data-ask-optout-row={row.id}
+                  tabIndex={0}
+                  style={{
+                    padding: 'var(--space-2) var(--space-3)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--fs-13)',
+                    background: 'var(--bg-muted)',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'context-menu',
+                  }}
+                >
+                  {row.id} · {row.label}
+                </div>
+              ))}
+            </div>
+          </Specimen>
+          <Specimen caption='programmatic open · ask event log' span={2}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2)',
+              }}
+            >
+              <AegisButton onClick={onTriggerJs}>
+                Trigger ask via JS
+              </AegisButton>
+              <pre
+                aria-label='aegis-ask-event-log'
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 'var(--fs-11)',
+                  color: 'var(--text-main)',
+                  background: 'var(--bg-muted)',
+                  padding: 'var(--space-3)',
+                  borderRadius: 'var(--radius-sm)',
+                  margin: 0,
+                  maxHeight: 'calc(var(--space-12) * 3)',
+                  overflow: 'auto',
+                }}
+              >
+                {log.length === 0 ? '(no ask events yet)' : log.join('\n')}
+              </pre>
+            </div>
+          </Specimen>
+        </div>
+        <div className='gallery__row gallery__row--wide'>
+          <Specimen
+            caption='AskPanel · popover={false} · onSend · focus moves to the field, and back on close · no wider than its container'
+            span={3}
+          >
+            <InlineAskPanelSpecimen onSend={onInlineAsk} />
+          </Specimen>
+          <Specimen
+            caption='AskPanel · no onSend (no agent) · focus moves to the panel'
+            span={2}
+          >
+            <InlineAskPanelSpecimen />
+          </Specimen>
+        </div>
       </div>
     </AgentChatProvider>
   );

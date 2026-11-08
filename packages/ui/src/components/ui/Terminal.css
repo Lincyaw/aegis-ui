@@ -37,7 +37,7 @@
 }
 
 .aegis-terminal__prefix--warn {
-  color: var(--ink-warn);
+  color: var(--text-warn);
 }
 
 .aegis-terminal__prefix--error {

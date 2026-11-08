@@ -92,7 +92,11 @@ export function FilePreview({
   const rootClass = ['aegis-file-preview', className ?? '']
     .filter(Boolean)
     .join(' ');
-  const rootStyle: CSSProperties = { maxHeight, ...style };
+  const rootStyle = {
+    '--aegis-file-preview-max-height':
+      typeof maxHeight === 'number' ? `${String(maxHeight)}px` : maxHeight,
+    ...style,
+  } as CSSProperties;
 
   return (
     <div ref={wrapRef} className={rootClass} style={rootStyle} {...agentAttrs}>

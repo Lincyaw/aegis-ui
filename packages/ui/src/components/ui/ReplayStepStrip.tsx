@@ -3,6 +3,7 @@ import {
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -30,7 +31,10 @@ export interface ReplayStepStripProps {
   steps: ReplayStepStripItem[];
   /** The step shown elsewhere on the page; outlined. */
   currentIndex?: number;
-  /** Makes each step a button that selects it. */
+  /**
+   * Makes each step a button that selects it. Each step then stays wide
+   * enough to tap, and a run too long for the width scrolls sideways.
+   */
   onSelect?: (index: number) => void;
   /** Step indices of the key moments, numbered above the strip in order. */
   keyMoments?: number[];
@@ -67,8 +71,8 @@ function tickedSteps(count: number, every: number): Set<number> {
  * Every step of a run as a bar coloured by its kind, with the key
  * moments numbered above it and step ticks below. With `onSelect`, a bar
  * selects its step; arrow keys move between steps with one tab stop.
- * The gap between bars narrows as steps are added, so a long run still
- * draws every step.
+ * Without `onSelect`, the gap between bars narrows as steps are added, so a
+ * long run still draws every step in the width.
  */
 export function ReplayStepStrip({
   steps,
@@ -82,6 +86,7 @@ export function ReplayStepStrip({
   className,
 }: ReplayStepStripProps): ReactElement {
   const strings = useStrings();
+  const rootRef = useRef<HTMLDivElement>(null);
   const barsRef = useRef<HTMLDivElement>(null);
   const count = steps.length;
   const every = tickEvery ?? Math.max(1, Math.ceil(count / 20) * 5);
@@ -92,6 +97,26 @@ export function ReplayStepStrip({
   // keyboard reached when the host does not mark one.
   const [ownFocus, setOwnFocus] = useState(0);
   const focusIndex = Math.min(currentIndex ?? ownFocus, Math.max(count - 1, 0));
+
+  // A selectable strip may scroll; bring a current step the host moved out
+  // of view back to the middle, without scrolling the page.
+  const selectable = onSelect !== undefined;
+  useEffect(() => {
+    const root = rootRef.current;
+    const bar =
+      currentIndex === undefined
+        ? null
+        : barsRef.current?.children.item(currentIndex);
+    if (!selectable || !root || !bar) {
+      return;
+    }
+    const view = root.getBoundingClientRect();
+    const step = bar.getBoundingClientRect();
+    if (step.left < view.left || step.right > view.right) {
+      root.scrollLeft +=
+        step.left + step.width / 2 - (view.left + view.width / 2);
+    }
+  }, [selectable, currentIndex, count]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (!onSelect || count === 0) {
@@ -127,9 +152,11 @@ export function ReplayStepStrip({
   } as CSSProperties;
   return (
     <div
+      ref={rootRef}
       className={[
         'aegis-replay-step-strip',
         `aegis-replay-step-strip--${size}`,
+        selectable ? 'aegis-replay-step-strip--selectable' : '',
         playhead === undefined ? '' : 'aegis-replay-step-strip--playhead',
         className ?? '',
       ]

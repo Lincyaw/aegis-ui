@@ -78,11 +78,12 @@
 .aegis-timeline__marker,
 .aegis-timeline__meta,
 .aegis-timeline__time {
-  font-family: var(--font-mono);
-  font-size: var(--type-mono-size);
-  line-height: var(--type-mono-line);
-  font-weight: var(--type-mono-weight);
-  letter-spacing: var(--type-mono-tracking);
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
 
@@ -107,7 +108,7 @@
   display: none;
 }
 
-/* Set on the title's line so the smaller mono marker shares its baseline. */
+/* Set on the title's line so the smaller marker shares its baseline. */
 .aegis-timeline__marker {
   min-width: 3ch;
   line-height: var(--type-strong-line);

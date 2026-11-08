@@ -54,8 +54,9 @@
 }
 
 .aegis-chat-msg__time {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-size: var(--fs-10);
+  font-variant-numeric: tabular-nums;
   text-transform: none;
   letter-spacing: 0;
 }

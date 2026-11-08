@@ -37,6 +37,12 @@
   cursor: default;
 }
 
+/* The step clips its content to its corners, so the ring is drawn inside. */
+.aegis-step__head:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+  border-radius: var(--radius-md);
+}
+
 .aegis-step__head-left {
   display: flex;
   align-items: center;
@@ -79,6 +85,11 @@
   min-width: 0;
 }
 
+.aegis-step__action-code {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-size);
+}
+
 .aegis-step__chevron {
   font-size: var(--fs-11);
   color: var(--text-muted);
@@ -104,11 +115,6 @@
 
 .aegis-step__section:first-child {
   padding-top: var(--space-3);
-}
-
-.aegis-step__section-label {
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 .aegis-step__section-body {

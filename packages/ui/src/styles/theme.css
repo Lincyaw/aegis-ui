@@ -44,6 +44,9 @@
   --text-faint: #9aa0a6;
   --text-on-inverted: #ffffff;
   --text-on-inverted-muted: #aaaaaa;
+  /* Caution text that must be read at small sizes: 4.5:1 on the page, a
+   * panel and --bg-warn-soft. --ink-warn stays for marks and large text. */
+  --text-warn: #b45309;
 
   /* ── Border / divider ────────────────────────────────────────────── */
   --border-hairline: rgba(31, 35, 40, 0.08);
@@ -332,6 +335,13 @@
   --text-terminal-muted: rgba(255, 255, 255, 0.5);
   --text-terminal-strong: rgba(255, 255, 255, 0.75);
   --border-terminal: rgba(255, 255, 255, 0.08);
+  /* ToolCallCard: a light card in the light theme; the dark theme gives it
+   * the terminal block. */
+  --tool-call-bg: var(--bg-panel);
+  --tool-call-code-bg: var(--bg-muted);
+  --tool-call-border: var(--border-hairline);
+  --tool-call-ink: var(--text-main);
+  --tool-call-ink-muted: var(--text-muted);
 
   /* ── Motion ──────────────────────────────────────────────────────── */
   /* Every state change decelerates into place, with no overshoot; only
@@ -599,6 +609,7 @@
   --text-faint: #6b7280;
   --text-on-inverted: #0b0d12;
   --text-on-inverted-muted: #52525b;
+  --text-warn: #fbbf24;
 
   /* Borders */
   --border-hairline: rgba(255, 255, 255, 0.08);
@@ -687,6 +698,13 @@
 
   /* Tabs — the panel is darker than the track on dark, so the pill steps up. */
   --tabs-indicator-bg: #30353f;
+
+  /* ToolCallCard — the terminal block */
+  --tool-call-bg: var(--bg-terminal);
+  --tool-call-code-bg: var(--bg-terminal-soft);
+  --tool-call-border: var(--border-terminal);
+  --tool-call-ink: var(--text-terminal);
+  --tool-call-ink-muted: var(--text-terminal-muted);
 }
 
 /* ── Page entrance (subtle — never steals attention) ───────────────── */

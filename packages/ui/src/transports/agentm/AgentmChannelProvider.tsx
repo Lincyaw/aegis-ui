@@ -17,6 +17,7 @@ import type {
 } from '../../agent/chat/chat';
 import { uniqueId } from '../../lib/id';
 import { getOrCreateStored } from '../../lib/storage';
+import { useStrings } from '../../locale';
 import {
   AgentmChannelClient,
   type AgentmChannelClientOptions,
@@ -166,6 +167,11 @@ export function AgentmChannelProvider({
   onStatusRef.current = onStatusChange;
   const channelRef = useRef(channel);
   channelRef.current = channel;
+  // Read through a ref, so a locale change neither reconnects nor gives
+  // `send` a new identity.
+  const strings = useStrings();
+  const stringsRef = useRef(strings);
+  stringsRef.current = strings;
 
   const channelKey = useMemo(
     () =>
@@ -241,7 +247,9 @@ export function AgentmChannelProvider({
       const body = env.body as { code?: unknown; message?: unknown };
       const code = typeof body.code === 'string' ? body.code : 'error';
       const detail =
-        typeof body.message === 'string' ? body.message : 'gateway error';
+        typeof body.message === 'string'
+          ? body.message
+          : stringsRef.current.agentmGatewayError;
       setSending(false);
       setMessages((prev) => [
         ...prev,
@@ -295,7 +303,7 @@ export function AgentmChannelProvider({
         {
           id: uniqueId('msg'),
           role: 'system',
-          content: 'AgentM gateway is not connected — message not delivered.',
+          content: stringsRef.current.agentmNotConnected,
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -311,7 +319,9 @@ export function AgentmChannelProvider({
         {
           id: uniqueId('msg'),
           role: 'system',
-          content: `send failed: ${err instanceof Error ? err.message : String(err)}`,
+          content: stringsRef.current.agentmSendFailed(
+            err instanceof Error ? err.message : String(err),
+          ),
           timestamp: new Date().toISOString(),
         },
       ]);
