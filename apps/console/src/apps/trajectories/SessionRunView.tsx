@@ -277,9 +277,14 @@ function MessageCard({
         <Chip tone={message.role === 'assistant' ? 'ink' : 'ghost'}>
           {message.role}
         </Chip>
-        <MonoValue size='sm'>
-          {message.id ? message.id.slice(0, 12) : 'message'}
-        </MonoValue>
+        <span
+          className='trajectories-session-message__id'
+          title={message.id || undefined}
+        >
+          <MonoValue size='sm'>
+            {message.id ? message.id.slice(0, 12) : 'message'}
+          </MonoValue>
+        </span>
         <span className='trajectories-session-message__excerpt'>
           {contentExcerpt(message)}
         </span>

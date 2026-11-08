@@ -65,7 +65,17 @@
   content: '▸';
 }
 
+.trajectories-session-message__id {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .trajectories-session-message__excerpt {
+  flex: 1 1 0;
+  min-width: 0;
   color: var(--text-muted);
   font-size: var(--fs-12);
   white-space: nowrap;
