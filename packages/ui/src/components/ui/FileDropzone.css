@@ -80,3 +80,8 @@
   font-size: var(--fs-11);
   color: var(--text-muted);
 }
+
+.aegis-file-dropzone__meta--size {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}

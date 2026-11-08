@@ -40,8 +40,7 @@
   font-family: var(--font-mono);
   font-size: var(--fs-10);
   color: var(--text-muted);
-  overflow-x: auto;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .aegis-cmd-card__error {
@@ -57,11 +56,12 @@
 }
 
 .aegis-cmd-card__undo {
+  min-height: var(--size-control-sm);
   background: transparent;
   border: var(--size-hairline) solid var(--border-hairline);
   color: var(--text-main);
-  padding: var(--space-px) var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
   font: inherit;
   font-size: var(--fs-10);
   font-weight: var(--fw-medium);

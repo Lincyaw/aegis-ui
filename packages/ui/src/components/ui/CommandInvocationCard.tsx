@@ -26,12 +26,17 @@ interface CommandInvocationCardProps {
   surface?: CommandInvocationCardSurface;
 }
 
+/**
+ * One line of JSON with a space after each comma and colon, so a narrow card
+ * wraps it between members rather than cutting it off. JSON escapes the line
+ * breaks inside strings, so every newline here is indentation.
+ */
 function formatArgs(args: unknown): string {
   if (args === undefined) {
     return '';
   }
   try {
-    return JSON.stringify(args);
+    return JSON.stringify(args, null, 1).replace(/\n\s*/g, ' ');
   } catch {
     return String(args);
   }

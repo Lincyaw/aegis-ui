@@ -50,7 +50,10 @@ export interface QueryAutocompleteProps {
     | Promise<QueryAutocompleteValueSuggestion[]>
     | QueryAutocompleteValueSuggestion[];
   placeholder?: string;
-  /** Show a "?" tooltip with the LuceneQL cheat sheet. Default true. */
+  /**
+   * Show a "?" button with the LuceneQL cheat sheet, shown on hover, focus
+   * or tap. Default true.
+   */
   showHelp?: boolean;
   className?: string;
   popoverClassName?: string;
@@ -181,6 +184,7 @@ export function QueryAutocomplete({
   >([]);
   const [valuePoolKey, setValuePoolKey] = useState<string | null>(null);
   const valueRequestId = useRef(0);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const token = useMemo(() => tokenizeAtCursor(value, caret), [value, caret]);
 
@@ -409,18 +413,32 @@ export function QueryAutocomplete({
         </span>
       </Popover>
       {showHelp ? (
+        // Hover and focus open the sheet; a tap opens it as well and never
+        // closes it, since a touch also sends the hover that opened it.
         <Tooltip
           title={helpContent}
           placement="bottomRight"
+          trigger={['hover', 'focus']}
+          open={helpOpen}
+          onOpenChange={setHelpOpen}
           classNames={{ root: 'aegis-query-ac__help-overlay' }}
         >
-          <span
+          <button
+            type="button"
             className="aegis-query-ac__help-icon"
-            role="img"
             aria-label={strings.querySyntaxHelp}
+            onClick={() => {
+              setHelpOpen(true);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && helpOpen) {
+                event.stopPropagation();
+                setHelpOpen(false);
+              }
+            }}
           >
-            <QuestionCircleOutlined />
-          </span>
+            <QuestionCircleOutlined aria-hidden />
+          </button>
         </Tooltip>
       ) : null}
     </div>

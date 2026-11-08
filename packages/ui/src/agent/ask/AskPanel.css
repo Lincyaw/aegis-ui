@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   width: var(--ask-panel-width);
+  max-width: 100%;
   max-height: var(--ask-panel-max-height);
   background: var(--ask-panel-bg);
   border: var(--size-hairline) solid var(--ask-panel-border);
@@ -12,6 +13,11 @@
   overflow: hidden;
   z-index: var(--z-popover);
   animation: aegis-ask-panel-in var(--motion-fast);
+}
+
+/* The viewport less the --space-2 margin its placement keeps on each side. */
+.aegis-ask-panel--popover {
+  max-width: calc(100vw - 2 * var(--space-2));
 }
 
 /* Focus lands on the panel only when it has no field; its controls ring. */
