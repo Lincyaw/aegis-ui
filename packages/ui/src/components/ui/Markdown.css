@@ -55,13 +55,19 @@
 }
 
 .aegis-markdown a {
-  color: inherit;
+  color: var(--accent-info);
   text-decoration: underline;
   text-underline-offset: var(--space-px);
 }
 
 .aegis-markdown a:hover {
-  color: var(--text-muted);
+  color: var(--text-main);
+}
+
+.aegis-markdown a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-xs);
 }
 
 .aegis-markdown :not(pre) > code {

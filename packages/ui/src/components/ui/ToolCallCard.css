@@ -3,8 +3,8 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3);
-  background: var(--bg-terminal);
-  border: var(--size-hairline) solid var(--border-terminal);
+  background: var(--tool-call-bg);
+  border: var(--size-hairline) solid var(--tool-call-border);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: var(--fs-11);
@@ -30,14 +30,14 @@
   padding: var(--space-1) 0;
   background: none;
   border: none;
-  color: var(--text-terminal-muted);
+  color: var(--tool-call-ink-muted);
   cursor: pointer;
   font: inherit;
   text-align: left;
 }
 
 .aegis-tool-call__code-label:hover {
-  color: var(--text-terminal-strong);
+  color: var(--tool-call-ink);
 }
 
 .aegis-tool-call__fold-indicator {
@@ -48,14 +48,17 @@
 .aegis-tool-call__code-body {
   margin: 0;
   padding: var(--space-2) var(--space-3);
-  background: var(--bg-terminal-soft);
+  background: var(--tool-call-code-bg);
   border-radius: var(--radius-sm);
-  color: var(--text-terminal);
+  color: var(--tool-call-ink);
   overflow-x: auto;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
+  white-space: pre;
   font: inherit;
   line-height: 1.6;
+}
+
+.aegis-tool-call__code-body:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-tool-call__code-body code {
@@ -66,19 +69,19 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: 0 var(--space-2);
-  height: var(--size-control-sm);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: var(--fs-9);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1;
+  padding: var(--space-px) var(--space-2);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-ui);
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-tracking);
+  white-space: nowrap;
 }
 
 .aegis-tool-call__status--running {
-  background: var(--bg-terminal-soft);
-  color: var(--text-terminal-muted);
+  background: var(--tool-call-code-bg);
+  color: var(--tool-call-ink-muted);
 }
 
 /* A band of brighter ink sweeps across the label while the call runs. */
@@ -87,9 +90,9 @@
     color: transparent;
     background: linear-gradient(
         90deg,
-        var(--text-terminal-muted) 40%,
-        var(--text-terminal) 50%,
-        var(--text-terminal-muted) 60%
+        var(--tool-call-ink-muted) 40%,
+        var(--tool-call-ink) 50%,
+        var(--tool-call-ink-muted) 60%
       )
       0 0 / 300% 100%;
     background-clip: text;
@@ -98,8 +101,8 @@
 }
 
 .aegis-tool-call__status--ok {
-  background: var(--bg-terminal-soft);
-  color: var(--text-terminal-strong);
+  background: var(--tool-call-code-bg);
+  color: var(--tool-call-ink);
 }
 
 .aegis-tool-call__status--error {
@@ -115,7 +118,7 @@
   width: var(--size-icon-sm);
   height: var(--size-icon-sm);
   border-radius: var(--radius-circle);
-  border: var(--size-hairline) solid var(--text-terminal-muted);
+  border: var(--size-hairline) solid var(--tool-call-ink-muted);
   border-top-color: transparent;
   animation: aegis-spin var(--motion-spin) linear infinite;
 }

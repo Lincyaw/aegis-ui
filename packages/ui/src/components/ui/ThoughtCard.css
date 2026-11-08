@@ -67,7 +67,7 @@
 }
 
 .aegis-thought-card__clock {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .aegis-thought-card__thought {
