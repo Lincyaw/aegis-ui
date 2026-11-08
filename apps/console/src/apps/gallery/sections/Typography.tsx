@@ -117,6 +117,12 @@ const APP_TYPE_ROLES: TypeRole[] = [
   },
   { role: 'number', sample: '40/41', use: 'Metric figures', family: 'numeric' },
   {
+    role: 'number-compact',
+    sample: '9384',
+    use: 'Figures in compact cards (MetricCard)',
+    family: 'numeric',
+  },
+  {
     role: 'mono',
     sample: 'rules:9856f0cb · tests/cases/no_dml.py',
     use: 'Ids, paths and code',

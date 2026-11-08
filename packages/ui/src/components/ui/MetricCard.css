@@ -23,9 +23,10 @@
 
 .aegis-metric-card__number {
   font-family: var(--font-numeric);
-  font-size: var(--fs-18);
-  line-height: var(--type-heading-line);
-  font-weight: var(--fw-medium);
+  font-size: var(--type-number-compact-size);
+  line-height: var(--type-number-compact-line);
+  font-weight: var(--type-number-compact-weight);
+  letter-spacing: var(--type-number-compact-tracking);
   font-variant-numeric: tabular-nums;
   color: var(--text-main);
 }

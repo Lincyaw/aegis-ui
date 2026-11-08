@@ -244,6 +244,10 @@
   --type-number-line: 36px;
   --type-number-weight: var(--fw-semibold);
   --type-number-tracking: -0.01em;
+  --type-number-compact-size: 18px;
+  --type-number-compact-line: 24px;
+  --type-number-compact-weight: var(--fw-medium);
+  --type-number-compact-tracking: 0;
   --type-number-display-size: 48px;
   --type-number-display-line: 56px;
   --type-number-display-weight: var(--fw-semibold);
