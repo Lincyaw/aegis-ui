@@ -11,7 +11,7 @@ on:
         required: true
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-console-${{ github.ref }}
@@ -31,6 +31,8 @@ jobs:
           - windows-x64
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v5
 
@@ -52,8 +54,13 @@ jobs:
 
       - name: Resolve version
         id: ver
+        env:
+          REF: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
-          REF="${{ github.event.inputs.tag || github.ref_name }}"
+          if [[ ! "$REF" =~ ^console-v[0-9A-Za-z.+-]+$ ]]; then
+            echo "::error::tag must look like console-v1.2.3"
+            exit 1
+          fi
           VERSION="${REF#console-v}"
           echo "tag=$REF"          >> "$GITHUB_OUTPUT"
           echo "version=$VERSION"  >> "$GITHUB_OUTPUT"
@@ -61,15 +68,18 @@ jobs:
       - name: Build ${{ matrix.target }}
         env:
           AEGIS_CONSOLE_VERSION: ${{ steps.ver.outputs.version }}
+          TARGET: ${{ matrix.target }}
         run: |
           # bundle:prepare already ran above; bundle.mjs re-syncs the staging dir.
-          node apps/console/server/bundle.mjs ${{ matrix.target }}
+          node apps/console/server/bundle.mjs "$TARGET"
 
       - name: Smoke-test (linux-x64 only)
         if: matrix.target == 'linux-x64'
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
         run: |
           ./apps/console/bin/aegis-console-linux-x64 --version | tee /tmp/v
-          test "$(cat /tmp/v)" = "${{ steps.ver.outputs.version }}"
+          test "$(cat /tmp/v)" = "$VERSION"
           ./apps/console/bin/aegis-console-linux-x64 --port 13399 &
           PID=$!
           sleep 2
@@ -88,8 +98,12 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@v8
         with:
@@ -105,16 +119,24 @@ jobs:
 
       - name: Resolve version
         id: ver
+        env:
+          REF: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
-          REF="${{ github.event.inputs.tag || github.ref_name }}"
+          if [[ ! "$REF" =~ ^console-v[0-9A-Za-z.+-]+$ ]]; then
+            echo "::error::tag must look like console-v1.2.3"
+            exit 1
+          fi
           VERSION="${REF#console-v}"
           echo "tag=$REF"          >> "$GITHUB_OUTPUT"
           echo "version=$VERSION"  >> "$GITHUB_OUTPUT"
 
+      # A manual run builds the dispatched branch, so a new tag must point
+      # at that commit rather than the default branch.
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           name: aegis-console ${{ steps.ver.outputs.version }}
           generate_release_notes: true
           files: |
