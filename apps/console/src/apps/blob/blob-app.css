@@ -37,9 +37,11 @@
   gap: var(--space-2);
 }
 
-.blob-hint {
-  margin: 0;
-  color: var(--text-muted);
+.blob-reload-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .blob-share__object {
