@@ -14,7 +14,9 @@ import {
   NotificationProvider,
   useAuth,
 } from '@lincyaw/aegis-ui';
+import { App } from 'antd';
 
+import { errMsg } from '../api/apiClient';
 import {
   archive as archiveCall,
   listInbox,
@@ -23,7 +25,6 @@ import {
   unreadCount as unreadCountCall,
 } from '../api/notificationClient';
 import { openSseStream } from '../api/sseClient';
-import { readTokens } from '../auth/tokenStore';
 import { gatewayUrlFor } from '../config/runtime';
 
 interface Props {
@@ -42,6 +43,9 @@ interface Props {
 const STREAM_URL = '/api/v2/inbox/stream';
 const RECONNECT_BASE_MS = 1_000;
 const RECONNECT_MAX_MS = 30_000;
+// A stream that stays open this long, or delivers an event, counts as
+// healthy and resets the backoff; one that opens and ends at once keeps it.
+const STREAM_HEALTHY_MS = 10_000;
 
 /**
  * Talks to aegis-notify /api/v2/inbox/*. Real-time freshness comes
@@ -56,9 +60,11 @@ export function RealNotificationProvider({
 }: Props): ReactElement {
   const { status: authStatus } = useAuth();
   const isAuthed = authStatus === 'authenticated';
+  const { message: msg } = App.useApp();
   const [items, setItems] = useState<AegisNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -76,8 +82,11 @@ export function RealNotificationProvider({
       }
       setItems(list.items);
       setUnread(list.unread_count);
-    } catch {
-      // Surface as empty inbox; don't blow up the shell.
+      setError(null);
+    } catch (err) {
+      if (mounted.current) {
+        setError(new Error(errMsg(err)));
+      }
     } finally {
       if (mounted.current) {
         setLoading(false);
@@ -92,7 +101,9 @@ export function RealNotificationProvider({
         setUnread(c.unread_count);
       }
     } catch {
-      /* ignore */
+      // `error` reports the items failing to load; the list is still what the
+      // server last returned, so a failed count poll keeps the last count
+      // until the next poll or stream event corrects it.
     }
   }, []);
 
@@ -102,6 +113,7 @@ export function RealNotificationProvider({
       setItems([]);
       setUnread(0);
       setLoading(false);
+      setError(null);
       return;
     }
     void refetch();
@@ -113,61 +125,71 @@ export function RealNotificationProvider({
     };
   }, [isAuthed, refetch, refetchUnread, pollMs]);
 
-  // Live SSE stream. Reconnects with exponential backoff on error,
-  // closes cleanly on unmount, and triggers a refetch each time a
-  // "notification" event arrives so the new row is on screen instantly.
+  // Live SSE stream. Reconnects with exponential backoff whenever the
+  // stream fails or the server ends it, refetches after reconnecting to
+  // pick up what arrived while it was down, closes cleanly on unmount, and
+  // triggers a refetch each time a "notification" event arrives so the
+  // new row is on screen instantly.
   useEffect(() => {
     if (!isAuthed) {
       return;
     }
     let stopped = false;
     let attempt = 0;
+    let reconnecting = false;
     let timer: number | undefined;
+    let healthyTimer: number | undefined;
     let controller: AbortController | undefined;
+
+    const markHealthy = (): void => {
+      window.clearTimeout(healthyTimer);
+      attempt = 0;
+    };
+
+    const reconnect = (): void => {
+      window.clearTimeout(healthyTimer);
+      if (stopped) {
+        return;
+      }
+      const delay = Math.min(
+        RECONNECT_MAX_MS,
+        RECONNECT_BASE_MS * 2 ** attempt
+      );
+      attempt += 1;
+      reconnecting = true;
+      timer = window.setTimeout(connect, delay);
+    };
 
     const connect = (): void => {
       if (stopped) {
         return;
       }
-      const tokens = readTokens();
-      if (!tokens) {
-        // No token yet — try again after the next backoff tick. The
-        // SsoAuthProvider may still be hydrating.
-        timer = window.setTimeout(connect, RECONNECT_BASE_MS);
-        return;
-      }
       controller = openSseStream({
         url: gatewayUrlFor(STREAM_URL),
-        token: tokens.accessToken,
         onOpen: () => {
-          attempt = 0;
+          healthyTimer = window.setTimeout(markHealthy, STREAM_HEALTHY_MS);
+          if (reconnecting) {
+            reconnecting = false;
+            void refetch();
+          }
         },
         onEvent: (e) => {
+          markHealthy();
           if (e.event === 'notification') {
             void refetch();
           }
-          // 'ping' heartbeats are intentionally ignored.
+          // 'ping' heartbeats only mark the stream healthy.
         },
-        onError: () => {
-          if (stopped) {
-            return;
-          }
-          const delay = Math.min(
-            RECONNECT_MAX_MS,
-            RECONNECT_BASE_MS * 2 ** attempt
-          );
-          attempt += 1;
-          timer = window.setTimeout(connect, delay);
-        },
+        onError: reconnect,
+        onClose: reconnect,
       });
     };
 
     connect();
     return () => {
       stopped = true;
-      if (timer !== undefined) {
-        window.clearTimeout(timer);
-      }
+      window.clearTimeout(timer);
+      window.clearTimeout(healthyTimer);
       controller?.abort();
     };
   }, [isAuthed, refetch]);
@@ -180,11 +202,14 @@ export function RealNotificationProvider({
       setUnread((u) => Math.max(0, u - 1));
       try {
         await markReadCall(id);
-      } catch {
+      } catch (err) {
+        void msg.error(
+          `Couldn't mark the notification as read: ${errMsg(err)}`
+        );
         void refetch();
       }
     },
-    [refetch]
+    [msg, refetch]
   );
 
   const markAllRead = useCallback(async (): Promise<void> => {
@@ -192,21 +217,23 @@ export function RealNotificationProvider({
     setUnread(0);
     try {
       await markAllReadCall();
-    } catch {
+    } catch (err) {
+      void msg.error(`Couldn't mark all notifications as read: ${errMsg(err)}`);
       void refetch();
     }
-  }, [refetch]);
+  }, [msg, refetch]);
 
   const archive = useCallback(
     async (id: string): Promise<void> => {
       setItems((prev) => prev.filter((n) => n.id !== id));
       try {
         await archiveCall(id);
-      } catch {
+      } catch (err) {
+        void msg.error(`Couldn't archive the notification: ${errMsg(err)}`);
         void refetch();
       }
     },
-    [refetch]
+    [msg, refetch]
   );
 
   const value = useMemo<NotificationContextValue>(
@@ -214,12 +241,13 @@ export function RealNotificationProvider({
       items,
       unreadCount: unread,
       loading,
+      error,
       markRead,
       markAllRead,
       archive,
       refetch,
     }),
-    [items, unread, loading, markRead, markAllRead, archive, refetch]
+    [items, unread, loading, error, markRead, markAllRead, archive, refetch]
   );
 
   return <NotificationProvider value={value}>{children}</NotificationProvider>;

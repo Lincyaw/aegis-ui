@@ -1,4 +1,4 @@
-import { type ReactNode, StrictMode } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import '@fontsource-variable/geist';
@@ -8,11 +8,8 @@ import '@fontsource/google-sans-code/400.css';
 import '@fontsource/google-sans-code/500.css';
 import { getAegisTheme, ThemeProvider, useTheme } from '@lincyaw/aegis-ui';
 import '@lincyaw/aegis-ui/style.css';
-import { AgentmChannelProvider } from '@lincyaw/aegis-ui/transports';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App as AntdApp, ConfigProvider } from 'antd';
-
-import { useChatStore } from './ai/chatStore';
 
 import { ConsoleApp } from './App';
 
@@ -22,41 +19,13 @@ const queryClient = new QueryClient({
   },
 });
 
-const DEFAULT_AGENTM_GATEWAY_URL = 'ws://127.0.0.1:7777/agentm';
-
-const agentmGatewayUrl =
-  import.meta.env.VITE_AGENTM_GATEWAY_URL ?? DEFAULT_AGENTM_GATEWAY_URL;
-const agentmToken = import.meta.env.VITE_AGENTM_TOKEN;
-
-function MaybeAgentm({ children }: { children: ReactNode }): ReactNode {
-  const { currentId, loadMessages } = useChatStore();
-  // Why: remount provider on chatId switch so React `messages` state and
-  // streamMap reset cleanly — the provider only seeds from initialMessages
-  // via useState initializer.
-  return (
-    <AgentmChannelProvider
-      key={currentId}
-      channel={{
-        url: agentmGatewayUrl,
-        token: agentmToken,
-        chatId: currentId,
-      }}
-      initialMessages={loadMessages(currentId)}
-    >
-      {children}
-    </AgentmChannelProvider>
-  );
-}
-
 function ThemedRoot(): React.ReactElement {
   const { resolved } = useTheme();
   return (
     <ConfigProvider theme={getAegisTheme(resolved)}>
       <AntdApp component='div'>
         <QueryClientProvider client={queryClient}>
-          <MaybeAgentm>
-            <ConsoleApp />
-          </MaybeAgentm>
+          <ConsoleApp />
         </QueryClientProvider>
       </AntdApp>
     </ConfigProvider>

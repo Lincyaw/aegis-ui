@@ -4,6 +4,7 @@ import {
   Button as AegisButton,
   Chip,
   DataList,
+  type DataListColumn,
   DataTable,
   type DataTableCellTone,
   type DataTableColumn,
@@ -16,6 +17,7 @@ import {
   MonoValue,
   Panel,
   PanelTitle,
+  SearchInput,
   SectionDivider,
   Toolbar,
 } from '@lincyaw/aegis-ui';
@@ -280,6 +282,7 @@ const GALLERY_TASK_COLUMNS: Array<DataTableColumn<GalleryTaskRow>> = [
   {
     key: 'task',
     header: '题目',
+    truncate: false,
     render: (row) => (
       <IdentityCell
         name={row.title}
@@ -495,6 +498,7 @@ interface SampleEvent {
   level: 'info' | 'warn' | 'error';
   service: string;
   message: string;
+  durationMs: number;
 }
 
 const SERVICES = [
@@ -511,12 +515,14 @@ const LEVELS: Array<SampleEvent['level']> = ['info', 'warn', 'error'];
 function makeEvent(i: number): SampleEvent {
   const level = LEVELS[i % LEVELS.length] ?? 'info';
   const service = SERVICES[i % SERVICES.length] ?? 'gateway';
+  const durationMs = 20 + ((i * 37) % 4800) / 10;
   return {
     id: `evt-${String(i).padStart(6, '0')}`,
     ts: new Date(1_700_000_000_000 + i * 1000).toISOString(),
     level,
     service,
-    message: `request handled in ${(20 + (i % 480)).toString()}ms`,
+    message: `${service} handled the request`,
+    durationMs,
   };
 }
 
@@ -558,6 +564,13 @@ const eventColumns: Array<EventTableColumn<SampleEvent>> = [
     header: 'Message',
     render: (row) => row.message,
   },
+  {
+    key: 'duration',
+    header: 'Duration (ms)',
+    width: 110,
+    numeric: true,
+    render: (row) => row.durationMs.toFixed(1),
+  },
 ];
 
 const SMALL_EVENTS = makeEvents(50);
@@ -585,7 +598,8 @@ function EventTableSpecimen(): ReactNode {
     >
       <div>
         <MetricLabel as='div' size='xs'>
-          50 rows · sticky header · row selection
+          50 rows · onRowClick · rows take focus, ↑ ↓ move, Enter selects ·
+          header scrolls with the rows · numeric Duration column
         </MetricLabel>
         <EventTable
           columns={eventColumns}
@@ -600,7 +614,7 @@ function EventTableSpecimen(): ReactNode {
       </div>
       <div>
         <MetricLabel as='div' size='xs'>
-          10,000 rows · virtualization perf
+          10,000 rows · no onRowClick · plain rows, no hover, no tab stops
         </MetricLabel>
         <EventTable
           columns={eventColumns}
@@ -622,7 +636,122 @@ function EventTableSpecimen(): ReactNode {
           maxVisibleRows={12}
         />
       </div>
+      <div>
+        <MetricLabel as='div' size='xs'>
+          loading · empty
+        </MetricLabel>
+        <div className='gallery__stack'>
+          <EventTable
+            columns={eventColumns}
+            data={[]}
+            rowKey={(row) => row.id}
+            loading
+            maxVisibleRows={4}
+          />
+          <EventTable
+            columns={eventColumns}
+            data={[]}
+            rowKey={(row) => row.id}
+            maxVisibleRows={4}
+          />
+        </div>
+      </div>
     </div>
+  );
+}
+
+const TOOLBAR_FILTERS = [
+  { key: 'type', label: 'type: NetworkLatency' },
+  { key: 'target', label: 'target: order-svc' },
+];
+
+function ToolbarFiltersSpecimen(): ReactNode {
+  const [search, setSearch] = useState('latency');
+  const [filters, setFilters] = useState(TOOLBAR_FILTERS);
+  return (
+    <Toolbar
+      left={
+        <>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            onClear={() => setSearch('')}
+            placeholder='Search injections…'
+          />
+          {filters.map((f) => (
+            <Chip
+              key={f.key}
+              onClose={() =>
+                setFilters((cur) => cur.filter((c) => c.key !== f.key))
+              }
+            >
+              {f.label}
+            </Chip>
+          ))}
+        </>
+      }
+      right={<Chip tone='ink'>+ New injection</Chip>}
+    />
+  );
+}
+
+const DATA_LIST_ITEMS = [
+  { id: 'ds-001', name: 'wikitext-103', status: 'ready' },
+  { id: 'ds-002', name: 'imagenet-mini', status: 'syncing' },
+  { id: 'ds-003', name: 'common-crawl-en', status: 'ready' },
+];
+
+const DATA_LIST_COLUMNS: Array<
+  DataListColumn<(typeof DATA_LIST_ITEMS)[number]>
+> = [
+  {
+    key: 'id',
+    header: 'ID',
+    render: (row) => <MonoValue size='sm'>{row.id}</MonoValue>,
+  },
+  { key: 'name', header: 'Name' },
+  { key: 'status', header: 'Status' },
+];
+
+function DataListSelectSpecimen(): ReactNode {
+  const [selectedId, setSelectedId] = useState('ds-001');
+  return (
+    <Specimen
+      caption='onSelect · one tab stop, ↑ ↓ Home End move between rows, Enter or Space selects'
+      span={3}
+    >
+      <DataList
+        items={DATA_LIST_ITEMS}
+        columns={DATA_LIST_COLUMNS}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+      />
+    </Specimen>
+  );
+}
+
+function ResizableColumnsSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<Array<string | number>>([]);
+  return (
+    <Specimen
+      caption='resizable · drag a header edge, or Tab to its handle and press ← → Home · selectable · persistKey keeps the widths'
+      span={3}
+    >
+      <DataTable
+        columns={GALLERY_MODEL_COLUMNS.map((col) => ({
+          ...col,
+          resizable: true,
+          width: col.key === 'model' ? 220 : 120,
+          minWidth: 80,
+        }))}
+        data={GALLERY_MODEL_ROWS}
+        rowKey={(row) => row.model}
+        persistKey='gallery.resizable-columns'
+        selectable
+        selectedKeys={selected}
+        onSelectedKeysChange={setSelected}
+      />
+    </Specimen>
   );
 }
 
@@ -630,16 +759,11 @@ export function TablesSection() {
   return (
     <Panel title={<PanelTitle size='lg'>Tables & Toolbar</PanelTitle>}>
       <SectionDivider>Toolbar</SectionDivider>
-      <Specimen caption='search + filters + action' span={3}>
-        <Toolbar
-          searchPlaceholder='Search injections…'
-          searchValue='latency'
-          filters={[
-            { key: 'type', label: 'type: NetworkLatency' },
-            { key: 'target', label: 'target: order-svc' },
-          ]}
-          action={<Chip tone='ink'>+ New injection</Chip>}
-        />
+      <Specimen
+        caption='left: SearchInput + removable filter Chips · right: action'
+        span={3}
+      >
+        <ToolbarFiltersSpecimen />
       </Specimen>
 
       <SectionDivider>DataTable · framed</SectionDivider>
@@ -673,6 +797,9 @@ export function TablesSection() {
           </Panel>
         </Specimen>
       </div>
+
+      <SectionDivider>DataTable · resizable columns</SectionDivider>
+      <ResizableColumnsSpecimen />
 
       <SectionDivider>DataTable · with data</SectionDivider>
       <Specimen
@@ -858,18 +985,10 @@ export function TablesSection() {
       </Specimen>
 
       <SectionDivider>DataList</SectionDivider>
-      <Specimen caption='compact list · selectable rows' span={3}>
+      <Specimen caption='plain rows · selectedId without onSelect' span={3}>
         <DataList
-          items={[
-            { id: 'ds-001', name: 'wikitext-103', status: 'ready' },
-            { id: 'ds-002', name: 'imagenet-mini', status: 'syncing' },
-            { id: 'ds-003', name: 'common-crawl-en', status: 'ready' },
-          ]}
-          columns={[
-            { key: 'id', label: 'ID' },
-            { key: 'name', label: 'Name' },
-            { key: 'status', label: 'Status' },
-          ]}
+          items={DATA_LIST_ITEMS}
+          columns={DATA_LIST_COLUMNS}
           selectedId='ds-002'
           surface={{
             id: 'gallery.list.datasets',
@@ -887,6 +1006,7 @@ export function TablesSection() {
           }}
         />
       </Specimen>
+      <DataListSelectSpecimen />
     </Panel>
   );
 }

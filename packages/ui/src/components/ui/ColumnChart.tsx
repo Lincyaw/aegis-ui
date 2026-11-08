@@ -9,6 +9,7 @@ import {
   staggeredProgress,
   zeroAnchoredDomain,
 } from '../../lib/chart';
+import { useStrings } from '../../locale';
 import './ColumnChart.css';
 import { RankBar } from './RankBar';
 import { SeriesLabel } from './SeriesLabel';
@@ -72,6 +73,7 @@ export function ColumnChart({
   linkComponent: Link = DefaultLink,
   className,
 }: ColumnChartProps): ReactElement {
+  const strings = useStrings();
   const narrow = useMediaQuery(NARROW_QUERY);
   const values = items.flatMap((item) => [
     ...(item.value === null ? [] : [item.value]),
@@ -226,7 +228,7 @@ export function ColumnChart({
             )}
             {/* The plot is hidden from screen readers, so each name reads its value. */}
             <span className="aegis-column-chart__reading">
-              {item.value === null ? '—' : format(item.value)}
+              {item.value === null ? strings.noValue : format(item.value)}
               {item.interval === undefined
                 ? ''
                 : ` (${format(item.interval[0])}–${format(item.interval[1])})`}

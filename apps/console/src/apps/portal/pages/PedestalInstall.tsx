@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import {
+  Alert,
   Button,
   Chip,
   CodeEditor,
@@ -11,40 +12,25 @@ import {
   MonoValue,
   PageHeader,
   Panel,
+  Select,
+  SkeletonText,
+  Steps,
   TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import {
-  type ContainerContainerVersionResp,
   ContainerType,
   type PedestalInstallPedestalReq,
 } from '@lincyaw/portal';
-import { useQuery } from '@tanstack/react-query';
-import { App as AntdApp, Select, Spin } from 'antd';
+import { App as AntdApp } from 'antd';
 import yaml from 'js-yaml';
 
 import { errMsg } from '../../../api/apiClient';
+import { useContainersList, useContainerVersions } from '../api/containers';
 import { useInstallPedestal, usePedestalHelmConfig } from '../api/pedestals';
-import { containersApi } from '../api/portal-client';
 import { useSystems } from '../api/systems';
-import { WizardSteps } from '../components/WizardSteps';
-import { useContainersList } from '../hooks/useContainers';
 
 const STEPS = ['System', 'Container version', 'Helm values', 'Review'];
-
-function useContainerVersions(containerId: number | undefined) {
-  return useQuery<ContainerContainerVersionResp[]>({
-    queryKey: ['containers', 'versions', containerId],
-    enabled: containerId !== undefined && Number.isFinite(containerId),
-    queryFn: async () => {
-      if (containerId === undefined) {
-        return [];
-      }
-      const res = await containersApi.listContainerVersions({ containerId });
-      return res.data.data?.items ?? [];
-    },
-  });
-}
 
 type HelmParseResult =
   | { ok: true; value: Record<string, unknown> | undefined }
@@ -93,7 +79,7 @@ export default function PedestalInstall() {
   const installMutation = useInstallPedestal();
 
   const versions = useMemo(
-    () => versionsQuery.data ?? [],
+    () => versionsQuery.data?.items ?? [],
     [versionsQuery.data]
   );
 
@@ -115,29 +101,17 @@ export default function PedestalInstall() {
 
   const helmParse = useMemo(() => parseHelmYaml(helmValues), [helmValues]);
 
-  const onNext = (): void => {
-    if (step === 0 && !systemCode) {
-      void msg.error('Pick a system to continue');
-      return;
-    }
-    if (step === 1 && (containerId === undefined || versionId === undefined)) {
-      void msg.error('Pick a container version to continue');
-      return;
-    }
-    if (step === 2 && !helmParse.ok) {
-      void msg.error(`Helm values: ${helmParse.error}`);
-      return;
-    }
-    setStep((s) => Math.min(s + 1, STEPS.length - 1));
-  };
+  const stepReady =
+    step === 0
+      ? systemCode !== ''
+      : step === 1
+        ? containerId !== undefined && versionId !== undefined
+        : step === 2
+          ? helmParse.ok
+          : true;
 
-  const onBack = (): void => {
-    setStep((s) => Math.max(s - 1, 0));
-  };
-
-  const onSubmit = async (): Promise<void> => {
-    if (versionId === undefined) {
-      void msg.error('Container version is required');
+  const onSubmit = (): void => {
+    if (versionId === undefined || !helmParse.ok) {
       return;
     }
     const body: PedestalInstallPedestalReq = {
@@ -147,23 +121,21 @@ export default function PedestalInstall() {
     if (namespace.trim().length > 0) {
       body.namespace = namespace.trim();
     }
-    if (!helmParse.ok) {
-      void msg.error(`Helm values: ${helmParse.error}`);
-      return;
-    }
     if (helmParse.value) {
       body.helm_values = helmParse.value;
     }
-    try {
-      const result = await installMutation.mutateAsync(body);
-      void msg.success(`Pedestal ${result.release ?? systemCode} installed`);
-      navigate(`pedestals/${result.release ?? systemCode}`);
-    } catch {
-      void msg.error('Install failed');
-    }
+    installMutation.mutate(body, {
+      onSuccess: (result) => {
+        void msg.success(`Pedestal ${result.release ?? systemCode} installed`);
+        navigate(`pedestals/${result.release ?? systemCode}`);
+      },
+      onError: (err) => {
+        void msg.error(`Install failed: ${errMsg(err)}`);
+      },
+    });
   };
 
-  const systems = systemsQuery.data ?? [];
+  const systems = systemsQuery.data?.items ?? [];
   const containers = containersQuery.data?.items ?? [];
   const selectedContainer = containers.find((c) => c.id === containerId);
   const selectedVersion = versions.find((v) => v.id === versionId);
@@ -180,19 +152,34 @@ export default function PedestalInstall() {
           </Button>
         }
       />
-      <WizardSteps steps={STEPS} activeIndex={step} />
+      <Steps
+        ariaLabel='Install steps'
+        current={step}
+        items={STEPS.map((label) => ({ key: label, label }))}
+      />
 
       {step === 0 && (
         <Panel>
-          <FormRow label='System'>
+          <FormRow
+            label='System'
+            controlId={
+              systemsQuery.isLoading || systemsQuery.isError
+                ? undefined
+                : 'pedestal-install-system'
+            }
+          >
             {systemsQuery.isLoading ? (
-              <Spin />
+              <SkeletonText lines={1} />
+            ) : systemsQuery.isError ? (
+              <Chip tone='warning'>
+                {`Failed to load systems: ${errMsg(systemsQuery.error)}`}
+              </Chip>
             ) : (
               <Select
-                style={{ width: '100%' }}
-                value={systemCode || undefined}
+                id='pedestal-install-system'
+                value={systemCode}
                 onChange={setSystemCode}
-                placeholder='select system'
+                placeholder='Select a system'
                 options={systems.map((s) => ({
                   value: s.name ?? '',
                   label: `${s.name ?? ''}${s.display_name ? ` — ${s.display_name}` : ''}`,
@@ -205,9 +192,22 @@ export default function PedestalInstall() {
 
       {step === 1 && (
         <Panel>
-          <FormRow label='Pedestal container'>
+          <FormRow
+            label='Pedestal container'
+            controlId={
+              containersQuery.isLoading ||
+              containersQuery.isError ||
+              containers.length === 0
+                ? undefined
+                : 'pedestal-install-container'
+            }
+          >
             {containersQuery.isLoading ? (
-              <Spin />
+              <SkeletonText lines={1} />
+            ) : containersQuery.isError ? (
+              <Chip tone='warning'>
+                {`Failed to load containers: ${errMsg(containersQuery.error)}`}
+              </Chip>
             ) : containers.length === 0 ? (
               <EmptyState
                 title='No pedestal containers'
@@ -215,38 +215,51 @@ export default function PedestalInstall() {
               />
             ) : (
               <Select
-                style={{ width: '100%' }}
-                value={containerId}
+                id='pedestal-install-container'
+                value={containerId === undefined ? '' : String(containerId)}
                 onChange={(value) => {
-                  setContainerId(value);
+                  setContainerId(Number(value));
                   setVersionId(undefined);
                   setHelmTouched(false);
                 }}
-                placeholder='select container'
+                placeholder='Select a container'
                 options={containers.map((c) => ({
-                  value: c.id ?? 0,
-                  label: c.name ?? `container ${c.id ?? '?'}`,
+                  value: String(c.id ?? ''),
+                  label: c.name ?? `container ${String(c.id ?? '?')}`,
                 }))}
               />
             )}
           </FormRow>
-          <FormRow label='Version'>
+          <FormRow
+            label='Version'
+            controlId={
+              containerId === undefined ||
+              versionsQuery.isLoading ||
+              versionsQuery.isError
+                ? undefined
+                : 'pedestal-install-version'
+            }
+          >
             {containerId === undefined ? (
               '—'
             ) : versionsQuery.isLoading ? (
-              <Spin />
+              <SkeletonText lines={1} />
+            ) : versionsQuery.isError ? (
+              <Chip tone='warning'>
+                {`Failed to load versions: ${errMsg(versionsQuery.error)}`}
+              </Chip>
             ) : (
               <Select
-                style={{ width: '100%' }}
-                value={versionId}
+                id='pedestal-install-version'
+                value={versionId === undefined ? '' : String(versionId)}
                 onChange={(value) => {
-                  setVersionId(value);
+                  setVersionId(Number(value));
                   setHelmTouched(false);
                 }}
-                placeholder='select version'
+                placeholder='Select a version'
                 options={versions.map((v) => ({
-                  value: v.id ?? 0,
-                  label: `${v.name ?? `v${v.id ?? '?'}`}${v.image_ref ? ` — ${v.image_ref}` : ''}`,
+                  value: String(v.id ?? ''),
+                  label: `${v.name ?? `v${String(v.id ?? '?')}`}${v.image_ref ? ` — ${v.image_ref}` : ''}`,
                 }))}
               />
             )}
@@ -256,8 +269,12 @@ export default function PedestalInstall() {
 
       {step === 2 && (
         <Panel>
-          <FormRow label='Namespace (optional)'>
+          <FormRow
+            label='Namespace (optional)'
+            controlId='pedestal-install-namespace'
+          >
             <TextField
+              id='pedestal-install-namespace'
               value={namespace}
               onChange={(e) => setNamespace(e.target.value)}
               placeholder={systemCode}
@@ -265,9 +282,14 @@ export default function PedestalInstall() {
           </FormRow>
           <FormRow label='Helm values override (optional)'>
             {helmConfigQuery.isLoading ? (
-              <Spin />
+              <SkeletonText />
             ) : (
-              <>
+              <div className='page-stack'>
+                {helmConfigQuery.isError && (
+                  <Chip tone='caution'>
+                    {`Chart defaults unavailable: ${errMsg(helmConfigQuery.error)}`}
+                  </Chip>
+                )}
                 <CodeEditor
                   value={helmValues}
                   onChange={(value) => {
@@ -275,12 +297,12 @@ export default function PedestalInstall() {
                     setHelmValues(value);
                   }}
                   language='yaml'
-                  height={240}
+                  height='calc(var(--space-16) * 3.75)'
                 />
                 {!helmParse.ok && (
-                  <Chip tone='warning'>YAML error: {helmParse.error}</Chip>
+                  <Chip tone='warning'>{`YAML error: ${helmParse.error}`}</Chip>
                 )}
-              </>
+              </div>
             )}
           </FormRow>
         </Panel>
@@ -330,23 +352,27 @@ export default function PedestalInstall() {
         </Panel>
       )}
 
-      <div className='page-action-row'>
+      <div className='wizard-actions'>
         {step > 0 && (
-          <Button tone='secondary' onClick={onBack}>
+          <Button
+            tone='secondary'
+            onClick={() => setStep((s) => Math.max(s - 1, 0))}
+          >
             Back
           </Button>
         )}
-        {step < STEPS.length - 1 && (
-          <Button tone='primary' onClick={onNext}>
-            Next
-          </Button>
-        )}
-        {step === STEPS.length - 1 && (
+        {step < STEPS.length - 1 ? (
           <Button
             tone='primary'
-            onClick={() => {
-              void onSubmit();
-            }}
+            disabled={!stepReady}
+            onClick={() => setStep((s) => Math.min(s + 1, STEPS.length - 1))}
+          >
+            Next
+          </Button>
+        ) : (
+          <Button
+            tone='primary'
+            onClick={onSubmit}
             disabled={installMutation.isPending || !helmParse.ok}
           >
             {installMutation.isPending ? 'Installing…' : 'Install'}
@@ -355,15 +381,9 @@ export default function PedestalInstall() {
       </div>
 
       {installMutation.isPending && (
-        <Panel>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Spin />
-            <span>
-              Installing release — backend may take up to 10 minutes to
-              reconcile.
-            </span>
-          </div>
-        </Panel>
+        <Alert title='Installing the release'>
+          The backend may take up to 10 minutes to reconcile.
+        </Alert>
       )}
     </>
   );

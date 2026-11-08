@@ -2,61 +2,59 @@ import { useParams } from 'react-router-dom';
 
 import {
   Button,
-  Chip,
   DangerZone,
   EmptyState,
-  ErrorState,
   KeyValueList,
   MetricCard,
   MonoValue,
   PageHeader,
   Panel,
   PanelTitle,
+  SkeletonText,
   TimeDisplay,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
-import { useActiveProjectStore } from '../hooks/useActiveProject';
-import { useDeleteProject, useProject } from '../hooks/useProjects';
+import { useDeleteProject, useProject } from '../api/projects';
+import { DeleteButton } from '../components/DeleteButton';
+import { LoadError } from '../components/LoadError';
+import { StatusChip } from '../components/StatusChip';
+import { useActiveProjectStore } from '../state/active-project';
 
 export default function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useAppNavigate();
-  const { message: msg, modal } = AntdApp.useApp();
+  const { message: msg } = AntdApp.useApp();
+  const activeProjectId = useActiveProjectStore((s) => s.activeProjectId);
   const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
   const deleteProject = useDeleteProject();
 
   const numericId = projectId ? Number(projectId) : undefined;
   const { data: project, isLoading, isError, error } = useProject(numericId);
 
-  if (isLoading) {
-    return <PageHeader title='Loading project…' />;
-  }
-
-  if (isError) {
+  if (isLoading || isError || !project) {
     return (
       <>
-        <PageHeader title='Project not found' />
+        <PageHeader title={`Project ${projectId ?? ''}`} />
         <Panel>
-          <ErrorState
-            title='Failed to load project'
-            description={error.message}
-          />
-        </Panel>
-      </>
-    );
-  }
-
-  if (!project) {
-    return (
-      <>
-        <PageHeader title='Project not found' />
-        <Panel>
-          <EmptyState
-            title='Project not found'
-            description='It may have been removed.'
-          />
+          {isLoading ? (
+            <SkeletonText />
+          ) : isError ? (
+            <LoadError
+              error={error}
+              title='Failed to load project'
+              notFound={{
+                title: 'Project not found',
+                description: 'It may have been removed.',
+              }}
+            />
+          ) : (
+            <EmptyState
+              title='Project not found'
+              description={`"${projectId ?? ''}" is not a project id.`}
+            />
+          )}
         </Panel>
       </>
     );
@@ -75,9 +73,7 @@ export default function ProjectOverview() {
         title={project.name ?? `Project #${String(project.id ?? '')}`}
         action={
           <div className='page-action-row'>
-            <Chip tone={project.status === 'active' ? 'ink' : 'ghost'}>
-              {project.status ?? 'unknown'}
-            </Chip>
+            <StatusChip status={project.status} />
             <Button tone='primary' onClick={() => switchAndGo('inject')}>
               Switch & inject
             </Button>
@@ -143,38 +139,22 @@ export default function ProjectOverview() {
         title='Danger zone'
         description='Permanently delete this project and all associated data.'
       >
-        <Button
-          tone='secondary'
-          disabled={deleteProject.isPending}
-          onClick={() =>
-            modal.confirm({
-              title: `Delete ${project.name ?? 'project'}?`,
-              content: 'This action cannot be undone.',
-              okText: 'Delete',
-              okButtonProps: { danger: true },
-              onOk: () =>
-                new Promise<void>((resolve) => {
-                  if (project.id === undefined) {
-                    resolve();
-                    return;
-                  }
-                  deleteProject.mutate(project.id, {
-                    onSuccess: () => {
-                      void msg.success(`Deleted ${project.name ?? 'project'}`);
-                      navigate('projects');
-                      resolve();
-                    },
-                    onError: (err) => {
-                      void msg.error(`Delete failed: ${err.message}`);
-                      resolve();
-                    },
-                  });
-                }),
-            })
-          }
-        >
-          Delete project
-        </Button>
+        <DeleteButton
+          label='Delete project'
+          subject={project.name ?? `project ${String(project.id ?? '')}`}
+          consequence='The project and all its data are deleted. This cannot be undone.'
+          onDelete={async () => {
+            if (project.id === undefined) {
+              return;
+            }
+            await deleteProject.mutateAsync(project.id);
+            if (activeProjectId === project.id) {
+              setActiveProject(null);
+            }
+            void msg.success(`Deleted ${project.name ?? 'project'}`);
+            navigate('projects');
+          }}
+        />
       </DangerZone>
     </>
   );

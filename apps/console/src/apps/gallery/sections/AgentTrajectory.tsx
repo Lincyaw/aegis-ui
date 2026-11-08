@@ -394,7 +394,15 @@ const INSPECTABLE_SAMPLES: InspectableContent[] = [
     title: 'plain text',
     value: 'Pod payment-7f9c restarted 3 times in the last 10 minutes.',
   },
+  {
+    title: 'markdownPatterns · a host tag marks Markdown',
+    value:
+      '<agent_contract>\nReply with the root cause, then the evidence.\n</agent_contract>',
+  },
 ];
+
+// The host's own tag, passed as markdownPatterns.
+const GALLERY_MARKDOWN_PATTERNS = [/<agent_contract>/];
 
 function ContentInspectorSpecimen(): ReactNode {
   const [open, setOpen] = useState<InspectableContent | null>(null);
@@ -404,7 +412,10 @@ function ContentInspectorSpecimen(): ReactNode {
         {INSPECTABLE_SAMPLES.map((sample) => (
           <Specimen key={sample.title} caption={sample.title} span={2}>
             <div className='gallery__stack gallery__stack--fill'>
-              <ContentPreview content={sample} />
+              <ContentPreview
+                content={sample}
+                markdownPatterns={GALLERY_MARKDOWN_PATTERNS}
+              />
               <AegisButton tone='ghost' onClick={() => setOpen(sample)}>
                 Open in inspector
               </AegisButton>
@@ -416,6 +427,7 @@ function ContentInspectorSpecimen(): ReactNode {
         open={open !== null}
         content={open}
         onClose={() => setOpen(null)}
+        markdownPatterns={GALLERY_MARKDOWN_PATTERNS}
       />
     </>
   );

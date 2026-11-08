@@ -1,11 +1,8 @@
-export { ActiveAppEnvironmentProvider } from './EnvironmentContext';
-export { useCurrentEnvironment, useEnvironmentManifest } from './hooks';
+export { EnvironmentProvider } from './EnvironmentProvider';
 export {
-  clearManifestCache,
-  fetchManifest,
-  manifestUrl,
-  validateManifest,
-} from './manifest';
+  useCurrentEnvironment,
+  useEnvironmentManifest,
+} from './useEnvironment';
 export {
   ENVIRONMENT_CHANGED_EVENT,
   type AegisAppEnvironmentsConfig,

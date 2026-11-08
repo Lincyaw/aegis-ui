@@ -12,18 +12,21 @@ import { uniqueId } from '../../lib/id';
 
 export const WIRE_VERSION = 1;
 
-export type EnvelopeKind =
-  | 'hello'
-  | 'welcome'
-  | 'inbound'
-  | 'outbound'
-  | 'ack'
-  | 'ack_batch'
-  | 'ping'
-  | 'pong'
-  | 'error'
-  | 'bye'
-  | 'delivery_batch';
+const ENVELOPE_KINDS = [
+  'hello',
+  'welcome',
+  'inbound',
+  'outbound',
+  'ack',
+  'ack_batch',
+  'ping',
+  'pong',
+  'error',
+  'bye',
+  'delivery_batch',
+] as const;
+
+export type EnvelopeKind = (typeof ENVELOPE_KINDS)[number];
 
 export interface Envelope {
   v: number;
@@ -63,7 +66,7 @@ export interface AgentmChannelClientOptions {
   autoReconnect?: boolean;
 }
 
-export const RECONNECT_BACKOFF_MS = [1000, 2000, 5000, 10000];
+const RECONNECT_BACKOFF_MS = [1000, 2000, 5000, 10000];
 
 const HEADER_BYTES = 4;
 const MAX_FRAME_BYTES = 16 * 1024 * 1024;
@@ -105,10 +108,21 @@ function decodeFrame(data: ArrayBuffer | Uint8Array): Envelope {
     throw new Error('envelope wire payload is not a JSON object');
   }
   const env = parsed as Record<string, unknown>;
-  for (const required of ['v', 'id', 'kind', 'ts', 'body'] as const) {
-    if (!(required in env)) {
-      throw new Error(`envelope missing required field ${required}`);
-    }
+  if (typeof env.v !== 'number') {
+    throw new Error('envelope field v must be a number');
+  }
+  if (typeof env.id !== 'string') {
+    throw new Error('envelope field id must be a string');
+  }
+  if (!ENVELOPE_KINDS.some((kind) => kind === env.kind)) {
+    throw new Error(`envelope kind ${String(env.kind)} is not a known kind`);
+  }
+  if (typeof env.ts !== 'number') {
+    throw new Error('envelope field ts must be a number');
+  }
+  const { body } = env;
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new Error('envelope field body must be a JSON object');
   }
   return env as unknown as Envelope;
 }
@@ -171,12 +185,19 @@ export class AgentmChannelClient {
     return `${this.opts.channel}:${this.opts.chatId}`;
   }
 
-  /** Open the WebSocket and complete the hello/welcome handshake. */
+  /**
+   * Open the WebSocket and complete the hello/welcome handshake. Replaces
+   * the current connection, if any.
+   */
   async connect(): Promise<ConnectResult> {
     if (typeof WebSocket === 'undefined') {
       throw new Error('WebSocket is not available in this environment');
     }
     this.explicitlyClosed = false;
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     return this.openOnce();
   }
 
@@ -282,6 +303,7 @@ export class AgentmChannelClient {
   private async openOnce(): Promise<ConnectResult> {
     return new Promise<ConnectResult>((resolve, reject) => {
       this.setStatus(this.attempt === 0 ? 'connecting' : 'reconnecting');
+      this.dropSocket();
 
       let ws: WebSocket;
       try {
@@ -299,7 +321,12 @@ export class AgentmChannelClient {
       this.ws = ws;
       this.welcomePending = { resolve, reject };
 
+      // Every handler first checks that its socket is still the current
+      // one: a replaced socket's late events must not touch the new one.
       ws.addEventListener('open', () => {
+        if (this.ws !== ws) {
+          return;
+        }
         const hello: Envelope = {
           v: WIRE_VERSION,
           id: uniqueId(`hello-${this.opts.peerId}`),
@@ -321,6 +348,9 @@ export class AgentmChannelClient {
       });
 
       ws.addEventListener('message', (ev: MessageEvent) => {
+        if (this.ws !== ws) {
+          return;
+        }
         const data = ev.data as unknown;
         let env: Envelope;
         try {
@@ -331,8 +361,22 @@ export class AgentmChannelClient {
           } else if (data instanceof Blob) {
             // Blob path — async. Defer dispatch.
             void data.arrayBuffer().then(
-              (buf) => this.handleEnvelope(decodeFrame(buf)),
-              (err: unknown) => this.handleFatal(err),
+              (buf) => {
+                if (this.ws !== ws) {
+                  return;
+                }
+                let decoded: Envelope;
+                try {
+                  decoded = decodeFrame(buf);
+                } catch (err) {
+                  this.handleFatal(ws, err);
+                  return;
+                }
+                this.handleEnvelope(decoded);
+              },
+              (err: unknown) => {
+                this.handleFatal(ws, err);
+              },
             );
             return;
           } else {
@@ -341,13 +385,16 @@ export class AgentmChannelClient {
             );
           }
         } catch (err) {
-          this.handleFatal(err);
+          this.handleFatal(ws, err);
           return;
         }
         this.handleEnvelope(env);
       });
 
       ws.addEventListener('close', () => {
+        if (this.ws !== ws) {
+          return;
+        }
         this.ws = null;
         if (this.welcomePending) {
           this.failPending(new Error('socket closed before welcome'));
@@ -367,6 +414,17 @@ export class AgentmChannelClient {
         // The close handler does the reconnect bookkeeping.
       });
     });
+  }
+
+  /** Closes the current socket, if any, without scheduling a reconnect. */
+  private dropSocket(): void {
+    const old = this.ws;
+    if (!old) {
+      return;
+    }
+    this.ws = null;
+    this.failPending(new Error('connection replaced by a new connect()'));
+    old.close();
   }
 
   private handleEnvelope(env: Envelope): void {
@@ -429,18 +487,16 @@ export class AgentmChannelClient {
     }
   }
 
-  private handleFatal(err: unknown): void {
+  private handleFatal(ws: WebSocket, err: unknown): void {
+    if (this.ws !== ws) {
+      return;
+    }
     const e = err instanceof Error ? err : new Error(String(err));
+    console.error('[aegis] AgentM gateway sent a bad frame; reconnecting', e);
     if (this.welcomePending) {
       this.failPending(e);
     }
-    if (this.ws) {
-      try {
-        this.ws.close();
-      } catch {
-        /* ignore */
-      }
-    }
+    ws.close();
   }
 
   private failPending(err: Error): void {

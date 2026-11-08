@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import {
   Button,
   DataTable,
-  EmptyState,
   MonoValue,
   PageHeader,
   Panel,
@@ -12,31 +11,25 @@ import {
   useAppHref,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
+import type { EvaluationEvaluationResp } from '@lincyaw/portal';
 import { App as AntdApp } from 'antd';
 
-import { errMsg } from '../../../api/apiClient';
-import {
-  type EvaluationResp,
-  useDeleteEvaluation,
-  useEvaluations,
-} from '../api/hooks/useEvaluations';
+import { usePageSize } from '../../../hooks/usePageSize';
+import { useDeleteEvaluation, useEvaluations } from '../api/evaluations';
+import { DeleteButton } from '../components/DeleteButton';
+import { LoadError } from '../components/LoadError';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function EvalRuns() {
   const navigate = useAppNavigate();
   const href = useAppHref();
   const { message: msg } = AntdApp.useApp();
+  const { size, setSize } = usePageSize('eval', 20);
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, isError, error } = useEvaluations({
-    page,
-    size: PAGE_SIZE,
-  });
+  const { data, isLoading, isError, error } = useEvaluations(page, size);
   const del = useDeleteEvaluation();
-
-  const items = data?.items ?? [];
-  const total = data?.total ?? 0;
 
   return (
     <>
@@ -51,18 +44,15 @@ export default function EvalRuns() {
       />
       <Panel>
         {isError ? (
-          <EmptyState
-            title='Failed to load evaluations'
-            description={errMsg(error, 'Unknown error')}
-          />
+          <LoadError error={error} title='Failed to load evaluations' />
         ) : (
-          <DataTable<EvaluationResp>
+          <DataTable<EvaluationEvaluationResp>
             framed={false}
             loading={isLoading}
             emptyTitle='No evaluations yet'
             emptyDescription='Kick off a run to see results here.'
-            data={items}
-            rowKey={(r) => String(r.id)}
+            data={data?.items ?? []}
+            rowKey={(r) => r.id ?? -1}
             columns={[
               {
                 key: 'id',
@@ -104,7 +94,7 @@ export default function EvalRuns() {
                 header: 'F1',
                 render: (r) => (
                   <MonoValue size='sm'>
-                    {(r.f1_score ?? 0).toFixed(3)}
+                    {r.f1_score === undefined ? '—' : r.f1_score.toFixed(3)}
                   </MonoValue>
                 ),
               },
@@ -118,52 +108,33 @@ export default function EvalRuns() {
                 key: 'actions',
                 header: '',
                 render: (r) => (
-                  <Button
-                    tone='secondary'
+                  <DeleteButton
+                    subject={`evaluation ${String(r.id)}`}
                     disabled={r.id === undefined}
-                    onClick={() => {
+                    onDelete={async () => {
                       if (r.id === undefined) {
                         return;
                       }
-                      del.mutate(r.id, {
-                        onSuccess: () =>
-                          void msg.success(`Deleted ${String(r.id)}`),
-                        onError: (e) => void msg.error(e.message),
-                      });
+                      await del.mutateAsync(r.id);
+                      void msg.success(`Deleted evaluation ${String(r.id)}`);
                     }}
-                  >
-                    Delete
-                  </Button>
+                  />
                 ),
               },
             ]}
+            pagination={{
+              page,
+              pageSize: size,
+              total: data?.total,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              onChange: (nextPage, nextSize) => {
+                setPage(nextPage);
+                setSize(nextSize);
+              },
+            }}
           />
         )}
       </Panel>
-      {total > PAGE_SIZE ? (
-        <div
-          style={{
-            display: 'flex',
-            gap: 'var(--space-2)',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <Button
-            tone='secondary'
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Prev
-          </Button>
-          <Button
-            tone='secondary'
-            disabled={page * PAGE_SIZE >= total}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      ) : null}
     </>
   );
 }

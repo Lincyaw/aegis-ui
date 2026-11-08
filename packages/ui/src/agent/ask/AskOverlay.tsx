@@ -7,8 +7,10 @@ import {
   useState,
 } from 'react';
 
+import { defaultAgentChatValue } from '../chat/chat';
+import { useAgentChat } from '../chat/useAgentChat';
 import { AegisRuntimeContext } from '../core/aegisRuntimeContext';
-import type { AskContext, AskOrigin } from '../core/types';
+import type { AskContext, AskOrigin, AskRequest } from '../core/types';
 import './AskOverlay.css';
 import { AskPanel } from './AskPanel';
 import { type AskTrigger, buildAskContext } from './buildAskContext';
@@ -20,6 +22,46 @@ interface PanelState {
 }
 
 type TriggerInfo = AskTrigger & { el: HTMLElement };
+
+interface AskWindow extends Window {
+  __aegisOpenAskPanel?: (
+    trigger: AskTrigger,
+    anchorEl?: HTMLElement | null,
+  ) => void;
+}
+
+interface Opener {
+  owns: (el: Element | null) => boolean;
+  open: (trigger: AskTrigger, anchorEl: HTMLElement | null) => void;
+  close: () => void;
+}
+
+const SCOPE_ATTRIBUTE = 'data-aegis-ask-scope';
+
+// Every listening overlay, so the window helper reaches the one that owns
+// its anchor rather than whichever overlay mounted last.
+const openers = new Set<Opener>();
+
+// One Ask panel is open at a time, whichever overlay opened it.
+function closeOtherPanels(keep: () => void): void {
+  for (const opener of openers) {
+    if (opener.close !== keep) {
+      opener.close();
+    }
+  }
+}
+
+function openFromScript(
+  trigger: AskTrigger,
+  anchorEl: HTMLElement | null = null,
+): void {
+  for (const opener of openers) {
+    if (opener.owns(anchorEl)) {
+      opener.open(trigger, anchorEl);
+      return;
+    }
+  }
+}
 
 function findTrigger(target: EventTarget | null): TriggerInfo | null {
   if (!(target instanceof Element)) {
@@ -61,10 +103,55 @@ function findTrigger(target: EventTarget | null): TriggerInfo | null {
   return { origin, surfaceId, entityId, actionId, el: host };
 }
 
-export function AskOverlay(): ReactElement | null {
+function describeContext(context: AskContext): string {
+  const parts: string[] = [];
+  const { entity, action, surface } = context;
+  if (entity) {
+    parts.push(
+      `${entity.type} "${entity.label ?? entity.id}" (entity ${entity.id})`,
+    );
+  }
+  if (action) {
+    parts.push(`action "${action.label}" (${action.id})`);
+  }
+  if (surface) {
+    parts.push(
+      `${surface.kind} "${surface.label ?? surface.id}" (surface ${surface.id})`,
+    );
+  }
+  parts.push(`app ${context.appId}`);
+  return parts.join(' · ');
+}
+
+export interface AskOverlayProps {
+  /**
+   * Limits the overlay to this element. Keep the element in state through
+   * a callback ref, such as a `useState` setter, so the overlay follows it
+   * when it mounts or is replaced; while it is `null` the overlay answers
+   * nowhere. An overlay without a scope serves the rest of the page and
+   * leaves scoped elements to their own overlay.
+   */
+  scope?: HTMLElement | null;
+}
+
+/**
+ * Opens the AskPanel on a right-click or Cmd/Ctrl + . over any element with
+ * a `data-agent-*` attribute, and sends the question to the agent chat.
+ * It stays inert, leaving the browser's context menu alone, until an
+ * `<AgentChatProvider>` above it supplies a chat to send to.
+ */
+export function AskOverlay({
+  scope,
+}: AskOverlayProps = {}): ReactElement | null {
   const ctx = useContext(AegisRuntimeContext);
-  const runtime = ctx?.runtime ?? null;
+  const chat = useAgentChat();
+  const runtime =
+    chat === defaultAgentChatValue ? null : (ctx?.runtime ?? null);
   const [panel, setPanel] = useState<PanelState | null>(null);
+
+  const close = useCallback(() => {
+    setPanel(null);
+  }, []);
 
   const open = useCallback(
     (
@@ -72,14 +159,46 @@ export function AskOverlay(): ReactElement | null {
       anchor: DOMRect | null,
       point: { x: number; y: number } | null,
     ) => {
+      closeOtherPanels(close);
       setPanel({ context, anchor, point });
     },
-    [],
+    [close],
   );
 
-  const close = useCallback(() => {
-    setPanel(null);
-  }, []);
+  const owns = useCallback(
+    (el: Element | null): boolean => {
+      const owner = el?.closest(`[${SCOPE_ATTRIBUTE}]`) ?? null;
+      if (scope === undefined) {
+        return owner === null;
+      }
+      return scope !== null && owner === scope;
+    },
+    [scope],
+  );
+
+  useEffect(() => {
+    if (!runtime || !scope) {
+      return;
+    }
+    scope.setAttribute(SCOPE_ATTRIBUTE, '');
+    return () => {
+      scope.removeAttribute(SCOPE_ATTRIBUTE);
+    };
+  }, [runtime, scope]);
+
+  const { send, setPanelOpen } = chat;
+  const ask = useCallback(
+    (request: AskRequest) => {
+      void Promise.resolve(
+        send(
+          `${request.prompt}\n\nContext: ${describeContext(request.context)}`,
+        ),
+      );
+      setPanelOpen?.(true);
+      setPanel(null);
+    },
+    [send, setPanelOpen],
+  );
 
   // Handle right-click + keyboard triggers (delegated on document).
   useEffect(() => {
@@ -87,7 +206,7 @@ export function AskOverlay(): ReactElement | null {
       return;
     }
     const onContextMenu = (e: MouseEvent): void => {
-      if (e.shiftKey) {
+      if (e.shiftKey || !(e.target instanceof Element) || !owns(e.target)) {
         return;
       }
       const trigger = findTrigger(e.target);
@@ -108,6 +227,9 @@ export function AskOverlay(): ReactElement | null {
         return;
       }
       const target = (e.target as Element | null) ?? document.activeElement;
+      if (!owns(target)) {
+        return;
+      }
       const trigger = findTrigger(target);
       if (!trigger) {
         return;
@@ -123,7 +245,7 @@ export function AskOverlay(): ReactElement | null {
       document.removeEventListener('contextmenu', onContextMenu, true);
       document.removeEventListener('keydown', onKeyDown, true);
     };
-  }, [runtime, open]);
+  }, [runtime, open, owns]);
 
   // Programmatic open: external code subscribes via runtime.onAskTriggered
   // and may not need the panel; AskOverlay opens the default panel only for
@@ -132,24 +254,25 @@ export function AskOverlay(): ReactElement | null {
     if (!runtime || typeof window === 'undefined') {
       return;
     }
-    interface AskWindow extends Window {
-      __aegisOpenAskPanel?: (
-        trigger: AskTrigger,
-        anchorEl?: HTMLElement | null,
-      ) => void;
-    }
-    const w = window as AskWindow;
-    w.__aegisOpenAskPanel = (trigger, anchorEl) => {
-      const askContext = buildAskContext(runtime, trigger);
-      runtime.emitAskTriggered(askContext);
-      open(askContext, anchorEl?.getBoundingClientRect() ?? null, null);
+    const opener: Opener = {
+      owns,
+      open: (trigger, anchorEl) => {
+        const askContext = buildAskContext(runtime, trigger);
+        runtime.emitAskTriggered(askContext);
+        open(askContext, anchorEl?.getBoundingClientRect() ?? null, null);
+      },
+      close,
     };
+    const w = window as AskWindow;
+    openers.add(opener);
+    w.__aegisOpenAskPanel = openFromScript;
     return () => {
-      if (w.__aegisOpenAskPanel) {
+      openers.delete(opener);
+      if (openers.size === 0) {
         delete w.__aegisOpenAskPanel;
       }
     };
-  }, [runtime, open]);
+  }, [runtime, open, close, owns]);
 
   const portalled = useMemo(() => {
     if (!panel) {
@@ -161,9 +284,11 @@ export function AskOverlay(): ReactElement | null {
         anchorRect={panel.anchor}
         anchorPoint={panel.point}
         onClose={close}
+        onSend={ask}
+        sending={chat.sending}
       />
     );
-  }, [panel, close]);
+  }, [panel, close, ask, chat.sending]);
 
   if (!portalled) {
     return null;

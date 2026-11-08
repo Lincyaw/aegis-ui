@@ -1,7 +1,15 @@
-import type { TraceTraceLogsResp } from '@lincyaw/portal';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import type {
+  TraceSpansResp,
+  TraceTraceDetailResp,
+  TraceTraceLogsResp,
+} from '@lincyaw/portal';
+import { useQuery } from '@tanstack/react-query';
 
-import { tracesApi } from './portal-client';
+import { tracesApi } from '../../../api/portalClient';
+import { isActive } from '../domain/status';
+
+import { pollMs, type RefreshInterval, unlessFailed } from './polling';
+import { required } from './response';
 
 export interface TraceLogsOptions {
   limit?: number;
@@ -12,30 +20,67 @@ export interface TraceLogsOptions {
   cursor?: string;
 }
 
-export function useTraceLogs(
-  traceId: string | null | undefined,
-  opts?: TraceLogsOptions,
-  refetchMs?: number | false
-): UseQueryResult<TraceTraceLogsResp | undefined> {
-  const { limit = 200, level, q, start, end, cursor } = opts ?? {};
-  return useQuery({
-    queryKey: [
-      'portal',
-      'trace-logs',
-      traceId ?? null,
-      limit,
-      level ?? null,
-      q ?? null,
-      start ?? null,
-      end ?? null,
-      cursor ?? null,
-    ],
+export const tracesKeys = {
+  all: ['portal', 'traces'] as const,
+  detail: (traceId: string) => [...tracesKeys.all, 'detail', traceId] as const,
+  spans: (traceId: string) => [...tracesKeys.all, 'spans', traceId] as const,
+  logs: (traceId: string, opts: TraceLogsOptions) =>
+    [...tracesKeys.all, 'logs', traceId, opts] as const,
+};
+
+/** The orchestrator trace; `auto` polls while its state is active. */
+export function useProcessTrace(
+  traceId: string | undefined,
+  refresh: RefreshInterval
+) {
+  return useQuery<TraceTraceDetailResp>({
+    queryKey: tracesKeys.detail(traceId ?? ''),
+    enabled: Boolean(traceId),
     queryFn: async () => {
-      if (!traceId) {
-        return undefined;
-      }
-      const resp = await tracesApi.getTraceLogs({
-        traceId,
+      const res = await tracesApi.getTraceById({ traceId: traceId ?? '' });
+      return required(res.data.data, 'trace');
+    },
+    refetchInterval: (query) =>
+      query.state.status === 'error'
+        ? false
+        : pollMs(refresh, isActive(query.state.data?.state)),
+  });
+}
+
+export function useTraceSpans(
+  traceId: string | undefined,
+  refetchMs: number | false
+) {
+  return useQuery<TraceSpansResp>({
+    queryKey: tracesKeys.spans(traceId ?? ''),
+    enabled: Boolean(traceId),
+    queryFn: async () => {
+      const res = await tracesApi.getTraceSpans({ traceId: traceId ?? '' });
+      return required(res.data.data, 'spans');
+    },
+    refetchInterval: unlessFailed(refetchMs),
+  });
+}
+
+export function useTraceLogs(
+  traceId: string | undefined,
+  opts: TraceLogsOptions,
+  refetchMs: number | false
+) {
+  const { limit = 200, level, q, start, end, cursor } = opts;
+  return useQuery<TraceTraceLogsResp>({
+    queryKey: tracesKeys.logs(traceId ?? '', {
+      limit,
+      level,
+      q,
+      start,
+      end,
+      cursor,
+    }),
+    enabled: Boolean(traceId),
+    queryFn: async () => {
+      const res = await tracesApi.getTraceLogs({
+        traceId: traceId ?? '',
         start,
         end,
         q,
@@ -43,9 +88,8 @@ export function useTraceLogs(
         limit,
         cursor,
       });
-      return resp.data.data;
+      return required(res.data.data, 'logs');
     },
-    enabled: typeof traceId === 'string' && traceId.length > 0,
-    refetchInterval: refetchMs ?? false,
+    refetchInterval: unlessFailed(refetchMs),
   });
 }

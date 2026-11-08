@@ -1,16 +1,16 @@
+import { useState } from 'react';
+
 import {
   type AegisNotification,
   InboxPage,
   NotificationBell,
-  type NotificationContextValue,
-  NotificationProvider,
   Panel,
   PanelTitle,
   SectionDivider,
 } from '@lincyaw/aegis-ui';
 
 import { GALLERY_ACTIONS, GALLERY_NOW } from '../fixtures';
-import { Specimen } from '../shared';
+import { GalleryRouterLink, Specimen } from '../shared';
 
 const MOCK_NOTIFS: AegisNotification[] = [
   {
@@ -51,50 +51,75 @@ const MOCK_NOTIFS: AegisNotification[] = [
   },
 ];
 
-const MOCK_NOTIF_VALUE: NotificationContextValue = {
-  items: MOCK_NOTIFS,
-  unreadCount: MOCK_NOTIFS.filter((n) => !n.read).length,
-  loading: false,
-};
+const INBOX_LOAD_ERROR = new Error(
+  'GET /api/v2/inbox answered HTTP 503 Service Unavailable.'
+);
 
 export function NotificationsSection() {
+  const [items, setItems] = useState(MOCK_NOTIFS);
+  const [loadError, setLoadError] = useState<Error | null>(INBOX_LOAD_ERROR);
+  const markRead = (item: AegisNotification): void => {
+    setItems((prev) =>
+      prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
+    );
+  };
+  const markAllRead = (): void => {
+    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
   return (
     <Panel title={<PanelTitle size='lg'>Notifications</PanelTitle>}>
       <SectionDivider>NotificationBell</SectionDivider>
-      <NotificationProvider value={MOCK_NOTIF_VALUE}>
-        <div className='gallery__row'>
-          <Specimen caption='trigger · click to open'>
-            <div className='gallery__notif-bell-host'>
-              <NotificationBell
-                inboxPath='/inbox'
-                action={GALLERY_ACTIONS.notifOpen}
-              />
-            </div>
-          </Specimen>
-        </div>
-      </NotificationProvider>
+      <div className='gallery__row'>
+        <Specimen caption='trigger · click to open, an item to mark it read'>
+          <div className='gallery__notif-bell-host'>
+            <NotificationBell
+              items={items}
+              onOpen={markRead}
+              inboxPath='/inbox'
+              linkComponent={GalleryRouterLink}
+              action={GALLERY_ACTIONS.notifOpen}
+            />
+          </div>
+        </Specimen>
+      </div>
 
       <SectionDivider>InboxPage</SectionDivider>
-      <NotificationProvider value={MOCK_NOTIF_VALUE}>
-        <div className='gallery__inbox-frame'>
-          <InboxPage
-            surface={{
-              id: 'gallery.inbox',
-              kind: 'list',
-              label: 'Inbox',
-              askSuggestions: ['Any unread alerts?'],
-              project: (items) => ({
-                entities: items.slice(0, 3).map((n) => ({
-                  id: n.id,
-                  type: 'notification',
-                  label: n.title,
-                  data: { severity: n.severity, read: n.read },
-                })),
-              }),
-            }}
-          />
-        </div>
-      </NotificationProvider>
+      <div className='gallery__inbox-frame'>
+        <InboxPage
+          items={items}
+          onOpen={markRead}
+          onMarkAllRead={markAllRead}
+          surface={{
+            id: 'gallery.inbox',
+            kind: 'list',
+            label: 'Inbox',
+            askSuggestions: ['Any unread alerts?'],
+            project: (list) => ({
+              entities: list.slice(0, 3).map((n) => ({
+                id: n.id,
+                type: 'notification',
+                label: n.title,
+                data: { severity: n.severity, read: n.read },
+              })),
+            }),
+          }}
+        />
+      </div>
+      <div className='gallery__row'>
+        <Specimen caption='load failed · Try again clears the error'>
+          <div className='gallery__stack gallery__stack--fill'>
+            <InboxPage
+              items={loadError ? [] : items}
+              onOpen={markRead}
+              error={loadError}
+              onRetry={() => {
+                setLoadError(null);
+              }}
+            />
+          </div>
+        </Specimen>
+      </div>
     </Panel>
   );
 }

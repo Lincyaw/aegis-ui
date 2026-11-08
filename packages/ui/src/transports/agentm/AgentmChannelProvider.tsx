@@ -34,6 +34,7 @@ interface AgentmChannelProviderProps {
   children: ReactNode;
   /**
    * Initial messages — for resuming a prior thread server-side. The
+   * conversation restarts from them whenever `channel.chatId` changes. The
    * library still does not persist anything itself.
    */
   initialMessages?: AgentMessage[];
@@ -147,6 +148,14 @@ export function AgentmChannelProvider({
   );
   const [sending, setSending] = useState<boolean>(false);
   const [status, setStatus] = useState<ConnectionStatus>('idle');
+  // Reset in render, not in an effect, so the new chat's first paint never
+  // shows the previous chat's messages.
+  const [chatId, setChatId] = useState(channel.chatId);
+  if (channel.chatId !== chatId) {
+    setChatId(channel.chatId);
+    setMessages(initialMessages ?? []);
+    setSending(false);
+  }
   const clientRef = useRef<AgentmChannelClient | null>(null);
   // Maps stream_id → message id so we can append chunks to the same row.
   const streamMapRef = useRef<Map<string, string>>(new Map());
@@ -190,6 +199,10 @@ export function AgentmChannelProvider({
 
     const offStatus = client.onStatusChange((s) => {
       setStatus(s);
+      // A reply cannot arrive on a dropped connection; free the composer.
+      if (s !== 'connected') {
+        setSending(false);
+      }
       onStatusRef.current?.(s);
     });
 
@@ -200,7 +213,28 @@ export function AgentmChannelProvider({
         return;
       }
       setSending(false);
-      setMessages((prev) => appendOutbound(prev, mapped, streamMapRef.current));
+      // Stream bookkeeping stays out of the updater, which StrictMode runs
+      // twice.
+      const streams = streamMapRef.current;
+      let id: string;
+      if (mapped.streamId) {
+        id = streams.get(mapped.streamId) ?? uniqueId('msg');
+        if (mapped.final) {
+          streams.delete(mapped.streamId);
+        } else {
+          streams.set(mapped.streamId, id);
+        }
+      } else {
+        id = uniqueId('msg');
+      }
+      const message: AgentMessage = {
+        id,
+        role: mapped.role ?? 'assistant',
+        content: mapped.content,
+        timestamp: new Date().toISOString(),
+        ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
+      };
+      setMessages((prev) => upsertMessage(prev, message));
     });
 
     const offError = client.onError((env) => {
@@ -303,56 +337,22 @@ export function AgentmChannelProvider({
   return <AgentChatProvider value={value}>{children}</AgentChatProvider>;
 }
 
-function appendOutbound(
+// contrib/channels sends cumulative content per stream_id (each chunk is
+// the full text so far, not a delta), so a later chunk replaces the row.
+function upsertMessage(
   prev: AgentMessage[],
-  mapped: MappedOutbound,
-  streamMap: Map<string, string>,
+  message: AgentMessage,
 ): AgentMessage[] {
-  const role: AgentMessageRole = mapped.role ?? 'assistant';
-  const timestamp = new Date().toISOString();
-
-  if (mapped.streamId) {
-    const existingId = streamMap.get(mapped.streamId);
-    if (existingId) {
-      // contrib/channels sends cumulative content per stream_id (each
-      // chunk is the full text so far, not a delta), so replace.
-      const next = prev.map((m) =>
-        m.id === existingId
-          ? {
-              ...m,
-              content: mapped.content,
-              ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
-            }
-          : m,
-      );
-      if (mapped.final) {
-        streamMap.delete(mapped.streamId);
-      }
-      return next;
-    }
-    const id = uniqueId('msg');
-    streamMap.set(mapped.streamId, id);
-    const fresh: AgentMessage = {
-      id,
-      role,
-      content: mapped.content,
-      timestamp,
-      ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
-    };
-    if (mapped.final) {
-      streamMap.delete(mapped.streamId);
-    }
-    return [...prev, fresh];
+  if (!prev.some((m) => m.id === message.id)) {
+    return [...prev, message];
   }
-
-  return [
-    ...prev,
-    {
-      id: uniqueId('msg'),
-      role,
-      content: mapped.content,
-      timestamp,
-      ...(mapped.toolCall ? { toolCall: mapped.toolCall } : {}),
-    },
-  ];
+  return prev.map((m) =>
+    m.id === message.id
+      ? {
+          ...m,
+          content: message.content,
+          ...(message.toolCall ? { toolCall: message.toolCall } : {}),
+        }
+      : m,
+  );
 }

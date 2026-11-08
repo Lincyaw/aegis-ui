@@ -19,92 +19,6 @@
   flex-wrap: wrap;
 }
 
-.aegis-toolbar__search {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  background: var(--bg-page);
-  border: var(--size-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-md);
-  min-width: 0;
-  flex-shrink: 0;
-  transition: border-color var(--motion-fast);
-}
-
-.aegis-toolbar__search:focus-within {
-  border-color: var(--text-main);
-}
-
-.aegis-toolbar__search-icon {
-  color: var(--text-muted);
-  font-size: var(--fs-14);
-  flex-shrink: 0;
-}
-
-.aegis-toolbar__search-input {
-  border: none;
-  background: none;
-  outline: none;
-  font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  color: var(--text-main);
-  width: 15rem;
-  min-width: 7.5rem;
-}
-
-.aegis-toolbar__search-input::placeholder {
-  color: var(--text-muted);
-}
-
-.aegis-toolbar__filters {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.aegis-toolbar__filter-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: opacity var(--motion-fast);
-}
-
-.aegis-toolbar__filter-btn:hover {
-  opacity: 0.7;
-}
-
-.aegis-toolbar__filter-close {
-  font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  color: var(--text-muted);
-  padding: 0 var(--space-px);
-}
-
-.aegis-toolbar__clear {
-  font-family: var(--font-ui);
-  font-size: var(--fs-11);
-  font-weight: var(--fw-medium);
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: var(--space-px) var(--space-2);
-  border-radius: var(--radius-sm);
-  transition: color var(--motion-fast);
-}
-
-.aegis-toolbar__clear:hover {
-  color: var(--text-main);
-}
-
 .aegis-toolbar__center {
   display: flex;
   align-items: center;
@@ -126,10 +40,6 @@
   }
 
   .aegis-toolbar__left {
-    width: 100%;
-  }
-
-  .aegis-toolbar__search-input {
     width: 100%;
   }
 

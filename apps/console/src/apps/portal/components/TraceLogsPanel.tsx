@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import {
   Chip,
   EmptyState,
+  MetricLabel,
   PageSizeSelect,
   Panel,
   PanelTitle,
@@ -77,9 +78,9 @@ export function TraceLogsPanel({
       title={<PanelTitle size='base'>Logs</PanelTitle>}
       extra={
         total != null ? (
-          <span className='injection-process__last-event-label'>
+          <MetricLabel size='xs'>
             {`tail ${String(filters.limit)} · ~${String(total)} matched`}
-          </span>
+          </MetricLabel>
         ) : undefined
       }
     >

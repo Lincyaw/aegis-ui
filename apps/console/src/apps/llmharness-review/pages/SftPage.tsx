@@ -1,10 +1,4 @@
-import {
-  type ReactElement,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { type ReactElement, useMemo, useState } from 'react';
 
 import { FolderOpenOutlined } from '@ant-design/icons';
 import {
@@ -14,16 +8,20 @@ import {
   type DataTableColumn,
   EmptyState,
   ErrorState,
-  type FilterChip,
   MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
+  SearchInput,
+  SkeletonText,
   Tabs,
   Toolbar,
 } from '@lincyaw/aegis-ui';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { errMsg } from '../../../api/apiClient';
 import { SftRowDetail, SftStats } from '../components';
+import { llmhKeys } from '../queryKeys';
 import {
   clearStoredSftRoot,
   isFsAccessSupported,
@@ -32,17 +30,11 @@ import {
   restoreSftRoot,
   type SftRepo,
 } from '../repo';
-import type { DroppedRow, SftRow } from '../schemas';
+import type { SftRow } from '../schemas';
 
 import './SftPage.css';
 
 type Phase = 'extractor' | 'auditor';
-
-interface LoadedSft {
-  extractor: SftRow[];
-  auditor: SftRow[];
-  dropped: DroppedRow[];
-}
 
 function auditorSurfaced(row: SftRow): boolean {
   const call = row.target.tool_calls[0];
@@ -51,89 +43,78 @@ function auditorSurfaced(row: SftRow): boolean {
   return Boolean(v?.surface_reminder);
 }
 
-type RepoSource = 'blob' | 'fs';
+interface SftSource {
+  repo: SftRepo;
+  kind: 'blob' | 'fs';
+}
+
+async function resolveSftSource(): Promise<SftSource | null> {
+  const blob = probeBlobSftRepo();
+  if (blob) {
+    return { repo: blob, kind: 'blob' };
+  }
+  const fs = await restoreSftRoot();
+  return fs ? { repo: fs, kind: 'fs' } : null;
+}
 
 export function SftPage(): ReactElement {
-  const [repo, setRepo] = useState<SftRepo | null>(null);
-  const [repoSource, setRepoSource] = useState<RepoSource | null>(null);
-  const [data, setData] = useState<LoadedSft | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const queryClient = useQueryClient();
+  const [sourceError, setSourceError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('auditor');
   const [search, setSearch] = useState('');
   const [onlySurfaced, setOnlySurfaced] = useState(false);
   const [selected, setSelected] = useState<SftRow | null>(null);
 
-  const refresh = useCallback(async (r: SftRepo) => {
-    setLoading(true);
-    setError(null);
-    try {
+  const source = useQuery({
+    queryKey: llmhKeys.sftSource,
+    queryFn: resolveSftSource,
+    staleTime: Infinity,
+    gcTime: 0,
+    retry: false,
+  });
+  const repo = source.data?.repo ?? null;
+  const loaded = useQuery({
+    queryKey: llmhKeys.sft(repo),
+    queryFn: async () => {
+      if (!repo) {
+        return null;
+      }
       const [extractor, auditor, dropped] = await Promise.all([
-        r.readExtractor(),
-        r.readAuditor(),
-        r.readDropped(),
+        repo.readExtractor(),
+        repo.readAuditor(),
+        repo.readDropped(),
       ]);
-      setData({ extractor, auditor, dropped });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return { extractor, auditor, dropped };
+    },
+    enabled: repo !== null,
+  });
+  const data = loaded.data ?? null;
 
-  useEffect(() => {
-    let cancelled = false;
-    const blob = probeBlobSftRepo();
-    if (blob) {
-      setRepo(blob);
-      setRepoSource('blob');
-      void refresh(blob);
-      return;
-    }
-    restoreSftRoot()
-      .then((r) => {
-        if (cancelled) return;
-        if (r) {
-          setRepo(r);
-          setRepoSource('fs');
-          void refresh(r);
-        } else {
-          setLoading(false);
-        }
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : String(err));
-        setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [refresh]);
+  const setSource = (next: SftSource | null): void => {
+    queryClient.setQueryData(llmhKeys.sftSource, next);
+    setSelected(null);
+  };
 
-  const handlePick = useCallback(async () => {
-    setError(null);
+  const handlePick = async (): Promise<void> => {
+    setSourceError(null);
     try {
-      const r = await pickSftRoot();
-      setRepo(r);
-      setRepoSource('fs');
-      await refresh(r);
+      setSource({ repo: await pickSftRoot(), kind: 'fs' });
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      setError(err instanceof Error ? err.message : String(err));
+      setSourceError(errMsg(err));
     }
-  }, [refresh]);
+  };
 
-  const handleClear = useCallback(async () => {
-    if (repoSource === 'fs') {
-      await clearStoredSftRoot();
+  const handleClear = async (): Promise<void> => {
+    try {
+      if (source.data?.kind === 'fs') {
+        await clearStoredSftRoot();
+      }
+      setSource(null);
+    } catch (err) {
+      setSourceError(errMsg(err));
     }
-    setRepo(null);
-    setRepoSource(null);
-    setData(null);
-    setSelected(null);
-  }, [repoSource]);
+  };
 
   const rows: SftRow[] = useMemo(() => {
     if (!data) return [];
@@ -155,31 +136,48 @@ export function SftPage(): ReactElement {
     });
   }, [rows, search, phase, onlySurfaced]);
 
+  if (source.isPending) {
+    return (
+      <Panel title={<PanelTitle size='lg'>SFT preview</PanelTitle>}>
+        <SkeletonText lines={4} />
+      </Panel>
+    );
+  }
+
   if (!repo) {
     const fsSupported = isFsAccessSupported();
+    const error = source.isError ? errMsg(source.error) : sourceError;
+    const action = fsSupported ? (
+      <Button onClick={() => void handlePick()}>
+        <FolderOpenOutlined /> Open local directory
+      </Button>
+    ) : null;
     return (
       <Panel
         title={<PanelTitle size='lg'>SFT preview</PanelTitle>}
         extra={<MetricLabel>llmharness · sft</MetricLabel>}
       >
-        <EmptyState
-          title='No SFT source configured'
-          description={
-            fsSupported
-              ? 'Configure a Blob SFT source on the Connection page, or pick a local directory containing extractor.jsonl / auditor.jsonl / dropped.jsonl.'
-              : 'Configure a Blob SFT source on the Connection page. (Local-directory picking is not available in this browser.)'
-          }
-          action={
-            fsSupported ? (
-              <Button onClick={handlePick}>
-                <FolderOpenOutlined /> Open local directory
-              </Button>
-            ) : null
-          }
-        />
+        {error !== null ? (
+          <ErrorState
+            title='Could not open the SFT source'
+            description={error}
+            action={action}
+          />
+        ) : (
+          <EmptyState
+            title='No SFT source configured'
+            description={
+              fsSupported
+                ? 'Configure a Blob SFT source on the Connection page, or pick a local directory containing extractor.jsonl / auditor.jsonl / dropped.jsonl.'
+                : 'Configure a Blob SFT source on the Connection page. (Local-directory picking is not available in this browser.)'
+            }
+            action={action}
+          />
+        )}
       </Panel>
     );
   }
+  const repoSource = source.data?.kind;
 
   const columns: Array<DataTableColumn<SftRow>> = [
     {
@@ -208,9 +206,9 @@ export function SftPage(): ReactElement {
     {
       key: 'turn',
       header: 'turn',
-      align: 'right',
+      numeric: true,
       width: 80,
-      render: (r) => <MonoValue size='sm'>{r.turn_index}</MonoValue>,
+      render: (r) => r.turn_index,
     },
     ...(phase === 'auditor'
       ? [
@@ -231,12 +229,6 @@ export function SftPage(): ReactElement {
       : []),
   ];
 
-  const filterChips: FilterChip[] = [
-    ...(phase === 'auditor' && onlySurfaced
-      ? [{ key: 'surfaced', label: 'surfaced only' }]
-      : []),
-  ];
-
   return (
     <Panel
       title={<PanelTitle size='lg'>SFT preview</PanelTitle>}
@@ -245,7 +237,7 @@ export function SftPage(): ReactElement {
           <MetricLabel>
             {repoSource === 'blob' ? `blob · ${repo.label}` : repo.label}
           </MetricLabel>
-          <Button tone='ghost' onClick={() => void refresh(repo)}>
+          <Button tone='ghost' onClick={() => void loaded.refetch()}>
             Refresh
           </Button>
           <Button tone='ghost' onClick={() => void handleClear()}>
@@ -254,9 +246,13 @@ export function SftPage(): ReactElement {
         </>
       }
     >
-      {error && (
-        <ErrorState title='Failed to read SFT root' description={error} />
+      {loaded.isError && (
+        <ErrorState
+          title='Failed to read SFT root'
+          description={errMsg(loaded.error)}
+        />
       )}
+      {loaded.isPending && <SkeletonText lines={4} />}
       {data && (
         <>
           <SftStats
@@ -276,14 +272,25 @@ export function SftPage(): ReactElement {
             }}
           >
             <Toolbar
-              searchPlaceholder='sample_id / session / turn'
-              searchValue={search}
-              onSearchChange={setSearch}
-              filters={filterChips}
-              action={
+              left={
+                <>
+                  <SearchInput
+                    value={search}
+                    onChange={setSearch}
+                    onClear={() => setSearch('')}
+                    placeholder='sample_id / session / turn'
+                  />
+                  {phase === 'auditor' && onlySurfaced ? (
+                    <Chip onClose={() => setOnlySurfaced(false)}>
+                      surfaced only
+                    </Chip>
+                  ) : null}
+                </>
+              }
+              right={
                 phase === 'auditor' ? (
                   <Chip
-                    tone={onlySurfaced ? 'warning' : 'default'}
+                    tone={onlySurfaced ? 'ink' : 'default'}
                     onClick={() => setOnlySurfaced((v) => !v)}
                   >
                     surfaced only
@@ -297,7 +304,7 @@ export function SftPage(): ReactElement {
                 columns={columns}
                 data={visibleRows}
                 rowKey={(r) => `${r.root_session_id}#${r.turn_index}`}
-                loading={loading}
+                loading={loaded.isFetching}
                 emptyTitle='No SFT rows'
                 emptyDescription={
                   rows.length === 0

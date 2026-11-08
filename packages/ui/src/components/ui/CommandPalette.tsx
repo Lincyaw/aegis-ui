@@ -1,22 +1,42 @@
 import {
+  type KeyboardEvent,
   type ReactElement,
-  type KeyboardEvent as ReactKeyboardEvent,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
 } from 'react';
 
-import { useAegisAction } from '../../agent/core/hooks';
-import { type Command, formatShortcut, useCommands } from '../../commands';
-import './CommandPalette.css';
+import { SearchOutlined } from '@ant-design/icons';
 
-interface ScoredCommand {
-  cmd: Command;
-  score: number;
+import { type Command, formatShortcut } from '../../commands';
+import './CommandPalette.css';
+import { Dialog } from './Dialog';
+
+export interface CommandPaletteProps {
+  open: boolean;
+  /** The commands to search, already filtered to what the user may run. */
+  commands: Command[];
+  /** Runs the picked command; the palette closes itself first. */
+  onSelect: (command: Command) => void;
+  onClose: () => void;
+  /**
+   * Group labels in display order. Groups it doesn't list follow in
+   * alphabetical order; commands without a group join 'Other', which
+   * comes last unless listed here.
+   */
+  groupOrder?: string[];
+  title?: string;
+  placeholder?: string;
 }
 
-const OTHER_GROUP = 'Other';
+interface CommandGroup {
+  label: string;
+  commands: Command[];
+}
+
+const UNGROUPED = 'Other';
 
 function scoreCommand(cmd: Command, query: string): number {
   if (!query) {
@@ -39,243 +59,231 @@ function scoreCommand(cmd: Command, query: string): number {
   return 0;
 }
 
-function groupOrder(a: string, b: string): number {
-  const aQuick = a.toLowerCase().includes('quick');
-  const bQuick = b.toLowerCase().includes('quick');
-  if (aQuick && !bQuick) {
-    return -1;
+function groupCommands(
+  commands: Command[],
+  query: string,
+  groupOrder: string[],
+): CommandGroup[] {
+  const matches = commands
+    .map((cmd) => ({ cmd, score: scoreCommand(cmd, query.trim()) }))
+    .filter((m) => m.score > 0)
+    .sort(
+      (a, b) => b.score - a.score || a.cmd.label.localeCompare(b.cmd.label),
+    );
+
+  const byGroup = new Map<string, Command[]>();
+  for (const { cmd } of matches) {
+    const group = cmd.group ?? UNGROUPED;
+    const list = byGroup.get(group) ?? [];
+    list.push(cmd);
+    byGroup.set(group, list);
   }
-  if (bQuick && !aQuick) {
-    return 1;
-  }
-  if (a === OTHER_GROUP && b !== OTHER_GROUP) {
-    return 1;
-  }
-  if (b === OTHER_GROUP && a !== OTHER_GROUP) {
-    return -1;
-  }
-  return a.localeCompare(b);
+
+  const rank = (group: string): number => {
+    const listed = groupOrder.indexOf(group);
+    if (listed !== -1) {
+      return listed;
+    }
+    return group === UNGROUPED ? Number.MAX_SAFE_INTEGER : groupOrder.length;
+  };
+  return Array.from(byGroup.entries())
+    .sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b))
+    .map(([label, list]) => ({ label, commands: list }));
 }
 
-export function CommandPalette(): ReactElement | null {
-  const { commands, paletteOpen, setPaletteOpen, execute } = useCommands();
+const NO_GROUP_ORDER: string[] = [];
+
+/**
+ * A dialog that searches `commands` and runs the picked one through
+ * `onSelect`. The field is a combobox over a listbox of the matches:
+ * focus stays in the field while the arrow keys move the active option.
+ */
+export function CommandPalette({
+  open,
+  commands,
+  onSelect,
+  onClose,
+  groupOrder = NO_GROUP_ORDER,
+  title = 'Commands',
+  placeholder = 'Type a command…',
+}: CommandPaletteProps): ReactElement {
   const [query, setQuery] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (paletteOpen) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
       setQuery('');
-      setSelectedIndex(0);
-      // Focus after the modal mounts.
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-      });
+      setActiveIndex(0);
     }
-  }, [paletteOpen]);
+  }
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const idPrefix = useId();
+  const listId = `${idPrefix}-list`;
+  const optionId = (index: number): string => `${idPrefix}-option-${index}`;
 
-  const mode: 'command' | 'content' | 'ai' = useMemo(() => {
-    if (query.startsWith('>')) {
-      return 'content';
+  // Runs after the Dialog's own effect has focused its panel.
+  useEffect(() => {
+    if (open) {
+      inputRef.current?.focus();
     }
-    if (query.startsWith('?')) {
-      return 'ai';
-    }
-    return 'command';
-  }, [query]);
+  }, [open]);
 
-  const effectiveQuery = useMemo(() => {
-    if (mode === 'command') {
-      return query;
-    }
-    return query.slice(1).trim();
-  }, [mode, query]);
-
-  const groups = useMemo(() => {
-    if (mode !== 'command') {
-      return [];
-    }
-    const scored: ScoredCommand[] = commands
-      .map((cmd) => ({ cmd, score: scoreCommand(cmd, effectiveQuery) }))
-      .filter((s) => s.score > 0)
-      .sort((a, b) => {
-        if (a.score !== b.score) {
-          return b.score - a.score;
-        }
-        return a.cmd.label.localeCompare(b.cmd.label);
-      });
-
-    const byGroup = new Map<string, Command[]>();
-    for (const { cmd } of scored) {
-      const g = cmd.group ?? OTHER_GROUP;
-      const list = byGroup.get(g) ?? [];
-      list.push(cmd);
-      byGroup.set(g, list);
-    }
-    return Array.from(byGroup.entries())
-      .sort(([a], [b]) => groupOrder(a, b))
-      .map(([label, items]) => ({ label, items }));
-  }, [commands, effectiveQuery, mode]);
-
-  const flatResults = useMemo(() => groups.flatMap((g) => g.items), [groups]);
+  const groups = useMemo(
+    () => groupCommands(commands, query, groupOrder),
+    [commands, query, groupOrder],
+  );
+  const flat = useMemo(() => groups.flatMap((g) => g.commands), [groups]);
+  const hasIcons = flat.some((cmd) => Boolean(cmd.icon));
+  const active =
+    flat.length === 0 ? -1 : Math.min(activeIndex, flat.length - 1);
 
   useEffect(() => {
-    if (selectedIndex >= flatResults.length) {
-      setSelectedIndex(0);
-    }
-  }, [flatResults.length, selectedIndex]);
+    listRef.current
+      ?.querySelector('[aria-selected="true"]')
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [active]);
 
-  if (!paletteOpen) {
-    return null;
-  }
-
-  const handleClose = (): void => {
-    setPaletteOpen(false);
+  const select = (cmd: Command): void => {
+    onClose();
+    onSelect(cmd);
   };
 
-  const handleSelect = (cmd: Command): void => {
-    setPaletteOpen(false);
-    void execute(cmd.id).catch((err: unknown) => {
-      console.error('[command]', cmd.id, err);
-    });
-  };
-
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      if (flatResults.length > 0) {
-        setSelectedIndex((i) => (i + 1) % flatResults.length);
-      }
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    if (event.nativeEvent.isComposing) {
       return;
     }
-    if (event.key === 'ArrowUp') {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      if (flatResults.length > 0) {
-        setSelectedIndex((i) => (i === 0 ? flatResults.length - 1 : i - 1));
+      const count = flat.length;
+      if (count > 0) {
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        setActiveIndex(
+          (current) => (Math.min(current, count - 1) + step + count) % count,
+        );
       }
-      return;
-    }
-    if (event.key === 'Enter') {
+    } else if (event.key === 'Enter' && active >= 0) {
       event.preventDefault();
-      if (selectedIndex < flatResults.length) {
-        handleSelect(flatResults[selectedIndex]);
-      }
-      return;
-    }
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      handleClose();
+      select(flat[active]);
     }
   };
 
-  const indexOf = (cmd: Command): number =>
-    flatResults.findIndex((c) => c.id === cmd.id);
-
+  let index = 0;
   return (
-    <div
+    <Dialog
+      open={open}
+      title={title}
+      onClose={onClose}
+      width="lg"
       className="aegis-cmdk"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Command palette"
     >
-      <button
-        type="button"
-        className="aegis-cmdk__backdrop"
-        aria-label="Close command palette"
-        onClick={handleClose}
-      />
-      <div className="aegis-cmdk__card">
-        <div className="aegis-cmdk__input-row">
-          <input
-            ref={inputRef}
-            className="aegis-cmdk__input"
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a command or '>' to search…"
-            aria-label="Command search"
-            autoComplete="off"
-            spellCheck={false}
-          />
-        </div>
-
-        <div className="aegis-cmdk__results">
-          {mode === 'content' && (
-            <div className="aegis-cmdk__hint">
-              Content search is not yet wired.
-            </div>
-          )}
-          {mode === 'ai' && (
-            <div className="aegis-cmdk__hint">
-              Ask AI — agent integration not yet wired.
-            </div>
-          )}
-
-          {mode === 'command' && flatResults.length === 0 && (
-            <div className="aegis-cmdk__hint">No commands match.</div>
-          )}
-
-          {mode === 'command' &&
-            groups.map((group) => (
-              <div key={group.label} className="aegis-cmdk__group">
-                <div className="aegis-cmdk__group-label">{group.label}</div>
-                {group.items.map((cmd) => {
-                  const idx = indexOf(cmd);
+      <div className="aegis-cmdk__field">
+        <SearchOutlined className="aegis-cmdk__field-icon" aria-hidden />
+        <input
+          ref={inputRef}
+          className="aegis-cmdk__input"
+          type="text"
+          role="combobox"
+          aria-expanded
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+          aria-label={placeholder}
+          placeholder={placeholder}
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setActiveIndex(0);
+          }}
+          onKeyDown={onKeyDown}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </div>
+      <div className="aegis-cmdk__results">
+        <div
+          ref={listRef}
+          id={listId}
+          className="aegis-cmdk__list"
+          role="listbox"
+          aria-label={title}
+        >
+          {groups.map((group, groupIndex) => {
+            const labelId = `${idPrefix}-group-${groupIndex}`;
+            return (
+              <div
+                key={group.label}
+                className="aegis-cmdk__group"
+                role="group"
+                aria-labelledby={labelId}
+              >
+                <div
+                  id={labelId}
+                  className="aegis-cmdk__group-label"
+                  role="presentation"
+                >
+                  {group.label}
+                </div>
+                {group.commands.map((cmd) => {
+                  const optionIndex = index++;
+                  const isActive = optionIndex === active;
                   return (
-                    <CommandPaletteRow
+                    <div
                       key={cmd.id}
-                      cmd={cmd}
-                      active={idx === selectedIndex}
-                      onSelect={() => handleSelect(cmd)}
-                      onHover={() => setSelectedIndex(idx)}
-                    />
+                      id={optionId(optionIndex)}
+                      className={
+                        isActive
+                          ? 'aegis-cmdk__option aegis-cmdk__option--active'
+                          : 'aegis-cmdk__option'
+                      }
+                      role="option"
+                      aria-selected={isActive}
+                      tabIndex={-1}
+                      onMouseDown={(event) => {
+                        // Keeps focus in the field until the dialog closes.
+                        event.preventDefault();
+                        select(cmd);
+                      }}
+                      onMouseMove={() => {
+                        if (!isActive) {
+                          setActiveIndex(optionIndex);
+                        }
+                      }}
+                    >
+                      {hasIcons && (
+                        <span className="aegis-cmdk__option-icon" aria-hidden>
+                          {cmd.icon}
+                        </span>
+                      )}
+                      <span className="aegis-cmdk__option-body">
+                        <span className="aegis-cmdk__option-label">
+                          {cmd.label}
+                        </span>
+                        {cmd.description && (
+                          <span className="aegis-cmdk__option-desc">
+                            {cmd.description}
+                          </span>
+                        )}
+                      </span>
+                      {cmd.shortcut && (
+                        <kbd className="aegis-cmdk__option-shortcut">
+                          {formatShortcut(cmd.shortcut)}
+                        </kbd>
+                      )}
+                    </div>
                   );
                 })}
               </div>
-            ))}
+            );
+          })}
         </div>
-      </div>
-    </div>
-  );
-}
-
-interface CommandPaletteRowProps {
-  cmd: Command;
-  active: boolean;
-  onSelect: () => void;
-  onHover: () => void;
-}
-
-function CommandPaletteRow({
-  cmd,
-  active,
-  onSelect,
-  onHover,
-}: CommandPaletteRowProps): ReactElement {
-  useAegisAction<void, unknown>(cmd.action);
-  return (
-    <button
-      type="button"
-      className={['aegis-cmdk__row', active ? 'aegis-cmdk__row--active' : '']
-        .filter(Boolean)
-        .join(' ')}
-      onClick={onSelect}
-      onMouseEnter={onHover}
-      data-agent-action-id={cmd.action?.id}
-    >
-      {cmd.icon && <span className="aegis-cmdk__row-icon">{cmd.icon}</span>}
-      <span className="aegis-cmdk__row-body">
-        <span className="aegis-cmdk__row-label">{cmd.label}</span>
-        {cmd.description && (
-          <span className="aegis-cmdk__row-desc">{cmd.description}</span>
+        {flat.length === 0 && (
+          <p className="aegis-cmdk__empty" role="status">
+            No commands match.
+          </p>
         )}
-      </span>
-      {cmd.shortcut && (
-        <span className="aegis-cmdk__row-shortcut">
-          {formatShortcut(cmd.shortcut)}
-        </span>
-      )}
-    </button>
+      </div>
+    </Dialog>
   );
 }

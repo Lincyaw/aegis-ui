@@ -77,6 +77,11 @@
   color: var(--text-main);
 }
 
+.aegis-tabs__tab[aria-disabled='true'] {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
 /* With the list's own padding the whole control is --size-control-base. */
 .aegis-tabs--sm .aegis-tabs__tab {
   height: var(--size-control-sm);

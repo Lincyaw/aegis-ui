@@ -1,8 +1,9 @@
 import {
+  type KeyboardEvent,
   type ReactElement,
   useCallback,
-  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -31,21 +32,21 @@ export function ChatSwitcher(): ReactElement {
     deleteChat,
   } = useChatStore();
   const [open, setOpen] = useState<boolean>(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        setOpen(false);
+  // Why: preventDefault tells the dock this Escape is taken, so only the
+  // popover closes.
+  const closeOnEscape = useCallback(
+    (event: KeyboardEvent<HTMLElement>): void => {
+      if (!open || event.key !== 'Escape' || event.defaultPrevented) {
+        return;
       }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
+      event.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+    },
+    [open]
+  );
 
   const handleCreate = useCallback((): void => {
     createChat();
@@ -81,7 +82,11 @@ export function ChatSwitcher(): ReactElement {
       destroyOnHidden
       classNames={{ root: 'aegis-chat-switcher__overlay' }}
       content={
-        <div className='aegis-chat-switcher__popover' role='menu'>
+        <div
+          className='aegis-chat-switcher__popover'
+          role='menu'
+          onKeyDown={closeOnEscape}
+        >
           <button
             type='button'
             className='aegis-chat-switcher__new'
@@ -102,10 +107,12 @@ export function ChatSwitcher(): ReactElement {
       }
     >
       <button
+        ref={triggerRef}
         type='button'
         className='aegis-chat-switcher__trigger'
         aria-haspopup='menu'
         aria-expanded={open}
+        onKeyDown={closeOnEscape}
       >
         <span className='aegis-chat-switcher__title'>
           {truncate(currentChat.title, 24)}

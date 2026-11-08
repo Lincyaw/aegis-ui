@@ -1,10 +1,8 @@
 import { useParams } from 'react-router-dom';
 
 import {
-  Button,
   Chip,
   EmptyState,
-  ErrorState,
   KeyValueList,
   MonoValue,
   PageHeader,
@@ -16,8 +14,9 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
-import { errMsg } from '../../../api/apiClient';
 import { useDeleteLabel, useLabel } from '../api/labels';
+import { DeleteButton } from '../components/DeleteButton';
+import { LoadError } from '../components/LoadError';
 
 export default function LabelDetail() {
   const { labelId: rawId } = useParams<{ labelId: string }>();
@@ -27,68 +26,52 @@ export default function LabelDetail() {
   const { data: label, isLoading, isError, error } = useLabel(labelId);
   const del = useDeleteLabel();
 
-  if (isLoading) {
+  if (isLoading || isError || label?.id === undefined) {
     return (
       <>
-        <PageHeader title='Loading…' />
+        <PageHeader title={`Label ${rawId ?? ''}`} />
         <Panel>
-          <SkeletonText />
+          {isLoading ? (
+            <SkeletonText />
+          ) : isError ? (
+            <LoadError
+              error={error}
+              title='Failed to load label'
+              notFound={{
+                title: 'Label not found',
+                description: 'This label no longer exists.',
+              }}
+            />
+          ) : (
+            <EmptyState
+              title='Label not found'
+              description={`"${rawId ?? ''}" is not a label id.`}
+            />
+          )}
         </Panel>
       </>
     );
   }
 
-  if (isError) {
-    return (
-      <>
-        <PageHeader title='Label' />
-        <Panel>
-          <ErrorState
-            title='Failed to load label'
-            description={errMsg(error, 'Unknown error')}
-          />
-        </Panel>
-      </>
-    );
-  }
-
-  if (!label || label.id === undefined) {
-    return (
-      <>
-        <PageHeader title='Label not found' />
-        <Panel>
-          <EmptyState title='Not found' description='Unknown label.' />
-        </Panel>
-      </>
-    );
-  }
+  const id = label.id;
+  const name = `${label.key ?? ''}=${label.value ?? ''}`;
 
   return (
     <>
       <PageHeader
-        title={`${label.key ?? ''}=${label.value ?? ''}`}
+        title={name}
         description={label.description ?? 'Label details and uses.'}
         action={
-          <Button
+          <DeleteButton
             tone='ghost'
-            disabled={del.isPending || label.is_system === true}
-            onClick={() => {
-              if (label.id === undefined) {
-                return;
-              }
-              del.mutate(label.id, {
-                onSuccess: () => {
-                  void msg.success('Label deleted');
-                  navigate('labels');
-                },
-                onError: (err) => {
-                  void msg.error(errMsg(err, 'Failed to delete label'));
-                },
-              });
+            subject={`label ${name}`}
+            disabled={label.is_system === true}
+            onDelete={async () => {
+              await del.mutateAsync(id);
+              void msg.success('Label deleted');
+              navigate('labels');
             }}
-          >
-            Delete
-          </Button>
+          />
         }
       />
       <Panel title={<PanelTitle size='base'>Summary</PanelTitle>}>

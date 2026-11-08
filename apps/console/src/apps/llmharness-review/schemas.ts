@@ -75,7 +75,19 @@ export interface GraphEdge {
   dst: number;
   kind: string;
   reason?: string;
+  src_turns?: number[];
+  dst_turns?: number[];
   cited_entities?: string[];
+  cited_quote?: string;
+  [k: string]: unknown;
+}
+
+/** An edge the extractor proposed but could not add to the graph. */
+export interface DroppedEdge {
+  src: number;
+  dst: number;
+  kind: string;
+  last_error: string;
   [k: string]: unknown;
 }
 
@@ -90,16 +102,15 @@ export interface ExtractorFiring {
   input: {
     payload: {
       new_turns: MainTurn[];
-      summary_threshold: number;
-      recent_graph?: Array<Pick<ExtractorEvent, 'id' | 'kind' | 'summary'>>;
-      case_brief?: string;
+      recent_graph?: ExtractorEvent[];
       [k: string]: unknown;
     };
+    summary_threshold: number | null;
   };
   output: {
     events: ExtractorEvent[];
     edges: GraphEdge[];
-    dropped_edges: Array<{ reason: string; raw?: unknown }>;
+    dropped_edges: DroppedEdge[];
   } | null;
 }
 
@@ -120,12 +131,20 @@ export interface AuditorFiring {
   error: string | null;
   latency_ms: number;
   input: {
-    graph_snapshot_ref: number;
+    payload: {
+      /**
+       * The graph the auditor saw, in snapshot order. Its ids are the
+       * extractor firings' local ids and repeat across firings; see
+       * `snapshotSeenByAuditor` for the matching snapshot.
+       */
+      graph: ExtractorEvent[];
+      [k: string]: unknown;
+    };
+    summary_threshold: number | null;
     findings: Finding[];
-    continuation_notes: string[];
-    check_errors: Record<string, string>;
-    tools_profile: string;
-    trajectory_snapshot_len: number;
+    continuation_notes?: string[];
+    check_errors?: Record<string, unknown>;
+    tools?: string[];
     [k: string]: unknown;
   };
   output: {
@@ -134,7 +153,6 @@ export interface AuditorFiring {
     matched_event_ids?: number[];
     continuation_notes?: string[];
     cited_cards?: unknown[];
-    drill_down?: Array<{ call: string; args: unknown; result: unknown }>;
     [k: string]: unknown;
   } | null;
 }
@@ -170,31 +188,11 @@ export interface DroppedRow {
   [k: string]: unknown;
 }
 
-export interface VerdictRow {
-  sequence: number;
-  turn_index: number;
-  ts_ns: number;
-  surface_reminder: boolean;
-  reminder_text?: string;
-  matched_event_ids?: number[];
-  continuation_notes?: string[];
-  cited_cards?: unknown[];
-  [k: string]: unknown;
-}
-
-export interface TrajectoryRow {
-  ts_ns: number;
-  source: FiringPhase;
-  sequence: number;
-  turn_index: number;
-  summary: string;
-  ref: string;
-}
-
-export interface CaseSummary {
-  caseId: string;
-  meta: CaseMeta;
-}
+/** A case of a root. A case whose meta.json does not match its schema is
+ *  still listed, with the reason, so the rest of the root stays reviewable. */
+export type CaseSummary =
+  | { caseId: string; meta: CaseMeta; error?: undefined }
+  | { caseId: string; meta: null; error: string };
 
 export interface CaseLinks {
   turnToExtractor: Map<number, number[]>;
@@ -243,6 +241,38 @@ function turnText(turn: MainTurn): string {
     }
   }
   return parts.join(' ');
+}
+
+/**
+ * The snapshot holding the graph an auditor firing saw: the newest one taken
+ * at or before its turn, provided its events match `input.payload.graph` one
+ * for one. The snapshot carries the global event ids and the edges that the
+ * payload leaves out.
+ */
+export function snapshotSeenByAuditor(
+  graphs: Map<number, GraphSnapshot>,
+  firing: AuditorFiring
+): GraphSnapshot | undefined {
+  let newest: GraphSnapshot | undefined;
+  for (const snap of graphs.values()) {
+    if (
+      snap.turn_index <= firing.turn_index &&
+      (!newest || snap.after_extractor_firing > newest.after_extractor_firing)
+    ) {
+      newest = snap;
+    }
+  }
+  const seen = firing.input.payload.graph;
+  if (
+    !newest ||
+    newest.events.length !== seen.length ||
+    newest.events.some(
+      (ev, i) => ev.kind !== seen[i].kind || ev.summary !== seen[i].summary
+    )
+  ) {
+    return undefined;
+  }
+  return newest;
 }
 
 export function computeCaseLinks(bundle: Omit<CaseBundle, 'links'>): CaseLinks {

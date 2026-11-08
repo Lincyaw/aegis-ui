@@ -1,9 +1,9 @@
 // Saved-query storage shape adapted from HyperDX (MIT, DeploySentinel Inc. 2023):
 // https://github.com/hyperdxio/hyperdx/blob/main/packages/app/src/savedSearch.ts
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 
 import { uniqueId } from '../lib/id';
-import { readStorage, writeStorage } from '../lib/storage';
+import { useStorageItem } from './useStorageItem';
 
 export interface SavedQuery {
   id: string;
@@ -36,8 +36,7 @@ function storageKey(namespace: string): string {
   return STORAGE_PREFIX + namespace;
 }
 
-function readFromStorage(namespace: string): SavedQuery[] {
-  const raw = readStorage(storageKey(namespace));
+function parseQueries(raw: string | null): SavedQuery[] {
   if (raw === null) {
     return [];
   }
@@ -72,30 +71,28 @@ function sortQueries(queries: SavedQuery[]): SavedQuery[] {
   });
 }
 
+/**
+ * Saved queries kept in localStorage under a namespace, for hosts that have
+ * no server-side store. Pass the result to `SavedQueryBar`. A server render
+ * and the hydration that follows see no queries; the stored ones apply
+ * right after.
+ */
 export function useSavedQueries(
   opts: UseSavedQueriesOptions,
 ): UseSavedQueriesReturn {
-  const { namespace } = opts;
-  const [queries, setQueries] = useState<SavedQuery[]>(() =>
-    sortQueries(readFromStorage(namespace)),
-  );
+  const [raw, setRaw] = useStorageItem(storageKey(opts.namespace));
+  const queries = useMemo(() => sortQueries(parseQueries(raw)), [raw]);
+  // Updates apply to the latest list even when several run before a render.
+  const latestRef = useRef(queries);
+  latestRef.current = queries;
 
-  const hydratedNamespaceRef = useRef<string>(namespace);
-  useEffect(() => {
-    if (hydratedNamespaceRef.current === namespace) {
-      return;
-    }
-    hydratedNamespaceRef.current = namespace;
-    setQueries(sortQueries(readFromStorage(namespace)));
-  }, [namespace]);
-
-  const persist = useCallback(
-    (next: SavedQuery[]): SavedQuery[] => {
-      const sorted = sortQueries(next);
-      writeStorage(storageKey(namespace), JSON.stringify(sorted));
-      return sorted;
+  const update = useCallback(
+    (change: (prev: SavedQuery[]) => SavedQuery[]): void => {
+      const next = sortQueries(change(latestRef.current));
+      latestRef.current = next;
+      setRaw(JSON.stringify(next));
     },
-    [namespace],
+    [setRaw],
   );
 
   const save = useCallback(
@@ -107,49 +104,45 @@ export function useSavedQueries(
         pinned: false,
         lastUsedAt: Date.now(),
       };
-      setQueries((prev) => persist([...prev, entry]));
+      update((prev) => [...prev, entry]);
       return entry;
     },
-    [persist],
+    [update],
   );
 
   const remove = useCallback(
     (id: string): void => {
-      setQueries((prev) => persist(prev.filter((q) => q.id !== id)));
+      update((prev) => prev.filter((q) => q.id !== id));
     },
-    [persist],
+    [update],
   );
 
   const rename = useCallback(
     (id: string, name: string): void => {
       const trimmed = name.trim() === '' ? 'Untitled query' : name.trim();
-      setQueries((prev) =>
-        persist(prev.map((q) => (q.id === id ? { ...q, name: trimmed } : q))),
+      update((prev) =>
+        prev.map((q) => (q.id === id ? { ...q, name: trimmed } : q)),
       );
     },
-    [persist],
+    [update],
   );
 
   const togglePinned = useCallback(
     (id: string): void => {
-      setQueries((prev) =>
-        persist(
-          prev.map((q) => (q.id === id ? { ...q, pinned: !q.pinned } : q)),
-        ),
+      update((prev) =>
+        prev.map((q) => (q.id === id ? { ...q, pinned: !q.pinned } : q)),
       );
     },
-    [persist],
+    [update],
   );
 
   const touch = useCallback(
     (id: string): void => {
-      setQueries((prev) =>
-        persist(
-          prev.map((q) => (q.id === id ? { ...q, lastUsedAt: Date.now() } : q)),
-        ),
+      update((prev) =>
+        prev.map((q) => (q.id === id ? { ...q, lastUsedAt: Date.now() } : q)),
       );
     },
-    [persist],
+    [update],
   );
 
   return useMemo(

@@ -1,14 +1,13 @@
-import type { ReactElement } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
-  Chip,
   EmptyState,
   FormRow,
-  MonoValue,
   PageHeader,
   Panel,
-  StatusDot,
+  UploadQueue,
+  type UploadQueueItem,
 } from '@lincyaw/aegis-ui';
 import { Button, Form, Input, Select } from 'antd';
 
@@ -24,6 +23,19 @@ interface UploadFormShape {
 export function DatasetUpload(): ReactElement {
   const { startUpload, uploads } = useDatasets();
   const [form] = Form.useForm<UploadFormShape>();
+  const queue = useMemo(
+    () =>
+      uploads.map(
+        (u): UploadQueueItem => ({
+          id: u.id,
+          file: u.file,
+          status: u.done ? 'done' : 'uploading',
+          progress: u.progress,
+          bytesUploaded: Math.round(u.progress * u.file.size),
+        })
+      ),
+    [uploads]
+  );
 
   const onFinish = (values: UploadFormShape): void => {
     startUpload(values.filename, values.format);
@@ -45,21 +57,25 @@ export function DatasetUpload(): ReactElement {
           layout='vertical'
           initialValues={{ format: 'parquet' }}
           onFinish={onFinish}
-          style={{ padding: 'var(--space-4)' }}
+          className='datasets-form'
         >
-          <FormRow label='Filename'>
+          <FormRow label='Filename' controlId='dataset-upload-filename'>
             <Form.Item
               name='filename'
               rules={[{ required: true, message: 'Required' }]}
               noStyle
             >
-              <Input placeholder='my-dataset.parquet' />
+              <Input
+                id='dataset-upload-filename'
+                placeholder='my-dataset.parquet'
+              />
             </Form.Item>
           </FormRow>
-          <FormRow label='Format'>
+          <FormRow label='Format' controlId='dataset-upload-format'>
             <Form.Item name='format' noStyle>
               <Select
-                style={{ minWidth: 180 }}
+                id='dataset-upload-format'
+                className='datasets-form__select'
                 options={[
                   { value: 'parquet', label: 'Parquet' },
                   { value: 'csv', label: 'CSV' },
@@ -68,7 +84,7 @@ export function DatasetUpload(): ReactElement {
               />
             </Form.Item>
           </FormRow>
-          <div style={{ paddingTop: 'var(--space-4)' }}>
+          <div className='datasets-form__actions'>
             <Button type='primary' htmlType='submit'>
               Start upload
             </Button>
@@ -77,68 +93,10 @@ export function DatasetUpload(): ReactElement {
       </Panel>
 
       <Panel title='Upload queue'>
-        {uploads.length === 0 ? (
+        {queue.length === 0 ? (
           <EmptyState title='No uploads yet' />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {uploads.map((u) => (
-              <div
-                key={u.id}
-                style={{
-                  padding: 'var(--space-3) var(--space-4)',
-                  borderTop: '1px solid var(--border-hairline)',
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto',
-                  alignItems: 'center',
-                  gap: 'var(--space-3)',
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      marginBottom: 6,
-                    }}
-                  >
-                    <StatusDot
-                      tone={u.done ? 'ink' : 'muted'}
-                      pulse={!u.done}
-                    />
-                    <MonoValue size='sm'>{u.filename}</MonoValue>
-                    <Chip tone='ghost'>{u.format}</Chip>
-                  </div>
-                  <div
-                    style={{
-                      height: 4,
-                      background: 'var(--bg-muted)',
-                      borderRadius: 999,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${u.progress}%`,
-                        height: '100%',
-                        background: 'var(--bg-inverted)',
-                        transition: 'width 0.22s ease',
-                      }}
-                    />
-                  </div>
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'var(--fs-11)',
-                    color: u.done ? 'var(--text-main)' : 'var(--text-muted)',
-                  }}
-                >
-                  {u.done ? 'done' : `${Math.floor(u.progress)}%`}
-                </div>
-              </div>
-            ))}
-          </div>
+          <UploadQueue items={queue} />
         )}
       </Panel>
     </>

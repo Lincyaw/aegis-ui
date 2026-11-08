@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useId, useState } from 'react';
 
 import {
   CloseOutlined,
@@ -10,6 +10,7 @@ import { Drawer } from 'antd';
 import { useStrings } from '../../locale';
 import { MetricLabel } from './MetricLabel';
 import './ObjectInspector.css';
+import { Tabs } from './Tabs';
 import { Toolbar } from './Toolbar';
 
 export interface ObjectInspectorTab {
@@ -27,6 +28,11 @@ export interface ObjectInspectorProps {
   title: string;
   subtitle?: string;
   tabs: ObjectInspectorTab[];
+  /**
+   * The tab shown first, and again whenever it changes, e.g. when the host
+   * opens another object. Without it, the first enabled tab. A tab the reader
+   * picks holds until then, while it is still an enabled tab.
+   */
   defaultTabId?: string;
   /** Row of action buttons (Download / Copy URL / Share / Delete). */
   actions?: ReactNode;
@@ -52,19 +58,19 @@ export function ObjectInspector({
 }: ObjectInspectorProps) {
   const [maximized, setMaximized] = useState<boolean>(defaultMaximized);
   const strings = useStrings();
-  function resolveInitialTabId(): string {
-    if (defaultTabId !== undefined) {
-      return defaultTabId;
-    }
-    const firstEnabled = tabs.find((t) => !t.disabled);
-    if (firstEnabled !== undefined) {
-      return firstEnabled.id;
-    }
-    return tabs[0]?.id ?? '';
+  const panelId = useId();
+  const [pickedId, setPickedId] = useState<string | undefined>(undefined);
+  const [pickedUnder, setPickedUnder] = useState(defaultTabId);
+  if (pickedUnder !== defaultTabId) {
+    setPickedUnder(defaultTabId);
+    setPickedId(undefined);
   }
-  const [activeId, setActiveId] = useState<string>(resolveInitialTabId);
 
-  const activeTab = tabs.find((t) => t.id === activeId);
+  const enabledTabs = tabs.filter((t) => t.disabled !== true);
+  const activeTab =
+    enabledTabs.find((t) => t.id === pickedId) ??
+    enabledTabs.find((t) => t.id === defaultTabId) ??
+    (enabledTabs.length > 0 ? enabledTabs[0] : undefined);
 
   return (
     <Drawer
@@ -85,7 +91,6 @@ export function ObjectInspector({
       }}
     >
       <div className="aegis-object-inspector">
-        {/* Header */}
         <header className="aegis-object-inspector__header">
           <div className="aegis-object-inspector__header-text">
             <span className="aegis-object-inspector__title">{title}</span>
@@ -120,50 +125,36 @@ export function ObjectInspector({
           </div>
         </header>
 
-        {/* Actions */}
         {actions !== undefined ? (
           <div className="aegis-object-inspector__actions">
             <Toolbar left={actions} />
           </div>
         ) : null}
 
-        {/* Tabs */}
-        <div
-          className="aegis-object-inspector__tablist"
-          role="tablist"
-          aria-label={strings.inspectorTabs}
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={tab.id === activeId}
-              aria-disabled={tab.disabled}
-              disabled={tab.disabled}
-              className={[
-                'aegis-object-inspector__tab',
-                tab.id === activeId
-                  ? 'aegis-object-inspector__tab--active'
-                  : '',
-                tab.disabled ? 'aegis-object-inspector__tab--disabled' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              title={tab.disabled ? tab.hint : undefined}
-              onClick={() => {
-                if (!tab.disabled) {
-                  setActiveId(tab.id);
-                }
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {tabs.length > 0 ? (
+          <div className="aegis-object-inspector__tabs">
+            <Tabs
+              listOnly
+              ariaLabel={strings.inspectorTabs}
+              panelId={panelId}
+              items={tabs.map((tab) => ({
+                key: tab.id,
+                label: tab.label,
+                disabled: tab.disabled,
+                hint: tab.disabled === true ? tab.hint : undefined,
+              }))}
+              activeKey={activeTab?.id ?? ''}
+              onChange={setPickedId}
+            />
+          </div>
+        ) : null}
 
-        {/* Body */}
-        <div className="aegis-object-inspector__body" role="tabpanel">
+        <div
+          id={panelId}
+          className="aegis-object-inspector__body"
+          role={activeTab ? 'tabpanel' : undefined}
+          aria-label={activeTab?.label}
+        >
           {activeTab?.content}
         </div>
       </div>

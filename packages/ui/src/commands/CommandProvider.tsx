@@ -95,10 +95,6 @@ export function CommandProvider({
         setPaletteOpen((v) => !v);
         return;
       }
-      if (event.key === 'Escape' && paletteOpen) {
-        setPaletteOpen(false);
-        return;
-      }
       // App-defined shortcuts. Only fire when palette is closed —
       // arrows / Enter while the palette is open belong to it.
       if (paletteOpen) {

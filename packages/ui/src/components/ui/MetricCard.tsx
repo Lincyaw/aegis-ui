@@ -6,7 +6,6 @@ import {
 } from '../../agent/core/usePrimitiveSurface';
 import './MetricCard.css';
 import { MetricLabel } from './MetricLabel';
-import { MonoValue } from './MonoValue';
 import { RollingValue } from './RollingValue';
 import { SparkLine } from './SparkLine';
 
@@ -79,9 +78,9 @@ export function MetricCard({
     >
       <MetricLabel inverted={inverted}>{label}</MetricLabel>
       <div className="aegis-metric-card__value">
-        <MonoValue size="lg" inverted={inverted}>
+        <span className="aegis-metric-card__number">
           <RollingValue value={value} />
-        </MonoValue>
+        </span>
         {unit && (
           <MetricLabel inverted={inverted} className="aegis-metric-card__unit">
             {unit}

@@ -58,6 +58,11 @@ export interface UseSectionSpyOptions {
   onCurrentChange?: (id: string) => void;
   /** The element that scrolls the sections; omitted or null means the viewport. */
   scrollContainer?: HTMLElement | null;
+  /**
+   * Changes when a section element appears, disappears or is replaced;
+   * tracking then starts over on the elements now in the document.
+   */
+  sectionsVersion?: number;
 }
 
 export interface UseSectionSpyResult {
@@ -76,6 +81,7 @@ export function useSectionSpy({
   currentId,
   onCurrentChange,
   scrollContainer = null,
+  sectionsVersion = 0,
 }: UseSectionSpyOptions): UseSectionSpyResult {
   const [trackedId, setTrackedId] = useState<string | undefined>(ids[0]);
   const trackedIdRef = useRef(trackedId);
@@ -98,10 +104,12 @@ export function useSectionSpy({
   }, []);
 
   useEffect(() => {
-    const sections = sectionIds.split(' ').flatMap((id) => {
-      const section = document.getElementById(id);
-      return section ? [section] : [];
-    });
+    const sections = (sectionIds === '' ? [] : sectionIds.split(' ')).flatMap(
+      (id) => {
+        const section = document.getElementById(id);
+        return section ? [section] : [];
+      },
+    );
     if (sections.length === 0) {
       return undefined;
     }
@@ -136,13 +144,65 @@ export function useSectionSpy({
     for (const section of sections) {
       observer.observe(section);
     }
+    /* Content that grows, shrinks, arrives or leaves after the first
+     * measurement (a diagram or image rendering) moves the sections without
+     * a scroll and often without an intersection change, so their parents
+     * and siblings are watched too, including siblings added later. */
+    let frame = 0;
+    const syncNextFrame = (): void => {
+      if (frame === 0) {
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          sync();
+        });
+      }
+    };
+    const resizeObserver = new ResizeObserver(syncNextFrame);
+    const parents = new Set(
+      sections.flatMap((section) =>
+        section.parentElement ? [section.parentElement] : [],
+      ),
+    );
+    const watched = new Set<Element>();
+    const watchAround = (): void => {
+      const around = new Set<Element>(sections);
+      for (const parent of parents) {
+        around.add(parent);
+        for (const child of parent.children) {
+          around.add(child);
+        }
+      }
+      for (const element of watched) {
+        if (!around.has(element)) {
+          resizeObserver.unobserve(element);
+          watched.delete(element);
+        }
+      }
+      for (const element of around) {
+        if (!watched.has(element)) {
+          resizeObserver.observe(element);
+          watched.add(element);
+        }
+      }
+    };
+    watchAround();
+    const mutationObserver = new MutationObserver(() => {
+      watchAround();
+      syncNextFrame();
+    });
+    for (const parent of parents) {
+      mutationObserver.observe(parent, { childList: true });
+    }
     const scrollEvents: EventTarget = scrollContainer ?? document;
     scrollEvents.addEventListener('scrollend', handleScrollEnd);
     return () => {
       observer.disconnect();
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      cancelAnimationFrame(frame);
       scrollEvents.removeEventListener('scrollend', handleScrollEnd);
     };
-  }, [sectionIds, activationPercent, scrollContainer, track]);
+  }, [sectionIds, activationPercent, scrollContainer, track, sectionsVersion]);
 
   const onLinkClick = (
     event: MouseEvent<HTMLAnchorElement>,

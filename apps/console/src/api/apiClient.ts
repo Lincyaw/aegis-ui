@@ -1,14 +1,15 @@
 /**
- * Tiny shared fetch wrapper for the standalone aegis-* microservices
- * (SSO admin, notification inbox, blob). Pulls the access token from
- * the SSO session store and attaches `Authorization: Bearer …`.
+ * Fetch transport for the console. `apiFetch` resolves gateway paths and
+ * sends them through the session's `authFetch` (auth/session.ts); the
+ * portal SDK's axios instance (`portalClient.ts`) authenticates through
+ * the same session.
  *
  * Each surface routes through its own vite proxy prefix (see
  * vite.config.ts), so callers stay on relative paths.
  */
 import { isAxiosError } from 'axios';
 
-import { readTokens } from '../auth/tokenStore';
+import { authFetch } from '../auth/session';
 import { gatewayUrlFor } from '../config/runtime';
 
 export interface ApiFetchOptions extends RequestInit {
@@ -52,12 +53,6 @@ export async function apiFetch(
 ): Promise<Response> {
   const { anonymous, tolerateMissing, headers, ...rest } = init;
   const merged = new Headers(headers ?? undefined);
-  if (!anonymous) {
-    const tokens = readTokens();
-    if (tokens) {
-      merged.set('authorization', `Bearer ${tokens.accessToken}`);
-    }
-  }
   if (
     !merged.has('content-type') &&
     rest.body !== undefined &&
@@ -67,7 +62,11 @@ export async function apiFetch(
   ) {
     merged.set('content-type', 'application/json');
   }
-  const res = await fetch(gatewayUrlFor(path), { ...rest, headers: merged });
+  const url = gatewayUrlFor(path);
+  const request = { ...rest, headers: merged };
+  const res = anonymous
+    ? await fetch(url, request)
+    : await authFetch(url, request);
   if (res.ok) {
     return res;
   }

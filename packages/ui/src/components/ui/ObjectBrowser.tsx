@@ -95,7 +95,7 @@ export function ObjectBrowser({
       {!hideTree ? (
         <aside className="aegis-object-browser__tree" aria-label="Folders">
           <header className="aegis-object-browser__tree-head">
-            <MetricLabel>{treeCollapsed ? 'Folders' : 'Folders'}</MetricLabel>
+            <MetricLabel>Folders</MetricLabel>
             <button
               type="button"
               className="aegis-object-browser__tree-toggle"
@@ -155,7 +155,9 @@ export function ObjectBrowser({
           <div className="aegis-object-browser__toolbar">
             {selectionCount > 0 ? (
               <span className="aegis-object-browser__selection">
-                <MonoValue size="sm">{selectionCount.toString()}</MonoValue>
+                <span className="aegis-object-browser__count">
+                  {selectionCount.toString()}
+                </span>
                 <MetricLabel>Selected</MetricLabel>
               </span>
             ) : null}

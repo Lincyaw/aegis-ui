@@ -3,6 +3,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -16,15 +17,21 @@ import {
 } from '@ant-design/icons';
 import { Popover } from 'antd';
 
-import { type SavedQuery, useSavedQueries } from '../../hooks/useSavedQueries';
+import type { SavedQuery } from '../../hooks/useSavedQueries';
 import './SavedQueryBar.css';
 
 export interface SavedQueryBarProps {
-  namespace: string;
+  /** In display order; pinned ones lead. `useSavedQueries` keeps them in localStorage. */
+  queries: SavedQuery[];
   /** The current "live" query value to save when the user clicks Save. */
   currentValue: string;
   /** Called when the user picks a saved query — consumer applies it. */
   onApply: (q: SavedQuery) => void;
+  /** Saves `value` under `name`. */
+  onSave: (name: string, value: string) => void;
+  onRename: (id: string, name: string) => void;
+  onRemove: (id: string) => void;
+  onTogglePinned: (id: string) => void;
   /** When true, render a "Save current" affordance even if currentValue is empty (default false). */
   allowEmptySave?: boolean;
   /** Optional className. */
@@ -34,18 +41,17 @@ export interface SavedQueryBarProps {
 }
 
 export function SavedQueryBar({
-  namespace,
+  queries,
   currentValue,
   onApply,
+  onSave,
+  onRename,
+  onRemove,
+  onTogglePinned,
   allowEmptySave = false,
   className,
   maxInlineUnpinned = 6,
 }: SavedQueryBarProps) {
-  const { queries, save, remove, rename, togglePinned, touch } =
-    useSavedQueries({
-      namespace,
-    });
-
   const { pinned, inlineUnpinned, overflow } = useMemo(() => {
     const pinnedQs = queries.filter((q) => q.pinned);
     const unpinnedQs = queries.filter((q) => !q.pinned);
@@ -55,11 +61,6 @@ export function SavedQueryBar({
       overflow: unpinnedQs.slice(maxInlineUnpinned),
     };
   }, [queries, maxInlineUnpinned]);
-
-  const handleApply = (q: SavedQuery): void => {
-    touch(q.id);
-    onApply(q);
-  };
 
   const saveDisabled = !allowEmptySave && currentValue.trim() === '';
   const cls = ['aegis-sqb', className ?? ''].filter(Boolean).join(' ');
@@ -76,28 +77,28 @@ export function SavedQueryBar({
             <SavedQueryChip
               key={q.id}
               query={q}
-              onApply={handleApply}
-              onRename={rename}
-              onRemove={remove}
-              onTogglePinned={togglePinned}
+              onApply={onApply}
+              onRename={onRename}
+              onRemove={onRemove}
+              onTogglePinned={onTogglePinned}
             />
           ))}
           {inlineUnpinned.map((q) => (
             <SavedQueryChip
               key={q.id}
               query={q}
-              onApply={handleApply}
-              onRename={rename}
-              onRemove={remove}
-              onTogglePinned={togglePinned}
+              onApply={onApply}
+              onRename={onRename}
+              onRemove={onRemove}
+              onTogglePinned={onTogglePinned}
             />
           ))}
           {overflow.length > 0 ? (
             <OverflowMenu
               items={overflow}
-              onApply={handleApply}
-              onRemove={remove}
-              onTogglePinned={togglePinned}
+              onApply={onApply}
+              onRemove={onRemove}
+              onTogglePinned={onTogglePinned}
             />
           ) : null}
         </ul>
@@ -105,7 +106,9 @@ export function SavedQueryBar({
       <SaveCurrentControl
         disabled={saveDisabled}
         currentValue={currentValue}
-        onSave={(name) => save(name, currentValue)}
+        onSave={(name) => {
+          onSave(name, currentValue);
+        }}
       />
     </div>
   );
@@ -424,6 +427,7 @@ function SaveCurrentControl({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const nameId = useId();
 
   useEffect(() => {
     if (open) {
@@ -451,11 +455,11 @@ function SaveCurrentControl({
 
   const content = (
     <form className="aegis-sqb__save-form" onSubmit={handleSubmit}>
-      <label className="aegis-sqb__save-label" htmlFor="aegis-sqb__save-name">
+      <label className="aegis-sqb__save-label" htmlFor={nameId}>
         Name this query
       </label>
       <input
-        id="aegis-sqb__save-name"
+        id={nameId}
         ref={inputRef}
         type="text"
         className="aegis-sqb__save-input"

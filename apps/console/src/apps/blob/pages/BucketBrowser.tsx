@@ -1,147 +1,65 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Link,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom';
+import { useCallback, useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import {
   CaretDownOutlined,
-  CopyOutlined,
   DeleteOutlined,
   DownloadOutlined,
   FolderAddOutlined,
   ReloadOutlined,
-  ShareAltOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
 import {
+  Alert,
   Breadcrumb,
   type BreadcrumbItem,
-  Chip,
   DataTable,
-  type DataTableColumn,
+  Dialog,
   DropdownMenu,
   EmptyState,
   ErrorState,
   FileDropzone,
-  type FileDropzoneItem,
-  FilePreview,
-  formatBytes,
-  MetadataList,
-  MonoValue,
   ObjectBrowser,
-  ObjectInspector,
-  type ObjectInspectorTab,
   PageHeader,
   Panel,
-  ParquetViewer,
   SearchInput,
   ShareLinkDialog,
-  type ShareLinkResult,
   Toolbar,
   UploadQueue,
   useActiveApp,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Button, Input, Modal, Tooltip } from 'antd';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { Button } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
-import {
-  batchDelete,
-  copyObject,
-  deleteObject,
-  downloadZip,
-  driverList,
-  type DriverListResult,
-  inlineUrl,
-  presignGet,
-  presignPut,
-  recordShare,
-  uploadWithPresign,
-} from '../../../api/blobClient';
+import { driverList } from '../../../api/blobClient';
+import { RouterLink } from '../../../routing/RouterLink';
+import '../blob-app.css';
+import { MoveDialog } from '../components/MoveDialog';
+import { NewFolderDialog } from '../components/NewFolderDialog';
+import { objectColumns } from '../components/objectColumns';
+import { ObjectPreview } from '../components/ObjectPreview';
+import { useObjectActions } from '../hooks/useObjectActions';
+import { useUploads } from '../hooks/useUploads';
+import { useWindowDragActive } from '../hooks/useWindowDragActive';
+import { lastSegment, type ObjItem, toObjItem } from '../objects';
+import { blobKeys } from '../queryKeys';
 
-interface ObjItem {
-  key: string;
-  size: number;
-  contentType?: string;
-  updatedAt: string;
-  etag?: string;
-  metadata?: Record<string, string>;
-}
+const PAGE_KEYS = 200;
 
-const PARQUET_RE = /\.parquet$/i;
-const UPLOAD_CONCURRENCY = 3;
-const EWMA_ALPHA = 0.3;
-
-function isParquet(item: ObjItem): boolean {
-  return (
-    PARQUET_RE.test(item.key) ||
-    item.contentType === 'application/parquet' ||
-    item.contentType === 'application/x-parquet'
-  );
-}
-
-function inferMime(item: ObjItem): string | undefined {
-  if (item.contentType && item.contentType !== 'application/octet-stream') {
-    return item.contentType;
+function pickFiles(directory: boolean, onPick: (files: File[]) => void): void {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  if (directory) {
+    input.setAttribute('webkitdirectory', '');
   }
-  if (isParquet(item)) {
-    return 'application/x-parquet';
-  }
-  return undefined;
-}
-
-const RouterLink: React.ComponentType<{
-  to: string;
-  className?: string;
-  children: React.ReactNode;
-}> = ({ to, className, children }) => (
-  <Link to={to} className={className}>
-    {children}
-  </Link>
-);
-
-function lastSegment(key: string): string {
-  const idx = key.lastIndexOf('/');
-  return idx === -1 ? key : key.slice(idx + 1);
-}
-
-function runPool<T>(
-  items: T[],
-  concurrency: number,
-  worker: (item: T) => Promise<void>
-): Promise<void> {
-  return new Promise((resolve) => {
-    let idx = 0;
-    let active = 0;
-    let done = 0;
-
-    function next(): void {
-      while (active < concurrency && idx < items.length) {
-        const item = items[idx];
-        if (item === undefined) {
-          break;
-        }
-        idx += 1;
-        active += 1;
-        worker(item).finally(() => {
-          active -= 1;
-          done += 1;
-          if (done === items.length) {
-            resolve();
-          } else {
-            next();
-          }
-        });
-      }
-      if (items.length === 0) {
-        resolve();
-      }
+  input.onchange = () => {
+    if (input.files && input.files.length > 0) {
+      onPick(Array.from(input.files));
     }
-
-    next();
-  });
+  };
+  input.click();
 }
 
 export default function BucketBrowser() {
@@ -149,10 +67,10 @@ export default function BucketBrowser() {
   const bucket = decodeURIComponent(bucketParam);
   const { basePath } = useActiveApp();
   const navigate = useNavigate();
-  const { message: msg, modal } = AntdApp.useApp();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const prefix = searchParams.get('prefix') ?? '';
+  const folder = `${bucket}/${prefix}`;
 
   const setPrefix = useCallback(
     (next: string): void => {
@@ -161,135 +79,47 @@ export default function BucketBrowser() {
     [setSearchParams]
   );
 
-  const [result, setResult] = useState<DriverListResult | null>(null);
-  const [continuationToken, setContinuationToken] = useState<
-    string | undefined
-  >(undefined);
-  const [isTruncated, setIsTruncated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [uploads, setUploads] = useState<FileDropzoneItem[]>([]);
-  const [showUploadQueue, setShowUploadQueue] = useState(false);
   const [preview, setPreview] = useState<ObjItem | null>(null);
   const [share, setShare] = useState<ObjItem | null>(null);
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selection, setSelection] = useState<{
+    folder: string;
+    keys: string[];
+  }>({ folder, keys: [] });
   const [search, setSearch] = useState('');
-  const [dragDepth, setDragDepth] = useState(0);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [newFolderLoading, setNewFolderLoading] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
-  const [moveTarget, setMoveTarget] = useState('');
-  const [moveLoading, setMoveLoading] = useState(false);
-  // Presigned same-origin URL for the active preview. The inspector
-  // surfaces this through <img>/<iframe>/parquet-fetcher, none of which
-  // can attach an Authorization header — so we mint a /raw/<token>
-  // URL where the HMAC itself is the auth.
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const dragActive = useWindowDragActive();
+  const uploads = useUploads(bucket);
+  const onRemoved = useCallback((keys: string[]): void => {
+    setPreview((cur) => (cur !== null && keys.includes(cur.key) ? null : cur));
+  }, []);
+  const actions = useObjectActions(bucket, prefix, onRemoved);
 
-  useEffect(() => {
-    if (!preview) {
-      setPreviewUrl(null);
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      try {
-        const pr = await presignGet(bucket, {
-          key: preview.key,
-          ttl_seconds: 600,
-        });
-        if (!cancelled) {
-          setPreviewUrl(pr.url);
-        }
-      } catch {
-        if (!cancelled) {
-          setPreviewUrl(inlineUrl(bucket, preview.key));
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [bucket, preview]);
-
-  const refresh = useCallback(async (): Promise<void> => {
-    if (bucket === '') {
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setContinuationToken(undefined);
-    try {
-      const res = await driverList(bucket, {
+  const listing = useInfiniteQuery({
+    queryKey: blobKeys.folder(bucket, prefix),
+    queryFn: ({ pageParam }) =>
+      driverList(bucket, {
         prefix,
         delimiter: '/',
-        max_keys: 200,
-      });
-      setResult(res);
-      setIsTruncated(res.is_truncated ?? false);
-      setContinuationToken(res.next_continuation_token);
-      setSelected(new Set());
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [bucket, prefix]);
+        max_keys: PAGE_KEYS,
+        continuation_token: pageParam,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) =>
+      last.is_truncated === true ? last.next_continuation_token : undefined,
+    enabled: bucket !== '',
+  });
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  const loadMore = useCallback(async (): Promise<void> => {
-    if (!isTruncated || continuationToken === undefined) {
-      return;
-    }
-    setLoadingMore(true);
-    try {
-      const res = await driverList(bucket, {
-        prefix,
-        delimiter: '/',
-        max_keys: 200,
-        continuation_token: continuationToken,
-      });
-      setResult((prev) => {
-        if (!prev) {
-          return res;
-        }
-        return {
-          ...res,
-          items: [...prev.items, ...res.items],
-          common_prefixes: [
-            ...(prev.common_prefixes ?? []),
-            ...(res.common_prefixes ?? []),
-          ],
-        };
-      });
-      setIsTruncated(res.is_truncated ?? false);
-      setContinuationToken(res.next_continuation_token);
-    } catch (e) {
-      void msg.error(`Load more failed: ${errMsg(e)}`);
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [bucket, continuationToken, isTruncated, msg, prefix]);
-
-  const items: ObjItem[] = useMemo(() => {
-    if (!result?.items) {
-      return [];
-    }
-    return result.items.map((it) => ({
-      key: it.key,
-      size: it.size_bytes,
-      contentType: it.content_type,
-      updatedAt: it.updated_at,
-      etag: it.etag,
-      metadata: it.metadata,
-    }));
-  }, [result]);
+  const items = useMemo(
+    () =>
+      listing.data?.pages.flatMap((page) => page.items.map(toObjItem)) ?? [],
+    [listing.data]
+  );
+  const prefixes = useMemo(
+    () =>
+      listing.data?.pages.flatMap((page) => page.common_prefixes ?? []) ?? [],
+    [listing.data]
+  );
 
   const filteredItems = useMemo(() => {
     if (!search) {
@@ -299,406 +129,27 @@ export default function BucketBrowser() {
     return items.filter((it) => lastSegment(it.key).toLowerCase().includes(q));
   }, [items, search]);
 
-  const xhrRefs = useRef<Map<string, XMLHttpRequest>>(new Map());
+  const selected = useMemo(() => {
+    if (selection.folder !== folder) {
+      return [];
+    }
+    const present = new Set(items.map((it) => it.key));
+    return selection.keys.filter((key) => present.has(key));
+  }, [folder, items, selection]);
 
-  const uploadOneXhr = useCallback(
-    (item: FileDropzoneItem, file: File, key: string): Promise<void> => {
-      return new Promise<void>((resolve) => {
-        void (async () => {
-          setUploads((prev) =>
-            prev.map((u) =>
-              u.id === item.id ? { ...u, status: 'uploading' } : u
-            )
-          );
-          let presign: Awaited<ReturnType<typeof presignPut>>;
-          try {
-            presign = await presignPut(bucket, {
-              key,
-              content_type: file.type || 'application/octet-stream',
-              content_length: file.size,
-              ttl_seconds: 300,
-            });
-          } catch (e) {
-            setUploads((prev) =>
-              prev.map((u) =>
-                u.id === item.id
-                  ? { ...u, status: 'error', error: errMsg(e) }
-                  : u
-              )
-            );
-            resolve();
-            return;
-          }
-
-          const xhr = new XMLHttpRequest();
-          xhrRefs.current.set(item.id, xhr);
-
-          let lastLoaded = 0;
-          let lastTime = Date.now();
-          let ewmaSpeed = 0;
-
-          xhr.upload.onprogress = (ev) => {
-            if (!ev.lengthComputable) {
-              return;
-            }
-            const now = Date.now();
-            const dtMs = now - lastTime;
-            const dBytes = ev.loaded - lastLoaded;
-            if (dtMs > 0) {
-              const instantBps = (dBytes / dtMs) * 1000;
-              ewmaSpeed =
-                ewmaSpeed === 0
-                  ? instantBps
-                  : EWMA_ALPHA * instantBps + (1 - EWMA_ALPHA) * ewmaSpeed;
-            }
-            lastLoaded = ev.loaded;
-            lastTime = now;
-            const remaining = file.size - ev.loaded;
-            const etaSeconds =
-              ewmaSpeed > 0 ? remaining / ewmaSpeed : undefined;
-            setUploads((prev) =>
-              prev.map((u) =>
-                u.id === item.id
-                  ? {
-                      ...u,
-                      progress: ev.loaded / ev.total,
-                      bytesUploaded: ev.loaded,
-                      speedBps: ewmaSpeed,
-                      etaSeconds,
-                    }
-                  : u
-              )
-            );
-          };
-
-          xhr.onload = () => {
-            xhrRefs.current.delete(item.id);
-            if (xhr.status >= 200 && xhr.status < 300) {
-              setUploads((prev) =>
-                prev.map((u) =>
-                  u.id === item.id ? { ...u, status: 'done', progress: 1 } : u
-                )
-              );
-            } else {
-              setUploads((prev) =>
-                prev.map((u) =>
-                  u.id === item.id
-                    ? {
-                        ...u,
-                        status: 'error',
-                        error: `HTTP ${xhr.status.toString()}`,
-                      }
-                    : u
-                )
-              );
-            }
-            resolve();
-          };
-
-          xhr.onerror = () => {
-            xhrRefs.current.delete(item.id);
-            setUploads((prev) =>
-              prev.map((u) =>
-                u.id === item.id
-                  ? { ...u, status: 'error', error: 'Network error' }
-                  : u
-              )
-            );
-            resolve();
-          };
-
-          xhr.onabort = () => {
-            xhrRefs.current.delete(item.id);
-            setUploads((prev) =>
-              prev.map((u) =>
-                u.id === item.id
-                  ? { ...u, status: 'error', error: 'Cancelled' }
-                  : u
-              )
-            );
-            resolve();
-          };
-
-          const headers = new Headers(presign.presigned.headers ?? {});
-          headers.set('content-type', file.type || 'application/octet-stream');
-
-          xhr.open(presign.presigned.method, presign.presigned.url);
-          headers.forEach((val, name) => {
-            xhr.setRequestHeader(name, val);
-          });
-          xhr.send(file);
-        })();
-      });
+  const setSelected = useCallback(
+    (keys: string[]): void => {
+      setSelection({ folder, keys });
     },
-    [bucket]
+    [folder]
   );
 
-  const handleDrop = useCallback(
-    async (files: File[]): Promise<void> => {
-      const queued: FileDropzoneItem[] = files.map((f) => {
-        const id = `${f.name}-${Date.now().toString()}-${Math.random().toString(36).slice(2, 6)}`;
-        return {
-          id,
-          file: f,
-          status: 'queued',
-          onCancel: () => {
-            xhrRefs.current.get(id)?.abort();
-          },
-        };
-      });
-      setUploads((prev) => [...queued, ...prev]);
-      setShowUploadQueue(true);
-
-      await runPool(queued, UPLOAD_CONCURRENCY, (item) => {
-        const file = item.file;
-        const key =
-          file.webkitRelativePath !== ''
-            ? prefix + file.webkitRelativePath
-            : prefix + file.name;
-        return uploadOneXhr(item, file, key);
-      });
-
-      await refresh();
+  const upload = useCallback(
+    (files: File[]): void => {
+      void uploads.upload(files, prefix).then(actions.refresh);
     },
-    [prefix, refresh, uploadOneXhr]
+    [actions.refresh, prefix, uploads]
   );
-
-  const handleDelete = useCallback(
-    (item: ObjItem) => {
-      modal.confirm({
-        title: `Delete "${item.key}"?`,
-        content: `Removes the object from "${bucket}" immediately.`,
-        okText: 'Delete',
-        okButtonProps: { danger: true },
-        onOk: async () => {
-          try {
-            await deleteObject(bucket, item.key);
-            void msg.success('Deleted');
-            if (preview?.key === item.key) {
-              setPreview(null);
-            }
-            await refresh();
-          } catch (e) {
-            void msg.error(`Delete failed: ${errMsg(e)}`);
-          }
-        },
-      });
-    },
-    [bucket, msg, modal, preview, refresh]
-  );
-
-  const handleBulkDelete = useCallback(() => {
-    if (selected.size === 0) {
-      return;
-    }
-    modal.confirm({
-      title: `Delete ${selected.size.toString()} objects?`,
-      content: 'This cannot be undone.',
-      okText: 'Delete all',
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        const keys = Array.from(selected);
-        try {
-          const res = await batchDelete(bucket, keys);
-          if (res.failed.length === 0) {
-            void msg.success(
-              `Deleted ${res.deleted.length.toString()} objects`
-            );
-          } else {
-            void msg.warning(
-              `Deleted ${res.deleted.length.toString()}, ${res.failed.length.toString()} failed`
-            );
-          }
-        } catch (e) {
-          void msg.error(`Batch delete failed: ${errMsg(e)}`);
-        }
-        await refresh();
-      },
-    });
-  }, [bucket, modal, msg, refresh, selected]);
-
-  const handleBulkDownloadZip = useCallback(async (): Promise<void> => {
-    const keys = Array.from(selected);
-    if (keys.length === 0) {
-      return;
-    }
-    if (keys.length > 1000) {
-      void msg.error('Select at most 1000 objects for zip download.');
-      return;
-    }
-    const confirmed = await new Promise<boolean>((resolve) => {
-      if (keys.length <= 50) {
-        resolve(true);
-        return;
-      }
-      modal.confirm({
-        title: `Download ${keys.length.toString()} objects as ZIP?`,
-        content:
-          'The server streams the archive — large selections may take a moment.',
-        onOk: () => {
-          resolve(true);
-        },
-        onCancel: () => {
-          resolve(false);
-        },
-      });
-    });
-    if (!confirmed) {
-      return;
-    }
-    const dismiss = msg.loading('Streaming ZIP…', 0);
-    try {
-      await downloadZip(bucket, keys, `${bucket}-selection.zip`);
-      void msg.success('ZIP downloaded');
-    } catch (e) {
-      void msg.error(`ZIP failed: ${errMsg(e)}`);
-    } finally {
-      dismiss();
-    }
-  }, [bucket, modal, msg, selected]);
-
-  const handleMove = useCallback(async (): Promise<void> => {
-    // TODO(cross-bucket-move): needs backend POST /buckets/:src/cross-copy
-    // endpoint. Until then this only moves within bucket={bucket}.
-    const keys = Array.from(selected);
-    if (keys.length === 0 || moveTarget === '') {
-      return;
-    }
-    if (moveTarget.startsWith('/') || moveTarget.startsWith('..')) {
-      void msg.error(
-        'Target prefix must be a relative path within this bucket.'
-      );
-      return;
-    }
-    setMoveLoading(true);
-    const targetPrefix = moveTarget.endsWith('/')
-      ? moveTarget
-      : `${moveTarget}/`;
-    let failed = 0;
-    await Promise.allSettled(
-      keys.map(async (k) => {
-        try {
-          await copyObject(bucket, {
-            src: k,
-            dst: targetPrefix + lastSegment(k),
-            delete_src: true,
-          });
-        } catch (e) {
-          failed += 1;
-          void msg.error(`Move failed for ${lastSegment(k)}: ${errMsg(e)}`);
-        }
-      })
-    );
-    setMoveLoading(false);
-    setMoveOpen(false);
-    setMoveTarget('');
-    if (preview !== null && keys.includes(preview.key)) {
-      setPreview(null);
-    }
-    if (failed === 0) {
-      void msg.success(`Moved ${keys.length.toString()} objects`);
-    }
-    await refresh();
-  }, [bucket, moveTarget, msg, preview, refresh, selected]);
-
-  const generateShareLink = useCallback(
-    async (
-      item: ObjItem,
-      opts: { ttlSeconds: number; asAttachment: boolean }
-    ): Promise<ShareLinkResult> => {
-      const filename = lastSegment(item.key);
-      const pr = await presignGet(bucket, {
-        key: item.key,
-        ttl_seconds: opts.ttlSeconds,
-        response_content_type: opts.asAttachment
-          ? `application/octet-stream; disposition=attachment; filename="${filename}"`
-          : undefined,
-      });
-      const fullUrl = pr.url.startsWith('http')
-        ? pr.url
-        : `${window.location.origin}${pr.url}`;
-      const out: ShareLinkResult = {
-        url: fullUrl,
-        expiresAt: pr.expires_at,
-      };
-      recordShare({
-        id: `${bucket}:${item.key}:${Date.now().toString()}`,
-        bucket,
-        key: item.key,
-        url: fullUrl,
-        expiresAt: pr.expires_at,
-        createdAt: new Date().toISOString(),
-        asAttachment: opts.asAttachment,
-      });
-      return out;
-    },
-    [bucket]
-  );
-
-  const copyUrl = useCallback(
-    async (item: ObjItem): Promise<void> => {
-      try {
-        const pr = await presignGet(bucket, {
-          key: item.key,
-          ttl_seconds: 300,
-        });
-        const fullUrl = pr.url.startsWith('http')
-          ? pr.url
-          : `${window.location.origin}${pr.url}`;
-        await navigator.clipboard.writeText(fullUrl);
-        void msg.success('URL copied (5 min TTL)');
-      } catch (e) {
-        void msg.error(`Copy URL failed: ${errMsg(e)}`);
-      }
-    },
-    [bucket, msg]
-  );
-
-  const downloadAsAttachment = useCallback(
-    async (item: ObjItem): Promise<void> => {
-      try {
-        const pr = await presignGet(bucket, {
-          key: item.key,
-          ttl_seconds: 300,
-        });
-        const a = document.createElement('a');
-        a.href = pr.url;
-        a.download = lastSegment(item.key);
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } catch (e) {
-        void msg.error(`Download failed: ${errMsg(e)}`);
-      }
-    },
-    [bucket, msg]
-  );
-
-  const handleNewFolder = useCallback(async (): Promise<void> => {
-    const name = newFolderName.trim();
-    if (!name) {
-      return;
-    }
-    setNewFolderLoading(true);
-    try {
-      const keepKey = `${prefix}${name}/.keep`;
-      const presign = await presignPut(bucket, {
-        key: keepKey,
-        content_type: 'application/octet-stream',
-        content_length: 0,
-        ttl_seconds: 300,
-      });
-      await uploadWithPresign(presign.presigned, new Blob([]));
-      void msg.success(`Folder "${name}" created`);
-      setNewFolderOpen(false);
-      setNewFolderName('');
-      await refresh();
-    } catch (e) {
-      void msg.error(`Create folder failed: ${errMsg(e)}`);
-    } finally {
-      setNewFolderLoading(false);
-    }
-  }, [bucket, msg, newFolderName, prefix, refresh]);
 
   const breadcrumbItems = useMemo<BreadcrumbItem[]>(() => {
     const out: BreadcrumbItem[] = [
@@ -728,296 +179,32 @@ export default function BucketBrowser() {
     return out;
   }, [basePath, bucket, prefix]);
 
-  const inspectorTabs = useMemo<ObjectInspectorTab[]>(() => {
-    if (!preview) {
-      return [];
-    }
-    const tabs: ObjectInspectorTab[] = [
-      {
-        id: 'summary',
-        label: 'Summary',
-        content: (
-          <MetadataList
-            entries={[
-              { label: 'Key', value: preview.key, mono: true, copyable: true },
-              {
-                label: 'Size',
-                value: `${formatBytes(preview.size)} (${preview.size.toString()} B)`,
-              },
-              {
-                label: 'Content-Type',
-                value: preview.contentType ?? '—',
-                mono: !!preview.contentType,
-              },
-              {
-                label: 'Updated',
-                value: `${new Date(preview.updatedAt).toLocaleString()} (${preview.updatedAt})`,
-              },
-              ...(preview.etag
-                ? [{ label: 'ETag', value: preview.etag, mono: true as const }]
-                : []),
-              ...(preview.metadata && Object.keys(preview.metadata).length > 0
-                ? Object.entries(preview.metadata).map(([k, v]) => ({
-                    label: k,
-                    value: v,
-                    mono: true as const,
-                  }))
-                : []),
-            ]}
-          />
-        ),
-      },
-      {
-        id: 'preview',
-        label: 'Preview',
-        content: previewUrl ? (
-          <FilePreview
-            src={previewUrl}
-            mimeType={inferMime(preview)}
-            name={preview.key}
-            size={preview.size}
-          />
-        ) : (
-          <span style={{ color: 'var(--text-muted)' }}>Loading preview…</span>
-        ),
-      },
-    ];
-    if (isParquet(preview)) {
-      tabs.push({
-        id: 'parquet',
-        label: 'Parquet',
-        content: previewUrl ? (
-          <ParquetViewer src={previewUrl} title={preview.key} />
-        ) : (
-          <span style={{ color: 'var(--text-muted)' }}>Loading parquet…</span>
-        ),
-      });
-    }
-    return tabs;
-  }, [preview, previewUrl]);
-
-  const inspectorActions = useMemo(() => {
-    if (!preview) {
-      return null;
-    }
-    return (
-      <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
-        <Button
-          size='small'
-          icon={<DownloadOutlined />}
-          onClick={() => {
-            void downloadAsAttachment(preview);
-          }}
-        >
-          Download
-        </Button>
-        <Button
-          size='small'
-          icon={<CopyOutlined />}
-          onClick={() => {
-            void copyUrl(preview);
-          }}
-        >
-          Copy URL
-        </Button>
-        <Button
-          size='small'
-          icon={<ShareAltOutlined />}
-          onClick={() => {
-            setShare(preview);
-            setShareModalOpen(true);
-          }}
-        >
-          Share
-        </Button>
-        <Button
-          size='small'
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => {
-            handleDelete(preview);
-          }}
-        >
-          Delete
-        </Button>
-      </span>
-    );
-  }, [copyUrl, downloadAsAttachment, handleDelete, preview]);
-
-  const columns = useMemo<Array<DataTableColumn<ObjItem>>>(
-    () => [
-      {
-        key: 'sel',
-        header: '',
-        width: 32,
-        truncate: false,
-        render: (row) => (
-          <input
-            type='checkbox'
-            checked={selected.has(row.key)}
-            onChange={(e) => {
-              setSelected((prev) => {
-                const next = new Set(prev);
-                if (e.target.checked) {
-                  next.add(row.key);
-                } else {
-                  next.delete(row.key);
-                }
-                return next;
-              });
-            }}
-          />
-        ),
-      },
-      {
-        key: 'key',
-        header: 'Name',
-        render: (row) => (
-          <MonoValue size='sm'>{lastSegment(row.key)}</MonoValue>
-        ),
-      },
-      {
-        key: 'size',
-        header: 'Size',
-        align: 'right',
-        width: 100,
-        render: (row) => (
-          <MonoValue size='sm'>{formatBytes(row.size)}</MonoValue>
-        ),
-      },
-      {
-        key: 'type',
-        header: 'Type',
-        width: 200,
-        render: (row) =>
-          row.contentType ? (
-            <Chip tone='ghost'>{row.contentType}</Chip>
-          ) : (
-            <span style={{ color: 'var(--text-muted)' }}>—</span>
-          ),
-      },
-      {
-        key: 'updated',
-        header: 'Updated',
-        width: 180,
-        render: (row) => (
-          <MonoValue size='sm'>
-            {new Date(row.updatedAt).toLocaleString()}
-          </MonoValue>
-        ),
-      },
-      {
-        key: 'actions',
-        header: '',
-        align: 'right',
-        truncate: false,
-        width: 200,
-        render: (row) => (
-          <DropdownMenu
-            align='right'
-            trigger={
-              <Button size='small' type='text'>
-                Actions <CaretDownOutlined />
-              </Button>
-            }
-            items={[
-              {
-                key: 'preview',
-                label: 'Preview',
-                icon: <DownloadOutlined />,
-                onClick: () => {
-                  setPreview(row);
-                },
-              },
-              {
-                key: 'download',
-                label: 'Download',
-                icon: <DownloadOutlined />,
-                onClick: () => {
-                  void downloadAsAttachment(row);
-                },
-              },
-              {
-                key: 'copy-url',
-                label: 'Copy URL',
-                icon: <CopyOutlined />,
-                onClick: () => {
-                  void copyUrl(row);
-                },
-              },
-              {
-                key: 'share',
-                label: 'Share',
-                icon: <ShareAltOutlined />,
-                onClick: () => {
-                  setShare(row);
-                  setShareModalOpen(true);
-                },
-              },
-              {
-                key: 'delete',
-                label: 'Delete',
-                icon: <DeleteOutlined />,
-                danger: true,
-                onClick: () => {
-                  handleDelete(row);
-                },
-              },
-            ]}
-          />
-        ),
-      },
-    ],
-    [copyUrl, downloadAsAttachment, handleDelete, selected]
+  const columns = useMemo(
+    () =>
+      objectColumns({
+        preview: setPreview,
+        download: (item) => {
+          void actions.download(item);
+        },
+        copyUrl: (item) => {
+          void actions.copyUrl(item);
+        },
+        share: setShare,
+        remove: actions.remove,
+      }),
+    [actions]
   );
 
-  // Window-level drag-over detection
-  useEffect(() => {
-    let depth = 0;
-
-    const onDragEnter = () => {
-      depth += 1;
-      setDragDepth(depth);
-    };
-
-    const onDragLeave = (e: DragEvent) => {
-      if (e.relatedTarget === null) {
-        depth = 0;
-        setDragDepth(0);
-      } else {
-        depth = Math.max(0, depth - 1);
-        setDragDepth(depth);
-      }
-    };
-
-    const onDrop = () => {
-      depth = 0;
-      setDragDepth(0);
-    };
-
-    window.addEventListener('dragenter', onDragEnter);
-    window.addEventListener('dragleave', onDragLeave);
-    window.addEventListener('drop', onDrop);
-
-    return () => {
-      window.removeEventListener('dragenter', onDragEnter);
-      window.removeEventListener('dragleave', onDragLeave);
-      window.removeEventListener('drop', onDrop);
-    };
-  }, []);
-
-  const dragActive = dragDepth > 0;
-
   const toolbarRight =
-    selected.size > 0 ? (
-      <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
+    selected.length > 0 ? (
+      <span className='blob-actions'>
         <Button
           icon={<DownloadOutlined />}
           onClick={() => {
-            void handleBulkDownloadZip();
+            void actions.downloadZip(selected);
           }}
         >
-          Download ZIP ({selected.size.toString()})
+          Download ZIP ({selected.length.toString()})
         </Button>
         <Button
           onClick={() => {
@@ -1026,12 +213,18 @@ export default function BucketBrowser() {
         >
           Move…
         </Button>
-        <Button danger icon={<DeleteOutlined />} onClick={handleBulkDelete}>
-          Delete ({selected.size.toString()})
+        <Button
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => {
+            actions.removeMany(selected);
+          }}
+        >
+          Delete ({selected.length.toString()})
         </Button>
       </span>
     ) : (
-      <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
+      <span className='blob-actions'>
         <Button
           icon={<FolderAddOutlined />}
           onClick={() => {
@@ -1042,56 +235,41 @@ export default function BucketBrowser() {
         </Button>
         <DropdownMenu
           align='right'
+          triggerTone='secondary'
           trigger={
-            <Button icon={<UploadOutlined />}>
-              Upload <CaretDownOutlined />
-            </Button>
+            <>
+              <UploadOutlined /> Upload <CaretDownOutlined />
+            </>
           }
           items={[
             {
               key: 'files',
               label: 'Files',
               onClick: () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.multiple = true;
-                input.onchange = () => {
-                  if (input.files && input.files.length > 0) {
-                    void handleDrop(Array.from(input.files));
-                  }
-                };
-                input.click();
+                pickFiles(false, upload);
               },
             },
             {
               key: 'folder',
               label: 'Folder',
               onClick: () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.setAttribute('webkitdirectory', '');
-                input.multiple = true;
-                input.onchange = () => {
-                  if (input.files && input.files.length > 0) {
-                    void handleDrop(Array.from(input.files));
-                  }
-                };
-                input.click();
+                pickFiles(true, upload);
               },
             },
           ]}
         />
-        <Tooltip title='List mode only' placement='top'>
-          <Button disabled>☰</Button>
-        </Tooltip>
         <Button
+          aria-label='Reload'
           icon={<ReloadOutlined />}
+          loading={listing.isRefetching}
           onClick={() => {
-            void refresh();
+            void listing.refetch();
           }}
         />
       </span>
     );
+
+  const loading = listing.isPending && bucket !== '';
 
   return (
     <>
@@ -1110,7 +288,7 @@ export default function BucketBrowser() {
       />
 
       <Toolbar
-        center={
+        left={
           <SearchInput
             value={search}
             onChange={setSearch}
@@ -1123,38 +301,44 @@ export default function BucketBrowser() {
         right={toolbarRight}
       />
 
-      {showUploadQueue && uploads.length > 0 ? (
+      {uploads.items.length > 0 ? (
         <Panel>
           <UploadQueue
-            items={uploads}
-            onDismiss={(id) => {
-              setUploads((prev) => prev.filter((u) => u.id !== id));
-            }}
-            onClearCompleted={() => {
-              setUploads((prev) =>
-                prev.filter((u) => u.status !== 'done' && u.status !== 'error')
-              );
-              if (
-                uploads.every(
-                  (u) => u.status === 'done' || u.status === 'error'
-                )
-              ) {
-                setShowUploadQueue(false);
-              }
-            }}
+            items={uploads.items}
+            onDismiss={uploads.dismiss}
+            onClearCompleted={uploads.clearFinished}
           />
         </Panel>
       ) : null}
 
-      {error !== null ? (
+      {listing.isRefetchError ? (
+        <Alert
+          tone='error'
+          title={`Could not reload objects: ${errMsg(listing.error)}`}
+        >
+          <span className='blob-reload-error'>
+            Showing the rows from the last successful load.
+            <Button
+              size='small'
+              onClick={() => {
+                void listing.refetch();
+              }}
+            >
+              Try again
+            </Button>
+          </span>
+        </Alert>
+      ) : null}
+
+      {listing.isError && listing.data === undefined ? (
         <Panel>
           <ErrorState
             title='Could not list objects'
-            description={error}
+            description={errMsg(listing.error)}
             action={
               <Button
                 onClick={() => {
-                  void refresh();
+                  void listing.refetch();
                 }}
               >
                 Try again
@@ -1165,32 +349,31 @@ export default function BucketBrowser() {
       ) : (
         <Panel>
           <ObjectBrowser
-            prefixes={result?.common_prefixes ?? []}
+            prefixes={prefixes}
             currentPrefix={prefix}
-            onPrefixChange={(next) => {
-              setPrefix(next);
-            }}
-            selectionCount={selected.size}
+            onPrefixChange={setPrefix}
+            selectionCount={selected.length}
             loading={loading}
-            searchSlot={undefined}
             dragOverlay={
               dragActive ? (
                 <FileDropzone
                   variant='overlay'
-                  onDrop={(files) => {
-                    void handleDrop(files);
-                  }}
+                  onDrop={upload}
                   multiple
                   hint='Drop to upload'
                 />
               ) : undefined
             }
             footer={
-              isTruncated ? (
+              listing.isFetchNextPageError ? (
+                <Alert tone='error' title='Could not load more objects'>
+                  {errMsg(listing.error)}
+                </Alert>
+              ) : listing.hasNextPage ? (
                 <Button
-                  loading={loadingMore}
+                  loading={listing.isFetchingNextPage}
                   onClick={() => {
-                    void loadMore();
+                    void listing.fetchNextPage();
                   }}
                 >
                   Load more
@@ -1220,104 +403,58 @@ export default function BucketBrowser() {
                 data={filteredItems}
                 rowKey={(row) => row.key}
                 loading={loading}
+                selectable
+                selectedKeys={selected}
+                onSelectedKeysChange={(keys) => {
+                  setSelected(keys.map(String));
+                }}
               />
             )}
           </ObjectBrowser>
         </Panel>
       )}
 
-      <ObjectInspector
-        open={preview !== null}
+      <ObjectPreview
+        bucket={bucket}
+        item={preview}
+        actions={actions}
+        onShare={setShare}
         onClose={() => {
           setPreview(null);
         }}
-        title={preview ? lastSegment(preview.key) : ''}
-        subtitle={preview?.key}
-        tabs={inspectorTabs}
-        defaultTabId={
-          preview ? (isParquet(preview) ? 'parquet' : 'preview') : undefined
-        }
-        actions={inspectorActions}
-        width={720}
-        defaultMaximized
       />
 
-      <Modal
+      <Dialog
+        open={share !== null}
         title='Share link'
-        open={shareModalOpen}
-        onCancel={() => {
-          setShareModalOpen(false);
+        onClose={() => {
           setShare(null);
         }}
-        footer={null}
-        destroyOnClose
       >
         {share ? (
           <ShareLinkDialog
             objectKey={share.key}
-            onGenerate={(opts) => generateShareLink(share, opts)}
-            onClose={() => {
-              setShareModalOpen(false);
-              setShare(null);
-            }}
+            onGenerate={(opts) => actions.share(share, opts)}
           />
         ) : null}
-      </Modal>
+      </Dialog>
 
-      <Modal
-        title='New folder'
+      <NewFolderDialog
         open={newFolderOpen}
-        onCancel={() => {
+        onCreate={actions.createFolder}
+        onClose={() => {
           setNewFolderOpen(false);
-          setNewFolderName('');
         }}
-        onOk={() => {
-          void handleNewFolder();
-        }}
-        okText='Create'
-        confirmLoading={newFolderLoading}
-        destroyOnClose
-      >
-        <Input
-          placeholder='folder-name'
-          value={newFolderName}
-          onChange={(e) => {
-            setNewFolderName(e.target.value);
-          }}
-          onPressEnter={() => {
-            void handleNewFolder();
-          }}
-        />
-      </Modal>
+      />
 
-      <Modal
-        title={`Move within "${bucket}"`}
+      <MoveDialog
         open={moveOpen}
-        onCancel={() => {
+        bucket={bucket}
+        onMove={(target) => actions.move(selected, target)}
+        onClose={() => {
           setMoveOpen(false);
-          setMoveTarget('');
         }}
-        onOk={() => {
-          void handleMove();
-        }}
-        okText='Move'
-        confirmLoading={moveLoading}
-        destroyOnClose
-      >
-        <p
-          style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}
-        >
-          Server-side copy then delete within this bucket — no client bandwidth
-          round-trip. Cross-bucket move is not yet supported.
-        </p>
-        <Input
-          placeholder='target/prefix/'
-          value={moveTarget}
-          onChange={(e) => {
-            setMoveTarget(e.target.value);
-          }}
-        />
-      </Modal>
+      />
     </>
   );
 }

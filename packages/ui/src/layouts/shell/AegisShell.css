@@ -244,6 +244,14 @@
   margin-left: auto;
 }
 
+.aegis-shell__env-error {
+  display: inline-flex;
+}
+
+.aegis-shell__env-error-short {
+  display: none;
+}
+
 .aegis-shell__sidebar {
   grid-area: sidebar;
   position: sticky;
@@ -309,6 +317,11 @@
 
 .aegis-shell__nav-link--active:hover {
   background: var(--bg-inverted);
+}
+
+/* Inset, so the scrolling sidebar does not clip the ring. */
+.aegis-shell__nav-link:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
 .aegis-shell__nav-icon {
@@ -490,6 +503,17 @@
   min-width: 0;
 }
 
+/* theme.css's reduced-motion rule gives every element a 0.01ms transition,
+   which would fade the drawer's inherited visibility into its links, so
+   the first link could not take focus as the drawer opens. !important
+   outranks that rule's own. */
+@media (prefers-reduced-motion: reduce) {
+  .aegis-shell__sidebar,
+  .aegis-shell__sidebar * {
+    transition: none !important;
+  }
+}
+
 /* Collapsing the sidebar is a desktop preference; phones keep the drawer. */
 @media (min-width: 769px) {
   .aegis-shell--no-sidebar .aegis-shell__sidebar {
@@ -520,10 +544,13 @@
     flex-wrap: wrap;
   }
 
+  /* A zero basis lets the actions claim their width first, so the brand
+     truncates instead of pushing the actions onto a second row. */
   .aegis-shell__header-left {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
     height: calc(var(--header-height) - var(--size-hairline));
+    padding: 0 var(--space-3) 0 var(--page-padding-inline-mobile);
   }
 
   .aegis-shell--with-sidebar .aegis-shell__header-left {
@@ -558,20 +585,35 @@
   }
 
   /* An app's own header (project switcher, tabs) stays reachable: it
-     wraps onto a full-width row under the brand and actions. */
+     wraps onto a full-width row under the brand and actions, inset like
+     the page content. */
   .aegis-shell__header-center--app {
     display: flex;
     order: 1;
     flex: 1 0 100%;
     min-height: calc(var(--size-control-base) + var(--space-3));
-    padding: 0;
+    padding: 0 var(--page-padding-inline-mobile);
     border-top: var(--size-hairline) solid var(--border-hairline);
   }
 
   .aegis-shell__header-right {
     flex-shrink: 0;
     gap: var(--space-2);
-    padding: 0 var(--space-3);
+    padding: 0 var(--page-padding-inline-mobile) 0 var(--space-3);
+  }
+
+  /* The environment control keeps its badge dot and drops its words; the
+     open menu names every environment. */
+  .aegis-shell__env-switcher .aegis-env-switcher__label {
+    display: none;
+  }
+
+  .aegis-shell__env-error-full {
+    display: none;
+  }
+
+  .aegis-shell__env-error-short {
+    display: inline;
   }
 
   .aegis-shell__user-name {
@@ -597,12 +639,20 @@
     width: min(80vw, 18rem);
     z-index: var(--z-modal);
     transform: translateX(-100%);
-    transition: transform var(--motion-base);
     box-shadow: var(--shadow-overlay);
+    /* Once it has slid out, a closed drawer is hidden: it casts no shadow
+       at the edge and its links leave the tab order. */
+    visibility: hidden;
+    transition:
+      transform var(--motion-base),
+      visibility var(--motion-base);
   }
 
+  /* Opening shows it at once, so focus can move in while it slides. */
   .aegis-shell--mobile-nav-open .aegis-shell__sidebar {
     transform: translateX(0);
+    visibility: visible;
+    transition: transform var(--motion-base);
   }
 
   .aegis-shell--mobile-nav-open .aegis-shell__backdrop {
@@ -618,6 +668,6 @@
   }
 
   .aegis-shell__breadcrumb {
-    padding: var(--space-3) var(--space-4) 0;
+    padding: var(--space-3) var(--page-padding-inline-mobile) 0;
   }
 }

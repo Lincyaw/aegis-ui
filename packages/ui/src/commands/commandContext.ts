@@ -1,7 +1,5 @@
 import { type ReactNode, createContext } from 'react';
 
-import type { AegisAction } from '../agent/core/types';
-
 /**
  * A single executable action surfaced through the command palette and,
  * eventually, agent tool-calls. Commands are presentational contracts —
@@ -32,8 +30,6 @@ export interface Command<TArgs = unknown> {
   handler: (args?: TArgs) => void | Promise<void>;
   /** Optional undo callback for hosts that offer Undo; CommandPalette never calls it. */
   undo?: () => void | Promise<void>;
-  /** Optional aegis-ui agent action, registered while the palette row is rendered. */
-  action?: AegisAction<void, unknown>;
 }
 
 /**
@@ -57,17 +53,5 @@ export interface CommandContextValue {
   paletteOpen: boolean;
 }
 
-export const defaultCommandContextValue: CommandContextValue = {
-  commands: [],
-  allCommands: [],
-  register: () => () => undefined,
-  setActiveScope: () => undefined,
-  execute: () =>
-    Promise.reject(new Error('No <CommandProvider> mounted above caller.')),
-  setPaletteOpen: () => undefined,
-  paletteOpen: false,
-};
-
-export const CommandContext = createContext<CommandContextValue>(
-  defaultCommandContextValue,
-);
+/** Null until a `<CommandProvider>` is mounted; `useCommands` reads it. */
+export const CommandContext = createContext<CommandContextValue | null>(null);

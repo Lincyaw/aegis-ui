@@ -21,6 +21,20 @@
   margin-top: var(--space-px);
 }
 
+.aegis-metric-card__number {
+  font-family: var(--font-numeric);
+  font-size: var(--type-number-compact-size);
+  line-height: var(--type-number-compact-line);
+  font-weight: var(--type-number-compact-weight);
+  letter-spacing: var(--type-number-compact-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+}
+
+.aegis-metric-card--inverted .aegis-metric-card__number {
+  color: var(--text-on-inverted);
+}
+
 .aegis-metric-card__unit {
   margin-left: var(--space-px);
 }

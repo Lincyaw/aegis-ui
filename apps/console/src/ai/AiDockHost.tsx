@@ -1,48 +1,43 @@
-import { type ReactElement, useCallback, useEffect, useState } from 'react';
+import { type ReactElement, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
-import { ThemeToggle } from '@lincyaw/aegis-ui';
+import { Button, useAgentChat } from '@lincyaw/aegis-ui';
 
 import { AiDock } from './AiDock';
 
-// main.tsx always mounts AgentmChannelProvider (with a localhost default
-// when VITE_AGENTM_GATEWAY_URL is unset), so AgentChatProvider is no
-// longer needed as the chat backend here.
-
-const OPEN_KEY = 'aegis.ai.dock.open.v1';
-
-function readOpen(): boolean {
-  try {
-    return window.localStorage.getItem(OPEN_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function writeOpen(value: boolean): void {
-  try {
-    window.localStorage.setItem(OPEN_KEY, value ? '1' : '0');
-  } catch {
-    // Why: localStorage may be unavailable in some sandboxes — preference is best-effort.
-  }
-}
-
+/**
+ * The header's AI toggle and the dock it opens, both driven by the open
+ * state `AgentmChatProvider` serves through `useAgentChat`. Focus moves
+ * into the composer when the dock opens and back to the toggle when it
+ * closes with focus inside.
+ */
 export function AiDockHost(): ReactElement {
-  const [open, setOpen] = useState<boolean>(() =>
-    typeof window === 'undefined' ? false : readOpen()
-  );
+  const { panelOpen = false, setPanelOpen } = useAgentChat();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const wasOpenRef = useRef(panelOpen);
 
   const toggle = useCallback((): void => {
-    setOpen((prev) => {
-      const next = !prev;
-      writeOpen(next);
-      return next;
-    });
-  }, []);
+    setPanelOpen?.(!panelOpen);
+  }, [panelOpen, setPanelOpen]);
 
   const close = useCallback((): void => {
-    setOpen(false);
-    writeOpen(false);
-  }, []);
+    setPanelOpen?.(false);
+  }, [setPanelOpen]);
+
+  useEffect(() => {
+    if (panelOpen === wasOpenRef.current) {
+      return;
+    }
+    wasOpenRef.current = panelOpen;
+    if (panelOpen) {
+      dockRef.current?.querySelector('textarea')?.focus();
+    } else if (document.activeElement === document.body) {
+      // Why: the dock unmounts on close, which drops focus held inside it
+      // to the body.
+      toggleRef.current?.focus();
+    }
+  }, [panelOpen]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
@@ -59,27 +54,22 @@ export function AiDockHost(): ReactElement {
 
   return (
     <>
-      <button
-        type='button'
-        className='aegis-ai-dock-toggle'
+      <Button
+        ref={toggleRef}
+        tone='ghost'
         onClick={toggle}
-        aria-label='Toggle AI assistant'
-        aria-pressed={open}
+        aria-label='AI assistant'
+        aria-pressed={panelOpen}
         title='AI assistant (Ctrl/Cmd+K)'
-        style={{
-          font: 'inherit',
-          color: open ? 'var(--text-on-inverted)' : 'var(--text-muted)',
-          background: open ? 'var(--bg-inverted)' : 'transparent',
-          border: 'var(--size-hairline) solid var(--border-hairline)',
-          borderRadius: 'var(--radius-sm)',
-          padding: 'var(--space-1) var(--space-3)',
-          cursor: 'pointer',
-        }}
       >
         AI
-      </button>
-      <ThemeToggle />
-      <AiDock open={open} onClose={close} />
+      </Button>
+      {/* Why: the glass header's backdrop-filter is the containing block
+          for fixed descendants, which would clip the dock to the header. */}
+      {createPortal(
+        <AiDock open={panelOpen} onClose={close} dockRef={dockRef} />,
+        document.body
+      )}
     </>
   );
 }

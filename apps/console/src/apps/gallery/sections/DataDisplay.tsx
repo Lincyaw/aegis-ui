@@ -5,9 +5,11 @@ import {
   Button as AegisButton,
   Chip,
   EmptyState,
+  formatDuration,
   type KeyValueItem,
   KeyValueList,
   MetricCard,
+  MonoValue,
   Panel,
   PanelTitle,
   SectionDivider,
@@ -35,11 +37,15 @@ const SPARK_FLAT = [
   50, 51, 49, 52, 50, 51, 49, 50, 51, 50, 49, 51, 50, 50, 51, 49,
 ];
 
+const DURATION_SAMPLES = [
+  1e-7, 0.0004, 0.5, 12.34, 999.7, 1500, -1500, 59_990, 123_000, 3_900_000,
+];
+
 const KV_META: KeyValueItem[] = [
-  { k: 'Run ID', v: 'EXP-29F1-ALPHA' },
+  { k: 'Run ID', v: <MonoValue size='sm'>EXP-29F1-ALPHA</MonoValue> },
   { k: 'Duration', v: '00:14:22' },
-  { k: 'Cluster', v: 'EU-WEST-01' },
-  { k: 'Operator', v: 'rosetta@aegis' },
+  { k: 'Cluster', v: 'eu-west-01' },
+  { k: 'Operator', v: 'Rosetta' },
 ];
 
 interface TimeRangePickerSpecimenProps {
@@ -172,7 +178,7 @@ export function DataDisplaySection() {
 
       <SectionDivider>KeyValueList</SectionDivider>
       <div className='gallery__row gallery__row--wide'>
-        <Specimen caption='mono keys (parameters)' span={2}>
+        <Specimen caption='numbers in tabular figures' span={2}>
           <KeyValueList
             items={KV_PARAMS}
             surface={{
@@ -190,8 +196,8 @@ export function DataDisplaySection() {
             }}
           />
         </Specimen>
-        <Specimen caption='uppercase keys (metadata)' span={2}>
-          <KeyValueList items={KV_META} uppercaseKeys />
+        <Specimen caption='an id in MonoValue' span={2}>
+          <KeyValueList items={KV_META} />
         </Specimen>
       </div>
 
@@ -235,12 +241,25 @@ export function DataDisplaySection() {
             <SparkLine points={SPARK_RISING} inverted />
           </div>
         </Specimen>
+        <Specimen caption='one sample · level line'>
+          <div className='gallery__spark-host'>
+            <SparkLine points={[64]} />
+          </div>
+        </Specimen>
       </div>
 
       <SectionDivider>MetricCard</SectionDivider>
       <div className='gallery__row gallery__row--wide'>
         <Specimen caption='value only'>
           <MetricCard label='Active injections' value='3' />
+        </Specimen>
+        <Specimen caption='first sample · sparkline of one point'>
+          <MetricCard
+            label='Error rate'
+            value='0.4'
+            unit='%'
+            sparkline={[0.4]}
+          />
         </Specimen>
         <Specimen caption='value + unit'>
           <MetricCard label='Latency p99' value='142' unit='ms' />
@@ -361,6 +380,17 @@ export function DataDisplaySection() {
         </Specimen>
         <Specimen caption='duration'>
           <TimeDisplay value={2840} mode='duration' />
+        </Specimen>
+        <Specimen caption="empty or unreadable value · an em dash, read out as the locale's no-value text">
+          <TimeDisplay value='not a date' />
+        </Specimen>
+        <Specimen caption="formatDuration(ms) · the library's one duration format, also behind TraceTree, TimelineChart and the trajectory primitives">
+          <KeyValueList
+            items={DURATION_SAMPLES.map((ms) => ({
+              k: String(ms),
+              v: formatDuration(ms),
+            }))}
+          />
         </Specimen>
       </div>
 

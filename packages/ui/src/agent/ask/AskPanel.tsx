@@ -4,15 +4,15 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
 
-import { Button } from '../../components/ui/Button';
+import { ChatComposer } from '../../components/ui/ChatComposer';
 import { Chip } from '../../components/ui/Chip';
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { AegisRuntimeContext } from '../core/aegisRuntimeContext';
+import type { AegisRuntime } from '../core/runtime';
 import type {
   AegisActionDescriptor,
   AskContext,
@@ -29,7 +29,17 @@ export interface AskPanelProps {
   /** Preferred anchor point (e.g. mouse position). Wins over anchorRect. */
   anchorPoint?: { x: number; y: number } | null;
   onClose: () => void;
-  /** When true, render fixed-positioned popover; when false, inline. */
+  /**
+   * Hands the question to the agent. Without it the panel shows the
+   * context and its tools but offers no way to ask.
+   */
+  onSend?: (request: AskRequest) => void;
+  /** True while the agent is still answering; holds the composer. */
+  sending?: boolean;
+  /**
+   * When true (default), a fixed popover that closes on Escape and on a
+   * click outside it; when false, inline.
+   */
   popover?: boolean;
 }
 
@@ -86,12 +96,43 @@ function placeNear(
   return { left, top, maxHeight };
 }
 
+function resolveTools(
+  runtime: AegisRuntime | null,
+  tools: AegisActionDescriptor[] | undefined,
+  context: AskContext,
+): AegisActionDescriptor[] {
+  if (tools) {
+    return tools;
+  }
+  if (!runtime) {
+    return [];
+  }
+  if (context.entity) {
+    const r = runtime.inspect({ kind: 'entity', entityId: context.entity.id });
+    if (r) {
+      return r.actions;
+    }
+  }
+  if (context.surface) {
+    const r = runtime.inspect({
+      kind: 'surface',
+      surfaceId: context.surface.id,
+    });
+    if (r) {
+      return r.actions;
+    }
+  }
+  return runtime.listActions();
+}
+
 export function AskPanel({
   context,
   tools,
   anchorRect,
   anchorPoint,
   onClose,
+  onSend,
+  sending = false,
   popover = true,
 }: AskPanelProps): ReactElement {
   const ctx = useContext(AegisRuntimeContext);
@@ -99,48 +140,43 @@ export function AskPanel({
   const rootRef = useRef<HTMLDivElement>(null);
   const [placement, setPlacement] = useState<Placement | null>(null);
 
-  const resolvedTools = useMemo<AegisActionDescriptor[]>(() => {
-    if (tools) {
-      return tools;
-    }
-    if (!runtime) {
-      return [];
-    }
-    if (context.entity) {
-      const r = runtime.inspect({
-        kind: 'entity',
-        entityId: context.entity.id,
-      });
-      if (r) {
-        return r.actions;
-      }
-    }
-    if (context.surface) {
-      const r = runtime.inspect({
-        kind: 'surface',
-        surfaceId: context.surface.id,
-      });
-      if (r) {
-        return r.actions;
-      }
-    }
-    return runtime.listActions();
-  }, [runtime, tools, context]);
-
-  const onSend = useCallback(() => {
-    if (!runtime) {
-      return;
-    }
-    const req: AskRequest = {
-      prompt: '',
-      context,
-      tools: resolvedTools,
-      history: [],
-    };
-    runtime.emitAskSubmit(req);
-  }, [runtime, context, resolvedTools]);
+  const [resolvedTools, setResolvedTools] = useState<AegisActionDescriptor[]>(
+    () => resolveTools(runtime, tools, context),
+  );
 
   useEffect(() => {
+    const refresh = (): void => {
+      setResolvedTools(resolveTools(runtime, tools, context));
+    };
+    refresh();
+    if (tools !== undefined || !runtime) {
+      return;
+    }
+    return runtime.subscribe((e) => {
+      if (e.type === 'registry.changed' || e.type === 'snapshot.changed') {
+        refresh();
+      }
+    });
+  }, [runtime, tools, context]);
+
+  const ask = useCallback(
+    (prompt: string) => {
+      const request: AskRequest = {
+        prompt,
+        context,
+        tools: resolvedTools,
+        history: [],
+      };
+      runtime?.emitAskSubmit(request);
+      onSend?.(request);
+    },
+    [runtime, context, resolvedTools, onSend],
+  );
+
+  useEffect(() => {
+    if (!popover) {
+      return;
+    }
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         e.stopPropagation();
@@ -163,7 +199,7 @@ export function AskPanel({
       window.removeEventListener('keydown', onKey, true);
       window.removeEventListener('mousedown', onDown, true);
     };
-  }, [onClose]);
+  }, [onClose, popover]);
 
   useIsomorphicLayoutEffect(() => {
     if (!popover) {
@@ -256,7 +292,17 @@ export function AskPanel({
           <div className="aegis-ask-panel__section-label">Suggestions</div>
           <div className="aegis-ask-panel__chips">
             {context.suggestions.map((s) => (
-              <Chip key={s} tone="ghost">
+              <Chip
+                key={s}
+                tone="ghost"
+                onClick={
+                  onSend && !sending
+                    ? () => {
+                        ask(s);
+                      }
+                    : undefined
+                }
+              >
                 {s}
               </Chip>
             ))}
@@ -280,17 +326,16 @@ export function AskPanel({
           </ul>
         )}
       </div>
-      <footer className="aegis-ask-panel__footer">
-        <Button
-          tone="primary"
-          disabled
-          onClick={onSend}
-          title="No transport configured"
-        >
-          Send to agent
-        </Button>
-        <span className="aegis-ask-panel__note">no transport configured</span>
-      </footer>
+      {onSend ? (
+        <ChatComposer
+          className="aegis-ask-panel__composer"
+          onSend={ask}
+          sending={sending}
+          placeholder="Ask about this…"
+        />
+      ) : (
+        <p className="aegis-ask-panel__note">No agent is connected.</p>
+      )}
     </div>
   );
 }

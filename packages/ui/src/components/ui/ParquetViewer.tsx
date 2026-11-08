@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 
-import type { AsyncBuffer, FileMetaData } from 'hyparquet';
+import type { AsyncBuffer, FileMetaData, SchemaElement } from 'hyparquet';
 
 import {
   type PrimitiveSurface,
@@ -14,6 +14,8 @@ import {
 } from '../../agent/core/usePrimitiveSurface';
 import { Chip } from './Chip';
 import { DataTable, type DataTableColumn } from './DataTable';
+import { EmptyState } from './EmptyState';
+import { ErrorState } from './ErrorState';
 import './ParquetViewer.css';
 
 export type ParquetViewerSurface = PrimitiveSurface<{
@@ -26,7 +28,7 @@ export type ParquetViewerSurface = PrimitiveSurface<{
 interface ParquetViewerProps {
   /** Local file (e.g. from FileDropzone). Takes precedence over `src`. */
   file?: File | Blob;
-  /** Remote URL — must support range requests. */
+  /** URL the viewer reads with range requests, as `<img>` loads its `src`. */
   src?: string;
   /** Rows per page. */
   pageSize?: number;
@@ -40,6 +42,8 @@ interface ParquetViewerProps {
 interface ColumnSpec {
   name: string;
   type: string;
+  /** Plain numbers, set in the numeric face rather than mono. */
+  numeric: boolean;
 }
 
 // hyparquet ships ESM only; loading it on demand keeps `require()` of the
@@ -73,14 +77,35 @@ function asyncBufferFromBlob(blob: Blob): AsyncBuffer {
   };
 }
 
-function describeType(name: string, type: string | undefined): ColumnSpec {
-  return { name, type: type ?? '—' };
+const NUMBER_TYPES = new Set<string>(['INT32', 'INT64', 'FLOAT', 'DOUBLE']);
+const TEMPORAL_TYPES = new Set<string>([
+  'DATE',
+  'TIME',
+  'TIMESTAMP',
+  'INTERVAL',
+  'TIME_MILLIS',
+  'TIME_MICROS',
+  'TIMESTAMP_MILLIS',
+  'TIMESTAMP_MICROS',
+]);
+
+function isNumberColumn(s: SchemaElement): boolean {
+  return (
+    s.type !== undefined &&
+    NUMBER_TYPES.has(s.type) &&
+    !TEMPORAL_TYPES.has(s.logical_type?.type ?? '') &&
+    !TEMPORAL_TYPES.has(s.converted_type ?? '')
+  );
 }
 
 function buildColumns(meta: FileMetaData): ColumnSpec[] {
   return meta.schema
     .filter((s) => s.type !== undefined)
-    .map((s) => describeType(s.name, s.type));
+    .map((s) => ({
+      name: s.name,
+      type: s.type ?? '—',
+      numeric: isNumberColumn(s),
+    }));
 }
 
 function totalRowsOf(meta: FileMetaData): number {
@@ -139,7 +164,8 @@ export function ParquetViewer({
   const wrapRef = useRef<HTMLDivElement>(null);
   const [meta, setMeta] = useState<MetaSummary | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
-  const [page, setPage] = useState(0);
+  /** 1-based, as Pagination counts. */
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -158,7 +184,7 @@ export function ParquetViewer({
   useEffect(() => {
     setMeta(null);
     setRows([]);
-    setPage(0);
+    setPage(1);
     setError(null);
     if (!file && !src) {
       return;
@@ -205,7 +231,7 @@ export function ParquetViewer({
     }
     const state = { cancelled: false };
     setLoading(true);
-    const rowStart = page * pageSize;
+    const rowStart = (page - 1) * pageSize;
     const rowEnd = Math.min(rowStart + pageSize, meta.totalRows);
     void (async () => {
       try {
@@ -251,18 +277,19 @@ export function ParquetViewer({
         ),
         minWidth: 120,
         resizable: true,
-        render: (row) => (
-          <span className="aegis-parquet-viewer__cell">
-            {formatCell(row[c.name], meta.parquet)}
-          </span>
-        ),
+        numeric: c.numeric,
+        render: (row) =>
+          c.numeric ? (
+            formatCell(row[c.name], meta.parquet)
+          ) : (
+            <span className="aegis-parquet-viewer__cell">
+              {formatCell(row[c.name], meta.parquet)}
+            </span>
+          ),
       }),
     );
   }, [meta]);
 
-  const totalPages = meta
-    ? Math.max(1, Math.ceil(meta.totalRows / pageSize))
-    : 0;
   const rootClass = ['aegis-parquet-viewer', className ?? '']
     .filter(Boolean)
     .join(' ');
@@ -270,9 +297,10 @@ export function ParquetViewer({
   if (!file && !src) {
     return (
       <div ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
-        <div className="aegis-parquet-viewer__empty">
-          No parquet source — pass a `file` or `src` URL to inspect.
-        </div>
+        <EmptyState
+          title="No parquet file"
+          description="Pass a file or a src URL to inspect."
+        />
       </div>
     );
   }
@@ -280,7 +308,11 @@ export function ParquetViewer({
   if (error !== null) {
     return (
       <div ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
-        <div className="aegis-parquet-viewer__error">{error}</div>
+        <ErrorState
+          size="compact"
+          title="Could not read the parquet file"
+          description={error}
+        />
       </div>
     );
   }
@@ -323,35 +355,20 @@ export function ParquetViewer({
           rowKey={(_row, i) => `${page.toString()}-${i.toString()}`}
           loading={loading}
           emptyTitle="No rows in this page"
+          pagination={
+            meta && meta.totalRows > pageSize
+              ? {
+                  page,
+                  pageSize,
+                  total: meta.totalRows,
+                  onChange: (next) => {
+                    setPage(next);
+                  },
+                }
+              : undefined
+          }
         />
       </div>
-      {meta && totalPages > 1 ? (
-        <footer className="aegis-parquet-viewer__pager">
-          <button
-            type="button"
-            className="aegis-parquet-viewer__page-btn"
-            onClick={() => {
-              setPage((p) => Math.max(0, p - 1));
-            }}
-            disabled={page === 0 || loading}
-          >
-            ← Prev
-          </button>
-          <span className="aegis-parquet-viewer__page-label">
-            Page {(page + 1).toString()} / {totalPages.toString()}
-          </span>
-          <button
-            type="button"
-            className="aegis-parquet-viewer__page-btn"
-            onClick={() => {
-              setPage((p) => Math.min(totalPages - 1, p + 1));
-            }}
-            disabled={page >= totalPages - 1 || loading}
-          >
-            Next →
-          </button>
-        </footer>
-      ) : null}
     </div>
   );
 }

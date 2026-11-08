@@ -1,16 +1,18 @@
 import type { ReactNode } from 'react';
 
+import { formatDuration } from '../../lib/format';
 import { useStrings } from '../../locale';
 import { Chip } from './Chip';
 import { CodeBlock } from './CodeBlock';
 import { EmptyState } from './EmptyState';
+import { ErrorState } from './ErrorState';
 import { type KeyValueItem, KeyValueList } from './KeyValueList';
 import { MonoValue } from './MonoValue';
 import { ObjectInspector, type ObjectInspectorTab } from './ObjectInspector';
 import { StatusDot } from './StatusDot';
 import './TraceSpanInspector.css';
 import type { TraceSpan } from './TraceTree';
-import { formatDuration, statusTone } from './traceFormat';
+import { statusTone } from './traceStatus';
 
 export interface TraceSpanInspectorProps {
   span: TraceSpan | null;
@@ -34,19 +36,53 @@ function truncate(value: string, max: number): string {
   return `${value.slice(0, max)}...`;
 }
 
-function stripFnRefs(span: TraceSpan): Record<string, unknown> {
-  const out: Record<string, unknown> = {
+/** The span's own fields for the Raw tab: `attrs` sits beside them and `badge` is a React node. */
+function spanFields(span: TraceSpan): Record<string, unknown> {
+  return {
     id: span.id,
     parentId: span.parentId,
     name: span.name,
     startMs: span.startMs,
     durationMs: span.durationMs,
     status: span.status,
+    kind: span.kind,
   };
-  if (typeof span.kind === 'string' || typeof span.kind === 'number') {
-    out.kind = span.kind;
+}
+
+type JsonText = { json: string } | { error: string };
+
+/** A value's JSON text, or why it has none, such as a cycle or a BigInt. */
+function toJson(value: unknown, indent?: number): JsonText {
+  try {
+    const json = JSON.stringify(value, null, indent) as string | undefined;
+    return { json: json ?? String(value) };
+  } catch (error) {
+    if (error instanceof TypeError) {
+      return { error: error.message };
+    }
+    throw error;
   }
-  return out;
+}
+
+function attributeText(value: unknown): ReactNode {
+  if (typeof value === 'number') {
+    return (
+      <span className="aegis-trace-span-inspector__number">
+        {String(value)}
+      </span>
+    );
+  }
+  if (typeof value === 'string' || typeof value === 'boolean') {
+    return <MonoValue size="sm">{String(value)}</MonoValue>;
+  }
+  const text = toJson(value);
+  return 'json' in text ? (
+    <MonoValue size="sm">{text.json}</MonoValue>
+  ) : (
+    <MonoValue size="sm" tone="muted">
+      Not serialisable: {text.error}
+    </MonoValue>
+  );
 }
 
 export function TraceSpanInspector({
@@ -100,13 +136,21 @@ export function TraceSpanInspector({
   if (span.startMs !== undefined) {
     overviewItems.push({
       k: strings.traceSpanField('start'),
-      v: <MonoValue size="sm">{formatDuration(span.startMs)}</MonoValue>,
+      v: (
+        <span className="aegis-trace-span-inspector__number">
+          {formatDuration(span.startMs)}
+        </span>
+      ),
     });
   }
   if (span.durationMs !== undefined) {
     overviewItems.push({
       k: strings.traceSpanField('duration'),
-      v: <MonoValue size="sm">{formatDuration(span.durationMs)}</MonoValue>,
+      v: (
+        <span className="aegis-trace-span-inspector__number">
+          {formatDuration(span.durationMs)}
+        </span>
+      ),
     });
   }
 
@@ -141,27 +185,13 @@ export function TraceSpanInspector({
   const attrEntries = span.attrs ? Object.entries(span.attrs) : [];
   const attrItems: KeyValueItem[] = attrEntries.map(([k, v]) => ({
     k,
-    v: (
-      <MonoValue size="sm">
-        {typeof v === 'string' ||
-        typeof v === 'number' ||
-        typeof v === 'boolean'
-          ? String(v)
-          : JSON.stringify(v)}
-      </MonoValue>
-    ),
+    v: attributeText(v),
   }));
 
-  let rawJson = '{}';
-  try {
-    rawJson = JSON.stringify(
-      raw ?? { span: stripFnRefs(span), attrs: span.attrs },
-      null,
-      2,
-    );
-  } catch {
-    rawJson = '{}';
-  }
+  const rawJson = toJson(
+    raw ?? { span: spanFields(span), attrs: span.attrs },
+    2,
+  );
 
   const tabs: ObjectInspectorTab[] = [
     {
@@ -193,7 +223,16 @@ export function TraceSpanInspector({
     {
       id: 'raw',
       label: strings.inspectorRaw,
-      content: <CodeBlock code={rawJson} language="json" />,
+      content:
+        'json' in rawJson ? (
+          <CodeBlock code={rawJson.json} language="json" />
+        ) : (
+          <ErrorState
+            size="compact"
+            title="The span cannot be shown as JSON"
+            description={rawJson.error}
+          />
+        ),
     },
   ];
 

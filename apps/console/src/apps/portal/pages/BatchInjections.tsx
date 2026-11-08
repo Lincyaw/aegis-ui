@@ -1,8 +1,11 @@
+import { useState } from 'react';
+
 import {
   Button,
   CodeBlock,
   DataTable,
   EmptyState,
+  KeyValueList,
   MonoValue,
   PageHeader,
   Panel,
@@ -11,85 +14,104 @@ import {
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
+import yaml from 'js-yaml';
 
+import { errMsg } from '../../../api/apiClient';
 import { useSubmitInjection } from '../api/injections';
-import { specToYaml } from '../components/inject/paramSchema';
-import { useActiveProjectIdNum } from '../hooks/useActiveProject';
-import { useInjectBatch } from '../state/inject-batch';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ProjectRequired } from '../components/ProjectRequired';
+import {
+  type ContainerChoice,
+  type NamespaceMode,
+  requestOptionsFor,
+  submitOutcome,
+  toSubmitRequest,
+} from '../domain/injectSpec';
+import { useActiveProject } from '../hooks/useActiveProject';
+import { type StagedInjection, useInjectBatch } from '../state/inject-batch';
 
-interface BatchRow {
-  index: number;
-  id: string;
-  systemCode: string;
-  app: string;
-  chaosType: string;
-  durationSec: number;
-  addedAt: string;
-  yaml: string;
+function plural(count: number): string {
+  return `${String(count)} injection${count === 1 ? '' : 's'}`;
 }
 
+function containerText({ name, version }: ContainerChoice): string {
+  return version === '' ? `${name} (latest)` : `${name} ${version}`;
+}
+
+const NAMESPACE_TEXT: Record<NamespaceMode, string> = {
+  specific: 'the namespace named in each draft',
+  auto: 'auto-allocated',
+  'auto-bootstrap': 'auto-allocated, bootstrap allowed',
+};
+
 export default function BatchInjections() {
-  const pid = useActiveProjectIdNum();
+  const active = useActiveProject();
   const navigate = useAppNavigate();
-  const { message: msg, modal } = AntdApp.useApp();
+  const { message: msg } = AntdApp.useApp();
+  const [confirming, setConfirming] = useState(false);
 
   const staged = useInjectBatch((s) => s.staged);
   const remove = useInjectBatch((s) => s.remove);
   const clear = useInjectBatch((s) => s.clear);
   const submitMutation = useSubmitInjection();
 
-  const rows: BatchRow[] = staged.map((it, i) => ({
-    index: i,
-    id: it.id,
-    systemCode: it.spec.systemCode,
-    app: it.spec.app,
-    chaosType: it.spec.chaosType,
-    durationSec: it.spec.durationSec,
-    addedAt: it.addedAt,
-    yaml: specToYaml(it.spec),
-  }));
+  const { projectId } = active;
+  const description =
+    active.project?.name === undefined
+      ? 'Staged injections.'
+      : `Staged injections for ${active.project.name}.`;
 
-  const onSubmit = (): void => {
-    if (rows.length === 0) {
-      return;
-    }
-    modal.confirm({
-      title: `Submit ${rows.length} injection${rows.length === 1 ? '' : 's'}?`,
-      content: 'Each staged draft becomes an injection.',
-      okText: 'Submit all',
-      onOk: () => {
-        submitMutation.mutate(
-          {
-            projectId: pid,
-            specs: staged.map((s) => s.spec),
-            autoAllocate: true,
-          },
-          {
-            onSuccess: () => {
-              void msg.success(`${rows.length} queued`);
-              clear();
-              navigate('injections');
-            },
-            onError: (err) => {
-              void msg.error(`Batch submit failed: ${err.message}`);
-            },
-          }
-        );
-      },
-    });
-  };
-
-  if (rows.length === 0) {
+  if (projectId === undefined) {
     return (
       <>
-        <PageHeader
-          title='Batch'
-          description={`Staged injections for project ${pid}.`}
-        />
+        <PageHeader title='Batch' description={description} />
+        <ProjectRequired active={active} />
+      </>
+    );
+  }
+
+  const specs = staged.map((s) => s.spec);
+  const options = specs.length > 0 ? requestOptionsFor(specs[0]) : undefined;
+
+  const onSubmit = (): void => {
+    if (options === undefined) {
+      return;
+    }
+    submitMutation.mutate(
+      { projectId, request: toSubmitRequest(specs, options) },
+      {
+        onSuccess: (resp) => {
+          const outcome = submitOutcome(resp, specs.length);
+          if (outcome.created === specs.length) {
+            void msg.success(outcome.text);
+          } else {
+            void msg.warning(outcome.text);
+          }
+          setConfirming(false);
+          clear();
+          navigate('injections');
+        },
+        onError: (err) => {
+          setConfirming(false);
+          void msg.error(`Batch submit failed: ${errMsg(err)}`);
+        },
+      }
+    );
+  };
+
+  if (options === undefined) {
+    return (
+      <>
+        <PageHeader title='Batch' description={description} />
         <Panel>
           <EmptyState
             title='No staged drafts'
             description='Use the wizard with the Stage option.'
+            action={
+              <Button tone='primary' onClick={() => navigate('inject')}>
+                Open the wizard
+              </Button>
+            }
           />
         </Panel>
       </>
@@ -100,7 +122,7 @@ export default function BatchInjections() {
     <>
       <PageHeader
         title='Batch'
-        description={`Staged injections for project ${pid}.`}
+        description={description}
         action={
           <div className='page-action-row'>
             <Button tone='ghost' onClick={() => clear()}>
@@ -108,38 +130,66 @@ export default function BatchInjections() {
             </Button>
             <Button
               tone='primary'
-              onClick={onSubmit}
+              onClick={() => setConfirming(true)}
               disabled={submitMutation.isPending}
             >
-              Submit all ({rows.length})
+              {`Submit all (${String(staged.length)})`}
             </Button>
           </div>
         }
       />
+      <Panel title={<PanelTitle size='base'>Shared by every draft</PanelTitle>}>
+        <KeyValueList
+          items={[
+            {
+              k: 'pedestal',
+              v: (
+                <MonoValue size='sm'>
+                  {containerText(options.pedestal)}
+                </MonoValue>
+              ),
+            },
+            {
+              k: 'benchmark',
+              v: (
+                <MonoValue size='sm'>
+                  {containerText(options.benchmark)}
+                </MonoValue>
+              ),
+            },
+            { k: 'namespace', v: NAMESPACE_TEXT[options.namespaceMode] },
+            {
+              k: 'pedestal restart',
+              v: options.skipRestartPedestal ? 'skipped' : 'restarted',
+            },
+          ]}
+        />
+      </Panel>
       <Panel title={<PanelTitle size='base'>Drafts</PanelTitle>}>
-        <DataTable<BatchRow>
+        <DataTable<StagedInjection>
           framed={false}
-          data={rows}
+          data={staged}
           rowKey={(r) => r.id}
-          emptyTitle='No staged drafts'
-          emptyDescription=''
           columns={[
-            { key: 'i', header: '#', render: (r) => r.index + 1 },
+            {
+              key: 'i',
+              header: '#',
+              render: (r) => staged.indexOf(r) + 1,
+            },
             {
               key: 'sys',
               header: 'System',
-              render: (r) => <MonoValue size='sm'>{r.systemCode}</MonoValue>,
+              render: (r) => (
+                <MonoValue size='sm'>{r.spec.systemCode}</MonoValue>
+              ),
             },
-            { key: 'app', header: 'App', render: (r) => r.app },
+            { key: 'app', header: 'App', render: (r) => r.spec.app },
             {
               key: 'type',
               header: 'Chaos',
-              render: (r) => <MonoValue size='sm'>{r.chaosType}</MonoValue>,
-            },
-            {
-              key: 'dur',
-              header: 'Duration',
-              render: (r) => `${r.durationSec}s`,
+              render: (r) => (
+                <MonoValue size='sm'>{r.spec.chaosType}</MonoValue>
+              ),
             },
             {
               key: 'when',
@@ -150,7 +200,7 @@ export default function BatchInjections() {
               key: 'rm',
               header: '',
               render: (r) => (
-                <Button tone='ghost' onClick={() => remove(r.index)}>
+                <Button tone='ghost' onClick={() => remove(staged.indexOf(r))}>
                   Remove
                 </Button>
               ),
@@ -158,14 +208,21 @@ export default function BatchInjections() {
           ]}
         />
       </Panel>
-      <Panel title={<PanelTitle size='base'>Resolved YAML</PanelTitle>}>
+      <Panel title={<PanelTitle size='base'>Request body</PanelTitle>}>
         <CodeBlock
           language='yaml'
-          code={rows
-            .map((r, i) => `# draft ${i + 1}\n${r.yaml}\n---`)
-            .join('\n')}
+          code={yaml.dump(toSubmitRequest(specs, options))}
         />
       </Panel>
+      <ConfirmDialog
+        open={confirming}
+        title={`Submit ${plural(staged.length)}?`}
+        description='Each draft becomes one injection. The server skips a draft that repeats another or one already injected.'
+        confirmLabel='Submit all'
+        pending={submitMutation.isPending}
+        onConfirm={onSubmit}
+        onCancel={() => setConfirming(false)}
+      />
     </>
   );
 }

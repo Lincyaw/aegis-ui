@@ -18,6 +18,8 @@ import {
   useCurrentEnvironment,
 } from '@lincyaw/aegis-ui';
 
+import { wellKnownEnvironments } from './wellKnownEnvironments';
+
 function EnvDemoPage({ appLabel }: { appLabel: string }): ReactElement {
   const env = useCurrentEnvironment();
   const [lastEvent, setLastEvent] =
@@ -72,7 +74,7 @@ function EnvDemoPage({ appLabel }: { appLabel: string }): ReactElement {
             v: (
               <MonoValue data-testid='env-last-event'>
                 {lastEvent
-                  ? `${lastEvent.fromEnvId ?? 'null'} → ${lastEvent.toEnvId} (app=${lastEvent.appId})`
+                  ? `${lastEvent.fromEnvId} → ${lastEvent.toEnvId} (app=${lastEvent.appId})`
                   : '(no switch yet)'}
               </MonoValue>
             ),
@@ -84,9 +86,9 @@ function EnvDemoPage({ appLabel }: { appLabel: string }): ReactElement {
 }
 
 /**
- * Two demo apps, each pointing at a different manifest seed URL. They share
- * the same page implementation — what differs is `apiBaseUrl`, which the
- * shell uses to fetch the manifest.
+ * Two demo apps, each pointing at a different backend. They share the same
+ * page implementation — what differs is the backend whose manifest their
+ * `environments.load` reads.
  */
 export const envDemoAlphaApp: AegisApp = {
   id: 'env-demo-alpha',
@@ -95,7 +97,7 @@ export const envDemoAlphaApp: AegisApp = {
   basePath: '/env-demo/alpha',
   description: 'Verifies env switcher against backend A.',
   requiresAuth: false,
-  apiBaseUrl: 'http://127.0.0.1:18081',
+  environments: wellKnownEnvironments('http://127.0.0.1:18081'),
   routes: [{ path: '', element: <EnvDemoPage appLabel='Alpha backend' /> }],
 };
 
@@ -106,20 +108,20 @@ export const envDemoBravoApp: AegisApp = {
   basePath: '/env-demo/bravo',
   description: 'Verifies env switcher against backend B.',
   requiresAuth: false,
-  apiBaseUrl: 'http://127.0.0.1:18082',
+  environments: wellKnownEnvironments('http://127.0.0.1:18082'),
   routes: [{ path: '', element: <EnvDemoPage appLabel='Bravo backend' /> }],
 };
 
 /**
- * App with no `apiBaseUrl` — proves the switcher hides when the manifest
- * is unavailable. Renders the same demo page so the assertion is visible.
+ * App without `environments` — proves the switcher stays hidden. Renders
+ * the same demo page so the assertion is visible.
  */
 export const envDemoNoneApp: AegisApp = {
   id: 'env-demo-none',
   label: 'Env demo · No manifest',
   icon: <ExperimentOutlined />,
   basePath: '/env-demo/none',
-  description: 'No apiBaseUrl — switcher should be hidden.',
+  description: 'No environments — switcher should be hidden.',
   requiresAuth: false,
   routes: [{ path: '', element: <EnvDemoPage appLabel='No-manifest app' /> }],
 };

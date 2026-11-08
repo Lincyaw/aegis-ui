@@ -1,0 +1,29 @@
+.trajectories-list__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.trajectories-list__session {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px);
+}
+
+.trajectories-list__extra {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.trajectories-list__search {
+  flex: 1;
+  min-width: 0;
+}
+
+.trajectories-list__explain {
+  margin-top: var(--space-2);
+}
+
+.trajectories-list__table {
+  margin-top: var(--space-4);
+}

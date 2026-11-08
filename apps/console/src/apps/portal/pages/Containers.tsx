@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 
 import {
   Button,
-  Chip,
   DataTable,
   MonoValue,
   PageHeader,
@@ -13,8 +12,9 @@ import {
 } from '@lincyaw/aegis-ui';
 import { type ContainerContainerResp, ContainerType } from '@lincyaw/portal';
 
-import { errMsg } from '../../../api/apiClient';
-import { useContainersList } from '../hooks/useContainers';
+import { useContainersList } from '../api/containers';
+import { LoadError } from '../components/LoadError';
+import { StatusChip } from '../components/StatusChip';
 
 interface Copy {
   basePath: string;
@@ -67,7 +67,6 @@ export default function Containers({ containerType }: ContainersProps) {
   const { data, isLoading, isError, error } = useContainersList({
     type: containerType,
   });
-  const containers = data?.items ?? [];
 
   return (
     <>
@@ -84,44 +83,46 @@ export default function Containers({ containerType }: ContainersProps) {
         }
       />
       <Panel>
-        <DataTable<ContainerContainerResp>
-          framed={false}
-          data={containers}
-          loading={isLoading}
-          rowKey={(r) => String(r.id ?? r.name ?? '')}
-          emptyTitle={isError ? copy.errorTitle : copy.emptyTitle}
-          emptyDescription={
-            isError ? errMsg(error, 'Unknown error') : copy.emptyDescription
-          }
-          columns={[
-            {
-              key: 'name',
-              header: 'Name',
-              render: (r) => (
-                <Link to={href(`${copy.basePath}/${String(r.id ?? '')}`)}>
-                  <MonoValue size='sm'>{r.name ?? '—'}</MonoValue>
-                </Link>
-              ),
-            },
-            {
-              key: 'status',
-              header: 'Status',
-              render: (r) =>
-                r.status ? <Chip>{r.status}</Chip> : <span>—</span>,
-            },
-            {
-              key: 'visibility',
-              header: 'Visibility',
-              render: (r) => (r.is_public ? 'Public' : 'Private'),
-            },
-            {
-              key: 'created',
-              header: 'Created',
-              render: (r) =>
-                r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
-            },
-          ]}
-        />
+        {isError ? (
+          <LoadError error={error} title={copy.errorTitle} />
+        ) : (
+          <DataTable<ContainerContainerResp>
+            framed={false}
+            data={data?.items ?? []}
+            loading={isLoading}
+            rowKey={(r) => String(r.id ?? r.name ?? '')}
+            emptyTitle={copy.emptyTitle}
+            emptyDescription={copy.emptyDescription}
+            columns={[
+              {
+                key: 'name',
+                header: 'Name',
+                render: (r) => (
+                  <Link to={href(`${copy.basePath}/${String(r.id ?? '')}`)}>
+                    <MonoValue size='sm'>{r.name ?? '—'}</MonoValue>
+                  </Link>
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (r) =>
+                  r.status ? <StatusChip status={r.status} /> : '—',
+              },
+              {
+                key: 'visibility',
+                header: 'Visibility',
+                render: (r) => (r.is_public ? 'Public' : 'Private'),
+              },
+              {
+                key: 'created',
+                header: 'Created',
+                render: (r) =>
+                  r.created_at ? <TimeDisplay value={r.created_at} /> : '—',
+              },
+            ]}
+          />
+        )}
       </Panel>
     </>
   );

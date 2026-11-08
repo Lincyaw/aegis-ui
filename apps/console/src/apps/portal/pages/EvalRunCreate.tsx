@@ -3,17 +3,19 @@ import { useSearchParams } from 'react-router-dom';
 
 import {
   Button,
-  EmptyState,
+  Chip,
   FormRow,
   PageHeader,
   Panel,
+  Select,
+  TextField,
   useAppNavigate,
 } from '@lincyaw/aegis-ui';
-import { App as AntdApp, Input, Select } from 'antd';
+import { App as AntdApp } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
 import { useDatasetsList } from '../api/datasets';
-import { useBatchEvaluateDataset } from '../api/hooks/useEvaluations';
+import { useBatchEvaluateDataset } from '../api/evaluations';
 
 export default function EvalRunCreate() {
   const navigate = useAppNavigate();
@@ -21,29 +23,32 @@ export default function EvalRunCreate() {
   const { message: msg } = AntdApp.useApp();
 
   const datasetsQ = useDatasetsList({ page: 1, size: 100 });
-  const datasets = datasetsQ.data?.items ?? [];
 
   const [algorithm, setAlgorithm] = useState('');
+  const [algorithmError, setAlgorithmError] = useState<string>();
   const [algorithmVersion, setAlgorithmVersion] = useState('latest');
   const [datasetName, setDatasetName] = useState(params.get('dataset') ?? '');
   const [datasetVersion, setDatasetVersion] = useState('latest');
 
   const mutate = useBatchEvaluateDataset();
 
+  const datasetNames = (datasetsQ.data?.items ?? [])
+    .map((d) => d.name)
+    .filter((name): name is string => Boolean(name));
+  if (datasetName !== '' && !datasetNames.includes(datasetName)) {
+    datasetNames.unshift(datasetName);
+  }
+
   const submit = (): void => {
-    if (!algorithm) {
-      void msg.error('algorithm name required');
-      return;
-    }
-    if (!datasetName) {
-      void msg.error('select a dataset');
+    if (!algorithm.trim()) {
+      setAlgorithmError('Algorithm name is required');
       return;
     }
     mutate.mutate(
       {
         specs: [
           {
-            algorithm: { name: algorithm, version: algorithmVersion },
+            algorithm: { name: algorithm.trim(), version: algorithmVersion },
             dataset: { name: datasetName, version: datasetVersion },
           },
         ],
@@ -53,7 +58,9 @@ export default function EvalRunCreate() {
           void msg.success('Evaluation enqueued');
           navigate('eval');
         },
-        onError: (e) => void msg.error(e.message),
+        onError: (err) => {
+          void msg.error(`Failed to start the evaluation: ${errMsg(err)}`);
+        },
       }
     );
   };
@@ -70,47 +77,70 @@ export default function EvalRunCreate() {
         }
       />
       <Panel>
-        {datasetsQ.isError ? (
-          <EmptyState
-            title='Could not load datasets'
-            description={errMsg(datasetsQ.error, 'Unknown error')}
-          />
-        ) : null}
-        <FormRow label='Algorithm name'>
-          <Input
+        <FormRow label='Algorithm name' controlId='eval-run-create-algorithm'>
+          <TextField
+            id='eval-run-create-algorithm'
             value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value)}
+            error={algorithmError}
+            onChange={(e) => {
+              setAlgorithm(e.target.value);
+              setAlgorithmError(undefined);
+            }}
             placeholder='e.g. rca-baseline'
           />
         </FormRow>
-        <FormRow label='Algorithm version'>
-          <Input
+        <FormRow
+          label='Algorithm version'
+          controlId='eval-run-create-algorithm-version'
+        >
+          <TextField
+            id='eval-run-create-algorithm-version'
             value={algorithmVersion}
             onChange={(e) => setAlgorithmVersion(e.target.value)}
           />
         </FormRow>
-        <FormRow label='Dataset'>
-          <Select
-            style={{ width: '100%' }}
-            value={datasetName || undefined}
-            onChange={setDatasetName}
-            loading={datasetsQ.isLoading}
-            options={datasets.map((d) => ({
-              value: d.name ?? '',
-              label: d.name ?? `#${String(d.id ?? '')}`,
-            }))}
-          />
+        <FormRow label='Dataset' controlId='eval-run-create-dataset'>
+          <div className='page-stack'>
+            <Select
+              id='eval-run-create-dataset'
+              value={datasetName}
+              onChange={setDatasetName}
+              disabled={datasetsQ.isLoading}
+              placeholder={
+                datasetsQ.isLoading ? 'Loading datasets…' : 'Select a dataset'
+              }
+              options={datasetNames.map((name) => ({
+                value: name,
+                label: name,
+              }))}
+            />
+            {datasetsQ.isError && (
+              <Chip tone='warning'>
+                {`Failed to load datasets: ${errMsg(datasetsQ.error)}`}
+              </Chip>
+            )}
+          </div>
         </FormRow>
-        <FormRow label='Dataset version'>
-          <Input
+        <FormRow
+          label='Dataset version'
+          controlId='eval-run-create-dataset-version'
+        >
+          <TextField
+            id='eval-run-create-dataset-version'
             value={datasetVersion}
             onChange={(e) => setDatasetVersion(e.target.value)}
           />
         </FormRow>
       </Panel>
-      <Button tone='primary' onClick={submit} disabled={mutate.isPending}>
-        {mutate.isPending ? 'Starting…' : 'Start'}
-      </Button>
+      <div className='wizard-actions'>
+        <Button
+          tone='primary'
+          onClick={submit}
+          disabled={datasetName === '' || mutate.isPending}
+        >
+          {mutate.isPending ? 'Starting…' : 'Start'}
+        </Button>
+      </div>
     </>
   );
 }

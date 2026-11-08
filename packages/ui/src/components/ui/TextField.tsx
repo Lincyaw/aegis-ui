@@ -29,6 +29,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       id,
       className,
       disabled,
+      'aria-describedby': describedBy,
       ...rest
     },
     ref,
@@ -68,7 +69,11 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             ref={ref}
             disabled={disabled}
             aria-invalid={hasError || undefined}
-            aria-describedby={message ? helpId : undefined}
+            aria-describedby={
+              [describedBy, message ? helpId : undefined]
+                .filter(Boolean)
+                .join(' ') || undefined
+            }
             className="aegis-textfield__input"
           />
           {trailingIcon && (

@@ -23,10 +23,10 @@
 
 .aegis-event-table__th {
   padding: var(--space-2) var(--space-3);
-  font-weight: var(--fw-medium);
-  font-size: var(--fs-11);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -45,10 +45,11 @@
   text-align: center;
 }
 
+/* Header and rows share one scroller, so they scroll sideways together. */
 .aegis-event-table__scroll {
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: auto;
   min-height: 0;
+  container-type: inline-size;
 }
 
 .aegis-event-table__virtual {
@@ -65,24 +66,31 @@
   right: 0;
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   transition: background var(--motion-fast);
-  outline: none;
 }
 
-.aegis-event-table--interactive .aegis-event-table__row {
+/* Only clickable rows react to hover. */
+.aegis-event-table__row--clickable {
   cursor: pointer;
 }
 
-.aegis-event-table__row:hover {
+.aegis-event-table__row--clickable:hover {
   background: var(--bg-muted);
 }
 
-.aegis-event-table__row:focus-visible {
-  box-shadow: inset 0 0 0 var(--size-border-thick) var(--bg-inverted);
+.aegis-event-table__row--clickable:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+  background: var(--bg-muted);
 }
 
 .aegis-event-table__row--selected,
-.aegis-event-table__row--selected:hover {
+.aegis-event-table__row--selected:hover,
+.aegis-event-table__row--selected:focus-visible {
   background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-event-table__row--selected :is(.aegis-mono, .aegis-metric-label) {
   color: var(--text-on-inverted);
 }
 
@@ -109,6 +117,14 @@
   text-align: center;
 }
 
+.aegis-event-table__td--numeric {
+  font-family: var(--font-numeric);
+  font-size: var(--type-numeric-size);
+  font-weight: var(--type-numeric-weight);
+  letter-spacing: var(--type-numeric-tracking);
+  font-variant-numeric: tabular-nums;
+}
+
 .aegis-event-table__td--truncate {
   white-space: nowrap;
   overflow: hidden;
@@ -125,7 +141,11 @@
   text-align: center;
 }
 
+/* Kept in the visible part of a table wider than its scroller. */
 .aegis-event-table__empty {
+  position: sticky;
+  left: 0;
+  width: 100cqi;
   padding: var(--space-6) var(--space-4);
   display: flex;
   align-items: center;

@@ -11,11 +11,16 @@ import {
   Panel,
   PanelTitle,
   SectionDivider,
+  SkeletonText,
   TimeDisplay,
 } from '@lincyaw/aegis-ui';
 
-import { errMsg } from '../../../api/apiClient';
-import { useEvaluation } from '../api/hooks/useEvaluations';
+import { useEvaluation } from '../api/evaluations';
+import { LoadError } from '../components/LoadError';
+
+function score(value: number | undefined): string {
+  return value === undefined ? '—' : value.toFixed(3);
+}
 
 export default function EvalRunDetail() {
   const { runId } = useParams<{ runId: string }>();
@@ -29,24 +34,36 @@ export default function EvalRunDetail() {
     }
     try {
       return JSON.stringify(JSON.parse(run.result_json) as unknown, null, 2);
-    } catch {
+    } catch (err) {
+      if (!(err instanceof SyntaxError)) {
+        throw err;
+      }
       return run.result_json;
     }
   }, [run?.result_json]);
 
-  if (isLoading) {
-    return <PageHeader title='Loading evaluation…' />;
-  }
-
-  if (isError || !run) {
+  if (isLoading || isError || !run) {
     return (
       <>
-        <PageHeader title='Eval run not found' />
+        <PageHeader title={`Eval ${runId ?? ''}`} />
         <Panel>
-          <EmptyState
-            title={isError ? 'Failed to load' : 'Not found'}
-            description={errMsg(error, 'Run may have been removed.')}
-          />
+          {isLoading ? (
+            <SkeletonText />
+          ) : isError ? (
+            <LoadError
+              error={error}
+              title='Failed to load the evaluation'
+              notFound={{
+                title: 'Evaluation not found',
+                description: 'The run may have been removed.',
+              }}
+            />
+          ) : (
+            <EmptyState
+              title='Evaluation not found'
+              description={`"${runId ?? ''}" is not an evaluation id.`}
+            />
+          )}
         </Panel>
       </>
     );
@@ -60,10 +77,10 @@ export default function EvalRunDetail() {
       />
 
       <div className='page-overview-grid'>
-        <MetricCard label='Precision' value={(run.precision ?? 0).toFixed(3)} />
-        <MetricCard label='Recall' value={(run.recall ?? 0).toFixed(3)} />
-        <MetricCard label='F1' value={(run.f1_score ?? 0).toFixed(3)} />
-        <MetricCard label='Accuracy' value={(run.accuracy ?? 0).toFixed(3)} />
+        <MetricCard label='Precision' value={score(run.precision)} />
+        <MetricCard label='Recall' value={score(run.recall)} />
+        <MetricCard label='F1' value={score(run.f1_score)} />
+        <MetricCard label='Accuracy' value={score(run.accuracy)} />
       </div>
 
       <SectionDivider>Run</SectionDivider>

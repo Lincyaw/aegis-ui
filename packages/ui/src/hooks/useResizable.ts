@@ -12,6 +12,7 @@ import {
 } from 'react';
 
 import { readStorage, writeStorage } from '../lib/storage';
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
 
 const DEFAULT_MIN = 200;
 const DEFAULT_MAX = 800;
@@ -78,12 +79,24 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
     [minWidth, maxWidth],
   );
 
-  const [width, setWidth] = useState<number>(() => {
-    const persisted = readPersisted(persistKey);
-    const seed = persisted ?? initialWidth;
-    return Math.min(Math.max(seed, minWidth), maxWidth);
-  });
+  const [width, setWidthState] = useState<number>(() =>
+    Math.min(Math.max(initialWidth, minWidth), maxWidth),
+  );
+  const widthRef = useRef(width);
+  const setWidth = useCallback((next: number) => {
+    widthRef.current = next;
+    setWidthState(next);
+  }, []);
   const [isDragging, setDragging] = useState(false);
+
+  const persist = useCallback(
+    (next: number) => {
+      if (persistKey !== undefined) {
+        writeStorage(persistKey, String(Math.round(next)));
+      }
+    },
+    [persistKey],
+  );
 
   const startPos = useRef(0);
   const startWidth = useRef(0);
@@ -94,16 +107,12 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
     onCollapseRef.current = onCollapse;
   }, [onCollapse]);
 
-  useEffect(() => {
-    if (persistKey !== undefined) {
-      writeStorage(persistKey, String(Math.round(width)));
-    }
-  }, [persistKey, width]);
-
-  // Re-clamp if bounds change.
-  useEffect(() => {
-    setWidth((prev) => clamp(prev));
-  }, [clamp]);
+  // Read after mount, so a server render and the hydration that follows
+  // agree; a layout effect applies it before the first paint. New bounds
+  // re-apply the stored width, or re-clamp the current one.
+  useIsomorphicLayoutEffect(() => {
+    setWidth(clamp(readPersisted(persistKey) ?? widthRef.current));
+  }, [persistKey, clamp, setWidth]);
 
   const handlePointerMove = useCallback(
     (event: PointerEvent) => {
@@ -118,14 +127,15 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
 
       setWidth(clamp(proposed));
     },
-    [side, minWidth, clamp],
+    [side, minWidth, clamp, setWidth],
   );
 
   const stopDragging = useRef<() => void>(() => undefined);
 
   const handlePointerUp = useCallback(() => {
     stopDragging.current();
-  }, []);
+    persist(widthRef.current);
+  }, [persist]);
 
   useEffect(() => {
     stopDragging.current = () => {
@@ -143,14 +153,22 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
     (event: ReactPointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       startPos.current = event.clientX;
-      startWidth.current = width;
+      startWidth.current = widthRef.current;
       collapseFiredRef.current = false;
       setDragging(true);
       window.addEventListener('pointermove', handlePointerMove);
       window.addEventListener('pointerup', handlePointerUp);
       window.addEventListener('pointercancel', handlePointerUp);
     },
-    [width, handlePointerMove, handlePointerUp],
+    [handlePointerMove, handlePointerUp],
+  );
+
+  const commit = useCallback(
+    (next: number) => {
+      setWidth(next);
+      persist(next);
+    },
+    [setWidth, persist],
   );
 
   const onKeyDown = useCallback(
@@ -159,32 +177,30 @@ export function useResizable(opts: UseResizableOptions): UseResizableReturn {
       const shrink = side === 'left' ? 'ArrowLeft' : 'ArrowRight';
       if (event.key === grow) {
         event.preventDefault();
-        setWidth((prev) => clamp(prev + keyboardStep));
+        commit(clamp(widthRef.current + keyboardStep));
       } else if (event.key === shrink) {
         event.preventDefault();
-        setWidth((prev) => {
-          const next = prev - keyboardStep;
-          if (next < minWidth && !collapseFiredRef.current) {
-            collapseFiredRef.current = true;
-            onCollapseRef.current?.();
-          }
-          return clamp(next);
-        });
+        const next = widthRef.current - keyboardStep;
+        if (next < minWidth && !collapseFiredRef.current) {
+          collapseFiredRef.current = true;
+          onCollapseRef.current?.();
+        }
+        commit(clamp(next));
       } else if (event.key === 'Home' || event.key === 'End') {
         // Like the arrows, Home / End move the handle itself: to its
         // leftmost / rightmost position.
         event.preventDefault();
         const atLeftEdge = side === 'left' ? minWidth : maxWidth;
         const atRightEdge = side === 'left' ? maxWidth : minWidth;
-        setWidth(clamp(event.key === 'Home' ? atLeftEdge : atRightEdge));
+        commit(clamp(event.key === 'Home' ? atLeftEdge : atRightEdge));
       }
     },
-    [side, clamp, minWidth, maxWidth, keyboardStep],
+    [side, clamp, commit, minWidth, maxWidth, keyboardStep],
   );
 
   const reset = useCallback(() => {
-    setWidth(clamp(initialWidth));
-  }, [clamp, initialWidth]);
+    commit(clamp(initialWidth));
+  }, [clamp, commit, initialWidth]);
 
   const handleProps = useMemo<HTMLAttributes<HTMLDivElement>>(
     () => ({

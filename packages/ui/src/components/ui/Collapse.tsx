@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useId, useState } from 'react';
 
 import { RightOutlined } from '@ant-design/icons';
 
@@ -26,6 +26,7 @@ export function Collapse({
   onChange,
   className,
 }: CollapseProps) {
+  const idPrefix = useId();
   const [internal, setInternal] = useState<string[]>(defaultActiveKeys);
   const open = activeKeys ?? internal;
   // A panel mounts its children the first time it opens and keeps them, so
@@ -49,13 +50,14 @@ export function Collapse({
     <div className={cls}>
       {items.map((item) => {
         const expanded = open.includes(item.key);
+        const panelId = `${idPrefix}-${item.key}`;
         return (
           <div className="aegis-collapse__item" key={item.key}>
             <button
               type="button"
               className="aegis-collapse__header"
               aria-expanded={expanded}
-              aria-controls={`aegis-collapse-${item.key}`}
+              aria-controls={panelId}
               onClick={() => {
                 toggle(item.key);
               }}
@@ -69,7 +71,7 @@ export function Collapse({
                   element.inert = !expanded;
                 }
               }}
-              id={`aegis-collapse-${item.key}`}
+              id={panelId}
               className={
                 expanded
                   ? 'aegis-collapse__panel aegis-collapse__panel--open'

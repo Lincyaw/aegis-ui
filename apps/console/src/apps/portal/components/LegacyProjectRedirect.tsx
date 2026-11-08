@@ -3,7 +3,7 @@ import { Navigate, useLocation, useParams } from 'react-router-dom';
 
 import { useAppHref } from '@lincyaw/aegis-ui';
 
-import { useActiveProjectStore } from '../hooks/useActiveProject';
+import { useActiveProjectStore } from '../state/active-project';
 
 interface LegacyProjectRedirectProps {
   /** Path relative to the project root, e.g. 'injections' or 'traces/:traceId'. */

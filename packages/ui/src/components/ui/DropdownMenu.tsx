@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 
 import { Popover } from 'antd';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
 import { MENU_OVERFLOW, useMenuPopover } from '../../hooks/useMenuPopover';
+import { Button, type ButtonTone } from './Button';
 import './DropdownMenu.css';
 
 export interface DropdownItem {
@@ -19,7 +20,13 @@ export interface DropdownItem {
 }
 
 interface DropdownMenuProps {
+  /**
+   * Content of the button that opens the menu: text, an icon, a Chip, an
+   * Avatar. DropdownMenu renders that button itself, so never pass a button.
+   */
   trigger: ReactNode;
+  /** Draws the trigger as a `Button` of this tone; without it the trigger is bare. */
+  triggerTone?: ButtonTone;
   items: DropdownItem[];
   /** Non-clickable content above `items`, before a divider — e.g. a search field. */
   header?: ReactNode;
@@ -31,6 +38,7 @@ interface DropdownMenuProps {
 
 export function DropdownMenu({
   trigger,
+  triggerTone,
   items,
   header,
   footerItems = [],
@@ -38,12 +46,14 @@ export function DropdownMenu({
   align = 'right',
 }: DropdownMenuProps) {
   const menu = useMenuPopover<HTMLDivElement>();
+  const panelId = useId();
 
   const cls = ['aegis-dropdown', className ?? ''].filter(Boolean).join(' ');
 
   const panel = (
     <div
       ref={menu.panelRef}
+      id={panelId}
       className="aegis-dropdown__panel"
       role="menu"
       tabIndex={-1}
@@ -90,16 +100,30 @@ export function DropdownMenu({
         classNames={{ root: 'aegis-dropdown__overlay' }}
         destroyOnHidden
       >
-        <button
-          ref={menu.triggerRef}
-          type="button"
-          className="aegis-dropdown__trigger"
-          aria-haspopup="menu"
-          aria-expanded={menu.open}
-          onKeyDown={menu.onTriggerKeyDown}
-        >
-          {trigger}
-        </button>
+        {triggerTone ? (
+          <Button
+            ref={menu.triggerRef}
+            tone={triggerTone}
+            aria-haspopup="menu"
+            aria-expanded={menu.open}
+            aria-controls={menu.open ? panelId : undefined}
+            onKeyDown={menu.onTriggerKeyDown}
+          >
+            {trigger}
+          </Button>
+        ) : (
+          <button
+            ref={menu.triggerRef}
+            type="button"
+            className="aegis-dropdown__trigger"
+            aria-haspopup="menu"
+            aria-expanded={menu.open}
+            aria-controls={menu.open ? panelId : undefined}
+            onKeyDown={menu.onTriggerKeyDown}
+          >
+            {trigger}
+          </button>
+        )}
       </Popover>
     </div>
   );

@@ -32,7 +32,7 @@ export type {
   UseScrollProgressResult,
 } from './hooks';
 
-export { formatBytes } from './lib/format';
+export { formatBytes, formatDuration } from './lib/format';
 
 // Headless time-range parsing (consumers can use it without the picker).
 export {
@@ -89,15 +89,13 @@ export type {
 export {
   AegisShell,
   ENVIRONMENT_CHANGED_EVENT,
-  clearManifestCache,
-  fetchManifest,
-  manifestUrl,
+  ShellInboxPage,
+  isAppVisible,
   useActiveApp,
   useAppHref,
   useAppNavigate,
   useCurrentEnvironment,
   useEnvironmentManifest,
-  validateManifest,
 } from './layouts/shell';
 export type {
   ActiveAppContextValue,
@@ -117,7 +115,7 @@ export type {
 } from './layouts/shell';
 
 // AntD ConfigProvider theme mapped to aegis-ui tokens.
-export { aegisTheme, getAegisTheme } from './theme/antdTheme';
+export { getAegisTheme } from './theme/antdTheme';
 
 // Strings primitives render on their own; English unless a LocaleProvider says otherwise.
 export { LocaleProvider, enStrings, useStrings, zhCNStrings } from './locale';
@@ -177,6 +175,7 @@ export {
   useAegisSurface,
 } from './agent';
 export type {
+  ActionConfirm,
   ActionContext,
   ActionPreview,
   ActionSource,
@@ -188,11 +187,14 @@ export type {
   AegisInspectResult,
   AegisRef,
   AegisRuntime,
+  AegisSearchResponse,
   AegisSearchResult,
   AegisSnapshot,
+  AegisWaitCondition,
   AskContext,
   AskMessage,
   AskOrigin,
+  AskOverlayProps,
   AskPanelProps,
   AskRequest,
   AskTrigger,
@@ -202,7 +204,7 @@ export type {
   FieldProjection,
   InvocationSource,
   ListActionsFilter,
-  McpToolDefinition,
+  PreviewResult,
   RuntimeDeps,
   SearchOptions,
   SearchProvider,
@@ -213,4 +215,5 @@ export type {
   UseAegisActionResult,
   UseAegisSurfaceOptions,
   UseAegisSurfaceResult,
+  WaitForOptions,
 } from './agent';

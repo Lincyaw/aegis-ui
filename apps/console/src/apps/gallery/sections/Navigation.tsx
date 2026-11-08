@@ -3,6 +3,7 @@ import { type ReactNode, useState } from 'react';
 import {
   AppstoreOutlined,
   ArrowRightOutlined,
+  CaretDownOutlined,
   DeleteOutlined,
   DotChartOutlined,
   DownloadOutlined,
@@ -40,6 +41,7 @@ import {
   RegisterForm,
   Tabs as RosettaTabs,
   SectionDivider,
+  Steps,
   TableOfContents,
   type TableOfContentsItem,
   TextField,
@@ -155,7 +157,7 @@ function TabsSegmentedSpecimen(): ReactNode {
   return (
     <div className='gallery__row'>
       <Specimen
-        caption='default · tabpanel under the list · Overview fires an agent action'
+        caption='default · tabpanel under the list · Overview fires an agent action · a disabled tab, whose hint opens on hover and when the arrow keys focus it'
         span={3}
       >
         <RosettaTabs
@@ -166,6 +168,12 @@ function TabsSegmentedSpecimen(): ReactNode {
               action: GALLERY_ACTIONS.tabOverview,
             },
             { key: 'params', label: 'Parameters' },
+            {
+              key: 'audit',
+              label: 'Audit',
+              disabled: true,
+              hint: 'Audit logging is off for this run',
+            },
             { key: 'logs', label: 'Logs' },
           ]}
           defaultActiveKey='overview'
@@ -217,6 +225,65 @@ function TabsViewSwitchSpecimen(): ReactNode {
           activeKey={view}
           onChange={setView}
         />
+      </Specimen>
+    </div>
+  );
+}
+
+const GALLERY_INSTALL_STEPS = [
+  'System',
+  'Container version',
+  'Helm values',
+  'Review',
+];
+
+function StepsSpecimen(): ReactNode {
+  const [current, setCurrent] = useState(2);
+  // A step is reachable once every step before it has been reached.
+  const [reached, setReached] = useState(2);
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='current={1} · no onStepClick · the steps are text'>
+        <Steps
+          ariaLabel='Install steps'
+          current={1}
+          items={GALLERY_INSTALL_STEPS.map((label) => ({ key: label, label }))}
+        />
+      </Specimen>
+      <Specimen
+        caption={`onStepClick · steps past the furthest reached are disabled · current ${String(current + 1)}`}
+        span={2}
+      >
+        <div className='gallery__stack'>
+          <Steps
+            ariaLabel='Wizard steps'
+            current={current}
+            onStepClick={setCurrent}
+            items={GALLERY_INSTALL_STEPS.map((label, index) => ({
+              key: label,
+              label,
+              disabled: index > reached,
+            }))}
+          />
+          <div className='gallery__row'>
+            <AegisButton
+              tone='secondary'
+              disabled={current === 0}
+              onClick={() => setCurrent(current - 1)}
+            >
+              Back
+            </AegisButton>
+            <AegisButton
+              disabled={current === GALLERY_INSTALL_STEPS.length - 1}
+              onClick={() => {
+                setCurrent(current + 1);
+                setReached(Math.max(reached, current + 1));
+              }}
+            >
+              Next
+            </AegisButton>
+          </div>
+        </div>
       </Specimen>
     </div>
   );
@@ -387,6 +454,7 @@ const GALLERY_TOC_STATE_ITEMS: TableOfContentsItem[] = [
   },
   { id: 'gallery-toc-state-regrade', label: '重新评分', level: 2 },
   { id: 'gallery-toc-state-regrade-records', label: '读取哪些记录', level: 3 },
+  { id: 'gallery-toc-state-regrade-fields', label: '记录里的字段', level: 4 },
   { id: 'gallery-toc-state-bars', label: '结果条怎样读' },
 ];
 
@@ -441,11 +509,65 @@ function TableOfContentsStatesSpecimen(): ReactNode {
           onCurrentChange={setCurrent}
         />
       </Specimen>
-      <Specimen caption='level=2 current · level 2 and 3 labels indent by --space-3 and --space-6; a long label wraps and its indicator follows'>
+      <Specimen caption='level=2 current · level 2, 3 and 4 labels indent by --space-3, --space-6 and 3 × --space-3; a long label wraps and its indicator follows'>
         <TableOfContents
           items={GALLERY_TOC_STATE_ITEMS}
           currentId='gallery-toc-state-digest'
         />
+      </Specimen>
+    </div>
+  );
+}
+
+const GALLERY_TOC_LATE_SECTIONS = GALLERY_TOC_SCROLL_SECTIONS.map(
+  (section) => ({
+    ...section,
+    id: section.id.replace('gallery-toc-scroll-', 'gallery-toc-late-'),
+  })
+);
+
+function TableOfContentsLateSectionsSpecimen(): ReactNode {
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const [renders, setRenders] = useState(0);
+  return (
+    <div className='gallery__row'>
+      <Specimen
+        caption='sections that mount after the table of contents (a lazily loaded Markdown body) or are re-created later are tracked from then on · the button mounts them, then replaces them'
+        span={3}
+      >
+        <div className='gallery__stack gallery__stack--fill'>
+          <div className='gallery__row'>
+            <AegisButton
+              tone='secondary'
+              onClick={() => setRenders((n) => n + 1)}
+            >
+              {renders === 0 ? 'Render sections' : 'Re-create sections'}
+            </AegisButton>
+            <MetricLabel>{renders} renders</MetricLabel>
+          </div>
+          <div className='gallery__toc-demo'>
+            <TableOfContents
+              items={GALLERY_TOC_LATE_SECTIONS}
+              scrollContainer={scroller}
+            />
+            <div ref={setScroller} className='gallery__toc-scroller'>
+              {renders === 0 ? (
+                <MetricLabel>No sections yet</MetricLabel>
+              ) : (
+                GALLERY_TOC_LATE_SECTIONS.map((section) => (
+                  <section
+                    key={`${section.id}-${renders.toString()}`}
+                    id={section.id}
+                    className='gallery__toc-section'
+                  >
+                    <h3 className='gallery__toc-heading'>{section.label}</h3>
+                    <p className='gallery__panel-body'>{section.body}</p>
+                  </section>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       </Specimen>
     </div>
   );
@@ -630,6 +752,15 @@ export function NavigationSection() {
       <SectionDivider>Tabs · view switch</SectionDivider>
       <TabsViewSwitchSpecimen />
 
+      <SectionDivider
+        extra={
+          <MetricLabel>Current step inverts · clickable steps lift</MetricLabel>
+        }
+      >
+        Steps
+      </SectionDivider>
+      <StepsSpecimen />
+
       <SectionDivider>Carousel</SectionDivider>
       <div className='gallery__row'>
         <Specimen
@@ -780,6 +911,11 @@ export function NavigationSection() {
 
       <SectionDivider>TableOfContents · scroll tracking</SectionDivider>
       <TableOfContentsScrollSpecimen />
+
+      <SectionDivider>
+        TableOfContents · sections that render later
+      </SectionDivider>
+      <TableOfContentsLateSectionsSpecimen />
 
       <SectionDivider>Avatar</SectionDivider>
       <div className='gallery__row'>
@@ -1035,6 +1171,17 @@ export function NavigationSection() {
             />
           </div>
         </Specimen>
+        <Specimen
+          caption='with error · submit empty to see field errors'
+          span={3}
+        >
+          <div className='gallery__form-frame'>
+            <RegisterForm
+              onSubmit={() => undefined}
+              error='An account with this email already exists.'
+            />
+          </div>
+        </Specimen>
       </div>
 
       <SectionDivider>ForgotPasswordForm</SectionDivider>
@@ -1080,7 +1227,7 @@ export function NavigationSection() {
 
       <SectionDivider>DropdownMenu</SectionDivider>
       <div className='gallery__row'>
-        <Specimen caption='basic'>
+        <Specimen caption='basic · trigger is the content of the menu button'>
           <DropdownMenu
             trigger={<Chip tone='ink'>Open menu</Chip>}
             items={[
@@ -1110,6 +1257,21 @@ export function NavigationSection() {
                 icon: <LogoutOutlined />,
                 danger: true,
               },
+            ]}
+          />
+        </Specimen>
+        <Specimen caption="triggerTone='secondary' · the menu button drawn as a Button">
+          <DropdownMenu
+            triggerTone='secondary'
+            trigger={
+              <>
+                Refresh: 30 s <CaretDownOutlined />
+              </>
+            }
+            items={[
+              { key: 'off', label: 'Off' },
+              { key: '10', label: 'Every 10 s' },
+              { key: '30', label: 'Every 30 s' },
             ]}
           />
         </Specimen>

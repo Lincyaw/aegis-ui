@@ -96,7 +96,7 @@ export function ProjectSelector({
   );
 
   const trigger = (
-    <div className="aegis-project-selector__trigger">
+    <span className="aegis-project-selector__trigger">
       <FolderOutlined className="aegis-project-selector__trigger-icon" />
       <span className="aegis-project-selector__trigger-label">
         {selected?.name ?? placeholder}
@@ -104,7 +104,7 @@ export function ProjectSelector({
       {selected && (
         <span className="aegis-project-selector__trigger-chevron">▼</span>
       )}
-    </div>
+    </span>
   );
 
   const cls = [

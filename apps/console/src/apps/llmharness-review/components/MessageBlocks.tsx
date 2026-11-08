@@ -1,17 +1,19 @@
 /**
  * Render a main-agent turn as chat bubbles. The renderer never reads
- * raw block shapes — it consumes a NormalizedTurn from messageAdapter,
- * so as long as the normalizer recognises the source shape, the user
- * sees prose instead of JSON.
+ * raw block shapes — it consumes normalised blocks, so as long as the
+ * normaliser recognises the source shape, the user sees prose instead of
+ * JSON.
  */
 import { type ReactElement } from 'react';
 
+import { StatusDot } from '@lincyaw/aegis-ui';
+
 import {
+  type AgentBlock,
   jsonStringify,
   normalizeContent,
-  type NormalizedBlock,
-  normalizeTurn,
-} from '../messageAdapter';
+} from '../../../agentm/agentContent';
+import { normalizeTurn } from '../messageAdapter';
 import type { MainTurn } from '../schemas';
 
 import './MessageBlocks.css';
@@ -33,7 +35,7 @@ function ToolCallBlock({
   id: string;
 }): ReactElement {
   return (
-    <details className='llmh-msg__tool llmh-msg__tool--call' open>
+    <details className='llmh-msg__tool' open>
       <summary className='llmh-msg__tool-head'>
         <span className='llmh-msg__tool-tag'>call</span>
         <span className='llmh-msg__tool-name'>{name}</span>
@@ -53,21 +55,17 @@ function ToolResultBlock({
   toolCallId: string;
   ok: boolean;
 }): ReactElement {
-  const cls = [
-    'llmh-msg__tool',
-    'llmh-msg__tool--result',
-    ok ? '' : 'llmh-msg__tool--error',
-  ]
-    .filter(Boolean)
-    .join(' ');
   return (
-    <details className={cls}>
+    <details
+      className={ok ? 'llmh-msg__tool' : 'llmh-msg__tool llmh-msg__tool--error'}
+    >
       <summary className='llmh-msg__tool-head'>
+        {!ok && <StatusDot tone='warning' />}
         <span className='llmh-msg__tool-tag'>{ok ? 'result' : 'error'}</span>
         {toolCallId && (
           <span className='llmh-msg__tool-id'>{shortId(toolCallId)}</span>
         )}
-        <span className='llmh-msg__tool-id'>
+        <span className='llmh-msg__tool-size'>
           {text.length.toString()} chars
         </span>
       </summary>
@@ -76,7 +74,7 @@ function ToolResultBlock({
   );
 }
 
-function renderBlock(block: NormalizedBlock, key: number): ReactElement {
+function renderBlock(block: AgentBlock, key: number): ReactElement {
   switch (block.kind) {
     case 'text':
       return (

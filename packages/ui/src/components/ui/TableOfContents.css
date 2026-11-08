@@ -57,6 +57,10 @@
   padding-inline-start: var(--space-6);
 }
 
+.aegis-toc__link--level-4 .aegis-toc__label {
+  padding-inline-start: calc(3 * var(--space-3));
+}
+
 .aegis-toc__link--current {
   font-size: var(--type-strong-size);
   line-height: var(--type-strong-line);

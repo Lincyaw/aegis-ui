@@ -1,5 +1,17 @@
 export type ContainerStatus = 'running' | 'stopped' | 'failed';
 
+export function containerStatusTone(
+  s: ContainerStatus
+): 'ink' | 'muted' | 'warning' {
+  if (s === 'running') {
+    return 'ink';
+  }
+  if (s === 'failed') {
+    return 'warning';
+  }
+  return 'muted';
+}
+
 export interface DemoContainer {
   id: string;
   name: string;

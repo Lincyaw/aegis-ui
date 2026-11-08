@@ -1,10 +1,4 @@
-import {
-  type ReactElement,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { type ReactElement, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -19,15 +13,20 @@ import {
   type DataTableColumn,
   EmptyState,
   ErrorState,
-  type FilterChip,
   MetricLabel,
   MonoValue,
   Panel,
   PanelTitle,
+  SearchInput,
+  SkeletonText,
+  StatusDot,
   TimeDisplay,
   Toolbar,
 } from '@lincyaw/aegis-ui';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { errMsg } from '../../../api/apiClient';
+import { llmhKeys } from '../queryKeys';
 import {
   BlobCaseRepo,
   type CaseRepo,
@@ -38,87 +37,61 @@ import {
   resolveCaseRepo,
 } from '../repo';
 import type { CaseSummary } from '../schemas';
+import { nsToIso } from '../time';
 
 import './CaseListPage.css';
 
-function nsToMs(ns: number): number {
-  return Math.round(ns / 1_000_000);
-}
-
-function nsToIsoOrNull(ns: number): string | null {
-  if (!ns) return null;
-  return new Date(nsToMs(ns)).toISOString();
-}
+const NO_CASES: CaseSummary[] = [];
 
 export function CaseListPage(): ReactElement {
-  const [repo, setRepo] = useState<CaseRepo | null>(null);
-  const [cases, setCases] = useState<CaseSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [sourceError, setSourceError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [onlySurfaced, setOnlySurfaced] = useState(false);
   const [datasetFilter, setDatasetFilter] = useState<string | null>(null);
 
-  const refresh = useCallback(async (r: CaseRepo) => {
-    setLoading(true);
-    setError(null);
-    try {
-      setCases(await r.listCases());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const source = useQuery<CaseRepo | null>({
+    queryKey: llmhKeys.caseSource,
+    queryFn: resolveCaseRepo,
+    staleTime: Infinity,
+    gcTime: 0,
+    retry: false,
+  });
+  const repo = source.data ?? null;
+  const listing = useQuery({
+    queryKey: llmhKeys.cases(repo),
+    queryFn: () => (repo ? repo.listCases() : NO_CASES),
+    enabled: repo !== null,
+  });
+  const cases = listing.data ?? NO_CASES;
 
-  useEffect(() => {
-    let cancelled = false;
-    resolveCaseRepo()
-      .then(async (r) => {
-        if (cancelled) {
-          return;
-        }
-        if (!r) {
-          setLoading(false);
-          return;
-        }
-        setRepo(r);
-        await refresh(r);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) {
-          return;
-        }
-        setError(err instanceof Error ? err.message : String(err));
-        setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [refresh]);
+  const setSource = (next: CaseRepo | null): void => {
+    queryClient.setQueryData(llmhKeys.caseSource, next);
+  };
 
-  const handlePick = useCallback(async () => {
-    setError(null);
+  const handlePick = async (): Promise<void> => {
+    setSourceError(null);
     try {
-      const r = await pickCasesRoot();
-      setRepo(r);
-      await refresh(r);
+      setSource(await pickCasesRoot());
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      setError(err instanceof Error ? err.message : String(err));
+      setSourceError(errMsg(err));
     }
-  }, [refresh]);
+  };
 
-  const handleClear = useCallback(async () => {
-    await clearStoredRoot();
-    setRepo(null);
-    setCases([]);
-  }, []);
+  const handleClear = async (): Promise<void> => {
+    try {
+      await clearStoredRoot();
+      setSource(null);
+    } catch (err) {
+      setSourceError(errMsg(err));
+    }
+  };
 
   const datasetOptions = useMemo(() => {
     const names = new Set<string>();
     for (const c of cases) {
-      if (c.meta.dataset_name) names.add(c.meta.dataset_name);
+      if (c.meta?.dataset_name) names.add(c.meta.dataset_name);
     }
     return [...names].sort();
   }, [cases]);
@@ -126,13 +99,17 @@ export function CaseListPage(): ReactElement {
   const visibleCases = useMemo(() => {
     const q = search.trim().toLowerCase();
     return cases.filter((c) => {
-      if (onlySurfaced && c.meta.surfaced_reminders === 0) return false;
-      if (datasetFilter && c.meta.dataset_name !== datasetFilter) return false;
+      if (onlySurfaced && (c.meta?.surfaced_reminders ?? 0) === 0) {
+        return false;
+      }
+      if (datasetFilter && c.meta?.dataset_name !== datasetFilter) {
+        return false;
+      }
       if (q) {
         const hay = [
           c.caseId,
-          c.meta.sample_id ?? '',
-          c.meta.dataset_name ?? '',
+          c.meta?.sample_id ?? '',
+          c.meta?.dataset_name ?? '',
         ]
           .join(' ')
           .toLowerCase();
@@ -142,31 +119,48 @@ export function CaseListPage(): ReactElement {
     });
   }, [cases, search, onlySurfaced, datasetFilter]);
 
+  if (source.isPending) {
+    return (
+      <Panel title={<PanelTitle size='lg'>Case review</PanelTitle>}>
+        <SkeletonText lines={4} />
+      </Panel>
+    );
+  }
+
   if (!repo) {
-    const fsAction = isFsAccessSupported() ? (
-      <Button tone='ghost' onClick={() => void handlePick()}>
-        <FolderOpenOutlined /> Pick a local directory
-      </Button>
-    ) : null;
+    const error = source.isError ? errMsg(source.error) : sourceError;
+    const actions = (
+      <div className='llmh-cases__actions'>
+        <Link to='settings'>
+          <Button>
+            <ApiOutlined /> Open Connection settings
+          </Button>
+        </Link>
+        {isFsAccessSupported() ? (
+          <Button tone='ghost' onClick={() => void handlePick()}>
+            <FolderOpenOutlined /> Pick a local directory
+          </Button>
+        ) : null}
+      </div>
+    );
     return (
       <Panel
         title={<PanelTitle size='lg'>Case review</PanelTitle>}
         extra={<MetricLabel>llmharness · case aggregator</MetricLabel>}
       >
-        <EmptyState
-          title='Connect to a case source'
-          description='Configure a `llmharness serve` URL, point at a path inside platform blob storage, or pick a local cases/ directory (Chromium-based browsers only).'
-          action={
-            <div className='llmh-cases__actions'>
-              <Link to='settings'>
-                <Button>
-                  <ApiOutlined /> Open Connection settings
-                </Button>
-              </Link>
-              {fsAction}
-            </div>
-          }
-        />
+        {error !== null ? (
+          <ErrorState
+            title='Could not open the case source'
+            description={error}
+            action={actions}
+          />
+        ) : (
+          <EmptyState
+            title='Connect to a case source'
+            description='Configure a `llmharness serve` URL, point at a path inside platform blob storage, or pick a local cases/ directory (Chromium-based browsers only).'
+            action={actions}
+          />
+        )}
       </Panel>
     );
   }
@@ -180,12 +174,27 @@ export function CaseListPage(): ReactElement {
       ? 'blob · '
       : '';
 
-  const filterChips: FilterChip[] = [
-    ...(onlySurfaced ? [{ key: 'surfaced', label: 'surfaced only' }] : []),
-    ...(datasetFilter
-      ? [{ key: 'dataset', label: `dataset: ${datasetFilter}` }]
-      : []),
-  ];
+  const filterChips: Array<{ key: string; label: string; remove: () => void }> =
+    [
+      ...(onlySurfaced
+        ? [
+            {
+              key: 'surfaced',
+              label: 'surfaced only',
+              remove: () => setOnlySurfaced(false),
+            },
+          ]
+        : []),
+      ...(datasetFilter
+        ? [
+            {
+              key: 'dataset',
+              label: `dataset: ${datasetFilter}`,
+              remove: () => setDatasetFilter(null),
+            },
+          ]
+        : []),
+    ];
 
   const columns: Array<DataTableColumn<CaseSummary>> = [
     {
@@ -198,8 +207,14 @@ export function CaseListPage(): ReactElement {
           className='llmh-cases__case-link'
         >
           <MonoValue size='sm'>{r.caseId}</MonoValue>
-          {r.meta.sample_id && r.meta.sample_id !== r.caseId && (
+          {r.meta?.sample_id && r.meta.sample_id !== r.caseId && (
             <MetricLabel size='xs'>Sample {r.meta.sample_id}</MetricLabel>
+          )}
+          {r.error !== undefined && (
+            <span className='llmh-cases__case-error'>
+              <StatusDot tone='warning' />
+              {r.error}
+            </span>
           )}
         </Link>
       ),
@@ -209,7 +224,7 @@ export function CaseListPage(): ReactElement {
       key: 'dataset',
       header: 'Dataset',
       render: (r) =>
-        r.meta.dataset_name ? (
+        r.meta?.dataset_name ? (
           <MonoValue size='sm'>{r.meta.dataset_name}</MonoValue>
         ) : (
           <MetricLabel size='xs'>—</MetricLabel>
@@ -220,7 +235,7 @@ export function CaseListPage(): ReactElement {
       header: 'Started',
       width: 180,
       render: (r) => {
-        const iso = nsToIsoOrNull(r.meta.started_at_ns);
+        const iso = r.meta ? nsToIso(r.meta.started_at_ns) : null;
         return iso ? (
           <TimeDisplay value={iso} />
         ) : (
@@ -231,29 +246,29 @@ export function CaseListPage(): ReactElement {
     {
       key: 'ext',
       header: 'Extractor',
-      align: 'right',
+      numeric: true,
       width: 100,
-      render: (r) => (
-        <MonoValue size='sm'>{r.meta.extractor_firings}</MonoValue>
-      ),
+      render: (r) => r.meta?.extractor_firings ?? '—',
     },
     {
       key: 'aud',
       header: 'Auditor',
-      align: 'right',
+      numeric: true,
       width: 90,
-      render: (r) => <MonoValue size='sm'>{r.meta.auditor_firings}</MonoValue>,
+      render: (r) => r.meta?.auditor_firings ?? '—',
     },
     {
       key: 'surfaced',
       header: 'Surfaced',
-      align: 'right',
+      numeric: true,
       width: 100,
       render: (r) =>
-        r.meta.surfaced_reminders > 0 ? (
+        r.meta === null ? (
+          '—'
+        ) : r.meta.surfaced_reminders > 0 ? (
           <Chip tone='warning'>{r.meta.surfaced_reminders}</Chip>
         ) : (
-          <MonoValue size='sm'>0</MonoValue>
+          0
         ),
     },
   ];
@@ -267,7 +282,7 @@ export function CaseListPage(): ReactElement {
             {sourceLabel}
             {repo.label}
           </MetricLabel>
-          <Button tone='ghost' onClick={() => void refresh(repo)}>
+          <Button tone='ghost' onClick={() => void listing.refetch()}>
             <ReloadOutlined /> Refresh
           </Button>
           {!isRemote && (
@@ -279,14 +294,25 @@ export function CaseListPage(): ReactElement {
       }
     >
       <Toolbar
-        searchPlaceholder='case_id / sample_id / dataset_name'
-        searchValue={search}
-        onSearchChange={setSearch}
-        filters={filterChips}
-        action={
+        left={
+          <>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              onClear={() => setSearch('')}
+              placeholder='case_id / sample_id / dataset_name'
+            />
+            {filterChips.map((f) => (
+              <Chip key={f.key} onClose={f.remove}>
+                {f.label}
+              </Chip>
+            ))}
+          </>
+        }
+        right={
           <div className='llmh-cases__filters'>
             <Chip
-              tone={onlySurfaced ? 'warning' : 'default'}
+              tone={onlySurfaced ? 'ink' : 'default'}
               onClick={() => setOnlySurfaced((v) => !v)}
             >
               surfaced only
@@ -306,15 +332,18 @@ export function CaseListPage(): ReactElement {
         }
       />
       <div className='llmh-cases__table'>
-        {error ? (
-          <ErrorState title='Failed to read cases root' description={error} />
+        {listing.isError ? (
+          <ErrorState
+            title='Failed to read cases root'
+            description={errMsg(listing.error)}
+          />
         ) : (
           <DataTable
             framed={false}
             columns={columns}
             data={visibleCases}
             rowKey={(r) => r.caseId}
-            loading={loading}
+            loading={listing.isPending}
             emptyTitle='No cases match'
             emptyDescription='Clear the search / filters or pick a different cases root.'
             persistKey='llmharness.cases'

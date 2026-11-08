@@ -14,12 +14,43 @@
   border-bottom: var(--size-hairline) solid var(--border-hairline);
 }
 
+/* Each piece leads with its separator. The line starts one separator
+ * early and the summary clips it, so a wrapped line never starts or ends
+ * with one. */
 .aegis-upload-queue__summary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
   min-width: 0;
+  overflow: hidden;
+}
+
+.aegis-upload-queue__summary-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: var(--space-1);
+  margin-inline-start: calc(-1 * var(--space-5));
+}
+
+.aegis-upload-queue__piece::before {
+  content: '·' / '';
+  display: inline-block;
+  width: var(--space-5);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.aegis-upload-queue__figures {
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.aegis-upload-queue__figures--muted {
+  color: var(--text-muted);
 }
 
 .aegis-upload-queue__list {
@@ -58,8 +89,11 @@
   min-width: 0;
 }
 
+/* The name takes what the meta leaves and truncates first; below its
+ * floor the meta wraps instead, so Cancel stays inside the row. */
 .aegis-upload-queue__name {
-  min-width: 0;
+  flex: 1 1 0;
+  min-width: var(--space-16);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -67,9 +101,12 @@
 
 .aegis-upload-queue__meta {
   display: inline-flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
-  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
 }
 
 .aegis-upload-queue__bar {

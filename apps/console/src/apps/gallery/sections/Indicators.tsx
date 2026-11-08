@@ -23,6 +23,7 @@ import {
   EmptyState,
   KeyValueList,
   MetricLabel,
+  NumberField,
   Pagination,
   Panel,
   PanelTitle,
@@ -33,6 +34,7 @@ import {
   RunPips,
   ScoreBar,
   SectionDivider,
+  Slider,
   StackedBar,
   type StackedBarRow,
   type StackedBarSeries,
@@ -459,6 +461,68 @@ function SelectSpecimen(): ReactNode {
   );
 }
 
+function NumberFieldSpecimen(): ReactNode {
+  const [delay, setDelay] = useState<number | undefined>(200);
+  const [offset, setOffset] = useState<number | undefined>(-30);
+  const [ratio, setRatio] = useState<number | undefined>(undefined);
+  return (
+    <>
+      <Specimen caption='integer · unit · ↑↓ step, PageUp/Down ×10 · type 1.5 to see the refusal'>
+        <NumberField
+          label='Delay'
+          integer
+          min={1}
+          max={60000}
+          unit='ms'
+          value={delay}
+          onChange={setDelay}
+        />
+      </Specimen>
+      <Specimen caption='integer · negative allowed · host error out of range'>
+        <NumberField
+          label='Time offset'
+          integer
+          min={-3600}
+          max={3600}
+          unit='s'
+          value={offset}
+          error={
+            offset !== undefined && (offset < -3600 || offset > 3600)
+              ? 'Between -3600 and 3600'
+              : undefined
+          }
+          onChange={setOffset}
+        />
+      </Specimen>
+      <Specimen caption='decimal · placeholder · helper text'>
+        <NumberField
+          label='Ratio'
+          value={ratio}
+          placeholder='0.5'
+          helperText='Any number; decimals allowed.'
+          onChange={setRatio}
+        />
+      </Specimen>
+    </>
+  );
+}
+
+function SliderSpecimen(): ReactNode {
+  const [load, setLoad] = useState(70);
+  return (
+    <Specimen caption='label · formatValue · arrows, PageUp/Down, Home/End'>
+      <Slider
+        label='CPU load'
+        min={1}
+        max={100}
+        value={load}
+        formatValue={(v) => `${String(v)}%`}
+        onChange={setLoad}
+      />
+    </Specimen>
+  );
+}
+
 function PickerFieldSpecimen(): ReactNode {
   const [open, setOpen] = useState(false);
   const [chart, setChart] = useState('ranking');
@@ -534,6 +598,23 @@ const GALLERY_DIALOG_RUNS = Array.from({ length: 40 }, (_, index) => ({
   k: `run-${String(index + 1).padStart(2, '0')}`,
   v: index % 7 === 3 ? '错误' : '正确',
 }));
+
+function PaginationSpecimen({ total }: { total?: number }): ReactNode {
+  const [page, setPage] = useState(2);
+  const [pageSize, setPageSize] = useState(10);
+  return (
+    <Pagination
+      page={page}
+      pageSize={pageSize}
+      total={total}
+      pageSizeOptions={[10, 25, 50]}
+      onChange={(nextPage, nextSize) => {
+        setPage(nextPage);
+        setPageSize(nextSize);
+      }}
+    />
+  );
+}
 
 function DialogSpecimen(): ReactNode {
   const [openKey, setOpenKey] = useState<GalleryDialogKey | null>(null);
@@ -651,6 +732,9 @@ export function IndicatorsSection() {
         </Specimen>
         <Specimen caption='warning · pulse'>
           <StatusDot tone='warning' pulse />
+        </Specimen>
+        <Specimen caption='caution · --ink-warn, not a failure'>
+          <StatusDot tone='caution' />
         </Specimen>
         <Specimen caption='size 10'>
           <StatusDot size={10} />
@@ -792,16 +876,12 @@ export function IndicatorsSection() {
 
       <SectionDivider>Pagination</SectionDivider>
       <div className='gallery__stack'>
-        <Pagination
-          page={2}
-          pageSize={10}
-          total={137}
-          unit='个步骤'
-          pageSizeOptions={[1, 5, 10, 25]}
-          onChange={() => {
-            /* no-op */
-          }}
-        />
+        <Specimen caption='known total · page size options'>
+          <PaginationSpecimen total={137} />
+        </Specimen>
+        <Specimen caption='unknown total · Next stays enabled while the page is full'>
+          <PaginationSpecimen />
+        </Specimen>
       </div>
 
       <SectionDivider>Checkbox</SectionDivider>
@@ -867,9 +947,23 @@ export function IndicatorsSection() {
 
       <SectionDivider>Select</SectionDivider>
       <div className='gallery__row'>
-        <Specimen caption='label · value'>
+        <Specimen caption='label · value · the caption is the select’s <label>'>
           <AegisSelect
             label='标签'
+            value='first'
+            options={GALLERY_SELECT_OPTIONS}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+        <Specimen caption='rich label · still names the select'>
+          <AegisSelect
+            label={
+              <>
+                比较指标 <MetricLabel as='span'>· 越高越好</MetricLabel>
+              </>
+            }
             value='first'
             options={GALLERY_SELECT_OPTIONS}
             onChange={() => {
@@ -882,6 +976,7 @@ export function IndicatorsSection() {
         </Specimen>
         <Specimen caption='placeholder · --text-muted'>
           <AegisSelect
+            ariaLabel='横轴指标'
             value=''
             placeholder='选择横轴指标'
             options={[{ value: 'score', label: '结果均分' }]}
@@ -909,9 +1004,57 @@ export function IndicatorsSection() {
         </Specimen>
         <Specimen caption='disabled'>
           <AegisSelect
+            ariaLabel='版本'
             value='v1'
             disabled
             options={[{ value: 'v1', label: 'V1 · 当前版本' }]}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+      </div>
+
+      <SectionDivider>NumberField</SectionDivider>
+      <div className='gallery__row'>
+        <NumberFieldSpecimen />
+        <Specimen caption='no label · ariaLabel · disabled'>
+          <NumberField
+            ariaLabel='Workers'
+            integer
+            min={1}
+            max={8}
+            value={2}
+            disabled
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+      </div>
+
+      <SectionDivider>Slider</SectionDivider>
+      <div className='gallery__row'>
+        <SliderSpecimen />
+        <Specimen caption='no label · ariaLabel · value only'>
+          <Slider
+            ariaLabel='Correlation'
+            min={0}
+            max={100}
+            value={25}
+            formatValue={(v) => `${String(v)}%`}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+        <Specimen caption='disabled'>
+          <Slider
+            label='Loss'
+            min={1}
+            max={100}
+            value={40}
+            disabled
             onChange={() => {
               /* no-op */
             }}
@@ -1123,6 +1266,7 @@ export function IndicatorsSection() {
       <div className='gallery__stack'>
         <BlastRadiusBar
           value={20}
+          label='Blast radius'
           centerLabel='Node Group A · 20 %'
           surface={{
             id: 'gallery.blast.20',
@@ -1141,9 +1285,17 @@ export function IndicatorsSection() {
             }),
           }}
         />
-        <BlastRadiusBar value={65} centerLabel='Node Group A · 65 %' />
-        <BlastRadiusBar value={92} centerLabel='Node Group A · 92 %' />
-        <BlastRadiusBar value={50} hideTicks />
+        <BlastRadiusBar
+          value={65}
+          label='Blast radius'
+          centerLabel='Node Group A · 65 %'
+        />
+        <BlastRadiusBar
+          value={92}
+          label='Blast radius'
+          centerLabel='Node Group A · 92 %'
+        />
+        <BlastRadiusBar value={50} label='Blast radius' hideTicks />
       </div>
     </Panel>
   );

@@ -1,0 +1,58 @@
+.blob-overview__grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, calc(var(--space-12) * 6)), 1fr)
+  );
+  gap: var(--space-4);
+}
+
+.blob-sort {
+  min-width: calc(var(--space-12) * 2.5);
+}
+
+.blob-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.blob-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.blob-field__label {
+  color: var(--text-muted);
+}
+
+.blob-field__control {
+  width: 100%;
+}
+
+.blob-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.blob-reload-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.blob-share__object {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px);
+  min-width: 0;
+}
+
+.blob-share__path {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  color: var(--text-muted);
+}

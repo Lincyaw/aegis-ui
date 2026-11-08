@@ -94,53 +94,10 @@
   background: transparent;
 }
 
-/* Tab strip */
-.aegis-object-inspector__tablist {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 0 var(--space-5);
+.aegis-object-inspector__tabs {
+  padding: var(--space-3) var(--space-5);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
   flex-shrink: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.aegis-object-inspector__tablist::-webkit-scrollbar {
-  display: none;
-}
-
-.aegis-object-inspector__tab {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-3) var(--space-3);
-  font-family: var(--font-ui);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  border-bottom: var(--size-border-thick) solid transparent;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    color var(--motion-fast),
-    border-color var(--motion-fast);
-  margin-bottom: calc(-1 * var(--size-hairline));
-}
-
-.aegis-object-inspector__tab:hover:not(.aegis-object-inspector__tab--disabled) {
-  color: var(--text-main);
-}
-
-.aegis-object-inspector__tab--active {
-  color: var(--text-main);
-  border-bottom-color: var(--text-main);
-}
-
-.aegis-object-inspector__tab--disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 /* Body */

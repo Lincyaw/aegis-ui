@@ -1,6 +1,14 @@
-import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react';
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 
 import { flushSync } from 'react-dom';
+
+import { Tooltip } from 'antd';
 
 import { useAegisAction } from '../../agent/core/hooks';
 import type { AegisAction } from '../../agent/core/types';
@@ -11,6 +19,16 @@ import { tablistKeyTarget } from './tablistKeyboard';
 export interface TabItem {
   key: string;
   label: ReactNode;
+  /**
+   * Cannot be selected. The tab still takes focus from the arrow keys, so
+   * its hint can be read.
+   */
+  disabled?: boolean;
+  /**
+   * The tab's tooltip, e.g. why it is disabled. It opens on hover and focus
+   * and is the tab's accessible description.
+   */
+  hint?: string;
   /** Optional aegis-ui agent action — fired after the tab activates. */
   action?: AegisAction<void, unknown>;
 }
@@ -26,6 +44,13 @@ interface TabsProps {
    * rendered elsewhere (site navigation, a toolbar view switch).
    */
   listOnly?: boolean;
+  /** The tab list's accessible name, when no visible heading names it. */
+  ariaLabel?: string;
+  /**
+   * With `listOnly`, the id of the `role="tabpanel"` element that shows the
+   * selected tab's content; the selected tab names it in `aria-controls`.
+   */
+  panelId?: string;
   /**
    * `sm` makes each tab `--size-control-sm` tall, so the whole list is
    * `--size-control-base` and lines up with inputs in a toolbar.
@@ -99,9 +124,15 @@ export function Tabs({
   onChange,
   children,
   listOnly = false,
+  ariaLabel,
+  panelId,
   size = 'md',
   className,
 }: TabsProps) {
+  const baseId = useId();
+  const tabId = (index: number): string => `${baseId}-tab-${String(index)}`;
+  const ownPanelId = `${baseId}-panel`;
+  const controlledPanelId = listOnly ? panelId : ownPanelId;
   const [internalKey, setInternalKey] = useState(
     defaultActiveKey ?? items[0]?.key,
   );
@@ -109,7 +140,26 @@ export function Tabs({
   const listRef = useRef<HTMLDivElement>(null);
   const placedKeyRef = useRef<string | undefined>(undefined);
   const [indicator, setIndicator] = useState<TabsIndicator | null>(null);
+  const [focusedKey, setFocusedKey] = useState<string | null>(null);
   const itemKeys = items.map((item) => item.key).join('\n');
+
+  // Arrows, Home and End move between all the tabs and select the enabled
+  // ones. The list has one tab stop: the focused tab while focus is in the
+  // list, so Tab and Shift+Tab leave it from a disabled tab too; otherwise
+  // the selected tab, or the first enabled one when none is selected.
+  const activeIndex = items.findIndex(
+    (item) => item.key === activeKey && item.disabled !== true,
+  );
+  const focusedIndex = items.findIndex((item) => item.key === focusedKey);
+  const tabStopIndex =
+    focusedIndex >= 0
+      ? focusedIndex
+      : activeIndex >= 0
+        ? activeIndex
+        : Math.max(
+            items.findIndex((item) => item.disabled !== true),
+            0,
+          );
 
   useIsomorphicLayoutEffect(() => {
     const list = listRef.current;
@@ -133,7 +183,9 @@ export function Tabs({
       };
     });
     scrollSelectedTabIntoView(list);
-  }, [activeKey]);
+    // activeIndex changes without activeKey when the selected tab is disabled
+    // or enabled again; the indicator leaves or returns.
+  }, [activeKey, activeIndex]);
 
   // Tab widths change after web fonts load, when a label's count changes and
   // when a hidden list is first shown; follow them without sliding. The
@@ -170,13 +222,6 @@ export function Tabs({
     onChange?.(key);
   };
 
-  // Tab reaches only the selected tab, or the first when none is selected;
-  // arrows, Home and End move between tabs.
-  const tabStopIndex = Math.max(
-    items.findIndex((item) => item.key === activeKey),
-    0,
-  );
-
   const handleTabKeyDown = (
     event: KeyboardEvent<HTMLButtonElement>,
     index: number,
@@ -190,7 +235,8 @@ export function Tabs({
       ':scope > [role="tab"]',
     )[target];
     tab?.focus();
-    // The click runs the tab's own activation, including its agent action.
+    // The click runs the tab's own activation, including its agent action;
+    // a disabled tab ignores it.
     tab?.click();
   };
 
@@ -204,7 +250,17 @@ export function Tabs({
 
   return (
     <div className={cls}>
-      <div ref={listRef} className="aegis-tabs__list" role="tablist">
+      <div
+        ref={listRef}
+        className="aegis-tabs__list"
+        role="tablist"
+        aria-label={ariaLabel}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setFocusedKey(null);
+          }
+        }}
+      >
         {indicator ? (
           <span
             aria-hidden="true"
@@ -224,16 +280,24 @@ export function Tabs({
         {items.map((item, index) => (
           <TabsTab
             key={item.key}
+            id={tabId(index)}
             item={item}
-            active={item.key === activeKey}
+            active={index === activeIndex}
+            controls={index === activeIndex ? controlledPanelId : undefined}
             tabStop={index === tabStopIndex}
             onActivate={() => handleClick(item.key)}
+            onFocus={() => setFocusedKey(item.key)}
             onKeyDown={(event) => handleTabKeyDown(event, index)}
           />
         ))}
       </div>
       {listOnly ? null : (
-        <div className="aegis-tabs__panel" role="tabpanel">
+        <div
+          id={ownPanelId}
+          className="aegis-tabs__panel"
+          role="tabpanel"
+          aria-labelledby={activeIndex >= 0 ? tabId(activeIndex) : undefined}
+        >
           {children}
         </div>
       )}
@@ -242,41 +306,64 @@ export function Tabs({
 }
 
 interface TabsTabProps {
+  id: string;
   item: TabItem;
   active: boolean;
+  controls: string | undefined;
   tabStop: boolean;
   onActivate: () => void;
+  onFocus: () => void;
   onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
 }
 
 function TabsTab({
+  id,
   item,
   active,
+  controls,
   tabStop,
   onActivate,
+  onFocus,
   onKeyDown,
 }: TabsTabProps) {
   const bound = useAegisAction<void, unknown>(item.action);
   const handleClick = (): void => {
+    if (item.disabled === true) {
+      return;
+    }
     onActivate();
     if (item.action) {
       void bound.invoke();
     }
   };
-  return (
+  const tab = (
     <button
       type="button"
       role="tab"
+      id={id}
       aria-selected={active}
+      aria-controls={controls}
+      aria-disabled={item.disabled === true ? true : undefined}
       tabIndex={tabStop ? 0 : -1}
       className={
         active ? 'aegis-tabs__tab aegis-tabs__tab--active' : 'aegis-tabs__tab'
       }
       onClick={handleClick}
+      onFocus={onFocus}
       onKeyDown={onKeyDown}
       data-agent-action-id={item.action?.id}
     >
       {item.label}
     </button>
+  );
+  if (item.hint === undefined) {
+    return tab;
+  }
+  // The tooltip names the tab in aria-describedby; rendering it up front
+  // means the description is there the first time the tab takes focus.
+  return (
+    <Tooltip title={item.hint} trigger={['hover', 'focus']} forceRender>
+      {tab}
+    </Tooltip>
   );
 }

@@ -18,8 +18,9 @@ import (
 	"github.com/coder/websocket"
 )
 
-// Generated from packages/ui/src/agent/core/mcpToolCatalogue.ts.
-// Run `pnpm gen:mcp-tools` to regenerate; do NOT hand-edit.
+// Generated from packages/ui/src/transports/mcpTools.ts by the root
+// scripts/emit-mcp-tools.mjs, which the console's bundle:prepare runs
+// (or `pnpm gen:mcp-tools`); do NOT hand-edit.
 //
 //go:embed mcp_tools.generated.json
 var mcpToolsJSON []byte
@@ -103,44 +104,26 @@ func runMcpSubcommand(args []string) error {
 		return err
 	}
 
-	var lf *lockFile
-	if lockPath != "" {
-		l, err := loadLockFile(lockPath)
-		if err != nil {
-			return fmt.Errorf("load lock %q: %w", lockPath, err)
-		}
-		lf = l
-	} else {
-		l, _, err := pickLockFile()
-		if err != nil {
-			return fmt.Errorf("scan lock dir: %w", err)
-		}
-		if l == nil {
-			return errors.New("no aegis-console bridge running (no lock file in ~/.aegis/ide)")
-		}
-		lf = l
-	}
-
-	bridgeURL := fmt.Sprintf("ws://127.0.0.1:%d%s?as=mcp&token=%s",
-		lf.Port, lf.WSPath, lf.AuthToken)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, _, err := websocket.Dial(ctx, bridgeURL, &websocket.DialOptions{
-		HTTPHeader: http.Header{"Authorization": []string{"Bearer " + lf.AuthToken}},
-	})
-	if err != nil {
-		return fmt.Errorf("dial bridge: %w", err)
-	}
-	defer conn.Close(websocket.StatusNormalClosure, "")
-
 	cli := &controlClient{
-		conn:    conn,
-		ctx:     ctx,
+		ctx: ctx,
+		dial: func(ctx context.Context) (*websocket.Conn, error) {
+			lf, err := findLockFile(lockPath)
+			if err != nil {
+				return nil, err
+			}
+			return dialBridge(ctx, lf)
+		},
 		pending: map[string]chan controlReply{},
 	}
-	go cli.readLoop()
+	// Connect now so a missing bridge fails at startup; later calls redial
+	// on their own when the connection drops.
+	if err := cli.connect(); err != nil {
+		return err
+	}
+	defer cli.close()
 
 	if listSessions {
 		sessions, err := cli.listSessions()
@@ -152,24 +135,9 @@ func runMcpSubcommand(args []string) error {
 		return nil
 	}
 
-	if sessionID == "" {
-		sessions, err := cli.listSessions()
-		if err != nil {
-			return err
-		}
-		var best *session
-		for i := range sessions {
-			s := &sessions[i]
-			if best == nil || s.LastActivity > best.LastActivity {
-				best = s
-			}
-		}
-		if best == nil {
-			return errors.New("no browser sessions connected to the bridge")
-		}
-		sessionID = best.ID
-	}
-
+	// Without --session the ID stays empty and the bridge picks the most
+	// recently active session on every call, so a reloaded or replaced
+	// tab keeps working.
 	srv := &mcpServer{
 		client:    cli,
 		sessionID: sessionID,
@@ -178,31 +146,107 @@ func runMcpSubcommand(args []string) error {
 	return srv.serve(os.Stdin)
 }
 
+// findLockFile reads the lock file at path, or the most recently active
+// one in ~/.aegis/ide when path is empty.
+func findLockFile(path string) (*lockFile, error) {
+	if path != "" {
+		lf, err := loadLockFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("load lock %q: %w", path, err)
+		}
+		return lf, nil
+	}
+	lf, _, err := pickLockFile()
+	if err != nil {
+		return nil, fmt.Errorf("scan lock dir: %w", err)
+	}
+	if lf == nil {
+		return nil, errors.New("no aegis-console bridge running (no lock file in ~/.aegis/ide)")
+	}
+	return lf, nil
+}
+
+func dialBridge(ctx context.Context, lf *lockFile) (*websocket.Conn, error) {
+	bridgeURL := fmt.Sprintf("ws://127.0.0.1:%d%s?as=mcp&token=%s",
+		lf.Port, lf.WSPath, lf.AuthToken)
+	conn, _, err := websocket.Dial(ctx, bridgeURL, &websocket.DialOptions{
+		HTTPHeader: http.Header{"Authorization": []string{"Bearer " + lf.AuthToken}},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("dial bridge: %w", err)
+	}
+	conn.SetReadLimit(controlReadLimit)
+	return conn, nil
+}
+
 type controlReply struct {
 	Result json.RawMessage
 	Err    *bridgeError
 }
 
+// controlClient holds one control connection at a time. When it closes,
+// the calls waiting on it fail with bridge_closed and the next call dials
+// again; dial re-reads the lock file, so a restarted console, which has a
+// new control token, is picked up.
 type controlClient struct {
-	conn      *websocket.Conn
-	ctx       context.Context
+	ctx  context.Context
+	dial func(context.Context) (*websocket.Conn, error)
+
 	mu        sync.Mutex
+	conn      *websocket.Conn
 	pending   map[string]chan controlReply
 	sessionsC chan []session
 }
 
-func (c *controlClient) readLoop() {
+func (c *controlClient) connect() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	_, err := c.connLocked()
+	return err
+}
+
+func (c *controlClient) connLocked() (*websocket.Conn, error) {
+	if c.conn != nil {
+		return c.conn, nil
+	}
+	conn, err := c.dial(c.ctx)
+	if err != nil {
+		return nil, err
+	}
+	c.conn = conn
+	go c.readLoop(conn)
+	return conn, nil
+}
+
+func (c *controlClient) close() {
+	c.mu.Lock()
+	conn := c.conn
+	c.mu.Unlock()
+	if conn != nil {
+		_ = conn.Close(websocket.StatusNormalClosure, "")
+	}
+}
+
+func (c *controlClient) readLoop(conn *websocket.Conn) {
 	for {
-		_, data, err := c.conn.Read(c.ctx)
+		_, data, err := conn.Read(c.ctx)
 		if err != nil {
+			_ = conn.CloseNow()
+			closed := &bridgeError{
+				Code:    "bridge_closed",
+				Message: "the connection to the aegis-console bridge closed: " + err.Error(),
+			}
 			c.mu.Lock()
-			for _, ch := range c.pending {
+			if c.conn == conn {
+				c.conn = nil
+			}
+			for id, ch := range c.pending {
+				delete(c.pending, id)
 				select {
-				case ch <- controlReply{Err: &bridgeError{Code: "closed", Message: err.Error()}}:
+				case ch <- controlReply{Err: closed}:
 				default:
 				}
 			}
-			c.pending = map[string]chan controlReply{}
 			if c.sessionsC != nil {
 				close(c.sessionsC)
 				c.sessionsC = nil
@@ -257,10 +301,15 @@ func (c *controlClient) readLoop() {
 func (c *controlClient) listSessions() ([]session, error) {
 	ch := make(chan []session, 1)
 	c.mu.Lock()
+	conn, err := c.connLocked()
+	if err != nil {
+		c.mu.Unlock()
+		return nil, err
+	}
 	c.sessionsC = ch
 	c.mu.Unlock()
 	body, _ := json.Marshal(map[string]any{"type": "control.sessions.list"})
-	if err := c.conn.Write(c.ctx, websocket.MessageText, body); err != nil {
+	if err := conn.Write(c.ctx, websocket.MessageText, body); err != nil {
 		return nil, err
 	}
 	select {
@@ -278,6 +327,11 @@ func (c *controlClient) callTool(sessionID, tool string, params json.RawMessage)
 	id := fmt.Sprintf("rpc-%d", time.Now().UnixNano())
 	ch := make(chan controlReply, 1)
 	c.mu.Lock()
+	conn, err := c.connLocked()
+	if err != nil {
+		c.mu.Unlock()
+		return nil, &bridgeError{Code: "bridge_unavailable", Message: err.Error()}
+	}
 	c.pending[id] = ch
 	c.mu.Unlock()
 	defer func() {
@@ -290,17 +344,17 @@ func (c *controlClient) callTool(sessionID, tool string, params json.RawMessage)
 		"id":        id,
 		"sessionId": sessionID,
 		"tool":      tool,
-		"params":    json.RawMessage(params),
+		"params":    params,
 	}
 	if len(params) == 0 {
 		msg["params"] = map[string]any{}
 	}
-	body, err := json.Marshal(msg)
+	body, err := marshalControl(msg)
 	if err != nil {
 		return nil, &bridgeError{Code: "thrown", Message: err.Error()}
 	}
-	if err := c.conn.Write(c.ctx, websocket.MessageText, body); err != nil {
-		return nil, &bridgeError{Code: "thrown", Message: err.Error()}
+	if err := conn.Write(c.ctx, websocket.MessageText, body); err != nil {
+		return nil, &bridgeError{Code: "bridge_closed", Message: "write to the aegis-console bridge: " + err.Error()}
 	}
 	select {
 	case rep := <-ch:

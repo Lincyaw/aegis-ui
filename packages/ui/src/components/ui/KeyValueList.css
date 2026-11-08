@@ -3,6 +3,11 @@
   flex-direction: column;
   margin: 0;
   padding: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
 }
 
 .aegis-kv--ruled {
@@ -27,5 +32,6 @@
 .aegis-kv__v {
   margin: 0;
   color: var(--text-main);
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }

@@ -8,6 +8,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -59,6 +60,8 @@ interface RankedSuggestion {
   value: string;
   hint?: string;
   insert: string;
+  /** The query goes on after it (a field takes a value), so the list stays open. */
+  continues?: boolean;
 }
 
 const SUGGESTIONS_LIMIT = 10;
@@ -78,9 +81,12 @@ function rankFieldSuggestions(
   prefix: string,
 ): RankedSuggestion[] {
   if (prefix.length === 0) {
-    return options
-      .slice(0, SUGGESTIONS_LIMIT)
-      .map((o) => ({ value: o.value, hint: o.hint, insert: `${o.value}:` }));
+    return options.slice(0, SUGGESTIONS_LIMIT).map((o) => ({
+      value: o.value,
+      hint: o.hint,
+      insert: `${o.value}:`,
+      continues: true,
+    }));
   }
   const fuse = new Fuse(options, {
     keys: ['value'],
@@ -94,6 +100,7 @@ function rankFieldSuggestions(
       value: r.item.value,
       hint: r.item.hint,
       insert: `${r.item.value}:`,
+      continues: true,
     }));
 }
 
@@ -149,8 +156,11 @@ export function QueryAutocomplete({
   disabled = false,
 }: QueryAutocompleteProps): JSX.Element {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const listId = useId();
   const [caret, setCaret] = useState(0);
-  const [open, setOpen] = useState(false);
+  // Closed until the input is focused or edited, and again after Escape, a
+  // blur or a pick that ends the token.
+  const [dismissed, setDismissed] = useState(true);
   const [highlight, setHighlight] = useState(0);
   const [valuePool, setValuePool] = useState<
     QueryAutocompleteValueSuggestion[]
@@ -206,9 +216,9 @@ export function QueryAutocomplete({
     setHighlight(0);
   }, [suggestions]);
 
-  useEffect(() => {
-    setOpen(suggestions.length > 0);
-  }, [suggestions.length]);
+  const open = !dismissed && !disabled && suggestions.length > 0;
+  const optionId = (index: number): string =>
+    `${listId}-option-${String(index)}`;
 
   const syncCaret = useCallback(() => {
     const el = inputRef.current;
@@ -222,6 +232,7 @@ export function QueryAutocomplete({
       onChange(e.target.value);
       // selectionStart updates synchronously here.
       setCaret(e.target.selectionStart ?? e.target.value.length);
+      setDismissed(false);
     },
     [onChange],
   );
@@ -234,7 +245,7 @@ export function QueryAutocomplete({
         suggestion.insert,
       );
       onChange(next);
-      setOpen(false);
+      setDismissed(suggestion.continues !== true);
       requestAnimationFrame(() => {
         const el = inputRef.current;
         if (el) {
@@ -249,7 +260,12 @@ export function QueryAutocomplete({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
-      if (open && suggestions.length > 0) {
+      if (!open && e.key === 'ArrowDown' && suggestions.length > 0) {
+        e.preventDefault();
+        setDismissed(false);
+        return;
+      }
+      if (open) {
         if (e.key === 'ArrowDown') {
           e.preventDefault();
           setHighlight((h) => (h + 1) % suggestions.length);
@@ -269,7 +285,7 @@ export function QueryAutocomplete({
         }
         if (e.key === 'Escape') {
           e.preventDefault();
-          setOpen(false);
+          setDismissed(true);
           return;
         }
       }
@@ -283,12 +299,15 @@ export function QueryAutocomplete({
 
   const dropdown: ReactNode = (
     <ul
+      id={listId}
       className={`aegis-query-ac__list ${popoverClassName ?? ''}`.trim()}
       role="listbox"
+      aria-label="Suggestions"
     >
       {suggestions.map((s, i) => (
         <li
           key={`${s.value}-${String(i)}`}
+          id={optionId(i)}
           role="option"
           aria-selected={i === highlight}
           className={`aegis-query-ac__item${i === highlight ? ' is-active' : ''}`}
@@ -328,7 +347,7 @@ export function QueryAutocomplete({
     <div className={cls}>
       <Popover
         content={dropdown}
-        open={open && suggestions.length > 0 && !disabled}
+        open={open}
         trigger={[]}
         placement="bottomLeft"
         arrow={false}
@@ -343,18 +362,23 @@ export function QueryAutocomplete({
           onKeyDown={handleKeyDown}
           onKeyUp={syncCaret}
           onClick={syncCaret}
-          onFocus={syncCaret}
+          onFocus={() => {
+            syncCaret();
+            setDismissed(false);
+          }}
           onBlur={() => {
-            // Defer close so onMouseDown on the popover wins.
-            window.setTimeout(() => {
-              setOpen(false);
-            }, 120);
+            setDismissed(true);
           }}
           placeholder={placeholder}
           disabled={disabled}
           spellCheck={false}
           autoComplete="off"
+          role="combobox"
           aria-label="Lucene query"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-activedescendant={open ? optionId(highlight) : undefined}
         />
       </Popover>
       {showHelp ? (

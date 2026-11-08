@@ -1,0 +1,119 @@
+.aegis-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aegis-steps__item {
+  display: flex;
+  min-width: 0;
+}
+
+.aegis-steps__step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: var(--size-control-base);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  white-space: nowrap;
+  transition:
+    transform var(--motion-fast),
+    background-color var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast);
+}
+
+button.aegis-steps__step {
+  cursor: pointer;
+}
+
+.aegis-steps__step:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.aegis-steps__item--complete .aegis-steps__step {
+  color: var(--text-main);
+}
+
+.aegis-steps__item--current .aegis-steps__step {
+  background: var(--bg-inverted);
+  border-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-steps__marker {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  border: var(--size-hairline) solid currentcolor;
+  border-radius: var(--radius-circle);
+  font-family: var(--font-numeric);
+  font-size: var(--type-micro-size);
+  line-height: var(--type-micro-line);
+  font-weight: var(--type-micro-weight);
+  font-variant-numeric: tabular-nums;
+}
+
+.aegis-steps__item--complete .aegis-steps__marker {
+  border-color: transparent;
+  background: var(--bg-muted);
+  font-size: var(--size-icon-sm);
+}
+
+.aegis-steps__hidden {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  margin: calc(-1 * var(--size-hairline));
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.aegis-steps__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Touch screens keep :hover after a tap, which would leave the step lifted. */
+@media (hover: hover) {
+  button.aegis-steps__step:hover {
+    transform: translateY(calc(-1 * var(--motion-lift)));
+    background: var(--bg-muted);
+    color: var(--text-main);
+  }
+
+  button.aegis-steps__step:active {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-steps__step {
+    transition: none;
+  }
+
+  button.aegis-steps__step:hover {
+    transform: none;
+  }
+}

@@ -10,6 +10,8 @@ import { ContainerDetail } from './ContainerDetail';
 import { ContainerList } from './ContainerList';
 import { ContainersProvider, useContainers } from './store';
 
+import './containers.css';
+
 /**
  * Demo pattern: toolbar-style app header. Sits below the shell header,
  * sticky, app-scoped. Shows a search field + primary action.
@@ -19,21 +21,14 @@ function ContainersHeader(): ReactElement {
   const navigate = useNavigate();
   const { basePath } = useActiveApp();
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--space-2)',
-        width: '100%',
-      }}
-    >
+    <div className='containers-header'>
       <Input
         size='small'
         placeholder='Search containers…'
         prefix={<SearchOutlined />}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        style={{ maxWidth: 280 }}
+        className='containers-header__search'
         allowClear
       />
       <Button
@@ -41,7 +36,7 @@ function ContainersHeader(): ReactElement {
         size='small'
         icon={<PlusOutlined />}
         onClick={() => navigate(`${basePath}/new`)}
-        style={{ marginLeft: 'auto' }}
+        className='containers-header__new'
       >
         New
       </Button>

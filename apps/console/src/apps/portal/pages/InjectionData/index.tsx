@@ -3,182 +3,198 @@ import { useParams } from 'react-router-dom';
 
 import {
   Button,
+  Chip,
   CodeEditor,
   type CodeEditorField,
   EmptyState,
   ErrorState,
+  FileTree,
+  type FileTreeFile,
   MonoValue,
   Panel,
   PanelTitle,
+  SkeletonText,
 } from '@lincyaw/aegis-ui';
 import type { InjectionDatapackFileItem } from '@lincyaw/portal';
-import { useMutation, useQuery } from '@tanstack/react-query';
 
+import { errMsg } from '../../../../api/apiClient';
 import {
-  DatapackQueryError,
-  getDatapackSchema,
-  listDatapackFiles,
-  runDatapackQuery,
+  useDatapackFiles,
+  useDatapackSchema,
+  useRunDatapackQuery,
 } from '../../api/datapack';
+import { LoadError } from '../../components/LoadError';
 
-import { FileTreePane } from './FileTreePane';
 import { ResultView } from './ResultView';
 
 import './InjectionData.css';
 
 const DEFAULT_SQL = '-- Cmd/Ctrl+Enter to run\nSELECT 1 AS hello;';
 
-export default function InjectionData() {
-  const { injectionId } = useParams<{ injectionId: string }>();
-  const idNum =
-    injectionId !== undefined && /^\d+$/.test(injectionId)
-      ? Number(injectionId)
-      : null;
+/** Every file in the datapack, keyed by its path from the datapack root. */
+function flattenFiles(
+  items: InjectionDatapackFileItem[] | undefined,
+  prefix = '',
+  out = new Map<string, InjectionDatapackFileItem>()
+): Map<string, InjectionDatapackFileItem> {
+  for (const item of items ?? []) {
+    const path = `${prefix}${item.name ?? item.path ?? ''}`;
+    if (Array.isArray(item.children)) {
+      flattenFiles(item.children, `${path}/`, out);
+    } else if (path !== '') {
+      out.set(path, item);
+    }
+  }
+  return out;
+}
 
+function InjectionDataView({ injectionId }: { injectionId: number }) {
   const [sql, setSql] = useState<string>(DEFAULT_SQL);
-  const [selectedPath, setSelectedPath] = useState<string | undefined>();
+  const [selectedPath, setSelectedPath] = useState<string>();
 
-  const filesQuery = useQuery({
-    queryKey: ['portal', 'datapack-files', idNum],
-    enabled: idNum !== null,
-    queryFn: () => listDatapackFiles(idNum as number),
-  });
+  const filesQuery = useDatapackFiles(injectionId);
+  const schemaQuery = useDatapackSchema(injectionId);
+  const runMutation = useRunDatapackQuery(injectionId);
 
-  const schemaQuery = useQuery({
-    queryKey: ['portal', 'datapack-schema', idNum],
-    enabled: idNum !== null,
-    queryFn: () => getDatapackSchema(idNum as number),
-    retry: false,
-  });
-
-  const runMutation = useMutation({
-    mutationFn: (raw: string) => runDatapackQuery(idNum as number, raw),
-  });
+  const files = useMemo(
+    () => flattenFiles(filesQuery.data?.files),
+    [filesQuery.data]
+  );
+  const treeFiles: FileTreeFile[] = useMemo(
+    () =>
+      [...files].map(([path, item]) => ({
+        path,
+        note: item.size ?? undefined,
+      })),
+    [files]
+  );
 
   const tables = useMemo(
-    () => schemaQuery.data?.tables.map((t) => t.name) ?? [],
+    () =>
+      (schemaQuery.data?.tables ?? [])
+        .map((t) => t.name)
+        .filter((name): name is string => Boolean(name)),
     [schemaQuery.data]
   );
   const fields: CodeEditorField[] = useMemo(() => {
-    if (!schemaQuery.data) {
-      return [];
-    }
-    const out: CodeEditorField[] = [];
-    const seen = new Set<string>();
-    for (const t of schemaQuery.data.tables) {
-      for (const c of t.columns) {
-        if (!seen.has(c.name)) {
-          seen.add(c.name);
-          out.push({ name: c.name, type: c.type });
+    const byName = new Map<string, CodeEditorField>();
+    for (const table of schemaQuery.data?.tables ?? []) {
+      for (const column of table.columns ?? []) {
+        if (column.name && !byName.has(column.name)) {
+          byName.set(column.name, { name: column.name, type: column.type });
         }
       }
     }
-    return out;
+    return [...byName.values()];
   }, [schemaQuery.data]);
 
-  const handleSelectFile = (item: InjectionDatapackFileItem): void => {
-    setSelectedPath(item.path);
-    if (item.name !== undefined && /\.parquet$/i.test(item.name)) {
-      const tableName = item.name.replace(/\.parquet$/i, '');
-      setSql(`SELECT * FROM "${tableName}" LIMIT 100;`);
+  const selectFile = (path: string): void => {
+    setSelectedPath(path);
+    const name = files.get(path)?.name ?? '';
+    if (/\.parquet$/i.test(name)) {
+      setSql(`SELECT * FROM "${name.replace(/\.parquet$/i, '')}" LIMIT 100;`);
     }
   };
-
-  const handleRun = (raw: string): void => {
-    if (idNum === null) {
-      return;
-    }
-    runMutation.mutate(raw);
-  };
-
-  if (idNum === null) {
-    return (
-      <Panel>
-        <EmptyState
-          title='Open through an injection'
-          description='Data is scoped to an injection — reach this view via /portal/injections/:id/data.'
-        />
-      </Panel>
-    );
-  }
 
   const result = runMutation.data;
 
   return (
     <div className='injection-data'>
-      <Panel className='injection-data__tree-panel'>
-        <PanelTitle>Datapack files</PanelTitle>
-        <FileTreePane
-          data={filesQuery.data}
-          isLoading={filesQuery.isLoading}
-          error={filesQuery.isError ? filesQuery.error : undefined}
-          selectedPath={selectedPath}
-          onSelect={handleSelectFile}
-        />
+      <Panel
+        className='injection-data__tree-panel'
+        title={<PanelTitle size='base'>Datapack files</PanelTitle>}
+      >
+        {filesQuery.isLoading ? (
+          <SkeletonText />
+        ) : filesQuery.isError ? (
+          <LoadError
+            error={filesQuery.error}
+            title='Failed to load datapack files'
+          />
+        ) : treeFiles.length === 0 ? (
+          <EmptyState
+            title='Datapack has no files yet'
+            description='The injection has not produced any datapack artifacts.'
+          />
+        ) : (
+          <FileTree
+            ariaLabel='Datapack files'
+            files={treeFiles}
+            selectedPath={selectedPath}
+            onSelect={selectFile}
+          />
+        )}
       </Panel>
 
       <div className='injection-data__work'>
-        <Panel>
-          <div className='injection-data__editor-head'>
-            <PanelTitle>SQL</PanelTitle>
-            <div className='injection-data__editor-actions'>
-              <span className='injection-data__hint'>
-                Cmd/Ctrl+Enter to run
-              </span>
-              <Button
-                tone='primary'
-                disabled={runMutation.isPending}
-                onClick={() => {
-                  handleRun(sql);
-                }}
-              >
-                {runMutation.isPending ? 'Running…' : 'Run query'}
-              </Button>
-            </div>
+        <Panel
+          title={<PanelTitle size='base'>SQL</PanelTitle>}
+          extra={
+            <Button
+              tone='primary'
+              disabled={runMutation.isPending}
+              onClick={() => runMutation.mutate(sql)}
+            >
+              {runMutation.isPending ? 'Running…' : 'Run query'}
+            </Button>
+          }
+        >
+          <div className='page-stack'>
+            {schemaQuery.isError && (
+              <Chip tone='warning'>
+                {`Table and column completion is unavailable: ${errMsg(schemaQuery.error)}`}
+              </Chip>
+            )}
+            <CodeEditor
+              value={sql}
+              onChange={setSql}
+              language='sql'
+              tables={tables}
+              fields={fields}
+              onSubmit={(raw) => runMutation.mutate(raw)}
+              height='calc(var(--space-16) * 3.5)'
+            />
+            {result && (
+              <div className='injection-data__stats'>
+                <MonoValue size='sm'>{`${String(result.rows.length)} rows`}</MonoValue>
+                <MonoValue size='sm'>{`${String(result.elapsedMs)} ms`}</MonoValue>
+              </div>
+            )}
           </div>
-          <CodeEditor
-            value={sql}
-            onChange={setSql}
-            language='sql'
-            tables={tables}
-            fields={fields}
-            onSubmit={handleRun}
-            height={220}
-          />
-          {result && (
-            <div className='injection-data__stats'>
-              <MonoValue size='sm'>{`${String(result.rows.length)} rows`}</MonoValue>
-              <MonoValue size='sm'>{`${String(result.elapsedMs)} ms`}</MonoValue>
-            </div>
-          )}
         </Panel>
 
-        <Panel>
-          <PanelTitle>Result</PanelTitle>
+        <Panel title={<PanelTitle size='base'>Result</PanelTitle>}>
           {runMutation.isError ? (
             <ErrorState
-              title={
-                runMutation.error instanceof DatapackQueryError &&
-                runMutation.error.isBackendMissing
-                  ? 'Backend /datapack-query not deployed yet'
-                  : 'Query failed'
-              }
-              description={
-                runMutation.error instanceof Error
-                  ? runMutation.error.message
-                  : String(runMutation.error)
-              }
+              size='compact'
+              title='Query failed'
+              description={errMsg(runMutation.error)}
             />
-          ) : !result ? (
+          ) : result ? (
+            <ResultView rows={result.rows} columns={result.columns} />
+          ) : (
             <EmptyState
               title='Run a query to see results'
-              description='Pick a parquet file on the left or write SQL directly.'
+              description='Pick a parquet file or write SQL directly. Cmd/Ctrl+Enter runs it.'
             />
-          ) : (
-            <ResultView rows={result.rows} columns={result.columns} />
           )}
         </Panel>
       </div>
     </div>
   );
+}
+
+export default function InjectionData() {
+  const { injectionId } = useParams<{ injectionId: string }>();
+  if (injectionId === undefined || !/^\d+$/.test(injectionId)) {
+    return (
+      <Panel>
+        <EmptyState
+          title='Open through an injection'
+          description='Data belongs to an injection — open it from the injection list.'
+        />
+      </Panel>
+    );
+  }
+  return <InjectionDataView injectionId={Number(injectionId)} />;
 }

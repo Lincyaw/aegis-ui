@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  type HTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
   useMemo,
@@ -14,6 +15,8 @@ import './FileTree.css';
 export interface FileTreeFile {
   /** Path from the tree root with `/` between segments, e.g. `tests/grading.toml`. */
   path: string;
+  /** Shown in place of the file name, e.g. a note's name without `.md`. The row's title keeps the path. */
+  label?: ReactNode;
   /** Trailing note, typically the file size. */
   note?: ReactNode;
 }
@@ -29,6 +32,14 @@ export interface FileTreeProps {
   selectedPath?: string;
   /** Called with a file's path when it is clicked or activated with Enter or Space. */
   onSelect?: (path: string) => void;
+  /**
+   * A file's URL. With it each file row is a link, so the browser's own
+   * link actions (open in a new tab, copy the address) work on it, and
+   * opening the row follows the link as well as calling `onSelect`.
+   */
+  fileHref?: (path: string) => string;
+  /** Where file links open, e.g. `_blank`. */
+  fileTarget?: string;
   /** Open directories, each written with a trailing `/`, e.g. `tests/`. Omit it to let the tree track them. */
   expandedPaths?: string[];
   /** Directories open on first render when `expandedPaths` is omitted. */
@@ -53,6 +64,7 @@ interface FileEntry {
   kind: 'file';
   path: string;
   name: string;
+  label?: ReactNode;
   depth: number;
   parentPath?: string;
   note?: ReactNode;
@@ -97,6 +109,7 @@ function buildEntries(files: FileTreeFile[]): Entry[] {
       kind: 'file',
       path: file.path,
       name: file.path.slice(file.path.lastIndexOf('/') + 1),
+      label: file.label,
       depth: segments.length - 1,
       parentPath: parent?.path,
       note: file.note,
@@ -136,6 +149,8 @@ export function FileTree({
   ariaLabel,
   selectedPath,
   onSelect,
+  fileHref,
+  fileTarget,
   expandedPaths,
   defaultExpandedPaths = [],
   onExpandedPathsChange,
@@ -177,7 +192,9 @@ export function FileTree({
   };
 
   const focusRow = (index: number): void => {
-    const item = listRef.current?.children.item(index);
+    const item = listRef.current
+      ?.querySelectorAll('[role="treeitem"]')
+      .item(index);
     if (item instanceof HTMLElement) {
       item.focus();
     }
@@ -192,9 +209,10 @@ export function FileTree({
   };
 
   const handleKeyDown = (
-    event: KeyboardEvent<HTMLLIElement>,
+    event: KeyboardEvent<HTMLElement>,
     index: number,
     entry: Entry,
+    isLink: boolean,
   ): void => {
     const open = entry.kind === 'directory' && expanded.has(entry.path);
     switch (event.key) {
@@ -226,8 +244,18 @@ export function FileTree({
         }
         break;
       case 'Enter':
-      case ' ':
+        // A link's own Enter follows it and clicks it, which activates it.
+        if (isLink) {
+          return;
+        }
         activate(entry);
+        break;
+      case ' ':
+        if (isLink) {
+          event.currentTarget.click();
+        } else {
+          activate(entry);
+        }
         break;
       default:
         return;
@@ -243,32 +271,29 @@ export function FileTree({
         const isDirectory = entry.kind === 'directory';
         const selected = !isDirectory && entry.path === selectedPath;
         const note = isDirectory ? String(entry.fileCount) : entry.note;
-        return (
-          <li
-            key={entry.path}
-            role="treeitem"
-            className={
-              selected
-                ? 'aegis-file-tree__item aegis-file-tree__item--selected'
-                : 'aegis-file-tree__item'
-            }
-            style={{ '--aegis-file-tree-depth': entry.depth } as CSSProperties}
-            aria-level={entry.depth + 1}
-            aria-setsize={setSize}
-            aria-posinset={position}
-            aria-expanded={isDirectory ? expanded.has(entry.path) : undefined}
-            aria-selected={isDirectory ? undefined : selected}
-            tabIndex={entry.path === tabStop ? 0 : -1}
-            onClick={() => {
-              activate(entry);
-            }}
-            onKeyDown={(event) => {
-              handleKeyDown(event, index, entry);
-            }}
-            onFocus={() => {
-              setFocusedPath(entry.path);
-            }}
-          >
+        const href = isDirectory ? undefined : fileHref?.(entry.path);
+        const itemProps: HTMLAttributes<HTMLElement> = {
+          className: selected
+            ? 'aegis-file-tree__item aegis-file-tree__item--selected'
+            : 'aegis-file-tree__item',
+          style: { '--aegis-file-tree-depth': entry.depth } as CSSProperties,
+          'aria-level': entry.depth + 1,
+          'aria-setsize': setSize,
+          'aria-posinset': position,
+          'aria-expanded': isDirectory ? expanded.has(entry.path) : undefined,
+          tabIndex: entry.path === tabStop ? 0 : -1,
+          onClick: () => {
+            activate(entry);
+          },
+          onKeyDown: (event) => {
+            handleKeyDown(event, index, entry, href !== undefined);
+          },
+          onFocus: () => {
+            setFocusedPath(entry.path);
+          },
+        };
+        const content = (
+          <>
             {isDirectory ? (
               <>
                 <RightOutlined
@@ -281,11 +306,34 @@ export function FileTree({
               <FileOutlined className="aegis-file-tree__icon" aria-hidden />
             )}
             <span className="aegis-file-tree__name" title={entry.path}>
-              {entry.name}
+              {entry.kind === 'file' ? (entry.label ?? entry.name) : entry.name}
             </span>
             {note !== undefined && (
               <span className="aegis-file-tree__note">{note}</span>
             )}
+          </>
+        );
+        return href === undefined ? (
+          <li
+            key={entry.path}
+            role="treeitem"
+            aria-selected={isDirectory ? undefined : selected}
+            {...itemProps}
+          >
+            {content}
+          </li>
+        ) : (
+          <li key={entry.path} role="none">
+            <a
+              role="treeitem"
+              aria-selected={selected}
+              href={href}
+              target={fileTarget}
+              rel={fileTarget === '_blank' ? 'noopener noreferrer' : undefined}
+              {...itemProps}
+            >
+              {content}
+            </a>
           </li>
         );
       })}

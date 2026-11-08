@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   Avatar,
@@ -11,6 +11,11 @@ import {
   Panel,
   StatusDot,
 } from '@lincyaw/aegis-ui';
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { App, Button, Checkbox, Form, Input, Modal, Select } from 'antd';
 
 import { errMsg } from '../../../api/apiClient';
@@ -24,24 +29,16 @@ import {
   listUsers,
   removeUserRole,
   updateUser,
-} from '../../../api/iamClient';
+} from '../api/iamClient';
+import { settingsKeys } from '../queryKeys';
 import '../settings.css';
 
 import './Users.css';
 
 const PAGE_SIZE = 20;
 
-function statusTone(
-  status: string,
-  active: boolean
-): 'ink' | 'muted' | 'warning' {
-  if (!active) {
-    return 'muted';
-  }
-  if (status === 'pending') {
-    return 'warning';
-  }
-  return 'ink';
+function statusTone(status: string, active: boolean): 'ink' | 'muted' {
+  return active && status !== 'pending' ? 'ink' : 'muted';
 }
 
 function statusLabel(u: IamUser): string {
@@ -76,11 +73,15 @@ interface EditForm {
 
 export default function Users() {
   const { modal, message: msg } = App.useApp();
-  const [users, setUsers] = useState<IamUser[]>([]);
-  const [total, setTotal] = useState(0);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const usersQuery = useQuery({
+    queryKey: settingsKeys.usersPage(page),
+    queryFn: () => listUsers({ page, size: PAGE_SIZE }),
+    placeholderData: keepPreviousData,
+  });
+  const users = useMemo(() => usersQuery.data?.items ?? [], [usersQuery.data]);
+  const total = usersQuery.data?.total ?? 0;
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -95,27 +96,16 @@ export default function Users() {
   const [submitting, setSubmitting] = useState(false);
 
   const [rolesTarget, setRolesTarget] = useState<IamUser | null>(null);
-  const [allRoles, setAllRoles] = useState<IamRole[]>([]);
-  const [rolesLoading, setRolesLoading] = useState(false);
   const [selectedRoleIds, setSelectedRoleIds] = useState<number[]>([]);
+  const rolesQuery = useQuery({
+    queryKey: settingsKeys.assignableRoles,
+    queryFn: async (): Promise<IamRole[]> =>
+      (await listRoles({ size: 100 })).items,
+    enabled: rolesTarget !== null,
+  });
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await listUsers({ page, size: PAGE_SIZE });
-      setUsers(res.items);
-      setTotal(res.total);
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const refresh = (): Promise<void> =>
+    queryClient.invalidateQueries({ queryKey: settingsKeys.users });
 
   const roleOptions = useMemo(() => {
     const names = new Set<string>();
@@ -254,17 +244,6 @@ export default function Users() {
   const openRoles = (u: IamUser): void => {
     setRolesTarget(u);
     setSelectedRoleIds((u.roles ?? []).map((r) => r.id));
-    setRolesLoading(true);
-    void (async () => {
-      try {
-        const res = await listRoles({ size: 100 });
-        setAllRoles(res.items);
-      } catch (e) {
-        void msg.error(`Could not load roles: ${errMsg(e)}`);
-      } finally {
-        setRolesLoading(false);
-      }
-    })();
   };
 
   const handleSaveRoles = (): void => {
@@ -432,15 +411,15 @@ export default function Users() {
           </Button>
         }
       />
-      {error !== null ? (
+      {usersQuery.isError ? (
         <Panel>
           <ErrorState
             title='Could not load users'
-            description={error}
+            description={errMsg(usersQuery.error)}
             action={
               <Button
                 onClick={() => {
-                  void refresh();
+                  void usersQuery.refetch();
                 }}
               >
                 Try again
@@ -489,7 +468,7 @@ export default function Users() {
             data={filtered}
             rowKey={(u) => u.id.toString()}
             persistKey='settings.users'
-            loading={loading}
+            loading={usersQuery.isFetching}
             emptyTitle={
               users.length === 0 ? 'No users yet' : 'No matches on this page'
             }
@@ -570,18 +549,18 @@ export default function Users() {
         destroyOnClose
       >
         <Form form={editForm} layout='vertical'>
-          <FormRow label='Display name'>
+          <FormRow label='Display name' controlId='user-edit-full-name'>
             <Form.Item name='full_name' noStyle>
-              <Input />
+              <Input id='user-edit-full-name' />
             </Form.Item>
           </FormRow>
-          <FormRow label='Email'>
+          <FormRow label='Email' controlId='user-edit-email'>
             <Form.Item
               name='email'
               noStyle
               rules={[{ type: 'email', message: 'must be a valid email' }]}
             >
-              <Input />
+              <Input id='user-edit-email' />
             </Form.Item>
           </FormRow>
         </Form>
@@ -599,10 +578,16 @@ export default function Users() {
         }}
         onOk={handleSaveRoles}
         okText='Save'
+        okButtonProps={{ disabled: !rolesQuery.isSuccess }}
         confirmLoading={submitting}
         destroyOnClose
       >
-        {rolesLoading ? (
+        {rolesQuery.isError ? (
+          <ErrorState
+            title='Could not load roles'
+            description={errMsg(rolesQuery.error)}
+          />
+        ) : rolesQuery.isPending ? (
           <p className='users-page__roles-loading'>Loading roles…</p>
         ) : (
           <Checkbox.Group
@@ -612,7 +597,7 @@ export default function Users() {
             }}
             className='users-page__role-options'
           >
-            {allRoles.map((r) => (
+            {rolesQuery.data.map((r) => (
               <Checkbox key={r.id} value={r.id}>
                 {r.name}
                 {r.description ? (

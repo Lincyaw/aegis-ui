@@ -1,22 +1,15 @@
+.aegis-loginform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-family: var(--font-ui);
+}
+
 .aegis-loginform__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-}
-
-.aegis-loginform__remember {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-13);
-  color: var(--text-muted);
-  cursor: pointer;
-  user-select: none;
-}
-
-.aegis-loginform__remember input[type='checkbox'] {
-  accent-color: var(--text-main);
 }
 
 .aegis-loginform__forgot {

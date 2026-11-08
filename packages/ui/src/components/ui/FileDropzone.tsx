@@ -4,24 +4,7 @@ import { type Accept, useDropzone } from 'react-dropzone';
 
 import { formatBytes } from '../../lib/format';
 import './FileDropzone.css';
-
-export interface FileDropzoneItem {
-  /** Stable id so progress / errors can update in place. */
-  id: string;
-  file: File;
-  /** 0–100; omit for indeterminate. */
-  progress?: number;
-  status: 'queued' | 'uploading' | 'done' | 'error';
-  error?: string;
-  /** Bytes transferred so far. */
-  bytesUploaded?: number;
-  /** Transfer speed in bytes per second. */
-  speedBps?: number;
-  /** Estimated seconds remaining. */
-  etaSeconds?: number;
-  /** Called when the user cancels an in-progress upload. */
-  onCancel?: () => void;
-}
+import { filesFromEvent } from './dropFiles';
 
 interface FileDropzoneProps {
   onDrop: (files: File[]) => void;
@@ -33,7 +16,8 @@ interface FileDropzoneProps {
   maxSize?: number;
   /**
    * When true, the `<input>` gets `webkitdirectory` so the user can select
-   * an entire folder.  Each `File` carries its `webkitRelativePath`.
+   * an entire folder. Files of a picked or dropped folder carry their path
+   * inside it in `webkitRelativePath`.
    */
   directory?: boolean;
   /**
@@ -42,8 +26,6 @@ interface FileDropzoneProps {
    *   centred hint; use inside a `position: relative` container.
    */
   variant?: 'inline' | 'overlay';
-  /** Optional in-flight queue rendered under the drop area. */
-  items?: FileDropzoneItem[];
   /** Override the body text in the drop area. */
   hint?: ReactNode;
   className?: string;
@@ -58,7 +40,6 @@ export function FileDropzone({
   maxSize,
   directory = false,
   variant = 'inline',
-  items,
   hint,
   className,
   style,
@@ -70,6 +51,7 @@ export function FileDropzone({
       multiple,
       disabled,
       maxSize,
+      getFilesFromEvent: filesFromEvent,
     });
 
   const isOverlay = variant === 'overlay';
@@ -99,7 +81,6 @@ export function FileDropzone({
       <div {...getRootProps({ className: rootClass })}>
         <input
           {...inputProps}
-          /* eslint-disable-next-line react/no-unknown-property */
           {...(directory ? { webkitdirectory: '', mozdirectory: '' } : {})}
         />
         <div className="aegis-file-dropzone__hint">
@@ -128,39 +109,6 @@ export function FileDropzone({
           )}
         </div>
       </div>
-      {items && items.length > 0 ? (
-        <ul className="aegis-file-dropzone__queue">
-          {items.map((it) => (
-            <li
-              key={it.id}
-              className={`aegis-file-dropzone__queue-item aegis-file-dropzone__queue-item--${it.status}`}
-            >
-              <div className="aegis-file-dropzone__queue-row">
-                <span className="aegis-file-dropzone__queue-name">
-                  {it.file.name}
-                </span>
-                <span className="aegis-file-dropzone__queue-meta">
-                  {it.status === 'error'
-                    ? (it.error ?? 'failed')
-                    : it.status === 'done'
-                      ? 'done'
-                      : it.progress !== undefined
-                        ? `${it.progress.toString()}%`
-                        : '…'}
-                </span>
-              </div>
-              <div className="aegis-file-dropzone__bar">
-                <div
-                  className="aegis-file-dropzone__bar-fill"
-                  style={{
-                    width: `${(it.status === 'done' ? 100 : (it.progress ?? 0)).toString()}%`,
-                  }}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : null}
     </div>
   );
 }

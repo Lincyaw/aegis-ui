@@ -23,7 +23,10 @@ export type FilePreviewSurface = PrimitiveSurface<{
 interface FilePreviewProps {
   /** URL the browser can load the file from, as for `<img src>`. */
   src: string;
-  /** MIME type; chooses the renderer. Unknown ⇒ binary fallback. */
+  /**
+   * MIME type, parameters allowed (`application/json; charset=utf-8`);
+   * chooses the renderer. Unknown ⇒ binary fallback.
+   */
   mimeType?: string;
   /** File display name (download fallback + tooltip). */
   name?: string;
@@ -108,7 +111,8 @@ export function FilePreview({
           title={name ?? 'pdf preview'}
         />
       ) : kind === 'text' ? (
-        <TextPreview src={src} />
+        // Keyed so a new file starts from a clean loading state.
+        <TextPreview key={src} src={src} />
       ) : (
         <BinaryFallback name={name} size={size} src={src} fallback={fallback} />
       )}
@@ -190,7 +194,7 @@ function classify(mime: string | undefined): Kind {
   if (!mime) {
     return 'binary';
   }
-  const m = mime.toLowerCase();
+  const m = mime.split(';')[0].trim().toLowerCase();
   if (m.startsWith('image/')) {
     return 'image';
   }
@@ -210,7 +214,9 @@ function classify(mime: string | undefined): Kind {
     m === 'application/yaml' ||
     m === 'application/x-yaml' ||
     m === 'application/javascript' ||
-    m === 'application/x-sh'
+    m === 'application/x-sh' ||
+    m.endsWith('+json') ||
+    m.endsWith('+xml')
   ) {
     return 'text';
   }

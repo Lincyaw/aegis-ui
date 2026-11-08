@@ -46,6 +46,9 @@ HTTP 200 only proves the HTML shell was served.
   HTTPS in this repo.
 - It passes `--disable-extensions` and selects a real `page` target so enterprise
   or browser extension background pages do not pollute the capture.
+- It passes `--password-store=basic` so Chrome does not wait on the desktop
+  keyring on Linux, and `--no-proxy-server` so a system proxy does not take
+  the requests to the local dev server.
 - Use `--viewport 390x844` for mobile and `--viewport 1440x1000` for desktop.
 - `--color-scheme dark` and `--reduced-motion` emulate those media features
   before navigation; `--eval <file>` runs the JavaScript expression in the

@@ -1,15 +1,17 @@
 import { type FormEvent, type ReactElement, useState } from 'react';
 
-import './AuthForm.css';
+import { Alert } from './Alert';
 import { Button } from './Button';
 import './ForgotPasswordForm.css';
 import { TextField } from './TextField';
+import { emailError } from './authValidation';
 
 interface ForgotPasswordFormValues {
   email: string;
 }
 
 interface ForgotPasswordFormProps {
+  /** Called only with a valid email address, trimmed. */
   onSubmit: (values: ForgotPasswordFormValues) => void | Promise<void>;
   submitting?: boolean;
   error?: string;
@@ -23,27 +25,27 @@ export function ForgotPasswordForm({
   success,
 }: ForgotPasswordFormProps): ReactElement {
   const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const trimmedEmail = email.trim();
+  const fieldError = emailError(trimmedEmail);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    void onSubmit({ email });
+    setSubmitted(true);
+    if (fieldError !== undefined) {
+      return;
+    }
+    void onSubmit({ email: trimmedEmail });
   };
 
   if (success) {
-    return (
-      <div className="aegis-forgotform__success" role="status">
-        {success}
-      </div>
-    );
+    return <Alert tone="success">{success}</Alert>;
   }
 
   return (
     <form className="aegis-forgotform" onSubmit={handleSubmit} noValidate>
-      {error && (
-        <div className="aegis-forgotform__error" role="alert">
-          {error}
-        </div>
-      )}
+      {error && <Alert tone="error">{error}</Alert>}
       <TextField
         label="Email"
         type="email"
@@ -54,6 +56,7 @@ export function ForgotPasswordForm({
         disabled={submitting}
         required
         helperText="We'll send a reset link to this address."
+        error={submitted ? fieldError : undefined}
       />
       <Button
         tone="primary"

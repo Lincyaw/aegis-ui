@@ -51,7 +51,6 @@
   white-space: nowrap;
   background: var(--bg-muted);
   border-bottom: var(--size-hairline) solid var(--border-hairline);
-  z-index: 1;
 }
 
 .aegis-data-table__th-label {
@@ -110,7 +109,14 @@
   cursor: col-resize;
   user-select: none;
   touch-action: none;
-  z-index: 2;
+  z-index: 1;
+}
+
+/* Straddling the table's right edge would make the scroller overflow. */
+.aegis-data-table__th:last-child .aegis-data-table__resizer,
+.aegis-data-table__th:has(+ .aegis-data-table__filler:last-child)
+  .aegis-data-table__resizer {
+  right: 0;
 }
 
 .aegis-data-table__resizer::after {
@@ -124,8 +130,14 @@
   transition: background var(--motion-fast);
 }
 
+.aegis-data-table__resizer:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+}
+
 .aegis-data-table__resizer:hover::after,
-.aegis-data-table__resizer:active::after {
+.aegis-data-table__resizer:active::after,
+.aegis-data-table__resizer:focus-visible::after {
   background: var(--text-muted);
   top: 0;
   bottom: 0;
@@ -146,6 +158,11 @@
 /* The card's edge closes the table, so the last row draws no separator. */
 .aegis-data-table__table > tbody > tr:last-child > td {
   border-bottom: none;
+}
+
+/* The empty column that takes the width resized columns leave. */
+.aegis-data-table__filler {
+  padding: 0;
 }
 
 /* Inner cell wrapper: lets us truncate text without clipping interactive
@@ -415,38 +432,6 @@
 }
 
 .aegis-data-table__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
   padding: var(--space-2) var(--space-3);
   border-top: var(--size-hairline) solid var(--border-hairline);
-}
-
-.aegis-data-table__pager {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  margin-left: auto;
-}
-
-.aegis-data-table__range {
-  margin-right: var(--space-2);
-  font-family: var(--font-ui);
-  font-size: var(--type-small-size);
-  line-height: var(--type-small-line);
-  font-weight: var(--type-small-weight);
-  letter-spacing: var(--type-small-tracking);
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.aegis-data-table__range-num {
-  font-family: var(--font-numeric);
-  font-variant-numeric: tabular-nums;
-  color: var(--text-main);
-}
-
-.aegis-data-table__pager .aegis-data-table__page-btn {
-  padding: var(--space-1) var(--space-2);
 }

@@ -1,27 +1,23 @@
-import { Button, type DropdownItem, DropdownMenu } from '@lincyaw/aegis-ui';
+import { Button, Select } from '@lincyaw/aegis-ui';
 
-import type { RefreshInterval } from './refresh-interval';
+import type { RefreshInterval } from '../api/polling';
 
 interface RefreshControlProps {
   value: RefreshInterval;
   onChange: (next: RefreshInterval) => void;
   onRefresh: () => void;
   isFetching?: boolean;
-  /** True while the backing resource is in an active/streaming state. */
+  /** True while the watched resource is still active, so `auto` is polling. */
   isLive?: boolean;
 }
 
-const OPTIONS: Array<{ key: RefreshInterval; label: string }> = [
-  { key: 'manual', label: 'Manual only' },
-  { key: 2, label: 'Every 2s' },
-  { key: 5, label: 'Every 5s' },
-  { key: 10, label: 'Every 10s' },
-  { key: 30, label: 'Every 30s' },
-  { key: 60, label: 'Every 60s' },
-];
+const INTERVALS: RefreshInterval[] = ['auto', 'manual', 2, 5, 10, 30, 60];
 
-function labelFor(v: RefreshInterval): string {
-  return v === 'manual' ? 'Manual' : `${String(v)}s`;
+function labelFor(value: RefreshInterval, isLive: boolean): string {
+  if (value === 'auto') {
+    return isLive ? 'Auto (live)' : 'Auto (stopped)';
+  }
+  return value === 'manual' ? 'Manual only' : `Every ${String(value)}s`;
 }
 
 export function RefreshControl({
@@ -31,22 +27,21 @@ export function RefreshControl({
   isFetching = false,
   isLive = false,
 }: RefreshControlProps) {
-  const items: DropdownItem[] = OPTIONS.map((opt) => ({
-    key: String(opt.key),
-    label: opt.key === value ? `${opt.label} ✓` : opt.label,
-    onClick: () => {
-      onChange(opt.key);
-    },
-  }));
-
-  const triggerLabel = isLive ? `${labelFor(value)} · live` : labelFor(value);
-
   return (
     <div className='page-action-row'>
-      <DropdownMenu
-        align='right'
-        trigger={<Button tone='secondary'>{`Refresh: ${triggerLabel}`}</Button>}
-        items={items}
+      <Select
+        ariaLabel='Refresh'
+        value={String(value)}
+        options={INTERVALS.map((interval) => ({
+          value: String(interval),
+          label: labelFor(interval, isLive),
+        }))}
+        onChange={(next) => {
+          const interval = INTERVALS.find((i) => String(i) === next);
+          if (interval !== undefined) {
+            onChange(interval);
+          }
+        }}
       />
       <Button tone='secondary' disabled={isFetching} onClick={onRefresh}>
         {isFetching ? 'Refreshing…' : 'Refresh now'}

@@ -6,6 +6,7 @@
  */
 
 export { Button, ButtonLink } from './Button';
+export type { ButtonTone } from './Button';
 export { Panel } from './Panel';
 export type { PanelElevation, PanelSurface, PanelVariant } from './Panel';
 export { PanelTitle } from './PanelTitle';
@@ -36,10 +37,13 @@ export { ControlListItem } from './ControlListItem';
 export { Chip } from './Chip';
 export type { ChipSurface } from './Chip';
 export { Checkbox } from './Checkbox';
+export { ChoiceCardGroup } from './ChoiceCardGroup';
+export type { ChoiceCardOption } from './ChoiceCardGroup';
 export { Collapse } from './Collapse';
 export type { CollapseItem } from './Collapse';
 export { Alert } from './Alert';
 export { Pagination } from './Pagination';
+export type { PaginationProps } from './Pagination';
 export { Select } from './Select';
 export type { SelectOption } from './Select';
 export { RankBar } from './RankBar';
@@ -142,20 +146,17 @@ export { CodeBlock } from './CodeBlock';
 export type { CodeBlockSurface } from './CodeBlock';
 export { FileTree } from './FileTree';
 export type { FileTreeFile, FileTreeProps } from './FileTree';
-export {
-  ContentInspectorDialog,
-  ContentPreview,
-} from './ContentInspectorDialog';
-export type {
-  ContentInspectorDialogProps,
-  ContentPreviewProps,
-} from './ContentInspectorDialog';
-export { prepareInspectableContent } from './ContentInspectorContent';
+export { ContentInspectorDialog } from './ContentInspectorDialog';
+export type { ContentInspectorDialogProps } from './ContentInspectorDialog';
+export { ContentPreview } from './ContentPreview';
+export type { ContentPreviewProps } from './ContentPreview';
+export { prepareInspectableContent } from './classifyContent';
 export type {
   InspectableContent,
   InspectableContentKind,
+  InspectableContentOptions,
   PreparedInspectableContent,
-} from './ContentInspectorContent';
+} from './classifyContent';
 export { DataTable } from './DataTable';
 export type {
   DataTableCellTone,
@@ -170,7 +171,7 @@ export type { EventTableColumn, EventTableProps } from './EventTable';
 export { DataList } from './DataList';
 export type { DataListColumn, DataListItem, DataListSurface } from './DataList';
 export { Toolbar } from './Toolbar';
-export type { FilterChip, ToolbarProps } from './Toolbar';
+export type { ToolbarProps } from './Toolbar';
 export { SearchInput } from './SearchInput';
 export type { SearchInputProps } from './SearchInput';
 export { QueryAutocomplete } from './QueryAutocomplete';
@@ -188,6 +189,8 @@ export type {
 } from './ObjectInspector';
 export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
+export { Steps } from './Steps';
+export type { StepsItem } from './Steps';
 export { Carousel } from './Carousel';
 export type { CarouselProps, CarouselSlide } from './Carousel';
 export { Breadcrumb } from './Breadcrumb';
@@ -213,6 +216,8 @@ export { FormRow } from './FormRow';
 export { DangerZone } from './DangerZone';
 export { ThemeToggle } from './ThemeToggle';
 export { TextField } from './TextField';
+export { NumberField } from './NumberField';
+export { Slider } from './Slider';
 export { PasswordField } from './PasswordField';
 export { AuthLayout } from './AuthLayout';
 export { LoginForm } from './LoginForm';
@@ -220,9 +225,11 @@ export { RegisterForm } from './RegisterForm';
 export { ForgotPasswordForm } from './ForgotPasswordForm';
 export { ErrorState } from './ErrorState';
 export { NotificationBell } from './NotificationBell';
+export type { NotificationBellProps } from './NotificationBell';
 export { InboxPage } from './InboxPage';
-export type { InboxPageSurface } from './InboxPage';
+export type { InboxPageProps, InboxPageSurface } from './InboxPage';
 export { CommandPalette } from './CommandPalette';
+export type { CommandPaletteProps } from './CommandPalette';
 export { ChatMessage } from './ChatMessage';
 export type { ChatMessageSurface } from './ChatMessage';
 export { ChatMessageList } from './ChatMessageList';
@@ -235,7 +242,6 @@ export type { CommandInvocationCardSurface } from './CommandInvocationCard';
 export { AgentPanel } from './AgentPanel';
 export type { AgentPanelSurface } from './AgentPanel';
 export { FileDropzone } from './FileDropzone';
-export type { FileDropzoneItem } from './FileDropzone';
 export { FolderDropzone } from './FolderDropzone';
 export type { FolderDropzoneProps } from './FolderDropzone';
 export { FilePreview } from './FilePreview';
@@ -258,11 +264,11 @@ export { TraceSpanInspector } from './TraceSpanInspector';
 export type { TraceSpanInspectorProps } from './TraceSpanInspector';
 export { TimelineChart } from './TimelineChart';
 export type { TimelineChartProps } from './TimelineChart';
-export { BucketCard } from './BucketCard';
 export { ObjectBrowser } from './ObjectBrowser';
 export { ShareLinkDialog } from './ShareLinkDialog';
 export type { ShareLinkOptions, ShareLinkResult } from './ShareLinkDialog';
 export { UploadQueue } from './UploadQueue';
+export type { UploadQueueItem } from './UploadQueue';
 export { ResizableSidePanel } from './ResizableSidePanel';
 export type { ResizableSidePanelProps } from './ResizableSidePanel';
 export { EnvironmentSwitcher } from './EnvironmentSwitcher';

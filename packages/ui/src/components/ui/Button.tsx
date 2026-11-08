@@ -11,7 +11,7 @@ import type { AegisAction } from '../../agent/core/types';
 import './Button.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 
-type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'glass';
+export type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'glass';
 
 type ButtonIconPosition = 'start' | 'end';
 

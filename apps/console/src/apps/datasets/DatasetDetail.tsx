@@ -53,13 +53,7 @@ export function DatasetDetail(): ReactElement {
         action={<Link to='..'>← Back</Link>}
       />
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 'var(--space-3)',
-        }}
-      >
+      <div className='datasets-metrics'>
         <MetricCard label='Rows' value={ds.rows.toLocaleString()} />
         <MetricCard label='Size' value={`${ds.sizeMb} MB`} />
         <MetricCard label='Format' value={ds.format.toUpperCase()} />
@@ -76,9 +70,7 @@ export function DatasetDetail(): ReactElement {
             {
               k: 'tags',
               v: (
-                <span
-                  style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}
-                >
+                <span className='datasets-chips'>
                   {ds.tags.map((t) => (
                     <Chip key={t} tone='default'>
                       {t}

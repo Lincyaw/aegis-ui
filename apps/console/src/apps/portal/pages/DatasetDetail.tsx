@@ -4,7 +4,6 @@ import {
   Button,
   Chip,
   EmptyState,
-  ErrorState,
   KeyValueList,
   MetricCard,
   MonoValue,
@@ -18,8 +17,9 @@ import {
 } from '@lincyaw/aegis-ui';
 import { App as AntdApp } from 'antd';
 
-import { errMsg } from '../../../api/apiClient';
 import { useDataset, useDeleteDataset } from '../api/datasets';
+import { DeleteButton } from '../components/DeleteButton';
+import { LoadError } from '../components/LoadError';
 
 export default function DatasetDetail() {
   const { datasetId: rawId } = useParams<{ datasetId: string }>();
@@ -29,44 +29,35 @@ export default function DatasetDetail() {
   const { data: dataset, isLoading, isError, error } = useDataset(datasetId);
   const del = useDeleteDataset();
 
-  if (isLoading) {
+  if (isLoading || isError || dataset?.id === undefined) {
     return (
       <>
-        <PageHeader title='Loading…' />
+        <PageHeader title={`Dataset ${rawId ?? ''}`} />
         <Panel>
-          <SkeletonText />
+          {isLoading ? (
+            <SkeletonText />
+          ) : isError ? (
+            <LoadError
+              error={error}
+              title='Failed to load dataset'
+              notFound={{
+                title: 'Dataset not found',
+                description: 'This dataset no longer exists.',
+              }}
+            />
+          ) : (
+            <EmptyState
+              title='Dataset not found'
+              description={`"${rawId ?? ''}" is not a dataset id.`}
+            />
+          )}
         </Panel>
       </>
     );
   }
 
-  if (isError) {
-    return (
-      <>
-        <PageHeader title='Dataset' />
-        <Panel>
-          <ErrorState
-            title='Failed to load dataset'
-            description={errMsg(error, 'Unknown error')}
-          />
-        </Panel>
-      </>
-    );
-  }
-
-  if (!dataset || dataset.id === undefined) {
-    return (
-      <>
-        <PageHeader title='Dataset not found' />
-        <Panel>
-          <EmptyState
-            title='Not found'
-            description='This dataset no longer exists.'
-          />
-        </Panel>
-      </>
-    );
-  }
+  const id = dataset.id;
+  const name = dataset.name ?? `Dataset #${String(id)}`;
 
   const versions = dataset.versions ?? [];
   const totalFiles = versions.reduce((acc, v) => acc + (v.file_count ?? 0), 0);
@@ -75,38 +66,30 @@ export default function DatasetDetail() {
   return (
     <>
       <PageHeader
-        title={dataset.name ?? `Dataset #${String(dataset.id)}`}
+        title={name}
         description={dataset.description}
         action={
           <div className='page-action-row'>
             <Button
               tone='primary'
+              disabled={!dataset.name}
               onClick={() =>
-                navigate(`eval/new?dataset=${String(dataset.id ?? '')}`)
+                navigate(
+                  `eval/new?dataset=${encodeURIComponent(dataset.name ?? '')}`
+                )
               }
             >
               Use in eval
             </Button>
-            <Button
+            <DeleteButton
               tone='ghost'
-              onClick={() => {
-                if (dataset.id === undefined) {
-                  return;
-                }
-                del.mutate(dataset.id, {
-                  onSuccess: () => {
-                    void msg.success('Dataset deleted');
-                    navigate('datasets');
-                  },
-                  onError: (err) => {
-                    void msg.error(errMsg(err, 'Failed to delete dataset'));
-                  },
-                });
+              subject={`dataset ${name}`}
+              onDelete={async () => {
+                await del.mutateAsync(id);
+                void msg.success('Dataset deleted');
+                navigate('datasets');
               }}
-              disabled={del.isPending}
-            >
-              Delete
-            </Button>
+            />
           </div>
         }
       />
@@ -144,13 +127,7 @@ export default function DatasetDetail() {
                 labelEntries.length === 0 ? (
                   '—'
                 ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 'var(--space-2)',
-                      flexWrap: 'wrap',
-                    }}
-                  >
+                  <div className='page-action-row'>
                     {labelEntries.map((l, idx) => (
                       <Chip
                         key={`${l.key ?? ''}-${l.value ?? ''}-${String(idx)}`}

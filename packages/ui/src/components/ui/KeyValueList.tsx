@@ -5,13 +5,14 @@ import {
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
 import './KeyValueList.css';
-import { MetricLabel } from './MetricLabel';
-import { MonoValue } from './MonoValue';
 
 export interface KeyValueItem {
-  /** Left key (mono — IDs, fields). */
+  /** Left key, a muted label. */
   k: ReactNode;
-  /** Right value (mono number / string). */
+  /**
+   * Right value, in UI type with tabular figures. Wrap ids, paths and code
+   * in `MonoValue`.
+   */
   v: ReactNode;
 }
 
@@ -19,8 +20,6 @@ export type KeyValueListSurface = PrimitiveSurface<KeyValueItem[]>;
 
 interface KeyValueListProps {
   items: KeyValueItem[];
-  /** Render keys as uppercase tracked labels instead of mono. */
-  uppercaseKeys?: boolean;
   /** Top hairline above the first row. */
   ruled?: boolean;
   className?: string;
@@ -29,7 +28,6 @@ interface KeyValueListProps {
 
 export function KeyValueList({
   items,
-  uppercaseKeys = false,
   ruled = true,
   className,
   surface,
@@ -45,18 +43,8 @@ export function KeyValueList({
     <dl ref={wrapRef} className={cls} {...agentAttrs}>
       {items.map((item, i) => (
         <div className="aegis-kv__row" key={i}>
-          <dt className="aegis-kv__k">
-            {uppercaseKeys ? (
-              <MetricLabel>{item.k}</MetricLabel>
-            ) : (
-              <MonoValue size="sm" weight="regular">
-                {item.k}
-              </MonoValue>
-            )}
-          </dt>
-          <dd className="aegis-kv__v">
-            <MonoValue size="sm">{item.v}</MonoValue>
-          </dd>
+          <dt className="aegis-kv__k">{item.k}</dt>
+          <dd className="aegis-kv__v">{item.v}</dd>
         </div>
       ))}
     </dl>

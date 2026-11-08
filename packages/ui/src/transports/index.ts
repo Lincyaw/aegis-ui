@@ -13,5 +13,5 @@ export type {
   Envelope as AgentmEnvelope,
   EnvelopeKind as AgentmEnvelopeKind,
 } from './agentm/agentmChannelClient';
-export { connectAegisBridge } from './bridge';
-export type { AegisBridgeConfig } from './bridge';
+export { connectAegisBridge } from './mcpBridge';
+export type { AegisBridgeConfig } from './mcpBridge';
