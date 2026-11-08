@@ -53,9 +53,21 @@
   pointer-events: none;
 }
 
+/* As far before the tick line as other labels sit after it. */
 .aegis-timeline-chart__tick--end .aegis-timeline-chart__tick-label {
   left: auto;
-  right: var(--space-1);
+  right: calc(var(--space-1) + var(--size-hairline));
+}
+
+/* Every label the axis might show, laid out unseen so it can measure them
+ * in its own font; column-gap is the least room between two labels. */
+.aegis-timeline-chart__tick-measure {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  column-gap: var(--space-2);
 }
 
 .aegis-timeline-chart__body {

@@ -1,5 +1,3 @@
-import { niceStep } from './chart';
-
 const BYTE_UNITS = ['KB', 'MB', 'GB', 'TB'];
 
 /** Formats a byte count in binary units: `512 B`, `1.5 KB`, `12 MB`. */
@@ -122,45 +120,73 @@ export interface DurationTick {
 }
 
 const MAX_DURATION_TICKS = 50;
+const NICE_MANTISSAS = [1, 2, 5];
+/** Absorbs the rounding of a tick computed as index × step. */
+const RANGE_TOLERANCE = 1e-12;
 
-/** The largest 1, 2 or 5 × 10ⁿ step not above `span`. */
-function largestNiceStep(span: number): number {
-  let base = 10 ** Math.floor(Math.log10(span));
-  // Math.log10 can land a hair off a power of ten.
-  if (base * 10 <= span) {
-    base *= 10;
-  } else if (base > span) {
-    base /= 10;
-  }
-  const normalized = span / base;
-  return (normalized >= 5 ? 5 : normalized >= 2 ? 2 : 1) * base;
-}
-
-/**
- * About `count` ticks from 0 to `rangeMs` for a duration axis, never fewer
- * than two and never one past `rangeMs`. Every tick is labelled in the one
- * unit the range calls for, at round values of that unit and with the
- * decimals their step needs: `0.0 s | 0.5 s | 1.0 s`, never a mix such as
- * `500 ms | 1.00 s`.
- */
-export function durationTicks(rangeMs: number, count: number): DurationTick[] {
-  if (!(rangeMs > 0) || !Number.isFinite(rangeMs)) {
-    return [];
-  }
+function axisUnit(rangeMs: number): DurationUnit {
   let unit = AXIS_UNITS[0];
   for (const candidate of AXIS_UNITS) {
     if (rangeMs >= candidate.fromMs) {
       unit = candidate;
     }
   }
-  const span = rangeMs / unit.ms;
-  // Absorbs the rounding of a tick computed as index × step; anything
-  // further out is past the range.
-  const limit = span * (1 + 1e-12);
-  let step = niceStep(span / Math.max(count, 1));
-  if (step > limit) {
-    step = largestNiceStep(span);
+  return unit;
+}
+
+/**
+ * The steps a duration axis over `rangeMs` can tick at, densest first: the
+ * 1, 2 and 5 × 10ⁿ values of the unit the range calls for that give between
+ * two and `maxTicks` ticks. The last always gives at least two, so the list
+ * has an entry for any positive range.
+ */
+export function durationTickSteps(rangeMs: number, maxTicks: number): number[] {
+  if (!(rangeMs > 0) || !Number.isFinite(rangeMs)) {
+    return [];
   }
+  const limit = (rangeMs / axisUnit(rangeMs).ms) * (1 + RANGE_TOLERANCE);
+  // Start from the largest step that still reaches a second tick.
+  // Math.log10 can land a hair below a power of ten.
+  let exponent = Math.floor(Math.log10(limit));
+  if (10 ** (exponent + 1) <= limit) {
+    exponent += 1;
+  }
+  let mantissa = NICE_MANTISSAS.length - 1;
+  while (NICE_MANTISSAS[mantissa] * 10 ** exponent > limit) {
+    mantissa -= 1;
+    if (mantissa < 0) {
+      mantissa = NICE_MANTISSAS.length - 1;
+      exponent -= 1;
+    }
+  }
+  const steps: number[] = [];
+  while (steps.length < MAX_DURATION_TICKS) {
+    const step = NICE_MANTISSAS[mantissa] * 10 ** exponent;
+    if (steps.length > 0 && Math.floor(limit / step) + 1 > maxTicks) {
+      break;
+    }
+    steps.push(step);
+    mantissa -= 1;
+    if (mantissa < 0) {
+      mantissa = NICE_MANTISSAS.length - 1;
+      exponent -= 1;
+    }
+  }
+  return steps.reverse();
+}
+
+/**
+ * The ticks from 0 to `rangeMs` every `step`, one of
+ * `durationTickSteps(rangeMs, …)`, never one past `rangeMs`. Every tick is
+ * labelled in the one unit the range calls for, with the decimals the step
+ * needs: `0.0 s | 0.5 s | 1.0 s`, never a mix such as `500 ms | 1.00 s`.
+ */
+export function durationTicks(rangeMs: number, step: number): DurationTick[] {
+  if (!(rangeMs > 0) || !Number.isFinite(rangeMs) || !(step > 0)) {
+    return [];
+  }
+  const unit = axisUnit(rangeMs);
+  const limit = (rangeMs / unit.ms) * (1 + RANGE_TOLERANCE);
   const decimals = Math.max(0, -Math.floor(Math.log10(step) + 1e-9));
   const ticks: DurationTick[] = [];
   for (let i = 0; ticks.length < MAX_DURATION_TICKS; i += 1) {

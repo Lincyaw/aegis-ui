@@ -6,15 +6,21 @@ import {
   useCallback,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Tooltip } from 'antd';
 
 import { useDevelopAfterLoad } from '../../hooks/useDevelopAfterLoad';
-import { useElementWidth } from '../../hooks/useElementWidth';
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { type ChartColor, chartColorValue } from '../../lib/chart';
-import { durationTicks, formatDuration } from '../../lib/format';
+import {
+  type DurationTick,
+  durationTickSteps,
+  durationTicks,
+  formatDuration,
+} from '../../lib/format';
 import { useStrings } from '../../locale';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Skeleton';
@@ -80,9 +86,8 @@ function timelineRows(spans: TraceSpan[]): TimelineRow[] {
 const INDENT_PX = 12;
 const DEFAULT_ROW_HEIGHT = 24;
 const DEFAULT_MAX_VISIBLE_ROWS = 20;
+/** However wide the track, the axis shows at most this many ticks. */
 const MAX_TICK_COUNT = 6;
-/** Room each tick needs for its label, so labels never crowd. */
-const TICK_SPACING_PX = 72;
 
 const KIND_COLORS: ChartColor[] = [
   'cat-1',
@@ -109,31 +114,85 @@ function colorForKind(kind: string | undefined): string {
   return chartColorValue(KIND_COLORS[hashString(kind) % KIND_COLORS.length]);
 }
 
-interface TickSpec {
-  ns: number;
-  label: string;
+interface AxisTickSets {
+  /** One set per round step, densest first. */
+  steps: DurationTick[][];
+  /**
+   * 0 and one round value, the largest first, for a track too narrow for a
+   * whole step.
+   */
+  pairs: DurationTick[][];
+}
+
+function axisTickSets(rangeMs: number): AxisTickSets {
+  const steps = durationTickSteps(rangeMs, MAX_TICK_COUNT).map((step) =>
+    durationTicks(rangeMs, step),
+  );
+  // Sparsest step first, so a value keeps its roundest label: 1 s, not 1.0 s.
+  const pairs = new Map<number, DurationTick[]>();
+  for (const ticks of [...steps].reverse()) {
+    const end = ticks[ticks.length - 1];
+    if (!pairs.has(end.ms)) {
+      pairs.set(end.ms, [ticks[0], end]);
+    }
+  }
+  return {
+    steps,
+    pairs: [...pairs.values()].sort((a, b) => b[1].ms - a[1].ms),
+  };
+}
+
+/** The axis measured in its own font, in px. */
+interface AxisMetrics {
+  /** The labels measured, one per line. */
+  labels: string;
+  trackWidth: number;
+  widths: ReadonlyMap<string, number>;
+  /** How far a label sits from its tick. */
+  offset: number;
+  /** The least room between two labels. */
+  gap: number;
+}
+
+function sameMetrics(a: AxisMetrics, b: AxisMetrics): boolean {
+  return (
+    a.labels === b.labels &&
+    a.trackWidth === b.trackWidth &&
+    a.offset === b.offset &&
+    a.gap === b.gap &&
+    [...b.widths].every(([label, width]) => a.widths.get(label) === width)
+  );
 }
 
 /**
- * Ticks at round offsets from the start, all in one unit, as many as the
- * track's width leaves room for: 0 ms, 200 ms, 400 ms, …
+ * Lays out the labels of `ticks`: each sits after its tick, except the last,
+ * which sits before its tick when it would run past the end. Returns which
+ * labels sit before their tick, or `null` when two labels come closer than
+ * the gap or one leaves the track.
  */
-function buildTicks(
-  minNs: number,
-  maxNs: number,
-  trackWidth: number,
-): TickSpec[] {
-  const count =
-    trackWidth > 0
-      ? Math.min(
-          Math.max(Math.floor(trackWidth / TICK_SPACING_PX), 1),
-          MAX_TICK_COUNT,
-        )
-      : MAX_TICK_COUNT;
-  return durationTicks((maxNs - minNs) / NS_PER_MS, count).map((tick) => ({
-    ns: minNs + tick.ms * NS_PER_MS,
-    label: tick.label,
-  }));
+function placeLabels(
+  ticks: DurationTick[],
+  rangeMs: number,
+  metrics: AxisMetrics,
+): boolean[] | null {
+  const { trackWidth, offset, gap } = metrics;
+  const before: boolean[] = [];
+  let previousRight = Number.NEGATIVE_INFINITY;
+  for (const [index, tick] of ticks.entries()) {
+    const x = (tick.ms / rangeMs) * trackWidth;
+    const width = metrics.widths.get(tick.label) ?? trackWidth;
+    let left = x + offset;
+    const flips = index === ticks.length - 1 && left + width > trackWidth;
+    if (flips) {
+      left = x - offset - width;
+    }
+    if (left < 0 || left + width > trackWidth || left - previousRight < gap) {
+      return null;
+    }
+    previousRight = left + width;
+    before.push(flips);
+  }
+  return before;
 }
 
 function emptyDeriveBounds(): { minNs: number; maxNs: number } {
@@ -158,7 +217,8 @@ export function TimelineChart({
   const guideRef = useRef<HTMLDivElement>(null);
   const guideLabelRef = useRef<HTMLDivElement>(null);
   const axisTicksRef = useRef<HTMLDivElement>(null);
-  const trackWidth = useElementWidth(axisTicksRef);
+  const tickMeasureRef = useRef<HTMLDivElement>(null);
+  const [axisMetrics, setAxisMetrics] = useState<AxisMetrics | null>(null);
   const rows = useMemo(() => timelineRows(spans), [spans]);
 
   const derived = useMemo(() => {
@@ -186,10 +246,70 @@ export function TimelineChart({
   const maxNs = maxMs === undefined ? derived.maxNs : maxMs * NS_PER_MS;
   const range = Math.max(maxNs - minNs, 1);
 
-  const ticks = useMemo(
-    () => buildTicks(minNs, maxNs, trackWidth),
-    [minNs, maxNs, trackWidth],
+  const rangeMs = (maxNs - minNs) / NS_PER_MS;
+  const tickSets = useMemo(() => axisTickSets(rangeMs), [rangeMs]);
+  const tickLabels = useMemo(
+    () => [...new Set(tickSets.steps.flat().map((tick) => tick.label))],
+    [tickSets],
   );
+  const tickLabelKey = tickLabels.join('\n');
+
+  // Measures the track and every candidate label in the axis's own font, and
+  // again whenever either resizes: the track with the layout, the labels
+  // when the web font arrives.
+  useIsomorphicLayoutEffect(() => {
+    const track = axisTicksRef.current;
+    const measurer = tickMeasureRef.current;
+    if (!track || !measurer) {
+      return undefined;
+    }
+    const measure = (): void => {
+      const widths = new Map<string, number>();
+      let offset = 0;
+      for (const label of measurer.children) {
+        widths.set(label.textContent, label.getBoundingClientRect().width);
+        offset = parseFloat(getComputedStyle(label).left);
+      }
+      const next: AxisMetrics = {
+        labels: tickLabelKey,
+        trackWidth: track.getBoundingClientRect().width,
+        widths,
+        offset,
+        gap: parseFloat(getComputedStyle(measurer).columnGap),
+      };
+      setAxisMetrics((current) =>
+        current && sameMetrics(current, next) ? current : next,
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(track);
+    for (const label of measurer.children) {
+      observer.observe(label);
+    }
+    return () => {
+      observer.disconnect();
+    };
+  }, [tickLabelKey]);
+
+  // The densest step whose labels fit, else 0 and the largest round value
+  // that fits; until the axis is measured, or when nothing fits, 0 and the
+  // largest round value, its label before its tick.
+  const axis = useMemo(() => {
+    if (axisMetrics?.labels === tickLabelKey && axisMetrics.trackWidth > 0) {
+      for (const ticks of [...tickSets.steps, ...tickSets.pairs]) {
+        const before = placeLabels(ticks, rangeMs, axisMetrics);
+        if (before) {
+          return { ticks, before };
+        }
+      }
+    }
+    const ticks = tickSets.pairs.length > 0 ? tickSets.pairs[0] : [];
+    return {
+      ticks,
+      before: ticks.map((_, index) => index > 0 && index === ticks.length - 1),
+    };
+  }, [axisMetrics, tickLabelKey, tickSets, rangeMs]);
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -248,28 +368,32 @@ export function TimelineChart({
           aria-hidden="true"
         />
         <div ref={axisTicksRef} className="aegis-timeline-chart__axis-ticks">
-          {ticks.map((tick) => {
-            const left = ((tick.ns - minNs) / range) * 100;
-            // A label with no room after its tick sits before it instead.
-            const atEnd =
-              trackWidth > 0 &&
-              ((100 - left) / 100) * trackWidth < TICK_SPACING_PX / 2;
-            return (
-              <div
-                key={tick.ns}
-                className={
-                  atEnd
-                    ? 'aegis-timeline-chart__tick aegis-timeline-chart__tick--end'
-                    : 'aegis-timeline-chart__tick'
-                }
-                style={{ left: `${left.toFixed(4)}%` }}
-              >
-                <span className="aegis-timeline-chart__tick-label">
-                  {tick.label}
-                </span>
-              </div>
-            );
-          })}
+          <div
+            ref={tickMeasureRef}
+            className="aegis-timeline-chart__tick-measure"
+            aria-hidden="true"
+          >
+            {tickLabels.map((label) => (
+              <span key={label} className="aegis-timeline-chart__tick-label">
+                {label}
+              </span>
+            ))}
+          </div>
+          {axis.ticks.map((tick, index) => (
+            <div
+              key={tick.label}
+              className={
+                axis.before[index]
+                  ? 'aegis-timeline-chart__tick aegis-timeline-chart__tick--end'
+                  : 'aegis-timeline-chart__tick'
+              }
+              style={{ left: `${((tick.ms / rangeMs) * 100).toFixed(4)}%` }}
+            >
+              <span className="aegis-timeline-chart__tick-label">
+                {tick.label}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
