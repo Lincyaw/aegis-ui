@@ -3,7 +3,7 @@ import { Chip, StatusDot } from '@lincyaw/aegis-ui';
 import { type StatusTone, toneFor } from '../domain/status';
 
 type ChipTone = 'default' | 'warning' | 'caution' | 'success' | 'ghost';
-type DotTone = 'ink' | 'warning' | 'muted' | 'success';
+type DotTone = 'ink' | 'warning' | 'caution' | 'muted' | 'success';
 
 const CHIP_TONE: Record<StatusTone, ChipTone> = {
   failure: 'warning',
@@ -15,7 +15,7 @@ const CHIP_TONE: Record<StatusTone, ChipTone> = {
 
 const DOT_TONE: Record<StatusTone, DotTone> = {
   failure: 'warning',
-  caution: 'muted',
+  caution: 'caution',
   active: 'ink',
   success: 'success',
   neutral: 'muted',
