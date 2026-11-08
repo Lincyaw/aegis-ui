@@ -228,9 +228,16 @@
   background: var(--bg-panel);
 }
 
+/* A sticky cell stays opaque over the cells scrolling under it, so its
+ * hover fill is the row's half mix laid over the panel. */
 .aegis-data-table__row--clickable:hover
   > .aegis-data-table__td--sticky:not(.aegis-data-table__td--tone),
 .aegis-data-table__row--clickable:focus-visible
+  > .aegis-data-table__td--sticky:not(.aegis-data-table__td--tone) {
+  background: color-mix(in srgb, var(--bg-muted) 50%, var(--bg-panel));
+}
+
+.aegis-data-table__row--selected
   > .aegis-data-table__td--sticky:not(.aegis-data-table__td--tone) {
   background: var(--bg-muted);
 }
@@ -281,18 +288,25 @@
   --aegis-cell-tone-mix: calc(var(--data-table-cell-tone-step) * 4);
 }
 
-/* Only clickable rows react to hover. */
+/* Only clickable rows react to hover, at half the selected fill, so a
+ * hovered row never looks selected. */
 .aegis-data-table__row--clickable {
   cursor: pointer;
 }
 
 .aegis-data-table__row--clickable:hover {
-  background: var(--bg-muted);
+  background: color-mix(in srgb, var(--bg-muted) 50%, transparent);
 }
 
 .aegis-data-table__row--clickable:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: calc(var(--focus-ring-width) * -1);
+  background: color-mix(in srgb, var(--bg-muted) 50%, transparent);
+}
+
+.aegis-data-table__row--selected,
+.aegis-data-table__row--selected:hover,
+.aegis-data-table__row--selected:focus-visible {
   background: var(--bg-muted);
 }
 

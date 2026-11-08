@@ -15,6 +15,8 @@ interface MonoValueProps {
   /** Ink colour. `danger` is the anomaly red — failures only. */
   tone?: 'default' | 'success' | 'danger' | 'muted';
   inverted?: boolean;
+  /** Break the value at any character, so a long id such as a digest fits a narrow column. */
+  wrap?: boolean;
   as?: 'span' | 'div';
   className?: string;
   style?: CSSProperties;
@@ -32,6 +34,7 @@ export function MonoValue({
   weight = 'medium',
   tone = 'default',
   inverted = false,
+  wrap = false,
   as: Tag = 'span',
   className,
   style,
@@ -45,6 +48,7 @@ export function MonoValue({
     `aegis-mono--${weight}`,
     tone === 'default' ? '' : `aegis-mono--${tone}`,
     inverted ? 'aegis-mono--inverted' : '',
+    wrap ? 'aegis-mono--wrap' : '',
     className ?? '',
   ]
     .filter(Boolean)

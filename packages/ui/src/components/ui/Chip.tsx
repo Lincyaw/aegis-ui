@@ -30,6 +30,11 @@ interface ChipProps {
    * with the label role, `lg` without vertical padding.
    */
   size?: 'sm' | 'md' | 'lg';
+  /**
+   * Drawn on a `--bg-inverted` surface, e.g. a selected row: `default`,
+   * `ink` and `ghost` take the inverted ink, the tinted tones keep theirs.
+   */
+  inverted?: boolean;
   /** Optional leading dot or icon; icons render at `--size-icon-sm`. */
   leading?: ReactNode;
   className?: string;
@@ -43,6 +48,7 @@ export function Chip({
   children,
   tone = 'default',
   size = 'sm',
+  inverted = false,
   leading,
   className,
   onClick,
@@ -56,6 +62,7 @@ export function Chip({
     'aegis-chip',
     `aegis-chip--${tone}`,
     `aegis-chip--size-${size}`,
+    inverted ? 'aegis-chip--inverted' : '',
     className ?? '',
   ]
     .filter(Boolean)

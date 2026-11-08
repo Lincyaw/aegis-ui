@@ -7,9 +7,15 @@ export const RouterLink: LinkComponent = ({
   to,
   className,
   'aria-current': ariaCurrent,
+  tabIndex,
   children,
 }) => (
-  <Link to={to} className={className} aria-current={ariaCurrent}>
+  <Link
+    to={to}
+    className={className}
+    aria-current={ariaCurrent}
+    tabIndex={tabIndex}
+  >
     {children}
   </Link>
 );

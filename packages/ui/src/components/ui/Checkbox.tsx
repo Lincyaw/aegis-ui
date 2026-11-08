@@ -11,6 +11,8 @@ interface CheckboxProps {
   disabled?: boolean;
   /** Accessible name for checkboxes whose label is not visible, e.g. row selectors. */
   ariaLabel?: string;
+  /** Id of the element that names the checkbox, e.g. its row's title. */
+  ariaLabelledBy?: string;
   className?: string;
 }
 
@@ -21,6 +23,7 @@ export function Checkbox({
   indeterminate = false,
   disabled = false,
   ariaLabel,
+  ariaLabelledBy,
   className,
 }: CheckboxProps) {
   const cls = [
@@ -38,6 +41,7 @@ export function Checkbox({
         checked={checked}
         disabled={disabled}
         aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         ref={(node) => {
           if (node) {
             node.indeterminate = indeterminate && !checked;

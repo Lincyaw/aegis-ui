@@ -44,6 +44,21 @@
   min-width: 0;
 }
 
+.aegis-metadata-list--wrap .aegis-metadata-list__row {
+  align-items: baseline;
+}
+
+.aegis-metadata-list--wrap .aegis-metadata-list__value {
+  align-items: flex-start;
+  white-space: pre-wrap;
+}
+
+.aegis-metadata-list--wrap .aegis-metadata-list__text {
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .aegis-metadata-list__copy {
   display: inline-flex;
   align-items: center;

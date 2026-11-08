@@ -14,12 +14,26 @@ interface TimeDisplayProps {
   /**
    * 'absolute' = full timestamp, 'relative' = "2m ago" with the timestamp as
    * its tooltip, 'duration' = elapsed time with the exact milliseconds as its
-   * tooltip.
+   * tooltip, 'utc' = `YYYY-MM-DD HH:MM:SS` in UTC, the same text in every
+   * time zone and on every day, 'hms' = elapsed time as `H:MM:SS` in whole
+   * seconds, the hours neither padded nor capped (`0:00:05`, `27:03:09`),
+   * with the exact milliseconds as its tooltip.
    */
-  mode?: 'absolute' | 'relative' | 'duration';
+  mode?: 'absolute' | 'relative' | 'duration' | 'utc' | 'hms';
   /** For relative mode: refresh interval in ms (default 60 000). */
   refreshMs?: number;
   className?: string;
+}
+
+const pad = (n: number): string => String(n).padStart(2, '0');
+
+function formatHms(ms: number): string {
+  const seconds = Math.floor(ms / 1000);
+  return `${String(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`;
+}
+
+function formatUtc(d: Date): string {
+  return `${String(d.getUTCFullYear())}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 }
 
 function formatAbsolute(d: Date): string {
@@ -29,7 +43,6 @@ function formatAbsolute(d: Date): string {
     d.getMonth() === now.getMonth() &&
     d.getDate() === now.getDate();
 
-  const pad = (n: number) => String(n).padStart(2, '0');
   const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
   if (sameDay) {
@@ -73,20 +86,26 @@ export function TimeDisplay({
     if (mode === 'duration') {
       return hasDuration ? formatDuration(durationMs) : null;
     }
+    if (mode === 'hms') {
+      return hasDuration ? formatHms(durationMs) : null;
+    }
     if (d === null) {
       return null;
     }
     if (mode === 'relative') {
       return relativeTime(d, now);
     }
+    if (mode === 'utc') {
+      return formatUtc(d);
+    }
     return formatAbsolute(d);
   }, [d, mode, durationMs, hasDuration, now]);
 
   const tooltip = useMemo(() => {
-    if (mode === 'duration') {
+    if (mode === 'duration' || mode === 'hms') {
       return hasDuration ? `${String(durationMs)} ms` : undefined;
     }
-    if (mode === 'absolute' || d === null) {
+    if (mode === 'absolute' || mode === 'utc' || d === null) {
       return undefined;
     }
     return formatAbsolute(d);

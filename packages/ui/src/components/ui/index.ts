@@ -188,7 +188,7 @@ export type {
   ObjectInspectorTab,
 } from './ObjectInspector';
 export { Tabs } from './Tabs';
-export type { TabItem } from './Tabs';
+export type { TabItem, TabLink } from './Tabs';
 export { Steps } from './Steps';
 export type { StepsItem } from './Steps';
 export { Carousel } from './Carousel';
@@ -283,9 +283,17 @@ export { ServiceMap } from './ServiceMap';
 export type {
   ServiceMapDirection,
   ServiceMapEdge,
+  ServiceMapGroup,
   ServiceMapNode,
   ServiceMapProps,
   ServiceMapStatus,
 } from './ServiceMap';
+export { CommitGraph } from './CommitGraph';
+export type {
+  CommitGraphColumn,
+  CommitGraphCommit,
+  CommitGraphLane,
+  CommitGraphProps,
+} from './CommitGraph';
 export { SavedQueryBar } from './SavedQueryBar';
 export type { SavedQueryBarProps } from './SavedQueryBar';

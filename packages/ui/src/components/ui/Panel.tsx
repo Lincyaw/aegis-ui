@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useRef } from 'react';
+import { type CSSProperties, type ReactNode, useId, useRef } from 'react';
 
 import {
   type ContainerSurface,
@@ -38,9 +38,10 @@ interface PanelBaseProps {
 
 interface PanelStaticProps extends PanelBaseProps {
   /**
-   * The panel's heading. The header shows when `title`, `description` or
-   * `extra` has content, i.e. anything React renders: `0` counts, while
-   * `undefined`, `null`, `true`, `false` and `''` do not.
+   * The panel's heading, and the accessible name of the panel, which is then
+   * a `region`. The header shows when `title`, `description` or `extra` has
+   * content, i.e. anything React renders: `0` counts, while `undefined`,
+   * `null`, `true`, `false` and `''` do not.
    */
   title?: ReactNode;
   to?: undefined;
@@ -48,7 +49,7 @@ interface PanelStaticProps extends PanelBaseProps {
 }
 
 interface PanelLinkProps extends PanelBaseProps {
-  /** The link's text; the link covers the whole panel. */
+  /** The link's text, and the panel's accessible name; the link covers the whole panel. */
   title: ReactNode;
   /**
    * Destination; the panel lifts on hover. Controls belong in `extra`,
@@ -85,6 +86,7 @@ export function Panel({
   surface,
 }: PanelProps) {
   const wrapRef = useRef<HTMLElement>(null);
+  const titleId = useId();
   const agentAttrs = usePrimitiveSurface(surface, null, 'panel', wrapRef);
   const LinkImpl = linkComponent ?? DefaultLink;
   const rootClass = [
@@ -99,11 +101,14 @@ export function Panel({
 
   const hasDescription = hasContent(description);
   const hasExtra = hasContent(extra);
-  const showHeader = hasContent(title) || hasDescription || hasExtra;
-  const titleText = !hasContent(title) ? null : typeof title === 'string' ? (
-    <span className="aegis-panel__title">{title}</span>
+  const hasTitle = hasContent(title);
+  const showHeader = hasTitle || hasDescription || hasExtra;
+  const titleText = !hasTitle ? null : typeof title === 'string' ? (
+    <span id={titleId} className="aegis-panel__title">
+      {title}
+    </span>
   ) : (
-    title
+    <span id={titleId}>{title}</span>
   );
   const titleNode =
     to === undefined ? (
@@ -115,7 +120,13 @@ export function Panel({
     );
 
   return (
-    <section ref={wrapRef} className={rootClass} style={style} {...agentAttrs}>
+    <section
+      ref={wrapRef}
+      className={rootClass}
+      style={style}
+      aria-labelledby={hasTitle ? titleId : undefined}
+      {...agentAttrs}
+    >
       {showHeader && (
         <header className="aegis-panel__header">
           {!hasDescription ? (

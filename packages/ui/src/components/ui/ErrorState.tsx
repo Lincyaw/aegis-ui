@@ -17,6 +17,7 @@ interface ErrorStateProps {
   className?: string;
 }
 
+/** An error, as an `alert`: its text is announced when it appears. */
 export function ErrorState({
   code,
   title,
@@ -35,7 +36,7 @@ export function ErrorState({
     .join(' ');
   const Title = size === 'compact' ? 'p' : 'h1';
   return (
-    <div className={cls}>
+    <div className={cls} role="alert">
       {illustration && (
         <div className="aegis-error-state__illustration">{illustration}</div>
       )}

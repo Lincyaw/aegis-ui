@@ -80,6 +80,22 @@
   border-color: var(--bg-warn-soft);
 }
 
+/* On a --bg-inverted surface; the tinted tones keep their fill. */
+.aegis-chip--inverted.aegis-chip--default {
+  color: var(--text-on-inverted);
+  border-color: var(--border-on-inverted);
+}
+
+.aegis-chip--inverted.aegis-chip--ink {
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border-color: var(--bg-panel);
+}
+
+.aegis-chip--inverted.aegis-chip--ghost {
+  color: var(--text-on-inverted-muted);
+}
+
 .aegis-chip__leading {
   display: inline-flex;
   align-items: center;

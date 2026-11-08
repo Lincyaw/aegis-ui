@@ -177,10 +177,12 @@ Sans SC, so Apple devices render Chinese in the system face.
   add a primitive without a gallery entry are incomplete.
 - **Primitives stay router-agnostic where possible.** `Breadcrumb`,
   `IdentityCell`, `ButtonLink`, a linked `Panel`, `NotificationBell`,
-  `SiteNav` and `SiteFooter` accept a `linkComponent` render prop
-  (type `LinkComponent`) instead of hardcoding `react-router-dom`. An
-  adapter passes `aria-current` on to the anchor, which navigation uses
-  to mark the current page. Only
+  `SiteNav`, `SiteFooter`, link `Tabs` and `TraceTree` accept a
+  `linkComponent` render prop (type `LinkComponent`) instead of
+  hardcoding `react-router-dom`. An adapter passes `aria-current` and
+  `tabIndex` on to the anchor: navigation marks the current page with the
+  first, and a tree keeps the links in its rows out of the tab order with
+  the second. Only
   `layouts/shell/**` and `auth/RequireAuth` import
   `react-router-dom` directly; don't add new importers outside
   `layouts/shell/`.
