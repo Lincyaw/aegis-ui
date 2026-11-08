@@ -564,6 +564,16 @@ select.gallery__demo-input:focus {
   max-width: 100%;
 }
 
+/* A table squeezed narrower than its values, to show which ones break. */
+.gallery__squeezed-table {
+  width: 12rem;
+  border-spacing: var(--space-2) 0;
+}
+
+.gallery__squeezed-table td {
+  vertical-align: top;
+}
+
 /* A card-sized column, to show one-line rows truncating. */
 .gallery__narrow-panel {
   width: 22rem;

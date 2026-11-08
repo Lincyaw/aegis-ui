@@ -227,8 +227,12 @@
   position: relative;
 }
 
+/* The growing columns share the width the others leave. The least width
+ * keeps a message readable where they leave little; past it the table
+ * scrolls sideways. */
 .aegis-commit-graph__td--grow {
-  width: 100%;
+  width: calc(100% / var(--aegis-commit-graph-grow-count));
+  min-width: 20ch;
   max-width: 0;
 }
 

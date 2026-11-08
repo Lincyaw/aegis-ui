@@ -15,7 +15,11 @@ interface MonoValueProps {
   /** Ink colour. `danger` is the anomaly red — failures only. */
   tone?: 'default' | 'success' | 'danger' | 'muted';
   inverted?: boolean;
-  /** Break the value at any character, so a long id such as a digest fits a narrow column. */
+  /**
+   * Break a long value at any character, so an id such as a digest fits a
+   * narrow column. A text or number value is never broken narrower than
+   * itself or 16 characters, whichever is less, so `null` and `1` stay whole.
+   */
   wrap?: boolean;
   as?: 'span' | 'div';
   className?: string;
@@ -53,8 +57,16 @@ export function MonoValue({
   ]
     .filter(Boolean)
     .join(' ');
+  const length =
+    typeof children === 'string' || typeof children === 'number'
+      ? String(children).length
+      : undefined;
+  const lengthStyle =
+    wrap && length !== undefined
+      ? ({ '--aegis-mono-length': length, ...style } as CSSProperties)
+      : style;
   return (
-    <Tag ref={wrapRef} className={cls} style={style} {...agentAttrs}>
+    <Tag ref={wrapRef} className={cls} style={lengthStyle} {...agentAttrs}>
       {children}
     </Tag>
   );
