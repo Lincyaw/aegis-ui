@@ -1,8 +1,10 @@
 import {
   type CSSProperties,
+  Fragment,
   type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
+  useContext,
   useEffect,
   useId,
   useMemo,
@@ -25,6 +27,7 @@ import { Chip } from './Chip';
 import { StatusDot } from './StatusDot';
 import './TraceTree.css';
 import { DefaultLink, type LinkComponent } from './linkComponent';
+import { SelectedRowDetailContext } from './selectedRowDetail';
 import { statusTone } from './traceStatus';
 
 export type TraceTreeSurface = PrimitiveSurface<TraceSpan[]>;
@@ -236,6 +239,7 @@ export function TraceTree({
   const agentAttrs = usePrimitiveSurface(surface, spans, 'tree', wrapRef);
   const strings = useStrings();
   const idPrefix = useId();
+  const selection = useContext(SelectedRowDetailContext);
   const { roots, traceDuration, traceStart, timed } = useMemo(() => {
     const r = buildForest(spans);
     const timedSpans = spans.filter(isTimed);
@@ -455,110 +459,113 @@ export function TraceTree({
           );
 
           return (
-            <div
-              key={span.id}
-              className={rowCls}
-              role="treeitem"
-              aria-label={span.ariaLabel}
-              aria-describedby={hasNote ? noteId : undefined}
-              aria-level={node.depth + 1}
-              aria-posinset={position}
-              aria-setsize={siblings}
-              aria-expanded={hasChildren ? !isCollapsed : undefined}
-              aria-selected={isSelected ? true : undefined}
-              tabIndex={index === tabStopIndex ? 0 : -1}
-              onClick={(event) => {
-                handleRowClick(event, node);
-              }}
-              onKeyDown={(event) => {
-                handleRowKeyDown(event, index);
-              }}
-              onFocus={() => {
-                setFocusedId(span.id);
-              }}
-            >
+            <Fragment key={span.id}>
               <div
-                className="aegis-trace-tree__label"
-                style={
-                  {
-                    '--depth': node.depth,
-                  } as CSSProperties
-                }
+                ref={isSelected ? selection?.placeRow : undefined}
+                className={rowCls}
+                role="treeitem"
+                aria-label={span.ariaLabel}
+                aria-describedby={hasNote ? noteId : undefined}
+                aria-level={node.depth + 1}
+                aria-posinset={position}
+                aria-setsize={siblings}
+                aria-expanded={hasChildren ? !isCollapsed : undefined}
+                aria-selected={isSelected ? true : undefined}
+                tabIndex={index === tabStopIndex ? 0 : -1}
+                onClick={(event) => {
+                  handleRowClick(event, node);
+                }}
+                onKeyDown={(event) => {
+                  handleRowKeyDown(event, index);
+                }}
+                onFocus={() => {
+                  setFocusedId(span.id);
+                }}
               >
-                <span
-                  className={
-                    hasChildren
-                      ? 'aegis-trace-tree__caret'
-                      : 'aegis-trace-tree__caret aegis-trace-tree__caret--leaf'
+                <div
+                  className="aegis-trace-tree__label"
+                  style={
+                    {
+                      '--depth': node.depth,
+                    } as CSSProperties
                   }
-                  aria-hidden="true"
-                  data-trace-tree-caret={hasChildren ? '' : undefined}
                 >
-                  {hasChildren ? (isCollapsed ? '▸' : '▾') : null}
-                </span>
-                <StatusDot tone={statusTone(span.status)} size={6} />
-                {span.kind ? (
-                  <Chip tone="ghost" className="aegis-trace-tree__kind">
-                    {span.kind}
-                  </Chip>
-                ) : null}
-                <Tooltip
-                  placement="topLeft"
-                  mouseEnterDelay={0.3}
-                  styles={{ root: { maxWidth: 'var(--tooltip-max-width)' } }}
-                  title={tooltipContent}
-                >
-                  <span className="aegis-trace-tree__name">
-                    {span.to === undefined ? (
-                      name
-                    ) : (
-                      <Link
-                        to={span.to}
-                        className="aegis-trace-tree__link"
-                        tabIndex={-1}
-                      >
-                        {name}
-                      </Link>
-                    )}
-                  </span>
-                </Tooltip>
-                {hasNote ? (
                   <span
-                    id={noteId}
-                    className="aegis-trace-tree__note"
+                    className={
+                      hasChildren
+                        ? 'aegis-trace-tree__caret'
+                        : 'aegis-trace-tree__caret aegis-trace-tree__caret--leaf'
+                    }
                     aria-hidden="true"
+                    data-trace-tree-caret={hasChildren ? '' : undefined}
                   >
-                    {span.note}
+                    {hasChildren ? (isCollapsed ? '▸' : '▾') : null}
                   </span>
-                ) : null}
+                  <StatusDot tone={statusTone(span.status)} size={6} />
+                  {span.kind ? (
+                    <Chip tone="ghost" className="aegis-trace-tree__kind">
+                      {span.kind}
+                    </Chip>
+                  ) : null}
+                  <Tooltip
+                    placement="topLeft"
+                    mouseEnterDelay={0.3}
+                    styles={{ root: { maxWidth: 'var(--tooltip-max-width)' } }}
+                    title={tooltipContent}
+                  >
+                    <span className="aegis-trace-tree__name">
+                      {span.to === undefined ? (
+                        name
+                      ) : (
+                        <Link
+                          to={span.to}
+                          className="aegis-trace-tree__link"
+                          tabIndex={-1}
+                        >
+                          {name}
+                        </Link>
+                      )}
+                    </span>
+                  </Tooltip>
+                  {hasNote ? (
+                    <span
+                      id={noteId}
+                      className="aegis-trace-tree__note"
+                      aria-hidden="true"
+                    >
+                      {span.note}
+                    </span>
+                  ) : null}
+                </div>
+                {timed && (
+                  <>
+                    <span
+                      className="aegis-trace-tree__gutter"
+                      aria-hidden="true"
+                    />
+                    <div
+                      className="aegis-trace-tree__bar-track"
+                      aria-hidden="true"
+                    >
+                      {isTimed(span) && (
+                        <span
+                          className="aegis-trace-tree__bar"
+                          style={{
+                            left: `${(((span.startMs - traceStart) / traceDuration) * 100).toString()}%`,
+                            width: `${Math.max((span.durationMs / traceDuration) * 100, 0.5).toString()}%`,
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div className="aegis-trace-tree__duration">
+                      {span.durationMs !== undefined &&
+                        formatDuration(span.durationMs)}
+                    </div>
+                  </>
+                )}
               </div>
-              {timed && (
-                <>
-                  <span
-                    className="aegis-trace-tree__gutter"
-                    aria-hidden="true"
-                  />
-                  <div
-                    className="aegis-trace-tree__bar-track"
-                    aria-hidden="true"
-                  >
-                    {isTimed(span) && (
-                      <span
-                        className="aegis-trace-tree__bar"
-                        style={{
-                          left: `${(((span.startMs - traceStart) / traceDuration) * 100).toString()}%`,
-                          width: `${Math.max((span.durationMs / traceDuration) * 100, 0.5).toString()}%`,
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="aegis-trace-tree__duration">
-                    {span.durationMs !== undefined &&
-                      formatDuration(span.durationMs)}
-                  </div>
-                </>
-              )}
-            </div>
+              {isSelected ? selection?.inline : null}
+            </Fragment>
           );
         })}
       </div>

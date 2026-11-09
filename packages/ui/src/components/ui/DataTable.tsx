@@ -4,6 +4,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
+  useContext,
   useId,
   useMemo,
   useRef,
@@ -24,6 +25,7 @@ import './DataTable.css';
 import { EmptyState } from './EmptyState';
 import { Pagination, type PaginationProps } from './Pagination';
 import { Skeleton, SkeletonText } from './Skeleton';
+import { SelectedRowDetailContext } from './selectedRowDetail';
 import { useColumnWidths } from './useColumnWidths';
 
 export type DataTableSurface<T> = PrimitiveSurface<T[]>;
@@ -329,6 +331,9 @@ export function DataTable<T>({
 
   const selected = selectedKeys ?? [];
   const keys = rows.map((row, index) => rowKey(row, index));
+  const selection = useContext(SelectedRowDetailContext);
+  // A DetailBeside follows the first selected row on the page.
+  const detailKey = keys.find((key) => selected.includes(key));
   const selectedCount = keys.filter((key) => selected.includes(key)).length;
   const toggleRow = (key: string | number, checked: boolean): void => {
     onSelectedKeysChange?.(
@@ -544,46 +549,38 @@ export function DataTable<T>({
     );
   };
 
+  /** A full-width row under a data row, holding a row's expanded content or the selection's detail. */
   const renderDetailRow = (
-    row: T,
-    idx: number,
-    key: string | number,
-    detailId: string,
-    render: (row: T, index: number) => ReactNode,
-  ) => {
-    const open = expanded.includes(key);
-    return (
-      <tr
-        className={
-          open
-            ? 'aegis-data-table__detail-row aegis-data-table__detail-row--open'
-            : 'aegis-data-table__detail-row'
-        }
+    open: boolean,
+    content: ReactNode,
+    detailId?: string,
+  ) => (
+    <tr
+      className={
+        open
+          ? 'aegis-data-table__detail-row aegis-data-table__detail-row--open'
+          : 'aegis-data-table__detail-row'
+      }
+    >
+      {selectable && <td className="aegis-data-table__detail-cell" />}
+      {expandable && <td className="aegis-data-table__detail-cell" />}
+      <td
+        id={detailId}
+        colSpan={bodyColumnCount}
+        className="aegis-data-table__detail-cell"
       >
-        {selectable && <td className="aegis-data-table__detail-cell" />}
-        <td className="aegis-data-table__detail-cell" />
-        <td
-          id={detailId}
-          colSpan={bodyColumnCount}
-          className="aegis-data-table__detail-cell"
+        <div
+          className="aegis-data-table__detail"
+          style={{
+            left: leadWidth,
+            width: `calc(100cqi - ${String(leadWidth)}px)`,
+          }}
         >
-          <div
-            className="aegis-data-table__detail"
-            style={{
-              left: leadWidth,
-              width: `calc(100cqi - ${String(leadWidth)}px)`,
-            }}
-          >
-            <div className="aegis-data-table__detail-clip">
-              <div className="aegis-data-table__detail-body">
-                {(open || visited.includes(key)) && render(row, idx)}
-              </div>
-            </div>
-          </div>
-        </td>
-      </tr>
-    );
-  };
+          {content}
+        </div>
+      </td>
+    </tr>
+  );
 
   const handleRowClick = (
     event: MouseEvent<HTMLTableRowElement>,
@@ -811,6 +808,9 @@ export function DataTable<T>({
                   return (
                     <Fragment key={key}>
                       <tr
+                        ref={
+                          key === detailKey ? selection?.placeRow : undefined
+                        }
                         className={rowClass(isSelected)}
                         aria-selected={
                           selectable || selectedKeys !== undefined
@@ -849,13 +849,20 @@ export function DataTable<T>({
                         {fillerCell}
                         {chevronCell}
                       </tr>
+                      {key === detailKey && selection?.inline
+                        ? renderDetailRow(true, selection.inline)
+                        : null}
                       {expandable &&
                         renderDetailRow(
-                          row,
-                          idx,
-                          key,
+                          expanded.includes(key),
+                          <div className="aegis-data-table__detail-clip">
+                            <div className="aegis-data-table__detail-body">
+                              {(expanded.includes(key) ||
+                                visited.includes(key)) &&
+                                renderExpanded(row, idx)}
+                            </div>
+                          </div>,
                           detailId,
-                          renderExpanded,
                         )}
                     </Fragment>
                   );

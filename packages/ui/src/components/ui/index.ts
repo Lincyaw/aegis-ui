@@ -115,6 +115,8 @@ export type {
   StackedBarSeries,
 } from './StackedBar';
 export { ColumnLayout } from './ColumnLayout';
+export { DetailBeside } from './DetailBeside';
+export type { DetailBesideProps } from './DetailBeside';
 export { PickerField } from './PickerField';
 export { Dialog } from './Dialog';
 export { SectionDivider } from './SectionDivider';

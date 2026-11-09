@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import {
   BlastRadiusBar,
@@ -9,9 +9,13 @@ import {
   CodeEditor,
   ColumnLayout,
   DangerZone,
+  DataTable,
+  DetailBeside,
   Dialog,
+  FileTree,
   FormRow,
   IdentityCell,
+  MetadataList,
   MetricLabel,
   MonoValue,
   NumberField,
@@ -24,6 +28,10 @@ import {
   SearchInput,
   SectionDivider,
   Select,
+  ServiceMap,
+  type ServiceMapEdge,
+  type ServiceMapGroup,
+  type ServiceMapNode,
   SettingsSection,
   SiteAnchorNav,
   SiteFooter,
@@ -34,9 +42,12 @@ import {
   SiteSection,
   SiteSectionHeader,
   Slider,
+  Tabs,
   TextField,
   ThemeToggle,
   TimeDisplay,
+  type TraceSpan,
+  TraceTree,
 } from '@lincyaw/aegis-ui';
 
 import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
@@ -433,6 +444,257 @@ function GallerySiteFooter() {
   );
 }
 
+/* ── DetailBeside specimen ─────────────────────────────────────────── */
+
+interface GalleryRequirement {
+  id: string;
+  parent: string | null;
+  name: string;
+  kind: 'area' | 'group' | 'requirement';
+  statement: string;
+}
+
+const DETAIL_AREAS = [
+  'Accounts',
+  'Billing',
+  'Catalog',
+  'Delivery',
+  'Events',
+  'Search',
+];
+const DETAIL_GROUPS = ['Create', 'Read', 'Update', 'Retire'];
+const DETAIL_RULES = [
+  'keeps every change in its history',
+  'rejects a request without a key',
+  'answers within one second',
+  'shows each record it links to',
+  'compares any two versions',
+];
+/** One rule states enough examples to run past the view, so its detail scrolls its body. */
+const DETAIL_LONG_RULE = 2;
+
+/** Six areas of four groups of five requirements: 150 rows, a deep one far below the top. */
+const DETAIL_REQUIREMENTS: GalleryRequirement[] = DETAIL_AREAS.flatMap(
+  (area, a) => {
+    const areaId = `A${String(a + 1)}`;
+    return [
+      {
+        id: areaId,
+        parent: null,
+        name: `${areaId} · ${area}`,
+        kind: 'area' as const,
+        statement: `What the ${area.toLowerCase()} service does for its users.`,
+      },
+      ...DETAIL_GROUPS.flatMap((group, g) => {
+        const groupId = `${areaId}.${String(g + 1)}`;
+        return [
+          {
+            id: groupId,
+            parent: areaId,
+            name: `${groupId} · ${group}`,
+            kind: 'group' as const,
+            statement: `${group} operations of ${area.toLowerCase()}.`,
+          },
+          ...DETAIL_RULES.map((rule, r) => ({
+            id: `${groupId}.${String(r + 1)}`,
+            parent: groupId,
+            name: `${groupId}.${String(r + 1)} · ${group} ${rule}`,
+            kind: 'requirement' as const,
+            statement:
+              r === DETAIL_LONG_RULE
+                ? Array.from(
+                    { length: 24 },
+                    (_, n) =>
+                      `Example ${String(n + 1)}: a ${group.toLowerCase()} request with ${String(n + 1)} items answers in under a second.`
+                  ).join('\n')
+                : `${group} ${rule}, for every ${area.toLowerCase()} record.`,
+          })),
+        ];
+      }),
+    ];
+  }
+);
+
+const DETAIL_BY_ID = new Map(DETAIL_REQUIREMENTS.map((r) => [r.id, r]));
+const DETAIL_SPANS: TraceSpan[] = DETAIL_REQUIREMENTS.map((r) => ({
+  id: r.id,
+  parentId: r.parent,
+  name: r.name,
+  kind: r.kind,
+}));
+const DETAIL_LEAVES = DETAIL_REQUIREMENTS.filter(
+  (r) => r.kind === 'requirement'
+);
+const detailPath = (id: string): string =>
+  `${id.split('.').slice(0, -1).join('/')}/${id}.yaml`;
+const DETAIL_FILES = DETAIL_LEAVES.map((r) => ({ path: detailPath(r.id) }));
+const DETAIL_MAP_NODES: ServiceMapNode[] = DETAIL_REQUIREMENTS.filter(
+  (r) => r.kind === 'group'
+).map((r) => ({ id: r.id, label: r.name }));
+const DETAIL_MAP_GROUPS: ServiceMapGroup[] = DETAIL_REQUIREMENTS.filter(
+  (r) => r.kind === 'area'
+).map((r) => ({
+  id: r.id,
+  label: r.name,
+  nodeIds: DETAIL_MAP_NODES.filter((n) => n.id.startsWith(`${r.id}.`)).map(
+    (n) => n.id
+  ),
+}));
+const DETAIL_MAP_EDGES: ServiceMapEdge[] = DETAIL_MAP_GROUPS.flatMap((group) =>
+  group.nodeIds.slice(1).map((target, i) => ({
+    id: `${group.nodeIds[i]}→${target}`,
+    source: group.nodeIds[i],
+    target,
+  }))
+);
+
+/** Each list opens on a deep item: the tree, files and table on a requirement, the map on a group. */
+const DETAIL_LISTS = [
+  { key: 'tree', label: 'TraceTree', opensOn: 'A5.3.4' },
+  { key: 'files', label: 'FileTree', opensOn: 'A5.3.4' },
+  { key: 'table', label: 'DataTable', opensOn: 'A5.3.4' },
+  { key: 'map', label: 'ServiceMap', opensOn: 'A5.3' },
+];
+
+function GalleryRequirementDetail({ id }: { id: string }): ReactNode {
+  const requirement = DETAIL_BY_ID.get(id);
+  if (requirement === undefined) {
+    return null;
+  }
+  return (
+    <Panel title={requirement.name}>
+      <MetadataList
+        wrap
+        entries={[
+          { label: 'Kind', value: requirement.kind },
+          {
+            label: 'Parent',
+            value:
+              requirement.parent === null
+                ? '—'
+                : (DETAIL_BY_ID.get(requirement.parent)?.name ?? '—'),
+          },
+          {
+            label: 'Children',
+            value: String(
+              DETAIL_REQUIREMENTS.filter((r) => r.parent === id).length
+            ),
+          },
+          { label: 'Statement', value: requirement.statement },
+        ]}
+      />
+    </Panel>
+  );
+}
+
+function DetailBesideSpecimen(): ReactNode {
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const [list, setList] = useState(DETAIL_LISTS[0]);
+  const [selected, setSelected] = useState(list.opensOn);
+  const lists: Record<string, ReactNode> = {
+    tree: (
+      <Panel title='Requirement tree' padded={false}>
+        <TraceTree
+          ariaLabel='Requirement tree'
+          spans={DETAIL_SPANS}
+          selectedId={selected}
+          onSelect={(span) => {
+            setSelected(span.id);
+          }}
+          wrapName
+        />
+      </Panel>
+    ),
+    files: (
+      <Panel title='Requirement files'>
+        <FileTree
+          ariaLabel='Requirement files'
+          files={DETAIL_FILES}
+          selectedPath={detailPath(selected)}
+          onSelect={(path) => {
+            setSelected(path.slice(path.lastIndexOf('/') + 1, -'.yaml'.length));
+          }}
+        />
+      </Panel>
+    ),
+    table: (
+      <Panel title='Requirements' padded={false}>
+        <DataTable<GalleryRequirement>
+          ariaLabel='Requirements'
+          framed={false}
+          columns={[
+            { key: 'id', header: 'ID', width: 96, render: (r) => r.id },
+            { key: 'name', header: 'Requirement', render: (r) => r.name },
+          ]}
+          data={DETAIL_LEAVES}
+          rowKey={(r) => r.id}
+          selectedKeys={[selected]}
+          onRowClick={(r) => {
+            setSelected(r.id);
+          }}
+        />
+      </Panel>
+    ),
+    map: (
+      <Panel title='Requirement groups' padded={false}>
+        <ServiceMap
+          ariaLabel='Requirement groups'
+          nodes={DETAIL_MAP_NODES}
+          edges={DETAIL_MAP_EDGES}
+          groups={DETAIL_MAP_GROUPS}
+          selectedNodeId={selected}
+          focusNodeId={selected}
+          onNodeClick={(node) => {
+            setSelected(node.id);
+          }}
+        />
+      </Panel>
+    ),
+  };
+  return (
+    <div className='gallery__stack gallery__stack--fill'>
+      <Tabs
+        listOnly
+        ariaLabel='List beside the detail'
+        items={DETAIL_LISTS}
+        activeKey={list.key}
+        onChange={(key) => {
+          const next = DETAIL_LISTS.find((each) => each.key === key);
+          if (next !== undefined) {
+            setList(next);
+            setSelected(next.opensOn);
+          }
+        }}
+      />
+      <div className='gallery__detail-beside-frame'>
+        <div ref={setScroller} className='gallery__detail-beside-scroller'>
+          <div className='gallery__detail-beside-page'>
+            <p className='gallery__panel-body'>
+              This frame stands in for the page and opens on {list.opensOn}, far
+              down the list. Pick a row: its detail stands level with it, or
+              rises until its bottom meets the frame&apos;s; scroll and the
+              detail stays in view. At 768 px and below it opens under the row.
+            </p>
+            {scroller && (
+              <DetailBeside
+                key={list.key}
+                columns='3fr 2fr'
+                detail={<GalleryRequirementDetail id={selected} />}
+                scrollContainer={scroller}
+              >
+                {lists[list.key]}
+              </DetailBeside>
+            )}
+            <p className='gallery__panel-body'>
+              The page goes on after the list.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PageHeaderActionSpecimen() {
   const [created, setCreated] = useState(0);
   return (
@@ -587,6 +849,14 @@ export function LayoutsSection() {
           </div>
         </Specimen>
       </div>
+
+      <SectionDivider>DetailBeside</SectionDivider>
+      <Specimen
+        caption="columns='3fr 2fr' · scrollContainer · TraceTree, FileTree, DataTable or ServiceMap · the detail under the row at ≤768 px"
+        span={3}
+      >
+        <DetailBesideSpecimen />
+      </Specimen>
 
       <SectionDivider>FormRow</SectionDivider>
       <div className='gallery__stack'>
