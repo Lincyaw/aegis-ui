@@ -53,3 +53,19 @@ python3 contract.py <root>
 ```
 
 Checks every file against its schema and the references across files: links to nodes, port links to ports, `hasDetail` and `hasSeries` to the files, items to contexts and focus nodes, verdicts to items and options.
+
+## Deploy on another machine
+
+The reference server can serve the built console too, so the target machine needs only Python 3:
+
+```bash
+# on a machine with the repo (Node 22, pnpm 9)
+pnpm install
+pnpm -F @lincyaw/aegis-ui build
+(cd apps/console && npx vite build)          # → apps/console/dist
+
+# copy serve.py, apps/console/dist (as ui/) and a review folder to the target, then
+python3 serve.py --root bundle --ui ui --host 0.0.0.0 --port 8768
+```
+
+Reviewers open `http://<host>:8768/review`. The page reads the API from its own origin, so no URL needs setting. Verdicts are written under `bundle/tasks/<task>/verdicts/` on that machine. The server has no authentication: run it only on a trusted network.

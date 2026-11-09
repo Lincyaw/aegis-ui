@@ -6,8 +6,10 @@
  * `VITE_REVIEW_API_TARGET` (default `http://127.0.0.1:8768`), so the https
  * dev server reaches a local review server without mixed content.
  *
- * Precedence: localStorage → VITE_REVIEW_API_URL → '' in development,
- * `http://localhost:8768` in a build.
+ * In a build served by the reference server (`serve.py --ui`), the page and
+ * the API share an origin, so '' works there too.
+ *
+ * Precedence: localStorage → VITE_REVIEW_API_URL → ''.
  */
 import type { ReviewStrings } from './locale/strings';
 
@@ -32,7 +34,7 @@ export function defaultUrl(): string {
   if (typeof fromEnv === 'string') {
     return trimUrl(fromEnv);
   }
-  return import.meta.env.DEV ? '' : 'http://localhost:8768';
+  return '';
 }
 
 export function trimUrl(url: string): string {
