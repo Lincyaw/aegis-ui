@@ -292,9 +292,11 @@ export type {
 } from './ServiceMap';
 export { CommitGraph } from './CommitGraph';
 export type {
+  CommitGraphCellPart,
   CommitGraphColumn,
   CommitGraphCommit,
   CommitGraphLane,
+  CommitGraphPartsCell,
   CommitGraphProps,
 } from './CommitGraph';
 export { SavedQueryBar } from './SavedQueryBar';

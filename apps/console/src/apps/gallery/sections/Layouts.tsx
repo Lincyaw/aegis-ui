@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import {
   BlastRadiusBar,
@@ -46,6 +46,7 @@ import {
   TextField,
   ThemeToggle,
   TimeDisplay,
+  Toolbar,
   type TraceSpan,
   TraceTree,
 } from '@lincyaw/aegis-ui';
@@ -515,7 +516,6 @@ const DETAIL_REQUIREMENTS: GalleryRequirement[] = DETAIL_AREAS.flatMap(
   }
 );
 
-const DETAIL_BY_ID = new Map(DETAIL_REQUIREMENTS.map((r) => [r.id, r]));
 const DETAIL_SPANS: TraceSpan[] = DETAIL_REQUIREMENTS.map((r) => ({
   id: r.id,
   parentId: r.parent,
@@ -556,8 +556,14 @@ const DETAIL_LISTS = [
   { key: 'map', label: 'ServiceMap', opensOn: 'A5.3' },
 ];
 
-function GalleryRequirementDetail({ id }: { id: string }): ReactNode {
-  const requirement = DETAIL_BY_ID.get(id);
+function GalleryRequirementDetail({
+  id,
+  requirements,
+}: {
+  id: string;
+  requirements: GalleryRequirement[];
+}): ReactNode {
+  const requirement = requirements.find((r) => r.id === id);
   if (requirement === undefined) {
     return null;
   }
@@ -572,13 +578,12 @@ function GalleryRequirementDetail({ id }: { id: string }): ReactNode {
             value:
               requirement.parent === null
                 ? '—'
-                : (DETAIL_BY_ID.get(requirement.parent)?.name ?? '—'),
+                : (requirements.find((r) => r.id === requirement.parent)
+                    ?.name ?? '—'),
           },
           {
             label: 'Children',
-            value: String(
-              DETAIL_REQUIREMENTS.filter((r) => r.parent === id).length
-            ),
+            value: String(requirements.filter((r) => r.parent === id).length),
           },
           { label: 'Statement', value: requirement.statement },
         ]}
@@ -679,7 +684,210 @@ function DetailBesideSpecimen(): ReactNode {
               <DetailBeside
                 key={list.key}
                 columns='3fr 2fr'
-                detail={<GalleryRequirementDetail id={selected} />}
+                detail={
+                  <GalleryRequirementDetail
+                    id={selected}
+                    requirements={DETAIL_REQUIREMENTS}
+                  />
+                }
+                revealKey={selected}
+                scrollContainer={scroller}
+              >
+                {lists[list.key]}
+              </DetailBeside>
+            )}
+            <p className='gallery__panel-body'>
+              The page goes on after the list.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The group the new data's requirements arrive in, newest first; in the map each is a node after it. */
+const DETAIL_ARRIVALS_GROUP = 'A5.3';
+/** The tree and the map of the new data, each with the row it selects before any arrive. */
+const DETAIL_ARRIVAL_LISTS = DETAIL_LISTS.filter(
+  (list) => list.key === 'tree' || list.key === 'map'
+);
+
+function arrivedRequirement(n: number): GalleryRequirement {
+  const id = `${DETAIL_ARRIVALS_GROUP}.new${String(n)}`;
+  return {
+    id,
+    parent: DETAIL_ARRIVALS_GROUP,
+    name: `${id} · Arrived with refresh ${String(n)}`,
+    kind: 'requirement',
+    statement: `The requirement refresh ${String(n)} brought.`,
+  };
+}
+
+function DetailBesideRefreshSpecimen(): ReactNode {
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const [list, setList] = useState(DETAIL_ARRIVAL_LISTS[0]);
+  const [arrived, setArrived] = useState(0);
+  const [live, setLive] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  // Written on scroll without a render: a render of this host ends the
+  // DetailBeside's following, so it would never show.
+  const scrollTopRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!live) {
+      return undefined;
+    }
+    const timer = setInterval(() => {
+      setArrived((n) => n + 1);
+    }, 2000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [live]);
+  const arrivals = Array.from({ length: arrived }, (_, n) =>
+    arrivedRequirement(arrived - n)
+  );
+  const requirements = DETAIL_REQUIREMENTS.flatMap((r) =>
+    r.id === DETAIL_ARRIVALS_GROUP ? [r, ...arrivals] : [r]
+  );
+  const selected =
+    picked ?? (arrivals.length === 0 ? list.opensOn : arrivals[0].id);
+  const arrivalNodes = arrivals.map((r) => ({ id: r.id, label: r.name }));
+  const lists: Record<string, ReactNode> = {
+    tree: (
+      <Panel title='Requirement tree' padded={false}>
+        <TraceTree
+          ariaLabel='Requirement tree with new data'
+          spans={requirements.map((r) => ({
+            id: r.id,
+            parentId: r.parent,
+            name: r.name,
+            kind: r.kind,
+          }))}
+          selectedId={selected}
+          onSelect={(span) => {
+            setPicked(span.id);
+          }}
+          wrapName
+        />
+      </Panel>
+    ),
+    map: (
+      <Panel title='Requirement groups' padded={false}>
+        <ServiceMap
+          ariaLabel='Requirement groups with new data'
+          nodes={[...DETAIL_MAP_NODES, ...arrivalNodes]}
+          edges={[
+            ...DETAIL_MAP_EDGES,
+            ...arrivalNodes.map((node) => ({
+              id: `${DETAIL_ARRIVALS_GROUP}→${node.id}`,
+              source: DETAIL_ARRIVALS_GROUP,
+              target: node.id,
+            })),
+          ]}
+          groups={DETAIL_MAP_GROUPS.map((group) =>
+            group.nodeIds.includes(DETAIL_ARRIVALS_GROUP)
+              ? {
+                  ...group,
+                  nodeIds: [
+                    ...group.nodeIds,
+                    ...arrivalNodes.map((node) => node.id),
+                  ],
+                }
+              : group
+          )}
+          selectedNodeId={selected}
+          focusNodeId={selected}
+          onNodeClick={(node) => {
+            setPicked(node.id);
+          }}
+        />
+      </Panel>
+    ),
+  };
+  return (
+    <div className='gallery__stack gallery__stack--fill'>
+      <Tabs
+        listOnly
+        ariaLabel='List with new data'
+        items={DETAIL_ARRIVAL_LISTS}
+        activeKey={list.key}
+        onChange={(key) => {
+          const next = DETAIL_ARRIVAL_LISTS.find((each) => each.key === key);
+          if (next !== undefined) {
+            setList(next);
+            setPicked(null);
+          }
+        }}
+      />
+      <Toolbar
+        left={
+          <>
+            <Button
+              tone='secondary'
+              onClick={() => {
+                setArrived((n) => n + 1);
+              }}
+            >
+              New data
+            </Button>
+            <Checkbox
+              label='New data every 2 s'
+              checked={live}
+              onChange={setLive}
+            />
+            <Button
+              tone='secondary'
+              disabled={picked === null}
+              onClick={() => {
+                setPicked(null);
+              }}
+            >
+              Back to the default
+            </Button>
+          </>
+        }
+        right={
+          <MetricLabel>
+            frame scrolled <span ref={scrollTopRef}>0</span> px
+            {` · ${String(arrived)} arrived · ${picked === null ? `default ${selected}` : `picked ${picked}`}`}
+          </MetricLabel>
+        }
+      />
+      <div className='gallery__detail-beside-frame'>
+        <div
+          ref={setScroller}
+          className='gallery__detail-beside-scroller'
+          onScroll={(event) => {
+            if (scrollTopRef.current !== null) {
+              scrollTopRef.current.textContent = String(
+                Math.round(event.currentTarget.scrollTop)
+              );
+            }
+          }}
+        >
+          <div className='gallery__detail-beside-page'>
+            <p className='gallery__panel-body'>
+              With nothing picked, the selection is a default: the newest
+              requirement to arrive in {DETAIL_ARRIVALS_GROUP}, or{' '}
+              {list.opensOn} before any has. New data moves it and the rows
+              under it; the detail stays level with the selected row and the
+              frame does not scroll. In the map the view moves to the new node,
+              and at 768 px and below the detail under it stays drawn while it
+              does, so the frame keeps its scroll. Picking a row, or going back
+              to the default, scrolls to it.
+            </p>
+            {scroller && (
+              <DetailBeside
+                key={list.key}
+                columns='3fr 2fr'
+                detail={
+                  <GalleryRequirementDetail
+                    id={selected}
+                    requirements={requirements}
+                  />
+                }
+                revealKey={picked}
                 scrollContainer={scroller}
               >
                 {lists[list.key]}
@@ -856,6 +1064,12 @@ export function LayoutsSection() {
         span={3}
       >
         <DetailBesideSpecimen />
+      </Specimen>
+      <Specimen
+        caption='revealKey — the selection as the address names it, null for a default · the page scrolls to the row on the first placement and when revealKey changes; new data that moves the default or the rows only levels the detail with its row · ServiceMap: scroll the frame to the map at 768 px or below and press New data; the view moves to the new node and the frame keeps its scroll'
+        span={3}
+      >
+        <DetailBesideRefreshSpecimen />
       </Specimen>
 
       <SectionDivider>FormRow</SectionDivider>

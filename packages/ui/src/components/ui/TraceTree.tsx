@@ -113,7 +113,8 @@ interface TraceTreeProps {
   persistKey?: string;
   /**
    * Wraps a long name over lines instead of truncating it: between words and
-   * after `_ . - / :`, and inside a word only when it cannot fit a line.
+   * after `_ . - / :`, and inside a word only when it cannot fit a line. The
+   * name keeps its runs of spaces, its tabs and its line breaks.
    */
   wrapName?: boolean;
 }

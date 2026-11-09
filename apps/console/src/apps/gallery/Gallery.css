@@ -866,13 +866,16 @@
 
 /* The frame stands in for the page: its height is the view the detail
  * stays in, and it has no border or padding of its own, so its scrollport
- * is exactly that tall. */
+ * is exactly that tall. Like a host that keeps its place on new data, it
+ * turns scroll anchoring off, which would move it when rows arrive above
+ * the view. */
 .gallery__detail-beside-scroller {
   --detail-beside-sticky-top: var(--space-4);
   --detail-beside-view-height: 560px;
 
   height: var(--detail-beside-view-height);
   overflow-y: auto;
+  overflow-anchor: none;
   background: var(--bg-page);
 }
 

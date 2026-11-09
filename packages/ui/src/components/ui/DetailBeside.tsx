@@ -33,14 +33,31 @@ export interface DetailBesideProps {
   /**
    * The selected item's detail: one element, such as a `Panel` titled with
    * the item's name. It is never taller than the view, so a long Panel
-   * scrolls its body.
+   * scrolls its body. Render it anew from the host's data whenever that
+   * data changes: that render tells DetailBeside the change was new data,
+   * so the page stays where it is. A detail that fetches its own data and
+   * redraws without this host rendering leaves the page following the row,
+   * and its next change of size scrolls the page.
    */
   detail: ReactNode;
   /**
    * The list: a `TraceTree`, `FileTree`, `DataTable` or `ServiceMap`, in a
-   * Panel say. The detail follows the row it draws selected.
+   * Panel say. The detail follows the row it draws selected. Like
+   * `detail`, render it anew from the host's data whenever that data
+   * changes, so the page stays where it is on new data; a list that fetches
+   * its own data and redraws without this host rendering leaves the page
+   * following the row, and its next change of size scrolls the page.
    */
   children: ReactNode;
+  /**
+   * The selection as the page's address names it, or null where the
+   * address names none and the list shows a default. It changes only by
+   * the viewer's doing: a click, a key, a link, back or forward. The page
+   * scrolls to the selected row when this changes, and on the first
+   * placement after mount; a row that comes into place for new data, such
+   * as a default the data moved, is only levelled with.
+   */
+  revealKey: string | null;
   /** The element that scrolls the page; omitted or null means the viewport. */
   scrollContainer?: HTMLElement | null;
   className?: string;
@@ -89,17 +106,23 @@ function InlineDetail({ boxRef }: { boxRef: RefObject<HTMLDivElement> }) {
  * view's bottom, and while the page scrolls it stays in the view below
  * the header. At 768 px and below the list draws the detail right after
  * the selected row, the rows that follow under it; a map draws it over
- * the map, under the node. When the page opens with a selection, the
- * selection changes or the selected row is clicked, the page scrolls at
- * once, as little as it takes to show the row and the detail whole, and
- * again whenever the list or the detail changes size, until the viewer
- * scrolls. The wrapper is `aria-busy` while the selected row is still on
- * its way.
+ * the map, under the node. When the page opens with a selection,
+ * `revealKey` changes or the viewer clicks the selected row, the page
+ * scrolls at once, as little as it takes to show the row and the detail
+ * whole, and again whenever the list or the detail changes size, until the
+ * viewer scrolls or the host renders a new list or detail. Any other
+ * placement, such as new data moving the selection or the rows, levels
+ * the detail with its row by the same rule and leaves the page where it
+ * is; the browser's scroll anchoring can still move it when rows arrive
+ * above the view, unless the host sets `overflow-anchor: none` on its
+ * scroller. The wrapper is `aria-busy` while a selected row it reveals is
+ * still on its way.
  */
 export function DetailBeside({
   columns,
   detail,
   children,
+  revealKey,
   scrollContainer = null,
   className,
 }: DetailBesideProps) {
@@ -112,6 +135,11 @@ export function DetailBeside({
   /** Whether the page is still where the last reveal left it. */
   const followRef = useRef(false);
   const revealedAtRef = useRef(0);
+  /** The latest render's revealKey, and the last reveal's: undefined before the first. */
+  const revealKeyRef = useRef(revealKey);
+  const revealedKeyRef = useRef<string | null | undefined>(undefined);
+  /** The latest render's list and detail, which change when the host renders them anew. */
+  const shownRef = useRef({ children, detail });
 
   /**
    * Sets the detail level with the row: above 768 px through the spacer's
@@ -164,6 +192,7 @@ export function DetailBeside({
   // own ref is in and before the re-renders its layout effects ask for,
   // so the reveal waits for the commit to finish.
   const revealSoon = useCallback(() => {
+    revealedKeyRef.current = revealKeyRef.current;
     followRef.current = true;
     setBusy(true);
     queueMicrotask(() => {
@@ -172,17 +201,22 @@ export function DetailBeside({
     });
   }, [reveal]);
 
+  // A row placed while a reveal is due is revealed; any other is levelled
+  // with, and a new one ends following.
   const placeRow = useCallback(
     (row: HTMLElement | null) => {
-      const moved = row !== null && row === rowRef.current;
+      const fresh = row !== rowRef.current;
       rowRef.current = row;
-      if (moved) {
-        place();
-      } else if (row === null) {
+      if (row === null) {
         followRef.current = false;
         setBusy(false);
-      } else {
+      } else if (revealedKeyRef.current !== revealKeyRef.current) {
         revealSoon();
+      } else {
+        if (fresh) {
+          followRef.current = false;
+        }
+        place();
       }
     },
     [place, revealSoon],
@@ -192,7 +226,24 @@ export function DetailBeside({
     setBusy(true);
   }, []);
 
-  useIsomorphicLayoutEffect(place);
+  // Runs after the lists have placed their rows in this commit, so a new
+  // revealKey reveals the row it selects. A render by the host without one
+  // ends following.
+  useIsomorphicLayoutEffect(() => {
+    const rendered =
+      shownRef.current.children !== children ||
+      shownRef.current.detail !== detail;
+    shownRef.current = { children, detail };
+    revealKeyRef.current = revealKey;
+    if (revealedKeyRef.current !== revealKey && rowRef.current !== null) {
+      revealSoon();
+    } else {
+      if (rendered) {
+        followRef.current = false;
+      }
+      place();
+    }
+  });
 
   useIsomorphicLayoutEffect(() => {
     const list = listRef.current;

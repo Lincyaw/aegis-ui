@@ -240,11 +240,53 @@
   text-overflow: ellipsis;
 }
 
+/* A cell given as parts: the parts on one line, a small gap apart, since
+ * the spaces at the edges of flex items collapse away. */
+.aegis-commit-graph__cell--parts {
+  display: flex;
+  align-items: baseline;
+}
+
+.aegis-commit-graph__parts {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.aegis-commit-graph__part {
+  flex: none;
+}
+
+/* A growing cell given as parts is as wide as its kept parts at least, so
+ * the column is too; past that the table scrolls sideways. */
+.aegis-commit-graph__td--parts {
+  max-width: none;
+}
+
+/* Its cut parts share the room left, each up to its own width, and are cut
+ * off with an ellipsis. With no width of their own they set no least width
+ * for the column. */
+.aegis-commit-graph__td--grow .aegis-commit-graph__part--cut {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 2ch;
+  max-width: max-content;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .aegis-commit-graph__cell-select {
   display: inline-flex;
   align-items: center;
   margin-right: var(--space-2);
   vertical-align: middle;
+}
+
+.aegis-commit-graph__cell--parts > .aegis-commit-graph__cell-select {
+  flex: none;
+  align-self: center;
 }
 
 @media (max-width: 640px) {
