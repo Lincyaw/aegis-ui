@@ -1,0 +1,55 @@
+.aegis-detail-beside {
+  display: grid;
+  grid-template-columns: var(--aegis-detail-beside-columns);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+/* fr tracks otherwise grow to fit wide content (code, tables). */
+.aegis-detail-beside__list,
+.aegis-detail-beside__side {
+  min-width: 0;
+}
+
+/* The side column runs the list's whole height, the range the detail
+ * sticks in. Its first child, a spacer as tall as the selected row is
+ * low, puts the detail level with the row. */
+.aegis-detail-beside__side {
+  align-self: stretch;
+}
+
+/* Sticking to both edges moves the detail up until its bottom meets the
+ * view's bottom, and down no further than the top inset. */
+.aegis-detail-beside__detail {
+  position: sticky;
+  top: var(--detail-beside-sticky-top);
+  bottom: 0;
+  scroll-margin-top: var(--detail-beside-sticky-top);
+}
+
+.aegis-detail-beside__detail > * {
+  max-height: calc(
+    var(--detail-beside-view-height) - var(--detail-beside-sticky-top)
+  );
+}
+
+/* Drawn by the list right after the selected row at 768 px and below,
+ * across every column of a gridded tree. Room for the row stays above it. */
+.aegis-detail-beside__inline {
+  grid-column: 1 / -1;
+  padding: 0 var(--space-3) var(--space-3);
+  scroll-margin-top: var(--detail-beside-sticky-top);
+}
+
+.aegis-detail-beside__inline > * {
+  max-height: calc(
+    var(--detail-beside-view-height) - var(--detail-beside-sticky-top) -
+      var(--aegis-detail-beside-row-height) - var(--space-3)
+  );
+}
+
+@media (max-width: 768px) {
+  .aegis-detail-beside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

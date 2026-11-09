@@ -6,6 +6,7 @@ import {
   type FocusEvent,
   type KeyboardEvent,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useMemo,
@@ -35,15 +36,21 @@ import {
   ReactFlowProvider,
   type XYPosition,
   getViewportForBounds,
+  useInternalNode,
   useReactFlow,
   useStore,
   useStoreApi,
 } from '@xyflow/react';
 
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useStrings } from '../../locale';
 import './ServiceMap.css';
 import { StatusDot } from './StatusDot';
+import {
+  type SelectedRowDetail,
+  SelectedRowDetailContext,
+} from './selectedRowDetail';
 
 /**
  * Drawn as a dot before the node's label. `active` is work in progress, e.g.
@@ -516,7 +523,8 @@ function minimapNodeClass(node: Node): string {
 /**
  * Fits the view once the layout uses every node's measured size, and again
  * when the layout or the focus changes. Nothing else moves the view, so a
- * new status or selection keeps the user's pan and zoom.
+ * new status or selection keeps the user's pan and zoom. Returns whether
+ * the view has been fitted to the current focus.
  */
 function useFit(
   shape: MapShape,
@@ -525,7 +533,7 @@ function useFit(
   focusNodeId: string | undefined,
   showMinimap: boolean,
   narrow: boolean,
-): void {
+): boolean {
   const { fitView, getNodes, getNodesBounds, setViewport } = useReactFlow();
   const store = useStoreApi();
   const paneSized = useStore((state) => state.width > 0 && state.height > 0);
@@ -536,8 +544,12 @@ function useFit(
         : undefined,
     [focusNodeId, shape],
   );
+  const [fittedTo, setFittedTo] = useState<string | null>();
   useEffect(() => {
     if (paneSized && laidOut) {
+      const settle = (): void => {
+        setFittedTo(focus?.id ?? null);
+      };
       const padding = {
         top: px(FIT_MARGIN),
         bottom: px(FIT_MARGIN),
@@ -583,9 +595,9 @@ function useFit(
                   y: FIT_MARGIN - bounds.y * zoom,
                   zoom,
                 },
-          );
+          ).then(settle);
         } else {
-          void fitView({ maxZoom: 1, padding });
+          void fitView({ maxZoom: 1, padding }).then(settle);
         }
       } else {
         const nearFits =
@@ -602,7 +614,7 @@ function useFit(
           minZoom: FOCUS_ZOOM,
           maxZoom: FOCUS_ZOOM,
           padding,
-        });
+        }).then(settle);
       }
     }
   }, [
@@ -619,6 +631,55 @@ function useFit(
     getNodesBounds,
     setViewport,
   ]);
+  return fittedTo === (focus?.id ?? null);
+}
+
+/**
+ * The selected node of a map in a `DetailBeside`, once the view is fitted:
+ * it places the node's box, again whenever the map pans or zooms, and at
+ * 768 px and below draws the detail right under the node, over the map,
+ * which grows to hold it.
+ */
+function ServiceMapSelection({
+  nodeId,
+  selection,
+}: {
+  nodeId: string;
+  selection: SelectedRowDetail;
+}): JSX.Element | null {
+  const transform = useStore((state) => state.transform);
+  const domNode = useStore((state) => state.domNode);
+  const node = useInternalNode(nodeId);
+  // The node goes only with this component, so a pan places the same node
+  // again rather than a new one.
+  useIsomorphicLayoutEffect(
+    () => () => {
+      selection.placeRow(null);
+    },
+    [selection],
+  );
+  useIsomorphicLayoutEffect(() => {
+    const group = domNode?.querySelector(
+      `.react-flow__node[data-id="${CSS.escape(nodeId)}"]`,
+    );
+    if (group instanceof HTMLElement) {
+      selection.placeRow(group);
+    }
+  }, [selection, domNode, nodeId, transform]);
+  const height = node?.measured.height;
+  if (selection.inline === null || node === undefined || height === undefined) {
+    return null;
+  }
+  const [, y, zoom] = transform;
+  const bottom = (node.internals.positionAbsolute.y + height) * zoom + y;
+  return (
+    <div
+      className="aegis-service-map__detail"
+      style={{ marginTop: Math.max(bottom, 0) }}
+    >
+      {selection.inline}
+    </div>
+  );
 }
 
 /**
@@ -803,7 +864,8 @@ function ServiceMapInner({
 
   const narrow = useMediaQuery(NARROW_QUERY);
   const showMinimap = minimap && !narrow;
-  useFit(
+  const selection = useContext(SelectedRowDetailContext);
+  const fitted = useFit(
     shape,
     layout,
     nodes.every((n) => measured.has(n.id)),
@@ -811,6 +873,20 @@ function ServiceMapInner({
     showMinimap,
     narrow,
   );
+  const shownId =
+    selectedNodeId !== undefined && shape.ids.includes(selectedNodeId)
+      ? selectedNodeId
+      : undefined;
+  // A DetailBeside waits while the view is fitted to a newly selected node.
+  useIsomorphicLayoutEffect(() => {
+    if (selection === null || shownId === undefined || fitted) {
+      return undefined;
+    }
+    selection.awaitRow();
+    return () => {
+      selection.placeRow(null);
+    };
+  }, [selection, shownId, fitted]);
   const handleFocus = usePanToFocused();
 
   const handleNodeClick = useCallback(
@@ -912,6 +988,9 @@ function ServiceMapInner({
           )}
         </ReactFlow>
       </div>
+      {selection !== null && fitted && shownId !== undefined && (
+        <ServiceMapSelection nodeId={shownId} selection={selection} />
+      )}
     </div>
   );
 }

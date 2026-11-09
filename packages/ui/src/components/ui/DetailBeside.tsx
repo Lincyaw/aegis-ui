@@ -1,0 +1,285 @@
+import {
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import {
+  type ViewBounds,
+  scrollerOf,
+  viewBoundsOf,
+} from '../../lib/scrollView';
+import './DetailBeside.css';
+import {
+  type SelectedRowDetail,
+  SelectedRowDetailContext,
+} from './selectedRowDetail';
+
+export interface DetailBesideProps {
+  /**
+   * `grid-template-columns` of the list and the detail above 768 px, e.g.
+   * `'3fr 2fr'`.
+   */
+  columns: string;
+  /**
+   * The selected item's detail: one element, such as a `Panel` titled with
+   * the item's name. It is never taller than the view, so a long Panel
+   * scrolls its body.
+   */
+  detail: ReactNode;
+  /**
+   * The list: a `TraceTree`, `FileTree`, `DataTable` or `ServiceMap`, in a
+   * Panel say. The detail follows the row it draws selected.
+   */
+  children: ReactNode;
+  /** The element that scrolls the page; omitted or null means the viewport. */
+  scrollContainer?: HTMLElement | null;
+  className?: string;
+}
+
+const NARROW_QUERY = '(max-width: 768px)';
+
+/**
+ * The detail as the inline slot draws it. It is kept out of the context the
+ * lists read, so a new detail re-renders the slot and not the list.
+ */
+const DetailContext = createContext<ReactNode>(null);
+
+/**
+ * How far to scroll so the row is in the view, clear of the `inset` at the
+ * view's top, and the detail, whose top can rise no higher than `ceiling`,
+ * fits above the view's bottom.
+ */
+function revealDistance(
+  row: DOMRect,
+  ceiling: number,
+  height: number,
+  inset: number,
+  view: ViewBounds,
+): number {
+  const top = view.top + inset;
+  const toRow =
+    row.top < top ? row.top - top : Math.max(row.bottom - view.bottom, 0);
+  return Math.max(toRow, ceiling + height - view.bottom);
+}
+
+/** The detail right after the selected row, at 768 px and below. */
+function InlineDetail({ boxRef }: { boxRef: RefObject<HTMLDivElement> }) {
+  const detail = useContext(DetailContext);
+  return (
+    <div ref={boxRef} className="aegis-detail-beside__inline" role="group">
+      {detail}
+    </div>
+  );
+}
+
+/**
+ * A tree, table or map with the selected item's detail beside it. Above
+ * 768 px the detail stands in a column on the right, level with the
+ * selected row: when the row is too low for it, its bottom meets the
+ * view's bottom, and while the page scrolls it stays in the view below
+ * the header. At 768 px and below the list draws the detail right after
+ * the selected row, the rows that follow under it; a map draws it over
+ * the map, under the node. When the page opens with a selection, the
+ * selection changes or the selected row is clicked, the page scrolls at
+ * once, as little as it takes to show the row and the detail whole, and
+ * again whenever the list or the detail changes size, until the viewer
+ * scrolls. The wrapper is `aria-busy` while the selected row is still on
+ * its way.
+ */
+export function DetailBeside({
+  columns,
+  detail,
+  children,
+  scrollContainer = null,
+  className,
+}: DetailBesideProps) {
+  const narrow = useMediaQuery(NARROW_QUERY);
+  const [busy, setBusy] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLElement | null>(null);
+  /** Whether the page is still where the last reveal left it. */
+  const followRef = useRef(false);
+  const revealedAtRef = useRef(0);
+
+  /**
+   * Sets the detail level with the row: above 768 px through the spacer's
+   * height, at and below by telling the inline detail how tall the row is.
+   */
+  const place = useCallback(() => {
+    const row = rowRef.current;
+    const box = detailRef.current;
+    if (row === null || box === null) {
+      return;
+    }
+    const rowBox = row.getBoundingClientRect();
+    const spacer = spacerRef.current;
+    if (spacer === null) {
+      box.style.setProperty(
+        '--aegis-detail-beside-row-height',
+        `${String(rowBox.height)}px`,
+      );
+    } else {
+      const top = spacer.getBoundingClientRect().top;
+      spacer.style.height = `${String(Math.max(rowBox.top - top, 0))}px`;
+    }
+  }, []);
+
+  /** Places the row and scrolls as little as it takes to show it and its detail whole. */
+  const reveal = useCallback(() => {
+    place();
+    const row = rowRef.current;
+    const box = detailRef.current;
+    if (row === null || box === null) {
+      return;
+    }
+    const rowBox = row.getBoundingClientRect();
+    const spacer = spacerRef.current;
+    const distance = revealDistance(
+      rowBox,
+      spacer === null ? rowBox.bottom : spacer.getBoundingClientRect().top,
+      box.getBoundingClientRect().height,
+      parseFloat(getComputedStyle(box).scrollMarginTop),
+      viewBoundsOf(scrollContainer),
+    );
+    const scroller = scrollerOf(scrollContainer);
+    if (Math.abs(distance) >= 1) {
+      scroller.scrollBy({ top: distance, behavior: 'instant' });
+    }
+    revealedAtRef.current = scroller.scrollTop;
+  }, [place, scrollContainer]);
+
+  // A list places its row while React attaches refs, before the detail's
+  // own ref is in and before the re-renders its layout effects ask for,
+  // so the reveal waits for the commit to finish.
+  const revealSoon = useCallback(() => {
+    followRef.current = true;
+    setBusy(true);
+    queueMicrotask(() => {
+      reveal();
+      setBusy(false);
+    });
+  }, [reveal]);
+
+  const placeRow = useCallback(
+    (row: HTMLElement | null) => {
+      const moved = row !== null && row === rowRef.current;
+      rowRef.current = row;
+      if (moved) {
+        place();
+      } else if (row === null) {
+        followRef.current = false;
+        setBusy(false);
+      } else {
+        revealSoon();
+      }
+    },
+    [place, revealSoon],
+  );
+
+  const awaitRow = useCallback(() => {
+    setBusy(true);
+  }, []);
+
+  useIsomorphicLayoutEffect(place);
+
+  useIsomorphicLayoutEffect(() => {
+    const list = listRef.current;
+    if (list === null) {
+      return undefined;
+    }
+    const observer = new ResizeObserver(() => {
+      if (followRef.current) {
+        reveal();
+      } else {
+        place();
+      }
+    });
+    // At 768 px and below the detail lies inside the list.
+    for (const box of narrow ? [list] : [list, detailRef.current]) {
+      if (box !== null) {
+        observer.observe(box);
+      }
+    }
+    const activate = (event: MouseEvent): void => {
+      if (
+        event.target instanceof Node &&
+        rowRef.current?.contains(event.target)
+      ) {
+        revealSoon();
+      }
+    };
+    list.addEventListener('click', activate);
+    return () => {
+      observer.disconnect();
+      list.removeEventListener('click', activate);
+    };
+  }, [narrow, place, reveal, revealSoon]);
+
+  useEffect(() => {
+    const scroller = scrollerOf(scrollContainer);
+    const target = scrollContainer ?? window;
+    const scrolled = (): void => {
+      if (Math.abs(scroller.scrollTop - revealedAtRef.current) >= 1) {
+        followRef.current = false;
+      }
+    };
+    target.addEventListener('scroll', scrolled, { passive: true });
+    return () => {
+      target.removeEventListener('scroll', scrolled);
+    };
+  }, [scrollContainer]);
+
+  const inline = useMemo(
+    () => (narrow ? <InlineDetail boxRef={detailRef} /> : null),
+    [narrow],
+  );
+  const slot = useMemo(
+    (): SelectedRowDetail => ({ placeRow, awaitRow, inline }),
+    [placeRow, awaitRow, inline],
+  );
+  const isolated = (
+    <SelectedRowDetailContext.Provider value={null}>
+      {detail}
+    </SelectedRowDetailContext.Provider>
+  );
+
+  const cls = ['aegis-detail-beside', className ?? '']
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <SelectedRowDetailContext.Provider value={slot}>
+      <DetailContext.Provider value={isolated}>
+        <div
+          className={cls}
+          style={{ '--aegis-detail-beside-columns': columns } as CSSProperties}
+          aria-busy={busy || undefined}
+        >
+          <div ref={listRef} className="aegis-detail-beside__list">
+            {children}
+          </div>
+          {!narrow && (
+            <div className="aegis-detail-beside__side">
+              <div ref={spacerRef} />
+              <div ref={detailRef} className="aegis-detail-beside__detail">
+                {isolated}
+              </div>
+            </div>
+          )}
+        </div>
+      </DetailContext.Provider>
+    </SelectedRowDetailContext.Provider>
+  );
+}

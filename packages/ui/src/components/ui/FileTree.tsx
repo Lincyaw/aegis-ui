@@ -1,8 +1,10 @@
 import {
   type CSSProperties,
+  Fragment,
   type HTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
+  useContext,
   useId,
   useMemo,
   useRef,
@@ -12,6 +14,7 @@ import {
 import { FileOutlined, FolderOutlined, RightOutlined } from '@ant-design/icons';
 
 import './FileTree.css';
+import { SelectedRowDetailContext } from './selectedRowDetail';
 
 export interface FileTreeFile {
   /** Path from the tree root with `/` between segments, e.g. `tests/grading.toml`. */
@@ -166,6 +169,7 @@ export function FileTree({
   className,
 }: FileTreeProps) {
   const idPrefix = useId();
+  const selection = useContext(SelectedRowDetailContext);
   const entries = useMemo(() => buildEntries(files), [files]);
   const [trackedPaths, setTrackedPaths] = useState<string[]>(() => [
     ...defaultExpandedPaths,
@@ -202,8 +206,11 @@ export function FileTree({
   };
 
   const focusRow = (index: number): void => {
+    // Only the tree's own rows: a detail drawn among them may hold a tree.
     const item = listRef.current
-      ?.querySelectorAll('[role="treeitem"]')
+      ?.querySelectorAll(
+        ':scope > [role="treeitem"], :scope > li > [role="treeitem"]',
+      )
       .item(index);
     if (item instanceof HTMLElement) {
       item.focus();
@@ -337,28 +344,39 @@ export function FileTree({
             )}
           </>
         );
-        return href === undefined ? (
-          <li
-            key={entry.path}
-            role="treeitem"
-            aria-selected={isDirectory ? undefined : selected}
-            {...itemProps}
-          >
-            {content}
-          </li>
-        ) : (
-          <li key={entry.path} role="none">
-            <a
-              role="treeitem"
-              aria-selected={selected}
-              href={href}
-              target={fileTarget}
-              rel={fileTarget === '_blank' ? 'noopener noreferrer' : undefined}
-              {...itemProps}
-            >
-              {content}
-            </a>
-          </li>
+        const rowRef = selected ? selection?.placeRow : undefined;
+        return (
+          <Fragment key={entry.path}>
+            {href === undefined ? (
+              <li
+                ref={rowRef}
+                role="treeitem"
+                aria-selected={isDirectory ? undefined : selected}
+                {...itemProps}
+              >
+                {content}
+              </li>
+            ) : (
+              <li role="none">
+                <a
+                  ref={rowRef}
+                  role="treeitem"
+                  aria-selected={selected}
+                  href={href}
+                  target={fileTarget}
+                  rel={
+                    fileTarget === '_blank' ? 'noopener noreferrer' : undefined
+                  }
+                  {...itemProps}
+                >
+                  {content}
+                </a>
+              </li>
+            )}
+            {selected && selection?.inline ? (
+              <li role="none">{selection.inline}</li>
+            ) : null}
+          </Fragment>
         );
       })}
     </ul>
