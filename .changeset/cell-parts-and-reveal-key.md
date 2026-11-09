@@ -45,7 +45,15 @@ Changed:
   above the view sets `overflow-anchor: none` on its scroller, since the
   browser's scroll anchoring moves it otherwise.
 
+Fixed:
+
+- A `ServiceMap` in a `DetailBeside` keeps the detail under the node it
+  was drawn under while the view moves to a new focus, so at 768 px and
+  below the map keeps its height and the page its scroll. It used to drop
+  the detail until the view was fitted, and the shorter page could pull
+  the scroll up.
+
 The gallery shows the version map with its cells as parts, a selectable
 table given as parts, and a `DetailBeside` whose data refreshes and moves
-its default selection, with the frame's scroll position shown without
-rendering the specimen again.
+its default selection, in a tree or a map, with the frame's scroll position
+shown without rendering the specimen again.

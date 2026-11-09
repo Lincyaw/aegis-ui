@@ -635,16 +635,18 @@ function useFit(
 }
 
 /**
- * The selected node of a map in a `DetailBeside`, once the view is fitted:
+ * The selected node of a map in a `DetailBeside`: once the view is fitted
  * it places the node's box, again whenever the map pans or zooms, and at
  * 768 px and below draws the detail right under the node, over the map,
  * which grows to hold it.
  */
 function ServiceMapSelection({
   nodeId,
+  fitted,
   selection,
 }: {
   nodeId: string;
+  fitted: boolean;
   selection: SelectedRowDetail;
 }): JSX.Element | null {
   const transform = useStore((state) => state.transform);
@@ -662,10 +664,10 @@ function ServiceMapSelection({
     const group = domNode?.querySelector(
       `.react-flow__node[data-id="${CSS.escape(nodeId)}"]`,
     );
-    if (group instanceof HTMLElement) {
+    if (fitted && group instanceof HTMLElement) {
       selection.placeRow(group);
     }
-  }, [selection, domNode, nodeId, transform]);
+  }, [selection, domNode, nodeId, transform, fitted]);
   const height = node?.measured.height;
   if (selection.inline === null || node === undefined || height === undefined) {
     return null;
@@ -877,6 +879,12 @@ function ServiceMapInner({
     selectedNodeId !== undefined && shape.ids.includes(selectedNodeId)
       ? selectedNodeId
       : undefined;
+  // While the view moves to a new focus, the detail stays under the node it
+  // was drawn under, so the map keeps its height and the page its scroll.
+  const [drawnId, setDrawnId] = useState<string>();
+  if (fitted && drawnId !== shownId) {
+    setDrawnId(shownId);
+  }
   // A DetailBeside waits while the view is fitted to a newly selected node.
   useIsomorphicLayoutEffect(() => {
     if (selection === null || shownId === undefined || fitted) {
@@ -988,8 +996,12 @@ function ServiceMapInner({
           )}
         </ReactFlow>
       </div>
-      {selection !== null && fitted && shownId !== undefined && (
-        <ServiceMapSelection nodeId={shownId} selection={selection} />
+      {selection !== null && drawnId !== undefined && (
+        <ServiceMapSelection
+          nodeId={drawnId}
+          fitted={fitted}
+          selection={selection}
+        />
       )}
     </div>
   );
