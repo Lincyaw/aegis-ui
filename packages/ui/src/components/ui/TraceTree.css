@@ -184,7 +184,8 @@
 
 .aegis-trace-tree--wrap .aegis-trace-tree__name {
   flex: 1 1 12ch;
-  white-space: normal;
+  /* A name is shown as written: its runs of spaces, tabs and line breaks too. */
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
   overflow: visible;
   text-overflow: clip;

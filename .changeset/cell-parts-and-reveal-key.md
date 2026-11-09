@@ -52,8 +52,12 @@ Fixed:
   below the map keeps its height and the page its scroll. It used to drop
   the detail until the view was fitted, and the shorter page could pull
   the scroll up.
+- A `TraceTree` with `wrapName` shows a name as written: its runs of
+  spaces, its tabs and its line breaks are kept instead of collapsing into
+  single spaces, so what a viewer reads is the name.
 
 The gallery shows the version map with its cells as parts, a selectable
 table given as parts, and a `DetailBeside` whose data refreshes and moves
 its default selection, in a tree or a map, with the frame's scroll position
-shown without rendering the specimen again.
+shown without rendering the specimen again; the noted TraceTree has a
+name with a line break and runs of spaces.

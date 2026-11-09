@@ -1242,6 +1242,12 @@ function traceTreeNotedSpans(selected: string | undefined): TraceSpan[] {
       name: 'An unpaid booking is released after 30 minutes',
       kind: 'requirement',
     },
+    {
+      id: 'pay-resale',
+      parentId: 'pay-deadline',
+      name: 'Released seats return to sale:\n  first the waitlist,   then everyone',
+      kind: 'requirement',
+    },
   ];
 }
 
@@ -2924,7 +2930,7 @@ export function ServicePrimitivesSection() {
           <TraceTreeUnorderedSpecimen />
         </Specimen>
         <Specimen
-          caption='note · muted · ariaLabel — a requirement tree against an earlier commit: a note at the end of each row says what changed and is its accessible description, a removed requirement stays in muted ink, a failed test notes it · the host passes inverted to the Chip of the selected row · a row is named by its text unless ariaLabel names it · wrapName'
+          caption='note · muted · ariaLabel — a requirement tree against an earlier commit: a note at the end of each row says what changed and is its accessible description, a removed requirement stays in muted ink, a failed test notes it · the host passes inverted to the Chip of the selected row · a row is named by its text unless ariaLabel names it · wrapName: a name wraps, and keeps its runs of spaces and its line breaks as written'
           span={3}
         >
           <TraceTreeNotedSpecimen />
