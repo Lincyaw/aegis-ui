@@ -650,17 +650,21 @@ function ServiceMapSelection({
   const transform = useStore((state) => state.transform);
   const domNode = useStore((state) => state.domNode);
   const node = useInternalNode(nodeId);
+  // The node goes only with this component, so a pan places the same node
+  // again rather than a new one.
+  useIsomorphicLayoutEffect(
+    () => () => {
+      selection.placeRow(null);
+    },
+    [selection],
+  );
   useIsomorphicLayoutEffect(() => {
     const group = domNode?.querySelector(
       `.react-flow__node[data-id="${CSS.escape(nodeId)}"]`,
     );
-    if (!(group instanceof HTMLElement)) {
-      return undefined;
+    if (group instanceof HTMLElement) {
+      selection.placeRow(group);
     }
-    selection.placeRow(group);
-    return () => {
-      selection.placeRow(null);
-    };
   }, [selection, domNode, nodeId, transform]);
   const height = node?.measured.height;
   if (selection.inline === null || node === undefined || height === undefined) {
@@ -869,6 +873,20 @@ function ServiceMapInner({
     showMinimap,
     narrow,
   );
+  const shownId =
+    selectedNodeId !== undefined && shape.ids.includes(selectedNodeId)
+      ? selectedNodeId
+      : undefined;
+  // A DetailBeside waits while the view is fitted to a newly selected node.
+  useIsomorphicLayoutEffect(() => {
+    if (selection === null || shownId === undefined || fitted) {
+      return undefined;
+    }
+    selection.awaitRow();
+    return () => {
+      selection.placeRow(null);
+    };
+  }, [selection, shownId, fitted]);
   const handleFocus = usePanToFocused();
 
   const handleNodeClick = useCallback(
@@ -970,12 +988,9 @@ function ServiceMapInner({
           )}
         </ReactFlow>
       </div>
-      {selection !== null &&
-        fitted &&
-        selectedNodeId !== undefined &&
-        shape.ids.includes(selectedNodeId) && (
-          <ServiceMapSelection nodeId={selectedNodeId} selection={selection} />
-        )}
+      {selection !== null && fitted && shownId !== undefined && (
+        <ServiceMapSelection nodeId={shownId} selection={selection} />
+      )}
     </div>
   );
 }

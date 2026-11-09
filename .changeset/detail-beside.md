@@ -15,11 +15,13 @@ Added:
   the header, and it is never taller than the view. At 768 px and below,
   the list draws the detail right after the selected row, with the
   following rows under it. A map draws it over the map, under the node.
-  When the page opens with a selection, or the selection changes, the
-  page scrolls as little as it takes to show the row and the detail
-  whole. The first scroll is instant, later ones are smooth unless
-  reduced motion is asked for. `scrollContainer` names the element that
-  scrolls, when that is not the viewport.
+  When the page opens with a selection, the selection changes or the
+  selected row is clicked, the page scrolls at once, as little as it takes
+  to show the row and the detail whole. It does so again whenever the list
+  or the detail changes size, until the viewer scrolls. The wrapper is
+  `aria-busy` while the selected row is still on its way, such as while a
+  map fits its view to a newly selected node. `scrollContainer` names the
+  element that scrolls, when that is not the viewport.
 - `--detail-beside-sticky-top` and `--detail-beside-view-height` set
   where the detail stops under the header and the height of the view it
   stays in.
@@ -30,9 +32,9 @@ Changed:
   selected row (the first selected row of a `DataTable` page, the selected
   node of a map) to an enclosing `DetailBeside`. Outside one, nothing
   changes.
-- `ServiceMap` no longer gives its viewport and nodes the 0.01 ms
-  transition of the global reduced-motion rule, so a pan takes effect in
-  the frame it is made.
+- Under reduced motion, `ServiceMap` no longer gives its viewport and
+  nodes the 0.01 ms transition of the global reduced-motion rule, so a pan
+  takes effect in the frame it is made.
 
 The gallery's Layouts section shows `DetailBeside` beside a 150-row
 tree, a file tree, a table and a map.

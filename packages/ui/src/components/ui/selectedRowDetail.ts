@@ -8,10 +8,17 @@ import { type ReactElement, createContext } from 'react';
 export interface SelectedRowDetail {
   /**
    * Called with the selected row's element once it is drawn where it
-   * stays, again whenever it moves while its list keeps its size (a map's
-   * pan or zoom), and with null when it goes.
+   * stays, with the same element again whenever it moves while its list
+   * keeps its size (a map's pan or zoom), and with null when no row is
+   * drawn selected.
    */
   placeRow: (row: HTMLElement | null) => void;
+  /**
+   * Called when a selected row is on its way but not yet drawn where it
+   * stays, such as a map's node while the map fits its view to it. The
+   * `DetailBeside` is busy until `placeRow` is next called.
+   */
+  awaitRow: () => void;
   /** At 768 px and below, the detail to draw right after the selected row; null above. */
   inline: ReactElement | null;
 }

@@ -39,9 +39,11 @@
 /* theme.css's reduced-motion rule gives every element a 0.01ms transition,
  * which would hold each pan and layout move for a frame, so a DetailBeside
  * measuring the selected node right after a fit would see where it was. */
-.aegis-service-map .react-flow__viewport,
-.aegis-service-map .react-flow__node {
-  transition-property: none;
+@media (prefers-reduced-motion: reduce) {
+  .aegis-service-map .react-flow__viewport,
+  .aegis-service-map .react-flow__node {
+    transition-property: none;
+  }
 }
 
 .aegis-service-map .react-flow__attribution {
