@@ -18,6 +18,7 @@ import {
   type CommitGraphColumn,
   type CommitGraphCommit,
   type CommitGraphLane,
+  type CommitGraphPartsCell,
   Dialog,
   DiffViewer,
   FileDropzone,
@@ -1696,6 +1697,122 @@ function CommitGraphVersionTableSpecimen(): ReactNode {
   );
 }
 
+const VERSION_BY_ID = new Map(
+  commitGraphVersions.map((commit) => [commit.id, commit])
+);
+const VERSION_LANE_LABELS = new Map(
+  COMMIT_GRAPH_LANES.map((lane) => [lane.id, lane.label])
+);
+
+/** A version-map cell as parts: the commit's id and the commits it relates to are kept, its title is cut. */
+function versionParts(commit: CommitGraphCommit): CommitGraphPartsCell {
+  const related = [
+    ...(commit.links ?? []),
+    ...commitGraphVersions
+      .filter((other) => other.links?.includes(commit.id))
+      .map((other) => other.id),
+  ];
+  return {
+    parts: [
+      {
+        content: (
+          <a href={`#${commit.id}`} className='gallery__table-link'>
+            {String(commit.meta)}
+          </a>
+        ),
+      },
+      { content: '·' },
+      { content: commit.title, cut: true },
+      ...related.flatMap((id) => {
+        const other = VERSION_BY_ID.get(id);
+        return [
+          { content: '·' },
+          {
+            content: (
+              <a href={`#${id}`} className='gallery__table-link'>
+                {`${VERSION_LANE_LABELS.get(other?.lane ?? 'requirements') ?? ''} ${String(other?.meta ?? id)}`}
+              </a>
+            ),
+          },
+        ];
+      }),
+    ],
+  };
+}
+
+const versionPartsTable: CommitGraphCommit[] = commitGraphVersions.map(
+  (commit, row) => ({
+    ...commit,
+    cells: {
+      time: VERSION_TABLE_TIMES[row],
+      [commit.lane ?? 'requirements']: versionParts(commit),
+    },
+  })
+);
+
+function CommitGraphPartsTableSpecimen(): ReactNode {
+  return (
+    <CommitGraph
+      commits={versionPartsTable}
+      lanes={COMMIT_GRAPH_LANES}
+      columns={VERSION_TABLE_COLUMNS}
+      ariaLabel='Versions with their links'
+    />
+  );
+}
+
+const COMMIT_PARTS_COLUMNS: CommitGraphColumn[] = [
+  { id: 'change', label: 'change', grow: true },
+  { id: 'parents', label: 'parents' },
+  { id: 'committed', label: 'committed' },
+];
+
+/** The history's commits with the change and the parents as parts: the first column grows, the parents' does not. */
+const commitPartsTable: CommitGraphCommit[] = commitGraphHistory.map(
+  (commit) => ({
+    id: commit.id,
+    parents: commit.parents,
+    cells: {
+      change: {
+        parts: [
+          {
+            content: (
+              <a href={`#${commit.id}`} className='gallery__table-link'>
+                {commit.id}
+              </a>
+            ),
+          },
+          { content: commit.title, cut: true },
+        ],
+      },
+      parents: {
+        parts: commit.parents.map((parent) => ({
+          content: (
+            <a href={`#${parent}`} className='gallery__table-link'>
+              {parent}
+            </a>
+          ),
+        })),
+      },
+      committed: String(commit.meta).split(' · ')[1],
+    },
+  })
+);
+
+function CommitGraphSelectablePartsSpecimen(): ReactNode {
+  const [selected, setSelected] = useState(['a41f09c', '7c2d1e0']);
+  return (
+    <CommitGraph
+      commits={commitPartsTable}
+      columns={COMMIT_PARTS_COLUMNS}
+      selectedIds={selected}
+      onSelectedIdsChange={setSelected}
+      maxSelected={2}
+      ariaLabel='Requirement commits with their parents'
+    />
+  );
+}
+
 function ResizableSidePanelSpecimen(): ReactNode {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   return (
@@ -2921,6 +3038,18 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <CommitGraphVersionTableSpecimen />
+        </Specimen>
+        <Specimen
+          caption='cells as parts — the same version map, each cell given as parts: the id and the commits it relates to are links that keep their width at any width, and only the title, a cut part, gives way with an ellipsis · a lane column is at least as wide as the parts its cells keep, and past that the table scrolls sideways · hover a cut title to read the cell whole'
+          span={3}
+        >
+          <CommitGraphPartsTableSpecimen />
+        </Specimen>
+        <Specimen
+          caption='selectable cells as parts — the first column, which grows, is given as parts, so its checkbox stays whole and centred beside them and is named by the commit id and the title; only the title gives way · the parents column does not grow and is given as parts too: every parent link keeps its width'
+          span={3}
+        >
+          <CommitGraphSelectablePartsSpecimen />
         </Specimen>
       </div>
 

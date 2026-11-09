@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  Fragment,
   type MouseEvent,
   type ReactNode,
   useId,
@@ -14,6 +15,22 @@ import { useStrings } from '../../locale';
 import { Checkbox } from './Checkbox';
 import { Chip } from './Chip';
 import './CommitGraph.css';
+
+/** One part of a table cell given as parts. */
+export interface CommitGraphCellPart {
+  content: ReactNode;
+  /**
+   * Text that gives way in a growing column: it is cut off with an
+   * ellipsis, down to little more than the ellipsis. A part without it,
+   * such as a link, keeps its whole width.
+   */
+  cut?: boolean;
+}
+
+/** A table cell as parts on one line, in order, a small gap apart. */
+export interface CommitGraphPartsCell {
+  parts: CommitGraphCellPart[];
+}
 
 export interface CommitGraphCommit {
   id: string;
@@ -36,9 +53,11 @@ export interface CommitGraphCommit {
   /**
    * With `columns`: the row's cells, by column id. A cell is one line: its
    * content is cut to the row's height, so every row lines up with the
-   * drawing.
+   * drawing. A cell given as parts keeps every part whole except, in a
+   * growing column, the `cut` ones, so its links never disappear; the
+   * column is at least as wide as the parts it keeps.
    */
-  cells?: Record<string, ReactNode>;
+  cells?: Record<string, ReactNode | CommitGraphPartsCell>;
   /** The `lanes` id of the column the commit is drawn in. Default, and for an unknown id: the first lane. */
   lane?: string;
   /**
@@ -60,9 +79,11 @@ export interface CommitGraphColumn {
   /**
    * Takes the width the other columns leave, which are as wide as their
    * content, and cuts its cells off with an ellipsis, e.g. a message;
-   * hovering a cut cell shows it whole. Several growing columns share that
-   * width evenly. A growing column is never narrower than about 20
-   * characters: where the other columns leave less, the table scrolls.
+   * hovering a cut cell shows it whole. A cell given as parts gives way
+   * only in its `cut` parts. Several growing columns share that width
+   * evenly. A growing column is never narrower than about 20 characters,
+   * nor than the parts its cells keep: where the other columns leave
+   * less, the table scrolls.
    */
   grow?: boolean;
 }
@@ -105,6 +126,8 @@ const LANE_MIN_WIDTH_NARROW = 56;
 const DOT_RADIUS = 4;
 
 const NARROW_QUERY = '(max-width: 640px)';
+
+const CUT_PART_CLASS = 'aegis-commit-graph__part--cut';
 
 interface Edge {
   /** Rows of the commit and its parent; a missing parent is one row past the end. */
@@ -279,14 +302,20 @@ function edgePath({ from, to, fromX, toX, viaX }: Edge): string {
   return [start, out, down, into].filter(Boolean).join(' ');
 }
 
-/** Text cut off with an ellipsis, shown whole on hover only when it is cut. */
+/**
+ * Text cut off with an ellipsis, shown whole on hover only when it or one
+ * of its cut parts is cut. `whole` is what the hover shows; default: the
+ * text itself.
+ */
 function CutText({
   id,
   className,
+  whole,
   children,
 }: {
   id?: string;
   className: string;
+  whole?: ReactNode;
   children: ReactNode;
 }): JSX.Element {
   const [cut, setCut] = useState(false);
@@ -295,14 +324,18 @@ function CutText({
       placement="topLeft"
       mouseEnterDelay={0.3}
       styles={{ root: { maxWidth: 'var(--tooltip-max-width)' } }}
-      title={cut ? children : undefined}
+      title={cut ? (whole ?? children) : undefined}
     >
       <span
         id={id}
         className={className}
         onMouseEnter={(event: MouseEvent<HTMLSpanElement>) => {
+          const text = event.currentTarget;
           setCut(
-            event.currentTarget.scrollWidth > event.currentTarget.clientWidth,
+            [
+              text,
+              ...text.querySelectorAll<HTMLElement>(`.${CUT_PART_CLASS}`),
+            ].some((box) => box.scrollWidth > box.clientWidth),
           );
         }}
       >
@@ -520,6 +553,83 @@ function CommitList({
   );
 }
 
+function isCellParts(
+  cell: ReactNode | CommitGraphPartsCell,
+): cell is CommitGraphPartsCell {
+  return typeof cell === 'object' && cell !== null && 'parts' in cell;
+}
+
+/**
+ * One cell of the table. A cell given as parts draws them on one line; in a
+ * growing column only its cut parts give way, it is at least as wide as the
+ * parts it keeps, and its hover shows the parts as one line of text.
+ */
+function TableCell({
+  cell,
+  grow,
+  id,
+  select,
+}: {
+  cell: ReactNode | CommitGraphPartsCell;
+  grow: boolean;
+  /** Set on the first column's content, which names the row's checkbox. */
+  id: string | undefined;
+  /** The row's checkbox, at the start of the first column. */
+  select: ReactNode;
+}): JSX.Element {
+  const shape = isCellParts(cell)
+    ? {
+        value: (
+          <span id={id} className="aegis-commit-graph__parts">
+            {cell.parts.map((part, at) => (
+              <span
+                key={at}
+                className={
+                  part.cut === true
+                    ? `aegis-commit-graph__part ${CUT_PART_CLASS}`
+                    : 'aegis-commit-graph__part'
+                }
+              >
+                {part.content}
+              </span>
+            ))}
+          </span>
+        ),
+        whole: cell.parts.map((part, at) => (
+          <Fragment key={at}>
+            {at > 0 && ' '}
+            {part.content}
+          </Fragment>
+        )),
+        cellClass: 'aegis-commit-graph__cell aegis-commit-graph__cell--parts',
+        growClass:
+          'aegis-commit-graph__td aegis-commit-graph__td--grow aegis-commit-graph__td--parts',
+      }
+    : {
+        value: id === undefined ? cell : <span id={id}>{cell}</span>,
+        whole: undefined,
+        cellClass: 'aegis-commit-graph__cell',
+        growClass: 'aegis-commit-graph__td aegis-commit-graph__td--grow',
+      };
+  const content = (
+    <>
+      {select}
+      {shape.value}
+    </>
+  );
+  return grow ? (
+    <td className={shape.growClass}>
+      <CutText className={shape.cellClass} whole={shape.whole}>
+        {content}
+      </CutText>
+    </td>
+  ) : (
+    <td className="aegis-commit-graph__td">
+      <span className={shape.cellClass}>{content}</span>
+    </td>
+  );
+}
+
 function CommitTable({
   commits,
   lanes,
@@ -594,43 +704,28 @@ function CommitTable({
                     />
                   )}
                 </td>
-                {columns.map((column, index) => {
-                  const content =
-                    index === 0 ? (
-                      <>
-                        {toggle !== undefined && (
-                          <span className="aegis-commit-graph__cell-select">
-                            <Checkbox
-                              checked={isSelected}
-                              onChange={(checked) => {
-                                toggle(commit.id, checked);
-                              }}
-                              aria-labelledby={firstId}
-                            />
-                          </span>
-                        )}
-                        <span id={firstId}>{commit.cells?.[column.id]}</span>
-                      </>
-                    ) : (
-                      commit.cells?.[column.id]
-                    );
-                  return column.grow === true ? (
-                    <td
-                      key={column.id}
-                      className="aegis-commit-graph__td aegis-commit-graph__td--grow"
-                    >
-                      <CutText className="aegis-commit-graph__cell">
-                        {content}
-                      </CutText>
-                    </td>
-                  ) : (
-                    <td key={column.id} className="aegis-commit-graph__td">
-                      <span className="aegis-commit-graph__cell">
-                        {content}
-                      </span>
-                    </td>
-                  );
-                })}
+                {columns.map((column, index) => (
+                  <TableCell
+                    key={column.id}
+                    cell={commit.cells?.[column.id]}
+                    grow={column.grow === true}
+                    id={index === 0 ? firstId : undefined}
+                    select={
+                      index === 0 &&
+                      toggle !== undefined && (
+                        <span className="aegis-commit-graph__cell-select">
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={(checked) => {
+                              toggle(commit.id, checked);
+                            }}
+                            aria-labelledby={firstId}
+                          />
+                        </span>
+                      )
+                    }
+                  />
+                ))}
               </tr>
             );
           })}
