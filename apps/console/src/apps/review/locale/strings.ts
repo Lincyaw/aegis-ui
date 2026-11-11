@@ -90,6 +90,16 @@ export const reviewEn = {
   perWindow: (n: string, a: string) => `${n} → ${a} per window`,
   linkChartLabel: (source: string, target: string, seconds: number) =>
     `Calls, error rate and latency of ${source} → ${target}, every ${String(seconds)} s`,
+  viewCaller: 'measured by the caller',
+  viewCallee: 'measured by the callee',
+  viewCallerNote: (source: string, target: string) =>
+    `${source}'s client spans to ${target}: latency includes the network, and calls that failed before reaching ${target} count as calls.`,
+  viewCalleeNote: (source: string, target: string) =>
+    `${target}'s server spans for ${source}'s calls: only the time inside ${target}, and only calls that reached it.`,
+  timelineCaller: (source: string) =>
+    `Measured by the caller (${source}'s client spans). Pick one endpoint to see the callee's spans of that endpoint.`,
+  timelineCallee: (target: string) =>
+    `Measured by the callee (${target}'s server spans).`,
   metricsChartLabel: (id: string) => `Metrics of ${id}, one line per instance`,
 
   /* Tables */
@@ -352,6 +362,15 @@ export const reviewZhCN: ReviewStrings = {
   perWindow: (n, a) => `每窗口 ${n} → ${a}`,
   linkChartLabel: (source, target, seconds) =>
     `${source} → ${target} 的调用量、错误率和延迟，每 ${String(seconds)} 秒一格`,
+  viewCaller: '调用方测得',
+  viewCallee: '被调方测得',
+  viewCallerNote: (source, target) =>
+    `${source} 发往 ${target} 的 client span：延迟包含网络上的时间；没能到达 ${target} 就失败的调用也计入调用次数。`,
+  viewCalleeNote: (source, target) =>
+    `${target} 处理 ${source} 这些调用的 server span：只含 ${target} 内部的时间，只计到达了 ${target} 的调用。`,
+  timelineCaller: (source) =>
+    `调用方测得（${source} 的 client span）。选一个具体接口可以看被调方在该接口上的 span。`,
+  timelineCallee: (target) => `被调方测得（${target} 的 server span）。`,
   metricsChartLabel: (id) => `${id} 的指标，每个实例一条线`,
 
   colCalls: '调用',

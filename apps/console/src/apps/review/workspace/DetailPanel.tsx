@@ -24,6 +24,7 @@ import {
   basisOf,
   FAULT_TAG,
   type Graph,
+  linkStats,
   NO_TRACES_TAG,
   noTelemetry,
   tagLabel,
@@ -75,7 +76,7 @@ function Section({
 
 function ChangeLine({ link }: { link: GraphLink }): ReactElement {
   const s = useReviewStrings();
-  const c = classify(link.stats);
+  const c = classify(linkStats(link));
   return (
     <p className={`review-detail__change review-detail__change--${c.change}`}>
       <span className='review-detail__change-swatch' aria-hidden='true' />
@@ -99,7 +100,7 @@ function linkRow(
   return {
     key: link.id,
     name: graph.nodes.get(id)?.label ?? id,
-    stats: link.stats,
+    stats: linkStats(link),
     current: link.id === currentId,
     tag: graph.nodes.get(id)?.tags.includes(FAULT_TAG)
       ? s.tagFaultTarget
@@ -143,25 +144,41 @@ function LinkSeriesChart({
         );
   const pairStats =
     pair === undefined
-      ? link.stats
+      ? linkStats(link)
       : link.ports.find(
           (p) =>
             p.sourcePort === pair.sourcePort && p.targetPort === pair.targetPort
         )?.stats;
+  // All endpoints: the caller's view when there is one; one endpoint pair:
+  // the callee's spans of that pair.
+  const callerView = pair === undefined && link.callerStats !== undefined;
+  const points =
+    portSeries?.points ??
+    (callerView ? series.data.callerPoints : undefined) ??
+    series.data.points;
   return (
-    <TimeSeriesChart
-      rows={linkRows(portSeries?.points ?? series.data.points, pairStats, s)}
-      windows={windowsOf(context, s)}
-      markers={markersOf(context, s)}
-      bucketSeconds={series.data.bucketSeconds}
-      domain={domainOf(context)}
-      formatTime={formatTime}
-      label={s.linkChartLabel(
-        link.source,
-        link.target,
-        series.data.bucketSeconds
+    <>
+      {link.callerStats !== undefined && (
+        <p className='review-detail__note'>
+          {callerView
+            ? s.timelineCaller(link.source)
+            : s.timelineCallee(link.target)}
+        </p>
       )}
-    />
+      <TimeSeriesChart
+        rows={linkRows(points, pairStats, s)}
+        windows={windowsOf(context, s)}
+        markers={markersOf(context, s)}
+        bucketSeconds={series.data.bucketSeconds}
+        domain={domainOf(context)}
+        formatTime={formatTime}
+        label={s.linkChartLabel(
+          link.source,
+          link.target,
+          series.data.bucketSeconds
+        )}
+      />
+    </>
   );
 }
 
@@ -279,9 +296,26 @@ function LinkDetail({
         <LinkSeriesChart context={context} link={link} pair={pair} />
       </Section>
 
-      <Section title={pair === undefined ? s.bothWindows : s.bothWindowsOne}>
-        <StatsCompare stats={pairStats ?? link.stats} />
-      </Section>
+      {pair === undefined && link.callerStats !== undefined ? (
+        <>
+          <Section title={s.bothWindows} aside={s.viewCaller}>
+            <p className='review-detail__note'>
+              {s.viewCallerNote(link.source, link.target)}
+            </p>
+            <StatsCompare stats={link.callerStats} />
+          </Section>
+          <Section title={s.bothWindows} aside={s.viewCallee}>
+            <p className='review-detail__note'>
+              {s.viewCalleeNote(link.source, link.target)}
+            </p>
+            <StatsCompare stats={link.stats} />
+          </Section>
+        </>
+      ) : (
+        <Section title={pair === undefined ? s.bothWindows : s.bothWindowsOne}>
+          <StatsCompare stats={pairStats ?? link.stats} />
+        </Section>
+      )}
 
       {link.ports.length > 0 && (
         <Section title={s.byEndpoint} aside={s.pairsAside(link.ports.length)}>

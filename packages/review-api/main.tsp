@@ -244,6 +244,17 @@ model GraphLink {
    */
   basis?: "spans" | "caller-spans" | "callee-spans";
 
+  /**
+   * The same calls as the caller measured them, for a link whose calls are
+   * the callee's spans: the caller's client spans to the callee, whose
+   * durations include the time on the network, plus the caller's client
+   * spans that reached no callee span but name an endpoint only this callee
+   * serves (calls that failed before the callee, for example to a killed pod
+   * or across a network partition). Absent when the caller has no client
+   * spans for the link.
+   */
+  callerStats?: StatsPair;
+
   /** Whether `GET contexts/{c}/links/{id}/series` exists. */
   hasSeries: boolean;
 }
@@ -274,6 +285,9 @@ model LinkSeries {
   bucketSeconds: int32;
   points: SeriesPoint[];
   ports: PortSeries[];
+
+  /** The calls as the caller measured them (see `GraphLink.callerStats`). */
+  callerPoints?: SeriesPoint[];
 }
 
 model MetricPoint {

@@ -110,9 +110,10 @@ export function indexGraph(
     into,
     maxCalls: Math.max(
       1,
-      ...topology.links.map((l) =>
-        Math.max(l.stats.normal.calls, l.stats.abnormal.calls)
-      )
+      ...topology.links.map((l) => {
+        const st = linkStats(l);
+        return Math.max(st.normal.calls, st.abnormal.calls);
+      })
     ),
   };
 }
@@ -160,11 +161,20 @@ export function basisOf(link: GraphLink): LinkBasis {
   return link.basis ?? 'spans';
 }
 
+/**
+ * The stats a link is drawn, ranked and listed by: the calls as the caller
+ * measured them when the link has that view (they include the time on the
+ * network and the calls that never reached the callee), else its own stats.
+ */
+export function linkStats(link: GraphLink): StatsPair {
+  return link.callerStats ?? link.stats;
+}
+
 /** The most telling links first: the bigger change, then the more calls. */
 function byInterest(a: GraphLink, b: GraphLink): number {
   return (
-    changeRank(classify(b.stats)) - changeRank(classify(a.stats)) ||
-    volume(b.stats) - volume(a.stats)
+    changeRank(classify(linkStats(b))) - changeRank(classify(linkStats(a))) ||
+    volume(linkStats(b)) - volume(linkStats(a))
   );
 }
 
@@ -501,7 +511,8 @@ export function buildBoard(
     ) {
       continue;
     }
-    const c = classify(link.stats);
+    const st = linkStats(link);
+    const c = classify(st);
     const isClaimed = claimed.has(`${link.source}\u0000${link.target}`);
     const basis = basisOf(link);
     wires.push({
@@ -510,16 +521,19 @@ export function buildBoard(
       target: link.target,
       tone: toneOf(c.change),
       pattern: patternOf(c.change),
-      weight: weightOf(graph, link.stats),
+      weight: weightOf(graph, st),
       highlighted: isClaimed,
       inferred: basis !== 'spans',
       label:
-        isClaimed || selectedWire === link.id
-          ? statLine(link.stats, c, s)
-          : undefined,
+        isClaimed || selectedWire === link.id ? statLine(st, c, s) : undefined,
       title: [
         `${link.source} → ${link.target}`,
-        statsTitle(link.stats, s),
+        ...(link.callerStats === undefined
+          ? [statsTitle(link.stats, s)]
+          : [
+              `${s.viewCaller}: ${statsTitle(link.callerStats, s)}`,
+              `${s.viewCallee}: ${statsTitle(link.stats, s)}`,
+            ]),
         ...(basis === 'spans' ? [] : [s.basisTitle[basis]]),
       ].join('\n'),
       strands: link.ports.map((pl) => {

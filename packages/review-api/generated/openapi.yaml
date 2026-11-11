@@ -439,6 +439,17 @@ components:
             no traced service for a database or a cache. `callee-spans`: the caller
             emits no spans (a message broker); the calls are the callee's consumer
             spans that start a consumption.
+        callerStats:
+          allOf:
+            - $ref: '#/components/schemas/StatsPair'
+          description: |-
+            The same calls as the caller measured them, for a link whose calls are
+            the callee's spans: the caller's client spans to the callee, whose
+            durations include the time on the network, plus the caller's client
+            spans that reached no callee span but name an endpoint only this callee
+            serves (calls that failed before the callee, for example to a killed pod
+            or across a network partition). Absent when the caller has no client
+            spans for the link.
         hasSeries:
           type: boolean
           description: Whether `GET contexts/{c}/links/{id}/series` exists.
@@ -543,6 +554,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PortSeries'
+        callerPoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeriesPoint'
+          description: The calls as the caller measured them (see `GraphLink.callerStats`).
       description: A link's calls in fixed buckets across both windows.
     LogTemplateStat:
       type: object

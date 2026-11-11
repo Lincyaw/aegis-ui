@@ -207,6 +207,16 @@ export interface components {
        * @enum {string}
        */
       basis?: 'spans' | 'caller-spans' | 'callee-spans';
+      /**
+       * @description The same calls as the caller measured them, for a link whose calls are
+       *     the callee's spans: the caller's client spans to the callee, whose
+       *     durations include the time on the network, plus the caller's client
+       *     spans that reached no callee span but name an endpoint only this callee
+       *     serves (calls that failed before the callee, for example to a killed pod
+       *     or across a network partition). Absent when the caller has no client
+       *     spans for the link.
+       */
+      callerStats?: components['schemas']['StatsPair'];
       /** @description Whether `GET contexts/{c}/links/{id}/series` exists. */
       hasSeries: boolean;
     };
@@ -252,6 +262,8 @@ export interface components {
       bucketSeconds: number;
       points: components['schemas']['SeriesPoint'][];
       ports: components['schemas']['PortSeries'][];
+      /** @description The calls as the caller measured them (see `GraphLink.callerStats`). */
+      callerPoints?: components['schemas']['SeriesPoint'][];
     };
     /** @description How often one log template appears in each window. */
     LogTemplateStat: {

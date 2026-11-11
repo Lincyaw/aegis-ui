@@ -563,6 +563,36 @@ class _Exporter:
                   SELECT 1 FROM spans p WHERE p.trace_id = c.trace_id AND p.span_id = c.parent_span_id
                                          AND p.w = c.w AND p.svc = c.svc AND p.kind = 'Consumer')""")
 
+    def add_caller_calls(self) -> None:
+        """`ccalls`: calls between traced services as the caller measured them, one row per Client span.
+
+        A Client span with a child span in another service counts for that service; its duration
+        includes the time on the network. A Client span that reached no service and no untraced
+        component (it failed before the callee, for example at a killed pod or across a partition)
+        counts for a service when every span of that name that did reach a service reached that one, so
+        the name identifies the callee; the others stay on the caller's `(no callee span)` port only.
+        Run after `add_untraced_calls`, whose spans are in `outcalls`.
+        """
+        self.con.execute("""
+            CREATE TEMP TABLE reached AS
+            SELECT DISTINCT par.w, par.trace_id, par.span_id, par.svc AS caller, par.label, ch.svc AS callee,
+                   par.ts, par.dur, par.err
+            FROM spans ch JOIN spans par
+              ON ch.trace_id = par.trace_id AND ch.parent_span_id = par.span_id AND ch.w = par.w
+            WHERE ch.svc <> par.svc AND par.kind = 'Client';
+            CREATE TEMP TABLE cmap AS
+            SELECT caller AS svc, label, any_value(callee) AS callee
+            FROM (SELECT DISTINCT caller, label, callee FROM reached)
+            GROUP BY caller, label HAVING count(*) = 1;
+            CREATE TEMP TABLE ccalls AS
+            SELECT w, caller, callee, ts, dur, err FROM reached
+            UNION ALL
+            SELECT s.w, s.svc, m.callee, s.ts, s.dur, s.err
+            FROM spans s JOIN cmap m ON m.svc = s.svc AND m.label = s.label
+            WHERE s.kind = 'Client' AND NOT EXISTS (
+              SELECT 1 FROM outcalls o WHERE o.w = s.w AND o.trace_id = s.trace_id AND o.span_id = s.span_id);
+            DROP TABLE reached;""")
+
     def link_basis(self) -> dict[tuple[str, str], str]:
         """{(caller, callee): basis} for the links made of `vcalls`; every other link is `spans`."""
         rows = self._rows('SELECT DISTINCT caller, callee, basis FROM vcalls')
@@ -610,10 +640,10 @@ class _Exporter:
             out.setdefault(tuple(row[:4]), {})[row[4]] = row[5:]
         return out
 
-    def series(self, keys: str) -> dict[tuple, dict[int, tuple]]:
+    def series(self, keys: str, table: str = 'allcalls') -> dict[tuple, dict[int, tuple]]:
         """{key tuple: {bucket index: (n, e, p50, p95)}} for calls grouped by `keys`."""
         out: dict[tuple, dict] = {}
-        sql = (f'SELECT {keys}, floor((ts - {self.t0}) / {self.bucket})::BIGINT AS k, {STATS} FROM allcalls '
+        sql = (f'SELECT {keys}, floor((ts - {self.t0}) / {self.bucket})::BIGINT AS k, {STATS} FROM {table} '
                f'WHERE ts >= {self.t0} AND ts < {self.t1} GROUP BY ALL')
         for row in self._rows(sql):
             k = len(row) - 5
@@ -815,6 +845,7 @@ def export_case(case_dir: str | Path, out_root: str | Path, *, context_id: str |
     untraced = {c: node_kind(c) for c in sorted(ex.telemetry_services() - set(names))}
     names += list(untraced)
     ex.add_untraced_calls(untraced)
+    ex.add_caller_calls()
     targets = {f.target for f in faults if f.target}
     peers = {f.peer for f in faults if f.peer} - targets
     for extra in [*sorted(targets | peers), *extra_nodes]:
@@ -826,6 +857,12 @@ def export_case(case_dir: str | Path, out_root: str | Path, *, context_id: str |
     link_stats = ex.grouped('allcalls', 'caller, callee')
     pl_stats = ex.grouped('allcalls', 'caller, callee, cport, sport')
     basis = ex.link_basis()
+    # The caller's view of the links made of callee spans; a pair whose every call failed before the
+    # callee in both windows becomes a link with no callee spans.
+    caller_stats = {k: st for k, st in ex.grouped('ccalls', 'caller, callee').items()
+                    if basis.get(k, 'spans') == 'spans'}
+    for k in caller_stats:
+        link_stats.setdefault(k, {})
     node_stats = ex.grouped('entry', 'svc')
     label_stats = ex.grouped('spans', 'svc, label')
     roles = ex.port_roles()
@@ -913,6 +950,7 @@ def export_case(case_dir: str | Path, out_root: str | Path, *, context_id: str |
     nb = max(1, math.ceil((win.end - win.start) / bucket_seconds))
     link_series = ex.series('caller, callee')
     port_series = ex.series('caller, callee, cport, sport')
+    caller_series = ex.series('caller, callee', table='ccalls')
 
     def points(by_bucket: dict[int, tuple]) -> list[dict]:
         out = []
@@ -927,13 +965,17 @@ def export_case(case_dir: str | Path, out_root: str | Path, *, context_id: str |
         lid = _unique(safe_id(f'{node_id[a]}__{node_id[b]}', 160), link_taken)
         pls = [{'sourcePort': port_id[port_key(a, cp, b, sp)], 'targetPort': port_id[port_key(b, sp)],
                 'stats': _pair(pst)} for cp, sp, pst in kept_pl.get((a, b), [])]
-        links.append({'id': lid, 'source': node_id[a], 'target': node_id[b], 'kind': 'call', 'stats': _pair(st),
-                      'ports': pls, 'basis': basis.get((a, b), 'spans'), 'hasSeries': True})
+        link = {'id': lid, 'source': node_id[a], 'target': node_id[b], 'kind': 'call', 'stats': _pair(st),
+                'ports': pls, 'basis': basis.get((a, b), 'spans'), 'hasSeries': True}
         series_docs[lid] = {
             'linkId': lid, 'bucketSeconds': bucket_seconds, 'points': points(link_series.get((a, b), {})),
             'ports': [{'sourcePort': port_id[port_key(a, cp, b, sp)], 'targetPort': port_id[port_key(b, sp)],
                        'points': points(port_series.get((a, b, cp, sp), {}))}
                       for cp, sp, _ in kept_pl.get((a, b), [])]}
+        if (a, b) in caller_stats:
+            link['callerStats'] = _pair(caller_stats[(a, b)])
+            series_docs[lid]['callerPoints'] = points(caller_series.get((a, b), {}))
+        links.append(link)
 
     # Node details.
     owners = set(names)
