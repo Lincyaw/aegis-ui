@@ -104,7 +104,8 @@ function InlineDetail({ boxRef }: { boxRef: RefObject<HTMLDivElement> }) {
  * 768 px the detail stands in a column on the right, level with the
  * selected row: when the row is too low for it, its bottom meets the
  * view's bottom, and while the page scrolls it stays in the view below
- * the header. At 768 px and below the list draws the detail right after
+ * the header; while the list draws no row selected, it stands at the
+ * column's top. At 768 px and below the list draws the detail right after
  * the selected row, the rows that follow under it; a map draws it over
  * the map, under the node. When the page opens with a selection,
  * `revealKey` changes or the viewer clicks the selected row, the page
@@ -144,15 +145,21 @@ export function DetailBeside({
   /**
    * Sets the detail level with the row: above 768 px through the spacer's
    * height, at and below by telling the inline detail how tall the row is.
+   * While the list draws no row selected, such as when a filter or a closed
+   * parent hides it, the detail stands at the top of its column.
    */
   const place = useCallback(() => {
     const row = rowRef.current;
     const box = detailRef.current;
-    if (row === null || box === null) {
+    const spacer = spacerRef.current;
+    if (row === null) {
+      spacer?.style.removeProperty('height');
+      return;
+    }
+    if (box === null) {
       return;
     }
     const rowBox = row.getBoundingClientRect();
-    const spacer = spacerRef.current;
     if (spacer === null) {
       box.style.setProperty(
         '--aegis-detail-beside-row-height',
@@ -210,6 +217,7 @@ export function DetailBeside({
       if (row === null) {
         followRef.current = false;
         setBusy(false);
+        place();
       } else if (revealedKeyRef.current !== revealKeyRef.current) {
         revealSoon();
       } else {
