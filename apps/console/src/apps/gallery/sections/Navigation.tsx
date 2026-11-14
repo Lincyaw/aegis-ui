@@ -936,6 +936,20 @@ export function NavigationSection() {
             ]}
           />
         </Specimen>
+        <Specimen
+          caption='named path, every step a link, the current page in the middle'
+          span={3}
+        >
+          <Breadcrumb
+            ariaLabel='Path'
+            items={[
+              { label: 'Requirement commit 9e41c07', to: '#requirement' },
+              { label: 'Run 3f9c2a1b', to: '#run', current: true },
+              { label: 'Area checkout', to: '#area', current: false },
+              { label: 'Task 12', to: '#task', current: false },
+            ]}
+          />
+        </Specimen>
       </div>
 
       <SectionDivider>TableOfContents · states</SectionDivider>

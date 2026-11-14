@@ -36,7 +36,8 @@
   white-space: nowrap;
 }
 
-.aegis-breadcrumb__link:hover {
+.aegis-breadcrumb__link:hover,
+.aegis-breadcrumb__link--current {
   color: var(--text-main);
 }
 
