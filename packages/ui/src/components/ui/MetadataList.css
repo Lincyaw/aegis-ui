@@ -5,6 +5,7 @@
   margin: 0;
   padding: 0;
   min-width: 0;
+  container-type: inline-size;
 }
 
 .aegis-metadata-list__row {
@@ -90,6 +91,15 @@
 }
 
 @media (max-width: 768px) {
+  .aegis-metadata-list__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+}
+
+/* A list in a narrow column (a side panel beside a wider one) stacks its
+ * rows too, so the label column never leaves its value no room. */
+@container (max-width: 24rem) {
   .aegis-metadata-list__row {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-1);
