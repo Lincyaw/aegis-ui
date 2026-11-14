@@ -2,7 +2,6 @@
 // https://github.com/hyperdxio/hyperdx/blob/main/packages/app/src/components/ServiceMap/ServiceMap.tsx
 import {
   type CSSProperties,
-  type ComponentProps,
   type FocusEvent,
   type KeyboardEvent,
   useCallback,
@@ -51,12 +50,13 @@ import {
   type SelectedRowDetail,
   SelectedRowDetailContext,
 } from './selectedRowDetail';
+import { type WorkStatus, workStatusDot } from './workStatus';
 
 /**
  * Drawn as a dot before the node's label. `active` is work in progress, e.g.
  * a running task: the ink dot pulses.
  */
-export type ServiceMapStatus = 'ok' | 'active' | 'warn' | 'error' | 'muted';
+export type ServiceMapStatus = WorkStatus;
 export type ServiceMapDirection = 'LR' | 'TB';
 
 export interface ServiceMapNode {
@@ -389,23 +389,11 @@ function ServiceGroup({
   );
 }
 
-const DOT_TONE: Record<
-  ServiceMapStatus,
-  NonNullable<ComponentProps<typeof StatusDot>['tone']>
-> = {
-  ok: 'ink',
-  active: 'ink',
-  warn: 'caution',
-  error: 'warning',
-  muted: 'muted',
-};
-
 function ServiceNode({
   data,
 }: NodeProps<Node<ServiceNodeData, 'service'>>): JSX.Element {
   const { node, selected } = data;
   const status = node.status ?? 'ok';
-  const tone = DOT_TONE[status];
   return (
     <div
       className={[
@@ -423,10 +411,7 @@ function ServiceNode({
       />
       <div className="aegis-service-map__node-body">
         <div className="aegis-service-map__node-label">
-          <StatusDot
-            pulse={status === 'active'}
-            tone={selected && tone === 'ink' ? 'inverted' : tone}
-          />
+          <StatusDot {...workStatusDot(status, selected)} />
           <span className="aegis-service-map__node-label-text">
             {node.label}
           </span>

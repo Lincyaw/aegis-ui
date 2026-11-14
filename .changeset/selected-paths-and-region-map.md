@@ -3,7 +3,8 @@
 ---
 
 Reveal a `TraceTree`'s selected row under collapsed rows, let a
-`Timeline`'s items be selected, and export `RollingValue`.
+`Timeline`'s items be selected, export `RollingValue`, and add `RegionMap`,
+a tree of regions drawn as nested tiles.
 
 Changed:
 
@@ -27,3 +28,17 @@ Added:
 - `RollingValue` and its `RollingValueProps` are exported: a number or
   numeric string whose digits roll to a new value, right column first, as
   in `StatBlock`, `MetricCard` and `HeadlineStat`.
+- `RegionMap` draws a tree of regions as nested tiles that fill their
+  container, like a territory map: each region holds the tiles of the
+  regions inside it, and a region with more regions under it takes more
+  room. A `RegionMapRegion` has a `label`, an optional `to` drawn as a link
+  through `linkComponent`, a `count` that rolls to a new value, a `state`
+  slot such as a `Chip`, and a `status` drawn as a dot, `active` pulsing as
+  in `ServiceMap`. `selectedId` draws a tile inverted and `onSelect` takes a
+  click on a tile. For assistive technology the map is a tree read region
+  by region, each tile named by its label and described by its count and
+  state, with one tab stop: ↑ ↓ in reading order, → into a region, ← out of
+  it, Enter follows the link and Space selects. The tiles narrow at 768 px
+  or below. `RegionMapProps`, `RegionMapRegion` and `RegionMapStatus` are
+  exported, with the tokens `--region-map-tile-basis` and
+  `--region-map-tile-basis-narrow`.

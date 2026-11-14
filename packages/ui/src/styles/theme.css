@@ -418,6 +418,10 @@
   --service-map-min-height: 360px;
   /* A scrollable Timeline: about ten selectable items. */
   --timeline-scroll-max-height: 480px;
+  /* RegionMap: the narrowest a leaf tile grows from, at desktop and at
+   * 768 px or narrower. */
+  --region-map-tile-basis: 152px;
+  --region-map-tile-basis-narrow: 112px;
   /* ServiceMap's fillViewport: the viewport below the header and the
    * breadcrumb bar, less the page's top and bottom padding. */
   --service-map-viewport-height: calc(

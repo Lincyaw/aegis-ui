@@ -1,0 +1,187 @@
+/* Tiles wrap into rows that fill the width; each grows by the number of
+ * regions at the bottom of it, and a tall map stretches its rows. */
+.aegis-region-map {
+  --aegis-region-map-basis: var(--region-map-tile-basis);
+  display: flex;
+  flex-wrap: wrap;
+  align-content: stretch;
+  gap: var(--space-3);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  font-family: var(--font-ui);
+  color: var(--text-main);
+}
+
+.aegis-region-map__tile {
+  display: flex;
+  flex: var(--aegis-region-map-weight, 1) 1
+    min(
+      100%,
+      calc(
+        var(--aegis-region-map-basis) * var(--aegis-region-map-columns, 1) +
+          var(--space-2) * (var(--aegis-region-map-columns, 1) - 1)
+      )
+    );
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2);
+  border: var(--size-hairline) solid var(--border-hairline);
+  outline: none;
+  color: var(--text-main);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.aegis-region-map__tile--depth-0 {
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+}
+
+.aegis-region-map__tile--depth-1 {
+  border-radius: calc(var(--radius-lg) - var(--space-3));
+  background: var(--bg-muted);
+}
+
+.aegis-region-map__tile--depth-2 {
+  border-radius: var(--radius-xs);
+  background: var(--bg-panel);
+}
+
+.aegis-region-map__tile--depth-3 {
+  border-radius: var(--radius-xs);
+  background: var(--bg-muted);
+}
+
+/* Only the innermost tile under the pointer reacts. */
+.aegis-region-map__tile:hover:not(:has(.aegis-region-map__tile:hover)) {
+  background: var(--bg-tint);
+}
+
+.aegis-region-map__tile:active:not(:has(.aegis-region-map__tile:active)) {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-region-map__tile:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.aegis-region-map__tile--selected,
+.aegis-region-map__tile--selected:hover:not(
+    :has(.aegis-region-map__tile:hover)
+  ) {
+  border-color: var(--border-on-inverted);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+}
+
+.aegis-region-map__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-width: 0;
+}
+
+.aegis-region-map__name {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.aegis-region-map__label {
+  min-width: 0;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.aegis-region-map__head--top .aegis-region-map__label {
+  font-size: var(--type-strong-size);
+  line-height: var(--type-strong-line);
+  font-weight: var(--type-strong-weight);
+  letter-spacing: var(--type-strong-tracking);
+}
+
+.aegis-region-map__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.aegis-region-map__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  color: inherit;
+}
+
+.aegis-region-map__link:active {
+  color: var(--text-muted);
+}
+
+.aegis-region-map__head--selected .aegis-region-map__link:active {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-region-map__facts {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.aegis-region-map__count {
+  font-family: var(--font-numeric);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.aegis-region-map__head--selected .aegis-region-map__count {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-region-map__state {
+  display: inline-flex;
+}
+
+.aegis-region-map__regions {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-content: stretch;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .aegis-region-map {
+    --aegis-region-map-basis: var(--region-map-tile-basis-narrow);
+    gap: var(--space-2);
+  }
+
+  .aegis-region-map__tile--depth-0 {
+    padding: var(--space-2);
+  }
+
+  .aegis-region-map__tile--depth-1 {
+    border-radius: calc(var(--radius-lg) - var(--space-2));
+  }
+
+  .aegis-region-map__regions {
+    gap: var(--space-1);
+  }
+}

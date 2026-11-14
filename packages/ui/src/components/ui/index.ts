@@ -292,6 +292,12 @@ export type {
   ServiceMapProps,
   ServiceMapStatus,
 } from './ServiceMap';
+export { RegionMap } from './RegionMap';
+export type {
+  RegionMapProps,
+  RegionMapRegion,
+  RegionMapStatus,
+} from './RegionMap';
 export { CommitGraph } from './CommitGraph';
 export type {
   CommitGraphCellPart,

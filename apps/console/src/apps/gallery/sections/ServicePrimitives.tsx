@@ -37,6 +37,8 @@ import {
   QueryAutocomplete,
   type QueryAutocompleteFieldSuggestion,
   type QueryAutocompleteValueSuggestion,
+  RegionMap,
+  type RegionMapRegion,
   ResizableSidePanel,
   type SavedQuery,
   SavedQueryBar,
@@ -1405,6 +1407,127 @@ function TimelineSelectableSpecimen(): ReactNode {
           ),
         }))}
       />
+    </div>
+  );
+}
+
+type RegionMapPhase = 'done' | 'working' | 'failed' | 'waiting';
+
+const REGION_MAP_PHASE_STATUS: Record<
+  RegionMapPhase,
+  RegionMapRegion['status']
+> = {
+  done: 'ok',
+  working: 'active',
+  failed: 'error',
+  waiting: 'muted',
+};
+
+const REGION_MAP_PHASE_TONE = {
+  done: 'success',
+  working: 'ink',
+  failed: 'warning',
+  waiting: 'ghost',
+} as const;
+
+/** [id, parentId, label, requirements, phase] — a requirement store's areas, four levels deep. */
+const REGION_MAP_AREAS: Array<
+  [string, string | null, string, number, RegionMapPhase]
+> = [
+  ['booking', null, 'Booking', 64, 'working'],
+  ['booking/seats', 'booking', 'Seats', 21, 'working'],
+  ['booking/seats/allocation', 'booking/seats', 'Allocation', 9, 'working'],
+  [
+    'booking/seats/allocation/group',
+    'booking/seats/allocation',
+    'Group booking',
+    5,
+    'working',
+  ],
+  [
+    'booking/seats/allocation/single',
+    'booking/seats/allocation',
+    'Single seat',
+    4,
+    'done',
+  ],
+  ['booking/seats/holds', 'booking/seats', 'Holds', 7, 'done'],
+  ['booking/seats/map', 'booking/seats', 'Seat map', 5, 'done'],
+  ['booking/tickets', 'booking', 'Tickets', 18, 'done'],
+  ['booking/tickets/issue', 'booking/tickets', 'Issue', 8, 'done'],
+  ['booking/tickets/transfer', 'booking/tickets', 'Transfer', 10, 'done'],
+  ['booking/search', 'booking', 'Search', 25, 'waiting'],
+  ['booking/search/routes', 'booking/search', 'Routes', 11, 'waiting'],
+  ['booking/search/fares', 'booking/search', 'Fares', 14, 'waiting'],
+  ['payment', null, 'Payment', 41, 'failed'],
+  ['payment/deadline', 'payment', 'Pay deadline', 9, 'done'],
+  ['payment/refund', 'payment', 'Refund', 17, 'failed'],
+  ['payment/refund/window', 'payment/refund', 'Refund window', 6, 'failed'],
+  ['payment/refund/partial', 'payment/refund', 'Partial refund', 6, 'done'],
+  ['payment/refund/audit', 'payment/refund', 'Audit trail', 5, 'done'],
+  ['payment/methods', 'payment', 'Methods', 15, 'done'],
+  ['payment/methods/card', 'payment/methods', 'Card', 8, 'done'],
+  ['payment/methods/wallet', 'payment/methods', 'Wallet', 7, 'done'],
+  ['accounts', null, 'Accounts', 27, 'done'],
+  ['accounts/signup', 'accounts', 'Sign-up', 8, 'done'],
+  ['accounts/profile', 'accounts', 'Profile', 11, 'done'],
+  ['accounts/profile/contacts', 'accounts/profile', 'Contacts', 6, 'done'],
+  [
+    'accounts/profile/preferences',
+    'accounts/profile',
+    'Preferences',
+    5,
+    'done',
+  ],
+  ['accounts/recovery', 'accounts', 'Recovery', 8, 'waiting'],
+  ['operations', null, 'Operations', 19, 'working'],
+  ['operations/timetable', 'operations', 'Timetable', 12, 'working'],
+  ['operations/notices', 'operations', 'Service notices', 7, 'waiting'],
+  ['reports', null, 'Reports', 6, 'waiting'],
+];
+
+function regionMapRegions(selectedId: string | undefined): RegionMapRegion[] {
+  return REGION_MAP_AREAS.map(([id, parentId, label, count, phase]) => ({
+    id,
+    parentId,
+    label,
+    count,
+    status: REGION_MAP_PHASE_STATUS[phase],
+    to: `#area-${id}`,
+    state: (
+      <Chip
+        size='sm'
+        tone={REGION_MAP_PHASE_TONE[phase]}
+        inverted={id === selectedId}
+      >
+        {phase}
+      </Chip>
+    ),
+  }));
+}
+
+function RegionMapSpecimen({
+  narrow = false,
+}: {
+  narrow?: boolean;
+}): ReactNode {
+  const [selected, setSelected] = useState<string | undefined>(
+    'payment/refund/window'
+  );
+  const regions = useMemo(() => regionMapRegions(selected), [selected]);
+  const map = (
+    <RegionMap
+      regions={regions}
+      ariaLabel='Areas of the requirement store'
+      selectedId={selected}
+      onSelect={(region) => setSelected(region.id)}
+      linkComponent={GalleryRouterLink}
+    />
+  );
+  return (
+    <div className='gallery__stack'>
+      <MetricLabel as='div'>selectedId · {selected ?? 'none'}</MetricLabel>
+      {narrow ? <div className='gallery__narrow-panel'>{map}</div> : map}
     </div>
   );
 }
@@ -3130,6 +3253,24 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <ServiceMapAutoHeightSpecimen />
+        </Specimen>
+      </div>
+
+      <SectionDivider extra={<MetricLabel>territory map</MetricLabel>}>
+        RegionMap
+      </SectionDivider>
+      <div className='gallery__stack'>
+        <Specimen
+          caption="regions · selectedId · onSelect · linkComponent — 32 areas four levels deep, each region's tiles nested inside it and filling the width, a region with more areas under it taking more room · a dot before each label shows its state and an area at work pulses, as in ServiceMap · a count and a state Chip at the end of each head, the host passing inverted to the selected area's Chip · click a tile to select it, or a label to follow its link · for assistive technology the map is a tree read region by region: one tab stop, ↑ ↓ in reading order, → into a region, ← out of it, Enter follows the link, Space selects; each tile is named by its label and described by its count and state"
+          span={3}
+        >
+          <RegionMapSpecimen />
+        </Specimen>
+        <Specimen
+          caption='in a 22rem column — tiles narrow to --region-map-tile-basis-narrow at 768 px or narrower, and a head wraps its state under its label'
+          span={3}
+        >
+          <RegionMapSpecimen narrow />
         </Specimen>
       </div>
 
