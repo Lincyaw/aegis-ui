@@ -91,6 +91,12 @@ interface TraceTreeProps {
    * becomes a root.
    */
   spans: TraceSpan[];
+  /**
+   * The selected span. Its row is revealed: when the tree mounts, and each
+   * time `selectedId` changes, the rows it hangs under expand, so a tree
+   * opened with `defaultCollapsedDepth` shows the path to it. Rows the
+   * viewer collapses later stay collapsed.
+   */
   selectedId?: string;
   onSelect?: (span: TraceSpan) => void;
   /**
@@ -205,6 +211,41 @@ function buildForest(spans: TraceSpan[]): Node[] {
   return roots;
 }
 
+function findNode(roots: Node[], id: string): Node | undefined {
+  for (const root of roots) {
+    if (root.span.id === id) {
+      return root;
+    }
+    const found = findNode(root.children, id);
+    if (found) {
+      return found;
+    }
+  }
+  return undefined;
+}
+
+/** `collapsed` without the ancestors of the row `id`, or `collapsed` itself when none of them is collapsed. */
+function revealRow(
+  roots: Node[],
+  collapsed: Set<string>,
+  id: string,
+): Set<string> {
+  let next = collapsed;
+  for (
+    let ancestor = findNode(roots, id)?.parent ?? null;
+    ancestor !== null;
+    ancestor = ancestor.parent
+  ) {
+    if (next.has(ancestor.span.id)) {
+      if (next === collapsed) {
+        next = new Set(collapsed);
+      }
+      next.delete(ancestor.span.id);
+    }
+  }
+  return next;
+}
+
 function flatten(
   nodes: Node[],
   collapsed: Set<string>,
@@ -267,8 +308,30 @@ export function TraceTree({
       n.children.forEach(walk);
     };
     roots.forEach(walk);
-    return init;
+    return selectedId === undefined ? init : revealRow(roots, init, selectedId);
   });
+  // The selection the tree last revealed, so a new selectedId is revealed
+  // once, before it is painted, and a span that arrives later is revealed
+  // when it arrives.
+  const [revealed, setRevealed] = useState<string | undefined>(() =>
+    selectedId !== undefined && findNode(roots, selectedId)
+      ? selectedId
+      : undefined,
+  );
+  if (selectedId === undefined && revealed !== undefined) {
+    setRevealed(undefined);
+  }
+  if (
+    selectedId !== undefined &&
+    selectedId !== revealed &&
+    findNode(roots, selectedId)
+  ) {
+    setRevealed(selectedId);
+    const next = revealRow(roots, collapsed, selectedId);
+    if (next !== collapsed) {
+      setCollapsed(next);
+    }
+  }
   const [focusedId, setFocusedId] = useState<string | undefined>(undefined);
 
   const visible = useMemo(() => flatten(roots, collapsed), [roots, collapsed]);

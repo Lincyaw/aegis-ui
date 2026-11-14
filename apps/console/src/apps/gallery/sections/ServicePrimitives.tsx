@@ -1303,6 +1303,56 @@ function TraceTreeLinkedSpecimen(): ReactNode {
   );
 }
 
+/** A requirement tree of 6 areas × 4 subareas × 5 requirements. */
+const TRACE_TREE_REVEAL_SPANS: TraceSpan[] = Array.from(
+  { length: 6 },
+  (_, a) => {
+    const area = `A${String(a + 1)}`;
+    return [
+      { id: area, name: `${area} area` },
+      ...Array.from({ length: 4 }, (_unused, b) => {
+        const sub = `${area}.${String(b + 1)}`;
+        return [
+          { id: sub, parentId: area, name: `${sub} subarea` },
+          ...Array.from({ length: 5 }, (_none, c) => ({
+            id: `${sub}.${String(c + 1)}`,
+            parentId: sub,
+            name: `${sub}.${String(c + 1)} requirement`,
+          })),
+        ];
+      }).flat(),
+    ];
+  }
+).flat();
+
+const TRACE_TREE_REVEAL_TARGETS = ['A2.3.4', 'A5.1.2', 'A6.4.5'];
+
+function TraceTreeRevealSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string | undefined>('A2.3.4');
+  return (
+    <div className='gallery__stack'>
+      <div className='gallery__row'>
+        {TRACE_TREE_REVEAL_TARGETS.map((id) => (
+          <AegisButton
+            key={id}
+            tone='secondary'
+            onClick={() => setSelected(id)}
+          >
+            Go to {id}
+          </AegisButton>
+        ))}
+      </div>
+      <TraceTree
+        spans={TRACE_TREE_REVEAL_SPANS}
+        selectedId={selected}
+        onSelect={(span) => setSelected(span.id)}
+        defaultCollapsedDepth={0}
+        ariaLabel='Requirements'
+      />
+    </div>
+  );
+}
+
 const TASK_GRAPH_AREAS = [
   'seats',
   'refund',
@@ -2940,6 +2990,12 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <TraceTreeLinkedSpecimen />
+        </Specimen>
+        <Specimen
+          caption='defaultCollapsedDepth={0} · selectedId reveals its row — 150 rows open with only the path to the selected requirement expanded; Go to selects a row hidden under collapsed rows, as a link elsewhere on the page would, and its ancestors expand before it is drawn; a row you collapse stays collapsed'
+          span={3}
+        >
+          <TraceTreeRevealSpecimen />
         </Specimen>
       </div>
 
