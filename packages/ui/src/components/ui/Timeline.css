@@ -138,3 +138,69 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── selectable: options inverted when selected ────────────────────── */
+.aegis-timeline--selectable:not(.aegis-timeline--numbered) {
+  gap: 0;
+}
+
+.aegis-timeline--selectable .aegis-timeline__item {
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--motion-fast);
+}
+
+.aegis-timeline--selectable:not(.aegis-timeline--numbered)
+  .aegis-timeline__item {
+  padding-block: var(--space-2);
+}
+
+/* The connector runs from the title line's bottom to the next item's
+ * title line, through the items' padding. */
+.aegis-timeline--selectable .aegis-timeline__item::before {
+  left: calc(var(--space-3) + (var(--space-3) - var(--size-hairline)) / 2);
+  top: calc(var(--space-2) + var(--type-strong-line));
+  bottom: calc(-1 * var(--space-2));
+}
+
+.aegis-timeline--selectable .aegis-timeline__item:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-timeline--selectable .aegis-timeline__item:active {
+  background: var(--bg-tint);
+}
+
+.aegis-timeline--selectable .aegis-timeline__item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.aegis-timeline__item--selected,
+.aegis-timeline--selectable .aegis-timeline__item--selected:hover,
+.aegis-timeline--selectable .aegis-timeline__item--selected:active {
+  background: var(--bg-inverted);
+}
+
+.aegis-timeline__item--selected .aegis-timeline__title {
+  color: var(--text-on-inverted);
+}
+
+.aegis-timeline__item--selected .aegis-timeline__desc,
+.aegis-timeline__item--selected .aegis-timeline__marker,
+.aegis-timeline__item--selected .aegis-timeline__meta,
+.aegis-timeline__item--selected .aegis-timeline__time {
+  color: var(--text-on-inverted-muted);
+}
+
+.aegis-timeline__item--selected .aegis-timeline__dot {
+  background: var(--text-on-inverted);
+}
+
+/* ── scrollable: the list scrolls inside its bound ─────────────────── */
+.aegis-timeline--scrollable {
+  max-height: var(--timeline-scroll-max-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

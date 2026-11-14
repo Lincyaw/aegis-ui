@@ -416,6 +416,8 @@
   --chat-session-menu-min-width: 140px;
   --parquet-created-by-max-width: 200px;
   --service-map-min-height: 360px;
+  /* A scrollable Timeline: about ten selectable items. */
+  --timeline-scroll-max-height: 480px;
   /* ServiceMap's fillViewport: the viewport below the header and the
    * breadcrumb bar, less the page's top and bottom padding. */
   --service-map-viewport-height: calc(

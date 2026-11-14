@@ -1353,6 +1353,62 @@ function TraceTreeRevealSpecimen(): ReactNode {
   );
 }
 
+const TIMELINE_VERSION_VERBS = [
+  'Add',
+  'Reword',
+  'Split',
+  'Merge',
+  'Drop',
+  'Clarify',
+];
+const TIMELINE_VERSION_SUBJECTS = [
+  'the refund window for group bookings',
+  'seat allocation when a carriage is full',
+  'the payment deadline after a seat is held',
+  'ticket transfer between two accounts',
+  'what a cancelled run reports to its area',
+];
+
+/** One branch's 200 requirement commits, oldest first. */
+const TIMELINE_VERSIONS = Array.from({ length: 200 }, (_, index) => {
+  const id = ((index + 1) * 2654435761).toString(16).padStart(8, '0').slice(-7);
+  const day = 1 + Math.floor(index / 8);
+  const hour = 9 + (index % 8);
+  return {
+    id,
+    title: `${TIMELINE_VERSION_VERBS[index % TIMELINE_VERSION_VERBS.length]} ${TIMELINE_VERSION_SUBJECTS[index % TIMELINE_VERSION_SUBJECTS.length]}`,
+    timestamp: `2026-${String(9 + Math.floor((day - 1) / 30)).padStart(2, '0')}-${String(((day - 1) % 30) + 1).padStart(2, '0')} ${String(hour).padStart(2, '0')}:00`,
+  };
+});
+
+function TimelineSelectableSpecimen(): ReactNode {
+  const [selected, setSelected] = useState(
+    TIMELINE_VERSIONS[TIMELINE_VERSIONS.length - 1].id
+  );
+  return (
+    <div className='gallery__stack'>
+      <MetricLabel as='div'>selectedId · {selected}</MetricLabel>
+      <Timeline
+        density='compact'
+        scrollable
+        ariaLabel='Versions of the requirements'
+        selectedId={selected}
+        onSelect={(item) => setSelected(item.id)}
+        items={TIMELINE_VERSIONS.map((version) => ({
+          id: version.id,
+          title: version.title,
+          timestamp: version.timestamp,
+          meta: (
+            <MonoValue size='sm' inverted={version.id === selected}>
+              {version.id}
+            </MonoValue>
+          ),
+        }))}
+      />
+    </div>
+  );
+}
+
 const TASK_GRAPH_AREAS = [
   'seats',
   'refund',
@@ -2917,6 +2973,12 @@ export function ServicePrimitivesSection() {
               ]}
             />
           </div>
+        </Specimen>
+        <Specimen
+          caption="selectedId · onSelect · scrollable — one branch's 200 requirement commits, oldest first: a listbox of options, the selected one inverted; click, or Tab in and move with ↑ ↓ Home End and choose with Enter or Space · the list scrolls within --timeline-scroll-max-height and keeps the selected commit in view, the newest when it opens · the host passes inverted to the MonoValue of the selected commit"
+          span={3}
+        >
+          <TimelineSelectableSpecimen />
         </Specimen>
         <Specimen caption="density='compact' · dot" span={3}>
           <div className='gallery__narrow-panel'>
