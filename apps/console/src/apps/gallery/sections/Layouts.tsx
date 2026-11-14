@@ -49,6 +49,8 @@ import {
   Toolbar,
   type TraceSpan,
   TraceTree,
+  TreeTable,
+  type TreeTableColumn,
 } from '@lincyaw/aegis-ui';
 
 import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
@@ -547,12 +549,31 @@ const DETAIL_MAP_EDGES: ServiceMapEdge[] = DETAIL_MAP_GROUPS.flatMap((group) =>
     target,
   }))
 );
+/** Each requirement's children, the areas under null, for a TreeTable's getSubRows. */
+const DETAIL_CHILDREN = new Map<string | null, GalleryRequirement[]>();
+DETAIL_REQUIREMENTS.forEach((r) => {
+  DETAIL_CHILDREN.set(r.parent, [...(DETAIL_CHILDREN.get(r.parent) ?? []), r]);
+});
+const DETAIL_TREE_COLUMNS: Array<TreeTableColumn<GalleryRequirement>> = [
+  { key: 'name', header: 'Requirement', render: (r) => r.name },
+  {
+    key: 'kind',
+    header: 'Kind',
+    width: 128,
+    render: (r) => (
+      <Chip size='sm' tone='ghost'>
+        {r.kind}
+      </Chip>
+    ),
+  },
+];
 
-/** Each list opens on a deep item: the tree, files and table on a requirement, the map on a group. */
+/** Each list opens on a deep item: the trees, files and table on a requirement, the map on a group. */
 const DETAIL_LISTS = [
   { key: 'tree', label: 'TraceTree', opensOn: 'A5.3.4' },
   { key: 'files', label: 'FileTree', opensOn: 'A5.3.4' },
   { key: 'table', label: 'DataTable', opensOn: 'A5.3.4' },
+  { key: 'treetable', label: 'TreeTable', opensOn: 'A5.3.4' },
   { key: 'map', label: 'ServiceMap', opensOn: 'A5.3' },
 ];
 
@@ -635,6 +656,22 @@ function DetailBesideSpecimen(): ReactNode {
           rowKey={(r) => r.id}
           selectedKeys={[selected]}
           onRowClick={(r) => {
+            setSelected(r.id);
+          }}
+        />
+      </Panel>
+    ),
+    treetable: (
+      <Panel title='Requirements by area' padded={false}>
+        <TreeTable<GalleryRequirement>
+          ariaLabel='Requirements by area'
+          framed={false}
+          columns={DETAIL_TREE_COLUMNS}
+          data={DETAIL_CHILDREN.get(null) ?? []}
+          rowKey={(r) => r.id}
+          getSubRows={(r) => DETAIL_CHILDREN.get(r.id)}
+          selectedKey={selected}
+          onSelect={(r) => {
             setSelected(r.id);
           }}
         />
@@ -1060,7 +1097,7 @@ export function LayoutsSection() {
 
       <SectionDivider>DetailBeside</SectionDivider>
       <Specimen
-        caption="columns='3fr 2fr' · scrollContainer · TraceTree, FileTree, DataTable or ServiceMap · the detail under the row at ≤768 px"
+        caption="columns='3fr 2fr' · scrollContainer · TraceTree, FileTree, DataTable, TreeTable or ServiceMap · the detail under the row at ≤768 px"
         span={3}
       >
         <DetailBesideSpecimen />

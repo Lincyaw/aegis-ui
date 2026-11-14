@@ -1,0 +1,223 @@
+.aegis-tree-table {
+  /* A cell's side padding and the indent of each level. */
+  --aegis-tree-table-pad-x: var(--space-3);
+  --aegis-tree-table-indent: var(--space-4);
+
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  color: var(--text-main);
+}
+
+/* framed: the table is its own card, as a framed DataTable is. */
+.aegis-tree-table--framed {
+  overflow: hidden;
+  background: var(--bg-panel);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-rest);
+}
+
+.aegis-tree-table__grid {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Focus lands on the grid only from a click between rows; the rows carry
+ * the focus ring. */
+.aegis-tree-table__grid:focus {
+  outline: none;
+}
+
+/* Every row lays its cells on the same tracks, so the columns line up
+ * without measuring a cell. */
+.aegis-tree-table__head,
+.aegis-tree-table__row {
+  display: grid;
+  grid-template-columns: var(--aegis-tree-table-columns);
+}
+
+.aegis-tree-table__head,
+.aegis-tree-table__row,
+.aegis-tree-table__inline {
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
+/* The card's edge closes the table, so the last row draws no separator. */
+.aegis-tree-table__grid > :last-child {
+  border-bottom: none;
+}
+
+.aegis-tree-table__head {
+  background: var(--bg-muted);
+}
+
+.aegis-tree-table__th {
+  min-width: 0;
+  padding: var(--space-2) var(--aegis-tree-table-pad-x);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The first header starts where a top-level row's text does, past its caret. */
+.aegis-tree-table__th:first-child {
+  padding-left: calc(
+    var(--aegis-tree-table-pad-x) + var(--size-icon-base) + var(--space-2)
+  );
+}
+
+.aegis-tree-table__th--numeric {
+  text-align: right;
+}
+
+/* Rows out of view skip their layout and paint, so a tree with thousands of
+ * open rows draws only the ones on screen. */
+.aegis-tree-table__row {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto var(--size-control-lg);
+  transition: background var(--motion-fast);
+}
+
+.aegis-tree-table__row:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+}
+
+/* Rows that select react to hover at half the selected fill, as a
+ * DataTable's do, so a hovered row never looks selected. */
+.aegis-tree-table__row--selectable {
+  cursor: pointer;
+}
+
+.aegis-tree-table__row--selectable:hover,
+.aegis-tree-table__row--selectable:focus-visible {
+  background: color-mix(in srgb, var(--bg-muted) 50%, transparent);
+}
+
+.aegis-tree-table__row--selected,
+.aegis-tree-table__row--selected:hover,
+.aegis-tree-table__row--selected:focus-visible {
+  background: var(--bg-muted);
+}
+
+.aegis-tree-table__cell {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) var(--aegis-tree-table-pad-x);
+  overflow-wrap: anywhere;
+}
+
+.aegis-tree-table__cell--tree {
+  padding-left: calc(
+    var(--aegis-tree-table-pad-x) + var(--aegis-tree-table-depth, 0) *
+      var(--aegis-tree-table-indent)
+  );
+}
+
+.aegis-tree-table__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.aegis-tree-table__cell--truncate > .aegis-tree-table__content {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.aegis-tree-table__cell--numeric {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.aegis-tree-table__cell--numeric > .aegis-tree-table__content {
+  flex: 0 1 auto;
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+/* One line of body text tall, so the caret sits on a wrapping cell's first
+ * line; a leaf keeps the empty slot, so its text lines up with its
+ * siblings'. */
+.aegis-tree-table__caret {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-base);
+  height: var(--type-body-line);
+  color: var(--text-muted);
+  transition: color var(--motion-fast);
+}
+
+.aegis-tree-table__caret[data-aegis-tree-table-caret] {
+  cursor: pointer;
+}
+
+.aegis-tree-table__caret[data-aegis-tree-table-caret]:hover {
+  color: var(--text-main);
+}
+
+.aegis-tree-table__chevron {
+  font-size: var(--size-icon-sm);
+  transition: transform var(--motion-base);
+}
+
+.aegis-tree-table__row[aria-expanded='true'] .aegis-tree-table__chevron {
+  transform: rotate(90deg);
+}
+
+/* Folded (768 px and below): the first cell on top, every other cell under
+ * its text, named by its header. */
+.aegis-tree-table--folded {
+  --aegis-tree-table-indent: var(--space-3);
+}
+
+.aegis-tree-table--folded .aegis-tree-table__row {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--space-1);
+  padding-block: var(--space-2);
+}
+
+.aegis-tree-table--folded .aegis-tree-table__cell {
+  padding-block: 0;
+}
+
+.aegis-tree-table--folded
+  .aegis-tree-table__cell:not(.aegis-tree-table__cell--tree) {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--space-2);
+  padding-left: calc(
+    var(--aegis-tree-table-pad-x) + var(--aegis-tree-table-depth, 0) *
+      var(--aegis-tree-table-indent) + var(--size-icon-base) + var(--space-2)
+  );
+  text-align: left;
+}
+
+/* A cell that draws nothing leaves its label out too. */
+.aegis-tree-table--folded
+  .aegis-tree-table__cell:has(> .aegis-tree-table__content:empty) {
+  display: none;
+}
+
+.aegis-tree-table__label {
+  font-size: var(--type-small-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  color: var(--text-muted);
+}

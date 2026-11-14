@@ -41,12 +41,13 @@ export interface DetailBesideProps {
    */
   detail: ReactNode;
   /**
-   * The list: a `TraceTree`, `FileTree`, `DataTable` or `ServiceMap`, in a
-   * Panel say. The detail follows the row it draws selected. Like
-   * `detail`, render it anew from the host's data whenever that data
-   * changes, so the page stays where it is on new data; a list that fetches
-   * its own data and redraws without this host rendering leaves the page
-   * following the row, and its next change of size scrolls the page.
+   * The list: a `TraceTree`, `FileTree`, `DataTable`, `TreeTable` or
+   * `ServiceMap`, in a Panel say. The detail follows the row it draws
+   * selected. Like `detail`, render it anew from the host's data whenever
+   * that data changes, so the page stays where it is on new data; a list
+   * that fetches its own data and redraws without this host rendering
+   * leaves the page following the row, and its next change of size scrolls
+   * the page.
    */
   children: ReactNode;
   /**

@@ -19,6 +19,8 @@ import {
   SearchInput,
   SectionDivider,
   Toolbar,
+  TreeTable,
+  type TreeTableColumn,
 } from '@lincyaw/aegis-ui';
 
 import { GALLERY_RUN_COLUMNS } from '../columns';
@@ -787,6 +789,283 @@ function ResizableColumnsSpecimen(): ReactNode {
   );
 }
 
+/* ── TreeTable specimens ───────────────────────────────────────────── */
+
+interface GallerySuite {
+  path: string;
+  name: string;
+  /** A test's own result; a suite's comes from the tests under it. */
+  result?: 'passed' | 'failed' | 'skipped';
+  children?: GallerySuite[];
+}
+
+function gallerySuite(
+  parent: string,
+  name: string,
+  children: GallerySuite[]
+): GallerySuite {
+  return { path: `${parent}${name}/`, name: `${name}/`, children };
+}
+
+function galleryTest(
+  parent: string,
+  name: string,
+  result: 'passed' | 'failed' | 'skipped'
+): GallerySuite {
+  return { path: `${parent}${name}`, name, result };
+}
+
+const GALLERY_SUITES: GallerySuite[] = [
+  gallerySuite('', 'api', [
+    gallerySuite('api/', 'orders', [
+      galleryTest('api/orders/', 'create_rejects_empty_cart', 'failed'),
+      galleryTest('api/orders/', 'create_reserves_stock', 'passed'),
+      galleryTest('api/orders/', 'cancel_releases_stock', 'failed'),
+    ]),
+    gallerySuite('api/', 'billing', [
+      galleryTest('api/billing/', 'charge_is_idempotent', 'passed'),
+      galleryTest('api/billing/', 'refund_after_cancel', 'skipped'),
+    ]),
+  ]),
+  gallerySuite('', 'web', [
+    gallerySuite('web/', 'checkout', [
+      galleryTest('web/checkout/', 'shows_the_total_with_tax', 'passed'),
+      galleryTest('web/checkout/', 'keeps_the_cart_after_sign_in', 'passed'),
+    ]),
+  ]),
+  galleryTest('', 'smoke', 'passed'),
+];
+
+function galleryTests(suite: GallerySuite): GallerySuite[] {
+  return suite.children === undefined
+    ? [suite]
+    : suite.children.flatMap(galleryTests);
+}
+
+const GALLERY_RESULT_TONES = {
+  passed: 'success',
+  failed: 'warning',
+  skipped: 'default',
+} as const;
+
+const GALLERY_SUITE_COLUMNS: Array<TreeTableColumn<GallerySuite>> = [
+  {
+    key: 'name',
+    header: 'Suite',
+    render: (row) => <MonoValue size='sm'>{row.name}</MonoValue>,
+  },
+  {
+    key: 'result',
+    header: 'Result',
+    width: 112,
+    render: (row) => {
+      const tests = galleryTests(row);
+      const result =
+        row.result ??
+        (tests.some((test) => test.result === 'failed') ? 'failed' : 'passed');
+      return (
+        <Chip size='sm' tone={GALLERY_RESULT_TONES[result]}>
+          {result}
+        </Chip>
+      );
+    },
+  },
+  {
+    key: 'tests',
+    header: 'Tests',
+    width: 88,
+    numeric: true,
+    render: (row) => galleryTests(row).length,
+  },
+  {
+    key: 'failing',
+    header: 'Failing',
+    width: 152,
+    render: (row, { expanded }) => {
+      if (row.children === undefined || expanded) {
+        return row.result === 'failed' ? 'this test' : null;
+      }
+      const failing = galleryTests(row).filter(
+        (test) => test.result === 'failed'
+      ).length;
+      return failing === 0 ? null : `${String(failing)} below`;
+    },
+  },
+];
+
+function TreeTableSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string | null>(null);
+  return (
+    <Specimen
+      caption={`uncontrolled · defaultExpandedKeys · onSelect · a collapsed row counts what it hides (render's state.expanded) · one tab stop: ↑ ↓ Home End, → opens or enters, ← closes or leaves, Enter or Space selects · folds at ≤768 px · selected: ${selected ?? 'none'}`}
+      span={3}
+    >
+      <TreeTable
+        ariaLabel='Test suites'
+        columns={GALLERY_SUITE_COLUMNS}
+        data={GALLERY_SUITES}
+        rowKey={(row) => row.path}
+        getSubRows={(row) => row.children}
+        defaultExpandedKeys={['api/', 'api/orders/']}
+        selectedKey={selected}
+        onSelect={(row) => {
+          setSelected(row.path);
+        }}
+      />
+    </Specimen>
+  );
+}
+
+interface GalleryHost {
+  id: string;
+  status: 'ok' | 'degraded' | 'down';
+  load: number;
+  children?: GalleryHost[];
+}
+
+const GALLERY_HOST_TONES = {
+  ok: 'success',
+  degraded: 'caution',
+  down: 'warning',
+} as const;
+
+/** 8 regions of 15 zones of 25 hosts: 3,128 rows when all are open. */
+const GALLERY_FLEET: GalleryHost[] = Array.from({ length: 8 }, (_, r) => {
+  const region = `region-${String(r + 1)}`;
+  return {
+    id: region,
+    status: 'ok' as const,
+    load: 0,
+    children: Array.from({ length: 15 }, (__, z) => {
+      const zone = `${region}/zone-${String.fromCharCode(97 + z)}`;
+      return {
+        id: zone,
+        status: 'ok' as const,
+        load: 0,
+        children: Array.from({ length: 25 }, (___, h) => {
+          const n = r * 375 + z * 25 + h;
+          return {
+            id: `${zone}/host-${String(h + 1).padStart(2, '0')}`,
+            status: n % 97 === 0 ? 'down' : n % 13 === 0 ? 'degraded' : 'ok',
+            load: (n * 37) % 100,
+          };
+        }),
+      };
+    }),
+  };
+});
+
+const GALLERY_FLEET_PARENTS = GALLERY_FLEET.flatMap((region) => [
+  region.id,
+  ...(region.children ?? []).map((zone) => zone.id),
+]);
+
+function galleryHosts(host: GalleryHost): GalleryHost[] {
+  return host.children === undefined
+    ? [host]
+    : host.children.flatMap(galleryHosts);
+}
+
+const GALLERY_FLEET_COLUMNS: Array<TreeTableColumn<GalleryHost>> = [
+  {
+    key: 'name',
+    header: 'Host',
+    truncate: true,
+    render: (row) => row.id.slice(row.id.lastIndexOf('/') + 1),
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    width: 120,
+    render: (row) => {
+      const hosts = galleryHosts(row);
+      const down = hosts.filter((host) => host.status === 'down').length;
+      if (row.children !== undefined) {
+        return down === 0 ? null : (
+          <Chip size='sm' tone='warning'>
+            {`${String(down)} down`}
+          </Chip>
+        );
+      }
+      return (
+        <Chip size='sm' tone={GALLERY_HOST_TONES[row.status]}>
+          {row.status}
+        </Chip>
+      );
+    },
+  },
+  {
+    key: 'load',
+    header: 'Load',
+    width: 88,
+    numeric: true,
+    render: (row) => (row.children === undefined ? `${String(row.load)}%` : ''),
+  },
+];
+
+function TreeTableFleetSpecimen(): ReactNode {
+  const [expanded, setExpanded] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
+  const shown = GALLERY_FLEET.reduce(
+    (count, region) =>
+      count +
+      1 +
+      (expanded.includes(region.id)
+        ? (region.children ?? []).reduce(
+            (zones, zone) =>
+              zones +
+              1 +
+              (expanded.includes(zone.id) ? (zone.children ?? []).length : 0),
+            0
+          )
+        : 0),
+    0
+  );
+  return (
+    <Specimen
+      caption={`controlled expandedKeys · framed={false} in a titled Panel padded={false} · ${String(shown)} rows shown · selected: ${selected ?? 'none'}`}
+      span={3}
+    >
+      <div className='gallery__stack gallery__stack--fill'>
+        <div className='gallery__row'>
+          <AegisButton
+            tone='secondary'
+            onClick={() => {
+              setExpanded(GALLERY_FLEET_PARENTS);
+            }}
+          >
+            Expand all
+          </AegisButton>
+          <AegisButton
+            tone='ghost'
+            onClick={() => {
+              setExpanded([]);
+            }}
+          >
+            Collapse all
+          </AegisButton>
+        </div>
+        <Panel title='Fleet' padded={false}>
+          <TreeTable
+            ariaLabel='Fleet'
+            framed={false}
+            columns={GALLERY_FLEET_COLUMNS}
+            data={GALLERY_FLEET}
+            rowKey={(row) => row.id}
+            getSubRows={(row) => row.children}
+            expandedKeys={expanded}
+            onExpandedKeysChange={setExpanded}
+            selectedKey={selected}
+            onSelect={(row) => {
+              setSelected(row.id);
+            }}
+          />
+        </Panel>
+      </div>
+    </Specimen>
+  );
+}
+
 export function TablesSection() {
   return (
     <GallerySection title='Tables & Toolbar'>
@@ -1000,6 +1279,25 @@ export function TablesSection() {
           ]}
           data={GALLERY_RUNS.slice(0, 3)}
           rowKey={(row) => row.id}
+        />
+      </Specimen>
+
+      <SectionDivider>TreeTable</SectionDivider>
+      <TreeTableSpecimen />
+
+      <SectionDivider>TreeTable · 3,128 rows</SectionDivider>
+      <TreeTableFleetSpecimen />
+
+      <SectionDivider>TreeTable · empty</SectionDivider>
+      <Specimen caption='EmptyState under the header' span={3}>
+        <TreeTable
+          ariaLabel='Test suites'
+          columns={GALLERY_SUITE_COLUMNS}
+          data={[]}
+          rowKey={(row) => row.path}
+          getSubRows={(row) => row.children}
+          emptyTitle='No test runs'
+          emptyDescription='Run the suite to see its results here.'
         />
       </Specimen>
 

@@ -172,6 +172,12 @@ export type {
 } from './DataTable';
 export { EventTable } from './EventTable';
 export type { EventTableColumn, EventTableProps } from './EventTable';
+export { TreeTable } from './TreeTable';
+export type {
+  TreeTableColumn,
+  TreeTableProps,
+  TreeTableRowState,
+} from './TreeTable';
 export { DataList } from './DataList';
 export type { DataListColumn, DataListItem, DataListSurface } from './DataList';
 export { Toolbar } from './Toolbar';
