@@ -37,6 +37,8 @@ import {
   QueryAutocomplete,
   type QueryAutocompleteFieldSuggestion,
   type QueryAutocompleteValueSuggestion,
+  RegionMap,
+  type RegionMapRegion,
   ResizableSidePanel,
   type SavedQuery,
   SavedQueryBar,
@@ -1300,6 +1302,233 @@ function TraceTreeLinkedSpecimen(): ReactNode {
       linkComponent={GalleryRouterLink}
       ariaLabel='Files of commit a41f09c'
     />
+  );
+}
+
+/** A requirement tree of 6 areas × 4 subareas × 5 requirements. */
+const TRACE_TREE_REVEAL_SPANS: TraceSpan[] = Array.from(
+  { length: 6 },
+  (_, a) => {
+    const area = `A${String(a + 1)}`;
+    return [
+      { id: area, name: `${area} area` },
+      ...Array.from({ length: 4 }, (_unused, b) => {
+        const sub = `${area}.${String(b + 1)}`;
+        return [
+          { id: sub, parentId: area, name: `${sub} subarea` },
+          ...Array.from({ length: 5 }, (_none, c) => ({
+            id: `${sub}.${String(c + 1)}`,
+            parentId: sub,
+            name: `${sub}.${String(c + 1)} requirement`,
+          })),
+        ];
+      }).flat(),
+    ];
+  }
+).flat();
+
+const TRACE_TREE_REVEAL_TARGETS = ['A2.3.4', 'A5.1.2', 'A6.4.5'];
+
+function TraceTreeRevealSpecimen(): ReactNode {
+  const [selected, setSelected] = useState<string | undefined>('A2.3.4');
+  return (
+    <div className='gallery__stack'>
+      <div className='gallery__row'>
+        {TRACE_TREE_REVEAL_TARGETS.map((id) => (
+          <AegisButton
+            key={id}
+            tone='secondary'
+            onClick={() => setSelected(id)}
+          >
+            Go to {id}
+          </AegisButton>
+        ))}
+      </div>
+      <TraceTree
+        spans={TRACE_TREE_REVEAL_SPANS}
+        selectedId={selected}
+        onSelect={(span) => setSelected(span.id)}
+        defaultCollapsedDepth={0}
+        ariaLabel='Requirements'
+      />
+    </div>
+  );
+}
+
+const TIMELINE_VERSION_VERBS = [
+  'Add',
+  'Reword',
+  'Split',
+  'Merge',
+  'Drop',
+  'Clarify',
+];
+const TIMELINE_VERSION_SUBJECTS = [
+  'the refund window for group bookings',
+  'seat allocation when a carriage is full',
+  'the payment deadline after a seat is held',
+  'ticket transfer between two accounts',
+  'what a cancelled run reports to its area',
+];
+
+/** One branch's 200 requirement commits, oldest first. */
+const TIMELINE_VERSIONS = Array.from({ length: 200 }, (_, index) => {
+  const id = ((index + 1) * 2654435761).toString(16).padStart(8, '0').slice(-7);
+  const day = 1 + Math.floor(index / 8);
+  const hour = 9 + (index % 8);
+  return {
+    id,
+    title: `${TIMELINE_VERSION_VERBS[index % TIMELINE_VERSION_VERBS.length]} ${TIMELINE_VERSION_SUBJECTS[index % TIMELINE_VERSION_SUBJECTS.length]}`,
+    timestamp: `2026-${String(9 + Math.floor((day - 1) / 30)).padStart(2, '0')}-${String(((day - 1) % 30) + 1).padStart(2, '0')} ${String(hour).padStart(2, '0')}:00`,
+  };
+});
+
+function TimelineSelectableSpecimen(): ReactNode {
+  const [selected, setSelected] = useState(
+    TIMELINE_VERSIONS[TIMELINE_VERSIONS.length - 1].id
+  );
+  return (
+    <div className='gallery__stack'>
+      <MetricLabel as='div'>selectedId · {selected}</MetricLabel>
+      <Timeline
+        density='compact'
+        scrollable
+        ariaLabel='Versions of the requirements'
+        selectedId={selected}
+        onSelect={(item) => setSelected(item.id)}
+        items={TIMELINE_VERSIONS.map((version) => ({
+          id: version.id,
+          title: version.title,
+          timestamp: version.timestamp,
+          meta: (
+            <MonoValue size='sm' inverted={version.id === selected}>
+              {version.id}
+            </MonoValue>
+          ),
+        }))}
+      />
+    </div>
+  );
+}
+
+type RegionMapPhase = 'done' | 'working' | 'failed' | 'waiting';
+
+const REGION_MAP_PHASE_STATUS: Record<
+  RegionMapPhase,
+  RegionMapRegion['status']
+> = {
+  done: 'ok',
+  working: 'active',
+  failed: 'error',
+  waiting: 'muted',
+};
+
+const REGION_MAP_PHASE_TONE = {
+  done: 'success',
+  working: 'ink',
+  failed: 'warning',
+  waiting: 'ghost',
+} as const;
+
+/** [id, parentId, label, requirements, phase] — a requirement store's areas, four levels deep. */
+const REGION_MAP_AREAS: Array<
+  [string, string | null, string, number, RegionMapPhase]
+> = [
+  ['booking', null, 'Booking', 64, 'working'],
+  ['booking/seats', 'booking', 'Seats', 21, 'working'],
+  ['booking/seats/allocation', 'booking/seats', 'Allocation', 9, 'working'],
+  [
+    'booking/seats/allocation/group',
+    'booking/seats/allocation',
+    'Group booking',
+    5,
+    'working',
+  ],
+  [
+    'booking/seats/allocation/single',
+    'booking/seats/allocation',
+    'Single seat',
+    4,
+    'done',
+  ],
+  ['booking/seats/holds', 'booking/seats', 'Holds', 7, 'done'],
+  ['booking/seats/map', 'booking/seats', 'Seat map', 5, 'done'],
+  ['booking/tickets', 'booking', 'Tickets', 18, 'done'],
+  ['booking/tickets/issue', 'booking/tickets', 'Issue', 8, 'done'],
+  ['booking/tickets/transfer', 'booking/tickets', 'Transfer', 10, 'done'],
+  ['booking/search', 'booking', 'Search', 25, 'waiting'],
+  ['booking/search/routes', 'booking/search', 'Routes', 11, 'waiting'],
+  ['booking/search/fares', 'booking/search', 'Fares', 14, 'waiting'],
+  ['payment', null, 'Payment', 41, 'failed'],
+  ['payment/deadline', 'payment', 'Pay deadline', 9, 'done'],
+  ['payment/refund', 'payment', 'Refund', 17, 'failed'],
+  ['payment/refund/window', 'payment/refund', 'Refund window', 6, 'failed'],
+  ['payment/refund/partial', 'payment/refund', 'Partial refund', 6, 'done'],
+  ['payment/refund/audit', 'payment/refund', 'Audit trail', 5, 'done'],
+  ['payment/methods', 'payment', 'Methods', 15, 'done'],
+  ['payment/methods/card', 'payment/methods', 'Card', 8, 'done'],
+  ['payment/methods/wallet', 'payment/methods', 'Wallet', 7, 'done'],
+  ['accounts', null, 'Accounts', 27, 'done'],
+  ['accounts/signup', 'accounts', 'Sign-up', 8, 'done'],
+  ['accounts/profile', 'accounts', 'Profile', 11, 'done'],
+  ['accounts/profile/contacts', 'accounts/profile', 'Contacts', 6, 'done'],
+  [
+    'accounts/profile/preferences',
+    'accounts/profile',
+    'Preferences',
+    5,
+    'done',
+  ],
+  ['accounts/recovery', 'accounts', 'Recovery', 8, 'waiting'],
+  ['operations', null, 'Operations', 19, 'working'],
+  ['operations/timetable', 'operations', 'Timetable', 12, 'working'],
+  ['operations/notices', 'operations', 'Service notices', 7, 'waiting'],
+  ['reports', null, 'Reports', 6, 'waiting'],
+];
+
+function regionMapRegions(selectedId: string | undefined): RegionMapRegion[] {
+  return REGION_MAP_AREAS.map(([id, parentId, label, count, phase]) => ({
+    id,
+    parentId,
+    label,
+    count,
+    status: REGION_MAP_PHASE_STATUS[phase],
+    to: `#area-${id}`,
+    state: (
+      <Chip
+        size='sm'
+        tone={REGION_MAP_PHASE_TONE[phase]}
+        inverted={id === selectedId}
+      >
+        {phase}
+      </Chip>
+    ),
+  }));
+}
+
+function RegionMapSpecimen({
+  narrow = false,
+}: {
+  narrow?: boolean;
+}): ReactNode {
+  const [selected, setSelected] = useState<string | undefined>(
+    'payment/refund/window'
+  );
+  const regions = useMemo(() => regionMapRegions(selected), [selected]);
+  const map = (
+    <RegionMap
+      regions={regions}
+      ariaLabel='Areas of the requirement store'
+      selectedId={selected}
+      onSelect={(region) => setSelected(region.id)}
+      linkComponent={GalleryRouterLink}
+    />
+  );
+  return (
+    <div className='gallery__stack'>
+      <MetricLabel as='div'>selectedId · {selected ?? 'none'}</MetricLabel>
+      {narrow ? <div className='gallery__narrow-panel'>{map}</div> : map}
+    </div>
   );
 }
 
@@ -2868,6 +3097,12 @@ export function ServicePrimitivesSection() {
             />
           </div>
         </Specimen>
+        <Specimen
+          caption="selectedId · onSelect · scrollable — one branch's 200 requirement commits, oldest first: a listbox of options, the selected one inverted; click, or Tab in and move with ↑ ↓ Home End and choose with Enter or Space · the list scrolls within --timeline-scroll-max-height and keeps the selected commit in view, the newest when it opens · the host passes inverted to the MonoValue of the selected commit"
+          span={3}
+        >
+          <TimelineSelectableSpecimen />
+        </Specimen>
         <Specimen caption="density='compact' · dot" span={3}>
           <div className='gallery__narrow-panel'>
             <Timeline
@@ -2941,6 +3176,12 @@ export function ServicePrimitivesSection() {
         >
           <TraceTreeLinkedSpecimen />
         </Specimen>
+        <Specimen
+          caption='defaultCollapsedDepth={0} · selectedId reveals its row — 150 rows open with only the path to the selected requirement expanded; Go to selects a row hidden under collapsed rows, as a link elsewhere on the page would, and its ancestors expand before it is drawn; a row you collapse stays collapsed'
+          span={3}
+        >
+          <TraceTreeRevealSpecimen />
+        </Specimen>
       </div>
 
       <SectionDivider extra={<MetricLabel>OTel agent traces</MetricLabel>}>
@@ -3012,6 +3253,24 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <ServiceMapAutoHeightSpecimen />
+        </Specimen>
+      </div>
+
+      <SectionDivider extra={<MetricLabel>territory map</MetricLabel>}>
+        RegionMap
+      </SectionDivider>
+      <div className='gallery__stack'>
+        <Specimen
+          caption="regions · selectedId · onSelect · linkComponent — 32 areas four levels deep, each region's tiles nested inside it and filling the width, a region with more areas under it taking more room · a dot before each label shows its state and an area at work pulses, as in ServiceMap · a count and a state Chip at the end of each head, the host passing inverted to the selected area's Chip · click a tile to select it, or a label to follow its link · for assistive technology the map is a tree read region by region: one tab stop, ↑ ↓ in reading order, → into a region, ← out of it, Enter follows the link, Space selects; each tile is named by its label and described by its count and state"
+          span={3}
+        >
+          <RegionMapSpecimen />
+        </Specimen>
+        <Specimen
+          caption='in a 22rem column — tiles narrow to --region-map-tile-basis-narrow at 768 px or narrower, and a head wraps its state under its label'
+          span={3}
+        >
+          <RegionMapSpecimen narrow />
         </Specimen>
       </div>
 

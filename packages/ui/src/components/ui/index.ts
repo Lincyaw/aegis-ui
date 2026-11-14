@@ -29,6 +29,8 @@ export { MetricLabel } from './MetricLabel';
 export { MonoValue } from './MonoValue';
 export type { MonoValueSurface } from './MonoValue';
 export { StatusDot } from './StatusDot';
+export { RollingValue } from './RollingValue';
+export type { RollingValueProps } from './RollingValue';
 export { Terminal } from './Terminal';
 export type { TerminalLine, LogLevel, TerminalSurface } from './Terminal';
 export { BlastRadiusBar } from './BlastRadiusBar';
@@ -290,6 +292,12 @@ export type {
   ServiceMapProps,
   ServiceMapStatus,
 } from './ServiceMap';
+export { RegionMap } from './RegionMap';
+export type {
+  RegionMapProps,
+  RegionMapRegion,
+  RegionMapStatus,
+} from './RegionMap';
 export { CommitGraph } from './CommitGraph';
 export type {
   CommitGraphCellPart,

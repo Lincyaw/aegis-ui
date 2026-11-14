@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import './RollingValue.css';
 
-interface RollingValueProps {
+export interface RollingValueProps {
   value: ReactNode;
 }
 
