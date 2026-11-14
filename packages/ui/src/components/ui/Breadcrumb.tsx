@@ -8,11 +8,21 @@ export interface BreadcrumbItem {
   label: ReactNode;
   /** Optional destination. If omitted, the item renders as plain text. */
   to?: string;
+  /**
+   * Marks the item as the current page: `aria-current="page"` and main ink.
+   * When no item sets it, the last item is the current page and renders as
+   * text. Once any item sets it, every item with `to` renders as a link,
+   * the last included, and only the items set to `true` are current, so a
+   * trail can end at a page other than the one shown.
+   */
+  current?: boolean;
 }
 
 interface BreadcrumbProps {
   items: BreadcrumbItem[];
   className?: string;
+  /** Accessible name of the navigation. Defaults to the locale's `breadcrumb`. */
+  ariaLabel?: string;
   /**
    * Component used to render linked breadcrumb items. Defaults to an
    * unstyled `<a href>`. Sub-apps using a router should pass their
@@ -24,31 +34,43 @@ interface BreadcrumbProps {
 export function Breadcrumb({
   items,
   className,
+  ariaLabel,
   linkComponent,
 }: BreadcrumbProps): ReactElement {
   const strings = useStrings();
   const cls = ['aegis-breadcrumb', className ?? ''].filter(Boolean).join(' ');
   const LinkImpl = linkComponent ?? DefaultLink;
+  const explicit = items.some((item) => item.current !== undefined);
 
   return (
-    <nav aria-label={strings.breadcrumb} className={cls}>
+    <nav aria-label={ariaLabel ?? strings.breadcrumb} className={cls}>
       <ol className="aegis-breadcrumb__list">
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1;
+          const isCurrent = explicit ? item.current === true : isLast;
+          const linked = item.to !== undefined && (explicit || !isLast);
           return (
             <li key={idx} className="aegis-breadcrumb__item">
-              {item.to && !isLast ? (
-                <LinkImpl to={item.to} className="aegis-breadcrumb__link">
+              {linked && item.to !== undefined ? (
+                <LinkImpl
+                  to={item.to}
+                  className={
+                    isCurrent
+                      ? 'aegis-breadcrumb__link aegis-breadcrumb__link--current'
+                      : 'aegis-breadcrumb__link'
+                  }
+                  aria-current={isCurrent ? 'page' : undefined}
+                >
                   {item.label}
                 </LinkImpl>
               ) : (
                 <span
                   className={
-                    isLast
+                    isCurrent
                       ? 'aegis-breadcrumb__text aegis-breadcrumb__text--current'
                       : 'aegis-breadcrumb__text'
                   }
-                  aria-current={isLast ? 'page' : undefined}
+                  aria-current={isCurrent ? 'page' : undefined}
                 >
                   {item.label}
                 </span>
