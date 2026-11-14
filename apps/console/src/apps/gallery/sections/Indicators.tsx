@@ -30,6 +30,7 @@ import {
   type ParetoPoint,
   PickerField,
   RankBar,
+  RollingValue,
   RunPips,
   ScoreBar,
   SectionDivider,
@@ -49,6 +50,28 @@ import {
   GALLERY_MODEL_ROWS,
 } from '../fixtures';
 import { GallerySection, Specimen } from '../shared';
+
+/* ── RollingValue specimen ─────────────────────────────────────────── */
+
+const ROLLING_VALUES = [1284, 1290, 987, 12045, 7];
+
+function RollingValueSpecimen(): ReactNode {
+  const [index, setIndex] = useState(0);
+  return (
+    <div className='gallery__stack'>
+      <MetricLabel as='div'>
+        <RollingValue value={ROLLING_VALUES[index]} /> requirements ·{' '}
+        <RollingValue value={`${String(ROLLING_VALUES[index] % 100)}%`} />
+      </MetricLabel>
+      <AegisButton
+        tone='secondary'
+        onClick={() => setIndex((index + 1) % ROLLING_VALUES.length)}
+      >
+        Next value
+      </AegisButton>
+    </div>
+  );
+}
 
 /* ── Chip and Avatar specimens ─────────────────────────────────────── */
 
@@ -740,6 +763,13 @@ export function IndicatorsSection() {
         </Specimen>
         <Specimen caption='success'>
           <StatusDot tone='success' />
+        </Specimen>
+      </div>
+
+      <SectionDivider>RollingValue</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen caption='value · a number or numeric string rolls to its new digits, right column first; the first render and reduced motion do not move; screen readers and copy read the value whole · Next value'>
+          <RollingValueSpecimen />
         </Specimen>
       </div>
 

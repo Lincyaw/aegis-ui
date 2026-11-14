@@ -2,8 +2,8 @@
 '@lincyaw/aegis-ui': minor
 ---
 
-Reveal a `TraceTree`'s selected row under collapsed rows, and let a
-`Timeline`'s items be selected.
+Reveal a `TraceTree`'s selected row under collapsed rows, let a
+`Timeline`'s items be selected, and export `RollingValue`.
 
 Changed:
 
@@ -24,3 +24,6 @@ Added:
   `--timeline-scroll-max-height` token and scrolls it; the list keeps the
   selected item in view when it mounts and when `selectedId` changes,
   scrolling only itself, never the page.
+- `RollingValue` and its `RollingValueProps` are exported: a number or
+  numeric string whose digits roll to a new value, right column first, as
+  in `StatBlock`, `MetricCard` and `HeadlineStat`.
