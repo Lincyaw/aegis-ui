@@ -1,5 +1,11 @@
 # @lincyaw/aegis-ui
 
+## 0.17.1
+
+### Patch Changes
+
+- 4f47224: MetadataList stacks each label above its value when the list itself is narrower than 24rem, not only below a 768 px viewport, so a list in a narrow side column keeps room for its values.
+
 ## 0.17.0
 
 ### Minor Changes
