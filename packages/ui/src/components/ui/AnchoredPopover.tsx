@@ -44,6 +44,13 @@ export interface AnchoredPopoverProps {
    * ancestor and follows the anchor as the container or the page scrolls.
    */
   container?: HTMLElement | null;
+  /**
+   * Whether opening moves focus into the popover. Turn it off for a popover
+   * that opens with the page, such as one over a selection the address
+   * names, so it does not take focus on load; Tab from the anchor still
+   * enters it.
+   */
+  autoFocus?: boolean;
   className?: string;
 }
 
@@ -115,6 +122,7 @@ export function AnchoredPopover({
   align = 'start',
   ariaLabel,
   container = null,
+  autoFocus = true,
   className,
 }: AnchoredPopoverProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -214,13 +222,27 @@ export function AnchoredPopover({
         closeAndReturn();
       }
     };
-    // Escape from the popover or its anchor, e.g. a line number just pressed.
+    // Escape from the popover or its anchor, e.g. a line number just
+    // pressed; Tab from the anchor enters the popover, which a portal puts
+    // elsewhere in the tab order.
     const onEscape = (event: KeyboardEvent): void => {
       const { target } = event;
-      if (event.key !== 'Escape' || event.isComposing) {
+      if (!(target instanceof Node) || event.isComposing) {
         return;
       }
-      if (!(target instanceof Node)) {
+      if (
+        event.key === 'Tab' &&
+        !event.shiftKey &&
+        panel &&
+        !panel.contains(target) &&
+        latest.current.anchor?.contains?.(target)
+      ) {
+        event.preventDefault();
+        returnFocus.current = target instanceof HTMLElement ? target : null;
+        (panel.querySelector<HTMLElement>(TABBABLE) ?? panel).focus();
+        return;
+      }
+      if (event.key !== 'Escape') {
         return;
       }
       if (panel?.contains(target)) {
@@ -251,7 +273,7 @@ export function AnchoredPopover({
       focused.current = false;
       return;
     }
-    if (!placed || focused.current) {
+    if (!autoFocus || !placed || focused.current) {
       return;
     }
     focused.current = true;
@@ -259,7 +281,7 @@ export function AnchoredPopover({
     (panel?.querySelector<HTMLElement>(TABBABLE) ?? panel)?.focus({
       preventScroll: true,
     });
-  }, [shown, placed]);
+  }, [shown, placed, autoFocus]);
 
   if (!shown) {
     return null;

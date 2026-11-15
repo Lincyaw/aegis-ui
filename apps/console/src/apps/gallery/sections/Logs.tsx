@@ -237,6 +237,7 @@ function AddressedSelectionSpecimen(): ReactNode {
         open={range !== null}
         anchor={anchor}
         container={frame}
+        autoFocus={false}
         ariaLabel='Selected lines'
         onClose={() => {
           setRange(null);
@@ -332,7 +333,7 @@ export function LogsSection() {
           <ElementPopoverSpecimen />
         </Specimen>
         <Specimen
-          caption='selectedLines preset, as from the page address · onSelectedLinesAnchor hands the anchor of the drawn selection on mount and on every change · AnchoredPopover container: drawn inside the scrolling frame (a landmark), following the lines as it scrolls'
+          caption='selectedLines preset, as from the page address · AnchoredPopover autoFocus={false}: it opens without taking focus, Tab from the lines enters it · onSelectedLinesAnchor hands the anchor of the drawn selection on mount and on every change · AnchoredPopover container: drawn inside the scrolling frame (a landmark), following the lines as it scrolls'
           span={3}
           align='start'
         >
