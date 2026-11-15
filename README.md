@@ -143,6 +143,10 @@ export function App() {
 }
 ```
 
+`brand.logo` is the brand mark beside the name. The shell draws it in a
+square of `--brand-mark-size` (28 px), and an `svg` or `img` passed directly
+fills that square, so a host's logo needs no CSS of its own.
+
 `AegisShell` also accepts `rootRoutes`, `notFoundElement`, `user`,
 `userMenu`, `headerCenter`, `headerActions` and `inboxPath`. See
 `AegisShellProps` in

@@ -135,6 +135,10 @@ export interface AegisUserMenuItem {
 
 export interface AegisBrand {
   name: ReactNode;
+  /**
+   * The brand mark beside the name, drawn in a `--brand-mark-size` square
+   * that an `svg` or `img` given directly fills, so it needs no CSS of its own.
+   */
   logo?: ReactNode;
   /** Optional click target for the brand area (e.g. home path). */
   href?: string;

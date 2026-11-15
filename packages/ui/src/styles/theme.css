@@ -447,6 +447,8 @@
   --line-icon-stroke: 1.75;
   /* AnchoredPopover: the widest and tallest the overlay grows. */
   --anchored-popover-min-width: 280px;
+  /* The shell's brand mark, square, beside the brand name. */
+  --brand-mark-size: 28px;
   --anchored-popover-max-width: 360px;
   --anchored-popover-max-height: 60vh;
   /* ScrollStory: where its pinned panel stops under the header, the

@@ -239,8 +239,19 @@
 
 .aegis-shell__brand-logo {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+  width: var(--brand-mark-size);
+  height: var(--brand-mark-size);
+}
+
+/* A host's mark, an svg or img, fills the slot. */
+.aegis-shell__brand-logo > svg,
+.aegis-shell__brand-logo > img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .aegis-shell__user {

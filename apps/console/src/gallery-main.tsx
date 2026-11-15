@@ -34,6 +34,21 @@ const apps: AegisApp[] = [
 ];
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '');
 
+/** The gallery's mark: drawn at --brand-mark-size by the shell. */
+const GALLERY_BRAND_MARK = (
+  <svg viewBox='0 0 28 28' aria-hidden='true'>
+    <rect width='28' height='28' rx='8' fill='currentColor' />
+    <path
+      d='M8 19 14 8l6 11'
+      fill='none'
+      stroke='var(--bg-panel)'
+      strokeWidth='2.4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+  </svg>
+);
+
 function Root(): ReactElement {
   const { resolved } = useTheme();
   return (
@@ -41,7 +56,7 @@ function Root(): ReactElement {
       <AntdApp component='div'>
         <BrowserRouter basename={basename}>
           <AegisShell
-            brand={{ name: 'aegis-ui', href: '/' }}
+            brand={{ name: 'aegis-ui', href: '/', logo: GALLERY_BRAND_MARK }}
             apps={apps}
             fallbackPath='/'
             headerActions={<ThemeToggle />}
