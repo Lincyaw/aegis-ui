@@ -41,6 +41,7 @@ import {
   RegisterForm,
   Tabs as RosettaTabs,
   SectionDivider,
+  StatusDot,
   Steps,
   TableOfContents,
   type TableOfContentsItem,
@@ -1039,6 +1040,32 @@ export function NavigationSection() {
         IdentityCell
       </SectionDivider>
       <div className='gallery__row'>
+        <Specimen caption='mono · a key as a link, in the surrounding ink'>
+          <IdentityCell
+            mono
+            name='testability.clock-drives-time'
+            to='#identity-cell'
+          />
+        </Specimen>
+        <Specimen caption='leading · a status dot before a linked key, kept beside it as the key truncates'>
+          <IdentityCell
+            mono
+            size='sm'
+            tone='link'
+            leading={<StatusDot tone='warning' label='未通过' />}
+            name='testability.clock-drives-time'
+            to='#identity-cell'
+          />
+        </Specimen>
+        <Specimen caption="mono · size='sm' · tone='link' · a reference in a record's fields">
+          <IdentityCell
+            mono
+            size='sm'
+            tone='link'
+            name='acceptance/testability/judgments.py'
+            to='#identity-cell'
+          />
+        </Specimen>
         <Specimen caption='avatar · colorSlot · link · mono secondary'>
           <IdentityCell
             avatar

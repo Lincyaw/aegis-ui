@@ -30,6 +30,20 @@
   text-transform: none;
 }
 
+.aegis-section-divider--title .aegis-section-divider__label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--type-heading-size);
+  font-weight: var(--type-heading-weight);
+  line-height: var(--type-heading-line);
+  letter-spacing: var(--type-heading-tracking);
+  text-transform: none;
+  text-wrap: balance;
+  color: var(--text-main);
+}
+
 .aegis-section-divider__extra {
   display: inline-flex;
   align-items: center;

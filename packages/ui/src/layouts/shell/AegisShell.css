@@ -244,6 +244,7 @@
   justify-content: center;
   width: var(--brand-mark-size);
   height: var(--brand-mark-size);
+  color: var(--brand-mark-ink);
 }
 
 /* A host's mark, an svg or img, fills the slot. */
@@ -351,7 +352,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  margin: 0 var(--sidebar-nav-item-inset);
+  padding: var(--sidebar-nav-item-pad-y) var(--space-4);
+  border-radius: var(--sidebar-nav-item-radius);
   font-family: var(--font-ui);
   font-size: var(--fs-13);
   color: var(--text-main);
@@ -368,14 +371,14 @@
 }
 
 .aegis-shell__nav-link--active {
-  background: var(--bg-inverted);
-  color: var(--text-on-inverted);
-  border-left-color: var(--bg-inverted);
+  border-left-color: var(--selection-bg);
   font-weight: var(--fw-medium);
+  background: var(--selection-bg);
+  color: var(--selection-ink);
 }
 
 .aegis-shell__nav-link--active:hover {
-  background: var(--bg-inverted);
+  background: var(--selection-bg);
 }
 
 /* Inset, so the scrolling sidebar does not clip the ring. */

@@ -77,13 +77,13 @@
 }
 
 .aegis-trace-tree__row--selected {
-  background: var(--bg-inverted);
-  color: var(--text-on-inverted);
+  background: var(--selection-bg);
+  color: var(--selection-ink);
 }
 
 .aegis-trace-tree__row--selected:hover,
 .aegis-trace-tree__row--selected:focus-visible {
-  background: var(--bg-inverted);
+  background: var(--selection-bg);
 }
 
 .aegis-trace-tree__link:hover {
@@ -96,7 +96,7 @@
 }
 
 .aegis-trace-tree__row--selected .aegis-trace-tree__link:active {
-  color: var(--text-on-inverted-muted);
+  color: var(--selection-ink-muted);
 }
 
 .aegis-trace-tree__row--error .aegis-trace-tree__name {
@@ -124,7 +124,7 @@
 }
 
 .aegis-trace-tree__row--selected .aegis-trace-tree__caret {
-  color: var(--text-on-inverted-muted);
+  color: var(--selection-ink-muted);
 }
 
 .aegis-trace-tree__caret--leaf {
@@ -152,7 +152,7 @@
 }
 
 .aegis-trace-tree__row--selected .aegis-trace-tree__note {
-  color: var(--text-on-inverted-muted);
+  color: var(--selection-ink-muted);
 }
 
 /* A deep row on a phone has no room left, so its note is cut off, unless
@@ -234,7 +234,7 @@
 }
 
 .aegis-trace-tree__row--selected .aegis-trace-tree__bar-track {
-  background: var(--border-on-inverted);
+  background: var(--selection-track);
 }
 
 .aegis-trace-tree__bar {
@@ -247,7 +247,7 @@
 }
 
 .aegis-trace-tree__row--selected .aegis-trace-tree__bar {
-  background: var(--text-on-inverted);
+  background: var(--selection-ink);
 }
 
 .aegis-trace-tree__row--error .aegis-trace-tree__bar {
@@ -266,7 +266,7 @@
 }
 
 .aegis-trace-tree__row--selected .aegis-trace-tree__duration {
-  color: var(--text-on-inverted-muted);
+  color: var(--selection-ink-muted);
 }
 
 .aegis-trace-tree__tooltip {

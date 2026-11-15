@@ -2772,6 +2772,35 @@ export function ServicePrimitivesSection() {
           />
         </Specimen>
       </div>
+      <div className='gallery__row gallery__row--wide'>
+        <Specimen
+          caption="layout='fields' · no hairlines, a narrow label column, small values, for a record's fields in a side pane"
+          span={1}
+        >
+          <MetadataList
+            layout='fields'
+            entries={[
+              { label: '所属模块', value: '根/api' },
+              { label: '实现区域', value: '完成待办，记录待办，可测试性' },
+              { label: '行数', value: '142' },
+            ]}
+          />
+        </Specimen>
+        <Specimen
+          caption="layout='inline' · each label before its value, side by side, wrapping as text, under a title or in a bar"
+          span={2}
+        >
+          <MetadataList
+            layout='inline'
+            entries={[
+              { label: '路径', value: 'src/clock.py', mono: true },
+              { label: '上级模块', value: '根' },
+              { label: '依赖方', value: '根/api，根/store' },
+              { label: '设计', value: '设计（根区域） · 11:59' },
+            ]}
+          />
+        </Specimen>
+      </div>
 
       <SectionDivider extra={<MetricLabel>Object side-panel</MetricLabel>}>
         ObjectInspector

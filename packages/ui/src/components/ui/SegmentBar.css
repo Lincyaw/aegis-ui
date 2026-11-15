@@ -1,0 +1,49 @@
+.aegis-segment-bar {
+  display: inline-flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--segment-bar-gap);
+  min-width: 0;
+}
+
+.aegis-segment-bar__group {
+  display: contents;
+}
+
+.aegis-segment-bar__segment {
+  flex: none;
+  width: var(--segment-bar-segment-width);
+  height: var(--segment-bar-height);
+  border-radius: var(--radius-pill);
+  background: var(--text-faint);
+}
+
+.aegis-segment-bar__segment--success {
+  background: var(--accent-success);
+}
+
+.aegis-segment-bar__segment--warning {
+  background: var(--accent-warning);
+}
+
+.aegis-segment-bar__segment--caution {
+  background: var(--ink-warn);
+}
+
+.aegis-segment-bar__segment--info {
+  background: var(--accent-info);
+}
+
+/* Read, not drawn: the segments show the groups. */
+.aegis-segment-bar__label {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  margin: calc(-1 * var(--size-hairline));
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}

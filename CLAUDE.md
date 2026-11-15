@@ -87,7 +87,10 @@ Sans SC, so Apple devices render Chinese in the system face.
   on small elements (primary button, inverted chip), never as a page or
   section background.
 - **Activation = surface inversion** (`--bg-inverted` background +
-  `--text-on-inverted` text). Never accent colour.
+  `--text-on-inverted` text). Never accent colour. The selected item of a
+  navigation or tree and the selected row of a table read the
+  `--selection-*` tokens, inverted and muted by default; a host may set them
+  to the brand's soft surface with brand ink in its own stylesheet.
 - **One brand blue** (`--accent-brand`) for brand marks, hero emphasis,
   the focus ring and the current navigation item — never status. Links use
   `--accent-info`, which shares its value.
@@ -125,9 +128,11 @@ Sans SC, so Apple devices render Chinese in the system face.
 - **Borders**: a card, panel or row has a border all the way round or none.
   A one-sided hairline only divides rows or sections or marks the edge of a
   docked panel; a state such as unread or selected shows through the
-  surface or a dot, never a coloured side bar. The one left rule is
+  surface or a dot, never a coloured side bar. The left rules are
   `Quote`'s, which sets off quoted text: neutral for a source, anomaly red
-  for quoted failure output. Selected code lines (`CodeBlock`'s
+  for quoted failure output, and a toned `DataTable` block row's
+  (`appearance="blocks"` with `rowTone`), which sets off an item that waits
+  for someone: red for a failure, amber for a caution. Selected code lines (`CodeBlock`'s
   `selectedLines`) take the brand's soft surface with a brand rule at
   their left, as editors mark a selection.
 - **Elevation and glass**: three shadows — `--shadow-rest` (cards, panels,

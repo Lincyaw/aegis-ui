@@ -108,7 +108,8 @@
 .aegis-tree-table__row--selected,
 .aegis-tree-table__row--selected:hover,
 .aegis-tree-table__row--selected:focus-visible {
-  background: var(--bg-muted);
+  background: var(--selection-row-bg);
+  color: var(--selection-row-ink);
 }
 
 .aegis-tree-table__cell {

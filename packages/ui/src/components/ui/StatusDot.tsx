@@ -15,14 +15,22 @@ interface StatusDotProps {
     | 'info'
     | 'muted'
     | 'success';
+  /** Diameter in px; defaults to `--status-dot-size`. */
   size?: number;
+  /**
+   * The state the dot stands for, as text that assistive technology and a
+   * page's text read but that is not drawn, for a dot shown without its
+   * word, e.g. in a row of dots or beside an event.
+   */
+  label?: string;
   className?: string;
 }
 
 export function StatusDot({
   pulse = false,
   tone = 'ink',
-  size = 6,
+  size,
+  label,
   className,
 }: StatusDotProps) {
   const cls = [
@@ -33,11 +41,20 @@ export function StatusDot({
   ]
     .filter(Boolean)
     .join(' ');
-  return (
+  const dot = (
     <span
       className={cls}
-      style={{ width: size, height: size }}
+      style={size === undefined ? undefined : { width: size, height: size }}
       aria-hidden="true"
     />
+  );
+  if (label === undefined) {
+    return dot;
+  }
+  return (
+    <span className="aegis-status-dot-labelled">
+      {dot}
+      <span className="aegis-status-dot-labelled__label">{label}</span>
+    </span>
   );
 }

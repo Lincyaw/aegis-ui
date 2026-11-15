@@ -49,6 +49,11 @@
   align-items: baseline;
 }
 
+.aegis-metadata-list--wrap.aegis-metadata-list--fields
+  .aegis-metadata-list__row {
+  align-items: start;
+}
+
 .aegis-metadata-list--wrap .aegis-metadata-list__value {
   align-items: flex-start;
   white-space: pre-wrap;
@@ -90,6 +95,38 @@
   color: var(--text-main);
 }
 
+/* fields: no hairlines, a narrow label column, values in the small role. */
+.aegis-metadata-list--fields .aegis-metadata-list__row {
+  grid-template-columns: var(--metadata-list-field-label-width) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: none;
+}
+
+.aegis-metadata-list--fields .aegis-metadata-list__text,
+.aegis-metadata-list--inline .aegis-metadata-list__text {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+}
+
+/* inline: the entries side by side, each label before its value. */
+.aegis-metadata-list--inline {
+  container-type: normal;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-5);
+}
+
+.aegis-metadata-list--inline .aegis-metadata-list__row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 0;
+  border-bottom: none;
+}
+
 @media (max-width: 768px) {
   .aegis-metadata-list__row {
     grid-template-columns: minmax(0, 1fr);
@@ -103,5 +140,12 @@
   .aegis-metadata-list__row {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-1);
+  }
+}
+
+@container (max-width: 24rem) {
+  .aegis-metadata-list--fields .aegis-metadata-list__row {
+    grid-template-columns: var(--metadata-list-field-label-width) minmax(0, 1fr);
+    gap: var(--space-2);
   }
 }

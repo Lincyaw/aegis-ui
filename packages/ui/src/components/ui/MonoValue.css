@@ -1,6 +1,6 @@
 .aegis-mono {
   font-family: var(--font-mono);
-  color: var(--text-main);
+  color: inherit;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }

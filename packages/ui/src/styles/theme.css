@@ -449,6 +449,8 @@
   --anchored-popover-min-width: 280px;
   /* The shell's brand mark, square, beside the brand name. */
   --brand-mark-size: 28px;
+  /* The ink of a mark drawn in currentColor; a host may set the brand blue. */
+  --brand-mark-ink: var(--text-main);
   --anchored-popover-max-width: 360px;
   --anchored-popover-max-height: 60vh;
   /* ScrollStory: where its pinned panel stops under the header, the
@@ -481,6 +483,8 @@
   --size-hairline: 1px;
   --size-border-thick: 2px;
   --size-dot: 6px;
+  /* StatusDot's diameter when it is given no size. */
+  --status-dot-size: var(--size-dot);
   --size-legend-swatch: 10px;
   --size-badge: 16px;
   --size-resize-handle: 6px;
@@ -492,6 +496,12 @@
   /* The shell's breadcrumb bar: its top padding and one line of body text. */
   --breadcrumb-bar-height: calc(var(--space-3) + var(--type-body-line));
   --sidebar-width-expanded: 240px;
+  /* A sidebar navigation item: its inset from the sidebar's sides, its
+   * corner radius and its vertical padding. The stock item runs edge to
+   * edge; a host may inset it as a rounded item. */
+  --sidebar-nav-item-inset: 0;
+  --sidebar-nav-item-radius: 0;
+  --sidebar-nav-item-pad-y: var(--space-2);
   --page-max-width: none;
   --page-padding-inline: var(--space-6);
   --page-padding-inline-mobile: var(--space-4);
@@ -583,7 +593,28 @@
   /* ── Component tokens ────────────────────────────────────────────── */
   /* Defaults reproduce the stock look; a host restyles a primitive by
    * overriding these, never by targeting its internal classes. */
+  /* Selection. The selected item of a navigation or a tree (the sidebar's
+   * current page, TraceTree's selected row) is the inverted surface by
+   * default; the selected row of a table or file tree (DataTable,
+   * TreeTable, FileTree) takes the muted fill. A host may set both to the
+   * brand's soft surface with brand ink. */
+  --selection-bg: var(--bg-inverted);
+  --selection-ink: var(--text-on-inverted);
+  --selection-ink-muted: var(--text-on-inverted-muted);
+  --selection-track: var(--border-on-inverted);
+  --selection-row-bg: var(--bg-muted);
+  --selection-row-ink: currentcolor;
+  /* SegmentBar: a segment's width and height and the gap between. */
+  --segment-bar-segment-width: 48px;
+  --segment-bar-height: 6px;
+  --segment-bar-gap: 3px;
+  /* The label column of MetadataList layout="fields". */
+  --metadata-list-field-label-width: 84px;
   --data-table-row-min-height: 64px;
+  /* A row of DataTable appearance="blocks": its vertical padding and the
+   * width of a toned row's rule at its left. */
+  --data-table-block-pad-y: 14px;
+  --data-table-block-rule-width: 3px;
   --data-table-compact-row-min-height: 40px;
   /* Accent mixed into a cellTone wash per step above 1 (step 5 = 4×). */
   --data-table-cell-tone-step: 5%;

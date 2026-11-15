@@ -357,6 +357,18 @@ export function LogsSection() {
 
       <SectionDivider>CodeBlock</SectionDivider>
       <div className='gallery__row'>
+        <Specimen
+          caption='bare · showLineNumbers · no frame or header, on the surface it sits on, as a file viewer in a pane'
+          span={2}
+        >
+          <CodeBlock
+            bare
+            showLineNumbers
+            code={
+              'from .clock import clock\nfrom .store import TodoStore\n\napp = FastAPI()'
+            }
+          />
+        </Specimen>
         <Specimen caption='json' span={2}>
           <CodeBlock
             language='json'

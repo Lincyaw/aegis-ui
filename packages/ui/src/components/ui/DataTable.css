@@ -206,6 +206,102 @@
   height: var(--data-table-compact-row-min-height);
 }
 
+/* hidden header: the header row stays for assistive technology, which
+ * names every cell by its column, but takes no room and draws nothing. */
+.aegis-data-table--hidden-header .aegis-data-table__th {
+  height: 0;
+  padding-block: 0;
+  border: 0;
+  line-height: 0;
+}
+
+.aegis-data-table--hidden-header .aegis-data-table__th-label,
+.aegis-data-table__th-label--hidden {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  margin: calc(-1 * var(--size-hairline));
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+/* blocks: each row is a block of its own, its cells flowing as text. */
+.aegis-data-table--blocks .aegis-data-table__table,
+.aegis-data-table--blocks thead,
+.aegis-data-table--blocks .aegis-data-table__row {
+  display: block;
+}
+
+.aegis-data-table--blocks thead {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.aegis-data-table--blocks tbody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aegis-data-table--blocks .aegis-data-table__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-3);
+  padding: var(--data-table-block-pad-y) var(--space-4);
+  border-left: var(--data-table-block-rule-width) solid transparent;
+}
+
+.aegis-data-table--blocks .aegis-data-table__td {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  height: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+.aegis-data-table--blocks .aegis-data-table__td--grow {
+  flex: 1 1 0;
+}
+
+.aegis-data-table--blocks .aegis-data-table__td--line {
+  flex: 1 0 100%;
+}
+
+.aegis-data-table--blocks .aegis-data-table__cell {
+  min-width: 0;
+}
+
+.aegis-data-table__block-label {
+  flex-shrink: 0;
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  color: var(--text-muted);
+}
+
+.aegis-data-table--blocks .aegis-data-table__row--tone-warning {
+  border-left-color: var(--accent-warning);
+  background: var(--bg-warning-soft);
+}
+
+.aegis-data-table--blocks .aegis-data-table__row--tone-caution {
+  border-left-color: var(--ink-warn);
+  background: var(--bg-warn-soft);
+}
+
+.aegis-data-table--blocks .aegis-data-table__row--tone-info {
+  border-left-color: var(--accent-info);
+  background: var(--bg-info-soft);
+}
+
 /* plain header: no fill, only the hairline under it divides it from the
  * rows; a pinned header cell stays opaque over the cells scrolling under. */
 .aegis-data-table--plain-header .aegis-data-table__th {
@@ -315,7 +411,7 @@
 
 .aegis-data-table__row--selected
   > .aegis-data-table__td--sticky:not(.aegis-data-table__td--tone) {
-  background: var(--bg-muted);
+  background: var(--selection-row-bg);
 }
 
 /* cellTone: the tone's soft background, mixed with more of its accent per
@@ -383,7 +479,8 @@
 .aegis-data-table__row--selected,
 .aegis-data-table__row--selected:hover,
 .aegis-data-table__row--selected:focus-visible {
-  background: var(--bg-muted);
+  background: var(--selection-row-bg);
+  color: var(--selection-row-ink);
 }
 
 /* Block-level, so the checkbox centres in the row instead of sitting on

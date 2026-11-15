@@ -18,6 +18,7 @@ import {
   Panel,
   SearchInput,
   SectionDivider,
+  StatusDot,
   Toolbar,
   TreeTable,
   type TreeTableColumn,
@@ -31,6 +32,46 @@ import {
   type GalleryModelRow,
 } from '../fixtures';
 import { GallerySection, Specimen } from '../shared';
+
+const GALLERY_EVENT_ROWS: Array<{
+  at: string;
+  tone: 'success' | 'warning';
+  status: string;
+  event: string;
+}> = [
+  { at: '13:01', tone: 'warning', status: '已暂停', event: '运行 e3b0aa32' },
+  { at: '13:00', tone: 'warning', status: '未通过', event: '验收（可测试性）' },
+  {
+    at: '12:40',
+    tone: 'success',
+    status: '通过',
+    event: '修复 #1（完成待办）',
+  },
+];
+
+const GALLERY_ATTENTION_ROWS: Array<{
+  kind: string;
+  title: string;
+  holder: string;
+  basis: string;
+  tone: 'warning' | 'caution';
+}> = [
+  {
+    kind: '需求冲突',
+    title: '可测试性：2 项需求未通过',
+    holder: '需求作者',
+    basis:
+      '判定输出：created_at 未随测试时钟推进，期望 12:01:00，实际 12:00:00',
+    tone: 'warning',
+  },
+  {
+    kind: '将超时',
+    title: '实现（根区域）',
+    holder: '运维者',
+    basis: '执行用时 0:52:10，任务时限 1:00:00',
+    tone: 'caution',
+  },
+];
 
 const GALLERY_SORTABLE_COLUMNS: Array<DataTableColumn<GalleryModelRow>> =
   GALLERY_MODEL_COLUMNS.map((col) => ({
@@ -1130,6 +1171,94 @@ export function TablesSection() {
             columns={GALLERY_TASK_COLUMNS}
             data={GALLERY_TASK_ROWS}
             rowKey={(row) => row.id}
+          />
+        </Specimen>
+      </div>
+
+      <SectionDivider>DataTable · hidden header · blocks</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen
+          caption="header='hidden' · the header row is read, not drawn: each row reads as a line, e.g. events"
+          span={2}
+        >
+          <DataTable
+            framed={false}
+            density='compact'
+            header='hidden'
+            ariaLabel='事件'
+            data={GALLERY_EVENT_ROWS}
+            rowKey={(row) => row.at}
+            columns={[
+              {
+                key: 'at',
+                header: '时间',
+                width: 64,
+                render: (row) => <MonoValue size='sm'>{row.at}</MonoValue>,
+              },
+              {
+                key: 'status',
+                header: '状态',
+                width: 32,
+                render: (row) => (
+                  <StatusDot tone={row.tone} size={8} label={row.status} />
+                ),
+              },
+              { key: 'event', header: '事件', render: (row) => row.event },
+            ]}
+          />
+        </Specimen>
+        <Specimen
+          caption="appearance='blocks' · rowTone='warning' · a row as a block: its cells placed by each column's block, blockLabel drawing a header before its value, the header hidden"
+          span={3}
+        >
+          <DataTable
+            framed={false}
+            appearance='blocks'
+            ariaLabel='待处理事项'
+            data={GALLERY_ATTENTION_ROWS}
+            rowKey={(row) => row.title}
+            rowTone={(row) => row.tone}
+            columns={[
+              {
+                key: 'kind',
+                header: '类型',
+                truncate: false,
+                render: (row) => row.kind,
+              },
+              {
+                key: 'title',
+                header: '对象',
+                block: 'grow',
+                truncate: false,
+                render: (row) => row.title,
+              },
+              {
+                key: 'holder',
+                header: '责任方',
+                blockLabel: true,
+                truncate: false,
+                render: (row) => row.holder,
+              },
+              {
+                key: 'basis',
+                header: '依据',
+                block: 'line',
+                truncate: false,
+                render: (row) => row.basis,
+              },
+              {
+                key: 'actions',
+                header: '操作',
+                block: 'line',
+                truncate: false,
+                render: () => (
+                  <>
+                    <AegisButton tone='primary'>查看需求</AegisButton>{' '}
+                    <AegisButton tone='secondary'>查看修复轨迹</AegisButton>
+                  </>
+                ),
+              },
+            ]}
           />
         </Specimen>
       </div>

@@ -36,6 +36,11 @@ interface CodeBlockProps {
   /** Caps the code area's height (number → px); longer code scrolls inside. */
   maxHeight?: number | string;
   className?: string;
+  /**
+   * Draws the code without its frame and header, on the surface it sits on,
+   * for a file viewer that fills a pane. The copy button goes with the header.
+   */
+  bare?: boolean;
   surface?: CodeBlockSurface;
   /**
    * The selected lines, drawn in the brand's soft surface with a brand rule
@@ -69,6 +74,7 @@ export function CodeBlock({
   showLineNumbers = false,
   maxHeight,
   className,
+  bare = false,
   surface,
   selectedLines,
   onSelectLines,
@@ -167,24 +173,32 @@ export function CodeBlock({
     [selection],
   );
 
-  const cls = ['aegis-code-block', className ?? ''].filter(Boolean).join(' ');
+  const cls = [
+    'aegis-code-block',
+    bare ? 'aegis-code-block--bare' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div ref={wrapRef} className={cls} {...agentAttrs}>
-      <div className="aegis-code-block__header">
-        <span className="aegis-code-block__lang">
-          {language === 'text' ? strings.plainTextLanguage : language}
-        </span>
-        <button
-          type="button"
-          className="aegis-code-block__copy"
-          onClick={handleCopy}
-          aria-label={strings.copyToClipboard}
-        >
-          <CopyGlyph copied={copied} />
-          {copied ? strings.copied : strings.copy}
-        </button>
-      </div>
+      {!bare && (
+        <div className="aegis-code-block__header">
+          <span className="aegis-code-block__lang">
+            {language === 'text' ? strings.plainTextLanguage : language}
+          </span>
+          <button
+            type="button"
+            className="aegis-code-block__copy"
+            onClick={handleCopy}
+            aria-label={strings.copyToClipboard}
+          >
+            <CopyGlyph copied={copied} />
+            {copied ? strings.copied : strings.copy}
+          </button>
+        </div>
+      )}
       <pre
         ref={preRef}
         className="aegis-code-block__pre"

@@ -7,6 +7,12 @@
   overflow: hidden;
 }
 
+.aegis-code-block--bare {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 .aegis-code-block__header {
   display: flex;
   align-items: center;
@@ -85,7 +91,7 @@
 
 .aegis-code-block__ln {
   display: inline-block;
-  width: 2ch;
+  min-width: 2ch;
   text-align: right;
   color: var(--text-muted);
   user-select: none;
@@ -122,4 +128,25 @@
 
 .aegis-code-block__ln--button:active {
   color: var(--text-main);
+}
+
+/* bare: a file viewer in a pane, in the body's size, its numbers set off. */
+.aegis-code-block--bare .aegis-code-block__pre {
+  padding: var(--space-2) 0;
+  font-size: var(--fs-13);
+  line-height: var(--type-body-line);
+  border-radius: 0;
+}
+
+.aegis-code-block--bare .aegis-code-block__line {
+  gap: var(--space-4);
+}
+
+.aegis-code-block--bare .aegis-code-block__ln {
+  min-width: 4ch;
+}
+
+.aegis-code-block--bare .aegis-code-block__line--selected {
+  margin: 0;
+  padding: 0;
 }

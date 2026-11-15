@@ -1,6 +1,8 @@
 .aegis-status-dot {
   display: inline-block;
   flex-shrink: 0;
+  width: var(--status-dot-size);
+  height: var(--status-dot-size);
   border-radius: var(--radius-circle);
   background: var(--text-main);
 }
@@ -31,4 +33,22 @@
 
 .aegis-status-dot--pulse {
   animation: aegis-pulse var(--motion-pulse) infinite;
+}
+
+.aegis-status-dot-labelled {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Read, not drawn: the dot alone shows the state. */
+.aegis-status-dot-labelled__label {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  margin: calc(-1 * var(--size-hairline));
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
 }

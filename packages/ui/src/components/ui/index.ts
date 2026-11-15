@@ -58,6 +58,8 @@ export { RankBar } from './RankBar';
 export type { RankBarItem } from './RankBar';
 export { ScoreBar } from './ScoreBar';
 export { RunPips } from './RunPips';
+export { SegmentBar } from './SegmentBar';
+export type { SegmentBarGroup } from './SegmentBar';
 export type { RunPipsCounts } from './RunPips';
 export { AgentHud } from './AgentHud';
 export type { AgentHudMeter, AgentHudProps } from './AgentHud';

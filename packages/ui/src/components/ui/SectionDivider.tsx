@@ -12,9 +12,11 @@ interface SectionDividerProps {
   /**
    * `meta` is the uppercase tracked micro label. `group` names a group of
    * fields or rows inside a pane in the label type role, in sentence case,
-   * e.g. 原文 or 验证记录 with its count as the extra.
+   * e.g. 原文 or 验证记录 with its count as the extra. `title` heads a
+   * pane's record in the heading type role and the main ink, e.g. a selected
+   * area's name with its state as the extra.
    */
-  variant?: 'meta' | 'group';
+  variant?: 'meta' | 'group' | 'title';
   className?: string;
 }
 
@@ -28,7 +30,7 @@ export function SectionDivider({
   const cls = [
     'aegis-section-divider',
     rule ? 'aegis-section-divider--ruled' : '',
-    variant === 'group' ? 'aegis-section-divider--group' : '',
+    variant === 'meta' ? '' : `aegis-section-divider--${variant}`,
     className ?? '',
   ]
     .filter(Boolean)

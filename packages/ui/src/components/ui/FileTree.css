@@ -31,7 +31,8 @@
 
 .aegis-file-tree__item--selected,
 .aegis-file-tree__item--selected:hover {
-  background: var(--bg-muted);
+  background: var(--selection-row-bg);
+  color: var(--selection-row-ink);
 }
 
 /* Inset, so a scrolling pane around the tree does not clip the ring. */

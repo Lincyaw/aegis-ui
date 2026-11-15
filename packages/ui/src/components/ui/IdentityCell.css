@@ -12,6 +12,12 @@
   flex-shrink: 0;
 }
 
+.aegis-identity-cell__leading {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
 .aegis-identity-cell__text {
   display: flex;
   flex-direction: column;
@@ -46,7 +52,7 @@
   line-height: var(--type-body-line);
   font-weight: var(--type-body-weight);
   letter-spacing: var(--type-body-tracking);
-  color: var(--text-main);
+  color: inherit;
 }
 
 .aegis-identity-cell__name--link {
@@ -61,6 +67,26 @@
 
 .aegis-identity-cell__name--link:active {
   color: var(--text-muted);
+}
+
+/* sm: the small type role, for a bar or a muted line. */
+.aegis-identity-cell--sm .aegis-identity-cell__name {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+}
+
+/* mono: an id, a key or a path. */
+.aegis-identity-cell--mono .aegis-identity-cell__name {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-size);
+  font-weight: var(--type-mono-weight);
+  letter-spacing: var(--type-mono-tracking);
+}
+
+.aegis-identity-cell--link-tone .aegis-identity-cell__name--link {
+  color: var(--accent-info);
 }
 
 .aegis-identity-cell__secondary {

@@ -24,6 +24,15 @@ export interface MetadataListProps {
    * at any character.
    */
   wrap?: boolean;
+  /**
+   * `rows` (default) sets each entry on a row of its own, divided by
+   * hairlines. `fields` sets them on rows without hairlines, the labels in
+   * a narrow column and the values in the small type role, for a record's
+   * fields in a side pane. `inline` sets them side by side, each label
+   * before its value, wrapping as text, for a record's fields under its
+   * title or in a bar.
+   */
+  layout?: 'rows' | 'fields' | 'inline';
   className?: string;
 }
 
@@ -55,11 +64,13 @@ function CopyButton({ text }: { text: string }): ReactNode {
 export function MetadataList({
   entries,
   wrap = false,
+  layout = 'rows',
   className,
 }: MetadataListProps) {
   const cls = [
     'aegis-metadata-list',
     wrap ? 'aegis-metadata-list--wrap' : '',
+    layout === 'rows' ? '' : `aegis-metadata-list--${layout}`,
     className ?? '',
   ]
     .filter(Boolean)

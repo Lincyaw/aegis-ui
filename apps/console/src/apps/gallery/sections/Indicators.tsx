@@ -35,6 +35,7 @@ import {
   RunPips,
   ScoreBar,
   SectionDivider,
+  SegmentBar,
   Slider,
   StackedBar,
   type StackedBarRow,
@@ -788,6 +789,9 @@ export function IndicatorsSection() {
         <Specimen caption='muted · neutral'>
           <StatusDot tone='muted' />
         </Specimen>
+        <Specimen caption="label='未通过' · read, not drawn">
+          <StatusDot tone='warning' size={8} label='未通过' />
+        </Specimen>
       </div>
 
       <SectionDivider>LineIcon</SectionDivider>
@@ -1278,6 +1282,29 @@ export function IndicatorsSection() {
         </Specimen>
         <Specimen caption='no runs'>
           <RunPips counts={{ passed: 0, failed: 0, errored: 0 }} />
+        </Specimen>
+      </div>
+
+      <SectionDivider>SegmentBar</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen caption='one segment per area · passed · failed · waiting'>
+          <SegmentBar
+            groups={[
+              { key: 'passed', tone: 'success', count: 2, label: '通过 2' },
+              { key: 'failed', tone: 'warning', count: 1, label: '未通过 1' },
+              { key: 'waiting', tone: 'muted', count: 1, label: '等待 1' },
+            ]}
+          />
+        </Specimen>
+        <Specimen caption='12 items · segments shrink to fit'>
+          <SegmentBar
+            groups={[
+              { key: 'passed', tone: 'success', count: 7, label: '通过 7' },
+              { key: 'running', tone: 'info', count: 2, label: '进行中 2' },
+              { key: 'caution', tone: 'caution', count: 1, label: '警示 1' },
+              { key: 'waiting', tone: 'muted', count: 2, label: '等待 2' },
+            ]}
+          />
         </Specimen>
       </div>
 

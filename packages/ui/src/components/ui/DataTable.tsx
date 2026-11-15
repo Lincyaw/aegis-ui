@@ -74,6 +74,23 @@ export interface DataTableColumn<T> {
    * up. Overrides `align`.
    */
   numeric?: boolean;
+  /**
+   * Reads the header but does not draw it, for a column whose cells speak
+   * for themselves, e.g. a leading column of status dots.
+   */
+  headerHidden?: boolean;
+  /**
+   * Where the cell sits in a row of `appearance="blocks"`: `inline`
+   * (default) at its natural width beside the cells before it, `grow`
+   * taking the room left on its line, `line` on a line of its own.
+   */
+  block?: 'inline' | 'grow' | 'line';
+  /**
+   * In a row of `appearance="blocks"`, draws the column's header as a
+   * muted label before the cell's content. The label is not read again:
+   * the hidden header row already names the column.
+   */
+  blockLabel?: boolean;
   /** Washes a cell's background in a tone. Table rows only, not mobile cards. */
   cellTone?: (row: T, index: number) => DataTableCellTone | undefined;
   /**
@@ -133,8 +150,29 @@ interface DataTableProps<T> {
   /**
    * `plain` draws the header on the table's own surface, divided from the
    * rows by its hairline alone; `filled` (default) sets it on a muted fill.
+   * `hidden` keeps the header row for assistive technology, which reads
+   * every cell under its column's name, but does not draw it: rows read as
+   * lines, e.g. a list of events.
    */
-  header?: 'filled' | 'plain';
+  header?: 'filled' | 'plain' | 'hidden';
+  /**
+   * `blocks` draws each row as a block of its own instead of a line of
+   * columns: its cells flow as text, placed by each column's `block`, with
+   * the header hidden as with `header="hidden"`. The rows stay a table's
+   * rows and cells for assistive technology. For a few items that each
+   * carry a title, fields and actions, e.g. items that wait for someone.
+   */
+  appearance?: 'table' | 'blocks';
+  /**
+   * A tone for a row of `appearance="blocks"`: its tone's soft surface
+   * with the tone's rule at its left, as `Quote` sets off failure output.
+   * `warning` is for a failure, `caution` for what needs attention but has
+   * not failed.
+   */
+  rowTone?: (
+    row: T,
+    index: number,
+  ) => 'warning' | 'caution' | 'info' | undefined;
   /**
    * When set, resized column widths are persisted to localStorage under
    * `aegis-data-table:<persistKey>`. Use a stable key per table.
@@ -291,6 +329,8 @@ export function DataTable<T>({
   framed = true,
   density = 'default',
   header = 'filled',
+  appearance = 'table',
+  rowTone,
   persistKey,
   pagination,
   selectable = false,
@@ -312,7 +352,8 @@ export function DataTable<T>({
   const strings = useStrings();
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const detailIdPrefix = useId();
-  const cardMode = renderMobileCard !== undefined && isMobile;
+  const blocks = appearance === 'blocks';
+  const cardMode = renderMobileCard !== undefined && isMobile && !blocks;
   const develop = useDevelopAfterLoad(loading);
 
   const [uncontrolledSort, setUncontrolledSort] =
@@ -414,12 +455,14 @@ export function DataTable<T>({
     framed ? 'aegis-data-table--framed' : '',
     density === 'compact' ? 'aegis-data-table--compact' : '',
     header === 'plain' ? 'aegis-data-table--plain-header' : '',
+    header === 'hidden' || blocks ? 'aegis-data-table--hidden-header' : '',
+    blocks ? 'aegis-data-table--blocks' : '',
     stale ? 'aegis-data-table--stale' : '',
     className ?? '',
   ]
     .filter(Boolean)
     .join(' ');
-  const fixedLayout = columnWidths.sized && !cardMode;
+  const fixedLayout = columnWidths.sized && !cardMode && !blocks;
   const filler = fixedLayout && columnWidths.fillerStyle !== undefined;
   const bodyColumnCount =
     (cardMode ? 1 : columns.length) + (filler ? 1 : 0) + (clickable ? 1 : 0);
@@ -452,6 +495,10 @@ export function DataTable<T>({
     const classes = [block];
     if (sticky && colIndex === 0) {
       classes.push(`${block}--sticky`, `${block}--pinned`);
+    }
+    const placement = columns[colIndex]?.block;
+    if (blocks && placement !== undefined && placement !== 'inline') {
+      classes.push(`${block}--${placement}`);
     }
     if (tone !== undefined) {
       classes.push(
@@ -503,9 +550,15 @@ export function DataTable<T>({
       columns.map((col, colIndex) => (
         <td
           key={col.key}
+          role={blocks ? 'cell' : undefined}
           className={cellClass('td', colIndex, col.cellTone?.(row, idx))}
           style={cellStyle(col, colIndex)}
         >
+          {blocks && col.blockLabel ? (
+            <span className="aegis-data-table__block-label" aria-hidden>
+              {col.header}
+            </span>
+          ) : null}
           {renderCellContent(col, col.render(row, idx))}
         </td>
       ))
@@ -617,9 +670,10 @@ export function DataTable<T>({
     }
   };
 
-  const rowClass = (isSelected: boolean): string =>
+  const rowClass = (isSelected: boolean, tone?: string): string =>
     [
       'aegis-data-table__row',
+      blocks && tone !== undefined ? `aegis-data-table__row--tone-${tone}` : '',
       clickable ? 'aegis-data-table__row--clickable' : '',
       expandable ? 'aegis-data-table__row--expandable' : '',
       isSelected ? 'aegis-data-table__row--selected' : '',
@@ -646,6 +700,7 @@ export function DataTable<T>({
         <div className="aegis-data-table__scroll">
           <table
             ref={tableRef}
+            role={blocks ? 'table' : undefined}
             aria-label={ariaLabel}
             className={tableClass}
             style={fixedLayout ? columnWidths.tableStyle : undefined}
@@ -681,8 +736,8 @@ export function DataTable<T>({
               </colgroup>
             )}
             {(!cardMode || selectable) && (
-              <thead>
-                <tr>
+              <thead role={blocks ? 'rowgroup' : undefined}>
+                <tr role={blocks ? 'row' : undefined}>
                   {selectable && (
                     <th
                       key="__select"
@@ -717,6 +772,7 @@ export function DataTable<T>({
                       <th
                         key={col.key}
                         scope="col"
+                        role={blocks ? 'columnheader' : undefined}
                         data-column-key={col.key}
                         className={cellClass('th', i)}
                         style={cellStyle(col, i)}
@@ -750,7 +806,13 @@ export function DataTable<T>({
                             />
                           </button>
                         ) : (
-                          <span className="aegis-data-table__th-label">
+                          <span
+                            className={
+                              col.headerHidden
+                                ? 'aegis-data-table__th-label aegis-data-table__th-label--hidden'
+                                : 'aegis-data-table__th-label'
+                            }
+                          >
                             {col.header}
                           </span>
                         )}
@@ -781,7 +843,10 @@ export function DataTable<T>({
                 </tr>
               </thead>
             )}
-            <tbody data-aegis-develop={develop || undefined}>
+            <tbody
+              role={blocks ? 'rowgroup' : undefined}
+              data-aegis-develop={develop || undefined}
+            >
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={`sk-${i}`} className="aegis-data-table__row">
@@ -825,7 +890,8 @@ export function DataTable<T>({
                         ref={
                           key === detailKey ? selection?.placeRow : undefined
                         }
-                        className={rowClass(isSelected)}
+                        role={blocks ? 'row' : undefined}
+                        className={rowClass(isSelected, rowTone?.(row, idx))}
                         aria-selected={
                           selectable || selectedKeys !== undefined
                             ? isSelected

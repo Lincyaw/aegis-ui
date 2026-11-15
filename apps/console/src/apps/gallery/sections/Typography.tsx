@@ -511,6 +511,17 @@ export function TypographySection() {
         >
           验证记录 (variant=&apos;group&apos;)
         </SectionDivider>
+        <SectionDivider
+          variant='title'
+          rule={false}
+          extra={
+            <Chip tone='warning' size='md'>
+              9 / 11 通过
+            </Chip>
+          }
+        >
+          可测试性 (variant=&apos;title&apos;)
+        </SectionDivider>
       </div>
 
       <SectionDivider>Quote</SectionDivider>
