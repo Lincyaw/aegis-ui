@@ -139,36 +139,45 @@
   white-space: nowrap;
 }
 
-/* ── selectable: options inverted when selected ────────────────────── */
-.aegis-timeline--selectable:not(.aegis-timeline--numbered) {
+/* ── selectable, list: padded items, the selected one inverted ───── */
+.aegis-timeline--selectable:not(.aegis-timeline--numbered),
+.aegis-timeline--list:not(.aegis-timeline--numbered) {
   gap: 0;
 }
 
-.aegis-timeline--selectable .aegis-timeline__item {
+.aegis-timeline--selectable .aegis-timeline__item,
+.aegis-timeline--list .aegis-timeline__item {
   padding-inline: var(--space-3);
   border-radius: var(--radius-md);
-  cursor: pointer;
   transition: background var(--motion-fast);
 }
 
+.aegis-timeline--selectable .aegis-timeline__item {
+  cursor: pointer;
+}
+
 .aegis-timeline--selectable:not(.aegis-timeline--numbered)
-  .aegis-timeline__item {
+  .aegis-timeline__item,
+.aegis-timeline--list:not(.aegis-timeline--numbered) .aegis-timeline__item {
   padding-block: var(--space-2);
 }
 
 /* The connector runs from the title line's bottom to the next item's
  * title line, through the items' padding. */
-.aegis-timeline--selectable .aegis-timeline__item::before {
+.aegis-timeline--selectable .aegis-timeline__item::before,
+.aegis-timeline--list .aegis-timeline__item::before {
   left: calc(var(--space-3) + (var(--space-3) - var(--size-hairline)) / 2);
   top: calc(var(--space-2) + var(--type-strong-line));
   bottom: calc(-1 * var(--space-2));
 }
 
-.aegis-timeline--selectable .aegis-timeline__item:hover {
+.aegis-timeline--selectable .aegis-timeline__item:hover,
+.aegis-timeline__item--link:hover {
   background: var(--bg-muted);
 }
 
-.aegis-timeline--selectable .aegis-timeline__item:active {
+.aegis-timeline--selectable .aegis-timeline__item:active,
+.aegis-timeline__item--link:active {
   background: var(--bg-tint);
 }
 
@@ -177,9 +186,34 @@
   outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
+/* A list item's link is its title, stretched over the whole item. */
+.aegis-timeline__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.aegis-timeline__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.aegis-timeline__link:focus-visible {
+  outline: var(--focus-ring-width) solid transparent;
+}
+
+.aegis-timeline__link:focus-visible::after {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
 .aegis-timeline__item--selected,
 .aegis-timeline--selectable .aegis-timeline__item--selected:hover,
-.aegis-timeline--selectable .aegis-timeline__item--selected:active {
+.aegis-timeline--selectable .aegis-timeline__item--selected:active,
+.aegis-timeline__item--link.aegis-timeline__item--selected:hover,
+.aegis-timeline__item--link.aegis-timeline__item--selected:active {
   background: var(--bg-inverted);
 }
 

@@ -15,6 +15,11 @@ interface IdentityCellProps {
   colorSlot?: AvatarColorSlot;
   /** Makes the name a link to this destination. */
   to?: string;
+  /**
+   * The link's accessible name when the name shown is short, e.g. "Expand
+   * trace" for a link that shows "Expand".
+   */
+  ariaLabel?: string;
   /** Renders the link. Defaults to an `<a href>`; routed apps pass their Link adapter. */
   linkComponent?: LinkComponent;
   /** Puts the secondary text beside the name on one line. */
@@ -31,6 +36,7 @@ export function IdentityCell({
   avatar = false,
   colorSlot,
   to,
+  ariaLabel,
   linkComponent,
   inline = false,
   wrap = false,
@@ -60,6 +66,7 @@ export function IdentityCell({
           <LinkImpl
             to={to}
             className="aegis-identity-cell__name aegis-identity-cell__name--link"
+            aria-label={ariaLabel}
           >
             {name}
           </LinkImpl>

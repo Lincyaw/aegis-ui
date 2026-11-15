@@ -12,6 +12,7 @@ import {
   usePrimitiveSurface,
 } from '../../agent/core/usePrimitiveSurface';
 import './Timeline.css';
+import { DefaultLink, type LinkComponent } from './linkComponent';
 
 export interface TimelineItem {
   id: string;
@@ -30,6 +31,8 @@ export interface TimelineItem {
    * Defaults to the 1-based position, zero-padded to two digits.
    */
   marker?: ReactNode;
+  /** In the `list` mode, makes the item a link to this destination. */
+  href?: string;
 }
 
 export type TimelineSurface = PrimitiveSurface<TimelineItem[]>;
@@ -48,12 +51,22 @@ interface TimelineProps {
    */
   density?: 'comfortable' | 'compact';
   /**
-   * The selected item, drawn inverted when `onSelect` is set. With `onSelect` the list is a
-   * listbox: each item is an option, clicked or chosen with Enter or Space,
-   * and ↑ ↓ Home End move between them from one tab stop.
+   * `listbox` (default): with `onSelect` the list is a listbox. `list`: the
+   * list stays a list of items, the selected one marked `aria-current` and
+   * each item with an `href` a link, e.g. one per run that opens its page.
+   */
+  mode?: 'listbox' | 'list';
+  /**
+   * The selected item, drawn inverted when `onSelect` is set or in the
+   * `list` mode. With `onSelect` in the `listbox` mode each item is an
+   * option, clicked or chosen with Enter or Space, and ↑ ↓ Home End move
+   * between them from one tab stop.
    */
   selectedId?: string;
+  /** Fired when an item is chosen in the `listbox` mode; a `list` follows its links instead. */
   onSelect?: (item: TimelineItem) => void;
+  /** Renders the `list` mode's links. Defaults to an `<a href>`; routed apps pass their Link adapter. */
+  linkComponent?: LinkComponent;
   /**
    * Bounds the list to `--timeline-scroll-max-height` and scrolls it. The
    * list scrolls itself, never the page, to keep the selected item in view
@@ -71,8 +84,10 @@ export function Timeline({
   items,
   variant = 'dot',
   density = 'comfortable',
+  mode = 'listbox',
   selectedId,
   onSelect,
+  linkComponent,
   scrollable = false,
   ariaLabel,
   className,
@@ -84,12 +99,15 @@ export function Timeline({
   const [focusedId, setFocusedId] = useState<string | undefined>(undefined);
   const numbered = variant === 'numbered';
   const compact = density === 'compact';
-  const selectable = onSelect !== undefined;
+  const list = mode === 'list';
+  const selectable = !list && onSelect !== undefined;
+  const LinkImpl = linkComponent ?? DefaultLink;
   const rootClass = [
     'aegis-timeline',
     numbered ? 'aegis-timeline--numbered' : '',
     compact ? 'aegis-timeline--compact' : '',
     selectable ? 'aegis-timeline--selectable' : '',
+    list ? 'aegis-timeline--list' : '',
     scrollable ? 'aegis-timeline--scrollable' : '',
     className ?? '',
   ]
@@ -163,17 +181,20 @@ export function Timeline({
       ref={wrapRef}
       className={rootClass}
       style={style}
-      role={selectable ? 'listbox' : undefined}
+      role={selectable ? 'listbox' : list ? 'list' : undefined}
       aria-label={ariaLabel}
       {...agentAttrs}
     >
       {items.map((it, index) => {
+        const current = it.id === selectedId;
+        const href = list ? it.href : undefined;
         const className = [
           'aegis-timeline__item',
           numbered ? 'aegis-timeline__item--numbered' : '',
-          selectable && it.id === selectedId
+          (selectable || list) && current
             ? 'aegis-timeline__item--selected'
             : '',
+          href !== undefined ? 'aegis-timeline__item--link' : '',
         ]
           .filter(Boolean)
           .join(' ');
@@ -199,7 +220,17 @@ export function Timeline({
                       : undefined
                   }
                 >
-                  {it.title}
+                  {href !== undefined ? (
+                    <LinkImpl
+                      to={href}
+                      className="aegis-timeline__link"
+                      aria-current={current ? 'true' : undefined}
+                    >
+                      {it.title}
+                    </LinkImpl>
+                  ) : (
+                    it.title
+                  )}
                 </span>
                 {it.meta ? (
                   <span className="aegis-timeline__meta">{it.meta}</span>
@@ -214,6 +245,17 @@ export function Timeline({
             </div>
           </>
         );
+        if (list) {
+          return (
+            <li
+              key={it.id}
+              className={className}
+              aria-current={current && href === undefined ? 'true' : undefined}
+            >
+              {content}
+            </li>
+          );
+        }
         if (!selectable) {
           return (
             <li key={it.id} className={className}>

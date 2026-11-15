@@ -25,6 +25,7 @@ import {
   FilePreview,
   FolderDropzone,
   KeyValueList,
+  type LinkComponent,
   LocaleProvider,
   MetadataList,
   MetricLabel,
@@ -1403,6 +1404,51 @@ function TimelineSelectableSpecimen(): ReactNode {
           meta: (
             <MonoValue size='sm' inverted={version.id === selected}>
               {version.id}
+            </MonoValue>
+          ),
+        }))}
+      />
+    </div>
+  );
+}
+
+function TimelineListSpecimen(): ReactNode {
+  const runs = TIMELINE_VERSIONS.slice(-6).reverse();
+  const [current, setCurrent] = useState(runs[1].id);
+  // Stands in for a router: following a run's link selects it.
+  const RunLink = useMemo<LinkComponent>(() => {
+    const Link: LinkComponent = ({ to, className, children, ...aria }) => (
+      <a
+        href={to}
+        className={className}
+        {...aria}
+        onClick={(event) => {
+          event.preventDefault();
+          setCurrent(to.slice(1));
+        }}
+      >
+        {children}
+      </a>
+    );
+    return Link;
+  }, []);
+  return (
+    <div className='gallery__stack'>
+      <MetricLabel as='div'>selectedId · {current}</MetricLabel>
+      <Timeline
+        mode='list'
+        density='compact'
+        ariaLabel='Runs'
+        selectedId={current}
+        linkComponent={RunLink}
+        items={runs.map((run) => ({
+          id: run.id,
+          href: `#${run.id}`,
+          title: run.title,
+          timestamp: run.timestamp,
+          meta: (
+            <MonoValue size='sm' inverted={run.id === current}>
+              {run.id}
             </MonoValue>
           ),
         }))}
@@ -3102,6 +3148,12 @@ export function ServicePrimitivesSection() {
           span={3}
         >
           <TimelineSelectableSpecimen />
+        </Specimen>
+        <Specimen
+          caption="mode='list' · href · linkComponent — a list of runs, each a link to its page; the selected run is inverted and marked aria-current, its title the link stretched over the item"
+          span={3}
+        >
+          <TimelineListSpecimen />
         </Specimen>
         <Specimen caption="density='compact' · dot" span={3}>
           <div className='gallery__narrow-panel'>

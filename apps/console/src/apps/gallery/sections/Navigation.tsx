@@ -1097,6 +1097,9 @@ export function NavigationSection() {
             />
           </div>
         </Specimen>
+        <Specimen caption="ariaLabel · the link shows '展开' while its accessible name is '展开轨迹'">
+          <IdentityCell name='展开' ariaLabel='展开轨迹' to='#identity-cell' />
+        </Specimen>
         <Specimen caption='wrap · long name and secondary wrap'>
           <div className='gallery__narrow-cell'>
             <IdentityCell

@@ -7,6 +7,7 @@ export const RouterLink: LinkComponent = ({
   to,
   className,
   'aria-current': ariaCurrent,
+  'aria-label': ariaLabel,
   tabIndex,
   children,
 }) => (
@@ -14,6 +15,7 @@ export const RouterLink: LinkComponent = ({
     to={to}
     className={className}
     aria-current={ariaCurrent}
+    aria-label={ariaLabel}
     tabIndex={tabIndex}
   >
     {children}
