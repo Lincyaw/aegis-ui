@@ -950,6 +950,25 @@ export function NavigationSection() {
             ]}
           />
         </Specimen>
+        <Specimen
+          caption="variant='trace' · kind + identifier pills, chevrons, the current item in the brand's soft surface"
+          span={3}
+        >
+          <Breadcrumb
+            variant='trace'
+            ariaLabel='追溯'
+            items={[
+              {
+                kind: '需求',
+                label: 'testability.clock-drives-time',
+                to: '#requirement',
+                current: true,
+              },
+              { kind: '模块', label: '根/clock, 根/api', to: '#module' },
+              { kind: '文件', label: 'src/clock.py, src/app.py', to: '#file' },
+            ]}
+          />
+        </Specimen>
       </div>
 
       <SectionDivider>TableOfContents · states</SectionDivider>

@@ -63,3 +63,57 @@
   color: var(--text-muted);
   opacity: 0.4;
 }
+
+.aegis-breadcrumb__chevron {
+  color: var(--text-muted);
+}
+
+/* trace: each item a pill of its kind and an identifier. */
+.aegis-breadcrumb--trace .aegis-breadcrumb__link,
+.aegis-breadcrumb--trace .aegis-breadcrumb__text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--size-control-sm);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--type-small-size);
+  font-weight: var(--fw-regular);
+  background: var(--bg-muted);
+  color: var(--text-main);
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.aegis-breadcrumb--trace
+  .aegis-breadcrumb__link:hover:not(.aegis-breadcrumb__link--current) {
+  background: var(--bg-tint);
+}
+
+.aegis-breadcrumb--trace .aegis-breadcrumb__link:active {
+  background: var(--bg-brand-soft);
+}
+
+.aegis-breadcrumb--trace .aegis-breadcrumb__link--current,
+.aegis-breadcrumb--trace .aegis-breadcrumb__text--current {
+  background: var(--bg-brand-soft);
+  color: var(--accent-brand);
+}
+
+.aegis-breadcrumb__kind {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.aegis-breadcrumb__link--current .aegis-breadcrumb__kind,
+.aegis-breadcrumb__text--current .aegis-breadcrumb__kind {
+  color: inherit;
+}
+
+.aegis-breadcrumb__value {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  text-overflow: ellipsis;
+}

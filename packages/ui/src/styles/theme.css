@@ -431,6 +431,20 @@
   --trajectory-step-text-max-height: 320px;
   /* TableOfContents column (also the article page's left column). */
   --toc-width: 240px;
+  /* PaneLayout: the fixed widths of a pane beside the flexible ones, and
+   * the height of a bleed page, the viewport under the shell's header. */
+  --pane-width-sm: 224px;
+  --pane-width-md: 264px;
+  --pane-width-lg: 400px;
+  --page-bleed-height: calc(100vh - var(--header-height));
+  /* PageBar: the page's top bar and the sub-bar under it. */
+  --page-bar-height: 56px;
+  --sub-bar-height: 44px;
+  /* LineIcon: glyph sizes on a 24-unit grid, and the stroke in grid units. */
+  --line-icon-size-sm: var(--size-icon-md);
+  --line-icon-size-md: var(--size-icon-base);
+  --line-icon-size-lg: 18px;
+  --line-icon-stroke: 1.75;
   /* ScrollStory: where its pinned panel stops under the header, the
    * height of the view it pins in (a host with a scroll container sets
    * the container's height), and the shortest a step may be, so each step

@@ -2,6 +2,7 @@ import { type ReactElement, type ReactNode } from 'react';
 
 import { useStrings } from '../../locale';
 import './Breadcrumb.css';
+import { LineIcon } from './LineIcon';
 import { DefaultLink, type LinkComponent } from './linkComponent';
 
 export interface BreadcrumbItem {
@@ -16,6 +17,11 @@ export interface BreadcrumbItem {
    * trail can end at a page other than the one shown.
    */
   current?: boolean;
+  /**
+   * What the item is, e.g. 需求 or 模块, set before its label in the
+   * `trace` variant, whose label is then an identifier in the code face.
+   */
+  kind?: ReactNode;
 }
 
 interface BreadcrumbProps {
@@ -29,6 +35,13 @@ interface BreadcrumbProps {
    * Link adapter here.
    */
   linkComponent?: LinkComponent;
+  /**
+   * `path` is a page trail divided by slashes. `trace` follows one record
+   * through related structures: each item a pill of its `kind` and its
+   * label, the current one in the brand's soft surface, divided by
+   * chevrons.
+   */
+  variant?: 'path' | 'trace';
 }
 
 export function Breadcrumb({
@@ -36,9 +49,16 @@ export function Breadcrumb({
   className,
   ariaLabel,
   linkComponent,
+  variant = 'path',
 }: BreadcrumbProps): ReactElement {
   const strings = useStrings();
-  const cls = ['aegis-breadcrumb', className ?? ''].filter(Boolean).join(' ');
+  const cls = [
+    'aegis-breadcrumb',
+    variant === 'trace' ? 'aegis-breadcrumb--trace' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   const LinkImpl = linkComponent ?? DefaultLink;
   const explicit = items.some((item) => item.current !== undefined);
 
@@ -49,6 +69,17 @@ export function Breadcrumb({
           const isLast = idx === items.length - 1;
           const isCurrent = explicit ? item.current === true : isLast;
           const linked = item.to !== undefined && (explicit || !isLast);
+          const content =
+            variant === 'trace' ? (
+              <>
+                {item.kind !== undefined && (
+                  <span className="aegis-breadcrumb__kind">{item.kind}</span>
+                )}
+                <span className="aegis-breadcrumb__value">{item.label}</span>
+              </>
+            ) : (
+              item.label
+            );
           return (
             <li key={idx} className="aegis-breadcrumb__item">
               {linked && item.to !== undefined ? (
@@ -61,7 +92,7 @@ export function Breadcrumb({
                   }
                   aria-current={isCurrent ? 'page' : undefined}
                 >
-                  {item.label}
+                  {content}
                 </LinkImpl>
               ) : (
                 <span
@@ -72,14 +103,19 @@ export function Breadcrumb({
                   }
                   aria-current={isCurrent ? 'page' : undefined}
                 >
-                  {item.label}
+                  {content}
                 </span>
               )}
-              {!isLast && (
-                <span className="aegis-breadcrumb__sep" aria-hidden="true">
-                  /
-                </span>
-              )}
+              {!isLast &&
+                (variant === 'trace' ? (
+                  <LineIcon size="sm" className="aegis-breadcrumb__chevron">
+                    <path d="m9 6 6 6-6 6" />
+                  </LineIcon>
+                ) : (
+                  <span className="aegis-breadcrumb__sep" aria-hidden="true">
+                    /
+                  </span>
+                ))}
             </li>
           );
         })}

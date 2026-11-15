@@ -885,3 +885,21 @@
   gap: var(--space-4);
   padding: var(--space-4);
 }
+
+/* A bleed page's frame: the height a shell's main area would give it. */
+.gallery__pane-frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 420px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-panel);
+}
+
+@media (max-width: 768px) {
+  .gallery__pane-frame {
+    height: auto;
+  }
+}

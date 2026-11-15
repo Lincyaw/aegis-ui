@@ -1,0 +1,21 @@
+.aegis-line-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+  stroke-width: var(--line-icon-stroke);
+}
+
+.aegis-line-icon--sm {
+  width: var(--line-icon-size-sm);
+  height: var(--line-icon-size-sm);
+}
+
+.aegis-line-icon--md {
+  width: var(--line-icon-size-md);
+  height: var(--line-icon-size-md);
+}
+
+.aegis-line-icon--lg {
+  width: var(--line-icon-size-lg);
+  height: var(--line-icon-size-lg);
+}

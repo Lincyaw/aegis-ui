@@ -11,6 +11,18 @@
   margin-top: var(--space-6);
 }
 
+.page-wrapper--bleed {
+  display: flex;
+  flex-direction: column;
+  height: var(--page-bleed-height);
+  max-width: none;
+  padding: 0;
+}
+
+.page-wrapper--bleed > * + * {
+  margin-top: 0;
+}
+
 /* Staggered entrance of the page's top-level blocks. :where() keeps
  * specificity at zero so a child's own animation (Skeleton shimmer, …)
  * wins. `backwards` fill drops the transform once the entrance ends, so
@@ -52,5 +64,12 @@
 
   .page-wrapper {
     padding: var(--space-4) var(--page-padding-inline-mobile);
+  }
+
+  /* The page grows with its stacked panes and scrolls with the window. */
+  .page-wrapper--bleed {
+    height: auto;
+    min-height: var(--page-bleed-height);
+    padding: 0;
   }
 }

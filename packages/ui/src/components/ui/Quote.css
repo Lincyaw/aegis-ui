@@ -1,0 +1,13 @@
+.aegis-quote {
+  margin: 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: var(--size-border-thick) solid var(--border-emphasis);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  color: var(--text-main);
+  text-wrap: pretty;
+}
+
+.aegis-quote--warning {
+  border-left-color: var(--accent-warning);
+}

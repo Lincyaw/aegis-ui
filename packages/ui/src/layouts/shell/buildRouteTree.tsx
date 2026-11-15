@@ -45,7 +45,7 @@ export function buildRouteTree({
     (app): RouteObject => ({
       path: `${normalizeBasePath(app.basePath)}/*`,
       element: (
-        <PageWrapper>
+        <PageWrapper bleed={app.bleed === true}>
           {isAppVisible(app, auth.status, auth.user) ? (
             <AppRoutes app={app} />
           ) : (

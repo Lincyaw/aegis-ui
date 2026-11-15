@@ -17,6 +17,10 @@
   background: var(--ink-warn);
 }
 
+.aegis-status-dot--info {
+  background: var(--accent-info);
+}
+
 .aegis-status-dot--muted {
   background: var(--text-muted);
 }

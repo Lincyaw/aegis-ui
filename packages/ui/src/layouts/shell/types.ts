@@ -70,6 +70,12 @@ export interface AegisApp {
    * for apps whose pages render their own `<Breadcrumb>`. Default true.
    */
   breadcrumbBar?: boolean;
+  /**
+   * Set true to render the app's pages in a bleed `PageWrapper`: edge to
+   * edge under the header, the height of the view, for pages built of
+   * `Toolbar` bars over a `PaneLayout`. Pair it with `breadcrumbBar: false`.
+   */
+  bleed?: boolean;
   /** Optional one-line description shown in app pickers. */
   description?: string;
   /**

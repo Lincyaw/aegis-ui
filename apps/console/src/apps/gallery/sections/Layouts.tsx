@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import {
   BlastRadiusBar,
+  Breadcrumb,
   Button,
   Checkbox,
   Chip,
@@ -21,10 +22,14 @@ import {
   NumberField,
   PageHeader,
   PageWrapper,
+  Pane,
   Panel,
+  PaneLayout,
+  PanelTitle,
   PasswordField,
   PickerField,
   QueryAutocomplete,
+  Quote,
   SearchInput,
   SectionDivider,
   Select,
@@ -42,6 +47,7 @@ import {
   SiteSection,
   SiteSectionHeader,
   Slider,
+  StatusDot,
   Tabs,
   TextField,
   ThemeToggle,
@@ -940,6 +946,152 @@ function DetailBesideRefreshSpecimen(): ReactNode {
   );
 }
 
+const PANE_AREAS = [
+  { key: 'completion', label: '完成待办', passed: true },
+  { key: 'todos', label: '记录待办', passed: true },
+  { key: 'testability', label: '可测试性', passed: false },
+];
+
+const PANE_REQUIREMENTS = [
+  { id: 'clock-drives-time', passed: false },
+  { id: 'setup-holds', passed: false },
+  { id: 'clock-set', passed: true },
+  { id: 'clock-advance', passed: true },
+];
+
+function PaneLayoutPageSpecimen() {
+  const [version, setVersion] = useState('3v14vrqi');
+  const [area, setArea] = useState('testability');
+  return (
+    <div className='gallery__pane-frame'>
+      <Toolbar
+        variant='page'
+        left={<PanelTitle as='h2'>需求</PanelTitle>}
+        right={
+          <>
+            <Select
+              ariaLabel='版本'
+              value={version}
+              onChange={setVersion}
+              options={[
+                { value: '3v14vrqi', label: '版本：main · 3v14vrqi' },
+                { value: '9e41c07', label: '版本：main · 9e41c07' },
+              ]}
+            />
+            <Button tone='secondary'>变更历史</Button>
+          </>
+        }
+      />
+      <Toolbar
+        variant='sub'
+        left={
+          <>
+            <span>追溯</span>
+            <Breadcrumb
+              variant='trace'
+              ariaLabel='追溯'
+              items={[
+                {
+                  kind: '需求',
+                  label: 'testability.clock-drives-time',
+                  current: true,
+                },
+                { kind: '模块', label: '根/clock', to: '#module' },
+                { kind: '文件', label: 'src/clock.py', to: '#file' },
+              ]}
+            />
+          </>
+        }
+      />
+      <PaneLayout>
+        <Pane size='sm' label='区域'>
+          <div className='gallery__stack'>
+            {PANE_AREAS.map((row) => (
+              <Button
+                key={row.key}
+                tone={row.key === area ? 'primary' : 'ghost'}
+                onClick={() => setArea(row.key)}
+                icon={<StatusDot tone={row.passed ? 'success' : 'warning'} />}
+              >
+                {row.label}
+              </Button>
+            ))}
+          </div>
+        </Pane>
+        <Pane label='需求'>
+          <div className='gallery__stack'>
+            <SectionDivider variant='group' extra={<span>9 / 11</span>}>
+              {PANE_AREAS.find((row) => row.key === area)?.label ?? area}
+            </SectionDivider>
+            {PANE_REQUIREMENTS.map((row) => (
+              <span key={row.id} className='gallery__specimen-row'>
+                <StatusDot tone={row.passed ? 'success' : 'warning'} />
+                <MonoValue size='sm'>{row.id}</MonoValue>
+              </span>
+            ))}
+          </div>
+        </Pane>
+        <Pane size='lg' label='详情'>
+          <div className='gallery__stack'>
+            <SectionDivider variant='group' rule={false}>
+              原文
+            </SectionDivider>
+            <Quote>
+              given 测试时钟设为 t；when 用户创建待办；then created_at 等于 t。
+            </Quote>
+            <SectionDivider variant='group' rule={false}>
+              失败原因
+            </SectionDivider>
+            <Quote tone='warning'>created_at 未随测试时钟推进。</Quote>
+          </div>
+        </Pane>
+      </PaneLayout>
+    </div>
+  );
+}
+
+function PaneLayoutColumnSpecimen() {
+  return (
+    <div className='gallery__pane-frame'>
+      <PaneLayout>
+        <Pane size='md' label='任务'>
+          <div className='gallery__stack'>
+            <span className='gallery__specimen-row'>
+              <StatusDot tone='success' /> 写测试
+            </span>
+            <span className='gallery__specimen-row'>
+              <StatusDot tone='warning' /> 修复 #3
+            </span>
+            <span className='gallery__specimen-row'>
+              <StatusDot tone='muted' /> 写测试 · 复用
+            </span>
+          </div>
+        </Pane>
+        <PaneLayout direction='column'>
+          <Pane size='auto'>
+            <PanelTitle>修复 #3（可测试性）</PanelTitle>
+          </Pane>
+          <PaneLayout>
+            <Pane label='输入'>
+              <SectionDivider variant='group' rule={false}>
+                输入
+              </SectionDivider>
+            </Pane>
+            <Pane label='输出'>
+              <SectionDivider variant='group' rule={false}>
+                输出
+              </SectionDivider>
+            </Pane>
+          </PaneLayout>
+          <Pane size='auto'>
+            <MetricLabel>轨迹 · 7 步</MetricLabel>
+          </Pane>
+        </PaneLayout>
+      </PaneLayout>
+    </div>
+  );
+}
+
 function PageHeaderActionSpecimen() {
   const [created, setCreated] = useState(0);
   return (
@@ -1092,6 +1244,26 @@ export function LayoutsSection() {
               </ColumnLayout>
             </ColumnLayout>
           </div>
+        </Specimen>
+      </div>
+
+      <SectionDivider>
+        PaneLayout · Pane · Toolbar page and sub bars
+      </SectionDivider>
+      <div className='gallery__stack'>
+        <Specimen
+          caption="a bleed page: Toolbar variant='page' and 'sub' over PaneLayout · Pane size='sm' · 'fill' · 'lg' · hairlines, no gaps · stacked at ≤768 px"
+          span={3}
+          align='start'
+        >
+          <PaneLayoutPageSpecimen />
+        </Specimen>
+        <Specimen
+          caption="a PaneLayout direction='column' nested as a pane · size='auto' head and foot · a nested row of two fill panes"
+          span={3}
+          align='start'
+        >
+          <PaneLayoutColumnSpecimen />
         </Specimen>
       </div>
 

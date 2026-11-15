@@ -22,6 +22,14 @@
   font-weight: var(--fw-regular);
 }
 
+.aegis-section-divider--group .aegis-section-divider__label {
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  line-height: var(--type-label-line);
+  letter-spacing: var(--type-label-tracking);
+  text-transform: none;
+}
+
 .aegis-section-divider__extra {
   display: inline-flex;
   align-items: center;

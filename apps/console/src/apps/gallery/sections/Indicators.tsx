@@ -22,6 +22,7 @@ import {
   Dialog,
   EmptyState,
   KeyValueList,
+  LineIcon,
   MetricLabel,
   NumberField,
   Pagination,
@@ -738,6 +739,23 @@ function DialogSpecimen(): ReactNode {
   );
 }
 
+const CUBE_GLYPH = (
+  <>
+    <path d='M12 3 20 7.5v9L12 21l-8-4.5v-9z' />
+    <path d='m4 7.5 8 4.5 8-4.5M12 12v9' />
+  </>
+);
+
+const CODE_GLYPH = <path d='m8 7-5 5 5 5m8-10 5 5-5 5m-2-12-4 14' />;
+
+const RERUN_GLYPH = (
+  <>
+    <path d='M20 11a8 8 0 0 0-14.5-4.5L4 8' />
+    <path d='M4 4v4h4M4 13a8 8 0 0 0 14.5 4.5L20 16' />
+    <path d='M20 20v-4h-4' />
+  </>
+);
+
 export function IndicatorsSection() {
   return (
     <GallerySection title='Indicators'>
@@ -763,6 +781,34 @@ export function IndicatorsSection() {
         </Specimen>
         <Specimen caption='success'>
           <StatusDot tone='success' />
+        </Specimen>
+        <Specimen caption='info · current or in progress'>
+          <StatusDot tone='info' />
+        </Specimen>
+        <Specimen caption='muted · neutral'>
+          <StatusDot tone='muted' />
+        </Specimen>
+      </div>
+
+      <SectionDivider>LineIcon</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen caption="size='sm' · 'md' · 'lg' · the host's glyph paths">
+          <span className='gallery__specimen-row'>
+            <LineIcon size='sm'>{CUBE_GLYPH}</LineIcon>
+            <LineIcon size='md'>{CUBE_GLYPH}</LineIcon>
+            <LineIcon size='lg'>{CUBE_GLYPH}</LineIcon>
+          </span>
+        </Specimen>
+        <Specimen caption='strokes in the current text colour'>
+          <MetricLabel className='gallery__specimen-row'>
+            <LineIcon>{CODE_GLYPH}</LineIcon>
+            代码
+          </MetricLabel>
+        </Specimen>
+        <Specimen caption='title · a named image instead of decoration'>
+          <LineIcon size='lg' title='运行'>
+            {RERUN_GLYPH}
+          </LineIcon>
         </Specimen>
       </div>
 

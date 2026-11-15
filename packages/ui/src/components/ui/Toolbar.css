@@ -34,10 +34,63 @@
   margin-left: auto;
 }
 
+/* A bar keeps one line at its fixed height on the desktop. */
+.aegis-toolbar--page,
+.aegis-toolbar--sub {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  padding: 0 var(--space-6);
+  background: transparent;
+}
+
+.aegis-toolbar--page {
+  height: var(--page-bar-height);
+}
+
+.aegis-toolbar--sub {
+  height: var(--sub-bar-height);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  color: var(--text-muted);
+}
+
+.aegis-toolbar--sub .aegis-toolbar__left {
+  flex-wrap: nowrap;
+  gap: var(--space-5);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .aegis-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  /* A bar wraps its controls under its title instead of stacking. */
+  .aegis-toolbar--page,
+  .aegis-toolbar--sub {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    height: auto;
+    min-height: var(--sub-bar-height);
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .aegis-toolbar--page {
+    min-height: var(--page-bar-height);
+  }
+
+  .aegis-toolbar--sub .aegis-toolbar__left {
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    white-space: normal;
+  }
+
+  .aegis-toolbar--page .aegis-toolbar__left,
+  .aegis-toolbar--sub .aegis-toolbar__left {
+    width: auto;
   }
 
   .aegis-toolbar__left {

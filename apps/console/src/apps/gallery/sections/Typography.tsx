@@ -7,6 +7,7 @@ import {
   MetricLabel,
   MonoValue,
   PanelTitle,
+  Quote,
   SectionDivider,
   TableOfContents,
   ThemeToggle,
@@ -503,6 +504,35 @@ export function TypographySection() {
           With extra
         </SectionDivider>
         <SectionDivider rule={false}>No rule (rule=false)</SectionDivider>
+        <SectionDivider
+          variant='group'
+          rule={false}
+          extra={<MetricLabel>5</MetricLabel>}
+        >
+          验证记录 (variant=&apos;group&apos;)
+        </SectionDivider>
+      </div>
+
+      <SectionDivider>Quote</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen
+          caption="tone='neutral' · quoted source text"
+          span={2}
+          align='start'
+        >
+          <Quote>
+            given 测试时钟设为 t；when 用户创建待办；then 待办的 created_at 等于
+            t。测试时钟推进 d 后创建的待办，created_at 等于 t + d。
+          </Quote>
+        </Specimen>
+        <Specimen
+          caption="tone='warning' · quoted failure output only"
+          align='start'
+        >
+          <Quote tone='warning'>
+            created_at 未随测试时钟推进：期望 12:01:00，实际 12:00:00。
+          </Quote>
+        </Specimen>
       </div>
 
       <SectionDivider>ThemeToggle</SectionDivider>

@@ -4,6 +4,12 @@ import './PageWrapper.css';
 
 export interface PageWrapperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
+  /**
+   * Fills the view under the shell's header edge to edge, with no padding
+   * and no gap between its blocks: a column of `Toolbar` bars over a
+   * `PaneLayout` that takes the rest of the height.
+   */
+  bleed?: boolean;
 }
 
 /**
@@ -13,10 +19,17 @@ export interface PageWrapperProps extends HTMLAttributes<HTMLDivElement> {
  */
 export function PageWrapper({
   children,
+  bleed = false,
   className,
   ...rest
 }: PageWrapperProps) {
-  const classes = className ? `page-wrapper ${className}` : 'page-wrapper';
+  const classes = [
+    'page-wrapper',
+    bleed ? 'page-wrapper--bleed' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
     <div className={classes} {...rest}>
       {children}

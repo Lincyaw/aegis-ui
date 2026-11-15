@@ -4,9 +4,17 @@ interface StatusDotProps {
   pulse?: boolean;
   /**
    * Fill colour. `warning` is the anomaly red, for failures only; `caution`
-   * is `--ink-warn`, for what needs attention but has not failed.
+   * is `--ink-warn`, for what needs attention but has not failed; `info`
+   * is the link blue, for what is current or in progress.
    */
-  tone?: 'ink' | 'inverted' | 'warning' | 'caution' | 'muted' | 'success';
+  tone?:
+    | 'ink'
+    | 'inverted'
+    | 'warning'
+    | 'caution'
+    | 'info'
+    | 'muted'
+    | 'success';
   size?: number;
   className?: string;
 }
