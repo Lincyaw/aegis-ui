@@ -445,6 +445,9 @@
   --line-icon-size-md: var(--size-icon-base);
   --line-icon-size-lg: 18px;
   --line-icon-stroke: 1.75;
+  /* AnchoredPopover: the widest and tallest the overlay grows. */
+  --anchored-popover-max-width: 360px;
+  --anchored-popover-max-height: 60vh;
   /* ScrollStory: where its pinned panel stops under the header, the
    * height of the view it pins in (a host with a scroll container sets
    * the container's height), and the shortest a step may be, so each step

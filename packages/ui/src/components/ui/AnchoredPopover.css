@@ -1,0 +1,38 @@
+.aegis-anchored-popover {
+  --anchored-popover-gap: var(--space-1);
+
+  position: fixed;
+  z-index: var(--z-popover);
+  max-width: min(
+    var(--anchored-popover-max-width),
+    calc(100vw - var(--space-4))
+  );
+  max-height: var(--anchored-popover-max-height);
+  overflow: auto;
+  padding: var(--space-3) var(--space-4);
+  border: var(--size-hairline) solid var(--border-emphasis);
+  border-radius: var(--radius-md);
+  font-family: var(--font-ui);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  box-shadow: var(--shadow-overlay);
+}
+
+/* The panel holds focus only to pass it on; a ring would frame the whole overlay. */
+.aegis-anchored-popover:focus {
+  outline: none;
+}
+
+.aegis-anchored-popover--bottom {
+  --aegis-popover-from-y: calc(-1 * var(--motion-popover-offset));
+
+  animation: aegis-popover-in var(--motion-fast) both;
+}
+
+.aegis-anchored-popover--top {
+  --aegis-popover-from-y: var(--motion-popover-offset);
+
+  animation: aegis-popover-in var(--motion-fast) both;
+}

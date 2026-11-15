@@ -95,3 +95,31 @@
 .aegis-code-block__body {
   white-space: pre;
 }
+
+/* A selected line is lit across the pre's padding, with a brand rule at its left. */
+.aegis-code-block__line--selected {
+  margin: 0 calc(-1 * var(--space-3));
+  padding: 0 var(--space-3);
+  background: var(--bg-brand-soft);
+  box-shadow: inset var(--size-border-thick) 0 0 var(--accent-brand);
+}
+
+.aegis-code-block__ln--button {
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xs);
+  font: inherit;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--motion-fast);
+}
+
+.aegis-code-block__ln--button:hover,
+.aegis-code-block__ln--button[aria-pressed='true'] {
+  color: var(--accent-brand);
+}
+
+.aegis-code-block__ln--button:active {
+  color: var(--text-main);
+}

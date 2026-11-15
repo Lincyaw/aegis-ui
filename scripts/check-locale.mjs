@@ -47,6 +47,7 @@ const SAMPLE_DATE = new Date(2026, 10, 8, 15, 57);
 
 /** Argument lists each function key is called with, one array per call. */
 const SAMPLES = {
+  codeLine: [[12]],
   barValue: [['0.75', '1.00']],
   paretoChartLabel: [['latency', 'cost']],
   runPipsLabel: [

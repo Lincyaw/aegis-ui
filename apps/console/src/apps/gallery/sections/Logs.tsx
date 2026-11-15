@@ -1,7 +1,8 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 
 import {
   Button as AegisButton,
+  AnchoredPopover,
   Chip,
   CodeBlock,
   ColumnLayout,
@@ -12,6 +13,7 @@ import {
   Terminal,
 } from '@lincyaw/aegis-ui';
 
+import { CodeSelectionDemo } from '../../shell-demo/CodeSelectionDemo';
 import { TERMINAL_LINES } from '../fixtures';
 import { GallerySection, Specimen } from '../shared';
 
@@ -174,6 +176,32 @@ function FileTreeControlledSpecimen(): ReactNode {
   );
 }
 
+function ElementPopoverSpecimen() {
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <AegisButton
+        ref={triggerRef}
+        tone='secondary'
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        所属模块
+      </AegisButton>
+      <AnchoredPopover
+        open={open}
+        anchor={triggerRef.current}
+        align='end'
+        ariaLabel='所属模块'
+        onClose={() => setOpen(false)}
+      >
+        <MetricLabel>根/clock · 实现 2 条需求</MetricLabel>
+      </AnchoredPopover>
+    </>
+  );
+}
+
 export function LogsSection() {
   return (
     <GallerySection title='Logs — Terminal'>
@@ -227,6 +255,22 @@ export function LogsSection() {
           },
         ]}
       />
+
+      <SectionDivider>
+        CodeBlock · selected lines · AnchoredPopover
+      </SectionDivider>
+      <div className='gallery__row'>
+        <Specimen
+          caption='onSelectLines · press a line number, Shift+press to extend, press the only selected line to clear · the anchor over the lines opens an AnchoredPopover: Escape, a press outside or Tab past its last control closes it'
+          span={3}
+          align='start'
+        >
+          <CodeSelectionDemo />
+        </Specimen>
+        <Specimen caption='AnchoredPopover anchored to an element · placement auto · align end'>
+          <ElementPopoverSpecimen />
+        </Specimen>
+      </div>
 
       <SectionDivider>CodeBlock</SectionDivider>
       <div className='gallery__row'>

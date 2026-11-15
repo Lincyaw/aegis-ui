@@ -7,6 +7,8 @@ export interface AegisStrings {
   copy: string;
   copied: string;
   copyToClipboard: string;
+  /** A selectable line number's accessible name. */
+  codeLine: (line: number) => string;
   plainTextLanguage: string;
   inspectorRendered: string;
   inspectorRaw: string;
@@ -404,6 +406,7 @@ export const enStrings: AegisStrings = {
   copy: 'Copy',
   copied: 'Copied',
   copyToClipboard: 'Copy to clipboard',
+  codeLine: (line) => `Line ${String(line)}`,
   plainTextLanguage: 'text',
   inspectorRendered: 'Rendered',
   inspectorRaw: 'Raw',
@@ -804,6 +807,7 @@ export const zhCNStrings: AegisStrings = {
   copy: '复制',
   copied: '已复制',
   copyToClipboard: '复制到剪贴板',
+  codeLine: (line) => `第 ${String(line)} 行`,
   plainTextLanguage: '文本',
   inspectorRendered: '阅读视图',
   inspectorRaw: '原始内容',
