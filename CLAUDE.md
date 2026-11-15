@@ -125,7 +125,9 @@ Sans SC, so Apple devices render Chinese in the system face.
 - **Borders**: a card, panel or row has a border all the way round or none.
   A one-sided hairline only divides rows or sections or marks the edge of a
   docked panel; a state such as unread or selected shows through the
-  surface or a dot, never a coloured side bar.
+  surface or a dot, never a coloured side bar. The one left rule is
+  `Quote`'s, which sets off quoted text: neutral for a source, anomaly red
+  for quoted failure output.
 - **Elevation and glass**: three shadows — `--shadow-rest` (cards, panels,
   secondary buttons), `--shadow-raised` (hovered clickable cards and rows,
   featured content), `--shadow-overlay` (dialogs, menus, tooltips). One
