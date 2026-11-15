@@ -398,6 +398,20 @@ export function DataDisplaySection() {
         <Specimen caption='utc · YYYY-MM-DD HH:MM:SS in UTC, the same text in every time zone and on every day'>
           <TimeDisplay value='2026-05-10T14:22:01.482Z' mode='utc' />
         </Specimen>
+        <Specimen caption="utc-day · now='2026-05-10T23:30:00Z' from the host's clock: HH:MM on now's UTC day, MM-DD HH:MM before it, the utc text as the tooltip">
+          <div className='gallery__stack'>
+            <TimeDisplay
+              value='2026-05-10T14:22:01Z'
+              mode='utc-day'
+              now='2026-05-10T23:30:00Z'
+            />
+            <TimeDisplay
+              value='2026-05-09T23:59:00Z'
+              mode='utc-day'
+              now='2026-05-10T23:30:00Z'
+            />
+          </div>
+        </Specimen>
         <Specimen caption='hms · H:MM:SS in whole seconds, the hours neither padded nor capped'>
           <div className='gallery__stack'>
             <TimeDisplay value={5_900} mode='hms' />

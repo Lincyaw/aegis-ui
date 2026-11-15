@@ -17,11 +17,19 @@ interface TimeDisplayProps {
    * tooltip, 'utc' = `YYYY-MM-DD HH:MM:SS` in UTC, the same text in every
    * time zone and on every day, 'hms' = elapsed time as `H:MM:SS` in whole
    * seconds, the hours neither padded nor capped (`0:00:05`, `27:03:09`),
-   * with the exact milliseconds as its tooltip.
+   * with the exact milliseconds as its tooltip, 'utc-day' = `HH:MM` in UTC
+   * when the moment falls on the same UTC day as `now`, else `MM-DD HH:MM`,
+   * with the `utc` text as its tooltip.
    */
-  mode?: 'absolute' | 'relative' | 'duration' | 'utc' | 'hms';
+  mode?: 'absolute' | 'relative' | 'duration' | 'utc' | 'hms' | 'utc-day';
   /** For relative mode: refresh interval in ms (default 60 000). */
   refreshMs?: number;
+  /**
+   * For utc-day mode: the moment whose UTC day counts as today, from the
+   * host's clock (ISO string, timestamp ms or Date). Defaults to the
+   * browser's clock at render.
+   */
+  now?: string | number | Date;
   className?: string;
 }
 
@@ -34,6 +42,17 @@ function formatHms(ms: number): string {
 
 function formatUtc(d: Date): string {
   return `${String(d.getUTCFullYear())}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+}
+
+function formatUtcDay(d: Date, now: Date): string {
+  const time = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+  const sameDay =
+    d.getUTCFullYear() === now.getUTCFullYear() &&
+    d.getUTCMonth() === now.getUTCMonth() &&
+    d.getUTCDate() === now.getUTCDate();
+  return sameDay
+    ? time
+    : `${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${time}`;
 }
 
 function formatAbsolute(d: Date): string {
@@ -55,6 +74,7 @@ export function TimeDisplay({
   value,
   mode = 'absolute',
   refreshMs = 60_000,
+  now: today,
   className,
 }: TimeDisplayProps) {
   const strings = useStrings();
@@ -98,8 +118,11 @@ export function TimeDisplay({
     if (mode === 'utc') {
       return formatUtc(d);
     }
+    if (mode === 'utc-day') {
+      return formatUtcDay(d, new Date(today ?? Date.now()));
+    }
     return formatAbsolute(d);
-  }, [d, mode, durationMs, hasDuration, now, strings]);
+  }, [d, mode, durationMs, hasDuration, now, today, strings]);
 
   const tooltip = useMemo(() => {
     if (mode === 'duration' || mode === 'hms') {
@@ -107,6 +130,9 @@ export function TimeDisplay({
     }
     if (mode === 'absolute' || mode === 'utc' || d === null) {
       return undefined;
+    }
+    if (mode === 'utc-day') {
+      return formatUtc(d);
     }
     return formatAbsolute(d);
   }, [d, mode, durationMs, hasDuration]);
