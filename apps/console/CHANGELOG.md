@@ -1,5 +1,12 @@
 # @lincyaw/console
 
+## 0.5.8
+
+### Patch Changes
+
+- Updated dependencies [128a083]
+  - @lincyaw/aegis-ui@0.20.1
+
 ## 0.5.7
 
 ### Patch Changes
