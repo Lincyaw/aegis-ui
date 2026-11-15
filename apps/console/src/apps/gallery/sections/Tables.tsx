@@ -1104,6 +1104,36 @@ export function TablesSection() {
         </Specimen>
       </div>
 
+      <SectionDivider>DataTable · compact · plain header</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen
+          caption="density='compact' header='plain' · --data-table-compact-row-min-height rows, tighter cells, no header fill, the hairline under the header · framed={false} in a Panel padded={false}, as in a pane"
+          span={3}
+        >
+          <Panel title='按模型' padded={false}>
+            <DataTable
+              framed={false}
+              density='compact'
+              header='plain'
+              columns={GALLERY_MODEL_COLUMNS}
+              data={GALLERY_MODEL_ROWS}
+              rowKey={(row) => row.model}
+            />
+          </Panel>
+        </Specimen>
+        <Specimen
+          caption="density='compact' alone · framed · the filled header"
+          span={3}
+        >
+          <DataTable
+            density='compact'
+            columns={GALLERY_TASK_COLUMNS}
+            data={GALLERY_TASK_ROWS}
+            rowKey={(row) => row.id}
+          />
+        </Specimen>
+      </div>
+
       <SectionDivider>DataTable · resizable columns</SectionDivider>
       <ResizableColumnsSpecimen />
 

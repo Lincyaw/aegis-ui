@@ -51,6 +51,12 @@ export interface AnchoredPopoverProps {
    * enters it.
    */
   autoFocus?: boolean;
+  /**
+   * Makes the popover at least `--anchored-popover-min-width` wide (or the
+   * view's width, if narrower), for content that sizes itself to its
+   * container, such as a `MetadataList`, and so has no width of its own.
+   */
+  minWidth?: boolean;
   className?: string;
 }
 
@@ -123,6 +129,7 @@ export function AnchoredPopover({
   ariaLabel,
   container = null,
   autoFocus = true,
+  minWidth = false,
   className,
 }: AnchoredPopoverProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -289,6 +296,7 @@ export function AnchoredPopover({
   const cls = [
     'aegis-anchored-popover',
     container === null ? '' : 'aegis-anchored-popover--contained',
+    minWidth ? 'aegis-anchored-popover--min-width' : '',
     position ? `aegis-anchored-popover--${position.side}` : '',
     className ?? '',
   ]

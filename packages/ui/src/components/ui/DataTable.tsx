@@ -126,6 +126,16 @@ interface DataTableProps<T> {
    */
   framed?: boolean;
   /**
+   * `compact` sets rows `--data-table-compact-row-min-height` high with
+   * tighter cell padding, for a dense table in a pane.
+   */
+  density?: 'default' | 'compact';
+  /**
+   * `plain` draws the header on the table's own surface, divided from the
+   * rows by its hairline alone; `filled` (default) sets it on a muted fill.
+   */
+  header?: 'filled' | 'plain';
+  /**
    * When set, resized column widths are persisted to localStorage under
    * `aegis-data-table:<persistKey>`. Use a stable key per table.
    */
@@ -279,6 +289,8 @@ export function DataTable<T>({
   emptyAction,
   className,
   framed = true,
+  density = 'default',
+  header = 'filled',
   persistKey,
   pagination,
   selectable = false,
@@ -400,6 +412,8 @@ export function DataTable<T>({
   const cls = [
     'aegis-data-table',
     framed ? 'aegis-data-table--framed' : '',
+    density === 'compact' ? 'aegis-data-table--compact' : '',
+    header === 'plain' ? 'aegis-data-table--plain-header' : '',
     stale ? 'aegis-data-table--stale' : '',
     className ?? '',
   ]

@@ -9,6 +9,7 @@ import {
   ColumnLayout,
   FileTree,
   type FileTreeFile,
+  MetadataList,
   MetricLabel,
   MonoValue,
   type PopoverAnchor,
@@ -179,7 +180,7 @@ function FileTreeControlledSpecimen(): ReactNode {
   );
 }
 
-function ElementPopoverSpecimen() {
+function ElementPopoverSpecimen({ minWidth = false }: { minWidth?: boolean }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   return (
@@ -197,9 +198,19 @@ function ElementPopoverSpecimen() {
         anchor={triggerRef.current}
         align='end'
         ariaLabel='所属模块'
+        minWidth={minWidth}
         onClose={() => setOpen(false)}
       >
-        <MetricLabel>根/clock · 实现 2 条需求</MetricLabel>
+        {minWidth ? (
+          <MetadataList
+            entries={[
+              { label: '模块', value: '根/clock', mono: true },
+              { label: '实现需求', value: '2 条' },
+            ]}
+          />
+        ) : (
+          <MetricLabel>根/clock · 实现 2 条需求</MetricLabel>
+        )}
       </AnchoredPopover>
     </>
   );
@@ -323,7 +334,7 @@ export function LogsSection() {
       </SectionDivider>
       <div className='gallery__row'>
         <Specimen
-          caption='onSelectLines · press a line number, Shift+press to extend, press the only selected line to clear · the anchor over the lines opens an AnchoredPopover: Escape, a press outside or Tab past its last control closes it'
+          caption='onSelectLines · press a line number, Shift+press to extend, press the only selected line to clear · the anchor over the lines opens an AnchoredPopover drawn in main, minWidth: Escape, a press outside or Tab past its last control closes it'
           span={3}
           align='start'
         >
@@ -331,6 +342,9 @@ export function LogsSection() {
         </Specimen>
         <Specimen caption='AnchoredPopover anchored to an element · placement auto · align end'>
           <ElementPopoverSpecimen />
+        </Specimen>
+        <Specimen caption='minWidth · at least --anchored-popover-min-width, for a MetadataList that sizes itself to its container'>
+          <ElementPopoverSpecimen minWidth />
         </Specimen>
         <Specimen
           caption='selectedLines preset, as from the page address · AnchoredPopover autoFocus={false}: it opens without taking focus, Tab from the lines enters it · onSelectedLinesAnchor hands the anchor of the drawn selection on mount and on every change · AnchoredPopover container: drawn inside the scrolling frame (a landmark), following the lines as it scrolls'

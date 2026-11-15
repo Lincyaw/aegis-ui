@@ -74,6 +74,8 @@ export interface AegisApp {
    * Set true to render the app's pages in a bleed `PageWrapper`: edge to
    * edge under the header, the height of the view, for pages built of
    * `Toolbar` bars over a `PaneLayout`. Pair it with `breadcrumbBar: false`.
+   * The shell's `main` is then positioned, so an `AnchoredPopover` with
+   * `container` set to it is placed in its box.
    */
   bleed?: boolean;
   /**

@@ -192,6 +192,30 @@
   vertical-align: middle;
 }
 
+/* compact: shorter rows and tighter cells, for a dense table in a pane. */
+.aegis-data-table--compact {
+  --aegis-data-table-cell-pad: var(--space-2);
+}
+
+.aegis-data-table--compact .aegis-data-table__th,
+.aegis-data-table--compact .aegis-data-table__td {
+  padding-block: var(--space-1);
+}
+
+.aegis-data-table--compact .aegis-data-table__td {
+  height: var(--data-table-compact-row-min-height);
+}
+
+/* plain header: no fill, only the hairline under it divides it from the
+ * rows; a pinned header cell stays opaque over the cells scrolling under. */
+.aegis-data-table--plain-header .aegis-data-table__th {
+  background: transparent;
+}
+
+.aegis-data-table--plain-header .aegis-data-table__th--sticky {
+  background: var(--bg-panel);
+}
+
 /* The card's edge closes the table, so the last row draws no separator. */
 .aegis-data-table__table > tbody > tr:last-child > td {
   border-bottom: none;

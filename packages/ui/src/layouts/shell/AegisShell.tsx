@@ -322,7 +322,11 @@ export function AegisShell({
             id="aegis-main"
             ref={mainRef}
             tabIndex={-1}
-            className="aegis-shell__main"
+            className={
+              activeApp?.bleed === true
+                ? 'aegis-shell__main aegis-shell__main--bleed'
+                : 'aegis-shell__main'
+            }
           >
             {renderAppRegion(
               activeApp,

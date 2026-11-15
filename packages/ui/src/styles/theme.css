@@ -446,6 +446,7 @@
   --line-icon-size-lg: 18px;
   --line-icon-stroke: 1.75;
   /* AnchoredPopover: the widest and tallest the overlay grows. */
+  --anchored-popover-min-width: 280px;
   --anchored-popover-max-width: 360px;
   --anchored-popover-max-height: 60vh;
   /* ScrollStory: where its pinned panel stops under the header, the
@@ -581,6 +582,7 @@
   /* Defaults reproduce the stock look; a host restyles a primitive by
    * overriding these, never by targeting its internal classes. */
   --data-table-row-min-height: 64px;
+  --data-table-compact-row-min-height: 40px;
   /* Accent mixed into a cellTone wash per step above 1 (step 5 = 4×). */
   --data-table-cell-tone-step: 5%;
   --page-header-margin-bottom: var(--space-6);

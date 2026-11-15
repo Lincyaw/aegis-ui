@@ -26,6 +26,14 @@
   position: absolute;
 }
 
+/* minWidth: content sized by its container has no width to give the panel. */
+.aegis-anchored-popover--min-width {
+  min-width: min(
+    var(--anchored-popover-min-width),
+    calc(100vw - var(--space-4))
+  );
+}
+
 /* The panel holds focus only to pass it on; a ring would frame the whole overlay. */
 .aegis-anchored-popover:focus {
   outline: none;

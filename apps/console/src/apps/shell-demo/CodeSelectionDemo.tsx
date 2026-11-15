@@ -1,10 +1,11 @@
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useEffect, useState } from 'react';
 
 import {
   AnchoredPopover,
   Button,
   CodeBlock,
   type CodeLineRange,
+  MetadataList,
   MetricLabel,
   MonoValue,
   type PopoverAnchor,
@@ -29,10 +30,18 @@ const CLOCK_SOURCE = [
   '        self._now += delta',
 ].join('\n');
 
-/** A CodeBlock whose selected lines open an AnchoredPopover beside them. */
+/**
+ * A CodeBlock whose selected lines open an AnchoredPopover beside them,
+ * drawn in the bleed app's main, which the shell positions, and at least
+ * its min width wide for the MetadataList that sizes itself to it.
+ */
 export function CodeSelectionDemo(): ReactElement {
   const [range, setRange] = useState<CodeLineRange | null>(null);
   const [anchor, setAnchor] = useState<PopoverAnchor | null>(null);
+  const [main, setMain] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setMain(document.getElementById('aegis-main'));
+  }, []);
   return (
     <>
       <CodeBlock
@@ -48,6 +57,8 @@ export function CodeSelectionDemo(): ReactElement {
         open={range !== null}
         anchor={anchor}
         ariaLabel='选区'
+        container={main}
+        minWidth
         onClose={() => {
           setRange(null);
           setAnchor(null);
@@ -61,10 +72,12 @@ export function CodeSelectionDemo(): ReactElement {
                 ? `第 ${String(range.start)} 行`
                 : `第 ${String(range.start)}–${String(range.end)} 行`}
           </MetricLabel>
-          <SectionDivider variant='group' rule={false}>
-            所属模块
-          </SectionDivider>
-          <MonoValue size='sm'>根/clock</MonoValue>
+          <MetadataList
+            entries={[
+              { label: '所属模块', value: '根/clock', mono: true },
+              { label: '文件', value: 'src/clock.py', mono: true },
+            ]}
+          />
           <SectionDivider variant='group' rule={false}>
             关联需求
           </SectionDivider>

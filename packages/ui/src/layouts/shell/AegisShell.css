@@ -387,6 +387,12 @@
   flex-direction: column;
 }
 
+/* A bleed app's main is positioned, so an AnchoredPopover drawn in it
+ * (container={main}) is placed in its box. */
+.aegis-shell__main--bleed {
+  position: relative;
+}
+
 /* The skip link's target takes focus without drawing a ring around the page. */
 .aegis-shell__main:focus {
   outline: none;
