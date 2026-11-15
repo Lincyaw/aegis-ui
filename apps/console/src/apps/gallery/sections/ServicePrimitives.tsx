@@ -784,6 +784,26 @@ const traceTreeUntimedSpans: TraceSpan[] = [
   { id: 'r2-in', parentId: 'r2', name: 'function_call_output: 482 ms' },
 ];
 
+/** An area tree whose names are words, not identifiers. */
+const traceTreeAreaSpans: TraceSpan[] = [
+  { id: 'a1', name: '完成待办', kind: '区域', status: 'ok' },
+  {
+    id: 'a1-1',
+    parentId: 'a1',
+    name: '完成后的待办移到列表底部',
+    status: 'ok',
+  },
+  { id: 'a1-2', parentId: 'a1', name: '撤销完成恢复原位置', status: 'ok' },
+  { id: 'a2', name: '可测试性', kind: '区域', status: 'error' },
+  { id: 'a2-1', parentId: 'a2', name: '测试时钟决定创建时间', status: 'error' },
+  {
+    id: 'a2-2',
+    parentId: 'a2',
+    name: 'Setup holds across a restart',
+    status: 'ok',
+  },
+];
+
 /** Children before their parents, as OTel exports rows, and a parent cycle. */
 const traceTreeUnorderedSpans: TraceSpan[] = [
   {
@@ -3209,6 +3229,12 @@ export function ServicePrimitivesSection() {
         </Specimen>
         <Specimen caption='no span timed · labels only' span={3}>
           <TraceTree spans={traceTreeUntimedSpans} />
+        </Specimen>
+        <Specimen
+          caption="nameFont='ui' · an area tree whose names are words, set in --font-ui instead of --font-mono"
+          span={3}
+        >
+          <TraceTree spans={traceTreeAreaSpans} nameFont='ui' />
         </Specimen>
         <Specimen
           caption='children listed before parents nest at their depth · a parent cycle is cut, not dropped · one tab stop: ↑ ↓ move, → expands then enters, ← collapses then leaves, Enter selects'

@@ -123,6 +123,12 @@ interface TraceTreeProps {
    * name keeps its runs of spaces, its tabs and its line breaks.
    */
   wrapName?: boolean;
+  /**
+   * `mono` (default) sets each name in `--font-mono`, for identifiers such as
+   * span or file names; `ui` sets it in `--font-ui`, for names that are
+   * words, such as areas, tasks or modules.
+   */
+  nameFont?: 'mono' | 'ui';
 }
 
 interface Node {
@@ -275,6 +281,7 @@ export function TraceTree({
   onNameColumnWidthChange,
   persistKey,
   wrapName = false,
+  nameFont = 'mono',
 }: TraceTreeProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const treeRef = useRef<HTMLDivElement>(null);
@@ -469,6 +476,7 @@ export function TraceTree({
     'aegis-trace-tree',
     isDragging ? 'aegis-trace-tree--dragging' : '',
     wrapName ? 'aegis-trace-tree--wrap' : '',
+    nameFont === 'ui' ? 'aegis-trace-tree--ui-names' : '',
     timed ? '' : 'aegis-trace-tree--untimed',
     className ?? '',
   ]
@@ -515,7 +523,15 @@ export function TraceTree({
           const name = wrapName ? breakAtSeparators(span.name) : span.name;
           const tooltipContent = (
             <div className="aegis-trace-tree__tooltip">
-              <div className="aegis-trace-tree__tooltip-name">{span.name}</div>
+              <div
+                className={
+                  nameFont === 'ui'
+                    ? 'aegis-trace-tree__tooltip-name aegis-trace-tree__tooltip-name--ui'
+                    : 'aegis-trace-tree__tooltip-name'
+                }
+              >
+                {span.name}
+              </div>
               {meta && (
                 <div className="aegis-trace-tree__tooltip-meta">{meta}</div>
               )}
