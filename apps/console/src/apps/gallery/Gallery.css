@@ -898,9 +898,19 @@
   background: var(--bg-panel);
 }
 
+/* A bleed page whose height holds at ≤768 px too, where its stacked
+ * layout scrolls as one. */
+.gallery__pane-frame--fixed {
+  height: 560px;
+}
+
 @media (max-width: 768px) {
   .gallery__pane-frame {
     height: auto;
+  }
+
+  .gallery__pane-frame--fixed {
+    height: 560px;
   }
 }
 

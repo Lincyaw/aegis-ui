@@ -946,6 +946,64 @@ function DetailBesideRefreshSpecimen(): ReactNode {
   );
 }
 
+/** The areas of the pane form's first pane, each opening on its first requirement. */
+const DETAIL_PANE_AREAS = DETAIL_REQUIREMENTS.filter((r) => r.kind === 'area');
+
+function DetailBesidePanesSpecimen(): ReactNode {
+  const [area, setArea] = useState('A5');
+  const [selected, setSelected] = useState('A5.3.3');
+  const rows = DETAIL_LEAVES.filter((r) => r.id.startsWith(`${area}.`));
+  return (
+    <div className='gallery__pane-frame gallery__pane-frame--fixed'>
+      <PaneLayout>
+        <Pane size='sm' label='Areas'>
+          <div className='gallery__stack'>
+            {DETAIL_PANE_AREAS.map((row) => (
+              <Button
+                key={row.id}
+                tone={row.id === area ? 'primary' : 'ghost'}
+                onClick={() => {
+                  setArea(row.id);
+                  setSelected(`${row.id}.1.1`);
+                }}
+              >
+                {row.name}
+              </Button>
+            ))}
+          </div>
+        </Pane>
+        <DetailBeside
+          layout='panes'
+          listPane={{ label: 'Requirements', padding: 'none' }}
+          detailPane={{ label: 'Detail' }}
+          detail={
+            <GalleryRequirementDetail
+              id={selected}
+              requirements={DETAIL_REQUIREMENTS}
+            />
+          }
+          revealKey={selected}
+        >
+          <DataTable<GalleryRequirement>
+            ariaLabel='Requirements of the area'
+            framed={false}
+            columns={[
+              { key: 'id', header: 'ID', width: 96, render: (r) => r.id },
+              { key: 'name', header: 'Requirement', render: (r) => r.name },
+            ]}
+            data={rows}
+            rowKey={(r) => r.id}
+            selectedKeys={[selected]}
+            onRowClick={(r) => {
+              setSelected(r.id);
+            }}
+          />
+        </DetailBeside>
+      </PaneLayout>
+    </div>
+  );
+}
+
 const PANE_AREAS = [
   { key: 'completion', label: '完成待办', passed: true },
   { key: 'todos', label: '记录待办', passed: true },
@@ -1298,6 +1356,13 @@ export function LayoutsSection() {
         span={3}
       >
         <DetailBesideRefreshSpecimen />
+      </Specimen>
+      <Specimen
+        caption="layout='panes' · listPane, detailPane · set in a PaneLayout after an areas pane: the table and the detail are panes divided by a hairline, each scrolling on its own, the detail at its pane's top · at ≤768 px the detail opens under the selected row and the stacked layout scrolls as one"
+        span={3}
+        align='start'
+      >
+        <DetailBesidePanesSpecimen />
       </Specimen>
 
       <SectionDivider>FormRow</SectionDivider>

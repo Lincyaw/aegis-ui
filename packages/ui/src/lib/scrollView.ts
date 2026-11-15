@@ -9,6 +9,28 @@ export function scrollerOf(container: HTMLElement | null): HTMLElement {
   return container ?? document.documentElement;
 }
 
+/**
+ * The nearest element at or above `from` whose content runs past its
+ * height and scrolls; null when none does below the body, which means the
+ * viewport.
+ */
+export function scrollingAncestorOf(from: HTMLElement): HTMLElement | null {
+  for (
+    let element: HTMLElement | null = from;
+    element !== null && element !== document.body;
+    element = element.parentElement
+  ) {
+    const { overflowY } = getComputedStyle(element);
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll') &&
+      element.scrollHeight > element.clientHeight
+    ) {
+      return element;
+    }
+  }
+  return null;
+}
+
 export function viewBoundsOf(container: HTMLElement | null): ViewBounds {
   if (!container) {
     return { top: 0, bottom: document.documentElement.clientHeight };
