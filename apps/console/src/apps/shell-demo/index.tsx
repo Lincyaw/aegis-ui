@@ -1,8 +1,11 @@
-import type { ReactElement } from 'react';
+import { type ReactElement, useState } from 'react';
 
 import {
   type AegisApp,
   Breadcrumb,
+  DataTable,
+  DetailBeside,
+  KeyValueList,
   LineIcon,
   MetricLabel,
   MonoValue,
@@ -27,6 +30,8 @@ const OVERVIEW_GLYPH = (
     <rect x='13' y='13' width='7' height='7' rx='1.5' />
   </>
 );
+
+const REQUIREMENTS_GLYPH = <path d='M5 6h14M5 12h14M5 18h9' />;
 
 const CODE_GLYPH = <path d='m8 7-5 5 5 5m8-10 5 5-5 5m-2-12-4 14' />;
 
@@ -148,6 +153,64 @@ function CodePage(): ReactElement {
   );
 }
 
+interface DemoRequirement {
+  id: string;
+  name: string;
+}
+
+const REQUIREMENTS: DemoRequirement[] = Array.from(
+  { length: 60 },
+  (_, index) => ({
+    id: `R${String(index + 1).padStart(2, '0')}`,
+    name: `需求 ${String(index + 1)}：时钟驱动时间，记录可追溯`,
+  })
+);
+
+/**
+ * A bleed page whose list and detail are DetailBeside's panes; it opens
+ * on a row far down, so at 768 px and below, where the page grows with
+ * its stacked panes and the window scrolls, the reveal scrolls the window.
+ */
+function RequirementsPage(): ReactElement {
+  const [selected, setSelected] = useState('R52');
+  return (
+    <>
+      <PageBar title='需求' />
+      <PaneLayout>
+        <DetailBeside
+          layout='panes'
+          listPane={{ label: '需求', padding: 'none' }}
+          detailPane={{ label: '详情' }}
+          detail={
+            <KeyValueList
+              items={[
+                { k: '需求', v: <MonoValue size='sm'>{selected}</MonoValue> },
+                { k: '状态', v: '通过' },
+              ]}
+            />
+          }
+          revealKey={selected}
+        >
+          <DataTable<DemoRequirement>
+            ariaLabel='需求'
+            framed={false}
+            columns={[
+              { key: 'id', header: 'ID', width: 96, render: (r) => r.id },
+              { key: 'name', header: '需求', render: (r) => r.name },
+            ]}
+            data={REQUIREMENTS}
+            rowKey={(r) => r.id}
+            selectedKeys={[selected]}
+            onRowClick={(r) => {
+              setSelected(r.id);
+            }}
+          />
+        </DetailBeside>
+      </PaneLayout>
+    </>
+  );
+}
+
 /**
  * The shell with `chrome="sidebar"`: brand and controls in the sidebar,
  * bleed pages of bars over panes, the drawer toggle in each page's bar.
@@ -171,12 +234,18 @@ export const shellDemoApp: AegisApp = {
           end: true,
           icon: <LineIcon>{OVERVIEW_GLYPH}</LineIcon>,
         },
+        {
+          to: 'requirements',
+          label: '需求',
+          icon: <LineIcon>{REQUIREMENTS_GLYPH}</LineIcon>,
+        },
         { to: 'code', label: '代码', icon: <LineIcon>{CODE_GLYPH}</LineIcon> },
       ],
     },
   ],
   routes: [
     { path: '', element: <OverviewPage /> },
+    { path: 'requirements', element: <RequirementsPage /> },
     { path: 'code', element: <CodePage /> },
   ],
 };

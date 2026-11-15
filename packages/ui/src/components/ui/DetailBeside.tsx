@@ -157,8 +157,8 @@ function InlineDetail({ boxRef }: { boxRef: RefObject<HTMLDivElement> }) {
  * scrolls the list's pane to the row and the detail's pane to its top. At
  * 768 px and below there is only the list's pane, which draws the detail
  * right after the selected row as the column form does, and a reveal
- * scrolls the nearest scroller around it, the stacked `PaneLayout` in a
- * bleed page. The list is `aria-busy` while a selected row is on its way.
+ * scrolls the nearest scroller around it, the window in a bleed page,
+ * which grows with its stacked panes. The list is `aria-busy` while a selected row is on its way.
  */
 export function DetailBeside(props: DetailBesideProps) {
   const { detail, children, revealKey } = props;
