@@ -127,7 +127,9 @@ Sans SC, so Apple devices render Chinese in the system face.
   docked panel; a state such as unread or selected shows through the
   surface or a dot, never a coloured side bar. The one left rule is
   `Quote`'s, which sets off quoted text: neutral for a source, anomaly red
-  for quoted failure output.
+  for quoted failure output. Selected code lines (`CodeBlock`'s
+  `selectedLines`) take the brand's soft surface with a brand rule at
+  their left, as editors mark a selection.
 - **Elevation and glass**: three shadows — `--shadow-rest` (cards, panels,
   secondary buttons), `--shadow-raised` (hovered clickable cards and rows,
   featured content), `--shadow-overlay` (dialogs, menus, tooltips). One
@@ -235,6 +237,12 @@ Mount it in the consumer:
 
 The shell wraps every route in `<PageWrapper>` automatically — pages
 themselves render content only, never the layout chrome.
+
+With `chrome: 'sidebar'` (on the shell or on the app) there is no top
+header: the brand heads the sidebar, the header's actions and user menu sit
+at its foot, and at ≤768 px each page puts `<ShellMenuToggle />` in its
+`Toolbar variant="page"` to open the drawer. Pair it with `bleed: true` and
+`breadcrumbBar: false` for pages of bars over a `PaneLayout`.
 
 ## Where things live
 

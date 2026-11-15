@@ -33,16 +33,25 @@ import { useStrings } from '../../locale';
 import { ThemeContext } from '../../theme/themeContext';
 import { SkipLink } from '../SkipLink';
 import './AegisShell.css';
+import { AppSwitcher } from './AppSwitcher';
 import { BreadcrumbBar } from './BreadcrumbBar';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 import { ShellCommandPalette } from './ShellCommandPalette';
+import { ShellNotificationBell } from './ShellNotificationBell';
 import { Sidebar } from './Sidebar';
-import { TopHeader } from './TopHeader';
+import {
+  ActiveEnvironmentSwitcher,
+  AgentPanelToggle,
+  ShellBrand,
+  TopHeader,
+  UserMenu,
+} from './TopHeader';
 import { ActiveAppContext } from './activeAppContext';
 import { assertUniqueBasePaths, findActiveApp, isAppVisible } from './apps';
 import { buildRouteTree } from './buildRouteTree';
 import { EnvironmentProvider } from './environments';
 import { normalizeBasePath } from './paths';
+import { ShellNavContext, type ShellNavContextValue } from './shellNavContext';
 import type { AegisApp, AegisShellProps } from './types';
 import { useAgentPanel } from './useAgentPanel';
 import { useAppCommands } from './useAppCommands';
@@ -81,6 +90,7 @@ export function AegisShell({
   commandGroupOrder,
   agentPanel,
   agentRuntime,
+  chrome = 'header',
 }: AegisShellProps): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
@@ -131,6 +141,19 @@ export function AegisShell({
   const agent = useAgentPanel(agentPanel);
   const mobileNav = useMobileNav(pathname);
 
+  const sidebarChrome = (activeApp?.chrome ?? chrome) === 'sidebar';
+  const navValue = useMemo<ShellNavContextValue | null>(
+    () =>
+      sidebarChrome
+        ? {
+            open: mobileNav.open,
+            toggle: mobileNav.toggle,
+            toggleRef: mobileNav.toggleRef,
+          }
+        : null,
+    [sidebarChrome, mobileNav.open, mobileNav.toggle, mobileNav.toggleRef],
+  );
+
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsedValue(sidebarCollapsed ? '0' : '1');
   }, [setSidebarCollapsedValue, sidebarCollapsed]);
@@ -180,10 +203,21 @@ export function AegisShell({
   const appHasSidebar = Boolean(
     activeApp?.sidebar && activeApp.sidebar.length > 0,
   );
-  const hasSidebar = appHasSidebar && !sidebarCollapsed;
+  const hasSidebar = sidebarChrome || (appHasSidebar && !sidebarCollapsed);
+
+  const signInButton = auth.status === 'unauthenticated' && auth.signIn && (
+    <Button
+      onClick={() => {
+        void auth.signIn?.({});
+      }}
+    >
+      {strings.signIn}
+    </Button>
+  );
 
   const shellClass = [
     'aegis-shell',
+    sidebarChrome ? 'aegis-shell--chrome-sidebar' : '',
     hasSidebar ? 'aegis-shell--with-sidebar' : 'aegis-shell--no-sidebar',
     mobileNav.open ? 'aegis-shell--mobile-nav-open' : '',
     agent.open ? 'aegis-shell--with-agent-panel' : '',
@@ -203,44 +237,78 @@ export function AegisShell({
         <div ref={mobileNav.shellRef} className={shellClass}>
           <SkipLink targetId="aegis-main" targetRef={mainRef} />
           {ambient && <AmbientBackground variant={ambient} />}
-          <TopHeader
-            brand={brand}
-            apps={visibleApps}
-            activeAppId={activeApp?.id}
-            onAppSwitch={onAppSwitch}
-            appSwitcher={appSwitcher}
-            scrolled={headerScrolled}
-            user={resolvedUser}
-            headerCenter={headerCenter}
-            headerActions={
-              <>
-                {headerActions}
-                {auth.status === 'unauthenticated' && auth.signIn && (
-                  <Button
-                    onClick={() => {
-                      void auth.signIn?.({});
-                    }}
-                  >
-                    {strings.signIn}
-                  </Button>
-                )}
-              </>
-            }
-            inboxPath={auth.status === 'authenticated' ? inboxPath : undefined}
-            onMobileMenuToggle={mobileNav.toggle}
-            mobileMenuOpen={mobileNav.open}
-            menuToggleRef={mobileNav.toggleRef}
-            showMobileMenu={appHasSidebar}
-            sidebarCollapsible={appHasSidebar}
-            sidebarCollapsed={sidebarCollapsed}
-            onSidebarToggle={toggleSidebar}
-            inlineSlotRef={setInlineSlot}
-            inlineSlotActive={Boolean(activeApp?.header)}
-            agentPanelOpen={agent.open}
-            onAgentPanelToggle={agent.toggle}
-          />
-          {appHasSidebar && (
-            <Sidebar activeApp={activeApp} drawerRef={mobileNav.drawerRef} />
+          {!sidebarChrome && (
+            <TopHeader
+              brand={brand}
+              apps={visibleApps}
+              activeAppId={activeApp?.id}
+              onAppSwitch={onAppSwitch}
+              appSwitcher={appSwitcher}
+              scrolled={headerScrolled}
+              user={resolvedUser}
+              headerCenter={headerCenter}
+              headerActions={
+                <>
+                  {headerActions}
+                  {signInButton}
+                </>
+              }
+              inboxPath={
+                auth.status === 'authenticated' ? inboxPath : undefined
+              }
+              onMobileMenuToggle={mobileNav.toggle}
+              mobileMenuOpen={mobileNav.open}
+              menuToggleRef={mobileNav.toggleRef}
+              showMobileMenu={appHasSidebar}
+              sidebarCollapsible={appHasSidebar}
+              sidebarCollapsed={sidebarCollapsed}
+              onSidebarToggle={toggleSidebar}
+              inlineSlotRef={setInlineSlot}
+              inlineSlotActive={Boolean(activeApp?.header)}
+              agentPanelOpen={agent.open}
+              onAgentPanelToggle={agent.toggle}
+            />
+          )}
+          {sidebarChrome ? (
+            <Sidebar
+              activeApp={activeApp}
+              drawerRef={mobileNav.drawerRef}
+              top={
+                <>
+                  {appSwitcher ? (
+                    <AppSwitcher
+                      apps={visibleApps}
+                      activeAppId={activeApp?.id}
+                      onAppSwitch={onAppSwitch}
+                    />
+                  ) : null}
+                  <ShellBrand brand={brand} />
+                </>
+              }
+              footer={
+                <>
+                  <ActiveEnvironmentSwitcher />
+                  {headerActions}
+                  {signInButton}
+                  {auth.status === 'authenticated' && inboxPath && (
+                    <ShellNotificationBell inboxPath={inboxPath} />
+                  )}
+                  {resolvedUser && (
+                    <UserMenu user={resolvedUser} align="left" />
+                  )}
+                  {agent.toggle && (
+                    <AgentPanelToggle
+                      open={agent.open}
+                      onToggle={agent.toggle}
+                    />
+                  )}
+                </>
+              }
+            />
+          ) : (
+            appHasSidebar && (
+              <Sidebar activeApp={activeApp} drawerRef={mobileNav.drawerRef} />
+            )
           )}
           <button
             ref={mobileNav.backdropRef}
@@ -259,7 +327,7 @@ export function AegisShell({
             {renderAppRegion(
               activeApp,
               activeAppValue,
-              <>
+              <ShellNavContext.Provider value={navValue}>
                 {activeApp?.header &&
                   inlineSlot &&
                   createPortal(activeApp.header, inlineSlot)}
@@ -267,7 +335,7 @@ export function AegisShell({
                   <BreadcrumbBar activeApp={activeApp} />
                 )}
                 <div className="aegis-shell__content">{page}</div>
-              </>,
+              </ShellNavContext.Provider>,
             )}
           </main>
           {agent.open && (

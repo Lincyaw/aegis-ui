@@ -1,5 +1,6 @@
 export { AegisShell } from './AegisShell';
 export { ShellInboxPage } from './ShellInboxPage';
+export { ShellMenuToggle } from './ShellMenuToggle';
 export { isAppVisible } from './apps';
 export { useActiveApp } from './activeAppContext';
 export type { ActiveAppContextValue } from './activeAppContext';

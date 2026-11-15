@@ -76,6 +76,11 @@ export interface AegisApp {
    * `Toolbar` bars over a `PaneLayout`. Pair it with `breadcrumbBar: false`.
    */
   bleed?: boolean;
+  /**
+   * The shell's `chrome` while this app is active, in place of the
+   * shell's own, e.g. an app whose pages carry their own top bars.
+   */
+  chrome?: 'header' | 'sidebar';
   /** Optional one-line description shown in app pickers. */
   description?: string;
   /**
@@ -164,6 +169,16 @@ export interface AegisShellProps {
    * automatically when available.
    */
   userMenu?: AegisUserMenuItem[];
+  /**
+   * `header` (default) puts the brand, the app launcher, the actions and
+   * the user menu in a top header. `sidebar` drops the header: the brand
+   * and the launcher head the sidebar, `headerActions`, the notification
+   * bell and the user menu sit at its foot, and the sidebar shows for every
+   * app. At 768 px and below the sidebar is the drawer, opened by the
+   * `ShellMenuToggle` the page puts in its top bar. `headerCenter`, an
+   * app's `header` and the sidebar collapse toggle have no place in it.
+   */
+  chrome?: 'header' | 'sidebar';
   /** Slot rendered in the top header center (e.g. global search). */
   headerCenter?: ReactNode;
   /** Slot rendered in the top header right side, before the user menu. */

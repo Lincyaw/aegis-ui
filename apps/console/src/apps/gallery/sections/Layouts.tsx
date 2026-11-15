@@ -1267,6 +1267,25 @@ export function LayoutsSection() {
         </Specimen>
       </div>
 
+      <SectionDivider>
+        AegisShell · chrome=&apos;sidebar&apos; · ShellMenuToggle
+      </SectionDivider>
+      <Specimen
+        caption="chrome='sidebar' (on the shell, or on one app): no header; the brand heads the sidebar, headerActions and the user menu sit at its foot; at ≤768 px the sidebar is the drawer, opened by ShellMenuToggle in the page's Toolbar variant='page' · the shell-demo app, in the dev console"
+        span={3}
+        align='start'
+      >
+        {import.meta.env.DEV ? (
+          <iframe
+            className='gallery__shell-frame'
+            src='/shell-demo/code'
+            title='AegisShell chrome="sidebar"'
+          />
+        ) : (
+          <MetricLabel>Runs in the dev console at /shell-demo.</MetricLabel>
+        )}
+      </Specimen>
+
       <SectionDivider>DetailBeside</SectionDivider>
       <Specimen
         caption="columns='3fr 2fr' · scrollContainer · TraceTree, FileTree, DataTable, TreeTable or ServiceMap · the detail under the row at ≤768 px"

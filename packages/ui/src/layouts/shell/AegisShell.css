@@ -45,6 +45,28 @@
     'main agent';
 }
 
+/* chrome="sidebar": no header. The offsets that cleared it are recomputed
+ * here at zero, and the brand and controls move into the sidebar. */
+.aegis-shell--chrome-sidebar {
+  --header-height: 0rem;
+  --page-bleed-height: 100vh;
+  --scroll-story-sticky-top: calc(var(--header-height) + var(--space-6));
+  --detail-beside-sticky-top: calc(var(--header-height) + var(--space-4));
+  --service-map-viewport-height: calc(
+    100vh - var(--breadcrumb-bar-height) - var(--space-6) * 2
+  );
+
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.aegis-shell--chrome-sidebar.aegis-shell--with-sidebar {
+  grid-template-areas: 'sidebar main';
+}
+
+.aegis-shell--chrome-sidebar.aegis-shell--with-sidebar.aegis-shell--with-agent-panel {
+  grid-template-areas: 'sidebar main agent';
+}
+
 .aegis-shell__header {
   grid-area: header;
   position: sticky;
@@ -270,6 +292,27 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3) 0;
+}
+
+/* Level with the page's top bar, which the sidebar's own padding would push down. */
+.aegis-shell__sidebar-top {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--page-bar-height);
+  margin-top: calc(-1 * var(--space-3));
+  padding: 0 var(--space-4);
+}
+
+.aegis-shell__sidebar-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding: var(--space-3) var(--space-4) 0;
+  border-top: var(--size-hairline) solid var(--border-hairline);
 }
 
 .aegis-shell__sidebar-section {
@@ -545,6 +588,15 @@
 
   .aegis-shell {
     grid-template-rows: auto 1fr;
+  }
+
+  .aegis-shell.aegis-shell--chrome-sidebar {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .aegis-shell--chrome-sidebar.aegis-shell--with-sidebar,
+  .aegis-shell--chrome-sidebar.aegis-shell--with-sidebar.aegis-shell--with-agent-panel {
+    grid-template-areas: 'main';
   }
 
   .aegis-shell__header {

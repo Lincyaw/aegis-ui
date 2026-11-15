@@ -148,6 +148,14 @@ export function App() {
 `AegisShellProps` in
 [`packages/ui/src/layouts/shell/types.ts`](packages/ui/src/layouts/shell/types.ts).
 
+`chrome="sidebar"`, on the shell or on one `AegisApp`, drops the top header.
+The brand and the app launcher head the sidebar, and `headerActions`, the
+notification bell and the user menu sit at its foot. At 768 px and below the
+sidebar is the navigation drawer; each page opens it with `<ShellMenuToggle />`
+in its `Toolbar variant="page"`. Such an app usually also sets `bleed: true`
+and `breadcrumbBar: false`, so its pages are a page bar and a sub-bar over a
+`PaneLayout`. The `shell-demo` app in the dev console shows the arrangement.
+
 Two optional features need a provider above the shell:
 
 - `enableCommandPalette` mounts the command palette (Cmd/Ctrl+K). Wrap the

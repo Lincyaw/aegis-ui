@@ -1,4 +1,4 @@
-import type { ReactElement, Ref } from 'react';
+import type { ReactElement, ReactNode, Ref } from 'react';
 
 import { NavLink } from 'react-router-dom';
 
@@ -9,55 +9,78 @@ interface SidebarProps {
   activeApp: AegisApp | undefined;
   /** The sidebar element, which is the navigation drawer at 768 px and below. */
   drawerRef?: Ref<HTMLElement>;
+  /** Heads the sidebar in place of the app's name, e.g. the brand. */
+  top?: ReactNode;
+  /** Sits at the sidebar's foot, e.g. the actions and the user menu. */
+  footer?: ReactNode;
 }
 
 /**
- * Per-app inner nav. The global app list lives in the header's
- * `AppSwitcher`, not here — sidebar only ever shows the current app.
+ * Per-app inner nav. Under the default chrome the global app list lives in
+ * the header's `AppSwitcher`, not here — the sidebar only ever shows the
+ * current app. Under `chrome="sidebar"` it also carries the brand at its
+ * top and the header's controls at its foot.
  */
 export function Sidebar({
   activeApp,
   drawerRef,
+  top,
+  footer,
 }: SidebarProps): ReactElement | null {
-  if (!activeApp?.sidebar || activeApp.sidebar.length === 0) {
+  const groups = activeApp?.sidebar ?? [];
+  if (groups.length === 0 && top === undefined) {
     return null;
   }
 
   return (
     <aside ref={drawerRef} className="aegis-shell__sidebar">
-      <section className="aegis-shell__sidebar-section">
-        <div className="aegis-shell__sidebar-heading">{activeApp.label}</div>
-        {activeApp.sidebar.map((group, idx) => (
-          <div key={idx}>
-            {group.label && (
-              <div className="aegis-shell__sidebar-heading">{group.label}</div>
-            )}
-            {group.items.map((item) => {
-              const path = joinPath(activeApp.basePath, item.to);
-              return (
-                <NavLink
-                  key={path}
-                  to={path}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    [
-                      'aegis-shell__nav-link',
-                      isActive ? 'aegis-shell__nav-link--active' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')
-                  }
-                >
-                  {item.icon && (
-                    <span className="aegis-shell__nav-icon">{item.icon}</span>
-                  )}
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
-          </div>
-        ))}
-      </section>
+      {top !== undefined && (
+        <div className="aegis-shell__sidebar-top">{top}</div>
+      )}
+      {activeApp && groups.length > 0 && (
+        <section className="aegis-shell__sidebar-section">
+          {top === undefined && (
+            <div className="aegis-shell__sidebar-heading">
+              {activeApp.label}
+            </div>
+          )}
+          {groups.map((group, idx) => (
+            <div key={idx}>
+              {group.label && (
+                <div className="aegis-shell__sidebar-heading">
+                  {group.label}
+                </div>
+              )}
+              {group.items.map((item) => {
+                const path = joinPath(activeApp.basePath, item.to);
+                return (
+                  <NavLink
+                    key={path}
+                    to={path}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      [
+                        'aegis-shell__nav-link',
+                        isActive ? 'aegis-shell__nav-link--active' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')
+                    }
+                  >
+                    {item.icon && (
+                      <span className="aegis-shell__nav-icon">{item.icon}</span>
+                    )}
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+          ))}
+        </section>
+      )}
+      {footer !== undefined && (
+        <div className="aegis-shell__sidebar-footer">{footer}</div>
+      )}
     </aside>
   );
 }

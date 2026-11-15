@@ -14,6 +14,7 @@ import { notesApp } from './apps/notes';
 import { pagesApp } from './apps/pages';
 import { portalApp } from './apps/portal';
 import { settingsApp } from './apps/settings';
+import { shellDemoApp } from './apps/shell-demo';
 import { trajectoriesApp } from './apps/trajectories';
 
 // Demo apps run on seed data / localhost URLs; keep them out of production.
@@ -30,5 +31,5 @@ export const registeredApps: AegisApp[] = [
   notesApp,
   settingsApp,
   galleryApp,
-  ...devOnly([envDemoAlphaApp, envDemoBravoApp, envDemoNoneApp]),
+  ...devOnly([envDemoAlphaApp, envDemoBravoApp, envDemoNoneApp, shellDemoApp]),
 ];

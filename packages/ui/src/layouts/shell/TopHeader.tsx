@@ -82,14 +82,6 @@ export function TopHeader({
   onAgentPanelToggle,
 }: TopHeaderProps): ReactElement {
   const strings = useStrings();
-  const brandInner = (
-    <>
-      {brand.logo && (
-        <span className="aegis-shell__brand-logo">{brand.logo}</span>
-      )}
-      <span className="aegis-shell__brand-name">{brand.name}</span>
-    </>
-  );
 
   return (
     <header
@@ -154,13 +146,7 @@ export function TopHeader({
             onAppSwitch={onAppSwitch}
           />
         ) : null}
-        {brand.href ? (
-          <Link to={brand.href} className="aegis-shell__brand">
-            {brandInner}
-          </Link>
-        ) : (
-          <span className="aegis-shell__brand">{brandInner}</span>
-        )}
+        <ShellBrand brand={brand} />
       </div>
       <div
         className={
@@ -179,44 +165,72 @@ export function TopHeader({
         {inboxPath && <ShellNotificationBell inboxPath={inboxPath} />}
         {user && <UserMenu user={user} />}
         {onAgentPanelToggle && (
-          <button
-            type="button"
-            className="aegis-shell__agent-toggle"
-            onClick={onAgentPanelToggle}
-            aria-label={
-              agentPanelOpen ? strings.hideAgentPanel : strings.showAgentPanel
-            }
-            aria-pressed={agentPanelOpen}
-            title={
-              agentPanelOpen ? strings.hideAgentPanel : strings.showAgentPanel
-            }
-          >
-            <span
-              className="aegis-shell__agent-toggle-glyph"
-              aria-hidden="true"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinejoin="round"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect x="2.5" y="3.5" width="15" height="13" rx="2" />
-                <line x1="12" y1="3.5" x2="12" y2="16.5" />
-              </svg>
-            </span>
-          </button>
+          <AgentPanelToggle
+            open={agentPanelOpen}
+            onToggle={onAgentPanelToggle}
+          />
         )}
       </div>
     </header>
   );
 }
 
-function ActiveEnvironmentSwitcher(): ReactElement | null {
+/** The brand's logo and name, linked to `brand.href` when it has one. */
+export function ShellBrand({ brand }: { brand: AegisBrand }): ReactElement {
+  const inner = (
+    <>
+      {brand.logo && (
+        <span className="aegis-shell__brand-logo">{brand.logo}</span>
+      )}
+      <span className="aegis-shell__brand-name">{brand.name}</span>
+    </>
+  );
+  return brand.href ? (
+    <Link to={brand.href} className="aegis-shell__brand">
+      {inner}
+    </Link>
+  ) : (
+    <span className="aegis-shell__brand">{inner}</span>
+  );
+}
+
+export function AgentPanelToggle({
+  open,
+  onToggle,
+}: {
+  open: boolean;
+  onToggle: () => void;
+}): ReactElement {
+  const strings = useStrings();
+  return (
+    <button
+      type="button"
+      className="aegis-shell__agent-toggle"
+      onClick={onToggle}
+      aria-label={open ? strings.hideAgentPanel : strings.showAgentPanel}
+      aria-pressed={open}
+      title={open ? strings.hideAgentPanel : strings.showAgentPanel}
+    >
+      <span className="aegis-shell__agent-toggle-glyph" aria-hidden="true">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect x="2.5" y="3.5" width="15" height="13" rx="2" />
+          <line x1="12" y1="3.5" x2="12" y2="16.5" />
+        </svg>
+      </span>
+    </button>
+  );
+}
+
+export function ActiveEnvironmentSwitcher(): ReactElement | null {
   const strings = useStrings();
   const state = useEnvironmentManifest();
   if (state.status === 'error') {
@@ -254,7 +268,14 @@ function ActiveEnvironmentSwitcher(): ReactElement | null {
   );
 }
 
-function UserMenu({ user }: { user: AegisUser }): ReactElement {
+export function UserMenu({
+  user,
+  align,
+}: {
+  user: AegisUser;
+  /** The side of the trigger the menu lines up with. */
+  align?: 'left' | 'right';
+}): ReactElement {
   const navigate = useNavigate();
   const items: DropdownItem[] = (user.menu ?? []).map((entry) => {
     const to = entry.to;
@@ -292,5 +313,5 @@ function UserMenu({ user }: { user: AegisUser }): ReactElement {
   if (items.length === 0) {
     return trigger;
   }
-  return <DropdownMenu trigger={trigger} items={items} />;
+  return <DropdownMenu trigger={trigger} items={items} align={align} />;
 }

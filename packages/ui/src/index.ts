@@ -96,6 +96,7 @@ export {
   AegisShell,
   ENVIRONMENT_CHANGED_EVENT,
   ShellInboxPage,
+  ShellMenuToggle,
   isAppVisible,
   useActiveApp,
   useAppHref,
