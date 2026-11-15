@@ -20,6 +20,12 @@
   box-shadow: var(--shadow-overlay);
 }
 
+/* Inside a container it is placed in its positioned ancestor's box, and
+ * moves with that box's scroll as the content does. */
+.aegis-anchored-popover--contained {
+  position: absolute;
+}
+
 /* The panel holds focus only to pass it on; a ring would frame the whole overlay. */
 .aegis-anchored-popover:focus {
   outline: none;

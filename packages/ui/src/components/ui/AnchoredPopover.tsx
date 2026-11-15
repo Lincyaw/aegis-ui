@@ -37,6 +37,13 @@ export interface AnchoredPopoverProps {
   align?: 'start' | 'end';
   /** Accessible name of the popover, which is a non-modal dialog. */
   ariaLabel: string;
+  /**
+   * The element the popover is drawn in, such as the page's `main`, so it
+   * belongs to that landmark; omitted or null means `document.body`. Inside
+   * a container the popover is placed in the box of its nearest positioned
+   * ancestor and follows the anchor as the container or the page scrolls.
+   */
+  container?: HTMLElement | null;
   className?: string;
 }
 
@@ -73,6 +80,26 @@ function place(
 }
 
 /**
+ * The viewport position of the box a contained panel is placed in, less
+ * that box's scroll: the panel's offset parent, or the document when that
+ * is the unpositioned body.
+ */
+function originOf(panel: HTMLElement): { top: number; left: number } {
+  const parent = panel.offsetParent;
+  if (
+    !(parent instanceof HTMLElement) ||
+    (parent === document.body && getComputedStyle(parent).position === 'static')
+  ) {
+    return { top: -window.scrollY, left: -window.scrollX };
+  }
+  const box = parent.getBoundingClientRect();
+  return {
+    top: box.top + parent.clientTop - parent.scrollTop,
+    left: box.left + parent.clientLeft - parent.scrollLeft,
+  };
+}
+
+/**
  * Arbitrary content in an overlay beside an anchor, e.g. what is known
  * about a selected code range. It follows the anchor as the page scrolls
  * and closes on Escape, a press outside it, or Tab past its last control.
@@ -87,6 +114,7 @@ export function AnchoredPopover({
   placement = 'auto',
   align = 'start',
   ariaLabel,
+  container = null,
   className,
 }: AnchoredPopoverProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -102,16 +130,24 @@ export function AnchoredPopover({
     const gap = parseFloat(
       getComputedStyle(panel).getPropertyValue('--anchored-popover-gap'),
     );
-    setPosition(
-      place(
-        anchor.getBoundingClientRect(),
-        panel.getBoundingClientRect(),
-        placement,
-        align,
-        Number.isNaN(gap) ? 0 : gap,
-      ),
+    const next = place(
+      anchor.getBoundingClientRect(),
+      panel.getBoundingClientRect(),
+      placement,
+      align,
+      Number.isNaN(gap) ? 0 : gap,
     );
-  }, [anchor, placement, align]);
+    if (container === null) {
+      setPosition(next);
+      return;
+    }
+    const origin = originOf(panel);
+    setPosition({
+      ...next,
+      top: next.top - origin.top,
+      left: next.left - origin.left,
+    });
+  }, [anchor, placement, align, container]);
 
   useLayoutEffect(() => {
     if (!shown) {
@@ -230,6 +266,7 @@ export function AnchoredPopover({
   }
   const cls = [
     'aegis-anchored-popover',
+    container === null ? '' : 'aegis-anchored-popover--contained',
     position ? `aegis-anchored-popover--${position.side}` : '',
     className ?? '',
   ]
@@ -249,6 +286,6 @@ export function AnchoredPopover({
     >
       {children}
     </div>,
-    document.body,
+    container ?? document.body,
   );
 }
