@@ -1,4 +1,11 @@
-import { type MouseEvent, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   type PrimitiveSurface,
@@ -45,6 +52,15 @@ interface CodeBlockProps {
     range: CodeLineRange | null,
     anchor: PopoverAnchor | null,
   ) => void;
+  /**
+   * Receives an anchor over the selected lines as drawn, for an
+   * `AnchoredPopover`, whenever the drawn selection changes: on mount, on a
+   * press, and when a controlled `selectedLines` changes, such as one read
+   * from the page's address. Receives null while no line in the code is
+   * selected. The anchor measures the lines each time it is asked, so it
+   * follows them as the page scrolls or reflows.
+   */
+  onSelectedLinesAnchor?: (anchor: PopoverAnchor | null) => void;
 }
 
 export function CodeBlock({
@@ -56,6 +72,7 @@ export function CodeBlock({
   surface,
   selectedLines,
   onSelectLines,
+  onSelectedLinesAnchor,
 }: CodeBlockProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
@@ -121,6 +138,26 @@ export function CodeBlock({
     },
     [selection, onSelectLines, anchorFor],
   );
+
+  const drawnStart =
+    selection && selection.start <= lines.length ? selection.start : null;
+  const drawnEnd =
+    selection && drawnStart !== null
+      ? Math.min(selection.end, lines.length)
+      : null;
+  const drawnAnchor = useMemo(
+    () =>
+      drawnStart === null || drawnEnd === null
+        ? null
+        : anchorFor({ start: drawnStart, end: drawnEnd }),
+    [anchorFor, drawnStart, drawnEnd],
+  );
+  // Read by the effect below, which runs only when the drawn selection does.
+  const anchorListener = useRef(onSelectedLinesAnchor);
+  anchorListener.current = onSelectedLinesAnchor;
+  useEffect(() => {
+    anchorListener.current?.(drawnAnchor);
+  }, [drawnAnchor]);
 
   const selectedSet = useMemo(
     () =>

@@ -5,10 +5,13 @@ import {
   AnchoredPopover,
   Chip,
   CodeBlock,
+  type CodeLineRange,
   ColumnLayout,
   FileTree,
   type FileTreeFile,
   MetricLabel,
+  MonoValue,
+  type PopoverAnchor,
   SectionDivider,
   Terminal,
 } from '@lincyaw/aegis-ui';
@@ -202,6 +205,64 @@ function ElementPopoverSpecimen() {
   );
 }
 
+const GALLERY_ADDRESSED_SOURCE = Array.from(
+  { length: 24 },
+  (_, n) =>
+    `step_${String(n + 1)} = clock.advance(timedelta(seconds=${String(n + 1)}))`
+).join('\n');
+
+/** Lines 9–11, as a page's address might name them on load. */
+const GALLERY_ADDRESSED_RANGE: CodeLineRange = { start: 9, end: 11 };
+
+function AddressedSelectionSpecimen(): ReactNode {
+  const [frame, setFrame] = useState<HTMLElement | null>(null);
+  const [range, setRange] = useState<CodeLineRange | null>(
+    GALLERY_ADDRESSED_RANGE
+  );
+  const [anchor, setAnchor] = useState<PopoverAnchor | null>(null);
+  return (
+    <section
+      ref={setFrame}
+      className='gallery__popover-frame'
+      aria-label='Addressed selection'
+    >
+      <CodeBlock
+        language='python'
+        code={GALLERY_ADDRESSED_SOURCE}
+        selectedLines={range}
+        onSelectLines={setRange}
+        onSelectedLinesAnchor={setAnchor}
+      />
+      <AnchoredPopover
+        open={range !== null}
+        anchor={anchor}
+        container={frame}
+        ariaLabel='Selected lines'
+        onClose={() => {
+          setRange(null);
+        }}
+      >
+        <div className='gallery__stack'>
+          <MetricLabel>
+            {range === null
+              ? ''
+              : `Lines ${String(range.start)}–${String(range.end)}`}
+          </MetricLabel>
+          <MonoValue size='sm'>testability.clock-advance</MonoValue>
+        </div>
+      </AnchoredPopover>
+      <AegisButton
+        tone='secondary'
+        onClick={() => {
+          setRange(GALLERY_ADDRESSED_RANGE);
+        }}
+      >
+        Back to lines 9–11
+      </AegisButton>
+    </section>
+  );
+}
+
 export function LogsSection() {
   return (
     <GallerySection title='Logs — Terminal'>
@@ -269,6 +330,13 @@ export function LogsSection() {
         </Specimen>
         <Specimen caption='AnchoredPopover anchored to an element · placement auto · align end'>
           <ElementPopoverSpecimen />
+        </Specimen>
+        <Specimen
+          caption='selectedLines preset, as from the page address · onSelectedLinesAnchor hands the anchor of the drawn selection on mount and on every change · AnchoredPopover container: drawn inside the scrolling frame (a landmark), following the lines as it scrolls'
+          span={3}
+          align='start'
+        >
+          <AddressedSelectionSpecimen />
         </Specimen>
       </div>
 
