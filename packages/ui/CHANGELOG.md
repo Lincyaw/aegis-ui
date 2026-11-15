@@ -1,5 +1,12 @@
 # @lincyaw/aegis-ui
 
+## 0.19.0
+
+### Minor Changes
+
+- e2b518e: `DetailBeside` takes `layout="panes"`, a pane form set directly in a `PaneLayout`: the list and the selected row's detail are two `Pane`s (`listPane`, `size` `fill` by default; `detailPane`, `lg` by default) divided by a hairline, each scrolling on its own, with the detail at its pane's top. Panes before the list, such as a tree, stay the host's own. A reveal scrolls the list's pane to the row and the detail's pane to its top. At 768 px and below the detail opens right after the selected row, as the column form does, and a reveal scrolls the nearest scroller around the list. The column form, `columns`, is unchanged.
+- d740fff: `AnchoredPopover` takes `container`, the element it is drawn in, such as the page's `main`, so the popover belongs to that landmark; it is placed in the box of its nearest positioned ancestor and follows the anchor as the container or the page scrolls. Without it the popover is drawn in `document.body` as before. `CodeBlock` takes `onSelectedLinesAnchor`, which receives an anchor over the selected lines as drawn on mount and whenever the drawn selection changes, including a controlled `selectedLines` set from outside, such as from the page's address; it receives null while no line is selected. `AnchoredPopover` also takes `autoFocus` (default true); with false it opens without moving focus, as a popover over a selection the address names should on load, and Tab from the anchor enters it.
+
 ## 0.18.0
 
 ### Minor Changes
