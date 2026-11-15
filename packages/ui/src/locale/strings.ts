@@ -14,6 +14,8 @@ export interface AegisStrings {
   inspectorRaw: string;
   clearSearch: string;
   clearSelection: string;
+  /** Between an inline label and the value it names, e.g. a Select's. */
+  labelSeparator: string;
   remove: string;
   close: string;
   breadcrumb: string;
@@ -412,6 +414,7 @@ export const enStrings: AegisStrings = {
   inspectorRaw: 'Raw',
   clearSearch: 'Clear search',
   clearSelection: 'Clear selection',
+  labelSeparator: ': ',
   remove: 'Remove',
   close: 'Close',
   breadcrumb: 'Breadcrumb',
@@ -813,6 +816,7 @@ export const zhCNStrings: AegisStrings = {
   inspectorRaw: '原始内容',
   clearSearch: '清除搜索',
   clearSelection: '清除选择',
+  labelSeparator: '：',
   remove: '移除',
   close: '关闭',
   breadcrumb: '页面导航',

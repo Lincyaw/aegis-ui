@@ -14,7 +14,8 @@ export interface ToolbarProps {
    * as `h1`), its selectors and buttons on the right. `sub` is the
    * `--sub-bar-height` row under it, e.g. a trace path or a run's facts.
    * Each draws a hairline below; `page` and `sub` sit flush with the page's
-   * edges, so a bleed page stacks them over its `PaneLayout`.
+   * edges, so a bleed page stacks them over its `PaneLayout`. At 768 px or
+   * narrower a `page` bar's right slot wraps and shrinks within its width.
    */
   variant?: 'default' | 'page' | 'sub';
   className?: string;

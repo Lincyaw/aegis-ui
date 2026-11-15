@@ -1072,6 +1072,29 @@ export function IndicatorsSection() {
             }}
           />
         </Specimen>
+        <Specimen caption="labelPlacement='inline' · the caption inside the control before the value, still its <label>">
+          <AegisSelect
+            label='运行'
+            labelPlacement='inline'
+            value='first'
+            options={GALLERY_SELECT_OPTIONS}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
+        <Specimen caption="labelPlacement='inline' · disabled">
+          <AegisSelect
+            label='版本'
+            labelPlacement='inline'
+            value='v1'
+            disabled
+            options={[{ value: 'v1', label: 'V1 · 当前版本' }]}
+            onChange={() => {
+              /* no-op */
+            }}
+          />
+        </Specimen>
         <Specimen caption='allowClear · pick, then clear to the placeholder'>
           <SelectSpecimen />
         </Specimen>

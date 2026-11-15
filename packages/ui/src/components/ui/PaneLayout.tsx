@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, type Ref, forwardRef } from 'react';
 
 import './PaneLayout.css';
 
@@ -48,27 +48,32 @@ export interface PaneProps {
   className?: string;
 }
 
-/** One pane of a `PaneLayout`; it scrolls its own content. */
-export function Pane({
-  size = 'fill',
-  padding = 'md',
-  label,
-  children,
-  className,
-}: PaneProps) {
-  const cls = [
-    'aegis-pane',
-    `aegis-pane--${size}`,
-    `aegis-pane--padding-${padding}`,
-    className ?? '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  return label === undefined ? (
-    <div className={cls}>{children}</div>
-  ) : (
-    <section className={cls} aria-label={label}>
-      {children}
-    </section>
-  );
-}
+/**
+ * One pane of a `PaneLayout`; it scrolls its own content. Its ref is that
+ * scrolling element, so a host can pass it on as a `scrollContainer`, e.g.
+ * to a `DetailBeside` in the pane, whose selected row then comes into view
+ * inside the pane.
+ */
+export const Pane = forwardRef<HTMLElement, PaneProps>(
+  ({ size = 'fill', padding = 'md', label, children, className }, ref) => {
+    const cls = [
+      'aegis-pane',
+      `aegis-pane--${size}`,
+      `aegis-pane--padding-${padding}`,
+      className ?? '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+    return label === undefined ? (
+      <div ref={ref as Ref<HTMLDivElement>} className={cls}>
+        {children}
+      </div>
+    ) : (
+      <section ref={ref} className={cls} aria-label={label}>
+        {children}
+      </section>
+    );
+  },
+);
+
+Pane.displayName = 'Pane';

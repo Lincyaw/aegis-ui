@@ -1004,6 +1004,51 @@ function DetailBesidePanesSpecimen(): ReactNode {
   );
 }
 
+function DetailBesideInPaneSpecimen({
+  via,
+}: {
+  via: 'ref' | 'nearest';
+}): ReactNode {
+  const [pane, setPane] = useState<HTMLElement | null>(null);
+  const [selected, setSelected] = useState(via === 'ref' ? 'A5.3.3' : 'A4.2.1');
+  return (
+    <div className='gallery__pane-frame gallery__pane-frame--fixed'>
+      <PaneLayout>
+        <Pane ref={setPane} label='Requirements and detail'>
+          <DetailBeside
+            columns='3fr 2fr'
+            scrollContainer={via === 'ref' ? pane : 'nearest'}
+            detail={
+              <GalleryRequirementDetail
+                id={selected}
+                requirements={DETAIL_REQUIREMENTS}
+              />
+            }
+            revealKey={selected}
+          >
+            <DataTable<GalleryRequirement>
+              ariaLabel='Requirements in the pane'
+              framed={false}
+              density='compact'
+              header='plain'
+              columns={[
+                { key: 'id', header: 'ID', width: 96, render: (r) => r.id },
+                { key: 'name', header: 'Requirement', render: (r) => r.name },
+              ]}
+              data={DETAIL_LEAVES}
+              rowKey={(r) => r.id}
+              selectedKeys={[selected]}
+              onRowClick={(r) => {
+                setSelected(r.id);
+              }}
+            />
+          </DetailBeside>
+        </Pane>
+      </PaneLayout>
+    </div>
+  );
+}
+
 const PANE_AREAS = [
   { key: 'completion', label: '完成待办', passed: true },
   { key: 'todos', label: '记录待办', passed: true },
@@ -1020,6 +1065,7 @@ const PANE_REQUIREMENTS = [
 function PaneLayoutPageSpecimen() {
   const [version, setVersion] = useState('3v14vrqi');
   const [area, setArea] = useState('testability');
+  const [run, setRun] = useState('e3b0aa32');
   return (
     <div className='gallery__pane-frame'>
       <Toolbar
@@ -1028,12 +1074,23 @@ function PaneLayoutPageSpecimen() {
         right={
           <>
             <Select
-              ariaLabel='版本'
+              label='版本'
+              labelPlacement='inline'
               value={version}
               onChange={setVersion}
               options={[
-                { value: '3v14vrqi', label: '版本：main · 3v14vrqi' },
-                { value: '9e41c07', label: '版本：main · 9e41c07' },
+                { value: '3v14vrqi', label: 'main · 3v14vrqi' },
+                { value: '9e41c07', label: 'main · 9e41c07' },
+              ]}
+            />
+            <Select
+              label='运行'
+              labelPlacement='inline'
+              value={run}
+              onChange={setRun}
+              options={[
+                { value: 'e3b0aa32', label: 'e3b0aa32 · 暂停' },
+                { value: '7c1d9f20', label: '7c1d9f20 · 通过' },
               ]}
             />
             <Button tone='secondary'>变更历史</Button>
@@ -1310,7 +1367,7 @@ export function LayoutsSection() {
       </SectionDivider>
       <div className='gallery__stack'>
         <Specimen
-          caption="a bleed page: Toolbar variant='page' and 'sub' over PaneLayout · Pane size='sm' · 'fill' · 'lg' · hairlines, no gaps · stacked at ≤768 px"
+          caption="a bleed page: Toolbar variant='page' and 'sub' over PaneLayout · Selects with labelPlacement='inline' in the page bar, whose right slot wraps and shrinks at ≤768 px · Pane size='sm' · 'fill' · 'lg' · hairlines, no gaps · stacked at ≤768 px"
           span={3}
           align='start'
         >
@@ -1363,6 +1420,20 @@ export function LayoutsSection() {
         align='start'
       >
         <DetailBesidePanesSpecimen />
+      </Specimen>
+      <Specimen
+        caption="Pane ref · the pane's scrolling element passed to a DetailBeside columns='3fr 2fr' as scrollContainer: the selected row comes into view inside the pane, the detail no taller than the pane · DataTable density='compact' header='plain'"
+        span={3}
+        align='start'
+      >
+        <DetailBesideInPaneSpecimen via='ref' />
+      </Specimen>
+      <Specimen
+        caption="scrollContainer='nearest' · the DetailBeside finds the pane that scrolls its list at each reveal, with no ref"
+        span={3}
+        align='start'
+      >
+        <DetailBesideInPaneSpecimen via='nearest' />
       </Specimen>
 
       <SectionDivider>FormRow</SectionDivider>

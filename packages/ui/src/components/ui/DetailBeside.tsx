@@ -66,8 +66,13 @@ export interface DetailBesideColumnsProps extends DetailBesideBaseProps {
    * scrolls its body.
    */
   columns: string;
-  /** The element that scrolls the page; omitted or null means the viewport. */
-  scrollContainer?: HTMLElement | null;
+  /**
+   * The element that scrolls the page; omitted or null means the viewport.
+   * `nearest` is the nearest element around the list that scrolls, found at
+   * each reveal, such as the `Pane` the DetailBeside is set in. Inside an
+   * element the detail is never taller than that element's view.
+   */
+  scrollContainer?: HTMLElement | null | 'nearest';
   className?: string;
 }
 
@@ -158,7 +163,12 @@ function InlineDetail({ boxRef }: { boxRef: RefObject<HTMLDivElement> }) {
 export function DetailBeside(props: DetailBesideProps) {
   const { detail, children, revealKey } = props;
   const panes = props.layout === 'panes';
-  const scrollContainer = panes ? null : (props.scrollContainer ?? null);
+  /** Whether the scroller is whichever holds the list, found when needed. */
+  const nearest = panes || props.scrollContainer === 'nearest';
+  const scrollContainer =
+    panes || props.scrollContainer === 'nearest'
+      ? null
+      : (props.scrollContainer ?? null);
   const narrow = useMediaQuery(NARROW_QUERY);
   const [busy, setBusy] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
@@ -177,6 +187,41 @@ export function DetailBeside(props: DetailBesideProps) {
   const revealedKeyRef = useRef<string | null | undefined>(undefined);
   /** The latest render's list and detail, which change when the host renders them anew. */
   const shownRef = useRef({ children, detail });
+  /** The scroll container of the latest render; a new one is revealed in anew. */
+  const containerRef = useRef(scrollContainer);
+
+  /** The element that scrolls the list, or null for the viewport. */
+  const scrollerOfList = useCallback(
+    (): HTMLElement | null =>
+      nearest && listRef.current !== null
+        ? scrollingAncestorOf(listRef.current)
+        : scrollContainer,
+    [nearest, scrollContainer],
+  );
+
+  /** Bounds the detail by the view of the element that scrolls it. */
+  const fitView = useCallback(
+    (box: HTMLElement) => {
+      const scroller = scrollerOfList();
+      if (scroller === null) {
+        box.style.removeProperty('--detail-beside-view-height');
+        box.style.removeProperty('--detail-beside-sticky-top');
+      } else {
+        // A sticky box sticks inside the scroller's padding.
+        const { paddingTop, paddingBottom } = getComputedStyle(scroller);
+        const height =
+          scroller.clientHeight -
+          parseFloat(paddingTop) -
+          parseFloat(paddingBottom);
+        box.style.setProperty(
+          '--detail-beside-view-height',
+          `${String(height)}px`,
+        );
+        box.style.setProperty('--detail-beside-sticky-top', '0px');
+      }
+    },
+    [scrollerOfList],
+  );
 
   /**
    * Sets the detail level with the row: above 768 px through the spacer's
@@ -196,30 +241,17 @@ export function DetailBeside(props: DetailBesideProps) {
       return;
     }
     const rowBox = row.getBoundingClientRect();
+    fitView(box);
     if (spacer === null) {
       box.style.setProperty(
         '--aegis-detail-beside-row-height',
         `${String(rowBox.height)}px`,
       );
-      const scroller =
-        panes && listRef.current !== null
-          ? scrollingAncestorOf(listRef.current)
-          : null;
-      if (scroller === null) {
-        box.style.removeProperty('--detail-beside-view-height');
-        box.style.removeProperty('--detail-beside-sticky-top');
-      } else {
-        box.style.setProperty(
-          '--detail-beside-view-height',
-          `${String(scroller.clientHeight)}px`,
-        );
-        box.style.setProperty('--detail-beside-sticky-top', '0px');
-      }
     } else {
       const top = spacer.getBoundingClientRect().top;
       spacer.style.height = `${String(Math.max(rowBox.top - top, 0))}px`;
     }
-  }, [panes]);
+  }, [fitView]);
 
   /** Places the row and scrolls as little as it takes to show it and its detail whole. */
   const reveal = useCallback(() => {
@@ -232,7 +264,7 @@ export function DetailBeside(props: DetailBesideProps) {
     if (row === null || list === null || (box === null && !besidePane)) {
       return;
     }
-    const container = panes ? scrollingAncestorOf(list) : scrollContainer;
+    const container = scrollerOfList();
     const rowBox = row.getBoundingClientRect();
     const spacer = spacerRef.current;
     const distance = revealDistance(
@@ -248,7 +280,7 @@ export function DetailBeside(props: DetailBesideProps) {
     }
     scrollerRef.current = scroller;
     revealedAtRef.current = scroller.scrollTop;
-  }, [panes, place, scrollContainer]);
+  }, [place, scrollerOfList]);
 
   // A list places its row while React attaches refs, before the detail's
   // own ref is in and before the re-renders its layout effects ask for,
@@ -302,7 +334,12 @@ export function DetailBeside(props: DetailBesideProps) {
       shownRef.current.detail !== detail;
     shownRef.current = { children, detail };
     revealKeyRef.current = revealKey;
-    if (revealedKeyRef.current !== revealKey && rowRef.current !== null) {
+    const moved = containerRef.current !== scrollContainer;
+    containerRef.current = scrollContainer;
+    if (
+      (moved || revealedKeyRef.current !== revealKey) &&
+      rowRef.current !== null
+    ) {
       revealSoon();
     } else {
       if (rendered) {
@@ -355,15 +392,15 @@ export function DetailBeside(props: DetailBesideProps) {
         followRef.current = false;
       }
     };
-    // The pane form's scroller is whichever holds the list, found at each
+    // A nearest scroller is whichever holds the list, found at each
     // reveal; scroll events do not bubble, but they pass the document.
-    const target = panes ? document : (scrollContainer ?? window);
-    const options = { capture: panes, passive: true };
+    const target = nearest ? document : (scrollContainer ?? window);
+    const options = { capture: nearest, passive: true };
     target.addEventListener('scroll', scrolled, options);
     return () => {
       target.removeEventListener('scroll', scrolled, options);
     };
-  }, [panes, scrollContainer]);
+  }, [nearest, scrollContainer]);
 
   const inline = useMemo(
     () => (narrow ? <InlineDetail boxRef={detailRef} /> : null),

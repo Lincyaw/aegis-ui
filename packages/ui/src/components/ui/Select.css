@@ -131,3 +131,66 @@
 .aegis-select--clearable .aegis-select__chevron {
   right: calc(var(--space-3) + var(--size-icon-sm) + var(--space-2));
 }
+
+/* inline: the control is the field's box, holding the caption and then the
+ * value; the native select inside it draws no box of its own. */
+.aegis-select--inline .aegis-select__control {
+  box-sizing: border-box;
+  height: var(--size-control-base);
+  padding-left: var(--space-2);
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.aegis-select--inline .aegis-select__label {
+  flex: 0 0 auto;
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-line);
+  font-weight: var(--type-small-weight);
+  letter-spacing: var(--type-small-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.aegis-select--inline .aegis-select__native {
+  flex: 1 1 auto;
+  width: auto;
+  height: 100%;
+  padding-left: var(--space-1);
+  border: none;
+  background: transparent;
+}
+
+.aegis-select--inline .aegis-select__control:hover {
+  border-color: var(--border-emphasis);
+}
+
+.aegis-select--inline .aegis-select__native:focus-visible {
+  box-shadow: none;
+}
+
+.aegis-select--inline
+  .aegis-select__control:has(> .aegis-select__native:focus-visible) {
+  border-color: var(--accent-brand);
+  box-shadow: var(--focus-halo);
+}
+
+.aegis-select--inline
+  .aegis-select__control:has(> .aegis-select__native:disabled) {
+  border-color: var(--border-hairline);
+  background: var(--bg-muted);
+}
+
+.aegis-select__control:has(> .aegis-select__native:disabled)
+  > .aegis-select__label {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.aegis-select--inline .aegis-select__native:disabled {
+  background: transparent;
+}

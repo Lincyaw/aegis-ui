@@ -15,8 +15,14 @@ interface SelectProps {
   value: string;
   options: SelectOption[];
   onChange: (value: string) => void;
-  /** Caption above the control, as its `<label>`, so it names the select. */
+  /** Caption of the control, as its `<label>`, so it names the select. */
   label?: ReactNode;
+  /**
+   * `above` (default) sets the caption over the control. `inline` sets it
+   * inside the control before the value, followed by the locale's label
+   * separator ("Run: e3b0aa32"), for a compact selector in a bar.
+   */
+  labelPlacement?: 'above' | 'inline';
   /** Accessible name for a select shown without a visible caption, e.g. a compact filter. */
   ariaLabel?: string;
   /** Rendered as a disabled first option when `value` is empty. */
@@ -36,6 +42,7 @@ export function Select({
   options,
   onChange,
   label,
+  labelPlacement = 'above',
   ariaLabel,
   placeholder,
   allowClear = false,
@@ -49,22 +56,27 @@ export function Select({
   const selectId = id ?? ownId;
   const clearable = allowClear && value !== '' && !disabled;
   const showsPlaceholder = placeholder !== undefined && value === '';
+  const inline = label !== undefined && labelPlacement === 'inline';
+  const caption = (
+    <label className="aegis-select__label" htmlFor={selectId}>
+      {label}
+      {inline && <span aria-hidden>{strings.labelSeparator}</span>}
+    </label>
+  );
   const cls = [
     'aegis-select',
     clearable ? 'aegis-select--clearable' : '',
     showsPlaceholder ? 'aegis-select--placeholder' : '',
+    inline ? 'aegis-select--inline' : '',
     className ?? '',
   ]
     .filter(Boolean)
     .join(' ');
   return (
     <div className={cls} data-aegis-field>
-      {label !== undefined && (
-        <label className="aegis-select__label" htmlFor={selectId}>
-          {label}
-        </label>
-      )}
+      {label !== undefined && !inline && caption}
       <div className="aegis-select__control">
+        {inline && caption}
         <select
           className="aegis-select__native"
           id={selectId}
