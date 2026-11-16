@@ -830,6 +830,40 @@ function ResizableColumnsSpecimen(): ReactNode {
   );
 }
 
+const GALLERY_ISSUE_ROWS: Array<{
+  number: number;
+  title: string;
+  status: string;
+  holder: string;
+  at: string;
+  tone: 'caution' | 'success';
+}> = [
+  {
+    number: 14,
+    title: '测试时钟推进后创建时间未更新',
+    status: '待整理',
+    holder: 'author#1',
+    at: '11-14 13:10',
+    tone: 'caution',
+  },
+  {
+    number: 12,
+    title: '待办支持截止日期',
+    status: '已合入',
+    holder: 'author#1',
+    at: '11-14 09:20',
+    tone: 'success',
+  },
+  {
+    number: 11,
+    title: '仅允许完成本人的待办',
+    status: '已合入',
+    holder: 'author#2（MCP）',
+    at: '11-13 16:02',
+    tone: 'success',
+  },
+];
+
 /* ── TreeTable specimens ───────────────────────────────────────────── */
 
 interface GallerySuite {
@@ -1257,6 +1291,50 @@ export function TablesSection() {
                     <AegisButton tone='secondary'>查看修复轨迹</AegisButton>
                   </>
                 ),
+              },
+            ]}
+          />
+        </Specimen>
+        <Specimen
+          caption="appearance='blocks' · blockSeparator='rule' · selectedKeys · a master list beside its detail: rows edge to edge, a hairline under each, the selected one in the selection tokens"
+          span={3}
+        >
+          <DataTable
+            framed={false}
+            appearance='blocks'
+            blockSeparator='rule'
+            ariaLabel='Issue 列表'
+            data={GALLERY_ISSUE_ROWS}
+            rowKey={(row) => row.number}
+            selectedKeys={[12]}
+            columns={[
+              {
+                key: 'issue',
+                header: 'Issue',
+                block: 'line',
+                render: (row) => (
+                  <span>
+                    <MetricLabel>#{row.number}</MetricLabel> {row.title}{' '}
+                    <StatusDot tone={row.tone} size={8} />
+                  </span>
+                ),
+              },
+              {
+                key: 'status',
+                header: '状态',
+                blockLabel: true,
+                render: (row) => row.status,
+              },
+              {
+                key: 'holder',
+                header: '提出者',
+                blockLabel: true,
+                render: (row) => row.holder,
+              },
+              {
+                key: 'at',
+                header: '创建',
+                render: (row) => <MetricLabel>{row.at}</MetricLabel>,
               },
             ]}
           />

@@ -139,7 +139,8 @@
   white-space: nowrap;
 }
 
-/* ── selectable, list: padded items, the selected one inverted ───── */
+/* ── selectable, list: padded items, the selected one in the selection
+ * tokens (inverted by default) ────────────────────────────────────── */
 .aegis-timeline--selectable:not(.aegis-timeline--numbered),
 .aegis-timeline--list:not(.aegis-timeline--numbered) {
   gap: 0;
@@ -214,22 +215,22 @@
 .aegis-timeline--selectable .aegis-timeline__item--selected:active,
 .aegis-timeline__item--link.aegis-timeline__item--selected:hover,
 .aegis-timeline__item--link.aegis-timeline__item--selected:active {
-  background: var(--bg-inverted);
+  background: var(--selection-bg);
 }
 
 .aegis-timeline__item--selected .aegis-timeline__title {
-  color: var(--text-on-inverted);
+  color: var(--selection-ink);
 }
 
 .aegis-timeline__item--selected .aegis-timeline__desc,
 .aegis-timeline__item--selected .aegis-timeline__marker,
 .aegis-timeline__item--selected .aegis-timeline__meta,
 .aegis-timeline__item--selected .aegis-timeline__time {
-  color: var(--text-on-inverted-muted);
+  color: var(--selection-ink-muted);
 }
 
 .aegis-timeline__item--selected .aegis-timeline__dot {
-  background: var(--text-on-inverted);
+  background: var(--selection-ink);
 }
 
 /* ── scrollable: the list scrolls inside its bound ─────────────────── */

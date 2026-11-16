@@ -45,6 +45,7 @@ import {
   Steps,
   TableOfContents,
   type TableOfContentsItem,
+  TextArea,
   TextField,
 } from '@lincyaw/aegis-ui';
 import { Button } from 'antd';
@@ -1171,6 +1172,36 @@ export function NavigationSection() {
         </Specimen>
         <Specimen caption='disabled'>
           <TextField label='Read-only' defaultValue='aegis-001' disabled />
+        </Specimen>
+      </div>
+
+      <SectionDivider>TextArea</SectionDivider>
+      <div className='gallery__row'>
+        <Specimen caption='label · placeholder · helper'>
+          <TextArea
+            label='原文'
+            placeholder='描述要做的变更，例如：创建待办时可以指定截止日期。'
+            helperText='第一行是标题。'
+          />
+        </Specimen>
+        <Specimen caption='value · rows'>
+          <TextArea
+            label='Notes'
+            rows={6}
+            defaultValue={
+              'First line is the title.\nThe rest keeps its line breaks.'
+            }
+          />
+        </Specimen>
+        <Specimen caption='error'>
+          <TextArea
+            label='Description'
+            defaultValue=' '
+            error='Enter some text.'
+          />
+        </Specimen>
+        <Specimen caption='disabled'>
+          <TextArea label='Read-only' defaultValue='Submitted.' disabled />
         </Specimen>
       </div>
 

@@ -164,6 +164,13 @@ interface DataTableProps<T> {
    */
   appearance?: 'table' | 'blocks';
   /**
+   * How rows of `appearance="blocks"` are set apart: `gap` (default) by
+   * space between them, `rule` by a hairline under each, edge to edge, for
+   * a list of items that sits against the pane's edges, e.g. a master list
+   * beside its detail.
+   */
+  blockSeparator?: 'gap' | 'rule';
+  /**
    * A tone for a row of `appearance="blocks"`: its tone's soft surface
    * with the tone's rule at its left, as `Quote` sets off failure output.
    * `warning` is for a failure, `caution` for what needs attention but has
@@ -330,6 +337,7 @@ export function DataTable<T>({
   density = 'default',
   header = 'filled',
   appearance = 'table',
+  blockSeparator = 'gap',
   rowTone,
   persistKey,
   pagination,
@@ -457,6 +465,7 @@ export function DataTable<T>({
     header === 'plain' ? 'aegis-data-table--plain-header' : '',
     header === 'hidden' || blocks ? 'aegis-data-table--hidden-header' : '',
     blocks ? 'aegis-data-table--blocks' : '',
+    blocks && blockSeparator === 'rule' ? 'aegis-data-table--block-rule' : '',
     stale ? 'aegis-data-table--stale' : '',
     className ?? '',
   ]

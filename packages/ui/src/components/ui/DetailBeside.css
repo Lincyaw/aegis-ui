@@ -27,10 +27,13 @@
   scroll-margin-top: var(--detail-beside-sticky-top);
 }
 
+/* A detail taller than the view scrolls inside its bound rather than
+ * spilling over the rows that follow. */
 .aegis-detail-beside__detail > * {
   max-height: calc(
     var(--detail-beside-view-height) - var(--detail-beside-sticky-top)
   );
+  overflow-y: auto;
 }
 
 /* Drawn by the list right after the selected row at 768 px and below,
@@ -46,6 +49,7 @@
     var(--detail-beside-view-height) - var(--detail-beside-sticky-top) -
       var(--aegis-detail-beside-row-height) - var(--space-3)
   );
+  overflow-y: auto;
 }
 
 @media (max-width: 768px) {

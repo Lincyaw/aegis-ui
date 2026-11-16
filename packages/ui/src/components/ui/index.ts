@@ -241,6 +241,7 @@ export { FormRow } from './FormRow';
 export { DangerZone } from './DangerZone';
 export { ThemeToggle } from './ThemeToggle';
 export { TextField } from './TextField';
+export { TextArea } from './TextArea';
 export { NumberField } from './NumberField';
 export { Slider } from './Slider';
 export { PasswordField } from './PasswordField';

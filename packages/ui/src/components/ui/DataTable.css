@@ -257,6 +257,15 @@
   border-left: var(--data-table-block-rule-width) solid transparent;
 }
 
+/* blocks set apart by rules: no gap, a hairline under each row. */
+.aegis-data-table--block-rule tbody {
+  gap: 0;
+}
+
+.aegis-data-table--block-rule .aegis-data-table__row {
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+}
+
 .aegis-data-table--blocks .aegis-data-table__td {
   display: flex;
   align-items: baseline;
