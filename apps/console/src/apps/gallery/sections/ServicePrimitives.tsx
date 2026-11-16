@@ -2978,6 +2978,14 @@ export function ServicePrimitivesSection() {
             }}
           />
         </Specimen>
+        <Specimen caption="variant='thumbnail' · bounded to --file-preview-thumbnail-size">
+          <FilePreview
+            src={heroImageUrl}
+            mimeType='image/png'
+            name='hero.png'
+            variant='thumbnail'
+          />
+        </Specimen>
         <Specimen caption='binary fallback'>
           <FilePreview
             src='#'

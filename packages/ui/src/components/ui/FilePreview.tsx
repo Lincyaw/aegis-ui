@@ -35,7 +35,16 @@ interface FilePreviewProps {
   size?: number;
   /** Render slot when binary fallback fires (overrides default). */
   fallback?: ReactNode;
-  /** Max height of preview viewport. */
+  /**
+   * `viewport` (default) fills the width up to `maxHeight`; `thumbnail`
+   * bounds the preview to `--file-preview-thumbnail-size` on each side, for
+   * an image beside other content, e.g. inside a table cell.
+   */
+  variant?: 'viewport' | 'thumbnail';
+  /**
+   * Max height of the preview. Default 480 for `viewport`, the thumbnail
+   * size for `thumbnail`.
+   */
   maxHeight?: number | string;
   className?: string;
   style?: CSSProperties;
@@ -75,7 +84,10 @@ export function FilePreview({
   name,
   size,
   fallback,
-  maxHeight = 480,
+  variant = 'viewport',
+  maxHeight = variant === 'thumbnail'
+    ? 'var(--file-preview-thumbnail-size)'
+    : 480,
   className,
   style,
   surface,
@@ -89,7 +101,11 @@ export function FilePreview({
     wrapRef,
   );
   const kind = classify(mimeType);
-  const rootClass = ['aegis-file-preview', className ?? '']
+  const rootClass = [
+    'aegis-file-preview',
+    variant === 'thumbnail' ? 'aegis-file-preview--thumbnail' : '',
+    className ?? '',
+  ]
     .filter(Boolean)
     .join(' ');
   const rootStyle = {

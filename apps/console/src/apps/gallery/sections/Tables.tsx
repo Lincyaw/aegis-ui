@@ -3,6 +3,7 @@ import { type ReactNode, useCallback, useState } from 'react';
 import {
   Button as AegisButton,
   Chip,
+  ColumnLayout,
   DataList,
   type DataListColumn,
   DataTable,
@@ -11,6 +12,7 @@ import {
   type DataTableSort,
   EventTable,
   type EventTableColumn,
+  FilePreview,
   IdentityCell,
   KeyValueList,
   MetricLabel,
@@ -31,6 +33,7 @@ import {
   GALLERY_RUNS,
   type GalleryModelRow,
 } from '../fixtures';
+import heroImageUrl from '../hero.png?url';
 import { GallerySection, Specimen } from '../shared';
 
 const GALLERY_EVENT_ROWS: Array<{
@@ -830,6 +833,25 @@ function ResizableColumnsSpecimen(): ReactNode {
   );
 }
 
+const GALLERY_COUNTEREXAMPLE_ROWS: Array<{
+  property: string;
+  inputs: string[];
+  observed: string[];
+  screenshot?: string;
+}> = [
+  {
+    property: 'a cancelled run keeps its finished tasks',
+    inputs: ['run r-17 with 3 tasks', 'cancel after task 2 finishes'],
+    observed: ['task 2 status: pending', 'expected: done'],
+    screenshot: heroImageUrl,
+  },
+  {
+    property: 'a retried task names its prior attempt',
+    inputs: ['task t-4 fails once', 'retry t-4'],
+    observed: ['attempt 2 prior: none', 'expected: attempt 1'],
+  },
+];
+
 const GALLERY_ISSUE_ROWS: Array<{
   number: number;
   title: string;
@@ -1335,6 +1357,75 @@ export function TablesSection() {
                 key: 'at',
                 header: '创建',
                 render: (row) => <MetricLabel>{row.at}</MetricLabel>,
+              },
+            ]}
+          />
+        </Specimen>
+        <Specimen
+          caption="appearance='blocks' · cells of several lines in ColumnLayout gap='sm' · a cell whose render returns null is left out with its blockLabel · FilePreview variant='thumbnail'"
+          span={3}
+        >
+          <DataTable
+            framed={false}
+            appearance='blocks'
+            ariaLabel='Counterexamples'
+            data={GALLERY_COUNTEREXAMPLE_ROWS}
+            rowKey={(row) => row.property}
+            columns={[
+              {
+                key: 'property',
+                header: 'Property',
+                block: 'line',
+                truncate: false,
+                render: (row) => row.property,
+              },
+              {
+                key: 'inputs',
+                header: 'Inputs',
+                blockLabel: true,
+                block: 'line',
+                truncate: false,
+                render: (row) => (
+                  <ColumnLayout columns='1fr' gap='sm'>
+                    {row.inputs.map((line) => (
+                      <MonoValue key={line} size='sm'>
+                        {line}
+                      </MonoValue>
+                    ))}
+                  </ColumnLayout>
+                ),
+              },
+              {
+                key: 'observed',
+                header: 'Observed',
+                blockLabel: true,
+                block: 'line',
+                truncate: false,
+                render: (row) => (
+                  <ColumnLayout columns='1fr' gap='sm'>
+                    {row.observed.map((line) => (
+                      <MonoValue key={line} size='sm'>
+                        {line}
+                      </MonoValue>
+                    ))}
+                  </ColumnLayout>
+                ),
+              },
+              {
+                key: 'screenshot',
+                header: 'Screenshot',
+                blockLabel: true,
+                block: 'line',
+                truncate: false,
+                render: (row) =>
+                  row.screenshot === undefined ? null : (
+                    <FilePreview
+                      src={row.screenshot}
+                      mimeType='image/png'
+                      name='screenshot.png'
+                      variant='thumbnail'
+                    />
+                  ),
               },
             ]}
           />

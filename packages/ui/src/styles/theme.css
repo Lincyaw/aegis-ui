@@ -618,6 +618,8 @@
   --data-table-compact-row-min-height: 40px;
   /* Accent mixed into a cellTone wash per step above 1 (step 5 = 4×). */
   --data-table-cell-tone-step: 5%;
+  /* The bound of FilePreview variant="thumbnail" on each side. */
+  --file-preview-thumbnail-size: 160px;
   --page-header-margin-bottom: var(--space-6);
   --page-header-title-size: var(--type-title-size);
   --page-header-title-size-mobile: var(--type-title-size);

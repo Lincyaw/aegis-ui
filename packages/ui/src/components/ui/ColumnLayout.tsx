@@ -10,8 +10,11 @@ interface ColumnLayoutProps {
    * with the same gap.
    */
   columns: string;
-  /** `md` = `--space-4`, `lg` = `--space-6`. */
-  gap?: 'md' | 'lg';
+  /**
+   * `sm` = `--space-2`, for stacked lines inside a table block; `md` =
+   * `--space-4`; `lg` = `--space-6`.
+   */
+  gap?: 'sm' | 'md' | 'lg';
   children: ReactNode;
   className?: string;
 }

@@ -1360,6 +1360,16 @@ export function LayoutsSection() {
             </ColumnLayout>
           </div>
         </Specimen>
+        <Specimen
+          caption="columns='1fr' · gap='sm' · stacked lines inside a table block"
+          span={3}
+        >
+          <ColumnLayout columns='1fr' gap='sm'>
+            <MonoValue size='sm'>run r-17 with 3 tasks</MonoValue>
+            <MonoValue size='sm'>cancel after task 2 finishes</MonoValue>
+            <MonoValue size='sm'>task 2 status: pending</MonoValue>
+          </ColumnLayout>
+        </Specimen>
       </div>
 
       <SectionDivider>

@@ -9,6 +9,10 @@
   min-width: 0;
 }
 
+.aegis-column-layout--gap-sm {
+  gap: var(--space-2);
+}
+
 .aegis-column-layout--gap-md {
   gap: var(--space-4);
 }

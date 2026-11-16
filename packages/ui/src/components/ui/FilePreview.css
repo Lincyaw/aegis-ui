@@ -25,6 +25,10 @@
   margin: auto;
 }
 
+.aegis-file-preview--thumbnail {
+  width: min(100%, var(--file-preview-thumbnail-size));
+}
+
 .aegis-file-preview__audio {
   width: 100%;
   align-self: center;

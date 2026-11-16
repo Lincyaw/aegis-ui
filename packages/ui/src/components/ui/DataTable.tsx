@@ -161,6 +161,8 @@ interface DataTableProps<T> {
    * the header hidden as with `header="hidden"`. The rows stay a table's
    * rows and cells for assistive technology. For a few items that each
    * carry a title, fields and actions, e.g. items that wait for someone.
+   * A cell whose `render` returns `null` or `undefined` is left out of its
+   * block, with its `blockLabel`.
    */
   appearance?: 'table' | 'blocks';
   /**
@@ -556,21 +558,27 @@ export function DataTable<T>({
         {renderMobileCard(row, idx)}
       </td>
     ) : (
-      columns.map((col, colIndex) => (
-        <td
-          key={col.key}
-          role={blocks ? 'cell' : undefined}
-          className={cellClass('td', colIndex, col.cellTone?.(row, idx))}
-          style={cellStyle(col, colIndex)}
-        >
-          {blocks && col.blockLabel ? (
-            <span className="aegis-data-table__block-label" aria-hidden>
-              {col.header}
-            </span>
-          ) : null}
-          {renderCellContent(col, col.render(row, idx))}
-        </td>
-      ))
+      columns.map((col, colIndex) => {
+        const node = col.render(row, idx);
+        if (blocks && (node === null || node === undefined)) {
+          return null;
+        }
+        return (
+          <td
+            key={col.key}
+            role={blocks ? 'cell' : undefined}
+            className={cellClass('td', colIndex, col.cellTone?.(row, idx))}
+            style={cellStyle(col, colIndex)}
+          >
+            {blocks && col.blockLabel ? (
+              <span className="aegis-data-table__block-label" aria-hidden>
+                {col.header}
+              </span>
+            ) : null}
+            {renderCellContent(col, node)}
+          </td>
+        );
+      })
     );
 
   const renderSkeletonCells = () =>
