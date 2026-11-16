@@ -276,6 +276,16 @@
   border: 0;
 }
 
+/* An empty cell keeps its column's place for assistive technology but
+ * leaves the row's flow, so it adds no gap. */
+.aegis-data-table--blocks .aegis-data-table__td--empty {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 .aegis-data-table--blocks .aegis-data-table__td--grow {
   flex: 1 1 0;
 }

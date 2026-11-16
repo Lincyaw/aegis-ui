@@ -1362,7 +1362,7 @@ export function TablesSection() {
           />
         </Specimen>
         <Specimen
-          caption="appearance='blocks' · cells of several lines in ColumnLayout gap='sm' · a cell whose render returns null is left out with its blockLabel · FilePreview variant='thumbnail'"
+          caption="appearance='blocks' · cells of several lines in ColumnLayout gap='sm' · a cell whose render returns null stays an empty cell of its row, with no space and no blockLabel · FilePreview variant='thumbnail'"
           span={3}
         >
           <DataTable
