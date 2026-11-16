@@ -1,5 +1,15 @@
 # @lincyaw/aegis-ui
 
+## 0.23.1
+
+### Patch Changes
+
+- ae5b5c2: - `DataTable` `appearance="blocks"`: a cell whose `render` returns `null` or
+  `undefined` stays an empty cell in its column's place, so every row keeps
+  one cell per column for assistive technology and for readers that pair
+  cells with headers by position. It draws no `blockLabel` and takes no
+  space in the block.
+
 ## 0.23.0
 
 ### Minor Changes
