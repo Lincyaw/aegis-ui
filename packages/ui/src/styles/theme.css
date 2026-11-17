@@ -120,6 +120,8 @@
   --overlay-width-sm: 480px;
   --overlay-width-md: 560px;
   --overlay-width-lg: 680px;
+  /* A Tour popover beside its spotlit target. */
+  --tour-width: 360px;
 
   /* ── Radius ──────────────────────────────────────────────────────── */
   --radius-xs: 4px; /* checkboxes, key hints */

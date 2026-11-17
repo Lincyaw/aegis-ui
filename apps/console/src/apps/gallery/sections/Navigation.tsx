@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import {
@@ -47,6 +47,10 @@ import {
   type TableOfContentsItem,
   TextArea,
   TextField,
+  Tour,
+  type TourStep,
+  useTour,
+  useTourLauncher,
 } from '@lincyaw/aegis-ui';
 import { Button } from 'antd';
 
@@ -762,6 +766,67 @@ function EnvironmentSwitcherSpecimen(): ReactNode {
   );
 }
 
+function TourSpecimen() {
+  const searchRef = useRef<HTMLDivElement>(null);
+  const steps: TourStep[] = [
+    {
+      target: searchRef,
+      title: 'Find a run',
+      description: 'Search by id, branch or requirement. Target: a ref.',
+    },
+    {
+      target: '#gallery-tour-status',
+      title: 'Read its status',
+      description: 'The dot turns red only for a failure. Target: a selector.',
+      placement: 'top',
+    },
+    {
+      target: '#gallery-tour-missing',
+      title: 'Never shown',
+      description: 'This step has no target on the page, so the tour skips it.',
+    },
+    {
+      target: () => document.getElementById('gallery-tour-open'),
+      title: 'Open the run',
+      description:
+        'Its tasks are listed by area and stage. Target: a function.',
+    },
+  ];
+  const tour = useTour('gallery-specimen', steps, { autoStart: false });
+  const launcher = useTourLauncher();
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='useTour · 3 present steps of 4 · start() or useTourLauncher'>
+        <div className='gallery__row'>
+          <div ref={searchRef}>
+            <TextField aria-label='Search runs' placeholder='Search runs' />
+          </div>
+          <span id='gallery-tour-status'>
+            <StatusDot tone='success' label='passed' />
+          </span>
+          <AegisButton id='gallery-tour-open' tone='secondary'>
+            Open run
+          </AegisButton>
+        </div>
+        <div className='gallery__row'>
+          <AegisButton tone='primary' onClick={tour.start}>
+            Start tour
+          </AegisButton>
+          <AegisButton
+            tone='ghost'
+            disabled={!launcher.available}
+            onClick={launcher.start}
+          >
+            Shell guide button
+          </AegisButton>
+          <MetricLabel>ended: {tour.ended ?? 'never'}</MetricLabel>
+        </div>
+        <Tour {...tour.tourProps} />
+      </Specimen>
+    </div>
+  );
+}
+
 export function NavigationSection() {
   return (
     <GallerySection title='Navigation · Rosetta'>
@@ -788,6 +853,17 @@ export function NavigationSection() {
         Steps
       </SectionDivider>
       <StepsSpecimen />
+
+      <SectionDivider
+        extra={
+          <MetricLabel>
+            Spotlight + dialog · Escape skips · missing targets left out
+          </MetricLabel>
+        }
+      >
+        Tour
+      </SectionDivider>
+      <TourSpecimen />
 
       <SectionDivider>Carousel</SectionDivider>
       <div className='gallery__row'>

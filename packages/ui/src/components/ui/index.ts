@@ -134,6 +134,17 @@ export type {
 } from './DetailBeside';
 export { PickerField } from './PickerField';
 export { Dialog } from './Dialog';
+export { Tour } from './Tour';
+export type {
+  TourCloseReason,
+  TourLabels,
+  TourPlacement,
+  TourProps,
+  TourStep,
+  TourTarget,
+} from './Tour';
+export { useTour, useTourLauncher } from './useTour';
+export type { TourLauncher, UseTourOptions, UseTourResult } from './useTour';
 export { SectionDivider } from './SectionDivider';
 export { KeyValueList } from './KeyValueList';
 export type { KeyValueItem, KeyValueListSurface } from './KeyValueList';

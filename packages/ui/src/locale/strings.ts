@@ -18,6 +18,11 @@ export interface AegisStrings {
   labelSeparator: string;
   remove: string;
   close: string;
+  /** A Tour's buttons: back a step, on a step, end it early, and end it on the last step. */
+  tourPrevious: string;
+  tourNext: string;
+  tourSkip: string;
+  tourFinish: string;
   breadcrumb: string;
   tableOfContents: string;
   switchApp: string;
@@ -417,6 +422,10 @@ export const enStrings: AegisStrings = {
   labelSeparator: ': ',
   remove: 'Remove',
   close: 'Close',
+  tourPrevious: 'Back',
+  tourNext: 'Next',
+  tourSkip: 'Skip',
+  tourFinish: 'Done',
   breadcrumb: 'Breadcrumb',
   tableOfContents: 'Table of contents',
   switchApp: 'Switch app',
@@ -819,6 +828,10 @@ export const zhCNStrings: AegisStrings = {
   labelSeparator: '：',
   remove: '移除',
   close: '关闭',
+  tourPrevious: '上一步',
+  tourNext: '下一步',
+  tourSkip: '跳过',
+  tourFinish: '完成',
   breadcrumb: '页面导航',
   tableOfContents: '本文目录',
   switchApp: '切换应用',

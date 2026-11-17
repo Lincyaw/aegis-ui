@@ -190,6 +190,48 @@ export function ContainerList() {
 }
 ```
 
+### Add a page tour
+
+`useTour` runs a page's `Tour`: it opens on the first visit, and once the
+tour is finished or skipped it stays closed until `start()` replays it. A
+guide button in the shell replays the current page's tour through
+`useTourLauncher`, placed in `AegisShell`'s `headerActions`.
+
+```tsx
+import { Button, Tour, useTour, useTourLauncher } from '@lincyaw/aegis-ui';
+
+export function RunList() {
+  const tour = useTour('run-list', [
+    {
+      target: '#run-search',
+      title: '查找运行',
+      description: '按编号或分支搜索。',
+    },
+    {
+      target: () => document.querySelector('[data-run-row]'),
+      title: '打开运行',
+    },
+  ]);
+  return (
+    <>
+      {/* page content */}
+      <Tour {...tour.tourProps} />
+    </>
+  );
+}
+
+function GuideButton() {
+  const launcher = useTourLauncher();
+  return launcher.available ? (
+    <Button tone="ghost" onClick={launcher.start}>
+      引导
+    </Button>
+  ) : null;
+}
+
+<AegisShell headerActions={<GuideButton />} /* … */ />;
+```
+
 ## Repository layout
 
 This is a pnpm workspace. Only `packages/ui` is published.

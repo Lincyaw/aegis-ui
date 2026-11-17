@@ -1,0 +1,97 @@
+/* antd's Tour draws the spotlight and positions the popover; its root
+ * class (`aegis-tour`) lands on both the mask and the popover. */
+.aegis-tour.ant-tour-mask rect[mask] {
+  fill: var(--bg-backdrop);
+}
+
+.aegis-tour.ant-tour {
+  --antd-arrow-background-color: var(--bg-panel);
+
+  width: var(--tour-width);
+  max-width: calc(100vw - 2 * var(--space-4));
+}
+
+.aegis-tour.ant-tour .ant-tour-inner {
+  border: var(--size-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-overlay);
+}
+
+.aegis-tour.ant-tour .ant-tour-description {
+  padding: 0;
+}
+
+.aegis-tour.ant-tour .ant-tour-footer {
+  display: none;
+}
+
+.aegis-tour__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  font-family: var(--font-ui);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  line-height: var(--type-body-line);
+  letter-spacing: var(--type-body-tracking);
+  color: var(--text-main);
+}
+
+.aegis-tour__title {
+  margin: 0;
+  font-size: var(--type-heading-size);
+  font-weight: var(--type-heading-weight);
+  line-height: var(--type-heading-line);
+  letter-spacing: var(--type-heading-tracking);
+  color: var(--text-main);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.aegis-tour__description {
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.aegis-tour__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.aegis-tour__progress {
+  font-size: var(--type-small-size);
+  font-weight: var(--type-small-weight);
+  line-height: var(--type-small-line);
+  letter-spacing: var(--type-small-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.aegis-tour__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  /* Spans the viewport and insets its card: placement clamps the popover
+   * to the viewport's edge and compensates for a margin. */
+  .aegis-tour.ant-tour {
+    box-sizing: border-box;
+    width: 100vw;
+    max-width: 100vw;
+    padding-inline: var(--space-4);
+  }
+
+  .aegis-tour__panel {
+    padding: var(--space-4);
+  }
+}
