@@ -263,6 +263,15 @@ function workbenchHref(state: WorkbenchState): string {
  */
 function WorkbenchPage(): ReactElement {
   const [params] = useSearchParams();
+  // ?leading=none shows the page without its area pane, and keeps it so.
+  const noLeading = params.get('leading') === 'none';
+  const pageHref = (next: WorkbenchState): string => {
+    const href = workbenchHref(next);
+    if (!noLeading) {
+      return href;
+    }
+    return href === '?' ? '?leading=none' : `${href}&leading=none`;
+  };
   const open = (params.get('open') ?? '').split(',').filter(Boolean);
   const active = params.get('active');
   const keyOf = (entry: string): string => entry.replace(/^~/, '');
@@ -275,7 +284,7 @@ function WorkbenchPage(): ReactElement {
           ...open.filter((entry) => !entry.startsWith('~')),
           pinned ? id : `~${id}`,
         ];
-    return workbenchHref({ open: next, active: id });
+    return pageHref({ open: next, active: id });
   };
   const tabs: WorkbenchTab[] = open.map((entry) => {
     const id = keyOf(entry);
@@ -283,8 +292,8 @@ function WorkbenchPage(): ReactElement {
     return {
       key: id,
       name: REQUIREMENTS.find((r) => r.id === id)?.name ?? id,
-      href: workbenchHref({ ...state, active: id }),
-      closeHref: workbenchHref({
+      href: pageHref({ ...state, active: id }),
+      closeHref: pageHref({
         open: rest,
         active: active === id ? (rest[0] ? keyOf(rest[0]) : null) : active,
       }),
@@ -299,19 +308,21 @@ function WorkbenchPage(): ReactElement {
       <PageBar title='需求工作台' />
       <Workbench
         tabs={tabs}
-        backHref={workbenchHref({ ...state, active: null })}
+        backHref={pageHref({ ...state, active: null })}
         linkComponent={DemoLink}
         listLabel='需求'
         listSize='md'
         leadingLabel='区域'
         leading={
-          <DataTable
-            ariaLabel='区域'
-            framed={false}
-            columns={[{ key: 'name', header: '区域', render: (a) => a.name }]}
-            data={AREAS}
-            rowKey={(a) => a.id}
-          />
+          noLeading ? undefined : (
+            <DataTable
+              ariaLabel='区域'
+              framed={false}
+              columns={[{ key: 'name', header: '区域', render: (a) => a.name }]}
+              data={AREAS}
+              rowKey={(a) => a.id}
+            />
+          )
         }
         listPinHref={(href) => {
           const id = new URLSearchParams(href.slice(1)).get('active');
