@@ -134,6 +134,8 @@ export type {
 } from './DetailBeside';
 export { PickerField } from './PickerField';
 export { Dialog } from './Dialog';
+export { Workbench } from './Workbench';
+export type { WorkbenchProps, WorkbenchTab } from './Workbench';
 export { Tour } from './Tour';
 export type {
   TourAction,

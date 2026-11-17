@@ -19,6 +19,10 @@ export interface AegisStrings {
   remove: string;
   close: string;
   /** A Tour's buttons: back a step, on a step, end it early, and end it on the last step. */
+  /** Names a Workbench's strip of open tabs. */
+  workbenchTabs: string;
+  /** A Workbench's link from a record back to its list at narrow widths. */
+  workbenchBackToList: string;
   /** Names an inline Tour panel, e.g. "Guide". */
   tour: string;
   tourPrevious: string;
@@ -424,6 +428,8 @@ export const enStrings: AegisStrings = {
   labelSeparator: ': ',
   remove: 'Remove',
   close: 'Close',
+  workbenchTabs: 'Open tabs',
+  workbenchBackToList: 'Back to list',
   tour: 'Guide',
   tourPrevious: 'Back',
   tourNext: 'Next',
@@ -831,6 +837,8 @@ export const zhCNStrings: AegisStrings = {
   labelSeparator: '：',
   remove: '移除',
   close: '关闭',
+  workbenchTabs: '标签页',
+  workbenchBackToList: '返回列表',
   tour: '引导',
   tourPrevious: '上一步',
   tourNext: '下一步',

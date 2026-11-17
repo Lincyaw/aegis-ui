@@ -1,0 +1,211 @@
+.aegis-workbench {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.aegis-workbench__list {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.aegis-workbench--open .aegis-workbench__list {
+  flex: 0 0 auto;
+}
+
+.aegis-workbench--open .aegis-workbench__list--sm {
+  width: var(--pane-width-sm);
+}
+
+.aegis-workbench--open .aegis-workbench__list--md {
+  width: var(--pane-width-md);
+}
+
+.aegis-workbench--open .aegis-workbench__list--lg {
+  width: var(--pane-width-lg);
+}
+
+.aegis-workbench__group {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-left: var(--size-hairline) solid var(--border-hairline);
+  background: var(--bg-panel);
+}
+
+/* Only at 768 px and below, where the group covers the list. */
+.aegis-workbench__back {
+  display: none;
+}
+
+.aegis-workbench__tabs {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-bottom: var(--size-hairline) solid var(--border-hairline);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.aegis-workbench__tab {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: var(--workbench-tab-max-width);
+  height: var(--size-control-base);
+  padding: 0 var(--space-1) 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-ui);
+  font-size: var(--type-strong-size);
+  font-weight: var(--type-strong-weight);
+  line-height: var(--type-strong-line);
+  letter-spacing: var(--type-strong-tracking);
+  white-space: nowrap;
+  color: var(--text-main);
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.aegis-workbench__tab:hover {
+  background: var(--bg-muted);
+}
+
+.aegis-workbench__tab--active,
+.aegis-workbench__tab--active:hover {
+  background: var(--selection-bg);
+  color: var(--selection-ink);
+}
+
+/* A preview tab, which the next opened record replaces: its name is
+ * muted and regular weight, where a pinned tab's is full ink and strong. */
+.aegis-workbench__tab--preview {
+  font-weight: var(--type-body-weight);
+  color: var(--text-muted);
+}
+
+.aegis-workbench__tab--preview.aegis-workbench__tab--active {
+  color: var(--selection-ink-muted);
+}
+
+.aegis-workbench__tab-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: inherit;
+  text-decoration: none;
+}
+
+.aegis-workbench__tab-name:active {
+  opacity: 0.8;
+}
+
+.aegis-workbench__tab-close {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  border-radius: var(--radius-pill);
+  color: inherit;
+  opacity: 0.7;
+  transition:
+    background var(--motion-fast),
+    opacity var(--motion-fast);
+}
+
+.aegis-workbench__tab-close:hover {
+  background: var(--bg-tint);
+  opacity: 1;
+}
+
+.aegis-workbench__tab--active .aegis-workbench__tab-close:hover {
+  background: var(--selection-track);
+}
+
+.aegis-workbench__tab-close:active {
+  opacity: 0.6;
+}
+
+.aegis-workbench__close-glyph {
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-width: var(--line-icon-stroke);
+}
+
+.aegis-workbench__hidden-text {
+  position: absolute;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.aegis-workbench__detail {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* At 768 px and below the list keeps the page; an active tab's group covers
+ * the view under the header, and the list moves off-canvas, still mounted. */
+@media (max-width: 768px) {
+  .aegis-workbench,
+  .aegis-workbench--open .aegis-workbench__list {
+    flex: 1 1 auto;
+    width: auto;
+  }
+
+  .aegis-workbench__list {
+    overflow: visible;
+  }
+
+  .aegis-workbench--active .aegis-workbench__list {
+    transform: translateX(-100vw);
+  }
+
+  .aegis-workbench__group {
+    display: none;
+  }
+
+  .aegis-workbench--active .aegis-workbench__group {
+    position: fixed;
+    z-index: var(--z-sticky);
+    inset: var(--header-height) 0 0;
+    display: flex;
+    border-left: 0;
+  }
+
+  .aegis-workbench__back {
+    display: flex;
+    flex: 0 0 auto;
+    padding: var(--space-3) var(--page-padding-inline-mobile) 0;
+  }
+
+  .aegis-workbench__back-link {
+    font-size: var(--type-strong-size);
+    font-weight: var(--type-strong-weight);
+    line-height: var(--type-strong-line);
+    color: var(--accent-info);
+    text-decoration: none;
+  }
+
+  .aegis-workbench__back-link:hover {
+    text-decoration: underline;
+  }
+}

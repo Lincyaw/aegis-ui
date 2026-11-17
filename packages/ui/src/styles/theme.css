@@ -438,6 +438,8 @@
   --pane-width-sm: 224px;
   --pane-width-md: 264px;
   --pane-width-lg: 400px;
+  /* A Workbench tab grows with its name up to this width, then truncates it. */
+  --workbench-tab-max-width: 240px;
   --page-bleed-height: calc(100vh - var(--header-height));
   /* PageBar: the page's top bar and the sub-bar under it. */
   --page-bar-height: 56px;

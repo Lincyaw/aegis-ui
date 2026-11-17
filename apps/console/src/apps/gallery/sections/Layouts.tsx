@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import {
   BlastRadiusBar,
@@ -57,6 +58,9 @@ import {
   TraceTree,
   TreeTable,
   type TreeTableColumn,
+  useMediaQuery,
+  Workbench,
+  type WorkbenchTab,
 } from '@lincyaw/aegis-ui';
 
 import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
@@ -1227,6 +1231,156 @@ function PageHeaderActionSpecimen() {
   );
 }
 
+/* ── Workbench specimen ───────────────────────────────────────────── */
+
+interface WorkbenchRun {
+  key: string;
+  name: string;
+  branch: string;
+  status: string;
+}
+
+const WORKBENCH_RUNS: WorkbenchRun[] = Array.from({ length: 40 }, (_, i) => {
+  const key = `run-${(0x7f3a + i * 0x2b9).toString(16)}`;
+  return {
+    key,
+    name: `${key} · ${['deploy rollback', 'schema migration', 'cache warmup', 'nightly acceptance'][i % 4]}`,
+    branch: ['main', 'fb-integration', 'm7-ci-check'][i % 3],
+    status: ['passed', 'failed', 'running'][i % 3],
+  };
+});
+
+interface WorkbenchOpen {
+  key: string;
+  pinned: boolean;
+}
+
+// The specimen keeps its tabs in the URL hash its links write, as a host
+// keeps them in its address.
+function useWorkbenchHash(narrow: boolean) {
+  const { hash } = useLocation();
+  const [open, setOpen] = useState<WorkbenchOpen[]>([
+    { key: WORKBENCH_RUNS[0].key, pinned: true },
+    { key: WORKBENCH_RUNS[1].key, pinned: true },
+    { key: WORKBENCH_RUNS[2].key, pinned: false },
+  ]);
+  // At 768 px or narrower an active tab covers the view; the gallery opens
+  // there on its list.
+  const [active, setActive] = useState<string | null>(
+    narrow ? null : WORKBENCH_RUNS[2].key
+  );
+  useEffect(() => {
+    const match = /^#wb-(open|pin|show|close|list)(?:-(.+))?$/.exec(hash);
+    if (match === null) {
+      return;
+    }
+    const [, verb, key] = match;
+    if (verb === 'list') {
+      setActive(null);
+      return;
+    }
+    if (verb === 'close') {
+      setOpen((tabs) => {
+        const at = tabs.findIndex((tab) => tab.key === key);
+        const rest = tabs.filter((tab) => tab.key !== key);
+        setActive((current) =>
+          current === key
+            ? (rest[Math.min(at, rest.length - 1)]?.key ?? null)
+            : current
+        );
+        return rest;
+      });
+      return;
+    }
+    if (verb === 'open' || verb === 'pin') {
+      setOpen((tabs) => {
+        if (tabs.some((tab) => tab.key === key)) {
+          return verb === 'pin'
+            ? tabs.map((tab) =>
+                tab.key === key ? { ...tab, pinned: true } : tab
+              )
+            : tabs;
+        }
+        const kept = tabs.filter((tab) => tab.pinned);
+        return [...kept, { key, pinned: verb === 'pin' }];
+      });
+    }
+    setActive(key);
+  }, [hash]);
+  return { open, active };
+}
+
+function WorkbenchSpecimen() {
+  const narrow = useMediaQuery('(max-width: 768px)');
+  const { open, active } = useWorkbenchHash(narrow);
+  const tabs: WorkbenchTab[] = open.map(({ key, pinned }) => ({
+    key,
+    name: WORKBENCH_RUNS.find((run) => run.key === key)?.name ?? key,
+    href: `#wb-show-${key}`,
+    closeHref: `#wb-close-${key}`,
+    pinHref: `#wb-pin-${key}`,
+    pinned,
+    active: key === active,
+  }));
+  const run = WORKBENCH_RUNS.find((r) => r.key === active);
+  return (
+    <div className='gallery__workbench-frame'>
+      <Workbench
+        tabs={tabs}
+        backHref='#wb-list'
+        linkComponent={GalleryRouterLink}
+        listSize='lg'
+        listLabel='Runs'
+        listPinHref={(href) => href.replace('#wb-open-', '#wb-pin-')}
+        detail={
+          run && (
+            <Panel title={run.name} description={`Branch ${run.branch}`}>
+              <MetadataList
+                entries={[
+                  { label: 'Run', value: run.key, mono: true },
+                  { label: 'Branch', value: run.branch, mono: true },
+                  { label: 'Status', value: run.status },
+                ]}
+              />
+              {Array.from({ length: 12 }, (_, i) => (
+                <p key={i} className='gallery__panel-body'>
+                  Stage {i + 1}: the task input and output, read in order. A
+                  long detail scrolls inside the group, not the page.
+                </p>
+              ))}
+            </Panel>
+          )
+        }
+      >
+        <DataTable
+          ariaLabel='Runs'
+          columns={[
+            {
+              key: 'name',
+              header: 'Run',
+              truncate: false,
+              render: (row: WorkbenchRun) => (
+                <GalleryRouterLink to={`#wb-open-${row.key}`}>
+                  {row.name}
+                </GalleryRouterLink>
+              ),
+            },
+            {
+              key: 'status',
+              header: 'Status',
+              render: (row: WorkbenchRun) => row.status,
+            },
+          ]}
+          data={WORKBENCH_RUNS}
+          rowKey={(row) => row.key}
+          selectedKeys={active === null ? [] : [active]}
+          density='compact'
+        />
+      </Workbench>
+    </div>
+  );
+}
+
 export function LayoutsSection() {
   return (
     <GallerySection title='Layouts'>
@@ -1417,6 +1571,15 @@ export function LayoutsSection() {
         span={3}
       >
         <DetailBesideSpecimen />
+      </Specimen>
+
+      <SectionDivider>Workbench</SectionDivider>
+      <Specimen
+        caption='list + tabs (2 pinned, 1 preview, muted) · rows and tabs are links · double-click pins · close every tab and the list spans the width · ≤768 px: the active tab covers the view under 返回列表'
+        span={3}
+        align='start'
+      >
+        <WorkbenchSpecimen />
       </Specimen>
       <Specimen
         caption='revealKey — the selection as the address names it, null for a default · the page scrolls to the row on the first placement and when revealKey changes; new data that moves the default or the rows only levels the detail with its row · ServiceMap: scroll the frame to the map at 768 px or below and press New data; the view moves to the new node and the frame keeps its scroll'
