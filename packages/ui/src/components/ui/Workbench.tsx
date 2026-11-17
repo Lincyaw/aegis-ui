@@ -46,8 +46,22 @@ export interface WorkbenchProps {
   listSize?: 'sm' | 'md' | 'lg';
   /** Names the list pane, making it a region. */
   listLabel?: string;
+  /**
+   * A pane before the list, e.g. an area tree that filters it. Above 768 px
+   * it sits left of the list and scrolls itself; at 768 px or narrower it
+   * stacks above the list in one scrolling column, which an active tab
+   * moves off-canvas with the list.
+   */
+  leading?: ReactNode;
+  /** The leading pane's width above 768 px: the `--pane-width-*` sizes. */
+  leadingSize?: 'sm' | 'md' | 'lg';
+  /** Names the leading pane, making it a region. */
+  leadingLabel?: string;
   className?: string;
 }
+
+/** How long after a click the list keeps its clicked row in place. */
+const SETTLE_MS = 1000;
 
 /** The selected item a list draws, should the clicked element be redrawn. */
 const SELECTED =
@@ -75,6 +89,8 @@ function CloseGlyph() {
  * link; a preview tab's name is muted. With no tabs there is no group. At
  * 768 px or narrower an active tab's group covers the view below the header,
  * headed by a 返回列表 link, and the list moves off-canvas, still mounted.
+ * There the list (after any `leading` pane) scrolls inside the workbench,
+ * which fills a bleed page's height without growing it.
  */
 export function Workbench({
   children,
@@ -85,6 +101,9 @@ export function Workbench({
   linkComponent,
   listSize = 'md',
   listLabel,
+  leading,
+  leadingSize = 'sm',
+  leadingLabel,
   className,
 }: WorkbenchProps) {
   const strings = useStrings();
@@ -176,14 +195,17 @@ export function Workbench({
     setPinTo(null);
   }, [pinTo]);
 
-  // The group opening narrows the list, which may rewrap its rows: the
-  // clicked row is put back where it was.
+  // The group opening narrows the list, which rewraps its rows, and the
+  // list may reflow again as it settles (column widths, fonts, a reveal of
+  // its own): the clicked row is put back where it was at each change for a
+  // short while, until the reader scrolls.
   useIsomorphicLayoutEffect(() => {
     const list = listRef.current;
     const clicked = clickedRef.current;
     if (list === null || clicked === null) {
       return undefined;
     }
+    clickedRef.current = null;
     const level = (): void => {
       const element = clicked.element.isConnected
         ? clicked.element
@@ -197,14 +219,25 @@ export function Workbench({
       }
     };
     level();
-    // Again once the list's own effects, such as a reveal, have run.
-    const frame = requestAnimationFrame(() => {
-      level();
-      clickedRef.current = null;
-    });
-    return () => {
-      cancelAnimationFrame(frame);
+    const observer = new ResizeObserver(level);
+    observer.observe(list);
+    for (const child of Array.from(list.children)) {
+      observer.observe(child);
+    }
+    const stop = (): void => {
+      observer.disconnect();
+      list.removeEventListener('scroll', level);
+      list.removeEventListener('wheel', stop);
+      list.removeEventListener('touchstart', stop);
+      list.removeEventListener('keydown', stop);
+      window.clearTimeout(timer);
     };
+    const timer = window.setTimeout(stop, SETTLE_MS);
+    list.addEventListener('scroll', level);
+    list.addEventListener('wheel', stop, { passive: true });
+    list.addEventListener('touchstart', stop, { passive: true });
+    list.addEventListener('keydown', stop);
+    return stop;
   }, [open, activeKey]);
 
   useIsomorphicLayoutEffect(() => {
@@ -238,18 +271,29 @@ export function Workbench({
     .filter(Boolean)
     .join(' ');
   const listClass = `aegis-workbench__list aegis-workbench__list--${listSize}`;
+  const leadingClass = `aegis-workbench__leading aegis-workbench__leading--${leadingSize}`;
 
   return (
     <div className={cls}>
-      {listLabel === undefined ? (
-        <div ref={listRef as RefObject<HTMLDivElement>} className={listClass}>
-          {children}
-        </div>
-      ) : (
-        <section ref={listRef} className={listClass} aria-label={listLabel}>
-          {children}
-        </section>
-      )}
+      <div className="aegis-workbench__panes">
+        {leading !== undefined &&
+          (leadingLabel === undefined ? (
+            <div className={leadingClass}>{leading}</div>
+          ) : (
+            <section className={leadingClass} aria-label={leadingLabel}>
+              {leading}
+            </section>
+          ))}
+        {listLabel === undefined ? (
+          <div ref={listRef as RefObject<HTMLDivElement>} className={listClass}>
+            {children}
+          </div>
+        ) : (
+          <section ref={listRef} className={listClass} aria-label={listLabel}>
+            {children}
+          </section>
+        )}
+      </div>
       {open && (
         <div className="aegis-workbench__group">
           <div className="aegis-workbench__back">

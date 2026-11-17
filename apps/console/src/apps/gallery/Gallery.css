@@ -950,10 +950,3 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
-
-@media (max-width: 768px) {
-  .gallery__workbench-frame {
-    height: auto;
-    overflow: visible;
-  }
-}

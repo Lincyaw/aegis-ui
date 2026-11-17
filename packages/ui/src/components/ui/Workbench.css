@@ -5,11 +5,44 @@
   min-height: 0;
 }
 
+.aegis-workbench__panes {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.aegis-workbench--open .aegis-workbench__panes {
+  flex: 0 0 auto;
+}
+
+.aegis-workbench__leading {
+  flex: 0 0 auto;
+  min-height: 0;
+  border-right: var(--size-hairline) solid var(--border-hairline);
+  overflow: auto;
+}
+
+.aegis-workbench__leading--sm {
+  width: var(--pane-width-sm);
+}
+
+.aegis-workbench__leading--md {
+  width: var(--pane-width-md);
+}
+
+.aegis-workbench__leading--lg {
+  width: var(--pane-width-lg);
+}
+
 .aegis-workbench__list {
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  /* The workbench keeps the clicked row in place itself; the browser's
+   * anchoring would pick another row and move it. */
+  overflow-anchor: none;
 }
 
 .aegis-workbench--open .aegis-workbench__list {
@@ -162,20 +195,37 @@
   overscroll-behavior: contain;
 }
 
-/* At 768 px and below the list keeps the page; an active tab's group covers
- * the view under the header, and the list moves off-canvas, still mounted. */
+/* At 768 px and below the leading pane and the list share one scrolling
+ * column; an active tab's group covers the view under the header, and the
+ * column moves off-canvas, still mounted. */
 @media (max-width: 768px) {
-  .aegis-workbench,
-  .aegis-workbench--open .aegis-workbench__list {
-    flex: 1 1 auto;
-    width: auto;
+  /* A zero basis: the workbench fills the bleed page's min-height and no
+   * more, so a long list scrolls inside it instead of growing the page. */
+  .aegis-workbench {
+    flex: 1 1 0;
   }
 
-  .aegis-workbench__list {
+  .aegis-workbench__panes,
+  .aegis-workbench--open .aegis-workbench__panes {
+    flex: 1 1 0;
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .aegis-workbench__leading,
+  .aegis-workbench__list,
+  .aegis-workbench--open .aegis-workbench__list {
+    flex: 0 0 auto;
+    width: auto;
     overflow: visible;
   }
 
-  .aegis-workbench--active .aegis-workbench__list {
+  .aegis-workbench__leading {
+    border-right: 0;
+    border-bottom: var(--size-hairline) solid var(--border-hairline);
+  }
+
+  .aegis-workbench--active .aegis-workbench__panes {
     transform: translateX(-100vw);
   }
 

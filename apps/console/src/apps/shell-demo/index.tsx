@@ -1,4 +1,5 @@
 import { type ReactElement, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import {
   type AegisApp,
@@ -7,6 +8,7 @@ import {
   DetailBeside,
   KeyValueList,
   LineIcon,
+  type LinkComponent,
   MetricLabel,
   MonoValue,
   Pane,
@@ -16,6 +18,8 @@ import {
   ShellMenuToggle,
   StatusDot,
   Toolbar,
+  Workbench,
+  type WorkbenchTab,
 } from '@lincyaw/aegis-ui';
 
 import { CodeSelectionDemo } from './CodeSelectionDemo';
@@ -211,6 +215,148 @@ function RequirementsPage(): ReactElement {
   );
 }
 
+const DemoLink: LinkComponent = ({
+  to,
+  className,
+  'aria-current': ariaCurrent,
+  'aria-label': ariaLabel,
+  tabIndex,
+  children,
+}) => (
+  <Link
+    to={to}
+    className={className}
+    aria-current={ariaCurrent}
+    aria-label={ariaLabel}
+    tabIndex={tabIndex}
+  >
+    {children}
+  </Link>
+);
+
+const AREAS = Array.from({ length: 12 }, (_, index) => ({
+  id: `A${String(index + 1)}`,
+  name: `区域 ${String(index + 1)}`,
+}));
+
+interface WorkbenchState {
+  /** Open records; a preview one is marked with a leading `~`. */
+  open: string[];
+  active: string | null;
+}
+
+function workbenchHref(state: WorkbenchState): string {
+  const params = new URLSearchParams();
+  if (state.open.length > 0) {
+    params.set('open', state.open.join(','));
+  }
+  if (state.active !== null) {
+    params.set('active', state.active);
+  }
+  const query = params.toString();
+  return query === '' ? '?' : `?${query}`;
+}
+
+/**
+ * A bleed page of a Workbench over 60 requirements with an area pane before
+ * them; its tabs live in the address, as a host keeps them.
+ */
+function WorkbenchPage(): ReactElement {
+  const [params] = useSearchParams();
+  const open = (params.get('open') ?? '').split(',').filter(Boolean);
+  const active = params.get('active');
+  const keyOf = (entry: string): string => entry.replace(/^~/, '');
+  const state: WorkbenchState = { open, active };
+  const openHref = (id: string, pinned: boolean): string => {
+    const has = open.find((entry) => keyOf(entry) === id);
+    const next = has
+      ? open.map((entry) => (keyOf(entry) === id && pinned ? id : entry))
+      : [
+          ...open.filter((entry) => !entry.startsWith('~')),
+          pinned ? id : `~${id}`,
+        ];
+    return workbenchHref({ open: next, active: id });
+  };
+  const tabs: WorkbenchTab[] = open.map((entry) => {
+    const id = keyOf(entry);
+    const rest = open.filter((other) => keyOf(other) !== id);
+    return {
+      key: id,
+      name: REQUIREMENTS.find((r) => r.id === id)?.name ?? id,
+      href: workbenchHref({ ...state, active: id }),
+      closeHref: workbenchHref({
+        open: rest,
+        active: active === id ? (rest[0] ? keyOf(rest[0]) : null) : active,
+      }),
+      pinHref: openHref(id, true),
+      pinned: !entry.startsWith('~'),
+      active: id === active,
+    };
+  });
+  const record = REQUIREMENTS.find((r) => r.id === active);
+  return (
+    <>
+      <PageBar title='需求工作台' />
+      <Workbench
+        tabs={tabs}
+        backHref={workbenchHref({ ...state, active: null })}
+        linkComponent={DemoLink}
+        listLabel='需求'
+        listSize='md'
+        leadingLabel='区域'
+        leading={
+          <DataTable
+            ariaLabel='区域'
+            framed={false}
+            columns={[{ key: 'name', header: '区域', render: (a) => a.name }]}
+            data={AREAS}
+            rowKey={(a) => a.id}
+          />
+        }
+        listPinHref={(href) => {
+          const id = new URLSearchParams(href.slice(1)).get('active');
+          return id === null ? null : openHref(id, true);
+        }}
+        detail={
+          record && (
+            <div className='shell-demo__workbench-detail'>
+              <PanelTitle as='h2'>{record.name}</PanelTitle>
+              <KeyValueList
+                items={[
+                  {
+                    k: '需求',
+                    v: <MonoValue size='sm'>{record.id}</MonoValue>,
+                  },
+                  { k: '状态', v: '通过' },
+                ]}
+              />
+            </div>
+          )
+        }
+      >
+        <DataTable<DemoRequirement>
+          ariaLabel='需求'
+          framed={false}
+          columns={[
+            { key: 'id', header: 'ID', width: 96, render: (r) => r.id },
+            {
+              key: 'name',
+              header: '需求',
+              truncate: false,
+              render: (r) => (
+                <DemoLink to={openHref(r.id, false)}>{r.name}</DemoLink>
+              ),
+            },
+          ]}
+          data={REQUIREMENTS}
+          rowKey={(r) => r.id}
+          selectedKeys={active === null ? [] : [active]}
+        />
+      </Workbench>
+    </>
+  );
+}
+
 /**
  * The shell with `chrome="sidebar"`: brand and controls in the sidebar,
  * bleed pages of bars over panes, the drawer toggle in each page's bar.
@@ -240,6 +386,11 @@ export const shellDemoApp: AegisApp = {
           icon: <LineIcon>{REQUIREMENTS_GLYPH}</LineIcon>,
         },
         { to: 'code', label: '代码', icon: <LineIcon>{CODE_GLYPH}</LineIcon> },
+        {
+          to: 'workbench',
+          label: '工作台',
+          icon: <LineIcon>{REQUIREMENTS_GLYPH}</LineIcon>,
+        },
       ],
     },
   ],
@@ -247,5 +398,6 @@ export const shellDemoApp: AegisApp = {
     { path: '', element: <OverviewPage /> },
     { path: 'requirements', element: <RequirementsPage /> },
     { path: 'code', element: <CodePage /> },
+    { path: 'workbench', element: <WorkbenchPage /> },
   ],
 };
