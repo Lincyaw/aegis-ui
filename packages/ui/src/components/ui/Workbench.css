@@ -1,4 +1,6 @@
 .aegis-workbench {
+  /* Holds the group at 768 px and below, which covers only this box. */
+  position: relative;
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
@@ -200,8 +202,8 @@
 }
 
 /* At 768 px and below the leading pane and the list share one scrolling
- * column; an active tab's group covers the view under the header, and the
- * column moves off-canvas, still mounted. */
+ * column; an active tab's group covers the workbench's own box, below the
+ * page's bar, and the column moves off-canvas, still mounted. */
 @media (max-width: 768px) {
   /* A zero basis: the workbench fills the bleed page's min-height and no
    * more, so a long list scrolls inside it instead of growing the page. */
@@ -238,9 +240,9 @@
   }
 
   .aegis-workbench--active .aegis-workbench__group {
-    position: fixed;
+    position: absolute;
     z-index: var(--z-sticky);
-    inset: var(--header-height) 0 0;
+    inset: 0;
     display: flex;
     border-left: 0;
   }

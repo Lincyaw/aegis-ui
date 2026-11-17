@@ -87,8 +87,9 @@ function CloseGlyph() {
  * clicked row where it was, and each detail starts at its top. The group
  * heads its detail with a strip of tab links, each followed by its close
  * link; a preview tab's name is muted. With no tabs there is no group. At
- * 768 px or narrower an active tab's group covers the view below the header,
- * headed by a 返回列表 link, and the list moves off-canvas, still mounted.
+ * 768 px or narrower an active tab's group covers the workbench's own box,
+ * below the page's bar, headed by a 返回列表 link, and the list moves
+ * off-canvas, still mounted.
  * There the list (after any `leading` pane) scrolls inside the workbench,
  * which fills a bleed page's height without growing it.
  */
