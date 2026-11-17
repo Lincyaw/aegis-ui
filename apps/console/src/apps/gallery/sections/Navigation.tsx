@@ -827,6 +827,58 @@ function TourSpecimen() {
   );
 }
 
+function InlineTourSpecimen() {
+  const steps: TourStep[] = [
+    {
+      target: '#gallery-inline-tour-filter',
+      title: 'Filter the runs',
+      description: 'The panel is a region inside main, not a dialog.',
+    },
+    {
+      target: '#gallery-inline-tour-row',
+      title: 'Open a run',
+      description: 'Each control is a same-page link: the URL hash names it.',
+    },
+    {
+      target: '#gallery-inline-tour-export',
+      title: 'Export the list',
+      description: 'Done and Skip still report how the tour ended.',
+      placement: 'top',
+    },
+  ];
+  const tour = useTour('gallery-inline-specimen', steps, { autoStart: false });
+  return (
+    <div className='gallery__row'>
+      <Specimen caption="inline · label='Guide' · actionHref → #tour-<action> · linkComponent">
+        <div className='gallery__row'>
+          <span id='gallery-inline-tour-filter'>
+            <Chip>status: failed</Chip>
+          </span>
+          <span id='gallery-inline-tour-row'>
+            <MonoValue>run-7f3a</MonoValue>
+          </span>
+          <AegisButton id='gallery-inline-tour-export' tone='secondary'>
+            Export
+          </AegisButton>
+        </div>
+        <div className='gallery__row'>
+          <AegisButton tone='primary' onClick={tour.start}>
+            Start inline tour
+          </AegisButton>
+          <MetricLabel>ended: {tour.ended ?? 'never'}</MetricLabel>
+        </div>
+        <Tour
+          {...tour.tourProps}
+          inline
+          label='Guide'
+          actionHref={(action) => `#tour-${action}`}
+          linkComponent={GalleryRouterLink}
+        />
+      </Specimen>
+    </div>
+  );
+}
+
 export function NavigationSection() {
   return (
     <GallerySection title='Navigation · Rosetta'>
@@ -864,6 +916,17 @@ export function NavigationSection() {
         Tour
       </SectionDivider>
       <TourSpecimen />
+
+      <SectionDivider
+        extra={
+          <MetricLabel>
+            Inside main · role=region · controls are links
+          </MetricLabel>
+        }
+      >
+        Tour · inline links
+      </SectionDivider>
+      <InlineTourSpecimen />
 
       <SectionDivider>Carousel</SectionDivider>
       <div className='gallery__row'>

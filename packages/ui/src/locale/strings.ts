@@ -19,6 +19,8 @@ export interface AegisStrings {
   remove: string;
   close: string;
   /** A Tour's buttons: back a step, on a step, end it early, and end it on the last step. */
+  /** Names an inline Tour panel, e.g. "Guide". */
+  tour: string;
   tourPrevious: string;
   tourNext: string;
   tourSkip: string;
@@ -422,6 +424,7 @@ export const enStrings: AegisStrings = {
   labelSeparator: ': ',
   remove: 'Remove',
   close: 'Close',
+  tour: 'Guide',
   tourPrevious: 'Back',
   tourNext: 'Next',
   tourSkip: 'Skip',
@@ -828,6 +831,7 @@ export const zhCNStrings: AegisStrings = {
   labelSeparator: '：',
   remove: '移除',
   close: '关闭',
+  tour: '引导',
   tourPrevious: '上一步',
   tourNext: '下一步',
   tourSkip: '跳过',

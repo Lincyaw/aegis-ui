@@ -12,8 +12,9 @@ import { Tour as AntdTour, type TourProps as AntdTourProps } from 'antd';
 
 import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
 import { useStrings } from '../../locale';
-import { Button } from './Button';
+import { Button, ButtonLink } from './Button';
 import './Tour.css';
+import type { LinkComponent } from './linkComponent';
 
 /** The element a step points at: a ref, a CSS selector, or a lookup. */
 export type TourTarget =
@@ -43,6 +44,9 @@ export interface TourLabels {
   progress: (position: number, total: number) => string;
 }
 
+/** What a Tour control does; `actionHref` gives each one's link. */
+export type TourAction = 'prev' | 'next' | 'finish' | 'skip';
+
 export interface TourProps {
   open: boolean;
   steps: readonly TourStep[];
@@ -51,6 +55,22 @@ export interface TourProps {
   onChange: (current: number) => void;
   onClose: (reason: TourCloseReason) => void;
   labels?: Partial<TourLabels>;
+  /**
+   * Draws the panel inside the page's `<main>` (the target's nearest, else
+   * the document's first) instead of a portal on `document.body`, as a
+   * `role="region"` named by `label` rather than a dialog.
+   */
+  inline?: boolean;
+  /** The inline panel's accessible name; defaults to the locale's `tour`. */
+  label?: string;
+  /**
+   * Turns the controls into links to these hrefs, rendered by
+   * `linkComponent`. A click still calls `onChange` or `onClose` as the
+   * button would.
+   */
+  actionHref?: (action: TourAction) => string;
+  /** Renders the action links; routed apps pass their Link adapter. */
+  linkComponent?: LinkComponent;
 }
 
 function resolveTarget(target: TourTarget): HTMLElement | null {
@@ -91,10 +111,21 @@ interface TourPanelProps {
   position: number;
   total: number;
   labels: TourLabels;
-  onPrevious: () => void;
-  onNext: () => void;
-  onSkip: () => void;
+  /** Set for an inline panel: a region with this name. */
+  regionLabel: string | undefined;
+  actionHref: ((action: TourAction) => string) | undefined;
+  linkComponent: LinkComponent | undefined;
+  onAction: (action: TourAction) => void;
 }
+
+const ACTION_CLASS: Readonly<Record<TourAction, string>> = {
+  prev: 'aegis-tour__action--prev',
+  next: 'aegis-tour__action--next',
+  finish: 'aegis-tour__action--finish',
+  skip: 'aegis-tour__action--skip',
+};
+
+const ACTIONS: readonly TourAction[] = ['prev', 'next', 'finish', 'skip'];
 
 function TourPanel({
   title,
@@ -102,26 +133,90 @@ function TourPanel({
   position,
   total,
   labels,
-  onPrevious,
-  onNext,
-  onSkip,
+  regionLabel,
+  actionHref,
+  linkComponent,
+  onAction,
 }: TourPanelProps) {
   const titleId = useId();
   const descriptionId = useId();
-  const primaryRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const last = position === total - 1;
+  const primary: TourAction = last ? 'finish' : 'next';
 
   useEffect(() => {
-    primaryRef.current?.focus({ preventScroll: true });
-  }, []);
+    panelRef.current
+      ?.querySelector<HTMLElement>(`.${ACTION_CLASS[primary]}`)
+      ?.focus({ preventScroll: true });
+  }, [primary]);
+
+  // A link adapter takes no click handler, so link clicks are heard here.
+  const onActionRef = useRef(onAction);
+  onActionRef.current = onAction;
+  const linked = actionHref !== undefined;
+  useEffect(() => {
+    const actions = actionsRef.current;
+    if (!linked || actions === null) {
+      return undefined;
+    }
+    const onClick = (event: MouseEvent): void => {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+      const hit = ACTIONS.find(
+        (action) =>
+          event.target instanceof Element &&
+          event.target.closest(`.${ACTION_CLASS[action]}`) !== null,
+      );
+      if (hit !== undefined) {
+        onActionRef.current(hit);
+      }
+    };
+    actions.addEventListener('click', onClick);
+    return () => {
+      actions.removeEventListener('click', onClick);
+    };
+  }, [linked]);
+
+  const control = (
+    action: TourAction,
+    tone: 'primary' | 'secondary' | 'ghost',
+    text: string,
+  ): ReactNode =>
+    actionHref === undefined ? (
+      <Button
+        tone={tone}
+        className={ACTION_CLASS[action]}
+        onClick={() => {
+          onAction(action);
+        }}
+      >
+        {text}
+      </Button>
+    ) : (
+      <ButtonLink
+        to={actionHref(action)}
+        tone={tone}
+        className={ACTION_CLASS[action]}
+        linkComponent={linkComponent}
+      >
+        {text}
+      </ButtonLink>
+    );
+
+  const roleProps =
+    regionLabel === undefined
+      ? {
+          role: 'dialog',
+          'aria-labelledby': titleId,
+          'aria-describedby':
+            description === undefined ? undefined : descriptionId,
+        }
+      : { role: 'region', 'aria-label': regionLabel };
 
   return (
-    <div
-      role="dialog"
-      aria-labelledby={titleId}
-      aria-describedby={description === undefined ? undefined : descriptionId}
-      className="aegis-tour__panel"
-    >
+    <div ref={panelRef} {...roleProps} className="aegis-tour__panel">
       <h2 id={titleId} className="aegis-tour__title">
         {title}
       </h2>
@@ -134,21 +229,61 @@ function TourPanel({
         <span className="aegis-tour__progress">
           {labels.progress(position + 1, total)}
         </span>
-        <div className="aegis-tour__actions">
-          <Button tone="ghost" onClick={onSkip}>
-            {labels.skip}
-          </Button>
-          {position > 0 && (
-            <Button tone="secondary" onClick={onPrevious}>
-              {labels.previous}
-            </Button>
-          )}
-          <Button ref={primaryRef} tone="primary" onClick={onNext}>
-            {last ? labels.finish : labels.next}
-          </Button>
+        <div ref={actionsRef} className="aegis-tour__actions">
+          {control('skip', 'ghost', labels.skip)}
+          {position > 0 && control('prev', 'secondary', labels.previous)}
+          {control(primary, 'primary', last ? labels.finish : labels.next)}
         </div>
       </div>
     </div>
+  );
+}
+
+function scrollParent(element: HTMLElement): HTMLElement {
+  for (
+    let parent = element.parentElement;
+    parent !== null;
+    parent = parent.parentElement
+  ) {
+    const { overflowY } = getComputedStyle(parent);
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll') &&
+      parent.scrollHeight > parent.clientHeight
+    ) {
+      return parent;
+    }
+  }
+  return (document.scrollingElement as HTMLElement | null) ?? document.body;
+}
+
+/**
+ * Scrolls so the panel lies wholly in the viewport, never pushing the
+ * target's top out of it. Returns whether it scrolled.
+ */
+function keepInView(target: HTMLElement, panel: HTMLElement): boolean {
+  const margin = cssNumber('--space-4');
+  const targetRect = target.getBoundingClientRect();
+  const panelRect = panel.getBoundingClientRect();
+  const top = Math.min(targetRect.top, panelRect.top);
+  const bottom = Math.max(targetRect.top, panelRect.bottom);
+  let delta = 0;
+  if (top < margin) {
+    delta = top - margin;
+  } else if (bottom > window.innerHeight - margin) {
+    delta = Math.min(bottom - (window.innerHeight - margin), top - margin);
+  }
+  if (Math.abs(delta) < 1) {
+    return false;
+  }
+  scrollParent(target).scrollBy({ top: delta });
+  // antd measures the spotlight only on resize; the scroll moved the target.
+  window.dispatchEvent(new Event('resize'));
+  return true;
+}
+
+function mainOf(node: HTMLElement): HTMLElement {
+  return (
+    node.closest('main') ?? document.querySelector('main') ?? document.body
   );
 }
 
@@ -169,6 +304,10 @@ export function Tour({
   onChange,
   onClose,
   labels,
+  inline = false,
+  label,
+  actionHref,
+  linkComponent,
 }: TourProps) {
   const strings = useStrings();
   const mergedLabels: TourLabels = {
@@ -240,6 +379,23 @@ export function Tour({
     [visible],
   );
 
+  // Adjusts the scroll after the step's first alignments, until nothing
+  // needs to move; later alignments (the reader scrolling) are left alone.
+  const settledRef = useRef<number | null>(null);
+  const shownIndex = visible ? present[position] : null;
+  useEffect(() => {
+    settledRef.current = null;
+  }, [shownIndex]);
+  const onPopupAlign = (popup: HTMLElement): void => {
+    if (shownIndex === null || settledRef.current === shownIndex) {
+      return;
+    }
+    const target = resolveTarget(steps[shownIndex].target);
+    if (target === null || !keepInView(target, popup)) {
+      settledRef.current = shownIndex;
+    }
+  };
+
   if (!visible || geometry === null) {
     return null;
   }
@@ -258,18 +414,22 @@ export function Tour({
           position={at}
           total={present.length}
           labels={mergedLabels}
-          onPrevious={() => {
-            onChange(present[at - 1]);
-          }}
-          onNext={() => {
-            if (at === present.length - 1) {
-              onClose('finish');
-            } else {
-              onChange(present[at + 1]);
+          regionLabel={inline ? (label ?? strings.tour) : undefined}
+          actionHref={actionHref}
+          linkComponent={linkComponent}
+          onAction={(action) => {
+            switch (action) {
+              case 'prev':
+                onChange(present[at - 1]);
+                break;
+              case 'next':
+                onChange(present[at + 1]);
+                break;
+              case 'finish':
+              case 'skip':
+                onClose(action);
+                break;
             }
-          }}
-          onSkip={() => {
-            onClose('skip');
           }}
         />
       ),
@@ -287,6 +447,11 @@ export function Tour({
       gap={geometry.gap}
       indicatorsRender={() => null}
       actionsRender={() => null}
+      getPopupContainer={inline ? mainOf : undefined}
+      // The mask is portalled after main; one layer lower, it stays under
+      // a panel drawn inside main.
+      mask={inline ? { style: { zIndex: geometry.zIndex - 1 } } : true}
+      onPopupAlign={onPopupAlign}
     />
   );
 }

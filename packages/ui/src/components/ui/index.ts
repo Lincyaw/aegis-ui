@@ -136,6 +136,7 @@ export { PickerField } from './PickerField';
 export { Dialog } from './Dialog';
 export { Tour } from './Tour';
 export type {
+  TourAction,
   TourCloseReason,
   TourLabels,
   TourPlacement,
