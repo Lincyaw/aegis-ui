@@ -14,7 +14,25 @@ import {
 import { FileOutlined, FolderOutlined, RightOutlined } from '@ant-design/icons';
 
 import './FileTree.css';
+import type { LinkComponent } from './linkComponent';
 import { SelectedRowDetailContext } from './selectedRowDetail';
+
+/** A file row's link inside its tree item, out of the tab order. */
+function FileLink({
+  linkComponent: LinkImpl,
+  to,
+  children,
+}: {
+  linkComponent: LinkComponent;
+  to: string;
+  children: ReactNode;
+}) {
+  return (
+    <LinkImpl to={to} className="aegis-file-tree__link" tabIndex={-1}>
+      {children}
+    </LinkImpl>
+  );
+}
 
 export interface FileTreeFile {
   /** Path from the tree root with `/` between segments, e.g. `tests/grading.toml`. */
@@ -42,8 +60,15 @@ export interface FileTreeProps {
    * opening the row follows the link as well as calling `onSelect`.
    */
   fileHref?: (path: string) => string;
-  /** Where file links open, e.g. `_blank`. */
+  /** Where file links open, e.g. `_blank`. Not used with `linkComponent`. */
   fileTarget?: string;
+  /**
+   * Renders file links through the host's router, so following one does
+   * not reload the page. The row stays the tree item and the link inside it
+   * leaves the tab order; activating the row anywhere follows the link.
+   * Without it each file row is itself an `<a href>`.
+   */
+  linkComponent?: LinkComponent;
   /** Open directories, each written with a trailing `/`, e.g. `tests/`. Omit it to let the tree track them. */
   expandedPaths?: string[];
   /** Directories open on first render when `expandedPaths` is omitted. */
@@ -162,6 +187,7 @@ export function FileTree({
   onSelect,
   fileHref,
   fileTarget,
+  linkComponent,
   expandedPaths,
   defaultExpandedPaths = [],
   onExpandedPathsChange,
@@ -262,10 +288,14 @@ export function FileTree({
         break;
       case 'Enter':
         // A link's own Enter follows it and clicks it, which activates it.
-        if (isLink) {
+        if (isLink && linkComponent === undefined) {
           return;
         }
-        activate(entry);
+        if (isLink) {
+          event.currentTarget.click();
+        } else {
+          activate(entry);
+        }
         break;
       case ' ':
         if (isLink) {
@@ -307,7 +337,20 @@ export function FileTree({
           'aria-posinset': position,
           'aria-expanded': isDirectory ? expanded.has(entry.path) : undefined,
           tabIndex: entry.path === tabStop ? 0 : -1,
-          onClick: () => {
+          onClick: (event) => {
+            // With a link adapter the link sits inside the row: a click
+            // elsewhere on the row follows it, and that click activates.
+            const inner =
+              href !== undefined && linkComponent !== undefined
+                ? event.currentTarget.querySelector('a')
+                : null;
+            if (
+              inner !== null &&
+              !(event.target instanceof Node && inner.contains(event.target))
+            ) {
+              inner.click();
+              return;
+            }
             activate(entry);
           },
           onKeyDown: (event) => {
@@ -347,7 +390,18 @@ export function FileTree({
         const rowRef = selected ? selection?.placeRow : undefined;
         return (
           <Fragment key={entry.path}>
-            {href === undefined ? (
+            {href !== undefined && linkComponent !== undefined ? (
+              <li
+                ref={rowRef}
+                role="treeitem"
+                aria-selected={selected}
+                {...itemProps}
+              >
+                <FileLink linkComponent={linkComponent} to={href}>
+                  {content}
+                </FileLink>
+              </li>
+            ) : href === undefined ? (
               <li
                 ref={rowRef}
                 role="treeitem"

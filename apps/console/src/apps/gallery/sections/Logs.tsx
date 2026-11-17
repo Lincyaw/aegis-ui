@@ -1,4 +1,5 @@
 import { type ReactNode, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import {
   Button as AegisButton,
@@ -19,7 +20,7 @@ import {
 
 import { CodeSelectionDemo } from '../../shell-demo/CodeSelectionDemo';
 import { TERMINAL_LINES } from '../fixtures';
-import { GallerySection, Specimen } from '../shared';
+import { GalleryRouterLink, GallerySection, Specimen } from '../shared';
 
 interface GalleryTaskFile extends FileTreeFile {
   language: string;
@@ -151,6 +152,26 @@ const GALLERY_TASK_DIRECTORIES = [
   'tests/',
   'tests/cases/',
 ];
+
+function FileTreeRouterSpecimen(): ReactNode {
+  const { hash } = useLocation();
+  const opened = hash.startsWith('#file-') ? hash.slice('#file-'.length) : null;
+  return (
+    <div className='gallery__stack gallery__stack--fill'>
+      <div style={{ width: '100%', maxWidth: 280 }}>
+        <FileTree
+          files={GALLERY_TASK_FILES}
+          ariaLabel='Task files, router links'
+          fileHref={(path) => `#file-${path}`}
+          linkComponent={GalleryRouterLink}
+          selectedPath={opened ?? undefined}
+          defaultExpandedPaths={['tests/', 'tests/cases/']}
+        />
+      </div>
+      <MetricLabel>followed: {opened ?? 'none'}</MetricLabel>
+    </div>
+  );
+}
 
 function FileTreeControlledSpecimen(): ReactNode {
   const [openPaths, setOpenPaths] = useState(['tests/']);
@@ -498,6 +519,12 @@ export function LogsSection() {
                 defaultExpandedPaths={['environment/']}
               />
             </div>
+          </Specimen>
+          <Specimen
+            caption='linkComponent · file links go through the router, no reload; the row is the tree item, its link out of the tab order'
+            span={2}
+          >
+            <FileTreeRouterSpecimen />
           </Specimen>
           <Specimen
             caption='label · a file shows its label in place of its name, e.g. notes without .md; the title keeps the path'

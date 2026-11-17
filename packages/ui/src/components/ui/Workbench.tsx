@@ -144,8 +144,15 @@ export function Workbench({
       };
     };
     const onDoubleClick = (event: MouseEvent): void => {
+      // The link itself, or the one in the row: a tree item or table row
+      // may hold its link inside, around less than the whole row.
       const link =
-        event.target instanceof Element ? event.target.closest('a') : null;
+        event.target instanceof Element
+          ? (event.target.closest('a') ??
+            event.target
+              .closest('[role="treeitem"], [role="row"], li, tr')
+              ?.querySelector('a'))
+          : null;
       const href = link?.getAttribute('href');
       const to =
         href === null || href === undefined
