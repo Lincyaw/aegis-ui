@@ -1,5 +1,13 @@
 # @lincyaw/aegis-ui
 
+## 0.25.4
+
+### Patch Changes
+
+- 89061df: `Workbench`: the close links' visually hidden text is contained by the tab
+  strip and its link, so a strip that overflows and scrolls no longer widens
+  the page.
+
 ## 0.25.3
 
 ### Patch Changes
