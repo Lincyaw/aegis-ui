@@ -827,6 +827,38 @@ function TourSpecimen() {
   );
 }
 
+function StickyTourSpecimen() {
+  const steps: TourStep[] = [
+    {
+      target: '.aegis-shell__header',
+      title: 'The sticky bar',
+      description:
+        'A target at the very top of the view, in a bar that scrolling does not move: the tour settles instead of scrolling for ever.',
+    },
+    {
+      target: '#gallery-sticky-tour-next',
+      title: 'Back in the page',
+      description: 'The next step scrolls to its target as usual.',
+    },
+  ];
+  const tour = useTour('gallery-sticky-specimen', steps, { autoStart: false });
+  return (
+    <div className='gallery__row'>
+      <Specimen caption='first target in the sticky shell header, at y < --space-4'>
+        <div className='gallery__row'>
+          <AegisButton tone='primary' onClick={tour.start}>
+            Start sticky tour
+          </AegisButton>
+          <AegisButton id='gallery-sticky-tour-next' tone='secondary'>
+            Second target
+          </AegisButton>
+        </div>
+        <Tour {...tour.tourProps} />
+      </Specimen>
+    </div>
+  );
+}
+
 function InlineTourSpecimen() {
   const steps: TourStep[] = [
     {
@@ -927,6 +959,9 @@ export function NavigationSection() {
         Tour · inline links
       </SectionDivider>
       <InlineTourSpecimen />
+
+      <SectionDivider>Tour · sticky target</SectionDivider>
+      <StickyTourSpecimen />
 
       <SectionDivider>Carousel</SectionDivider>
       <div className='gallery__row'>

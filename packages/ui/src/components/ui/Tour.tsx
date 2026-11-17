@@ -239,6 +239,47 @@ function TourPanel({
   );
 }
 
+/**
+ * The spotlight's margin around the target, cut to the room left of and
+ * above it in the view: antd draws the mask's cover above and to the left
+ * with what remains, which must not be negative.
+ */
+function edgeRoom(
+  element: HTMLElement | null,
+  offset: number,
+): [number, number] {
+  if (element === null) {
+    return [offset, offset];
+  }
+  const { left, top } = element.getBoundingClientRect();
+  const room = (edge: number): number =>
+    Math.max(0, Math.min(offset, Math.floor(edge)));
+  return [room(left), room(top)];
+}
+
+/**
+ * The room measured at the shown step's last alignment. Before it, antd
+ * still draws the spotlight where the previous step's target was for one
+ * render, so the room there bounds the margin too.
+ */
+function spotlightOffset(
+  room: { index: number; offset: [number, number] } | null,
+  shownIndex: number | null,
+  target: HTMLElement | null,
+  offset: number,
+): [number, number] {
+  if (room !== null && room.index === shownIndex) {
+    return room.offset;
+  }
+  const here = edgeRoom(target, offset);
+  return room === null
+    ? here
+    : [Math.min(here[0], room.offset[0]), Math.min(here[1], room.offset[1])];
+}
+
+/** Scroll adjustments per step at most, whatever the layout does back. */
+const MAX_SCROLL_PASSES = 3;
+
 function scrollParent(element: HTMLElement): HTMLElement {
   for (
     let parent = element.parentElement;
@@ -275,7 +316,13 @@ function keepInView(target: HTMLElement, panel: HTMLElement): boolean {
   if (Math.abs(delta) < 1) {
     return false;
   }
-  scrollParent(target).scrollBy({ top: delta });
+  const scroller = scrollParent(target);
+  const before = scroller.scrollTop;
+  scroller.scrollBy({ top: delta, behavior: 'instant' });
+  // At its end, or behind a sticky bar, the scroller does not move.
+  if (Math.abs(scroller.scrollTop - before) < 1) {
+    return false;
+  }
   // antd measures the spotlight only on resize; the scroll moved the target.
   window.dispatchEvent(new Event('resize'));
   return true;
@@ -382,16 +429,42 @@ export function Tour({
   // Adjusts the scroll after the step's first alignments, until nothing
   // needs to move; later alignments (the reader scrolling) are left alone.
   const settledRef = useRef<number | null>(null);
+  const passesRef = useRef(0);
   const shownIndex = visible ? present[position] : null;
   useEffect(() => {
     settledRef.current = null;
+    passesRef.current = 0;
   }, [shownIndex]);
+  // Measured again at each alignment, since a scroll moves the target.
+  const [room, setRoom] = useState<{
+    index: number;
+    offset: [number, number];
+  } | null>(null);
   const onPopupAlign = (popup: HTMLElement): void => {
-    if (shownIndex === null || settledRef.current === shownIndex) {
+    if (shownIndex === null || geometry === null) {
       return;
     }
+    const offset = edgeRoom(
+      resolveTarget(steps[shownIndex].target),
+      geometry.gap.offset,
+    );
+    setRoom((previous) =>
+      previous?.index === shownIndex &&
+      previous.offset[0] === offset[0] &&
+      previous.offset[1] === offset[1]
+        ? previous
+        : { index: shownIndex, offset },
+    );
+    if (settledRef.current === shownIndex) {
+      return;
+    }
+    passesRef.current += 1;
     const target = resolveTarget(steps[shownIndex].target);
-    if (target === null || !keepInView(target, popup)) {
+    if (
+      target === null ||
+      !keepInView(target, popup) ||
+      passesRef.current >= MAX_SCROLL_PASSES
+    ) {
       settledRef.current = shownIndex;
     }
   };
@@ -444,7 +517,15 @@ export function Tour({
       rootClassName="aegis-tour"
       closable={false}
       zIndex={geometry.zIndex}
-      gap={geometry.gap}
+      gap={{
+        offset: spotlightOffset(
+          room,
+          shownIndex,
+          shownIndex === null ? null : resolveTarget(steps[shownIndex].target),
+          geometry.gap.offset,
+        ),
+        radius: geometry.gap.radius,
+      }}
       indicatorsRender={() => null}
       actionsRender={() => null}
       getPopupContainer={inline ? mainOf : undefined}
