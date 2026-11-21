@@ -371,6 +371,8 @@ function WorkbenchPage(): ReactElement {
 /**
  * The shell with `chrome="sidebar"`: brand and controls in the sidebar,
  * bleed pages of bars over panes, the drawer toggle in each page's bar.
+ * The console sets `mobileBar`, so at 768 px and below the toggle, the
+ * brand and the header actions sit in the shell's bar above the page.
  */
 export const shellDemoApp: AegisApp = {
   id: 'shell-demo',

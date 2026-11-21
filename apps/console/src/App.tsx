@@ -49,6 +49,7 @@ export function ConsoleApp(): ReactElement {
         { path: '/error/forbidden', element: <Forbidden /> },
         { path: '/error/server', element: <ServerError /> },
       ]}
+      mobileBar
       headerActions={
         <>
           {agentmUrl && <AiDockHost />}

@@ -181,10 +181,19 @@ export interface AegisShellProps {
    * and the launcher head the sidebar, `headerActions`, the notification
    * bell and the user menu sit at its foot, and the sidebar shows for every
    * app. At 768 px and below the sidebar is the drawer, opened by the
-   * `ShellMenuToggle` the page puts in its top bar. `headerCenter`, an
+   * `ShellMenuToggle` the page puts in its top bar, or by the toggle of
+   * the shell's `mobileBar`. `headerCenter`, an
    * app's `header` and the sidebar collapse toggle have no place in it.
    */
   chrome?: 'header' | 'sidebar';
+  /**
+   * Under `chrome="sidebar"`, keeps `headerActions` in view at 768 px and
+   * below: a bar above the page, outside `<main>`, holds the drawer's
+   * toggle, the brand and the actions, which leave the sidebar's foot at
+   * that width, and a page's `ShellMenuToggle` renders nothing. Wider
+   * windows show the actions in the sidebar's foot only. Default false.
+   */
+  mobileBar?: boolean;
   /** Slot rendered in the top header center (e.g. global search). */
   headerCenter?: ReactNode;
   /** Slot rendered in the top header right side, before the user menu. */

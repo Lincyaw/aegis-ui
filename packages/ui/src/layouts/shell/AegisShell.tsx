@@ -37,6 +37,7 @@ import { AppSwitcher } from './AppSwitcher';
 import { BreadcrumbBar } from './BreadcrumbBar';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 import { ShellCommandPalette } from './ShellCommandPalette';
+import { ShellMenuToggle } from './ShellMenuToggle';
 import { ShellNotificationBell } from './ShellNotificationBell';
 import { Sidebar } from './Sidebar';
 import {
@@ -91,6 +92,7 @@ export function AegisShell({
   agentPanel,
   agentRuntime,
   chrome = 'header',
+  mobileBar = false,
 }: AegisShellProps): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
@@ -142,17 +144,17 @@ export function AegisShell({
   const mobileNav = useMobileNav(pathname);
 
   const sidebarChrome = (activeApp?.chrome ?? chrome) === 'sidebar';
-  const navValue = useMemo<ShellNavContextValue | null>(
-    () =>
-      sidebarChrome
-        ? {
-            open: mobileNav.open,
-            toggle: mobileNav.toggle,
-            toggleRef: mobileNav.toggleRef,
-          }
-        : null,
-    [sidebarChrome, mobileNav.open, mobileNav.toggle, mobileNav.toggleRef],
+  const shellMobileBar = sidebarChrome && mobileBar;
+  const drawerNav = useMemo<ShellNavContextValue>(
+    () => ({
+      open: mobileNav.open,
+      toggle: mobileNav.toggle,
+      toggleRef: mobileNav.toggleRef,
+    }),
+    [mobileNav.open, mobileNav.toggle, mobileNav.toggleRef],
   );
+  // The page's ShellMenuToggle is the drawer's only toggle unless the mobile bar holds it.
+  const navValue = sidebarChrome && !shellMobileBar ? drawerNav : null;
 
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsedValue(sidebarCollapsed ? '0' : '1');
@@ -218,6 +220,7 @@ export function AegisShell({
   const shellClass = [
     'aegis-shell',
     sidebarChrome ? 'aegis-shell--chrome-sidebar' : '',
+    shellMobileBar ? 'aegis-shell--mobile-bar' : '',
     hasSidebar ? 'aegis-shell--with-sidebar' : 'aegis-shell--no-sidebar',
     mobileNav.open ? 'aegis-shell--mobile-nav-open' : '',
     agent.open ? 'aegis-shell--with-agent-panel' : '',
@@ -269,6 +272,18 @@ export function AegisShell({
               onAgentPanelToggle={agent.toggle}
             />
           )}
+          {shellMobileBar && (
+            <div className="aegis-shell__mobile-bar">
+              <ShellNavContext.Provider value={drawerNav}>
+                <ShellMenuToggle />
+              </ShellNavContext.Provider>
+              <ShellBrand brand={brand} />
+              <div className="aegis-shell__mobile-bar-actions">
+                {headerActions}
+                {signInButton}
+              </div>
+            </div>
+          )}
           {sidebarChrome ? (
             <Sidebar
               activeApp={activeApp}
@@ -288,8 +303,10 @@ export function AegisShell({
               footer={
                 <>
                   <ActiveEnvironmentSwitcher />
-                  {headerActions}
-                  {signInButton}
+                  <div className="aegis-shell__sidebar-actions">
+                    {headerActions}
+                    {signInButton}
+                  </div>
                   {auth.status === 'authenticated' && inboxPath && (
                     <ShellNotificationBell inboxPath={inboxPath} />
                   )}

@@ -156,7 +156,10 @@ fills that square, so a host's logo needs no CSS of its own.
 The brand and the app launcher head the sidebar, and `headerActions`, the
 notification bell and the user menu sit at its foot. At 768 px and below the
 sidebar is the navigation drawer; each page opens it with `<ShellMenuToggle />`
-in its `Toolbar variant="page"`. Such an app usually also sets `bleed: true`
+in its `Toolbar variant="page"`. With `mobileBar` on the shell, the drawer
+closed no longer hides the actions: at 768 px and below a bar above `<main>`
+holds the drawer's toggle, the brand and `headerActions` (which leave the
+sidebar's foot at that width), and `<ShellMenuToggle />` renders nothing. Such an app usually also sets `bleed: true`
 and `breadcrumbBar: false`, so its pages are a page bar and a sub-bar over a
 `PaneLayout`. The `shell-demo` app in the dev console shows the arrangement.
 

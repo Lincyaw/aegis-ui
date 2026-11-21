@@ -1547,10 +1547,10 @@ export function LayoutsSection() {
       </div>
 
       <SectionDivider>
-        AegisShell · chrome=&apos;sidebar&apos; · ShellMenuToggle
+        AegisShell · chrome=&apos;sidebar&apos; · mobileBar · ShellMenuToggle
       </SectionDivider>
       <Specimen
-        caption="chrome='sidebar' (on the shell, or on one app): no header; the brand heads the sidebar, headerActions and the user menu sit at its foot; at ≤768 px the sidebar is the drawer, opened by ShellMenuToggle in the page's Toolbar variant='page' · the shell-demo app, in the dev console"
+        caption="chrome='sidebar' (on the shell, or on one app): no header; the brand heads the sidebar, headerActions and the user menu sit at its foot; at ≤768 px the sidebar is the drawer, opened by ShellMenuToggle in the page's Toolbar variant='page'; with mobileBar (the dev console sets it) a bar above the page, outside main, holds the drawer's toggle, the brand and headerActions at ≤768 px, and the sidebar's foot keeps them only when wider · the shell-demo app, in the dev console"
         span={3}
         align='start'
       >

@@ -584,6 +584,17 @@
   }
 }
 
+/* mobileBar: the header actions' bar above the page at 768 px and below.
+ * Wider, the actions sit in the sidebar's foot and the bar is not drawn,
+ * so exactly one copy of them is in view and in the accessibility tree. */
+.aegis-shell__mobile-bar {
+  display: none;
+}
+
+.aegis-shell__sidebar-actions {
+  display: contents;
+}
+
 /* Collapsing the sidebar is a desktop preference; phones keep the drawer. */
 @media (min-width: 769px) {
   .aegis-shell--no-sidebar .aegis-shell__sidebar {
@@ -748,5 +759,43 @@
 
   .aegis-shell__breadcrumb {
     padding: var(--space-3) var(--page-padding-inline-mobile) 0;
+  }
+
+  /* The bar is the header's row: the offsets under the header, the bleed
+     page's height and the drawer's top clear it, level with a page bar. */
+  .aegis-shell.aegis-shell--chrome-sidebar.aegis-shell--mobile-bar {
+    --header-height: var(--page-bar-height);
+    --page-bleed-height: calc(100vh - var(--header-height));
+
+    grid-template-rows: var(--header-height) minmax(0, 1fr);
+    grid-template-areas:
+      'header'
+      'main';
+  }
+
+  .aegis-shell__mobile-bar {
+    grid-area: header;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: 0 var(--page-padding-inline-mobile);
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    border-bottom: var(--size-hairline) solid var(--border-glass);
+  }
+
+  .aegis-shell__mobile-bar-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .aegis-shell--mobile-bar .aegis-shell__sidebar-actions {
+    display: none;
   }
 }

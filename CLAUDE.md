@@ -246,7 +246,10 @@ themselves render content only, never the layout chrome.
 With `chrome: 'sidebar'` (on the shell or on the app) there is no top
 header: the brand heads the sidebar, the header's actions and user menu sit
 at its foot, and at ≤768 px each page puts `<ShellMenuToggle />` in its
-`Toolbar variant="page"` to open the drawer. Pair it with `bleed: true` and
+`Toolbar variant="page"` to open the drawer. With `mobileBar` on the
+shell, a bar above `<main>` holds the toggle, the brand and the header's
+actions at ≤768 px instead (the page's `ShellMenuToggle` then renders
+nothing), so the actions stay in view while the drawer is closed. Pair it with `bleed: true` and
 `breadcrumbBar: false` for pages of bars over a `PaneLayout`.
 
 ## Where things live
